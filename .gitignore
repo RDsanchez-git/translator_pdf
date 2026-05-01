@@ -1,0 +1,16 @@
+# Entorno Python
+__pycache__/
+*.pyc
+.env
+venv/
+env/
+
+# Artefactos del Compilador
+MVP_traduccion.pdf
+debug.tex
+
+# Persistencia Local (Crucial ignorar esto)
+checkpoint.json
+checkpoint.json.tmp
+translation_cache.json
+translation_cache.json.tmp
