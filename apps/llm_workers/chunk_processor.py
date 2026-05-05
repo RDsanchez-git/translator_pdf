@@ -1,8 +1,9 @@
-import os
-import json
+import time
+import sqlite3
 import hashlib
 import logging
 import re
+import threading
 from tenacity import (
     retry, 
     wait_exponential, 
@@ -13,6 +14,7 @@ from tenacity import (
 )
 
 from core.ast.models import ASTNode
+from core.metrics.metrics import Metrics
 from apps.llm_workers.gemini_client import GeminiClient
 
 logger = logging.getLogger(__name__)
@@ -38,18 +40,23 @@ def _is_transient(e: Exception) -> bool:
 
 
 # =========================
-# Safe fallback (plain text → safe LaTeX)
+# Safe fallback (Esterilización SOTA para Tectonic)
 # =========================
-def _safe_fallback(text: str | None) -> str:
-    if not text:
+def _safe_fallback(content: str | None) -> str:
+    if not content:
         return ""
-
-    return (
-        text
-        .replace("\\", "\\textbackslash ")
-        .replace("_", "\\_")
-        .replace("%", "\\%")
-    )
+    
+    # Neutralizar la barra invertida primero para evitar doble escape
+    safe = content.replace("\\", "\\textbackslash ")
+    
+    # Escapar caracteres reservados que rompen el compilador en modo texto
+    for char in ["_", "$", "%", "&", "#", "{", "}"]:
+        safe = safe.replace(char, f"\\{char}")
+        
+    # Reemplazar tildes y acentos circunflejos con sus comandos de texto
+    safe = safe.replace("~", "\\textasciitilde ").replace("^", "\\textasciicircum ")
+    
+    return safe
 
 
 # =========================
@@ -61,100 +68,81 @@ def _sanitize_llm_latex(text: str) -> str:
 
 
 # =========================
-# Structural validation (cheap but effective)
+# Structural validation SOTA (Explicable)
 # =========================
-def _is_latex_structurally_suspicious(text: str) -> bool:
-    # --- Braces check (ignore escaped \{ \})
-    open_braces = len(re.findall(r'(?<!\\)\{', text))
-    close_braces = len(re.findall(r'(?<!\\)\}', text))
-    if open_braces != close_braces:
-        return True
+def validate_latex(text: str) -> tuple[bool, str]:
+    cleaned = re.sub(r"\\\$", "", text)
+    if cleaned.count("$") % 2 != 0:
+        return False, "Unbalanced $ math delimiters"
+    if text.count("{") != text.count("}"):
+        return False, "Unbalanced curly braces"
+    if "\\begin{itemize}" in text and "\\end{itemize}" not in text:
+        return False, "Unclosed itemize environment"
 
-    # --- Inline math check (ignore \$)
-    dollars = len(re.findall(r'(?<!\\)\$', text))
-    if dollars % 2 != 0:
-        return True
-
-    # --- begin/end balance (cheap heuristic)
-    begin_count = text.count(r'\begin')
-    end_count = text.count(r'\end')
-    if begin_count != end_count:
-        return True
-
-    # --- Unescaped math operators in plain text check (Robust literal stripping)
+    # Aislar bloques matemáticos legítimos
     math_spans = re.findall(r'(?<!\\)\$.*?(?<!\\)\$', text, flags=re.DOTALL)
     temp_text = text
-    # SOTA: Optimización iterando sobre un set para evitar múltiples pasadas del mismo span
     for span in set(math_spans):
         temp_text = temp_text.replace(span, '')
 
+    # Detectar operadores fuera de contexto matemático
     if re.search(r'(?<!\\)[_^]', temp_text):
-        return True
+        return False, "Unescaped math operator (_ or ^) outside math mode"
 
-    # --- WAF: Fake macros, literal backslashes and morphological anomalies
-    if re.search(r'[a-zA-Z]:\\[a-zA-Z]', text):
-        return True
-    if re.search(r'\\(?![%$\\])[ \t.,;:]', text):
-        return True
-
-    macros = re.findall(r'\\([A-Za-z]+)', text)
-    for m in macros:
-        # Exención explícita para macros estándar con mayúsculas intercaladas
-        KNOWN_CAMEL_MACROS = {"LaTeX", "TeX", "XeLaTeX", "LuaTeX", "BibTeX"}
-
-        if m in KNOWN_CAMEL_MACROS:
-            continue
-            
-        # Caso 1: macro absurdamente largo
-        if len(m) > 20:
-            return True
-            
-        # Caso 2: macro probablemente concatenado (camelCase raro)
-        if re.search(r'[a-z][A-Z]', m):
-            return True
-
-    return False
+    return True, ""
 
 
 # =========================
 # Processor
 # =========================
+
 class ChunkProcessor:
-    def __init__(self, client: GeminiClient, cache_file: str = "translation_cache.json"):
+    def __init__(self, client: GeminiClient, metrics: Metrics, db_path: str = "translation_cache.db"):
         self.client = client
-        self.cache_file = cache_file
-        self.cache = self._load_cache()
-        self._unsaved_entries = 0
-        self._prompt_version = "latex_v1"
+        self.metrics = metrics
+        self.db_path = db_path
+        self._prompt_version = "latex_v3_strict"
+        self._local = threading.local() # SOTA: Aislamiento de memoria por hilo
+        self._init_db()
 
-    def _load_cache(self) -> dict:
-        if os.path.exists(self.cache_file):
-            try:
-                with open(self.cache_file, "r", encoding="utf-8") as f:
-                    return json.load(f)
-            except json.JSONDecodeError:
-                logger.warning("Caché corrupta. Iniciando caché vacía.")
-        return {}
+    def _get_conn(self):
+        # Cada hilo instancia su propia conexión la primera vez que la pide
+        if not hasattr(self._local, "conn"):
+            self._local.conn = sqlite3.connect(self.db_path, timeout=10)
+            self._local.conn.execute("PRAGMA journal_mode=WAL")
+        return self._local.conn
 
-    def _save_cache(self):
-        tmp_path = f"{self.cache_file}.tmp"
-        with open(tmp_path, "w", encoding="utf-8") as f:
-            json.dump(self.cache, f, ensure_ascii=False, indent=2)
-        os.replace(tmp_path, self.cache_file)
-        self._unsaved_entries = 0
+    def _init_db(self):
+        # La tabla se inicializa en el hilo principal una sola vez
+        conn = sqlite3.connect(self.db_path)
+        conn.execute("PRAGMA journal_mode=WAL")
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS translations (
+                hash TEXT PRIMARY KEY,
+                result TEXT,
+                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        conn.commit()
+        conn.close()
 
-    def flush_cache(self):
-        if self._unsaved_entries > 0:
-            self._save_cache()
+    def _get_cache(self, text_hash: str) -> str | None:
+        cursor = self._get_conn().execute("SELECT result FROM translations WHERE hash = ?", (text_hash,))
+        row = cursor.fetchone()
+        return row[0] if row else None
+
+    def _set_cache(self, text_hash: str, result: str):
+        conn = self._get_conn()
+        conn.execute("INSERT INTO translations (hash, result) VALUES (?, ?) ON CONFLICT(hash) DO NOTHING", (text_hash, result))
+        conn.commit()
 
     def _compute_hash(self, text: str) -> str:
         payload = f"{self._prompt_version}::{text}"
         return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
     @retry(
-        wait=wait_exponential(multiplier=1, min=2, max=10),
-        # SOTA: Circuit breaker temporal. Detiene si supera 3 intentos O si el tiempo total excede 60s
-        stop=stop_after_attempt(3) | stop_after_delay(60),
+        wait=wait_exponential(multiplier=2, min=5, max=30),
+        stop=stop_after_attempt(5) | stop_after_delay(120),
         retry=retry_if_exception_type(LLMTransientError),
         before_sleep=before_sleep_log(logger, logging.WARNING),
         reraise=True
@@ -162,48 +150,85 @@ class ChunkProcessor:
     def _safe_translate(self, text: str) -> str:
         text_hash = self._compute_hash(text)
         
-        if text_hash in self.cache:
-            logger.info(f"Cache HIT (hash: {text_hash[:8]})")
-            return self.cache[text_hash]
+        cached_result = self._get_cache(text_hash)
+        if cached_result:
+            self.metrics.inc("cache_hit")
+            logger.info("cache_hit", extra={"extra_data": {"hash": text_hash[:8]}})
+            return cached_result
 
+        self.metrics.inc("cache_miss")
+        
         try:
+            # --- Intento 1
+            start_net = time.perf_counter()
             result = self.client.translate(text)
-            self.cache[text_hash] = result
-            self._unsaved_entries += 1
+            latency_net = time.perf_counter() - start_net
             
-            if self._unsaved_entries >= 10:
-                self._save_cache()
-                
-            return result
+            self.metrics.observe("llm_latency", latency_net)
+            self.metrics.inc("llm_calls")
+            logger.info("llm_call", extra={"extra_data": {"latency": round(latency_net, 3), "hash": text_hash[:8], "attempt": 1}})
+            
+            valid, reason = validate_latex(result)
+            if valid:
+                self._set_cache(text_hash, result)
+                time.sleep(12)  # SOTA: Throttle preventivo 5 RPM
+                return result
+
+            # --- Intento 2 (Self-reflection)
+            self.metrics.inc("llm_fix_attempt")
+            logger.warning("latex_validation_failed", extra={"extra_data": {"hash": text_hash[:8], "reason": reason}})
+            
+            start_fix = time.perf_counter()
+            fixed = self.client.fix_latex(result, reason)
+            latency_fix = time.perf_counter() - start_fix
+            
+            self.metrics.observe("llm_latency", latency_fix)
+            self.metrics.inc("llm_calls")
+            logger.info("llm_call", extra={"extra_data": {"latency": round(latency_fix, 3), "hash": text_hash[:8], "attempt": 2}})
+            
+            valid_fix, _ = validate_latex(fixed)
+            if valid_fix:
+                self._set_cache(text_hash, fixed)
+                time.sleep(12)  # SOTA: Throttle preventivo 5 RPM
+                return fixed
+
+            # --- Fallo total
+            self.metrics.inc("llm_fix_failed")
+            time.sleep(12)
+            return ""
+
         except Exception as e:
             if _is_transient(e):
                 raise LLMTransientError(e)
-            raise e 
+            raise e
 
     def process(self, node: ASTNode) -> ASTNode:
+        start_node = time.perf_counter()
         try:
             if node.type in ("text_block", "section"):
                 content = node.content or ""
-                
                 translated = self._safe_translate(content).strip()
                 translated = _sanitize_llm_latex(translated)
                 
+                latency_total = time.perf_counter() - start_node
+                self.metrics.observe("node_latency", latency_total)
+                
                 if not translated:
-                    logger.warning(f"Traducción vacía en nodo {node.node_id}, aplicando fallback")
+                    self.metrics.inc("status_fallback_empty")
                     return node.model_copy(update={"latex": _safe_fallback(content), "status": "fallback_empty"})
                     
-                elif _is_latex_structurally_suspicious(translated):
-                    logger.warning(f"Estructura LaTeX corrupta detectada en nodo {node.node_id}, aplicando fallback")
-                    return node.model_copy(update={"latex": _safe_fallback(content), "status": "fallback_suspicious"})
-                    
+                self.metrics.inc("status_ok")
                 return node.model_copy(update={"latex": translated, "status": "ok"})
                 
             elif node.type == "display_equation":
+                latency_total = time.perf_counter() - start_node
+                self.metrics.observe("node_latency", latency_total)
+                self.metrics.inc("status_ok")
                 return node.model_copy(update={"latex": node.latex or node.content, "status": "ok"})
                 
         except Exception as e:
-            logger.error(f"Fallo terminal en nodo {node.node_id}: {e}")
-            logger.warning(f"Fallback de emergencia aplicado en nodo {node.node_id}")
+            self.metrics.inc("status_error")
+            logger.error("terminal_error", extra={"extra_data": {"node_id": node.node_id, "error": str(e)}})
             return node.model_copy(update={"latex": _safe_fallback(node.content), "status": "error"})
             
         return node

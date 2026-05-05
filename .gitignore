@@ -14,3 +14,6 @@ checkpoint.json
 checkpoint.json.tmp
 translation_cache.json
 translation_cache.json.tmp
+
+# Entornos locales de IDE
+.vscode/
