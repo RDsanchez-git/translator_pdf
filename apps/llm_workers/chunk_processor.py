@@ -136,8 +136,9 @@ class ChunkProcessor:
         conn.execute("INSERT INTO translations (hash, result) VALUES (?, ?) ON CONFLICT(hash) DO NOTHING", (text_hash, result))
         conn.commit()
 
-    def _compute_hash(self, text: str) -> str:
-        payload = f"{self._prompt_version}::{text}"
+    def _compute_hash(self, text: str, chunk_idx: int, total_chunks: int) -> str:
+        # FIX 1: Hash dependiente del contexto semántico
+        payload = f"{self._prompt_version}::{chunk_idx}/{total_chunks}::{text}"
         return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
     @retry(
@@ -147,8 +148,8 @@ class ChunkProcessor:
         before_sleep=before_sleep_log(logger, logging.WARNING),
         reraise=True
     )
-    def _safe_translate(self, text: str) -> str:
-        text_hash = self._compute_hash(text)
+    def _safe_translate(self, text: str, chunk_idx: int = 1, total_chunks: int = 1) -> str:
+        text_hash = self._compute_hash(text, chunk_idx, total_chunks)
         
         cached_result = self._get_cache(text_hash)
         if cached_result:
@@ -161,7 +162,8 @@ class ChunkProcessor:
         try:
             # --- Intento 1
             start_net = time.perf_counter()
-            result = self.client.translate(text)
+            # SOTA: Transmisión de índices al cliente
+            result = self.client.translate(text, chunk_idx, total_chunks)
             latency_net = time.perf_counter() - start_net
             
             self.metrics.observe("llm_latency", latency_net)
@@ -202,13 +204,18 @@ class ChunkProcessor:
                 raise LLMTransientError(e)
             raise e
 
-    def process(self, node: ASTNode) -> ASTNode:
+    def process(self, node: ASTNode, chunk_idx: int = 1, total_chunks: int = 1) -> ASTNode:
         start_node = time.perf_counter()
         try:
             if node.type in ("text_block", "section"):
                 content = node.content or ""
-                translated = self._safe_translate(content).strip()
-                translated = _sanitize_llm_latex(translated)
+                
+                # FIX 2: Evitar eliminación de saltos estructurales (strip agresivo)
+                translated = self._safe_translate(content, chunk_idx, total_chunks)
+                if translated:
+                    translated = translated.strip("\n")
+                    # FIX 3: Sanitización condicionada
+                    translated = _sanitize_llm_latex(translated)
                 
                 latency_total = time.perf_counter() - start_node
                 self.metrics.observe("node_latency", latency_total)

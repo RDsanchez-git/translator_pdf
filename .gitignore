@@ -17,3 +17,5 @@ translation_cache.json.tmp
 
 # Entornos locales de IDE
 .vscode/
+
+translation_cache.db*

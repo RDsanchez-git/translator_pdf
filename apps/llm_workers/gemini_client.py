@@ -59,16 +59,46 @@ Output: \\begin{itemize}
             
         return result.strip()
 
-    def _build_prompt(self, text: str) -> str:
-        return f"{self.few_shot}\n\nTEXT TO TRANSLATE:\n{text}\n\nOUTPUT:\n"
+    def _build_prompt(self, text: str, chunk_idx: int, total_chunks: int) -> str:
+        # SOTA: Prompt Endurecido (Strict Negative Constraints)
+        chunk_context = f"""---
+        ESTA ES LA PARTE {chunk_idx} DE {total_chunks} DEL DOCUMENTO COMPLETO.
+
+        REGLAS CRÍTICAS:
+        - NO omitir contenido.
+        - NO resumir ni agregar explicaciones propias.
+        - NO repetir contenido de otras partes.
+        - NO inventar texto.
+
+        FORMATO DE ENTRADA (CRÍTICO):
+        - El texto puede contener una mezcla de texto plano y comandos LaTeX.
+        - Si un título aparece como texto plano (ej: "Section 1:"), NO lo conviertas en comando LaTeX.
+        - SOLO traduce literalmente sin cambiar el tipo de estructura original.
+
+        MATEMÁTICA:
+        - PROHIBIDO modificar símbolos matemáticos o renombrar variables (ej: x → y).
+        - PROHIBIDO simplificar expresiones.
+        - SI hay duda, copiar EXACTAMENTE el original.
+
+        LATEX Y MULTIMEDIA:
+        - Mantener estructura LaTeX intacta. NO modificar comandos como \\label, \\ref, \\cite, \\begin, \\end.
+        - TÍTULOS: Traduce el contenido de los comandos de sección (ej. \\section{{Introducción}}).
+        - FIGURAS Y TABLAS: Mantén intactos los entornos completos (figure, table, includegraphics). Deja el código fuente original intacto y traduce ÚNICAMENTE el texto dentro de los comandos \\caption{{...}}.
+
+        CONSISTENCIA:
+        - Mantener terminología técnica consistente dentro de ESTE fragmento.
+        - Traducir de forma fiel al original.
+        ---"""
+        return f"{self.few_shot}\n\n{chunk_context}\n\nTEXT TO TRANSLATE:\n{text}\n\nOUTPUT:\n"
 
     def _build_fix_prompt(self, broken_output: str, reason: str) -> str:
         return f"The following LaTeX output is INVALID.\n\nReason:\n{reason}\n\nFix the LaTeX structure while preserving the Spanish translation. Return ONLY valid LaTeX.\nDo not explain anything.\n\nBROKEN OUTPUT:\n{broken_output}\n\nFIXED OUTPUT:\n"
 
-    def translate(self, text: str) -> str:
+    def translate(self, text: str, chunk_idx: int = 1, total_chunks: int = 1) -> str:
         response = self.client.models.generate_content(
             model='gemini-2.5-flash',
-            contents=self._build_prompt(text),
+            # SOTA: Paso de índices dinámicos al generador de prompts
+            contents=self._build_prompt(text, chunk_idx, total_chunks),
             config=types.GenerateContentConfig(
                 system_instruction=self.system_instruction,
                 temperature=0.2
