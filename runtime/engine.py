@@ -5,11 +5,11 @@ import hashlib
 import time
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from core.ast.parser import parse_pdf
 
 # Asegurar que el entorno reconozca el módulo raíz
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from core.ast.parser import load_mock_ast
 from core.ast.models import ASTNode
 from apps.llm_workers.gemini_client import GeminiClient
 from apps.llm_workers.chunk_processor import ChunkProcessor, _safe_fallback
@@ -97,7 +97,8 @@ def main():
     pipeline_start = time.time()
     
     logger.info("1. Cargando AST y agrupando en Macro-Chunks...")
-    raw_ast = load_mock_ast(mode="large")
+    PDF_INPUT = "input.pdf"
+    raw_ast = parse_pdf(PDF_INPUT)
     
     # FIX 6: Log para debugging de tipos reales
     logger.info("AST node types", extra={"extra_data": {"types": list(set(n.type for n in raw_ast))}})

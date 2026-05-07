@@ -1,45 +1,69 @@
+import os
+import re
+import logging
+# NUEVA API de Marker 1.0+
+from marker.converters.pdf import PdfConverter
+from marker.models import create_model_dict
 from core.ast.models import ASTNode
 
-def load_mock_ast_small() -> list[ASTNode]:
-    """Test unitario: Inyección de casos hostiles para probar sanitización y fallback."""
-    return [
-        ASTNode(node_id="sec_1", type="section", content="Introduction to the Model"),
-        ASTNode(node_id="txt_1", type="text_block", content="The model achieves 99% accuracy and uses variable_name."),
-        ASTNode(node_id="eq_1", type="display_equation", latex="\\hat{y} = \\sum_{i=1}^{n} \\alpha_i x_i + \\epsilon"),
-        ASTNode(node_id="txt_2", type="text_block", content="This block contains a balanced brace {like this} which is safe for Tectonic."),
-        ASTNode(node_id="txt_3", type="text_block", content="Here we define the parameter $x_i$ for the objective function."),
-        ASTNode(node_id="txt_4", type="text_block", content="The path is C:\\Users\\Admin\\Data.")
-    ]
+logger = logging.getLogger(__name__)
 
-def load_mock_ast_large() -> list[ASTNode]:
-    """Test de integración: Carga volumétrica para forzar Macro-Chunking y consistencia de LLM."""
-    nodes = []
-    # Generamos 3 secciones. Cada sección superará los 800 caracteres para forzar el corte semántico.
-    for i in range(1, 4):
-        nodes.append(ASTNode(
-            node_id=f"sec_{i}", 
-            type="section", 
-            content=f"Section {i}: Econometric Model Analysis"
-        ))
-        nodes.append(ASTNode(
-            node_id=f"txt_{i}_1", 
-            type="text_block", 
-            content=("This academic paper studies the econometric function $f(x)$ and its primary properties. " * 15)
-        ))
-        nodes.append(ASTNode(
-            node_id=f"eq_{i}", 
-            type="display_equation", 
-            latex="\\hat{y} = \\sum_{i=1}^{n} \\alpha_i x_i + \\epsilon"
-        ))
-        nodes.append(ASTNode(
-            node_id=f"txt_{i}_2", 
-            type="text_block", 
-            content=("We reuse the function $f(x)$ defined earlier to compute the final regression results. " * 15)
-        ))
-    return nodes
+_converter = None
+DEBUG_PARSER = True  # Flag para observabilidad de Data Quality
 
-def load_mock_ast(mode: str = "large") -> list[ASTNode]:
-    """Enrutador de pruebas."""
-    if mode == "small":
-        return load_mock_ast_small()
-    return load_mock_ast_large()
+def _get_converter():
+    global _converter
+    if _converter is None:
+        logger.info("Cargando modelos pesados de Marker en memoria (solo la primera vez)...")
+        # create_model_dict carga los modelos. PdfConverter inicializa el motor.
+        _converter = PdfConverter(artifact_dict=create_model_dict())
+    return _converter
+
+def parse_pdf(pdf_path: str) -> list[ASTNode]:
+    """Extrae contenido de PDF (Fase 4A: Bootstrap Parser con API SOTA)."""
+    if not os.path.exists(pdf_path):
+        raise FileNotFoundError(f"PDF no encontrado: {pdf_path}")
+    
+    # Invocamos la nueva API de extracción
+    converter = _get_converter()
+    rendered = converter(pdf_path)
+    full_text = rendered.markdown
+    
+    # Separación SOTA por bloques semánticos de Markdown (doble salto de línea)
+    blocks = re.split(r'\n{2,}', full_text)
+    logger.info(f"Fase 4A: Marker finalizó. Bloques crudos detectados: {len(blocks)}")
+    
+    ast_nodes = []
+    stop_keywords = ["# references", "# bibliography", "# referencias", "# bibliografía", "## references"]
+    
+    for idx, block in enumerate(blocks):
+        block = block.strip()
+        if not block:
+            continue
+            
+        if any(block.lower().startswith(kw) for kw in stop_keywords):
+            logger.info(f"Corte por bibliografía en bloque {idx}. Extracción detenida.")
+            break
+            
+        node_type = "text_block"
+        if re.match(r'^#+\s+', block):
+            node_type = "section"
+            # SANEAMIENTO CAPA 2: Purgamos los '#' para que el LLM reciba texto limpio
+            block = re.sub(r'^#+\s*', '', block)
+        
+        # SANEAMIENTO CAPA 2: Neutralizamos imágenes Markdown antes del LLM
+        block = re.sub(r'!\[.*?\]\(.*?\)', '% [Imagen omitida]', block)
+        
+        # Observabilidad condicional
+        if DEBUG_PARSER:
+            preview = block[:150].replace('\n', ' ') + ("..." if len(block) > 150 else "")
+            logger.info(f"Nodo {idx} [{node_type}]: {preview}")
+        
+        ast_nodes.append(ASTNode(
+            node_id=f"node_{idx}",
+            type=node_type,
+            content=block
+        ))
+        
+    logger.info(f"Fase 4A: Nodos AST válidos inyectados al pipeline: {len(ast_nodes)}")
+    return ast_nodes
