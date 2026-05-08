@@ -13,7 +13,7 @@ from tenacity import (
     before_sleep_log
 )
 
-from core.ast.models import ASTNode
+from core.ast.models import ASTNode, NodeType
 from core.metrics.metrics import Metrics
 from apps.llm_workers.gemini_client import GeminiClient
 
@@ -142,8 +142,8 @@ class ChunkProcessor:
         return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
     @retry(
-        wait=wait_exponential(multiplier=2, min=5, max=30),
-        stop=stop_after_attempt(5) | stop_after_delay(120),
+        wait=wait_exponential(multiplier=2, min=5, max=45),
+        stop=stop_after_attempt(5) | stop_after_delay(300),
         retry=retry_if_exception_type(LLMTransientError),
         before_sleep=before_sleep_log(logger, logging.WARNING),
         reraise=True
@@ -207,14 +207,13 @@ class ChunkProcessor:
     def process(self, node: ASTNode, chunk_idx: int = 1, total_chunks: int = 1) -> ASTNode:
         start_node = time.perf_counter()
         try:
-            if node.type in ("text_block", "section"):
+            # SOTA: Enrutamiento semántico por Enum
+            if node.type in (NodeType.MACRO_CHUNK, NodeType.PARAGRAPH, NodeType.SECTION):
                 content = node.content or ""
                 
-                # FIX 2: Evitar eliminación de saltos estructurales (strip agresivo)
                 translated = self._safe_translate(content, chunk_idx, total_chunks)
                 if translated:
                     translated = translated.strip("\n")
-                    # FIX 3: Sanitización condicionada
                     translated = _sanitize_llm_latex(translated)
                 
                 latency_total = time.perf_counter() - start_node
@@ -227,7 +226,7 @@ class ChunkProcessor:
                 self.metrics.inc("status_ok")
                 return node.model_copy(update={"latex": translated, "status": "ok"})
                 
-            elif node.type == "display_equation":
+            elif node.type == NodeType.EQUATION:
                 latency_total = time.perf_counter() - start_node
                 self.metrics.observe("node_latency", latency_total)
                 self.metrics.inc("status_ok")

@@ -10,7 +10,7 @@ from core.ast.parser import parse_pdf
 # Asegurar que el entorno reconozca el módulo raíz
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from core.ast.models import ASTNode
+from core.ast.models import ASTNode, NodeType
 from apps.llm_workers.gemini_client import GeminiClient
 from apps.llm_workers.chunk_processor import ChunkProcessor, _safe_fallback
 from apps.compiler.tex_builder import TexBuilder
@@ -43,9 +43,9 @@ def _build_semantic_chunks(ast: list[ASTNode]) -> list[ASTNode]:
     current_len = 0
     chunk_idx = 1
     
-    # Fronteras estructurales (Ajustado)
-    boundaries = {"chapter", "section", "subsection", "subsubsection"}
-    
+    # Fronteras estructurales (Tipado Estricto)
+    boundaries = {NodeType.SECTION}
+
     for node in ast:
         # FIX 1: Fuente de verdad pura (previene re-inyección en retries)
         content = node.content or ""
@@ -60,9 +60,10 @@ def _build_semantic_chunks(ast: list[ASTNode]) -> list[ASTNode]:
         if is_boundary and current_len > 800:
             macro_nodes.append(ASTNode(
                 node_id=f"macro_{chunk_idx}",
-                type="text_block",
-                content="\n\n".join(current_content) # FIX 5: Espaciado LaTeX seguro
+                type=NodeType.MACRO_CHUNK, # Corrección semántica
+                content="\n\n".join(current_content)
             ))
+    
             chunk_idx += 1
             current_content = []
             current_len = 0
@@ -74,19 +75,21 @@ def _build_semantic_chunks(ast: list[ASTNode]) -> list[ASTNode]:
         if current_len > 4000:
             macro_nodes.append(ASTNode(
                 node_id=f"macro_{chunk_idx}",
-                type="text_block",
+                type=NodeType.MACRO_CHUNK, # Corrección semántica
                 content="\n\n".join(current_content)
             ))
+    
             chunk_idx += 1
             current_content = []
             current_len = 0
             
     if current_content:
         macro_nodes.append(ASTNode(
-            node_id=f"macro_{chunk_idx}",
-            type="text_block",
-            content="\n\n".join(current_content)
-        ))
+                node_id=f"macro_{chunk_idx}",
+                type=NodeType.MACRO_CHUNK, # Corrección semántica
+                content="\n\n".join(current_content)
+            ))
+    
         
     # FIX 8: Sanity check log
     logger.info("macro_chunks_built", extra={"extra_data": {"count": len(macro_nodes)}})
