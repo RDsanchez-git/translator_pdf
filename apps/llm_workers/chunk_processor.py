@@ -136,9 +136,9 @@ class ChunkProcessor:
         conn.execute("INSERT INTO translations (hash, result) VALUES (?, ?) ON CONFLICT(hash) DO NOTHING", (text_hash, result))
         conn.commit()
 
-    def _compute_hash(self, text: str, chunk_idx: int, total_chunks: int) -> str:
-        # FIX 1: Hash dependiente del contexto semántico
-        payload = f"{self._prompt_version}::{chunk_idx}/{total_chunks}::{text}"
+    def _compute_hash(self, node: ASTNode, chunk_idx: int, total_chunks: int) -> str:
+        # FIX: El hash ahora asegura que un cambio de tipo de nodo invalide la caché
+        payload = f"{self._prompt_version}::{node.type.value}::{chunk_idx}/{total_chunks}::{node.content}"
         return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
     @retry(
@@ -148,8 +148,15 @@ class ChunkProcessor:
         before_sleep=before_sleep_log(logger, logging.WARNING),
         reraise=True
     )
-    def _safe_translate(self, text: str, chunk_idx: int = 1, total_chunks: int = 1) -> str:
-        text_hash = self._compute_hash(text, chunk_idx, total_chunks)
+    @retry(
+        wait=wait_exponential(multiplier=2, min=10, max=65),
+        stop=stop_after_attempt(8) | stop_after_delay(600),
+        retry=retry_if_exception_type(LLMTransientError),
+        before_sleep=before_sleep_log(logger, logging.WARNING),
+        reraise=True
+    )
+    def _safe_translate(self, node: ASTNode, chunk_idx: int = 1, total_chunks: int = 1) -> str:
+        text_hash = self._compute_hash(node, chunk_idx, total_chunks)
         
         cached_result = self._get_cache(text_hash)
         if cached_result:
@@ -160,10 +167,9 @@ class ChunkProcessor:
         self.metrics.inc("cache_miss")
         
         try:
-            # --- Intento 1
             start_net = time.perf_counter()
-            # SOTA: Transmisión de índices al cliente
-            result = self.client.translate(text, chunk_idx, total_chunks)
+            # SOTA: Transmisión del nodo completo al cliente
+            result = self.client.translate(node, chunk_idx, total_chunks)
             latency_net = time.perf_counter() - start_net
             
             self.metrics.observe("llm_latency", latency_net)
@@ -173,10 +179,9 @@ class ChunkProcessor:
             valid, reason = validate_latex(result)
             if valid:
                 self._set_cache(text_hash, result)
-                time.sleep(12)  # SOTA: Throttle preventivo 5 RPM
+                time.sleep(12)
                 return result
 
-            # --- Intento 2 (Self-reflection)
             self.metrics.inc("llm_fix_attempt")
             logger.warning("latex_validation_failed", extra={"extra_data": {"hash": text_hash[:8], "reason": reason}})
             
@@ -191,10 +196,9 @@ class ChunkProcessor:
             valid_fix, _ = validate_latex(fixed)
             if valid_fix:
                 self._set_cache(text_hash, fixed)
-                time.sleep(12)  # SOTA: Throttle preventivo 5 RPM
+                time.sleep(12)
                 return fixed
 
-            # --- Fallo total
             self.metrics.inc("llm_fix_failed")
             time.sleep(12)
             return ""
@@ -207,11 +211,9 @@ class ChunkProcessor:
     def process(self, node: ASTNode, chunk_idx: int = 1, total_chunks: int = 1) -> ASTNode:
         start_node = time.perf_counter()
         try:
-            # SOTA: Enrutamiento semántico por Enum
             if node.type in (NodeType.MACRO_CHUNK, NodeType.PARAGRAPH, NodeType.SECTION):
-                content = node.content or ""
-                
-                translated = self._safe_translate(content, chunk_idx, total_chunks)
+                # SOTA: Pasamos el nodo completo en lugar de content
+                translated = self._safe_translate(node, chunk_idx, total_chunks)
                 if translated:
                     translated = translated.strip("\n")
                     translated = _sanitize_llm_latex(translated)
@@ -221,7 +223,7 @@ class ChunkProcessor:
                 
                 if not translated:
                     self.metrics.inc("status_fallback_empty")
-                    return node.model_copy(update={"latex": _safe_fallback(content), "status": "fallback_empty"})
+                    return node.model_copy(update={"latex": _safe_fallback(node.content), "status": "fallback_empty"})
                     
                 self.metrics.inc("status_ok")
                 return node.model_copy(update={"latex": translated, "status": "ok"})
