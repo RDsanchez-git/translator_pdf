@@ -1,0 +1,23 @@
+=== TEX GENERADO ===
+\documentclass[11pt,a4paper]{article}
+\usepackage{fontspec}
+\usepackage{amsmath, amssymb}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\begin{document}
+\end{document}
+
+=== TECTONIC STDOUT ===
+note: Running TeX ...
+note: downloading fontspec.sty
+note: downloading fontspec-xetex.sty
+note: downloading fontenc.sty
+note: downloading fontspec.cfg
+note: Rerunning TeX because "doc.aux" changed ...
+note: Running xdvipdfmx ...
+
+
+=== TECTONIC STDERR ===
+warning: did not produce "doc.xdv"; this may mean that your document is empty
+warning: did not produce "doc.xdv"; this may mean that your document is empty
+error: cannot open "doc.xdv"

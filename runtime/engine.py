@@ -3,67 +3,74 @@ import sys
 import json
 import hashlib
 import time
+import uuid
+import random
+import sqlite3
 import logging
+from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from core.ast.parser import parse_pdf
 
-# Asegurar que el entorno reconozca el módulo raíz
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from core.ast.models import ASTNode, NodeType
 from apps.llm_workers.gemini_client import GeminiClient
-from apps.llm_workers.chunk_processor import ChunkProcessor, _safe_fallback
+from apps.llm_workers.chunk_processor import ChunkProcessor
 from apps.compiler.tex_builder import TexBuilder
 from apps.compiler.docker_runner import DockerRunner
 from core.utils.logger import setup_logger
 from core.metrics.metrics import Metrics
 
-# SOTA: Inicialización de telemetría y logs estructurados
+from infra.db.repository import DocumentRepository
+from infra.db.fsm_repository import FSMRepository
+from core.execution.exceptions import PipelineIntegrityError, OptimisticLockError
+from core.execution.state import (
+    DocumentState, TERMINAL_STATES,
+    StartParsingCommand, StartProcessingCommand, MarkAssemblyReadyCommand,
+    StartAssemblyCommand, MarkCompilationReadyCommand, StartCompilationCommand,
+    CompleteDocumentCommand, FailDocumentCommand
+)
+from core.execution.handlers import DocumentCommandHandler
+
 setup_logger()
 metrics = Metrics()
 logger = logging.getLogger(__name__)
 
-CHECKPOINT_INTERVAL = 5
-CHECKPOINT_FILE = "checkpoint.json"
+DB_PATH = "infra/db/document_engine.db"
 
 def compute_ast_hash(ast: list[ASTNode]) -> str:
-    raw = json.dumps([
-        {"node_id": n.node_id, "type": n.type, "content": n.content}
-        for n in ast
-    ], sort_keys=True)
+    def serialize_node(n: ASTNode) -> dict:
+        return {
+            "node_id": n.node_id,
+            "type": str(n.type),
+            "content": n.content,
+            "latex": getattr(n, "latex", None),
+            "children": [serialize_node(c) for c in getattr(n, "children", [])] if getattr(n, "children", None) else []
+        }
+        
+    raw = json.dumps(
+        [serialize_node(n) for n in ast], 
+        sort_keys=True,
+        ensure_ascii=False,
+        separators=(",", ":")
+    )
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
-# =========================
-# Interceptor SOTA: Semantic Chunking (Purificado)
-# =========================
 def _build_semantic_chunks(ast: list[ASTNode]) -> list[ASTNode]:
-    """Agrupa nodos microscópicos en macro-bloques semánticos seguros."""
     macro_nodes = []
     current_content = []
     current_len = 0
     chunk_idx = 1
-    
-    # Fronteras estructurales (Tipado Estricto)
     boundaries = {NodeType.SECTION}
 
     for node in ast:
-        # FIX 1: Fuente de verdad pura (previene re-inyección en retries)
         content = node.content or ""
-        
-        # FIX 3: Evitar destrucción de nodos estructurales por un strip() agresivo
         if content is None:
             continue
             
         is_boundary = node.type in boundaries
-        
-        # FIX 7: Corte natural ajustado a 800 chars
         if is_boundary and current_len > 800:
-            macro_nodes.append(ASTNode(
-                node_id=f"macro_{chunk_idx}",
-                type=NodeType.MACRO_CHUNK, # Corrección semántica
-                content="\n\n".join(current_content)
-            ))
-    
+            macro_nodes.append(ASTNode(node_id=f"macro_{chunk_idx}", type=NodeType.MACRO_CHUNK, content="\n\n".join(current_content)))
             chunk_idx += 1
             current_content = []
             current_len = 0
@@ -71,138 +78,223 @@ def _build_semantic_chunks(ast: list[ASTNode]) -> list[ASTNode]:
         current_content.append(content)
         current_len += len(content)
         
-        # Corte de emergencia
         if current_len > 4000:
-            macro_nodes.append(ASTNode(
-                node_id=f"macro_{chunk_idx}",
-                type=NodeType.MACRO_CHUNK, # Corrección semántica
-                content="\n\n".join(current_content)
-            ))
-    
+            macro_nodes.append(ASTNode(node_id=f"macro_{chunk_idx}", type=NodeType.MACRO_CHUNK, content="\n\n".join(current_content)))
             chunk_idx += 1
             current_content = []
             current_len = 0
             
     if current_content:
-        macro_nodes.append(ASTNode(
-                node_id=f"macro_{chunk_idx}",
-                type=NodeType.MACRO_CHUNK, # Corrección semántica
-                content="\n\n".join(current_content)
-            ))
-    
+        macro_nodes.append(ASTNode(node_id=f"macro_{chunk_idx}", type=NodeType.MACRO_CHUNK, content="\n\n".join(current_content)))
         
-    # FIX 8: Sanity check log
     logger.info("macro_chunks_built", extra={"extra_data": {"count": len(macro_nodes)}})
     return macro_nodes
 
-
-def main():
+def run_pipeline(pdf_input_path: str = "input.pdf", pdf_output_name: str = "MVP_traduccion.pdf") -> dict:
     pipeline_start = time.time()
     
-    logger.info("1. Cargando AST y agrupando en Macro-Chunks...")
-    PDF_INPUT = "input.pdf"
-    raw_ast = parse_pdf(PDF_INPUT)
+    with open(pdf_input_path, "rb") as f:
+        document_id = hashlib.sha256(f.read()).hexdigest()
+        
+    logger.info(f"Procesando Documento [ID: {document_id[:8]}]")
     
-    # FIX 6: Log para debugging de tipos reales
-    logger.info("AST node types", extra={"extra_data": {"types": list(set(n.type for n in raw_ast))}})
-    
+    raw_ast = parse_pdf(pdf_input_path)
     ast = _build_semantic_chunks(raw_ast)
-    current_ast_hash = compute_ast_hash(ast)
-
-    logger.info("2. Inicializando LLM y dependencias...")
+    ast_hash = compute_ast_hash(ast)
+    
+    # Bootstrap de Infraestructura FSM
+    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
+    db_conn = sqlite3.connect(DB_PATH, timeout=15)
+    db_conn.execute("PRAGMA journal_mode=WAL")
+    db_conn.execute("PRAGMA synchronous=NORMAL")
+    
+    schema_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "infra", "db", "schema.sql")
+    with open(schema_path, "r", encoding="utf-8") as f:
+        db_conn.executescript(f.read())
+        
+    repo = DocumentRepository(db_conn)
+    fsm_repo = FSMRepository(db_conn)
+    cmd_handler = DocumentCommandHandler(fsm_repo)
+    
     client = GeminiClient()
-    processor = ChunkProcessor(client, metrics)
+    processor = ChunkProcessor(client, metrics, DB_PATH)
 
-    ast_order_map = {n.node_id: idx for idx, n in enumerate(ast)}
+    owner_id = f"orchestrator_{uuid.uuid4().hex[:8]}"
+    fsm_repo.initialize_document(document_id, ast_hash)
 
-    logger.info("3. Restaurando estado local...")
-    processed = []
-    processed_ids = set()
-    
-    if os.path.exists(CHECKPOINT_FILE):
+    retry_attempt = 0 
+    output_path_obj = Path(pdf_output_name)
+    tex_path = str(output_path_obj.parent / f"debug_{output_path_obj.stem}.tex")
+
+    current_state = None # SOTA: Pre-asignación para evitar UnboundLocalError en crash prematuro
+
+    # --- SOTA: BUCLE DE ORQUESTACIÓN DETERMINISTA (DURABLE RUNTIME) ---
+    while True:
         try:
-            with open(CHECKPOINT_FILE, "r", encoding="utf-8") as f:
-                data = json.load(f)
+            # 1. Extracción de Proyección FSM
+            doc_status = fsm_repo.get_status(document_id, ast_hash)
+            if not doc_status:
+                logger.critical("Documento perdido en la capa FSM.")
+                break
+                
+            current_state = DocumentState(doc_status["state"])
+            current_version = doc_status["version"]
             
-            if data.get("ast_hash") != current_ast_hash:
-                logger.warning("Deriva de AST detectada. Hash no coincide. Ignorando checkpoint.")
+            if current_state in TERMINAL_STATES:
+                logger.info("PIPELINE_TERMINATED", extra={"extra_data": {"final_state": current_state.value}})
+                break
+
+            # 2. Gestión Transaccional de Leases
+            now = time.time()
+            lease_owner = doc_status.get("lease_owner")
+            lease_expires = doc_status.get("lease_expires_at") or 0
+            
+            if lease_owner != owner_id or now > lease_expires:
+                current_version = fsm_repo.acquire_lease(document_id, ast_hash, owner_id, ttl_sec=600)
             else:
-                processed = [ASTNode(**n) for n in data.get("nodes", [])]
-                processed_ids = {n.node_id for n in processed}
-                logger.info(f"Retomando desde checkpoint. Macro-Chunks previamente procesados: {len(processed)}")
+                fsm_repo.renew_lease(document_id, ast_hash, owner_id, ttl_sec=600)
+
+            # 3. State-Driven Execution (Sin Estado en RAM)
+            if current_state == DocumentState.CREATED:
+                cmd = StartParsingCommand(document_id, ast_hash, owner_id, current_version)
+                cmd_handler.handle(cmd)
+                retry_attempt = 0
+                
+            elif current_state == DocumentState.PARSING:
+                cmd = StartProcessingCommand(document_id, ast_hash, owner_id, current_version)
+                cmd_handler.handle(cmd)
+                retry_attempt = 0
+                
+            elif current_state == DocumentState.PROCESSING:
+                # 3a. Identificar faltantes reales en CQRS
+                cursor = db_conn.execute("SELECT node_id FROM valid_chunks_cache WHERE document_id = ? AND ast_hash = ?", (document_id, ast_hash))
+                processed_ids = {row[0] for row in cursor.fetchall()}
+                pending_nodes = [n for n in ast if n.node_id not in processed_ids]
+                
+                # 3b. Despacho Síncrono a Granja de Workers (Protección contra fuga de hilos)
+                if pending_nodes:
+                    total_chunks = len(ast)
+                    with ThreadPoolExecutor(max_workers=2) as executor:
+                        future_to_node = {
+                            executor.submit(processor.process_and_commit, node, document_id, ast_hash, idx, total_chunks): node
+                            for idx, node in enumerate(pending_nodes, 1)
+                        }
+                        for future in as_completed(future_to_node):
+                            _ = future.result() 
+                            fsm_repo.renew_lease(document_id, ast_hash, owner_id, ttl_sec=600)
+                
+                # 3c. Barrera de Integridad Estricta
+                ordered_node_ids = [n.node_id for n in ast]
+                valid_chunks_data = repo.get_assemblable_chunks(document_id, ast_hash, ordered_node_ids)
+                
+                returned_ids = [n[0] for n in valid_chunks_data]
+                set_expected = set(ordered_node_ids)
+                set_returned = set(returned_ids)
+                
+                if len(returned_ids) != len(set_returned):
+                    raise PipelineIntegrityError("CRÍTICO: El Query Model devolvió IDs duplicados.")
+                
+                unexpected = set_returned - set_expected
+                if unexpected:
+                    raise PipelineIntegrityError(f"CRÍTICO: Nodos fantasma inyectados: {list(unexpected)}")
+                
+                if set_expected == set_returned:
+                    cmd = MarkAssemblyReadyCommand(document_id, ast_hash, owner_id, current_version)
+                    cmd_handler.handle(cmd)
+                    retry_attempt = 0
+                else:
+                    # SOTA: Backoff Exponencial + Jitter
+                    sleep_sec = min(30.0, 2.0 * (1.5 ** retry_attempt)) + random.uniform(0.1, 1.0)
+                    logger.warning(f"Esperando {len(set_expected - set_returned)} fragmentos. Durmiendo {sleep_sec:.2f}s...")
+                    time.sleep(sleep_sec)
+                    retry_attempt += 1
+                    
+            elif current_state == DocumentState.READY_FOR_ASSEMBLY:
+                cmd = StartAssemblyCommand(document_id, ast_hash, owner_id, current_version)
+                cmd_handler.handle(cmd)
+                retry_attempt = 0
+                
+            elif current_state == DocumentState.ASSEMBLING:
+                # Recuperar del disco/CQRS. Nada en RAM global.
+                ordered_node_ids = [n.node_id for n in ast]
+                valid_chunks_data = repo.get_assemblable_chunks(document_id, ast_hash, ordered_node_ids)
+                
+                builder = TexBuilder()
+                tex_document = builder.build(valid_chunks_data)
+                
+                Path(tex_path).parent.mkdir(parents=True, exist_ok=True)
+                with open(tex_path, "w", encoding="utf-8") as f:
+                    f.write(tex_document)
+                
+                # Destruimos tex_document de la RAM explícitamente
+                del tex_document 
+                    
+                cmd = MarkCompilationReadyCommand(document_id, ast_hash, owner_id, current_version)
+                cmd_handler.handle(cmd)
+                retry_attempt = 0
+                
+            elif current_state == DocumentState.READY_FOR_COMPILATION:
+                cmd = StartCompilationCommand(document_id, ast_hash, owner_id, current_version)
+                cmd_handler.handle(cmd)
+                retry_attempt = 0
+                
+            elif current_state == DocumentState.COMPILING:
+                # SOTA: Ejecución Stateless. El compilador lee directo del disco.
+                if not os.path.exists(tex_path):
+                    raise PipelineIntegrityError(f"Artefacto intermedio perdido: {tex_path}")
+                    
+                runner = DockerRunner()
+                
+                # Leemos estrictamente para inyectar al runner (si el runner no acepta Path directo)
+                # SOTA: Se asume que el runner internamente manejará los volúmenes Docker
+                with open(tex_path, "r", encoding="utf-8") as f:
+                    tex_payload = f.read()
+                    
+                t_comp_start = time.perf_counter()
+                pdf_path = runner.compile(tex_payload, output_filename=pdf_output_name)
+                metrics.observe("compile_sec", time.perf_counter() - t_comp_start)
+                
+                # SOTA: Observabilidad del artefacto físico final antes de la transición
+                logger.info("artifact_compiled", extra={"extra_data": {"pdf_path": str(pdf_path)}})
+                
+                cmd = CompleteDocumentCommand(document_id, ast_hash, owner_id, current_version)
+                cmd_handler.handle(cmd)
+                retry_attempt = 0
+                
+        except OptimisticLockError as e:
+            logger.warning(f"Lease perdido/expirado o lock conflict. Abortando orquestador local: {e}")
+            break
+            
         except Exception as e:
-            logger.warning(f"Fallo al leer checkpoint, iniciando desde cero: {e}")
-            processed = []
-            processed_ids = set()
-    
-    logger.info("4. Procesando Macro-Chunks en red...")
-    
-    processed_map = {n.node_id: n for n in processed}
-    pending_nodes = [n for n in ast if n.node_id not in processed_ids]
-    
-    total_chunks = len(ast)
-
-    with ThreadPoolExecutor(max_workers=1) as executor:
-        future_to_node = {}
-        # FIX 2: Eliminación de loop O(N^2). Complejidad restaurada a O(N).
-        for idx, node in enumerate(pending_nodes, 1):
-            future = executor.submit(processor.process, node, idx, total_chunks)
-            future_to_node[future] = node
-
-        for count, future in enumerate(as_completed(future_to_node), 1):
-            node = future_to_node[future]
+            # SOTA: Extracción segura del valor por si current_state sigue siendo None
+            state_val = current_state.value if current_state else "UNKNOWN"
+            logger.error("STATE_EXECUTION_FAILURE", extra={"extra_data": {"state": state_val, "error": str(e)[:250]}})
             try:
-                result = future.result()
-                processed_map[node.node_id] = result
-            except Exception as e:
-                logger.error("fatal_thread_error", extra={"extra_data": {"node_id": node.node_id, "error": str(e)}})
-                processed_map[node.node_id] = node.model_copy(
-                    update={"latex": _safe_fallback(node.content), "status": "error"}
-                )
+                doc_status = fsm_repo.get_status(document_id, ast_hash)
+                # Si falla antes de tener versión, intentamos usar 0 o la de la DB
+                safe_version = doc_status.get("version", 0) if doc_status else 0
+                fail_cmd = FailDocumentCommand(document_id, ast_hash, owner_id, safe_version, reason=str(e)[:250])
+                cmd_handler.handle(fail_cmd)
+            except Exception as fsm_err:
+                logger.critical(f"DOOMSDAY: No se pudo persistir FAILED. Lock Roto permanentemente. {fsm_err}")
+            break
 
-            if count % CHECKPOINT_INTERVAL == 0 or count == len(pending_nodes):
-                tmp_path = f"{CHECKPOINT_FILE}.tmp"
-                
-                ordered_current_nodes = sorted(
-                    processed_map.values(), 
-                    key=lambda x: ast_order_map.get(x.node_id, float('inf'))
-                )
-                
-                payload = {
-                    "ast_hash": current_ast_hash,
-                    "nodes": [n.model_dump() for n in ordered_current_nodes]
-                }
-                with open(tmp_path, "w", encoding="utf-8") as f:
-                    json.dump(payload, f, indent=2, ensure_ascii=False)
-                os.replace(tmp_path, CHECKPOINT_FILE)
-                logger.info("checkpoint_saved", extra={"extra_data": {"nodes_processed": len(processed_map)}})
-
-    # --- Ensamblaje topológico final
-    processed = list(processed_map.values())
-    processed.sort(key=lambda x: ast_order_map.get(x.node_id, float('inf')))
-    
-    # --- Telemetría SOTA
-    summary = metrics.summary()
-    logger.info("metrics_summary", extra={"extra_data": summary})
-
-    logger.info("5. Ensamblando LaTeX...")
-    builder = TexBuilder()
-    tex = builder.build(processed)
-    
-    debug_tex_path = "debug.tex"
-    with open(debug_tex_path, "w", encoding="utf-8") as f:
-        f.write(tex)
-    
-    logger.info("6. Compilando mediante Docker...")
-    runner = DockerRunner()
-    pdf_path = runner.compile(tex, output_filename="MVP_traduccion.pdf")
+    try:
+        fsm_repo.release_lease(document_id, ast_hash, owner_id)
+    except Exception:
+        pass
+        
+    db_conn.close()
     
     total_time = time.time() - pipeline_start
+    final_state_val = current_state.value if current_state else "UNKNOWN"
+    
     logger.info("pipeline_complete", extra={"extra_data": {
-        "status": "success",
-        "total_time_sec": round(total_time, 2),
-        "artifact_path": pdf_path
+        "status": "success" if current_state == DocumentState.COMPLETED else "failed",
+        "total_time_sec": round(total_time, 2)
     }})
+    
+    return {"status": "terminal_reached", "final_state": final_state_val}
 
 if __name__ == "__main__":
-    main()
+    run_pipeline()

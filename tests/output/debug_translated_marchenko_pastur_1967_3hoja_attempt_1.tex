@@ -1,0 +1,102 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath, amssymb}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\begin{document}
+% [NODE_ID: macro_1]
+$$m = -\left\{z + \frac{iac}{1 - iam}\right\}^{-1} \quad (m = m(z; c)).$$
+
+Al resolver esta ecuación cuadrática para *m(z; c)* obtenemos, por (1.8), la siguiente expresión para *v(k; c)*:
+
+$$v(\lambda; c) = v_1(\lambda; c) + v_2(\lambda; c),$$
+
+donde
+
+$$\frac{dv_1(\lambda;c)}{d\lambda} = \begin{cases} (1-c)\delta(\lambda) & \text{para } 0 \leqslant c \leqslant 1, \\ 0 & \text{para } c > 1, \end{cases}$$
+
+$$\frac{dv_2(\lambda;c)}{d\lambda} = \frac{\sqrt{\frac{1}{2} \left(\sqrt{\left(\lambda^2 + \lambda_1^2\right) \left(\lambda^2 + \lambda_2^2\right)} + \lambda^2 - \lambda_1 \lambda_2\right) - \lambda}}{2a\lambda}$$
+$$\lambda_{1,2} = a \left(1 \pm \sqrt{c}\right)^2.$$
+
+De estas fórmulas vemos que en este caso el espectro ocupa todo el eje, como era de esperar de la ilimitación de *τ·*
+
+Observamos en conclusión que es, por regla general, imposible encontrar *m(z; c),* y más aún encontrar *v (Xi c),* en forma explícita, ya que (1.14) es, en general, no resoluble explícitamente para *m* (z; c). En este sentido, los ejemplos anteriores son excepcionales. Sin embargo, con frecuencia es posible obtener una imagen cualitativa del espectro: el número y la disposición de sus componentes conexas, y también el comportamiento de *Αλί c)* cerca del límite del espectro. Tenemos en mente lo siguiente: en los intervalos complementarios al espectro en el eje real, la función *m (x +* iO; c) existe y es continua, real y monótonamente creciente. Por lo tanto, la función inversa existe en estos intervalos, también real y monótonamente creciente. Además, su rango de valores es claramente solo el complemento del espectro. Al denotar esta función inversa por *x(m; c)* y usando (1.14) obtenemos
+
+$$x(m; c) = x_0(m; c) + c \int_{-\infty}^{\infty} \frac{\tau \, d\sigma(\tau)}{1 + \tau m},$$
+ (1.15)
+
+donde \*"(« ) es la función inversa de «"(\*). Así, tenemos la siguiente regla para determinar el espectro: es necesario localizar los intervalos donde la función del lado derecho de (1.15) es monótonamente creciente y luego determinar el conjunto de sus valores en estos intervalos. El espectro es el complemento de este conjunto.
+
+Por lo tanto, si *a* es el punto final de uno de los intervalos en los que el lado derecho de (1.15) es monótonamente creciente, entonces
+
+$$\lambda_a = x_0(a) + c \int_{-\infty}^{\infty} \frac{\tau \, d\sigma \, (\tau)}{1 + \tau a} \tag{1.16}$$
+
+es el punto final de uno de los componentes conexos del espectro. Supongamos que en la vecindad
+
+De la ley fuerte de los grandes números encontramos que cuando re —> oo casi con certeza tenemos *η~ 1 Σ η \_ τι* —*\** /ι *y<sup>A</sup> \x\da(x),* de donde, por la desigualdad precedente, el teorema de Glivenko de sumabilidad de *τ(ζ),* concluimos que, cuando *η* —» °o, casi con certeza
+
+$$\int_{0}^{\beta_{n}} |\tau(\xi, T_{n}) - \tau(\xi)| d\xi \leqslant \frac{1}{A} + \int_{|x| \geqslant A} |x| d\sigma(x)$$
+
+para cualquier *A >* 0. Pero esto significa que \_F« *\τ(ξ, T<sup>n</sup> ) - τ(ξ)\<1ξ* casi con certeza tiende a cero para *η* —> <χ>. De manera similar, encontramos que /\_ " *\τ(ξ, T<sup>n</sup> ) - τ(φ\άξ* casi con certeza tiende a cero cuando *η* —\* °°. Q.E.D.
+
+Observación. Este lema se requiere a continuación solo para el caso en que la cantidad aleatoria *τ* es acotada.
+
+% [NODE_ID: macro_2]
+\S 3. Deducción de la ecuación básica
+
+Demostraremos el Teorema 1 asumiendo primero que las cantidades aleatorias $r_j$ están acotadas, es decir, existe un número $T > 0$ tal que cualquier realización de $r_j$ satisface
+
+$$|\tau_i| < T. \tag{3.0}$$
+
+Esta restricción se eliminará al pasar a un límite. Pero en las próximas dos secciones se asume que (3-0) se cumple.
+
+Supongamos que $T^n, Q^n$ es una realización de $\tau$ y $q$ que entran en (1.1). En esta realización numeramos los pares $r_j, q^{(1)}$ en orden creciente de $r_j$:
+
+$$\tau_1 \leqslant \tau_2 \leqslant \ldots \leqslant \tau_n, \quad q^{(1)} \leqslant q^{(2)} \leqslant \ldots \leqslant q^{(n)}$$
+
+y construimos una cadena de operadores $B^N(i)$ ($i = 1, 2, \ldots, n$) estableciendo
+
+$$B_N(i) = A_N + \sum_{\alpha=1}^{i} \tau_{\alpha} q^{(\alpha)}(\cdot, q^{(\alpha)}) \tag{3.1}$$
+
+de modo que $B^N(0) = A_N,$ y los $B^N(n)$ son los operadores (1.1) que nos interesan. Denotamos las resolventes de los operadores $B^N(i)$ por $R_z(i).$ Para cada realización $T^n, Q^n$ formamos la función $u(z, \xi; N, T^n, Q^n)$ definida para todo $z$ no real y $\xi$ real $\xi \in [\theta, 1]$ por
+
+$$u(z, \xi; N, T_n, Q_n) = N^{-1} \operatorname{Sp} R_z(i) + nN^{-1} \operatorname{Sp} \left\{R_z(i+1) - R_z(i)\right\} \left(\xi - \frac{i}{n}\right) \tag{3.2}$$
+para $\xi \in \left[\frac{i}{n}, \frac{i+1}{n}\right] \quad (i = 0, 1, ..., n-1).$
+
+Nótese que $u(z, 0; N, T^n, Q^n)$ y $u(z, 1; N, T^n, Q^n)$ son las transformadas de Stieltjes de las funciones espectrales normalizadas de los operadores $A_N$ y $B^N(n):$
+
+$$u(z, 0; N, T_n, Q_n) = N^{-1} \operatorname{Sp} R_z(0) = \int_{-\infty}^{\infty} \frac{dv(\lambda; A_N)}{\lambda - z} \tag{3.3}$$
+
+$$u(z, 1; N, T_n, Q_n) = N^{-1} \operatorname{Sp} R_z(n) = \int_{-\infty}^{\infty} \frac{dv(\lambda; B_N(n))}{\lambda - z} \tag{3.3'}$$
+
+Para los valores restantes de $z \in [\theta, 1]$ la función $u(z, \xi; N, T^n, Q^n)$ es la transformada de Stieltjes de respecto a la cual $\nu(\lambda)$ se encuentra mediante la fórmula de inversión
+
+$$v(\lambda_2) - v(\lambda_1) = \lim_{r \to 1-0} \frac{1}{2\pi} \int_{\lambda_1}^{\lambda_2} \operatorname{Re} n(re^{-i\theta}) d\theta.$$
+
+Teorema 3. Si cuando $N \to \infty$ la función espectral normalizada de $V_N$ tiende a una función $\nu_0(\lambda)$ en todos sus puntos de continuidad y se satisfacen las condiciones I y III del \S 1, entonces la secuencia de funciones espectrales normalizadas de los operadores $U_N(n)$ converge en probabilidad cuando $N \to \infty$ a una función $\nu(\lambda; c)$ en todos sus puntos de continuidad. La función $n(z; c)$ correspondiente a $\nu(\lambda; c)$ por (5.6) es la solución de la ecuación
+
+$$\frac{\partial u(z,t)}{\partial t} + 2z \frac{\partial}{\partial z} \ln \left[ 1 + iu(z,t) \operatorname{tg} \frac{\tau(t)}{2} \right], \quad u(z,0) = n_0(z) = \int_0^{2\pi} \frac{e^{i\lambda} + z}{e^{i\lambda} - z} dv_0(\lambda).$$
+
+evaluada en $t = 1$. Esta ecuación tiene una solución única (en la clase de funciones con parte real positiva para $|z| < 1$), dada implícitamente por la fórmula
+
+$$u\left(z,t\right)=n_{0}\Bigg(z\exp\left\{-2c\int\limits_{0}^{t}\frac{i\operatorname{tg}\frac{\tau\left(\xi\right)}{2}}{1+iu\left(z,t\right)\operatorname{tg}\frac{\tau\left(\xi\right)}{2}}d\xi\right\}\Bigg).$$
+
+Recibido el 4 NOV 66
+
+% [NODE_ID: macro_3]
+BIBLIOGRAFÍA
+
+- [1] F. J. Dyson, La dinámica de una cadena lineal desordenada, Physical Rev. (2) 92 (1953), 1331-1338. MR 15, 492.
+- I. M. Lifšic, Sobre perturbaciones regulares degeneradas. II: Espectro cuasicontinuo y continuo,
+   Ž. Eksper. Teoret. Fiz. 17 (1947), 1076-1089. (Ruso) MR 9, 358.
+- [3] \_\_\_\_\_, Estructura del espectro de energía y estados cuánticos de sistemas condensados desordenados, Uspehi Fiz. Nauk 83 (1964), 617-663 = Soviet Physics Uspekhi 7 (1965), 549-573. MR 31 \#5597.
+- [4] E. P. Wigner, Sobre la distribución de las raíces de ciertas matrices simétricas, Ann. of Math. (2) 67 (1958), 325-327. MR 20 \#2029.
+- [5] V. V. Gnedenko, Curso de teoría de la probabilidad, GITTL, Moscú, 1950; 4.ª ed., "Nauka". Moscú, 1965; trad. ingl., Chelsea, Nueva York, 4.ª ed., 1967. MR 13, 565.
+- [6] A. D. Myškis, La unicidad de la solución del problema de Cauchy, Uspehi Mat. Nauk 3 (1948), no. 2 (24), 3-46. (Ruso) MR 10, 302.
+
+Traducido por:
+
+M. L. Glasser
+
+\end{document}

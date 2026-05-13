@@ -4,6 +4,7 @@ from google.genai import types
 
 from apps.llm_workers.prompt_builder import PromptBuilder
 from core.ast.models import ASTNode
+from core.utils.rate_limiter import GLOBAL_RATE_LIMITER
 
 class GeminiClient:
     def __init__(self, api_key: str | None = None):
@@ -12,6 +13,9 @@ class GeminiClient:
             raise ValueError("GEMINI_API_KEY no encontrada.")
         
         self.client = genai.Client(api_key=key)
+        
+        # SOTA: Consumo del regulador global (previene colisiones multi-cliente)
+        self.limiter = GLOBAL_RATE_LIMITER
 
         # SOTA: System instruction endurecido con ejemplos (Few-Shot integrados)
         self.system_instruction = """You are an expert LaTeX translator.
@@ -65,26 +69,35 @@ class GeminiClient:
         return f"The following LaTeX output is INVALID.\n\nReason:\n{reason}\n\nFix the LaTeX structure while preserving the Spanish translation. Return ONLY valid LaTeX.\nDo not explain anything.\n\nBROKEN OUTPUT:\n{broken_output}\n\nFIXED OUTPUT:\n"
 
     def translate(self, node: ASTNode, chunk_idx: int = 1, total_chunks: int = 1) -> str:
-        # SOTA: Generación dinámica delegada al Builder
         prompt = PromptBuilder.build(node, chunk_idx, total_chunks)
         
-        response = self.client.models.generate_content(
-            model='gemini-2.5-flash',
-            contents=prompt,  # Corrección exacta del error reportado por Pylance
-            config=types.GenerateContentConfig(
-                system_instruction=self.system_instruction,
-                temperature=0.2
+        # SOTA: Barrera de entrada
+        self.limiter.acquire()
+        try:
+            response = self.client.models.generate_content(
+                model='gemini-2.5-flash',
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    system_instruction=self.system_instruction,
+                    temperature=0.2
+                )
             )
-        )
-        return self._clean_response(response.text)
+            return self._clean_response(response.text)
+        finally:
+            # SOTA: Barrera de salida
+            self.limiter.release()
 
     def fix_latex(self, broken_output: str, reason: str) -> str:
-        response = self.client.models.generate_content(
-            model='gemini-2.5-flash',
-            contents=self._build_fix_prompt(broken_output, reason),
-            config=types.GenerateContentConfig(
-                system_instruction=self.system_instruction,
-                temperature=0.1
+        self.limiter.acquire()
+        try:
+            response = self.client.models.generate_content(
+                model='gemini-2.5-flash',
+                contents=self._build_fix_prompt(broken_output, reason),
+                config=types.GenerateContentConfig(
+                    system_instruction=self.system_instruction,
+                    temperature=0.1
+                )
             )
-        )
-        return self._clean_response(response.text)
+            return self._clean_response(response.text)
+        finally:
+            self.limiter.release()

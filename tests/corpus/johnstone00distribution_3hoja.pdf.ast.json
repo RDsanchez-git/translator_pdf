@@ -1,0 +1,338 @@
+[
+  {
+    "node_id": "node_0",
+    "type": "section",
+    "content": "On the distribution of the largest principal component",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_1",
+    "type": "paragraph",
+    "content": "Iain M. Johnstone\\*",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_2",
+    "type": "paragraph",
+    "content": "Department of Statistics, Stanford University",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_3",
+    "type": "paragraph",
+    "content": "August 8, 2000",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_4",
+    "type": "section",
+    "content": "Abstract",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_5",
+    "type": "paragraph",
+    "content": "Let  $x_{(1)}$  denote square of the largest singular value of an  $n \\times p$  matrix X, all of whose entries are independent standard Gaussian variates. Equivalently,  $x_{(1)}$  is the largest principal component of the covariance matrix X'X, or the largest eigenvalue of a p variate Wishart distribution on n degrees of freedom with identity covariance.",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_6",
+    "type": "paragraph",
+    "content": "Consider the limit of large p and n with  $n/p = \\gamma \\ge 1$ . When centered by  $\\mu_p = (\\sqrt{n-1} + \\sqrt{p})^2$  and scaled by  $\\sigma_p = (\\sqrt{n-1} + \\sqrt{p})(1/\\sqrt{n-1} + 1/\\sqrt{p})^{1/3}$  the distribution of  $x_{(1)}$  approaches the Tracy-Widom law of order 1, which is defined in terms of the Painlevé II differential equation, and can be numerically evaluated and tabulated in software. Simulations show the approximation to be informative for n and p as small as 5.",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_7",
+    "type": "paragraph",
+    "content": "The limit is derived via a corresponding result for complex Wishart matrices using methods from random matrix theory. The result suggests that some aspects of large p multivariate distribution theory may be easier to apply in practice than their fixed p counterparts.",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_8",
+    "type": "section",
+    "content": "1 Introduction",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_9",
+    "type": "paragraph",
+    "content": "The study of sample covariance matrices is fundamental in multivariate analysis. With contemporary data, the matrix is often large, with number of variables comparable to sample size. In this setting, relatively little is known about the distribution of the largest eigenvalue, or principal component, especially in null cases. A second impetus for this work comes from random matrix theory, a domain of mathematical physics and probability that has seen exciting recent development - for example the long sought asymptotic distribution of the length of the longest increasing subsequence in a random permutation (Baik et al., 1999). Some of these remarkable tools can be borrowed for covariance matrices. A surprise is that the results seem to give useful information about principal components for quite small values of n and p.",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_10",
+    "type": "paragraph",
+    "content": "Let X be an n by p data matrix. Typically, one thinks of n observations or cases  $\\vec{x}_i$  of a p dimensional row vector which has covariance matrix  $\\Sigma$ . For definiteness, assume that the",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_11",
+    "type": "paragraph",
+    "content": "<sup>\\*</sup>Acknowledgements: Presented as the Laplace lecture at the 5th World Congress of Bernoulli Society and 63rd Annual meeting of the Institute of Mathematical Statistics, Guanajuato, Mexico. For discussions, references and software, many thanks to Persi Diaconis, Sun Holmes, Craig Tracy, Harold Widom, Joe Eaton, Amir Dembo and Peter Bickel. Supported in part by NSF DMS 95-05151 and 00-72661. Key Words and Phrases. Karhunen-Loève transform, empirical orthogonal functions, largest eigenvalue, Largest singular value, Laguerre ensemble, Laguerre polynomial, Wishart distribution, Plancherel-Rotach asymptotics, Painlevé equation, Tracy-Widom distribution, Random matrix theory, Fredholm determinant, Liouville-Green method.",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_12",
+    "type": "paragraph",
+    "content": "mally explain the variation in the data. In this case",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_13",
+    "type": "paragraph",
+    "content": "$$l_j = \\max\\{\\frac{u'Su}{u'u} : u \\perp u_1, \\dots, u_{j-1}\\}$$",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_14",
+    "type": "paragraph",
+    "content": "Here a key practical question emerges: how many principal components should be retained as being 'significant'?",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_15",
+    "type": "paragraph",
+    "content": "The \"scree plot\" (e.g. Mardia et al. (1979)) is one of the many graphical and informal methods that have been proposed. One plots the ordered sample eigenvalues or singular values, and looks for an \"elbow\", or other break between presumably significant and presumably unimportant components. In the phoneme example, Figure 1(c) there are clearly three large values, but what about the fourth, fifth etc.?",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_16",
+    "type": "paragraph",
+    "content": "% [Imagen omitida]",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_17",
+    "type": "paragraph",
+    "content": "Figure 1: Panel (a): a single instance of a periodogram from the phoneme dataset, (b) ten instances, to indicate variability, (c) Screeplot of eigenvalues in phoneme example",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_18",
+    "type": "paragraph",
+    "content": "In the study of eigenvalue distributions, two general areas can be distinguished: the bulk, which refers to the properties of the full set  $l_1 > l_2 ... > l_p$ , and the extremes, which addresses the (first few) largest and smallest eigenvalues. To provide context for later results, here is a brief and necessarily selective account.",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_19",
+    "type": "section",
+    "content": "1.1 Bulk spectrum",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_20",
+    "type": "paragraph",
+    "content": "For square symmetric random matrices, the celebrated semi-circle law of Wigner (1955 1958) describes the limiting density of eigenvalues. There is an analog for covariance matrices due to Marčenko and Pastur (1967), and independently, Stein (1969).",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_21",
+    "type": "paragraph",
+    "content": "The Marčenko-Pastur result is stated here for Wishart matrices with identity covariance  $\\Sigma = I$ , but is true more generally, including non-null cases. Suppose that both n and p tend to  $\\infty$ , in some ratio  $n/p \\to \\gamma \\ge 1$ . Then the empirical distribution of the eigenvalues converges almost surely:",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_22",
+    "type": "paragraph",
+    "content": "$$G_p(t) = \\frac{1}{p} \\#\\{l_i : l_i \\le nt\\} \\to G(t)$$\n (1.1)",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_23",
+    "type": "paragraph",
+    "content": "and the limiting distribution has a density q(t) = G'(t)",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_24",
+    "type": "paragraph",
+    "content": "$$g(t) = \\frac{\\gamma}{2\\pi t} \\sqrt{(b-t)(t-a)}, \\quad a \\le t \\le b.$$",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_25",
+    "type": "paragraph",
+    "content": "$$(1.2)$$",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_26",
+    "type": "paragraph",
+    "content": "where  $a = (1 - \\gamma^{-1/2})^2$  and  $b = (1 + \\gamma^{-1/2})^2$ . Compare Figure 2(a). Thus, the smaller n/p, the more spread the eigenvalues – even asymptotically, the spread of the empirical",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_27",
+    "type": "paragraph",
+    "content": "through for Gaussian Hermitian Wigner matrices. Presumably this can be extended to null Gaussian covariance matrices.",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_28",
+    "type": "paragraph",
+    "content": "c) Many techniques of classical multivariate analysis are based on the roots of determinantal equations such as  $\\det[A_1 - l(A_1 + A_2)] = 0$ , with  $A_i \\sim W_p(n_i, I)$  independently. Thus, one might ask, for example, for an approximation to the distribution of the largest canonical correlation when  $p, n_1$  and  $n_2$  are large.",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_29",
+    "type": "section",
+    "content": "2 Determinant Formulas, Laguerre heuristics",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_30",
+    "type": "paragraph",
+    "content": "The joint density of the latent roots of a real Wishart matrix was found in 1939, in a remarkable instance of simultaneous publication, independently by each of Fisher, Girshick, Hsu, Mood and Roy – see Wilks (1962) for citations and Section 4 below. For reasons just given, we start with the complex version of this density. So, let X be an  $n \\times N$  complex normal matrix with Re  $X_{ij}$ , Im  $X_{ij}$  all independently and identically distributed as  $N(0, \\frac{1}{2})$  (Eaton, 1983). The cross products matrix  $X^*X$  then has the complex Wishart distribution with identity covariance matrix. The eigenvalues  $x = (x_1, \\ldots, x_N)$  of  $X^*X$  are real and non-negative, and have density (James, 1964)",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_31",
+    "type": "paragraph",
+    "content": "$$P_N(x_1, \\dots, x_N) = c_{N,n}^{-1} \\prod_{1 \\le j \\le k \\le N} (x_j - x_k)^2 \\prod_{j=1}^N x_j^{\\alpha} e^{-x_j}, \\qquad \\alpha = n - N.$$\n (2.1)",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_32",
+    "type": "paragraph",
+    "content": "[Warning! Notation change: to accord with the RMT literature, we henceforth write the sample eigenvalues as  $x_1 > \\ldots > x_N$ , rather than  $l_1 > \\ldots > l_n$ .]",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_33",
+    "type": "paragraph",
+    "content": "Efforts to use density (2.1) directly to get information on the largest eigenvalue are frustrated by the high dimensionality and the Jacobian term  $\\prod_{j < k} (x_j - x_k)^2$ . Random matrix theory (RMT) addresses this by starting with the Vandermonde determinant identity",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_34",
+    "type": "paragraph",
+    "content": "$$\\prod_{1 \\le j,k \\le p} (x_j - x_k) = \\det_{1 \\le j,k \\le N} [x_j^{k-1}]. \\tag{2.2}$$",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_35",
+    "type": "paragraph",
+    "content": "One sees polynomials in each of the eigenvalues with degrees up to N-1. Let  $w(x) = x^{\\alpha}e^{-x}$  be the Laguerre weight function, and  $\\phi_k(x) = \\phi_k(x;\\alpha)$  be functions obtained by orthonormalizing the sequence  $x^k w^{1/2}(x)$  in  $L^2(0,\\infty)$ : in fact",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_36",
+    "type": "paragraph",
+    "content": "$$\\phi_k(x) = \\sqrt{\\frac{k!}{(k+\\alpha)!}} x^{\\alpha/2} e^{-x/2} L_k^{\\alpha}(x)$$\n (2.3)",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_37",
+    "type": "paragraph",
+    "content": "where  $L_h^{\\alpha}(x)$  are the Laguerre polynomials, defined as in, e.g. Szegő (1967).",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_38",
+    "type": "paragraph",
+    "content": "A standard argument [e.g. Mehta (1991, Ch. 5), Deift (1999b, Ch. 5.)] yields a remarkable determinant representation for the joint density",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_39",
+    "type": "paragraph",
+    "content": "$$P_N(x_1, \\dots, x_N) = \\frac{1}{N!} \\det_{1 < j,k < N} S(x_j, x_k).$$",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_40",
+    "type": "paragraph",
+    "content": "where the bilinear kernel  $S = S_N$  is given by",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_41",
+    "type": "paragraph",
+    "content": "$$S(x,y) = \\sum_{k=0}^{N-1} \\phi_k(x)\\phi_k(y).$$\n (2.4)",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  }
+]

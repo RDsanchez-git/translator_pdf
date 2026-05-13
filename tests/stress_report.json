@@ -1,0 +1,23 @@
+{
+    "total_documents": 3,
+    "success_rate": 0.0,
+    "auto_healed_count": 0,
+    "failed_count": 3,
+    "results": {
+        "johnstone00distribution_3hoja.pdf": {
+            "status": "failed",
+            "error_type": "empty_document_error",
+            "stderr": "=== TEX GENERADO ===\n\\documentclass[11pt,a4paper]{article}\n\\usepackage{fontspec}\n\\usepackage{amsmath, amssymb}\n\\usepackage{graphicx}\n\\usepackage{hyperref}\n\\begin{document}\n\\end{document}\n\n=== TECTONIC STDOUT ===\nnote: Running TeX ...\nnote: downloading fontspec.sty\nnote: downloading fontspec-xetex.sty\nnote: downloading fontenc.sty\nnote: downloading fontspec.cfg\nnote: Rerunning TeX because \"doc.aux\" changed ...\nnote: Running xdvipdfmx ...\n\n\n=== TECTONIC STDERR ===\nwarning: did not produce \"doc.xdv\"; this may mean that your document is empty\nwarning: did not produce \"doc.xdv\"; this may mean that your document is empty\nerror: cannot open \"doc.xdv\"\n"
+        },
+        "marchenko_pastur_1967_3hoja.pdf": {
+            "status": "failed",
+            "error_type": "empty_document_error",
+            "stderr": "=== TEX GENERADO ===\n\\documentclass[11pt,a4paper]{article}\n\\usepackage{fontspec}\n\\usepackage{amsmath, amssymb}\n\\usepackage{graphicx}\n\\usepackage{hyperref}\n\\begin{document}\n\\end{document}\n\n=== TECTONIC STDOUT ===\nnote: Running TeX ...\nnote: downloading fontspec.sty\nnote: downloading fontspec-xetex.sty\nnote: downloading fontenc.sty\nnote: downloading fontspec.cfg\nnote: Rerunning TeX because \"doc.aux\" changed ...\nnote: Running xdvipdfmx ...\n\n\n=== TECTONIC STDERR ===\nwarning: did not produce \"doc.xdv\"; this may mean that your document is empty\nwarning: did not produce \"doc.xdv\"; this may mean that your document is empty\nerror: cannot open \"doc.xdv\"\n"
+        },
+        "[Amoretal_2023]_3hojas.pdf": {
+            "status": "failed",
+            "error_type": "empty_document_error",
+            "stderr": "=== TEX GENERADO ===\n\\documentclass[11pt,a4paper]{article}\n\\usepackage{fontspec}\n\\usepackage{amsmath, amssymb}\n\\usepackage{graphicx}\n\\usepackage{hyperref}\n\\begin{document}\n\\end{document}\n\n=== TECTONIC STDOUT ===\nnote: Running TeX ...\nnote: downloading fontspec.sty\nnote: downloading fontspec-xetex.sty\nnote: downloading fontenc.sty\nnote: downloading fontspec.cfg\nnote: Rerunning TeX because \"doc.aux\" changed ...\nnote: Running xdvipdfmx ...\n\n\n=== TECTONIC STDERR ===\nwarning: did not produce \"doc.xdv\"; this may mean that your document is empty\nwarning: did not produce \"doc.xdv\"; this may mean that your document is empty\nerror: cannot open \"doc.xdv\"\n"
+        }
+    }
+}

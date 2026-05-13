@@ -1,0 +1,330 @@
+[
+  {
+    "node_id": "node_0",
+    "type": "paragraph",
+    "content": "$$m = -\\left\\{z + \\frac{iac}{1 - iam}\\right\\}^{-1} \\quad (m = m(z; c)).$$",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_1",
+    "type": "paragraph",
+    "content": "By solving this quadratic equation for *m{z;* c) we obtain, by (1.8), the following expression for *vik,* c):",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_2",
+    "type": "paragraph",
+    "content": "$$v(\\lambda; c) = v_1(\\lambda; c) + v_2(\\lambda; c),$$",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_3",
+    "type": "paragraph",
+    "content": "where",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_4",
+    "type": "paragraph",
+    "content": "$$\\frac{dv_1(\\lambda;c)}{d\\lambda} = \\begin{cases} (1-c)\\delta(\\lambda) & \\text{for } 0 \\leqslant c \\leqslant 1, \\\\ 0 & \\text{for } c > 1, \\end{cases}$$",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_5",
+    "type": "paragraph",
+    "content": "$$\\frac{dv_2(\\lambda;c)}{d\\lambda} = \\frac{\\sqrt{\\frac{1}{2} \\left(\\sqrt{\\left(\\lambda^2 + \\lambda_1^2\\right) \\left(\\lambda^2 + \\lambda_2^2\\right)} + \\lambda^2 - \\lambda_1 \\lambda_2\\right) - \\lambda}}{2a\\lambda}$$\n$$\\lambda_{1,2} = a \\left(1 \\pm \\sqrt{c}\\right)^2.$$",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_6",
+    "type": "paragraph",
+    "content": "From these formulas we see that in this case the spectrum occupies the entire axis, as was to be expected from the unboundedness of *τ·*",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_7",
+    "type": "paragraph",
+    "content": "We note in conclusion that it is, as a rule, impossible to find *m(z; c),* and even more so to find *v (Xi c),* in explicit form, since (1.14) is, generally speaking, not explicitly solvable for *m* (z; c). In this sense the above examples are exceptional. Nevertheless, it is frequently possible to obtain a qualitative picture of the spectrum: the number and arrangement of its connected components, and also the behavior of *Αλί c)* near the boundary of the spectrum. We have in mind the following: on the intervals complementary to the spectrum on the real axis the function *m (x +* iO; c) exists and is continuous, real and montonically increasing. Hence, the inverse function exists on these intervals-also real and monotonically increasing. Furthermore, its range of values is clearly just the complement of the spectrum. By denoting this inverse function by *x{m; c)* and using (1.14) we obtain",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_8",
+    "type": "paragraph",
+    "content": "$$x(m; c) = x_0(m; c) + c \\int_{-\\infty}^{\\infty} \\frac{\\tau \\, d\\sigma(\\tau)}{1 + \\tau m},$$\n (1.15)",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_9",
+    "type": "paragraph",
+    "content": "where \\*\"(« ) is the function inverse to «\"(\\*). Thus we have the following rule for determining the spectrum: it is necessary to locate the intervals where the function on the right-hand side of (1.15) is monotonically increasing and then to determine the set of its values on these intervals. The spectrum is the complement of this set.",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_10",
+    "type": "paragraph",
+    "content": "Therefore if *a* is the endpoint of one of the intervals on which the right-hand side of (1.15) is monotonically increasing, then",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_11",
+    "type": "paragraph",
+    "content": "$$\\lambda_a = x_0(a) + c \\int_{-\\infty}^{\\infty} \\frac{\\tau \\, d\\sigma \\, (\\tau)}{1 + \\tau a} \\tag{1.16}$$",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_12",
+    "type": "paragraph",
+    "content": "is the endpoint of one of the connected components of the spectrum. Suppose that in the neighborhood",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_13",
+    "type": "paragraph",
+    "content": "From the strong law of large numbers we find that as re —> oo we almost certainly have *η~ 1 Σ η \\_ τι* —*\\** /ι *y<sup>A</sup> \\x\\da(x),* whence, by the preceding inequality, Glivenko's theore summability of *τ(ζ),* we conclude that, as *η* —» °o, almost certainly",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_14",
+    "type": "paragraph",
+    "content": "$$\\int_{0}^{\\beta_{n}} |\\tau(\\xi, T_{n}) - \\tau(\\xi)| d\\xi \\leqslant \\frac{1}{A} + \\int_{|x| \\geqslant A} |x| d\\sigma(x)$$",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_15",
+    "type": "paragraph",
+    "content": "for any *A >* 0. But this means that \\_F« *\\τ(ξ, T<sup>n</sup> ) - τ(ξ)\\<1ξ* almost certainly tends to zero for *η* —> <χ>. Similarly, we find that /}\\_ \" *\\τ(ξ, T<sup>n</sup> ) - τ(φ\\άξ* almost certainly tends to zero as *η* —\\* °°. Q.E.D.",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_16",
+    "type": "paragraph",
+    "content": "Remark. This lemma is required below only for the case where the random quantity *τ* is bounded.",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_17",
+    "type": "section",
+    "content": "§ 3. Deduction of the basic equation",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_18",
+    "type": "paragraph",
+    "content": "We shall prove Theorem 1 by first assuming the random quantities rj are bounded, i.e. there is a number *Τ* > 0 so that any realization of the r; satisfies",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_19",
+    "type": "paragraph",
+    "content": "$$|\\tau_i| < T. \\tag{3.0}$$",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_20",
+    "type": "paragraph",
+    "content": "This restriction will be lifted by going to a limit. But in the next two sections (3-0) is assumed to hold.",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_21",
+    "type": "paragraph",
+    "content": "Suppose that *T<sup>n</sup> , Q<sup>n</sup>* is a realization of *τ* and *q* entering in (1.1). In this realization we number the pairs r;, <7(Ι) in order of increasing r;:",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_22",
+    "type": "paragraph",
+    "content": "$$\\tau_1 \\leqslant \\tau_2 \\leqslant \\ldots \\leqslant \\tau_n, \\quad q^{(1)} \\leqslant q^{(2)} \\leqslant \\ldots \\leqslant q^{(n)}$$",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_23",
+    "type": "paragraph",
+    "content": "and construct a chain of operators *B<sup>N</sup> (i) (i = I, 2, · · · , n)* by setting",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_24",
+    "type": "paragraph",
+    "content": "$$B_N(i) = A_N + \\sum_{\\alpha=1}^{i} \\tau_{\\alpha} q^{(\\alpha)}(\\cdot, q^{(\\alpha)}),$$\n (3.1)",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_25",
+    "type": "paragraph",
+    "content": "so that *B<sup>N</sup> (o)= Aft,* and the *Β<sup>Ν</sup> (n)* are the operators (1.1) that interest us. Denote the resolvents of the operators *B<sup>N</sup> U)* by *R<sup>z</sup> {i).* For each realization *T<sup>n</sup> , Q<sup>n</sup>* we form the function *u (ζ, ξ; Ν, Τ<sup>η</sup> , Q<sup>n</sup> )* defined for all nonreal ζ and real *ξ£* [θ, l] by",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_26",
+    "type": "paragraph",
+    "content": "$$u(z, \\xi; N, T_n, Q_n) = N^{-1} \\operatorname{Sp} R_z(i) + nN^{-1} \\operatorname{Sp} \\{R_z(i+1) - R_z(i)\\} \\left(\\xi - \\frac{i}{n}\\right)$$\nfor  $\\xi \\in \\left[\\frac{i}{n}, \\frac{i+1}{n}\\right] \\quad (i = 0, 1, ..., n-1).$  (3.2)",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_27",
+    "type": "paragraph",
+    "content": "Note that *u{z,* 0; A', *T<sup>n</sup> , Q<sup>n</sup> )* and *u (z,* 1; *N, T<sup>n</sup> , Q<sup>n</sup> ) ate* the Stieltjes transforms of the normalized spectral functions of the operators *A^* and *B<sup>N</sup> (n):*",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_28",
+    "type": "paragraph",
+    "content": "$$u(z, 0; N, T_n, Q_n) = N^{-1} \\operatorname{Sp} R_z(0) = \\int_{-\\infty}^{\\infty} \\frac{dv(\\lambda; A_N)}{\\lambda - z},$$\n (3.3)",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_29",
+    "type": "paragraph",
+    "content": "$$u(z, 1; N, T_n, Q_n) = N^{-1} \\operatorname{Sp} R_z(n) = \\int_{-\\infty}^{\\infty} \\frac{dv(\\lambda; B_N(n))}{\\lambda - z}.$$\n (3.3')",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_30",
+    "type": "paragraph",
+    "content": "For the remaining values of *ζ* € [θ, l] the function *u(z, ξ; Ν, Τ<sup>η</sup> , Q<sup>n</sup> )* is the Stieltjes transform of relative to which  $\\nu(\\lambda)$  is found by the inversion formula",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_31",
+    "type": "paragraph",
+    "content": "$$v(\\lambda_2) - v(\\lambda_1) = \\lim_{r \\to 1-0} \\frac{1}{2\\pi} \\int_{\\lambda_1}^{\\lambda_2} \\operatorname{Re} n(re^{-i\\theta}) d\\theta.$$",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_32",
+    "type": "paragraph",
+    "content": "Theorem 3. If as  $N \\to \\infty$  the normalized spectral function of  $V_N$  tends to a function  $\\nu_0(\\lambda)$  at all of its points of continuity and conditions I and III of §1 are satisfied, then the sequence of normalized spectral functions of the operators  $U_N(n)$  converges in probability as  $N \\to \\infty$  to a function  $\\nu(\\lambda; c)$  at all of its points of continuity. The function n(z; c) corresponding to  $\\nu(\\lambda; c)$  by (5.6) is the solution to the equation",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_33",
+    "type": "paragraph",
+    "content": "$$\\frac{\\partial u(z,t)}{\\partial t} + 2z \\frac{\\partial}{\\partial z} \\ln \\left[ 1 + iu(z,t) \\operatorname{tg} \\frac{\\tau(t)}{2} \\right], \\quad u(z,0) = n_0(z) = \\int_0^{2\\pi} \\frac{e^{i\\lambda} + z}{e^{i\\lambda} - z} dv_0(\\lambda).$$",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_34",
+    "type": "paragraph",
+    "content": "evaluated at t = 1. This equation has a unique solution (in the class of functions with positive real part for |z| < 1), given implicitly by the formula",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_35",
+    "type": "paragraph",
+    "content": "$$u\\left(z,t\\right)=n_{0}\\Bigg(z\\exp\\left\\{-2c\\int\\limits_{0}^{t}\\frac{i\\operatorname{tg}\\frac{\\tau\\left(\\xi\\right)}{2}}{1+iu\\left(z,t\\right)\\operatorname{tg}\\frac{\\tau\\left(\\xi\\right)}{2}}d\\xi\\right\\}\\Bigg).$$",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_36",
+    "type": "paragraph",
+    "content": "Received 4 NOV 66",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_37",
+    "type": "section",
+    "content": "BIBLIOGRAPHY",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_38",
+    "type": "paragraph",
+    "content": "- [1] F. J. Dyson, The dynamics of a disordered linear chain, Physical Rev. (2) 92 (1953), 1331-1338. MR 15, 492.\n- I. M. Lifšic, On degenerate regular perturbations. II: Quasicontinuous and continuous spectrum,\n   Ž. Eksper. Teoret. Fiz. 17 (1947), 1076-1089. (Russian) MR 9, 358.\n- [3] \\_\\_\\_\\_\\_, Energy spectrum structure and quantum states of disordered condensed systems, Uspehi Fiz. Nauk 83 (1964), 617-663 = Soviet Physics Uspekhi 7 (1965), 549-573. MR 31 #5597.\n- [4] E. P. Wigner, On the distribution of the roots of certain symmetric matrices, Ann. of Math. (2) 67 (1958), 325-327. MR 20 #2029.\n- [5] V. V. Gnedenko, Course in the theory of probability, GITTL, Moscow, 1950; 4th ed., \"Nauka\". Moscow, 1965; English transl., Chelsea, New York, 4th ed., 1967. MR 13, 565.\n- [6] A. D. Myškis, The uniqueness of the solution of Cauchy's problem, Uspehi Mat. Nauk 3 (1948), no. 2 (24), 3-46. (Russian) MR 10, 302.",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_39",
+    "type": "paragraph",
+    "content": "Translated by:",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  },
+  {
+    "node_id": "node_40",
+    "type": "paragraph",
+    "content": "M. L. Glasser",
+    "latex": null,
+    "status": null,
+    "metadata": {}
+  }
+]

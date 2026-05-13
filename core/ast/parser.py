@@ -1,9 +1,16 @@
 import os
 import re
+import json
 import logging
+
+# SOTA: Gobernanza de hardware inyectada a nivel de proceso (Permanente y General)
+os.environ["MIN_BATCH_SIZE"] = "1"
+os.environ["MAX_BATCH_SIZE"] = "2"
+
 from marker.converters.pdf import PdfConverter
 from marker.models import create_model_dict
 from core.ast.models import ASTNode, NodeType
+
 
 logger = logging.getLogger(__name__)
 
@@ -18,10 +25,20 @@ def _get_converter():
     return _converter
 
 def parse_pdf(pdf_path: str) -> list[ASTNode]:
-    """Extrae contenido de PDF (Fase 4B: Parser con Tipado Estricto)."""
+    """Extrae contenido de PDF (Fase 4B: Parser con Tipado Estricto y Caché SOTA)."""
     if not os.path.exists(pdf_path):
         raise FileNotFoundError(f"PDF no encontrado: {pdf_path}")
-    
+
+    ast_cache_path = f"{pdf_path}.ast.json"
+
+    # SOTA 1: Bypass de Inferencia. Si ya existe el AST físico, saltamos a Marker.
+    if os.path.exists(ast_cache_path):
+        logger.info(f"AST recuperado desde disco ({ast_cache_path}). Saltando Marker OCR...")
+        with open(ast_cache_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return [ASTNode(**node) for node in data]
+
+    # SOTA 2: Ejecución original de Marker (Compute pesado)
     converter = _get_converter()
     rendered = converter(pdf_path)
     full_text = rendered.markdown
@@ -66,4 +83,9 @@ def parse_pdf(pdf_path: str) -> list[ASTNode]:
         ))
         
     logger.info(f"Fase 4B: {len(ast_nodes)} Nodos AST tipados inyectados.")
+
+    # SOTA 3: Persistencia del AST estructurado para futuras ejecuciones
+    with open(ast_cache_path, "w", encoding="utf-8") as f:
+        json.dump([n.model_dump() for n in ast_nodes], f, indent=2, ensure_ascii=False)
+
     return ast_nodes

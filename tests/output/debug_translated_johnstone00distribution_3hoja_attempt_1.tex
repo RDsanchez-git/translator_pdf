@@ -1,0 +1,100 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath, amssymb}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\begin{document}
+% [NODE_ID: macro_1]
+Sobre la distribución del componente principal más grande
+
+Iain M. Johnstone\*
+
+Departamento de Estadística, Universidad de Stanford
+
+8 de agosto de 2000
+
+Resumen
+
+Sea $x_{(1)}$ el cuadrado del valor singular más grande de una matriz $n \times p$ X, cuyas entradas son todas variables gaussianas estándar independientes. Equivalentemente, $x_{(1)}$ es el componente principal más grande de la matriz de covarianza X'X, o el valor propio más grande de una distribución de Wishart de p variables con n grados de libertad y covarianza identidad.
+
+Considérese el límite de p y n grandes con $n/p = \gamma \ge 1$. Cuando se centra por $\mu_p = (\sqrt{n-1} + \sqrt{p})^2$ y se escala por $\sigma_p = (\sqrt{n-1} + \sqrt{p})(1/\sqrt{n-1} + 1/\sqrt{p})^{1/3}$ la distribución de $x_{(1)}$ se aproxima a la ley de Tracy-Widom de orden 1, que se define en términos de la ecuación diferencial de Painlevé II, y puede evaluarse numéricamente y tabularse en software. Las simulaciones muestran que la aproximación es informativa para n y p tan pequeños como 5.
+
+El límite se deriva a través de un resultado correspondiente para matrices de Wishart complejas utilizando métodos de la teoría de matrices aleatorias. El resultado sugiere que algunos aspectos de la teoría de distribución multivariante de p grande pueden ser más fáciles de aplicar en la práctica que sus contrapartes de p fijo.
+
+% [NODE_ID: macro_2]
+1 Introducción
+
+El estudio de las matrices de covarianza muestrales es fundamental en el análisis multivariante. Con los datos contemporáneos, la matriz es a menudo grande, con un número de variables comparable al tamaño de la muestra. En este contexto, se sabe relativamente poco sobre la distribución del valor propio más grande, o componente principal, especialmente en casos nulos. Un segundo impulso para este trabajo proviene de la teoría de matrices aleatorias, un dominio de la física matemática y la probabilidad que ha experimentado un desarrollo reciente emocionante, por ejemplo, la distribución asintótica largamente buscada de la longitud de la subsecuencia creciente más larga en una permutación aleatoria (Baik et al., 1999). Algunas de estas herramientas notables pueden tomarse prestadas para las matrices de covarianza. Una sorpresa es que los resultados parecen proporcionar información útil sobre los componentes principales para valores bastante pequeños de n y p.
+
+Sea X una matriz de datos de n por p. Típicamente, se piensa en n observaciones o casos $\vec{x}_i$ de un vector fila p-dimensional que tiene matriz de covarianza $\Sigma$. Para mayor claridad, asumamos que el
+
+<sup>\*</sup>Agradecimientos: Presentado como la conferencia de Laplace en el 5º Congreso Mundial de la Sociedad Bernoulli y la 63ª reunión anual del Instituto de Estadística Matemática, Guanajuato, México. Por las discusiones, referencias y software, muchas gracias a Persi Diaconis, Sun Holmes, Craig Tracy, Harold Widom, Joe Eaton, Amir Dembo y Peter Bickel. Apoyado en parte por NSF DMS 95-05151 y 00-72661. Palabras Clave y Frases. Transformada de Karhunen-Loève, funciones ortogonales empíricas, valor propio más grande, valor singular más grande, ensamble de Laguerre, polinomio de Laguerre, distribución de Wishart, asintótica de Plancherel-Rotach, ecuación de Painlevé, distribución de Tracy-Widom, teoría de matrices aleatorias, determinante de Fredholm, método de Liouville-Green.
+
+explican formalmente la variación en los datos. En este caso
+
+$$l_j = \max\{\frac{u'Su}{u'u} : u \perp u_1, \dots, u_{j-1}\}$$
+
+Aquí surge una pregunta práctica clave: ¿cuántos componentes principales deben retenerse como 'significativos'?
+
+El "scree plot" (p. ej., Mardia et al. (1979)) es uno de los muchos métodos gráficos e informales que se han propuesto. Se grafican los valores propios o valores singulares muestrales ordenados, y se busca un "codo", u otra ruptura entre componentes presumiblemente significativos y presumiblemente sin importancia. En el ejemplo del fonema, Figura 1(c) hay claramente tres valores grandes, pero ¿qué pasa con el cuarto, quinto, etc.?
+
+\% [Imagen omitida]
+
+Figura 1: Panel (a): una única instancia de un periodograma del conjunto de datos de fonemas, (b) diez instancias, para indicar variabilidad, (c) Screeplot de valores propios en el ejemplo del fonema
+
+En el estudio de las distribuciones de valores propios, se pueden distinguir dos áreas generales: el grueso, que se refiere a las propiedades del conjunto completo $l_1 > l_2 ... > l_p$, y los extremos, que aborda los (primeros pocos) valores propios más grandes y más pequeños. Para proporcionar contexto para resultados posteriores, aquí hay una descripción breve y necesariamente selectiva.
+
+% [NODE_ID: macro_3]
+1.1 Espectro masivo
+
+Para matrices aleatorias simétricas cuadradas, la célebre ley del semicírculo de Wigner (1955 1958) describe la densidad límite de los valores propios. Existe un análogo para matrices de covarianza debido a Marčenko y Pastur (1967), e independientemente, Stein (1969).
+
+El resultado de Marčenko-Pastur se presenta aquí para matrices de Wishart con covarianza identidad $\Sigma = I$, pero es cierto de manera más general, incluyendo casos no nulos. Supongamos que tanto n como p tienden a $\infty$, en alguna razón $n/p \to \gamma \ge 1$. Entonces la distribución empírica de los valores propios converge casi con seguridad:
+
+$$G_p(t) = \frac{1}{p} \#\{l_i : l_i \le nt\} \to G(t)$$
+ (1.1)
+
+y la distribución límite tiene una densidad q(t) = G'(t)
+
+$$g(t) = \frac{\gamma}{2\pi t} \sqrt{(b-t)(t-a)}, \quad a \le t \le b.$$
+
+$$(1.2)$$
+
+donde $a = (1 - \gamma^{-1/2})^2$ y $b = (1 + \gamma^{-1/2})^2$. Compare la Figura 2(a). Así, cuanto menor sea n/p, mayor será la dispersión de los valores propios – incluso asintóticamente, la dispersión de la empírica
+
+a través de matrices de Wigner hermíticas gaussianas. Presumiblemente, esto puede extenderse a matrices de covarianza gaussianas nulas.
+
+c) Muchas técnicas del análisis multivariante clásico se basan en las raíces de ecuaciones determinantes como $\det[A_1 - l(A_1 + A_2)] = 0$, con $A_i \sim W_p(n_i, I)$ independientemente. Así, uno podría preguntar, por ejemplo, por una aproximación a la distribución de la correlación canónica más grande cuando $p, n_1$ y $n_2$ son grandes.
+
+% [NODE_ID: macro_4]
+2 Fórmulas de Determinantes, heurísticas de Laguerre
+
+La densidad conjunta de las raíces latentes de una matriz de Wishart real fue encontrada en 1939, en un notable caso de publicación simultánea, independientemente por Fisher, Girshick, Hsu, Mood y Roy – véase Wilks (1962) para citas y la Sección 4 a continuación. Por las razones recién dadas, comenzamos con la versión compleja de esta densidad. Así, sea X una matriz normal compleja de $n \times N$ con Re $X_{ij}$, Im $X_{ij}$ todas distribuidas de forma independiente e idéntica como $N(0, \frac{1}{2})$ (Eaton, 1983). La matriz de productos cruzados $X^*X$ tiene entonces la distribución de Wishart compleja con matriz de covarianza identidad. Los valores propios $x = (x_1, \ldots, x_N)$ de $X^*X$ son reales y no negativos, y tienen densidad (James, 1964)
+
+$$P_N(x_1, \dots, x_N) = c_{N,n}^{-1} \prod_{1 \le j \le k \le N} (x_j - x_k)^2 \prod_{j=1}^N x_j^{\alpha} e^{-x_j}, \qquad \alpha = n - N.$$
+ (2.1)
+
+[¡Advertencia! Cambio de notación: para concordar con la literatura de RMT, en adelante escribiremos los valores propios de la muestra como $x_1 > \ldots > x_N$, en lugar de $l_1 > \ldots > l_n$.]
+
+Los esfuerzos para usar la densidad (2.1) directamente para obtener información sobre el valor propio más grande se ven frustrados por la alta dimensionalidad y el término jacobiano $\prod_{j < k} (x_j - x_k)^2$. La teoría de matrices aleatorias (RMT) aborda esto comenzando con la identidad del determinante de Vandermonde
+
+$$\prod_{1 \le j,k \le p} (x_j - x_k) = \det_{1 \le j,k \le N} [x_j^{k-1}]. \tag{2.2}$$
+
+Se observan polinomios en cada uno de los valores propios con grados hasta N-1. Sea $w(x) = x^{\alpha}e^{-x}$ la función de peso de Laguerre, y $\phi_k(x) = \phi_k(x;\alpha)$ las funciones obtenidas al ortonormalizar la secuencia $x^k w^{1/2}(x)$ en $L^2(0,\infty)$: de hecho
+
+$$\phi_k(x) = \sqrt{\frac{k!}{(k+\alpha)!}} x^{\alpha/2} e^{-x/2} L_k^{\alpha}(x)$$
+ (2.3)
+
+donde $L_h^{\alpha}(x)$ son los polinomios de Laguerre, definidos como en, p. ej. Szegő (1967).
+
+Un argumento estándar [p. ej. Mehta (1991, Cap. 5), Deift (1999b, Cap. 5.)] produce una notable representación determinante para la densidad conjunta
+
+$$P_N(x_1, \dots, x_N) = \frac{1}{N!} \det_{1 < j,k < N} S(x_j, x_k).$$
+
+donde el núcleo bilineal $S = S_N$ viene dado por
+
+$$S(x,y) = \sum_{k=0}^{N-1} \phi_k(x)\phi_k(y).$$
+ (2.4)
+
+\end{document}
