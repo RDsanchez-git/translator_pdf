@@ -20,8 +20,6 @@ from apps.compiler.docker_runner import DockerRunner
 from core.utils.logger import setup_logger
 from core.metrics.metrics import Metrics
 
-from infra.db.chunk_task_repository import ChunkTaskRepository
-from infra.db.repository import DocumentRepository
 from infra.db.fsm_repository import FSMRepository
 from core.execution.exceptions import PipelineIntegrityError, OptimisticLockError
 from core.execution.state import (
@@ -31,12 +29,17 @@ from core.execution.state import (
     CompleteDocumentCommand, FailDocumentCommand
 )
 from core.execution.handlers import DocumentCommandHandler
+from infra.db.control_repo import ControlPlaneRepository
+from infra.db.materialized_repo import MaterializedPlaneRepository
+
 
 setup_logger()
 metrics = Metrics()
 logger = logging.getLogger(__name__)
 
-DB_PATH = "infra/db/document_engine.db"
+CONTROL_DB_PATH = "infra/db/control.db"
+EVENT_DB_PATH = "infra/db/event.db"
+MAT_DB_PATH = "infra/db/materialized.db"
 
 def compute_ast_hash(ast: list[ASTNode]) -> str:
     def serialize_node(n: ASTNode) -> dict:
@@ -103,25 +106,32 @@ def run_pipeline(pdf_input_path: str = "input.pdf", pdf_output_name: str = "MVP_
     ast_hash = compute_ast_hash(ast)
     
     # Bootstrap de Infraestructura FSM
-    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
-    db_conn = sqlite3.connect(DB_PATH, timeout=30) # timeout=30 es equivalente a busy_timeout=30000
-    db_conn.execute("PRAGMA journal_mode=WAL")
-    db_conn.execute("PRAGMA synchronous=NORMAL")
-    db_conn.execute("PRAGMA busy_timeout=30000") # SOTA: Fencing explícito contra SQLITE_BUSY
+    # Bootstrap de Infraestructura TPS (Triple Plane Split)
+    os.makedirs(os.path.dirname(CONTROL_DB_PATH), exist_ok=True)
+    
+    ctrl_conn = sqlite3.connect(CONTROL_DB_PATH, timeout=30)
+    evt_conn = sqlite3.connect(EVENT_DB_PATH, timeout=30)
+    mat_conn = sqlite3.connect(MAT_DB_PATH, timeout=30)
     
     schema_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "infra", "db", "schema.sql")
     with open(schema_path, "r", encoding="utf-8") as f:
-        db_conn.executescript(f.read())
+        schema_sql = f.read()
         
-    # Repositorios
-    repo = DocumentRepository(db_conn)
-    fsm_repo = FSMRepository(db_conn)
-    task_repo = ChunkTaskRepository(db_conn) # Nuevo
+    for conn in (ctrl_conn, evt_conn, mat_conn):
+        conn.execute("PRAGMA journal_mode=WAL")
+        conn.execute("PRAGMA synchronous=NORMAL")
+        conn.execute("PRAGMA busy_timeout=30000")
+        conn.executescript(schema_sql) # SOTA: Se aplican todas las tablas a las 3 DBs (overhead nulo)
+
+    # Repositorios Especializados
+    mat_repo = MaterializedPlaneRepository(mat_conn)
+    fsm_repo = FSMRepository(ctrl_conn)
+    task_repo = ControlPlaneRepository(ctrl_conn)
     cmd_handler = DocumentCommandHandler(fsm_repo)
     
     client = GeminiClient()
-    processor = ChunkProcessor(client, metrics, DB_PATH)
-
+    # Inyectamos las 3 rutas para el worker
+    processor = ChunkProcessor(client, metrics, CONTROL_DB_PATH, EVENT_DB_PATH, MAT_DB_PATH)
     owner_id = f"orchestrator_{uuid.uuid4().hex[:8]}"
     fsm_repo.initialize_document(document_id, ast_hash)
 
@@ -179,25 +189,23 @@ def run_pipeline(pdf_input_path: str = "input.pdf", pdf_output_name: str = "MVP_
                 
                 # 2. SOTA: El Worker Loop Durable
                 while True:
-                    # Liveness Guarantee: El orquestador defiende la propiedad del documento global
                     fsm_repo.renew_lease(document_id, ast_hash, owner_id, ttl_sec=600)
                     
-                    # Adquisición Atómica (Task Leasing)
                     task = task_repo.pick_task(owner_id, document_id, ast_hash)
                     if not task:
-                        break # Cola drenada localmente. Salimos a validar integridad.
+                        break # Cola drenada localmente
                         
                     task_id = task["task_id"]
                     node_id = task["node_id"]
+                    execution_id = task["execution_id"] # SOTA: Scope correcto
                     
                     try:
-                        # Extracción O(1) del payload inmutable
                         target_node = ast_index[node_id]
                         
-                        # Side-Effect: Procesamiento e Inserción CQRS (Próximo refactor: Desacoplar I/O de DB)
-                        processor.process_and_commit(target_node, document_id, ast_hash, 1, len(ast))
+                        # Firma actualizada. Se delega idempotencia al execution_id
+                        processor.process_and_commit(target_node, document_id, ast_hash, execution_id)
                         
-                        # Fencing de Finalización (Libera el lease granular)
+                        # Fencing de Finalización
                         task_repo.complete_task(task_id, owner_id)
                         logger.debug("task_completed", extra={"extra_data": {"node_id": node_id[:8]}})
                         
@@ -206,7 +214,9 @@ def run_pipeline(pdf_input_path: str = "input.pdf", pdf_output_name: str = "MVP_
                         task_repo.fail_task(task_id, owner_id, str(e))
                 
                 # 3. Barrera de Integridad CQRS Estricta
-                valid_chunks_data = repo.get_assemblable_chunks(document_id, ast_hash, ordered_node_ids)
+                valid_chunks_data = mat_repo.get_assemblable_chunks(
+                    document_id, ast_hash, ordered_node_ids, required_projection_v=1
+                )
                 returned_ids = [n[0] for n in valid_chunks_data]
                 set_expected = set(ordered_node_ids)
                 set_returned = set(returned_ids)
@@ -237,9 +247,10 @@ def run_pipeline(pdf_input_path: str = "input.pdf", pdf_output_name: str = "MVP_
                 retry_attempt = 0
                 
             elif current_state == DocumentState.ASSEMBLING:
-                # Recuperar del disco/CQRS. Nada en RAM global.
                 ordered_node_ids = [n.node_id for n in ast]
-                valid_chunks_data = repo.get_assemblable_chunks(document_id, ast_hash, ordered_node_ids)
+                valid_chunks_data = mat_repo.get_assemblable_chunks(
+                    document_id, ast_hash, ordered_node_ids, required_projection_v=1
+                )
                 
                 builder = TexBuilder()
                 tex_document = builder.build(valid_chunks_data)
@@ -306,7 +317,9 @@ def run_pipeline(pdf_input_path: str = "input.pdf", pdf_output_name: str = "MVP_
     except Exception:
         pass
         
-    db_conn.close()
+    ctrl_conn.close()
+    evt_conn.close()
+    mat_conn.close()
     
     total_time = time.time() - pipeline_start
     final_state_val = current_state.value if current_state else "UNKNOWN"
