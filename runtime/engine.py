@@ -8,7 +8,6 @@ import random
 import sqlite3
 import logging
 from pathlib import Path
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from core.ast.parser import parse_pdf
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -21,6 +20,7 @@ from apps.compiler.docker_runner import DockerRunner
 from core.utils.logger import setup_logger
 from core.metrics.metrics import Metrics
 
+from infra.db.chunk_task_repository import ChunkTaskRepository
 from infra.db.repository import DocumentRepository
 from infra.db.fsm_repository import FSMRepository
 from core.execution.exceptions import PipelineIntegrityError, OptimisticLockError
@@ -104,16 +104,19 @@ def run_pipeline(pdf_input_path: str = "input.pdf", pdf_output_name: str = "MVP_
     
     # Bootstrap de Infraestructura FSM
     os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
-    db_conn = sqlite3.connect(DB_PATH, timeout=15)
+    db_conn = sqlite3.connect(DB_PATH, timeout=30) # timeout=30 es equivalente a busy_timeout=30000
     db_conn.execute("PRAGMA journal_mode=WAL")
     db_conn.execute("PRAGMA synchronous=NORMAL")
+    db_conn.execute("PRAGMA busy_timeout=30000") # SOTA: Fencing explícito contra SQLITE_BUSY
     
     schema_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "infra", "db", "schema.sql")
     with open(schema_path, "r", encoding="utf-8") as f:
         db_conn.executescript(f.read())
         
+    # Repositorios
     repo = DocumentRepository(db_conn)
     fsm_repo = FSMRepository(db_conn)
+    task_repo = ChunkTaskRepository(db_conn) # Nuevo
     cmd_handler = DocumentCommandHandler(fsm_repo)
     
     client = GeminiClient()
@@ -166,27 +169,44 @@ def run_pipeline(pdf_input_path: str = "input.pdf", pdf_output_name: str = "MVP_
                 retry_attempt = 0
                 
             elif current_state == DocumentState.PROCESSING:
-                # 3a. Identificar faltantes reales en CQRS
-                cursor = db_conn.execute("SELECT node_id FROM valid_chunks_cache WHERE document_id = ? AND ast_hash = ?", (document_id, ast_hash))
-                processed_ids = {row[0] for row in cursor.fetchall()}
-                pending_nodes = [n for n in ast if n.node_id not in processed_ids]
-                
-                # 3b. Despacho Síncrono a Granja de Workers (Protección contra fuga de hilos)
-                if pending_nodes:
-                    total_chunks = len(ast)
-                    with ThreadPoolExecutor(max_workers=2) as executor:
-                        future_to_node = {
-                            executor.submit(processor.process_and_commit, node, document_id, ast_hash, idx, total_chunks): node
-                            for idx, node in enumerate(pending_nodes, 1)
-                        }
-                        for future in as_completed(future_to_node):
-                            _ = future.result() 
-                            fsm_repo.renew_lease(document_id, ast_hash, owner_id, ttl_sec=600)
-                
-                # 3c. Barrera de Integridad Estricta
                 ordered_node_ids = [n.node_id for n in ast]
-                valid_chunks_data = repo.get_assemblable_chunks(document_id, ast_hash, ordered_node_ids)
                 
+                # 1. Encolado Idempotente (Solo inserta si no existen)
+                task_repo.enqueue_tasks(document_id, ast_hash, ordered_node_ids)
+                
+                # SOTA: Optimización O(1) de Indexación en Memoria (Evita escaneo lineal O(N) por chunk)
+                ast_index = {n.node_id: n for n in ast}
+                
+                # 2. SOTA: El Worker Loop Durable
+                while True:
+                    # Liveness Guarantee: El orquestador defiende la propiedad del documento global
+                    fsm_repo.renew_lease(document_id, ast_hash, owner_id, ttl_sec=600)
+                    
+                    # Adquisición Atómica (Task Leasing)
+                    task = task_repo.pick_task(owner_id, document_id, ast_hash)
+                    if not task:
+                        break # Cola drenada localmente. Salimos a validar integridad.
+                        
+                    task_id = task["task_id"]
+                    node_id = task["node_id"]
+                    
+                    try:
+                        # Extracción O(1) del payload inmutable
+                        target_node = ast_index[node_id]
+                        
+                        # Side-Effect: Procesamiento e Inserción CQRS (Próximo refactor: Desacoplar I/O de DB)
+                        processor.process_and_commit(target_node, document_id, ast_hash, 1, len(ast))
+                        
+                        # Fencing de Finalización (Libera el lease granular)
+                        task_repo.complete_task(task_id, owner_id)
+                        logger.debug("task_completed", extra={"extra_data": {"node_id": node_id[:8]}})
+                        
+                    except Exception as e:
+                        logger.error("TASK_EXECUTION_FAILED", extra={"extra_data": {"node_id": node_id[:8], "error": str(e)[:250]}})
+                        task_repo.fail_task(task_id, owner_id, str(e))
+                
+                # 3. Barrera de Integridad CQRS Estricta
+                valid_chunks_data = repo.get_assemblable_chunks(document_id, ast_hash, ordered_node_ids)
                 returned_ids = [n[0] for n in valid_chunks_data]
                 set_expected = set(ordered_node_ids)
                 set_returned = set(returned_ids)
@@ -199,13 +219,15 @@ def run_pipeline(pdf_input_path: str = "input.pdf", pdf_output_name: str = "MVP_
                     raise PipelineIntegrityError(f"CRÍTICO: Nodos fantasma inyectados: {list(unexpected)}")
                 
                 if set_expected == set_returned:
+                    # Transición Segura
                     cmd = MarkAssemblyReadyCommand(document_id, ast_hash, owner_id, current_version)
                     cmd_handler.handle(cmd)
                     retry_attempt = 0
                 else:
-                    # SOTA: Backoff Exponencial + Jitter
+                    # Backoff Exponencial Activo (Esperando Workers Paralelos o Recovery)
                     sleep_sec = min(30.0, 2.0 * (1.5 ** retry_attempt)) + random.uniform(0.1, 1.0)
-                    logger.warning(f"Esperando {len(set_expected - set_returned)} fragmentos. Durmiendo {sleep_sec:.2f}s...")
+                    missing_count = len(set_expected - set_returned)
+                    logger.info("assembly_barrier_waiting", extra={"extra_data": {"missing_chunks": missing_count, "sleep_sec": round(sleep_sec, 2)}})
                     time.sleep(sleep_sec)
                     retry_attempt += 1
                     

@@ -3,7 +3,8 @@ from core.execution.state import (
     DocumentCommand, StartParsingCommand, StartProcessingCommand,
     MarkAssemblyReadyCommand, StartAssemblyCommand, MarkCompilationReadyCommand,
     StartCompilationCommand, CompleteDocumentCommand, FailDocumentCommand,
-    CancelDocumentCommand, DocumentState, FSMValidator, TERMINAL_STATES
+    CancelDocumentCommand, DocumentState, FSMValidator,
+     StallDocumentCommand, ResumeDocumentCommand, TERMINAL_STATES
 )
 from infra.db.fsm_repository import FSMRepository
 
@@ -15,8 +16,15 @@ class DocumentCommandHandler:
     def __init__(self, repository: FSMRepository):
         self.repo = repository
 
-    def _get_target_state(self, command: DocumentCommand) -> DocumentState:
-        """Asigna la semántica operacional (intención -> estado)."""
+    def _get_target_state(self, command: DocumentCommand, doc_status: dict) -> DocumentState:
+        """Asigna la semántica operacional. Resuelve estados dinámicos si es necesario."""
+        # SOTA: Resolución dinámica para la resurrección de cuarentena
+        if isinstance(command, ResumeDocumentCommand):
+            suspended = doc_status.get("suspended_state")
+            if not suspended:
+                raise ValueError(f"No existe suspended_state para reanudar el doc {command.document_id}")
+            return DocumentState(suspended)
+
         mapping = {
             StartParsingCommand: DocumentState.PARSING,
             StartProcessingCommand: DocumentState.PROCESSING,
@@ -26,7 +34,8 @@ class DocumentCommandHandler:
             StartCompilationCommand: DocumentState.COMPILING,
             CompleteDocumentCommand: DocumentState.COMPLETED,
             FailDocumentCommand: DocumentState.FAILED,
-            CancelDocumentCommand: DocumentState.CANCELLED
+            CancelDocumentCommand: DocumentState.CANCELLED,
+            StallDocumentCommand: DocumentState.STALLED # SOTA: Nuevo comando de cuarentena
         }
         target = mapping.get(type(command))
         if not target:
@@ -53,15 +62,20 @@ class DocumentCommandHandler:
         if db_ast_hash != command.ast_hash:
             raise ValueError(f"Fuga generacional: Comando esperaba {command.ast_hash}, FSM tiene {db_ast_hash}")
 
-        # 2. Intención
-        target_state = self._get_target_state(command)
+        # 2. Intención (Inyectamos doc_status para resolver ResumeDocumentCommand)
+        target_state = self._get_target_state(command, doc_status)
 
         # 3. Validación Matemática de Transición (Invariante FSM)
         FSMValidator.validate(current_state, target_state)
 
-        # Manejo de razones para estados de fallo
+        # SOTA: Inferencia de parámetros FSM
         is_terminal = target_state in TERMINAL_STATES
-        failure_reason = getattr(command, "reason", None) if is_terminal else None
+        
+        # El motivo de fallo solo aplica si entramos a cuarentena o a un estado terminal
+        failure_reason = getattr(command, "reason", None) if is_terminal or target_state == DocumentState.STALLED else None
+        
+        # Si entramos a STALLED, congelamos el estado actual. Si salimos, lo purgamos (None).
+        suspended_state = current_state.value if target_state == DocumentState.STALLED else None
 
         # 4. Transacción Física (Write) - Falla ruidosamente si pierde el Lock o Lease
         self.repo.transition_to(
@@ -72,7 +86,8 @@ class DocumentCommandHandler:
             current_version=command.expected_version,
             owner_id=command.owner_id,
             is_terminal=is_terminal,
-            failure_reason=failure_reason # Requiere agregar este parámetro en transition_to de FSMRepository
+            failure_reason=failure_reason,
+            suspended_state=suspended_state
         )
 
         logger.info("FSM_TRANSITION_SUCCESS", extra={

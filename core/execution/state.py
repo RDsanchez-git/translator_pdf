@@ -15,16 +15,21 @@ class DocumentState(Enum):
     COMPLETED = "COMPLETED"
     FAILED = "FAILED"
     CANCELLED = "CANCELLED"
+    STALLED = "STALLED"
 
 # --- 2. GRAFO LEGAL ---
 LEGAL_TRANSITIONS: dict[DocumentState, Set[DocumentState]] = {
-    DocumentState.CREATED: {DocumentState.PARSING, DocumentState.FAILED, DocumentState.CANCELLED},
-    DocumentState.PARSING: {DocumentState.PROCESSING, DocumentState.FAILED, DocumentState.CANCELLED},
-    DocumentState.PROCESSING: {DocumentState.READY_FOR_ASSEMBLY, DocumentState.FAILED, DocumentState.CANCELLED},
-    DocumentState.READY_FOR_ASSEMBLY: {DocumentState.ASSEMBLING, DocumentState.FAILED, DocumentState.CANCELLED},
-    DocumentState.ASSEMBLING: {DocumentState.READY_FOR_COMPILATION, DocumentState.FAILED, DocumentState.CANCELLED},
-    DocumentState.READY_FOR_COMPILATION: {DocumentState.COMPILING, DocumentState.FAILED, DocumentState.CANCELLED},
-    DocumentState.COMPILING: {DocumentState.COMPLETED, DocumentState.FAILED, DocumentState.CANCELLED},
+    # ... [mantener transiciones previas]
+    DocumentState.PARSING: {DocumentState.PROCESSING, DocumentState.FAILED, DocumentState.CANCELLED, DocumentState.STALLED},
+    DocumentState.PROCESSING: {DocumentState.READY_FOR_ASSEMBLY, DocumentState.FAILED, DocumentState.CANCELLED, DocumentState.STALLED},
+    DocumentState.ASSEMBLING: {DocumentState.READY_FOR_COMPILATION, DocumentState.FAILED, DocumentState.CANCELLED, DocumentState.STALLED},
+    DocumentState.COMPILING: {DocumentState.COMPLETED, DocumentState.FAILED, DocumentState.CANCELLED, DocumentState.STALLED},
+    DocumentState.STALLED: {
+        DocumentState.PARSING, DocumentState.PROCESSING, DocumentState.READY_FOR_ASSEMBLY,
+        DocumentState.ASSEMBLING, DocumentState.READY_FOR_COMPILATION, DocumentState.COMPILING, 
+        DocumentState.FAILED, DocumentState.CANCELLED
+    },
+    # Terminales
     DocumentState.COMPLETED: set(),
     DocumentState.FAILED: set(), 
     DocumentState.CANCELLED: set(),
@@ -55,21 +60,27 @@ class DocumentCommand:
 @dataclass(frozen=True) 
 class StartParsingCommand(DocumentCommand):
     pass
+
 @dataclass(frozen=True) 
 class StartProcessingCommand(DocumentCommand):
     pass
+
 @dataclass(frozen=True) 
 class MarkAssemblyReadyCommand(DocumentCommand):
     pass
+
 @dataclass(frozen=True)
 class StartAssemblyCommand(DocumentCommand):
     pass
+
 @dataclass(frozen=True)
 class MarkCompilationReadyCommand(DocumentCommand):
     pass
+
 @dataclass(frozen=True)
 class StartCompilationCommand(DocumentCommand):
     pass
+
 @dataclass(frozen=True)
 class CompleteDocumentCommand(DocumentCommand):
     pass
@@ -81,3 +92,11 @@ class FailDocumentCommand(DocumentCommand):
 @dataclass(frozen=True) 
 class CancelDocumentCommand(DocumentCommand):
     reason: str
+
+@dataclass(frozen=True)
+class StallDocumentCommand(DocumentCommand):
+    reason: str
+
+@dataclass(frozen=True)
+class ResumeDocumentCommand(DocumentCommand):
+    pass
