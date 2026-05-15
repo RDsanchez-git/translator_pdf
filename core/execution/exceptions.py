@@ -22,3 +22,17 @@ class LeaseExpiredError(PipelineIntegrityError):
 class IllegalStateTransitionError(PipelineIntegrityError):
     """El comando intentó una transición no permitida por el grafo FSM."""
     pass
+
+class CircuitOpenError(Exception):
+    """Lanzada cuando el circuito está abierto y rechaza peticiones instantáneamente."""
+    def __init__(self, cooldown_remaining: float):
+        self.cooldown_remaining = cooldown_remaining
+        super().__init__(f"Circuit OPEN. Cooldown remaining: {cooldown_remaining:.1f}s")
+
+class CircuitTripError(Exception):
+    """Lanzada por el hilo que provocó la apertura del circuito (la gota que rebalsó el vaso)."""
+    pass
+
+class TransientAPIError(Exception):
+    """Clasificación estandarizada para fallos de red/API (429, 50x, Timeout)."""
+    pass

@@ -202,12 +202,11 @@ def run_pipeline(pdf_input_path: str = "input.pdf", pdf_output_name: str = "MVP_
                     # SOTA: task ahora es un DTO inmutable (TaskLease). Se accede con punto.
                     task_id = task.task_id
                     node_id = task.node_id
-                    execution_id = task.execution_id 
                     
                     try:
                         target_node = ast_index[node_id]
                         
-                        processor.process_and_commit(target_node, document_id, ast_hash, execution_id)
+                        processor.process_and_commit(target_node, document_id, ast_hash, task, owner_id)
                         
                         # SOTA: Nuevos contratos semánticos
                         task_repo.acknowledge_execution(task_id, owner_id)

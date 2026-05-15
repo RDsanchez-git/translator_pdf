@@ -98,11 +98,26 @@ class ControlPlaneRepository(ControlPlanePort):
         
     def renew_task_lease(self, task_id: str, worker_id: str, additional_ttl_sec: int = 300) -> bool:
         now = time.time()
+        # SOTA: Fencing temporal doble. Protege contra pausas del GC en el propio hilo de heartbeat.
         cursor = self.conn.execute(
             """UPDATE chunk_tasks
                SET lease_expires_at = ?, updated_at = ?
-               WHERE task_id = ? AND lease_owner = ? AND task_state = 'PROCESSING'""",
-            (now + additional_ttl_sec, now, task_id, worker_id)
+               WHERE task_id = ? AND lease_owner = ? 
+                 AND task_state = 'PROCESSING' 
+                 AND lease_expires_at >= ?""",
+            (now + additional_ttl_sec, now, task_id, worker_id, now)
         )
         self.conn.commit()
         return cursor.rowcount > 0
+    
+    def release_task_untouched(self, task_id: str, worker_id: str) -> None:
+        """SOTA: Requeue sin penalización con barrera de fencing."""
+        now = time.time()
+        self.conn.execute(
+            """UPDATE chunk_tasks
+               SET task_state = 'PENDING', 
+                   lease_owner = NULL, lease_expires_at = NULL, updated_at = ?
+               WHERE task_id = ? AND lease_owner = ? AND lease_expires_at >= ?""",
+            (now, task_id, worker_id, now)
+        )
+        self.conn.commit()
