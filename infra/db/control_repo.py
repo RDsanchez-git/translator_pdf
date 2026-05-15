@@ -115,3 +115,59 @@ class ControlPlaneRepository(ControlPlanePort):
             (now, task_id, worker_id, now)
         )
         self.conn.commit()
+
+    def mark_cqrs_reconciled(self, task_id: str, reconciliation_id: str) -> bool:
+        """SOTA: Atomo transaccional (Idempotencia + Reparación de estado) sin validación de lease."""
+        now = time.time()
+        try:
+            self.conn.execute("BEGIN IMMEDIATE")
+            
+            # 1. Barrera de Idempotencia Física
+            cursor = self.conn.execute(
+                "INSERT OR IGNORE INTO processed_reconciliation_commands (reconciliation_id, processed_at) VALUES (?, ?)",
+                (reconciliation_id, now)
+            )
+            if cursor.rowcount == 0:
+                self.conn.rollback()
+                return False # El comando ya fue procesado
+            
+            # 2. Forzar COMPLETED (Ignora quién era el owner porque es reparación por intervención divina)
+            self.conn.execute(
+                """UPDATE chunk_tasks 
+                   SET task_state = 'COMPLETED', lease_owner = NULL, lease_expires_at = NULL, updated_at = ? 
+                   WHERE task_id = ?""",
+                (now, task_id)
+            )
+            self.conn.commit()
+            return True
+        except Exception as e:
+            self.conn.rollback()
+            raise e
+        
+    def mark_zombie_recovered(self, task_id: str, reconciliation_id: str) -> bool:
+        """SOTA: Rollback lógico puramente confinado al Control Plane."""
+        now = time.time()
+        try:
+            self.conn.execute("BEGIN IMMEDIATE")
+            
+            cursor = self.conn.execute(
+                "INSERT OR IGNORE INTO processed_reconciliation_commands (reconciliation_id, processed_at) VALUES (?, ?)",
+                (reconciliation_id, now)
+            )
+            if cursor.rowcount == 0:
+                self.conn.rollback()
+                return False
+            
+            # Devolver a PENDING, limpiar lock, incrementar retry_count
+            self.conn.execute(
+                """UPDATE chunk_tasks 
+                   SET task_state = 'PENDING', lease_owner = NULL, lease_expires_at = NULL, 
+                       retry_count = retry_count + 1, updated_at = ? 
+                   WHERE task_id = ?""",
+                (now, task_id)
+            )
+            self.conn.commit()
+            return True
+        except Exception as e:
+            self.conn.rollback()
+            raise e

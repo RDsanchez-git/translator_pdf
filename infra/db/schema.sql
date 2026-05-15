@@ -60,8 +60,13 @@ CREATE TABLE IF NOT EXISTS valid_chunks_cache (
 );
 
 CREATE INDEX IF NOT EXISTS idx_valid_chunks_lookup ON valid_chunks_cache(document_id, ast_hash, projection_version);
+-- PLANO 4: Tabla de Idempotencia para el Reconciliador
+CREATE TABLE IF NOT EXISTS processed_reconciliation_commands (
+    reconciliation_id TEXT PRIMARY KEY,
+    processed_at REAL NOT NULL
+);
 
--- PLANO 4: Tabla genérica para Global Singleton Actors (Leader Election)
+-- Tabla genérica para Global Singleton Actors (Leader Election)
 CREATE TABLE IF NOT EXISTS system_leases (
     lease_name TEXT PRIMARY KEY,
     owner_id TEXT,

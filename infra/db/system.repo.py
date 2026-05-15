@@ -45,3 +45,9 @@ class SystemPlaneRepository:
             (now, lease_name, node_id)
         )
         self.conn.commit()
+
+    def get_current_epoch(self, lease_name: str) -> int:
+        """SOTA: Lectura sucia rápida para Fencing Tokens."""
+        cursor = self.conn.execute("SELECT lease_version FROM system_leases WHERE lease_name = ?", (lease_name,))
+        row = cursor.fetchone()
+        return row[0] if row else 0

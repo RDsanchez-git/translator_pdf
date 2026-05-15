@@ -6,17 +6,19 @@ import threading
 from contextvars import copy_context
 from core.utils.telemetry import ctx_worker_id
 from core.execution.state import RecoverZombieTaskCommand, RematerializeTaskCommand
+from core.execution.state import MarkAssemblyReadyCommand
 
 # (Importa los comandos definidos arriba)
 
 logger = logging.getLogger(__name__)
 
 class ReconcilerDaemon:
-    def __init__(self, system_repo, task_repo, event_repo, command_handler, ttl_sec: int = 120):
+    def __init__(self, system_repo, task_repo, event_repo, recon_cmd_handler, doc_cmd_handler, ttl_sec: int = 120):
         self.system = system_repo
-        self.task_repo = task_repo   # Para leer estados de chunks
-        self.event_repo = event_repo # Para verificar el WAL
-        self.cmd_handler = command_handler
+        self.task_repo = task_repo   
+        self.event_repo = event_repo 
+        self.recon_cmd_handler = recon_cmd_handler
+        self.doc_cmd_handler = doc_cmd_handler
         
         self.node_id = f"reconciler_{uuid.uuid4().hex[:8]}"
         self.lease_name = "global_reconciler"
@@ -28,6 +30,48 @@ class ReconcilerDaemon:
         self.stop_event = threading.Event()
         self.is_leader = False
         self.current_epoch = 0
+
+    def _sweep_fsm_stalls(self, now_safe: float):
+        """SOTA: Reconciliación semántica del documento completo."""
+        if not self.is_leader: 
+            return
+
+        # JOIN inter-tablas. El FSM y las tareas viven en control.db.
+        # Condición: Procesamiento detenido en el tiempo, 100% de chunks en COMPLETED.
+        cursor = self.task_repo.conn.execute("""
+            SELECT d.document_id, d.ast_hash, d.version
+            FROM document_fsm d
+            JOIN chunk_tasks c ON d.document_id = c.document_id AND d.ast_hash = c.ast_hash
+            WHERE d.state = 'PROCESSING'
+              AND d.updated_at < ?
+            GROUP BY d.document_id, d.ast_hash, d.version
+            HAVING COUNT(c.task_id) > 0
+               AND COUNT(c.task_id) = SUM(CASE WHEN c.task_state = 'COMPLETED' THEN 1 ELSE 0 END)
+            LIMIT 50
+        """, (now_safe,))
+        
+        stalled_docs = cursor.fetchall()
+        
+        for row in stalled_docs:
+            if not self.is_leader: 
+                return
+            
+            doc_id, ast_hash, version = row
+            logger.info("FSM stall detectado. Despachando forward progress.", extra={"extra_data": {"doc_id": doc_id[:8]}})
+            
+            # SOTA: Forward Progress a través de la vía oficial (CQRS Command)
+            # Nota: FSMValidator e Invariante de Optimistic Locking protegen contra Idempotencia aquí.
+            cmd = MarkAssemblyReadyCommand(
+                document_id=doc_id,
+                ast_hash=ast_hash,
+                owner_id=self.node_id, 
+                expected_version=version
+            )
+            try:
+                self.doc_cmd_handler.handle(cmd)
+            except Exception as e:
+                # Falla silenciosamente si otro orquestador revivió y ganó el lock
+                logger.warning(f"FSM Stall bypass abortado (Posible race superado validamente): {e}")
 
     def _leadership_heartbeat(self):
         """SOTA: El hilo no muere al perder liderazgo, solo silencia la renovación."""
@@ -67,8 +111,8 @@ class ReconcilerDaemon:
                 # BARRIDOS PAGINADOS
                 try:
                     self._sweep_tasks(now_safe)
+                    self._sweep_fsm_stalls(now_safe) # Llamada al Vector 3
                 except Exception as e:
-                    # SOTA: logger.exception incluye el stacktrace y referenciar 'e' limpia a Ruff
                     logger.exception(f"Error crítico durante barrido paginado: {e}")
                 
                 # SOTA: Jitter en el ciclo principal
@@ -123,7 +167,7 @@ class ReconcilerDaemon:
                     node_id=node_id,
                     content_hash=latest_event.content_hash
                 )
-                self.cmd_handler.handle(cmd)
+                self.recon_cmd_handler.handle(cmd)
             else:
                 # VECTOR 1: Zombie puro. Devolver a PENDING.
                 logger.info("Zombie detectado.", extra={"extra_data": {"task": task_id[:8]}})
@@ -133,4 +177,4 @@ class ReconcilerDaemon:
                     task_id=task_id,
                     document_id=doc_id
                 )
-                self.cmd_handler.handle(cmd)
+                self.recon_cmd_handler.handle(cmd)
