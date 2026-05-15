@@ -31,6 +31,7 @@ from core.execution.state import (
 from core.execution.handlers import DocumentCommandHandler
 from infra.db.control_repo import ControlPlaneRepository
 from infra.db.materialized_repo import MaterializedPlaneRepository
+from infra.db.event_repo import EventPlaneRepository
 
 
 setup_logger()
@@ -125,13 +126,15 @@ def run_pipeline(pdf_input_path: str = "input.pdf", pdf_output_name: str = "MVP_
 
     # Repositorios Especializados
     mat_repo = MaterializedPlaneRepository(mat_conn)
+    event_repo = EventPlaneRepository(evt_conn) # Faltaba instanciar este
     fsm_repo = FSMRepository(ctrl_conn)
     task_repo = ControlPlaneRepository(ctrl_conn)
     cmd_handler = DocumentCommandHandler(fsm_repo)
     
     client = GeminiClient()
-    # Inyectamos las 3 rutas para el worker
-    processor = ChunkProcessor(client, metrics, CONTROL_DB_PATH, EVENT_DB_PATH, MAT_DB_PATH)
+    
+    # SOTA: Inyectamos los objetos que cumplen los Protocols, NO las rutas de texto
+    processor = ChunkProcessor(client, metrics, task_repo, event_repo, mat_repo)
     owner_id = f"orchestrator_{uuid.uuid4().hex[:8]}"
     fsm_repo.initialize_document(document_id, ast_hash)
 
@@ -191,33 +194,35 @@ def run_pipeline(pdf_input_path: str = "input.pdf", pdf_output_name: str = "MVP_
                 while True:
                     fsm_repo.renew_lease(document_id, ast_hash, owner_id, ttl_sec=600)
                     
+                    # Adquisición Atómica (Task Leasing)
                     task = task_repo.pick_task(owner_id, document_id, ast_hash)
                     if not task:
-                        break # Cola drenada localmente
+                        break # Cola drenada localmente. Salimos a validar integridad.
                         
-                    task_id = task["task_id"]
-                    node_id = task["node_id"]
-                    execution_id = task["execution_id"] # SOTA: Scope correcto
+                    # SOTA: task ahora es un DTO inmutable (TaskLease). Se accede con punto.
+                    task_id = task.task_id
+                    node_id = task.node_id
+                    execution_id = task.execution_id 
                     
                     try:
                         target_node = ast_index[node_id]
                         
-                        # Firma actualizada. Se delega idempotencia al execution_id
                         processor.process_and_commit(target_node, document_id, ast_hash, execution_id)
                         
-                        # Fencing de Finalización
-                        task_repo.complete_task(task_id, owner_id)
+                        # SOTA: Nuevos contratos semánticos
+                        task_repo.acknowledge_execution(task_id, owner_id)
                         logger.debug("task_completed", extra={"extra_data": {"node_id": node_id[:8]}})
                         
                     except Exception as e:
                         logger.error("TASK_EXECUTION_FAILED", extra={"extra_data": {"node_id": node_id[:8], "error": str(e)[:250]}})
-                        task_repo.fail_task(task_id, owner_id, str(e))
+                        task_repo.abandon_execution(task_id, owner_id, str(e))
                 
                 # 3. Barrera de Integridad CQRS Estricta
                 valid_chunks_data = mat_repo.get_assemblable_chunks(
                     document_id, ast_hash, ordered_node_ids, required_projection_v=1
                 )
-                returned_ids = [n[0] for n in valid_chunks_data]
+                # SOTA: Acceso a DTO por atributo
+                returned_ids = [n.node_id for n in valid_chunks_data]
                 set_expected = set(ordered_node_ids)
                 set_returned = set(returned_ids)
                 
@@ -253,7 +258,11 @@ def run_pipeline(pdf_input_path: str = "input.pdf", pdf_output_name: str = "MVP_
                 )
                 
                 builder = TexBuilder()
-                tex_document = builder.build(valid_chunks_data)
+                
+                # SOTA: Adaptador temporal para mantener retrocompatibilidad con TexBuilder viejo
+                # Convertimos List[ProjectionRecord] a List[Tuple[str, str]]
+                legacy_chunks_format = [(p.node_id, p.normalized_response) for p in valid_chunks_data]
+                tex_document = builder.build(legacy_chunks_format)
                 
                 Path(tex_path).parent.mkdir(parents=True, exist_ok=True)
                 with open(tex_path, "w", encoding="utf-8") as f:

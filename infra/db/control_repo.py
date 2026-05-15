@@ -1,9 +1,12 @@
 import time
 import uuid
+import random
 import sqlite3
 from typing import Optional, List
+from core.execution.ports import ControlPlanePort, TaskLease
+from core.execution.exceptions import OptimisticLockError 
 
-class ControlPlaneRepository:
+class ControlPlaneRepository(ControlPlanePort):
     def __init__(self, conn: sqlite3.Connection):
         self.conn = conn
 
@@ -21,41 +24,62 @@ class ControlPlaneRepository:
         )
         self.conn.commit()
 
-    def pick_task(self, worker_id: str, document_id: str, ast_hash: str) -> Optional[dict]:
-        execution_id = f"exec_{int(time.time()*1000)}_{uuid.uuid4().hex[:4]}"
+    def pick_task(self, worker_id: str, document_id: str, ast_hash: str) -> Optional[TaskLease]:
+        # ULID/UUIDv7 simulado nativamente si no hay dependencias externas
+        execution_id = f"exec_{int(time.time()*1000):015d}_{uuid.uuid4().hex[:8]}" 
         now = time.time()
         
-        cursor = self.conn.execute(
-            """UPDATE chunk_tasks 
-               SET task_state = 'PROCESSING', lease_owner = ?, lease_expires_at = ?, execution_id = ?
-               WHERE task_id = (
-                   SELECT task_id FROM chunk_tasks 
-                   WHERE document_id = ? AND ast_hash = ? 
-                     AND task_state IN ('PENDING', 'RETRYABLE_ERROR')
-                     AND (lease_owner IS NULL OR lease_expires_at < ?)
-                   LIMIT 1
-               ) RETURNING task_id, node_id, execution_id""",
-            (worker_id, now + 300, execution_id, document_id, ast_hash, now)
-        )
-        row = cursor.fetchone()
-        if row:
-            self.conn.commit()
-            return {"task_id": row[0], "node_id": row[1], "execution_id": row[2]}
+        max_retries = 5
+        for attempt in range(max_retries):
+            try:
+                # SOTA: Forzar exclusividad ANTES de la lectura
+                self.conn.execute("BEGIN IMMEDIATE")
+                
+                cursor = self.conn.execute(
+                    """UPDATE chunk_tasks 
+                    SET task_state = 'PROCESSING', lease_owner = ?, lease_expires_at = ?, execution_id = ?
+                    WHERE task_id = (
+                        SELECT task_id FROM chunk_tasks 
+                        WHERE document_id = ? AND ast_hash = ? 
+                            AND task_state IN ('PENDING', 'RETRYABLE_ERROR')
+                            AND (lease_owner IS NULL OR lease_expires_at < ?)
+                        ORDER BY created_at ASC LIMIT 1 -- SOTA: Fairness
+                    ) RETURNING task_id, node_id, execution_id""",
+                    (worker_id, now + 300, execution_id, document_id, ast_hash, now)
+                )
+                row = cursor.fetchone()
+                self.conn.commit()
+                
+                if row:
+                    return TaskLease(task_id=row[0], node_id=row[1], execution_id=row[2])
+                return None
+                
+            except sqlite3.OperationalError as e:
+                self.conn.rollback()
+                if "database is locked" in str(e).lower() or "busy" in str(e).lower():
+                    # SOTA: Desincronización de colisiones (Jitter)
+                    time.sleep(random.uniform(0.05, 0.25 * (2 ** attempt)))
+                    continue
+                raise e
         return None
 
-    def complete_task(self, task_id: str, worker_id: str) -> None:
+    def acknowledge_execution(self, task_id: str, worker_id: str) -> None:
         now = time.time()
-        self.conn.execute(
+        # SOTA: Fencing Temporal Distribuido
+        cursor = self.conn.execute(
             """UPDATE chunk_tasks
                SET task_state = 'COMPLETED', lease_owner = NULL, lease_expires_at = NULL, updated_at = ?
-               WHERE task_id = ? AND lease_owner = ?""",
-            (now, task_id, worker_id)
+               WHERE task_id = ? AND lease_owner = ? AND lease_expires_at >= ?""",
+            (now, task_id, worker_id, now)
         )
         self.conn.commit()
+        if cursor.rowcount == 0:
+            raise OptimisticLockError(f"Zombie write interceptado: El lease de la tarea {task_id} expiró o fue robado.")
 
-    def fail_task(self, task_id: str, worker_id: str, error: str) -> None:
+    def abandon_execution(self, task_id: str, worker_id: str, error: str) -> None:
         now = time.time()
-        self.conn.execute(
+        # SOTA: Fencing Temporal Distribuido
+        cursor = self.conn.execute(
             """UPDATE chunk_tasks
                SET task_state = CASE 
                        WHEN retry_count + 1 >= max_retries THEN 'FAILED' 
@@ -63,7 +87,22 @@ class ControlPlaneRepository:
                    END,
                    retry_count = retry_count + 1, lease_owner = NULL, lease_expires_at = NULL,
                    error_log = ?, updated_at = ?
-               WHERE task_id = ? AND lease_owner = ?""",
-            (error, now, task_id, worker_id)
+               WHERE task_id = ? AND lease_owner = ? AND lease_expires_at >= ?""",
+            (error, now, task_id, worker_id, now)
         )
         self.conn.commit()
+        
+        # SOTA: Aserción simétrica. Si rowcount es 0, el lease ya no nos pertenece.
+        if cursor.rowcount == 0:
+            raise OptimisticLockError(f"Zombie write interceptado al fallar tarea: El lease de {task_id} expiró o fue robado.")
+        
+    def renew_task_lease(self, task_id: str, worker_id: str, additional_ttl_sec: int = 300) -> bool:
+        now = time.time()
+        cursor = self.conn.execute(
+            """UPDATE chunk_tasks
+               SET lease_expires_at = ?, updated_at = ?
+               WHERE task_id = ? AND lease_owner = ? AND task_state = 'PROCESSING'""",
+            (now + additional_ttl_sec, now, task_id, worker_id)
+        )
+        self.conn.commit()
+        return cursor.rowcount > 0

@@ -6,13 +6,11 @@ from tenacity import (
     retry, wait_exponential, stop_after_attempt, 
     stop_after_delay, retry_if_exception_type, before_sleep_log
 )
-
+from core.execution.ports import ControlPlanePort, EventPlanePort, MaterializedPlanePort
 from core.ast.models import ASTNode, NodeType
 from core.metrics.metrics import Metrics
 from apps.llm_workers.gemini_client import GeminiClient
 from core.normalization.normalizer import TextNormalizer
-from infra.db.event_repo import EventPlaneRepository
-from infra.db.materialized_repo import MaterializedPlaneRepository
 
 logger = logging.getLogger(__name__)
 
@@ -27,18 +25,29 @@ def _is_transient(e: Exception) -> bool:
     ]
     return any(sig in error_str for sig in transient_signals)
 
+
+
 class ChunkProcessor:
-    def __init__(self, client: GeminiClient, metrics: Metrics, control_db_path: str, event_db_path: str, mat_db_path: str):
+    def __init__(self, client: GeminiClient, metrics: Metrics, 
+                 control_port: ControlPlanePort, 
+                 event_port: EventPlanePort, 
+                 mat_port: MaterializedPlanePort):
+        
         self.client = client
         self.metrics = metrics
-        # SOTA: Tres rutas físicas para TPS
-        self.control_db_path = control_db_path
-        self.event_db_path = event_db_path
-        self.mat_db_path = mat_db_path
+        
+        # SOTA: Inyección estricta de Protocolos. Cero acoplamiento a I/O.
+        self.control = control_port
+        self.event = event_port
+        self.materialized = mat_port
         
         self.prompt_v = "v3_latex_optimized"
-        self.model_v = "gemini-2.5-flash" # Corrección aplicada
+        self.model_v = "gemini-2.5-flash" 
         self.projection_v = 1 
+        
+    # (El método process_and_commit pierde todo el bloque de self._get_connection, 
+    # y llama directamente a self.event.get_replay() y self.materialized.upsert_projection() 
+    # recibiendo los nuevos DTOs Tipados)
 
     def _get_connection(self, path: str) -> sqlite3.Connection:
         conn = sqlite3.connect(path, timeout=15)
@@ -68,52 +77,51 @@ class ChunkProcessor:
             raise e
 
     def process_and_commit(self, node: ASTNode, document_id: str, ast_hash: str, execution_id: str, chunk_idx: int = 1, total_chunks: int = 1) -> str:
+        # Importaciones locales de Enums si no están en la cabecera
+        from core.execution.ports import ProcessingOutcome, ProjectionState, EventLifecycle
+        
         if node.type not in (NodeType.MACRO_CHUNK, NodeType.PARAGRAPH, NodeType.SECTION, NodeType.EQUATION):
-            return "SKIPPED_UNSUPPORTED_NODE"
+            return ProcessingOutcome.SKIPPED_UNSUPPORTED.value
 
         start_node = time.perf_counter()
         content = node.content or ""
         content_hash = hashlib.sha256(content.encode('utf-8')).hexdigest()
 
-        # Abrimos conexiones con afinidad estricta al hilo actual
-        conn_evt = self._get_connection(self.event_db_path)
-        conn_mat = self._get_connection(self.mat_db_path)
+        # 1. Validación de Proyección Existente (Usa el Puerto, no SQL)
+        proj_status = self.materialized.get_projection_status(document_id, ast_hash, node.node_id, self.projection_v)
+        if proj_status.state == ProjectionState.CURRENT:
+            return ProcessingOutcome.ALREADY_CURRENT.value
+
+        raw_response = None
         
-        try:
-            event_repo = EventPlaneRepository(conn_evt)
-            mat_repo = MaterializedPlaneRepository(conn_mat)
-
-            # 1. Validación de Proyección Existente
-            current_proj = mat_repo.get_projection(document_id, ast_hash, node.node_id)
-            if current_proj and current_proj['projection_version'] == self.projection_v:
-                return "ALREADY_MATERIALIZED"
-
-            if node.type == NodeType.EQUATION:
-                raw_response = node.latex or node.content
+        if node.type == NodeType.EQUATION:
+            raw_response = node.latex or node.content
+        else:
+            # 2. Replay Económico Fuerte
+            replay = self.event.get_replay(content_hash, self.prompt_v, self.model_v)
+            
+            if replay:
+                # SOTA: Extraemos el string del DTO
+                raw_response = replay.raw_response
+                logger.info("ECONOMIC_REPLAY_HIT", extra={"extra_data": {"exec_id": execution_id}})
             else:
-                # 2. Replay Económico Fuerte
-                raw_response = event_repo.get_replay(content_hash, self.prompt_v, self.model_v)
+                # 3. Llamada de Red (Costo) y WAL Append
+                raw_response = self._pure_llm_call(node, chunk_idx, total_chunks)
                 
-                if not raw_response:
-                    # 3. Llamada de Red (Costo) y WAL Append
-                    raw_response = self._pure_llm_call(node, chunk_idx, total_chunks)
-                    event_repo.append_wal(
-                        execution_id, document_id, node.node_id, content_hash, 
-                        raw_response, self.prompt_v, self.model_v, self.projection_v
-                    )
+                # SOTA: Añadido el EventLifecycle faltante
+                self.event.append_wal(
+                    execution_id, document_id, node.node_id, content_hash, 
+                    raw_response, self.prompt_v, self.model_v, self.projection_v, EventLifecycle.GENERATED
+                )
 
-            # 4. Normalización y Materialización
-            normalized = TextNormalizer.normalize(raw_response) if node.type != NodeType.EQUATION else raw_response
-            normalized_hash = hashlib.sha256(normalized.encode('utf-8')).hexdigest()
-            
-            mat_repo.upsert_projection(
-                document_id, ast_hash, node.node_id, content_hash, 
-                normalized, normalized_hash, self.projection_v
-            )
-            
-            self.metrics.observe("node_latency", time.perf_counter() - start_node)
-            return "MATERIALIZED"
-            
-        finally:
-            conn_evt.close()
-            conn_mat.close()
+        # 4. Normalización y Materialización
+        normalized = TextNormalizer.normalize(raw_response) if node.type != NodeType.EQUATION else raw_response
+        normalized_hash = hashlib.sha256(normalized.encode('utf-8')).hexdigest()
+        
+        self.materialized.upsert_projection(
+            document_id, ast_hash, node.node_id, content_hash, 
+            normalized, normalized_hash, self.projection_v
+        )
+        
+        self.metrics.observe("node_latency", time.perf_counter() - start_node)
+        return ProcessingOutcome.MATERIALIZED.value
