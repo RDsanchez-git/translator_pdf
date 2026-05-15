@@ -41,7 +41,6 @@ from core.execution.exceptions import CircuitTripError, CircuitOpenError
 
 
 
-
 logger = logging.getLogger(__name__)
 
 if __name__ == "__main__":
@@ -233,20 +232,16 @@ def run_pipeline(pdf_input_path: str = "input.pdf", pdf_output_name: str = "MVP_
                         logger.info("Chunk procesado y materializado exitosamente.")
                         
                     except CircuitTripError as e:
-                        # SOTA: Propagar el mensaje interno del error (e) al log
                         logger.critical(f"CIRCUIT TRIPPED! {e} Liberando tarea intacta y durmiendo...")
                         task_repo.release_task_untouched(task_id, owner_id)
                         time.sleep(30.0) 
                         
                     except CircuitOpenError as e:
-                        # Aquí 'e' ya se usaba en e.cooldown_remaining, por lo que el warning era por CircuitTripError
                         logger.warning(f"Circuito bloqueado. Durmiendo {e.cooldown_remaining:.1f}s")
                         task_repo.release_task_untouched(task_id, owner_id)
                         time.sleep(min(e.cooldown_remaining, 30.0))
                         
                     except Exception as e:
-                        # SOTA: logger.exception() inyecta exc_info=True automáticamente 
-                        # para que el JSONFormatter capture el Stacktrace completo.
                         logger.exception("Fallo de negocio o chunk corrupto.")
                         task_repo.abandon_execution(task_id, owner_id, str(e))
                         
@@ -381,4 +376,6 @@ def run_pipeline(pdf_input_path: str = "input.pdf", pdf_output_name: str = "MVP_
     return {"status": "terminal_reached", "final_state": final_state_val}
 
 if __name__ == "__main__":
+    setup_distributed_logger()
+    metrics = Metrics()
     run_pipeline()

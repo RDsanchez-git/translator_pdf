@@ -35,6 +35,8 @@ class TaskLease:
     task_id: str
     node_id: str
     execution_id: str
+    lease_expires_at: float
+    absolute_deadline_monotonic: float
 
 @dataclass(frozen=True)
 class ReplayPayload:

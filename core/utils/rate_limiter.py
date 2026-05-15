@@ -2,6 +2,11 @@ import time
 import threading
 from collections import deque
 
+# SOTA: Barrera de saturación física. 
+# Máximo de conexiones HTTP activas concurrentes contra la API.
+MAX_CONCURRENCY = 20
+IN_FLIGHT_LIMITER = threading.Semaphore(MAX_CONCURRENCY)
+
 class RateLimiter:
     """SOTA: Gateway concurrente con jerarquía de bloqueos invertida (Temporal -> Espacial)."""
     

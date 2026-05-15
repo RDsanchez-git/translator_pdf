@@ -1,6 +1,5 @@
 import time
 import uuid
-import random
 import sqlite3
 from typing import Optional, List
 from core.execution.ports import ControlPlanePort, TaskLease
@@ -28,39 +27,34 @@ class ControlPlaneRepository(ControlPlanePort):
         # ULID/UUIDv7 simulado nativamente si no hay dependencias externas
         execution_id = f"exec_{int(time.time()*1000):015d}_{uuid.uuid4().hex[:8]}" 
         now = time.time()
+        lease_expires = now + 300
         
-        max_retries = 5
-        for attempt in range(max_retries):
-            try:
-                # SOTA: Forzar exclusividad ANTES de la lectura
-                self.conn.execute("BEGIN IMMEDIATE")
-                
-                cursor = self.conn.execute(
-                    """UPDATE chunk_tasks 
-                    SET task_state = 'PROCESSING', lease_owner = ?, lease_expires_at = ?, execution_id = ?
-                    WHERE task_id = (
-                        SELECT task_id FROM chunk_tasks 
-                        WHERE document_id = ? AND ast_hash = ? 
-                            AND task_state IN ('PENDING', 'RETRYABLE_ERROR')
-                            AND (lease_owner IS NULL OR lease_expires_at < ?)
-                        ORDER BY created_at ASC LIMIT 1 -- SOTA: Fairness
-                    ) RETURNING task_id, node_id, execution_id""",
-                    (worker_id, now + 300, execution_id, document_id, ast_hash, now)
-                )
-                row = cursor.fetchone()
-                self.conn.commit()
-                
-                if row:
-                    return TaskLease(task_id=row[0], node_id=row[1], execution_id=row[2])
-                return None
-                
-            except sqlite3.OperationalError as e:
-                self.conn.rollback()
-                if "database is locked" in str(e).lower() or "busy" in str(e).lower():
-                    # SOTA: Desincronización de colisiones (Jitter)
-                    time.sleep(random.uniform(0.05, 0.25 * (2 ** attempt)))
-                    continue
-                raise e
+        # SOTA: Cero reintentos manuales. Se confía estrictamente en el PRAGMA busy_timeout de SQLite.
+        self.conn.execute("BEGIN IMMEDIATE")
+        
+        cursor = self.conn.execute(
+            """UPDATE chunk_tasks 
+            SET task_state = 'PROCESSING', lease_owner = ?, lease_expires_at = ?, execution_id = ?
+            WHERE task_id = (
+                SELECT task_id FROM chunk_tasks 
+                WHERE document_id = ? AND ast_hash = ? 
+                    AND task_state IN ('PENDING', 'RETRYABLE_ERROR')
+                    AND (lease_owner IS NULL OR lease_expires_at < ?)
+                ORDER BY created_at ASC LIMIT 1 -- SOTA: Fairness
+            ) RETURNING task_id, node_id, execution_id, lease_expires_at""",
+            (worker_id, lease_expires, execution_id, document_id, ast_hash, now)
+        )
+        row = cursor.fetchone()
+        self.conn.commit()
+        
+        if row:
+            return TaskLease(
+                task_id=row[0], 
+                node_id=row[1], 
+                execution_id=row[2],
+                lease_expires_at=row[3],
+                absolute_deadline_monotonic=time.monotonic() + 720.0
+            )
         return None
 
     def acknowledge_execution(self, task_id: str, worker_id: str) -> None:
