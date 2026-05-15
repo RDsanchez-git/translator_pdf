@@ -17,7 +17,6 @@ from apps.llm_workers.gemini_client import GeminiClient
 from apps.llm_workers.chunk_processor import ChunkProcessor
 from apps.compiler.tex_builder import TexBuilder
 from apps.compiler.docker_runner import DockerRunner
-from core.utils.logger import setup_logger
 from core.metrics.metrics import Metrics
 
 from infra.db.fsm_repository import FSMRepository
@@ -33,10 +32,25 @@ from infra.db.control_repo import ControlPlaneRepository
 from infra.db.materialized_repo import MaterializedPlaneRepository
 from infra.db.event_repo import EventPlaneRepository
 
+from core.utils.telemetry import (
+    setup_distributed_logger, 
+    ctx_execution_id, ctx_worker_id, ctx_task_id, ctx_node_id
+)
 
-setup_logger()
-metrics = Metrics()
+from core.execution.exceptions import CircuitTripError, CircuitOpenError
+
+
+
+
 logger = logging.getLogger(__name__)
+
+if __name__ == "__main__":
+    # 1. Configuración de telemetría (SOTA: siempre es lo primero)
+    setup_distributed_logger()
+    
+    # 2. Inicialización de dependencias
+    metrics = Metrics()
+
 
 CONTROL_DB_PATH = "infra/db/control.db"
 EVENT_DB_PATH = "infra/db/event.db"
@@ -202,19 +216,46 @@ def run_pipeline(pdf_input_path: str = "input.pdf", pdf_output_name: str = "MVP_
                     # SOTA: task ahora es un DTO inmutable (TaskLease). Se accede con punto.
                     task_id = task.task_id
                     node_id = task.node_id
+
+                    # SOTA: Inyección de Trazabilidad. 
+                    # Cualquier log dentro de procesor, client o repo tendrá este sello.
+                    t_exec = ctx_execution_id.set(task.execution_id)
+                    t_work = ctx_worker_id.set(owner_id)
+                    t_task = ctx_task_id.set(task_id)
+                    t_node = ctx_node_id.set(node_id)
                     
                     try:
                         target_node = ast_index[node_id]
                         
                         processor.process_and_commit(target_node, document_id, ast_hash, task, owner_id)
                         
-                        # SOTA: Nuevos contratos semánticos
                         task_repo.acknowledge_execution(task_id, owner_id)
-                        logger.debug("task_completed", extra={"extra_data": {"node_id": node_id[:8]}})
+                        logger.info("Chunk procesado y materializado exitosamente.")
+                        
+                    except CircuitTripError as e:
+                        # SOTA: Propagar el mensaje interno del error (e) al log
+                        logger.critical(f"CIRCUIT TRIPPED! {e} Liberando tarea intacta y durmiendo...")
+                        task_repo.release_task_untouched(task_id, owner_id)
+                        time.sleep(30.0) 
+                        
+                    except CircuitOpenError as e:
+                        # Aquí 'e' ya se usaba en e.cooldown_remaining, por lo que el warning era por CircuitTripError
+                        logger.warning(f"Circuito bloqueado. Durmiendo {e.cooldown_remaining:.1f}s")
+                        task_repo.release_task_untouched(task_id, owner_id)
+                        time.sleep(min(e.cooldown_remaining, 30.0))
                         
                     except Exception as e:
-                        logger.error("TASK_EXECUTION_FAILED", extra={"extra_data": {"node_id": node_id[:8], "error": str(e)[:250]}})
+                        # SOTA: logger.exception() inyecta exc_info=True automáticamente 
+                        # para que el JSONFormatter capture el Stacktrace completo.
+                        logger.exception("Fallo de negocio o chunk corrupto.")
                         task_repo.abandon_execution(task_id, owner_id, str(e))
+                        
+                    finally:
+                        # SOTA: Limpieza estricta del contexto distribuido
+                        ctx_execution_id.reset(t_exec)
+                        ctx_worker_id.reset(t_work)
+                        ctx_task_id.reset(t_task)
+                        ctx_node_id.reset(t_node)
                 
                 # 3. Barrera de Integridad CQRS Estricta
                 valid_chunks_data = mat_repo.get_assemblable_chunks(

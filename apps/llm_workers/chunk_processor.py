@@ -14,6 +14,9 @@ from core.ast.models import ASTNode, NodeType
 from core.metrics.metrics import Metrics
 from apps.llm_workers.gemini_client import GeminiClient
 from core.normalization.normalizer import TextNormalizer
+from contextvars import copy_context
+
+
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +46,10 @@ class TaskLeaseHeartbeat:
         
         self.stop_event = threading.Event()
         self.lease_lost = threading.Event()
-        self.thread = threading.Thread(target=self._beat, daemon=True)
+
+        ctx = copy_context()
+
+        self.thread = threading.Thread(target=lambda: ctx.run(self._beat), daemon=True)
 
     def _beat(self):
         while not self.stop_event.wait(self.interval):
