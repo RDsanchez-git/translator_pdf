@@ -60,3 +60,15 @@ CREATE TABLE IF NOT EXISTS valid_chunks_cache (
 );
 
 CREATE INDEX IF NOT EXISTS idx_valid_chunks_lookup ON valid_chunks_cache(document_id, ast_hash, projection_version);
+
+-- PLANO 4: Tabla genérica para Global Singleton Actors (Leader Election)
+CREATE TABLE IF NOT EXISTS system_leases (
+    lease_name TEXT PRIMARY KEY,
+    owner_id TEXT,
+    lease_expires_at REAL,
+    updated_at REAL,
+    lease_version INTEGER NOT NULL DEFAULT 0 -- SOTA: Fencing Epoch integrado
+);
+
+-- Inicialización del candado del Reconciliador
+INSERT OR IGNORE INTO system_leases (lease_name) VALUES ('global_reconciler');

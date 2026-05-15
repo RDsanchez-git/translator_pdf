@@ -100,3 +100,20 @@ class StallDocumentCommand(DocumentCommand):
 @dataclass(frozen=True)
 class ResumeDocumentCommand(DocumentCommand):
     pass
+
+@dataclass(frozen=True)
+class ReconcilerCommand:
+    reconciliation_id: str 
+    reconciler_epoch: int  
+
+@dataclass(frozen=True)
+class RecoverZombieTaskCommand(ReconcilerCommand):
+    task_id: str
+    document_id: str
+
+@dataclass(frozen=True)
+class RematerializeTaskCommand(ReconcilerCommand):
+    task_id: str
+    document_id: str
+    node_id: str
+    content_hash: str
