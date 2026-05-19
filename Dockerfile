@@ -25,7 +25,7 @@ WORKDIR /app
 
 # 3. Dependencias de Python
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --default-timeout=1000 --no-cache-dir -r requirements.txt
 
 # 4. Código fuente
 COPY . /app/

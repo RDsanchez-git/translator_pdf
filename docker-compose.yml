@@ -51,20 +51,19 @@ services:
 
   worker-a:
     <<: *worker-base
-
     command: ["python", "runtime/engine.py"]
-
+    
     environment:
       NODE_ID: worker_a
       GEMINI_API_URL: http://toxiproxy:8443
       MAX_CONCURRENCY: 10
       GEMINI_API_KEY: dummy_sre_key_para_fake_gemini
-      # SOTA: Definición del directorio de caché dinámico de Tectonic
       TECTONIC_CACHE_DIR: /app/.tectonic_cache
+      HF_HOME: /app/.models/hf
 
     volumes:
-      # SOTA: Montaje del volumen dedicado para persistir paquetes LaTeX
       - tectonic_bundle_cache:/app/.tectonic_cache
+      - marker_cache:/app/.models/hf
 
     restart: "no"
 
