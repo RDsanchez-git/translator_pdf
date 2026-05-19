@@ -4,10 +4,10 @@ logger = logging.getLogger(__name__)
 
 class TexBuilder:
     def __init__(self):
-        # SOTA: Plantilla base adaptada para motor XeTeX (Tectonic)
+        # SOTA: Preámbulo minimalista XeTeX-friendly. 
+        # Cero dependencias de system fonts (sin fontspec) y sin el obsoleto inputenc.
         self.header = [
             "\\documentclass[11pt,a4paper]{article}",
-            "\\usepackage{fontspec}",  # SOTA: Soporte Unicode nativo absoluto
             "\\usepackage{amsmath, amssymb}",
             "\\usepackage{graphicx}",
             "\\usepackage{hyperref}",
@@ -19,12 +19,15 @@ class TexBuilder:
         document = list(self.header)
         
         for node_id, text_to_render in valid_chunks:
-            # SOTA: Falla explícita si el chunk materializado es nulo o vacío
             if not text_to_render or not str(text_to_render).strip():
-                raise ValueError(f"CRÍTICO: El nodo {node_id} se marcó como válido pero su contenido está vacío. Integridad comprometida.")
+                raise ValueError(f"CRÍTICO: El nodo {node_id} está vacío. Integridad comprometida.")
                 
+            # SOTA: Sanitización determinista de Markdown LLM a LaTeX puro
+            safe_text = str(text_to_render)
+            safe_text = safe_text.replace("_", "\\_").replace("&", "\\&").replace("%", "\\%")
+            
             document.append(f"% [NODE_ID: {node_id}]")
-            document.append(text_to_render)
+            document.append(safe_text)
             document.append("") 
                 
         document.extend(self.footer)

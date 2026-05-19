@@ -1,0 +1,8 @@
+[
+  {
+    "name": "gemini_proxy",
+    "listen": "[::]:8443",
+    "upstream": "fake-gemini:8000",
+    "enabled": true
+  }
+]

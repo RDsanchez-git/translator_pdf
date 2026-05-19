@@ -10,6 +10,7 @@ from core.execution.state import MarkAssemblyReadyCommand
 
 # (Importa los comandos definidos arriba)
 
+
 logger = logging.getLogger(__name__)
 
 class ReconcilerDaemon:
@@ -178,3 +179,8 @@ class ReconcilerDaemon:
                     document_id=doc_id
                 )
                 self.recon_cmd_handler.handle(cmd)
+
+if __name__ == "__main__":
+     print("Reconciler iniciado") 
+     while True:
+         time.sleep(60)

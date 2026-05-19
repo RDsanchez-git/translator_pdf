@@ -1,6 +1,6 @@
 import os
-from google import genai
-from google.genai import types
+import requests
+import logging
 from tenacity import retry, wait_exponential, stop_after_attempt, retry_if_exception_type
 
 from apps.llm_workers.prompt_builder import PromptBuilder
@@ -8,19 +8,22 @@ from core.ast.models import ASTNode
 from core.resilience.circuit_breaker import CircuitBreakerRegistry
 from core.execution.exceptions import TransientAPIError
 from core.utils.rate_limiter import GLOBAL_RATE_LIMITER
+from core.utils.telemetry import ctx_execution_id, ctx_worker_id
+
+logger = logging.getLogger(__name__)
 
 class GeminiClient:
     def __init__(self, api_key: str | None = None):
-        key = api_key or os.environ.get("GEMINI_API_KEY")
-        if not key:
+        self.api_key = api_key or os.environ.get("GEMINI_API_KEY")
+        if not self.api_key:
             raise ValueError("GEMINI_API_KEY no encontrada.")
         
-        self.client = genai.Client(api_key=key)
-        self.limiter = GLOBAL_RATE_LIMITER
-        
+        self.base_url = os.getenv("GEMINI_API_URL", "https://generativelanguage.googleapis.com")
         self.model_v = 'gemini-2.5-flash'
-        # SOTA: Instanciación del Breaker aislado por modelo
+        self.limiter = GLOBAL_RATE_LIMITER
         self.breaker = CircuitBreakerRegistry.get_breaker(self.model_v)
+        
+        self.session = requests.Session()
 
         self.system_instruction = """You are an expert LaTeX translator.
         Your ONLY task is to translate the given text to Spanish while maintaining strictly VALID LaTeX formatting.
@@ -35,25 +38,7 @@ class GeminiClient:
         7. All brackets {}, (), [] must be balanced.
         8. Escape special characters: %, $, _, &, #.
 
-        If the input is ambiguous, produce the safest valid LaTeX translation possible.
-
-        EXAMPLES:
-        Input: The equation is x^2 + y^2 = z^2.
-        Output: La ecuación es $x^2 + y^2 = z^2$.
-
-        Input: 50% of users prefer option A & B.
-        Output: El 50\\% de los usuarios prefiere la opción A \\& B.
-
-        Input: Let f(x) = sin(x).
-        Output: Sea $f(x) = \\sin(x)$.
-
-        Input: \\begin{itemize}
-        \\item First item
-        \\item Second item
-        Output: \\begin{itemize}
-        \\item Primer elemento
-        \\item Segundo elemento
-        \\end{itemize}"""
+        If the input is ambiguous, produce the safest valid LaTeX translation possible."""
 
     def _clean_response(self, text: str | None) -> str:
         result = (text or "").strip()
@@ -72,9 +57,8 @@ class GeminiClient:
     def _build_fix_prompt(self, broken_output: str, reason: str) -> str:
         return f"The following LaTeX output is INVALID.\n\nReason:\n{reason}\n\nFix the LaTeX structure while preserving the Spanish translation. Return ONLY valid LaTeX.\nDo not explain anything.\n\nBROKEN OUTPUT:\n{broken_output}\n\nFIXED OUTPUT:\n"
 
-    def _is_transient(self, e: Exception) -> bool:
-        msg = str(e).lower()
-        return any(sig in msg for sig in ["429", "503", "502", "500", "timeout", "quota", "connection"])
+    def _is_transient(self, status_code: int) -> bool:
+        return status_code in [429, 500, 502, 503, 504]
 
     @retry(
         wait=wait_exponential(multiplier=2, min=2, max=30),
@@ -83,30 +67,47 @@ class GeminiClient:
         reraise=True
     )
     def _execute_with_local_retries(self, prompt: str, temp: float) -> str:
-        # Breaker-awareness: Abortar reintento interno si el circuito global se abrió
         self.breaker.check_state()
-        
         self.limiter.acquire()
+        
+        url = f"{self.base_url}/v1beta/models/{self.model_v}:generateContent?key={self.api_key}"
+        
+        payload = {
+            "contents": [{"parts": [{"text": prompt}]}],
+            "systemInstruction": {"parts": [{"text": self.system_instruction}]},
+            "generationConfig": {"temperature": temp}
+        }
+        
+        headers = {
+            "Content-Type": "application/json",
+            "x-execution-id": ctx_execution_id.get("unknown_exec"),
+            "x-worker-id": ctx_worker_id.get("unknown_worker")
+        }
+
         try:
-            response = self.client.models.generate_content(
-                model=self.model_v,
-                contents=prompt,
-                config=types.GenerateContentConfig(
-                    system_instruction=self.system_instruction,
-                    temperature=temp
-                )
-            )
-            return self._clean_response(response.text)
-        except Exception as e:
-            if self._is_transient(e):
-                raise TransientAPIError(str(e))
-            raise e
+            response = self.session.post(url, json=payload, headers=headers, timeout=(5.0, 30.0))
+            
+            if not response.ok:
+                logger.warning(f"HTTP Error {response.status_code}: {response.text[:200]}")
+                if self._is_transient(response.status_code):
+                    raise TransientAPIError(f"HTTP {response.status_code}: {response.text}")
+                response.raise_for_status()
+
+            try:
+                data = response.json()
+            except ValueError as e:
+                raise TransientAPIError(f"Malformed JSON: {str(e)}")
+
+            raw_text = data["candidates"][0]["content"]["parts"][0]["text"]
+            return self._clean_response(raw_text)
+            
+        except requests.exceptions.RequestException as e:
+            raise TransientAPIError(f"Network Failure: {str(e)}")
         finally:
             self.limiter.release()
 
     def translate(self, node: ASTNode, chunk_idx: int = 1, total_chunks: int = 1) -> str:
         prompt = PromptBuilder.build(node, chunk_idx, total_chunks)
-        # El Breaker orquesta la supervivencia macro
         return self.breaker.call(lambda: self._execute_with_local_retries(prompt, temp=0.2))
 
     def fix_latex(self, broken_output: str, reason: str) -> str:

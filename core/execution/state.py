@@ -18,11 +18,14 @@ class DocumentState(Enum):
     STALLED = "STALLED"
 
 # --- 2. GRAFO LEGAL ---
+# --- 2. GRAFO LEGAL ---
 LEGAL_TRANSITIONS: dict[DocumentState, Set[DocumentState]] = {
-    # ... [mantener transiciones previas]
+    DocumentState.CREATED: {DocumentState.PARSING, DocumentState.FAILED, DocumentState.CANCELLED, DocumentState.STALLED},
     DocumentState.PARSING: {DocumentState.PROCESSING, DocumentState.FAILED, DocumentState.CANCELLED, DocumentState.STALLED},
     DocumentState.PROCESSING: {DocumentState.READY_FOR_ASSEMBLY, DocumentState.FAILED, DocumentState.CANCELLED, DocumentState.STALLED},
+    DocumentState.READY_FOR_ASSEMBLY: {DocumentState.ASSEMBLING, DocumentState.FAILED, DocumentState.CANCELLED, DocumentState.STALLED},
     DocumentState.ASSEMBLING: {DocumentState.READY_FOR_COMPILATION, DocumentState.FAILED, DocumentState.CANCELLED, DocumentState.STALLED},
+    DocumentState.READY_FOR_COMPILATION: {DocumentState.COMPILING, DocumentState.FAILED, DocumentState.CANCELLED, DocumentState.STALLED},
     DocumentState.COMPILING: {DocumentState.COMPLETED, DocumentState.FAILED, DocumentState.CANCELLED, DocumentState.STALLED},
     DocumentState.STALLED: {
         DocumentState.PARSING, DocumentState.PROCESSING, DocumentState.READY_FOR_ASSEMBLY,

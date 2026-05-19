@@ -1,0 +1,4 @@
+requests
+pydantic
+marker-pdf==1.10.2
+tenacity

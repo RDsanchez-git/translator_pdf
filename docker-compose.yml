@@ -1,0 +1,159 @@
+x-worker-base: &worker-base
+  build:
+    context: .
+    dockerfile: Dockerfile
+
+  volumes:
+    - ./data/control:/app/infra/db/control
+    - ./data/event:/app/infra/db/event
+    - ./data/materialized:/app/infra/db/materialized
+    - marker_cache:/root/.cache
+
+  networks:
+    - chaos_net
+
+  restart: unless-stopped
+  init: true
+
+  environment:
+    - PYTHONPATH=/app
+
+  depends_on:
+    toxiproxy:
+      condition: service_healthy
+
+  stop_grace_period: 15s
+
+  ulimits:
+    nofile:
+      soft: 65535
+      hard: 65535
+
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "3"
+
+  mem_limit: 8g
+  cpus: "3.0"
+
+services:
+
+  reconciler:
+    <<: *worker-base
+
+    command: ["python", "apps/daemons/reconciler.py"]
+
+    environment:
+      NODE_ID: reconciler_alpha
+      GEMINI_API_URL: http://toxiproxy:8443
+
+  worker-a:
+    <<: *worker-base
+
+    command: ["python", "runtime/engine.py"]
+
+    environment:
+      NODE_ID: worker_a
+      GEMINI_API_URL: http://toxiproxy:8443
+      MAX_CONCURRENCY: 10
+      GEMINI_API_KEY: dummy_sre_key_para_fake_gemini
+      # SOTA: Definición del directorio de caché dinámico de Tectonic
+      TECTONIC_CACHE_DIR: /app/.tectonic_cache
+
+    volumes:
+      # SOTA: Montaje del volumen dedicado para persistir paquetes LaTeX
+      - tectonic_bundle_cache:/app/.tectonic_cache
+
+    restart: "no"
+
+  #worker-b:
+  #  <<: *worker-base
+
+  #  command: ["python", "runtime/engine.py"]
+
+  #  environment:
+  #    NODE_ID: worker_b
+  #    GEMINI_API_URL: http://toxiproxy:8443
+  #    MAX_CONCURRENCY: 10
+
+  toxiproxy:
+    image: ghcr.io/shopify/toxiproxy:2.5.0
+
+    command:
+      - "-host"
+      - "0.0.0.0" 
+      - "-config" 
+      - "/config/toxiproxy.json"
+
+    volumes:
+      - ./toxiproxy.json:/config/toxiproxy.json:ro
+
+    networks:
+      - chaos_net
+
+    ports:
+      - "8474:8474"
+      - "8443:8443"
+
+    restart: unless-stopped
+
+    depends_on:
+      fake-gemini:
+        condition: service_healthy
+
+    healthcheck:
+      test: ["CMD", "/toxiproxy-cli", "list"]
+      interval: 5s
+      timeout: 2s
+      retries: 3
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  fake-gemini:
+    build:
+      context: .
+      dockerfile: Dockerfile.fake
+
+    networks:
+      - chaos_net
+
+    expose:
+      - "8000"
+
+    ports:
+      - "8000:8000"
+
+    restart: unless-stopped
+    init: true
+
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"
+        ]
+      interval: 5s
+      timeout: 2s
+      retries: 3
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  chaos_net:
+    driver: bridge
+
+volumes:
+  marker_cache: # Conservar para no perder el caché de OCR
+  tectonic_bundle_cache: # Nuevo volumen persistente para evitar descargas de TeX

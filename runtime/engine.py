@@ -123,9 +123,9 @@ def run_pipeline(pdf_input_path: str = "input.pdf", pdf_output_name: str = "MVP_
     # Bootstrap de Infraestructura TPS (Triple Plane Split)
     os.makedirs(os.path.dirname(CONTROL_DB_PATH), exist_ok=True)
     
-    ctrl_conn = sqlite3.connect(CONTROL_DB_PATH, timeout=30)
-    evt_conn = sqlite3.connect(EVENT_DB_PATH, timeout=30)
-    mat_conn = sqlite3.connect(MAT_DB_PATH, timeout=30)
+    ctrl_conn = sqlite3.connect(CONTROL_DB_PATH, timeout=30, isolation_level=None)
+    evt_conn = sqlite3.connect(EVENT_DB_PATH, timeout=30, isolation_level=None)
+    mat_conn = sqlite3.connect(MAT_DB_PATH, timeout=30, isolation_level=None)
     
     schema_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "infra", "db", "schema.sql")
     with open(schema_path, "r", encoding="utf-8") as f:
@@ -287,23 +287,46 @@ def run_pipeline(pdf_input_path: str = "input.pdf", pdf_output_name: str = "MVP_
                 retry_attempt = 0
                 
             elif current_state == DocumentState.ASSEMBLING:
-                ordered_node_ids = [n.node_id for n in ast]
+                # SOTA Telemetry: Sonda de estado del AST y Query Model
+                logger.info(f"SRE: AST TYPE: {type(ast)}")
+                logger.info(f"SRE: AST LEN (pre-list): {len(ast) if hasattr(ast, '__len__') else 'NO_LEN'}")
+                
+                # Coerción defensiva (Hardening)
+                ast_list = list(ast)
+                
+                ordered_node_ids = [n.node_id for n in ast_list]
+                logger.info(f"SRE: ordered_node_ids extraídos: {len(ordered_node_ids)}")
+                
+                # Query al Materialized View
                 valid_chunks_data = mat_repo.get_assemblable_chunks(
                     document_id, ast_hash, ordered_node_ids, required_projection_v=1
                 )
                 
-                builder = TexBuilder()
+                # SOTA Telemetry: Veredicto del Query Model
+                logger.info(f"SRE: CHUNKS RECUPERADOS DB: {len(valid_chunks_data)}")
+                if len(valid_chunks_data) > 0:
+                    logger.info(f"SRE: Muestra de ID recuperado: {valid_chunks_data[0].node_id}")
+                else:
+                    logger.error(f"CRÍTICO: mat_repo.get_assemblable_chunks devolvió 0. Params: doc={document_id}, hash={ast_hash}, len_ids={len(ordered_node_ids)}")
                 
-                # SOTA: Adaptador temporal para mantener retrocompatibilidad con TexBuilder viejo
-                # Convertimos List[ProjectionRecord] a List[Tuple[str, str]]
+                builder = TexBuilder()
                 legacy_chunks_format = [(p.node_id, p.normalized_response) for p in valid_chunks_data]
                 tex_document = builder.build(legacy_chunks_format)
                 
+                logger.info(f"SRE: TEX LEN: {len(tex_document)}")
+                logger.info("SRE: TEX PREVIEW:\n" + tex_document[:1500])
+
                 Path(tex_path).parent.mkdir(parents=True, exist_ok=True)
                 with open(tex_path, "w", encoding="utf-8") as f:
                     f.write(tex_document)
                 
-                # Destruimos tex_document de la RAM explícitamente
+                # 2. Verifica DISCO
+                with open(tex_path, "r", encoding="utf-8") as f:
+                    disk_content = f.read()
+
+                logger.info(f"SRE: TEX LEN DISK: {len(disk_content)}")
+                logger.info("SRE: TEX DISK PREVIEW:\n" + disk_content[:1500])
+                
                 del tex_document 
                     
                 cmd = MarkCompilationReadyCommand(document_id, ast_hash, owner_id, current_version)

@@ -29,33 +29,36 @@ class ControlPlaneRepository(ControlPlanePort):
         now = time.time()
         lease_expires = now + 300
         
-        # SOTA: Cero reintentos manuales. Se confía estrictamente en el PRAGMA busy_timeout de SQLite.
-        self.conn.execute("BEGIN IMMEDIATE")
-        
-        cursor = self.conn.execute(
-            """UPDATE chunk_tasks 
-            SET task_state = 'PROCESSING', lease_owner = ?, lease_expires_at = ?, execution_id = ?
-            WHERE task_id = (
-                SELECT task_id FROM chunk_tasks 
-                WHERE document_id = ? AND ast_hash = ? 
-                    AND task_state IN ('PENDING', 'RETRYABLE_ERROR')
-                    AND (lease_owner IS NULL OR lease_expires_at < ?)
-                ORDER BY created_at ASC LIMIT 1 -- SOTA: Fairness
-            ) RETURNING task_id, node_id, execution_id, lease_expires_at""",
-            (worker_id, lease_expires, execution_id, document_id, ast_hash, now)
-        )
-        row = cursor.fetchone()
-        self.conn.commit()
-        
-        if row:
-            return TaskLease(
-                task_id=row[0], 
-                node_id=row[1], 
-                execution_id=row[2],
-                lease_expires_at=row[3],
-                absolute_deadline_monotonic=time.monotonic() + 720.0
+        try:
+            self.conn.execute("BEGIN IMMEDIATE")
+            
+            cursor = self.conn.execute(
+                """UPDATE chunk_tasks 
+                SET task_state = 'PROCESSING', lease_owner = ?, lease_expires_at = ?, execution_id = ?
+                WHERE task_id = (
+                    SELECT task_id FROM chunk_tasks 
+                    WHERE document_id = ? AND ast_hash = ? 
+                        AND task_state IN ('PENDING', 'RETRYABLE_ERROR')
+                        AND (lease_owner IS NULL OR lease_expires_at < ?)
+                    ORDER BY created_at ASC LIMIT 1 -- SOTA: Fairness
+                ) RETURNING task_id, node_id, execution_id, lease_expires_at""",
+                (worker_id, lease_expires, execution_id, document_id, ast_hash, now)
             )
-        return None
+            row = cursor.fetchone()
+            self.conn.commit()
+            
+            if row:
+                return TaskLease(
+                    task_id=row[0], 
+                    node_id=row[1], 
+                    execution_id=row[2],
+                    lease_expires_at=row[3],
+                    absolute_deadline_monotonic=time.monotonic() + 720.0
+                )
+            return None
+        except Exception:
+            self.conn.rollback()
+            raise
 
     def acknowledge_execution(self, task_id: str, worker_id: str) -> None:
         now = time.time()
@@ -107,7 +110,7 @@ class ControlPlaneRepository(ControlPlanePort):
     def release_task_untouched(self, task_id: str, worker_id: str) -> None:
         """SOTA: Requeue sin penalización con barrera de fencing."""
         now = time.time()
-        self.conn.execute(
+        cursor = self.conn.execute(
             """UPDATE chunk_tasks
                SET task_state = 'PENDING', 
                    lease_owner = NULL, lease_expires_at = NULL, updated_at = ?
@@ -115,6 +118,8 @@ class ControlPlaneRepository(ControlPlanePort):
             (now, task_id, worker_id, now)
         )
         self.conn.commit()
+        if cursor.rowcount == 0:
+            raise OptimisticLockError(f"Zombie write interceptado al liberar: El lease de {task_id} expiró o fue robado.")
 
     def mark_cqrs_reconciled(self, task_id: str, reconciliation_id: str) -> bool:
         """SOTA: Atomo transaccional (Idempotencia + Reparación de estado) sin validación de lease."""

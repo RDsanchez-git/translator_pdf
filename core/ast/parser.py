@@ -2,15 +2,23 @@ import os
 import re
 import json
 import logging
+import gc
 
-# SOTA: Gobernanza de hardware inyectada a nivel de proceso (Permanente y General)
+# SOTA: Gobernanza térmica estricta
 os.environ["MIN_BATCH_SIZE"] = "1"
 os.environ["MAX_BATCH_SIZE"] = "2"
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
+os.environ["NUMEXPR_NUM_THREADS"] = "1"
 
-from marker.converters.pdf import PdfConverter
-from marker.models import create_model_dict
-from core.ast.models import ASTNode, NodeType
+import torch
+torch.set_num_threads(1)
+torch.set_num_interop_threads(1)
 
+from marker.converters.pdf import PdfConverter #noqa
+from marker.models import create_model_dict #noqa
+from core.ast.models import ASTNode, NodeType #noqa
 
 logger = logging.getLogger(__name__)
 
@@ -20,30 +28,41 @@ DEBUG_PARSER = True
 def _get_converter():
     global _converter
     if _converter is None:
-        logger.info("Cargando modelos pesados de Marker en memoria (solo la primera vez)...")
-        _converter = PdfConverter(artifact_dict=create_model_dict())
+        logger.info("Cargando Marker optimizado para papers STEM (Single-Thread)...")
+        model_dict = create_model_dict()
+        
+        # SOTA: Amputación de módulos no críticos para STEM
+        keys_to_drop = ["table_recognition", "ocr_error_detection"]
+        for k in keys_to_drop:
+            if k in model_dict:
+                logger.info(f"Desactivando submódulo pesado: {k}")
+                del model_dict[k]
+                
+        _converter = PdfConverter(artifact_dict=model_dict)
     return _converter
 
 def parse_pdf(pdf_path: str) -> list[ASTNode]:
-    """Extrae contenido de PDF (Fase 4B: Parser con Tipado Estricto y Caché SOTA)."""
     if not os.path.exists(pdf_path):
         raise FileNotFoundError(f"PDF no encontrado: {pdf_path}")
 
     ast_cache_path = f"{pdf_path}.ast.json"
 
-    # SOTA 1: Bypass de Inferencia. Si ya existe el AST físico, saltamos a Marker.
     if os.path.exists(ast_cache_path):
         logger.info(f"AST recuperado desde disco ({ast_cache_path}). Saltando Marker OCR...")
         with open(ast_cache_path, "r", encoding="utf-8") as f:
             data = json.load(f)
         return [ASTNode(**node) for node in data]
 
-    # SOTA 2: Ejecución original de Marker (Compute pesado)
     converter = _get_converter()
     rendered = converter(pdf_path)
     full_text = rendered.markdown
     
-    blocks = re.split(r'\n{2,}', full_text)
+    # SOTA: Destrucción explícita de tensores huérfanos y estructuras pesadas post-inferencia
+    del rendered
+    gc.collect()
+    
+    # SOTA: Stream-friendly split
+    blocks = full_text.split("\n\n")
     logger.info(f"Fase 4B: Marker finalizó. Bloques crudos detectados: {len(blocks)}")
     
     ast_nodes = []
@@ -59,7 +78,6 @@ def parse_pdf(pdf_path: str) -> list[ASTNode]:
             break
             
         if re.search(r'\.{4,}', block):
-            logger.info(f"Índice detectado y descartado en bloque {idx}.")
             continue
             
         node_type = NodeType.PARAGRAPH
@@ -68,7 +86,6 @@ def parse_pdf(pdf_path: str) -> list[ASTNode]:
             node_type = NodeType.SECTION
             block = re.sub(r'^#+\s*', '', block)
         
-        # Saneamiento puramente estructural (NO de formato LaTeX)
         block = re.sub(r'!\[.*?\]\(.*?\)', '% [Imagen omitida]', block)
         
         if DEBUG_PARSER:
@@ -84,7 +101,11 @@ def parse_pdf(pdf_path: str) -> list[ASTNode]:
         
     logger.info(f"Fase 4B: {len(ast_nodes)} Nodos AST tipados inyectados.")
 
-    # SOTA 3: Persistencia del AST estructurado para futuras ejecuciones
+    # SOTA: Segunda purga antes del volcado I/O
+    del full_text
+    del blocks
+    gc.collect()
+
     with open(ast_cache_path, "w", encoding="utf-8") as f:
         json.dump([n.model_dump() for n in ast_nodes], f, indent=2, ensure_ascii=False)
 

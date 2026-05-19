@@ -1,0 +1,7 @@
+FROM python:3.11-slim
+# SOTA: Obligatorio para ver logs en tiempo real durante Chaos
+ENV PYTHONUNBUFFERED=1
+WORKDIR /app
+RUN pip install --no-cache-dir fastapi uvicorn pydantic
+COPY apps/daemons/fake_gemini.py .
+CMD ["uvicorn", "fake_gemini:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -21,38 +21,35 @@ class DockerRunner:
             with open(tex_path, "w", encoding="utf-8") as f:
                 f.write(tex_content)
 
-            cmd = [
-                "docker", "run", "--rm",
-                "-v", f"{tmp}:/usr/src/app",
-                "-w", "/usr/src/app",
-                "dxjoke/tectonic-docker",
-                "tectonic", "doc.tex"
-            ]
+            # SOTA: Invocación nativa, eliminando el wrapper de Docker.
+            cmd = ["tectonic", "doc.tex"]
 
             try:
-                # SOTA: Forzar utf-8 en el I/O del subproceso para evitar el colapso de cp1252 en Windows
+                # SOTA: Forzar utf-8 en el I/O del subproceso.
+                # Inyectamos cwd=tmp para que los artefactos se generen en el directorio efímero.
                 result = subprocess.run(
                     cmd, 
                     capture_output=True, 
                     text=True, 
                     encoding="utf-8", 
-                    timeout=120
+                    timeout=120,
+                    cwd=tmp
                 )
             except subprocess.TimeoutExpired:
                 raise Exception("Fallo de Tectonic: Timeout de 120 segundos excedido.")
 
             if result.returncode != 0:
+                # SOTA: Bypass del File System. Log directo a stdout de Docker.
+                logger.error("=== TECTONIC FATAL STDERR ===")
+                logger.error(result.stderr)
+                logger.error("===============================")
+                
+                # Opcional: mantén el volcado a disco si quieres, pero ya no dependemos de él.
                 crash_log_path = os.path.join(os.getcwd(), "tectonic_crash.log")
                 with open(crash_log_path, "w", encoding="utf-8") as f:
-                    f.write("=== TEX GENERADO ===\n")
-                    f.write(tex_content)
-                    f.write("\n\n=== TECTONIC STDOUT ===\n")
-                    f.write(result.stdout)
-                    f.write("\n\n=== TECTONIC STDERR ===\n")
                     f.write(result.stderr)
                     
-                logger.error(f"Error en Tectonic. Volcado guardado en: {crash_log_path}")
-                raise Exception("Fallo de Tectonic. Revisa tectonic_crash.log para la traza exacta.")
+                raise Exception(f"Fallo de Tectonic (Exit {result.returncode}). Lee el STDERR en la consola.")
 
             compiled_pdf_path = os.path.join(tmp, "doc.pdf")
             final_path = os.path.join(os.getcwd(), output_filename)

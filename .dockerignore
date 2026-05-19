@@ -1,0 +1,27 @@
+# Git
+.git
+.gitignore
+
+# Entornos virtuales (ESTE ES EL CULPABLE PRINCIPAL)
+venv/
+.venv/
+env/
+
+# Caché de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Bases de datos y estado local (Usamos bind mounts para esto)
+data/
+*.db
+*.sqlite
+*.sqlite3
+*.wal
+*.shm
+
+# IDEs
+.vscode/
+.idea/

@@ -13,7 +13,7 @@ class FSMRepository:
         """SOTA: Bootstrap del documento en la FSM con liveness inicial."""
         now = time.time()
         self.db.execute(
-            """INSERT OR IGNORE INTO document_state_machine 
+            """INSERT OR IGNORE INTO document_fsm 
                (document_id, ast_hash, current_state, entered_state_at, created_at, updated_at, last_heartbeat_at)
                VALUES (?, ?, 'CREATED', ?, ?, ?, ?)""",
             (document_id, ast_hash, now, now, now, now)  # now repetido para last_heartbeat_at
@@ -24,7 +24,7 @@ class FSMRepository:
                       failure_reason: Optional[str] = None, suspended_state: Optional[str] = None) -> None:
         now = time.time()
         cursor = self.db.execute(
-            """UPDATE document_state_machine
+            """UPDATE document_fsm
                SET current_state = ?, state_version = state_version + 1, is_terminal = ?,
                    entered_state_at = ?, updated_at = ?, failure_reason = ?, suspended_state = ?
                WHERE document_id = ? AND ast_hash = ? AND current_state = ?
@@ -44,7 +44,7 @@ class FSMRepository:
         now = time.time()
         expires = now + ttl_sec
         cursor = self.db.execute(
-            """UPDATE document_state_machine
+            """UPDATE document_fsm
                SET lease_owner = ?,
                    lease_expires_at = ?,
                    last_heartbeat_at = ?,
@@ -66,7 +66,7 @@ class FSMRepository:
     def get_status(self, document_id: str, ast_hash: str) -> dict:
         row = self.db.execute(
             """SELECT current_state, state_version, ast_hash, lease_owner, lease_expires_at, suspended_state 
-               FROM document_state_machine 
+               FROM document_fsm 
                WHERE document_id = ? AND ast_hash = ?""", 
             (document_id, ast_hash)
         ).fetchone()
@@ -83,7 +83,7 @@ class FSMRepository:
         now = time.time()
         expires = now + ttl_sec
         cursor = self.db.execute(
-            """UPDATE document_state_machine
+            """UPDATE document_fsm
                SET last_heartbeat_at = ?,
                    lease_expires_at = ?,
                    updated_at = ?
@@ -101,7 +101,7 @@ class FSMRepository:
         """SOTA: Liberación segura de recursos. Falla si ya no somos los dueños."""
         now = time.time()
         cursor = self.db.execute(
-            """UPDATE document_state_machine
+            """UPDATE document_fsm
                SET lease_owner = NULL,
                    lease_expires_at = NULL,
                    updated_at = ?
@@ -119,7 +119,7 @@ class FSMRepository:
         threshold = time.time() - grace_period_sec
         cursor = self.db.execute(
             """SELECT document_id, ast_hash, current_state, lease_owner 
-               FROM document_state_machine 
+               FROM document_fsm 
                WHERE is_terminal = 0 
                  AND lease_expires_at IS NOT NULL
                  AND lease_expires_at < ?""",
@@ -132,7 +132,7 @@ class FSMRepository:
         threshold = time.time() - threshold_sec
         cursor = self.db.execute(
             """SELECT document_id, ast_hash 
-               FROM document_state_machine 
+               FROM document_fsm 
                WHERE current_state = 'STALLED' AND updated_at < ?""",
             (threshold,)
         )
@@ -143,7 +143,7 @@ class FSMRepository:
         now = time.time()
         expires = now + ttl_sec
         cursor = self.db.execute(
-            """UPDATE document_state_machine
+            """UPDATE document_fsm
                SET lease_owner = ?, lease_expires_at = ?, last_heartbeat_at = ?,
                    updated_at = ?, state_version = state_version + 1
                WHERE document_id = ? AND ast_hash = ?
