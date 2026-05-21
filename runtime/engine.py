@@ -5,7 +5,6 @@ import hashlib
 import time
 import uuid
 import random
-import sqlite3
 import logging
 from pathlib import Path
 from core.ast.parser import parse_pdf
@@ -25,7 +24,7 @@ from core.execution.state import (
     DocumentState, TERMINAL_STATES,
     StartParsingCommand, StartProcessingCommand, MarkAssemblyReadyCommand,
     StartAssemblyCommand, MarkCompilationReadyCommand, StartCompilationCommand,
-    CompleteDocumentCommand, FailDocumentCommand
+    CompleteDocumentCommand
 )
 from core.execution.handlers import DocumentCommandHandler
 from infra.db.control_repo import ControlPlaneRepository
@@ -39,6 +38,35 @@ from core.utils.telemetry import (
 
 from core.execution.exceptions import CircuitTripError, CircuitOpenError
 
+import threading
+from core.execution.exceptions import LeaseExpiredError
+from infra.db.connection import get_connection
+
+
+def heartbeat_daemon(doc_id: str, ast_hash: str, owner_id: str, stop_event: threading.Event, cancel_event: threading.Event, db_path: str):
+    """SOTA: Demonio de liveness con conexión SQLite 100% aislada (Thread-Safe)."""
+    # 1. Instanciación exclusiva para este hilo
+    # 1. Instanciación exclusiva para este hilo
+    conn = get_connection(db_path, timeout=30)
+    conn.execute("PRAGMA busy_timeout = 5000;")
+    conn.execute("PRAGMA journal_mode = WAL;")
+    conn.execute("PRAGMA synchronous = NORMAL;")
+    
+    daemon_repo = FSMRepository(conn)
+    
+    try:
+        while not stop_event.wait(timeout=15.0):
+            try:
+                daemon_repo.renew_lease(doc_id, ast_hash, owner_id, ttl_sec=60)
+            except LeaseExpiredError:
+                logger.error(f"CRÍTICO: Lease expirado para {doc_id}. Fencing Cooperativo activado.")
+                cancel_event.set()
+                break
+            except Exception as e:
+                logger.warning(f"SRE: Fallo temporal en heartbeat: {e}")
+    finally:
+        # 2. Limpieza estricta de descriptores de archivo
+        conn.close()
 
 
 logger = logging.getLogger(__name__)
@@ -119,13 +147,10 @@ def run_pipeline(pdf_input_path: str = "input.pdf", pdf_output_name: str = "MVP_
     ast = _build_semantic_chunks(raw_ast)
     ast_hash = compute_ast_hash(ast)
     
-    # Bootstrap de Infraestructura FSM
-    # Bootstrap de Infraestructura TPS (Triple Plane Split)
-    os.makedirs(os.path.dirname(CONTROL_DB_PATH), exist_ok=True)
-    
-    ctrl_conn = sqlite3.connect(CONTROL_DB_PATH, timeout=30, isolation_level=None)
-    evt_conn = sqlite3.connect(EVENT_DB_PATH, timeout=30, isolation_level=None)
-    mat_conn = sqlite3.connect(MAT_DB_PATH, timeout=30, isolation_level=None)
+   # Bootstrap de Infraestructura TPS (Triple Plane Split)
+    ctrl_conn = get_connection(CONTROL_DB_PATH,timeout=30)
+    evt_conn = get_connection(EVENT_DB_PATH,timeout=30)
+    mat_conn = get_connection(MAT_DB_PATH,timeout=30)
     
     schema_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "infra", "db", "schema.sql")
     with open(schema_path, "r", encoding="utf-8") as f:
@@ -195,62 +220,108 @@ def run_pipeline(pdf_input_path: str = "input.pdf", pdf_output_name: str = "MVP_
                 retry_attempt = 0
                 
             elif current_state == DocumentState.PROCESSING:
+
                 ordered_node_ids = [n.node_id for n in ast]
-                
-                # 1. Encolado Idempotente (Solo inserta si no existen)
                 task_repo.enqueue_tasks(document_id, ast_hash, ordered_node_ids)
-                
-                # SOTA: Optimización O(1) de Indexación en Memoria (Evita escaneo lineal O(N) por chunk)
+
                 ast_index = {n.node_id: n for n in ast}
                 
-                # 2. SOTA: El Worker Loop Durable
-                while True:
-                    fsm_repo.renew_lease(document_id, ast_hash, owner_id, ttl_sec=600)
-                    
-                    # Adquisición Atómica (Task Leasing)
-                    task = task_repo.pick_task(owner_id, document_id, ast_hash)
-                    if not task:
-                        break # Cola drenada localmente. Salimos a validar integridad.
-                        
-                    # SOTA: task ahora es un DTO inmutable (TaskLease). Se accede con punto.
-                    task_id = task.task_id
-                    node_id = task.node_id
+                # SOTA: Iniciar Heartbeat Asíncrono para proteger I/O largo (Gemini)
+                stop_event = threading.Event()
+                cancel_event = threading.Event()
 
-                    # SOTA: Inyección de Trazabilidad. 
-                    # Cualquier log dentro de procesor, client o repo tendrá este sello.
-                    t_exec = ctx_execution_id.set(task.execution_id)
-                    t_work = ctx_worker_id.set(owner_id)
-                    t_task = ctx_task_id.set(task_id)
-                    t_node = ctx_node_id.set(node_id)
-                    
-                    try:
-                        target_node = ast_index[node_id]
+                # SOTA: Pasamos explícitamente la ruta de la DB, no la conexión viva
+                hb_thread = threading.Thread(
+                    target=heartbeat_daemon,
+                    args=(document_id, ast_hash, owner_id, stop_event, cancel_event, CONTROL_DB_PATH),
+                    daemon=True
+                )
+                hb_thread.start()
+                
+                try:
+                    # 2. SOTA: El Worker Loop Durable
+                    while True:
+                        # Fencing check cooperativo
+                        if cancel_event.is_set():
+                            raise LeaseExpiredError("Cancelación cooperativa disparada por pérdida de lease.")
+                            
+                        # Adquisición Atómica (Task Leasing)
+                        task = task_repo.pick_task(owner_id, document_id, ast_hash)
+                        if not task:
+                            break # Cola drenada localmente.
+                            
+                        task_id = task.task_id
+                        node_id = task.node_id
+
+                        # ======================================================
+                        # SOTA: BLOQUEO FORZADO PARA CHAOS TEST
+                        # ======================================================
+                        logger.warning(f"CHAOS TEST: Procesando {node_id}. Ejecuta 'docker compose kill worker-a' AHORA.")
+                        time.sleep(15)
+                        # ======================================================
+
+                        t_exec = ctx_execution_id.set(task.execution_id)
+                        t_work = ctx_worker_id.set(owner_id)
+                        t_task = ctx_task_id.set(task_id)
+                        t_node = ctx_node_id.set(node_id)
                         
-                        processor.process_and_commit(target_node, document_id, ast_hash, task, owner_id)
-                        
-                        task_repo.acknowledge_execution(task_id, owner_id)
-                        logger.info("Chunk procesado y materializado exitosamente.")
-                        
-                    except CircuitTripError as e:
-                        logger.critical(f"CIRCUIT TRIPPED! {e} Liberando tarea intacta y durmiendo...")
-                        task_repo.release_task_untouched(task_id, owner_id)
-                        time.sleep(30.0) 
-                        
-                    except CircuitOpenError as e:
-                        logger.warning(f"Circuito bloqueado. Durmiendo {e.cooldown_remaining:.1f}s")
-                        task_repo.release_task_untouched(task_id, owner_id)
-                        time.sleep(min(e.cooldown_remaining, 30.0))
-                        
-                    except Exception as e:
-                        logger.exception("Fallo de negocio o chunk corrupto.")
-                        task_repo.abandon_execution(task_id, owner_id, str(e))
-                        
-                    finally:
-                        # SOTA: Limpieza estricta del contexto distribuido
-                        ctx_execution_id.reset(t_exec)
-                        ctx_worker_id.reset(t_work)
-                        ctx_task_id.reset(t_task)
-                        ctx_node_id.reset(t_node)
+                        try:
+                            target_node = ast_index[node_id]
+                            processor.process_and_commit(target_node, document_id, ast_hash, task, owner_id)
+                            task_repo.acknowledge_execution(task_id, owner_id)
+                            logger.info("Chunk procesado y materializado exitosamente.")
+                            
+                        except CircuitTripError as e:
+                            logger.critical(f"CIRCUIT TRIPPED! {e} Liberando tarea intacta y durmiendo...")
+                            task_repo.release_task_untouched(task_id, owner_id)
+                            stop_event.wait(timeout=30.0) # SOTA: Sleep seguro para threads
+                            
+                        except CircuitOpenError as e:
+                            logger.warning(f"Circuito bloqueado. Durmiendo {e.cooldown_remaining:.1f}s")
+                            task_repo.release_task_untouched(task_id, owner_id)
+                            stop_event.wait(timeout=min(e.cooldown_remaining, 30.0))
+
+                        except Exception as e:
+                            state_val = current_state.value if current_state else "UNKNOWN"
+                            logger.error("STATE_EXECUTION_FAILURE", extra={"extra_data": {"state": state_val, "error": str(e)[:250]}})
+                            
+                            try:
+                                # SOTA: Circuit Breaker contra Poison Documents
+                                # Obtenemos y actualizamos el contador de reintentos atómicamente
+                                cursor = ctrl_conn.execute(
+                                    "UPDATE document_fsm SET retry_count = retry_count + 1 WHERE document_id = ? RETURNING retry_count", 
+                                    (document_id,)
+                                )
+                                row = cursor.fetchone()
+                                current_retries = row[0] if row else 1
+                                
+                                # SOTA: Threshold máximo de 3 intentos antes de abortar definitivamente
+                                target_state = DocumentState.FAILED_FATAL if current_retries >= 3 else DocumentState.FAILED_RETRYABLE
+                                
+                                if current_retries >= 3:
+                                    logger.critical(f"POISON_PILL DETECTADO: Doc {document_id} superó {current_retries} retries. Promoviendo a FAILED_FATAL.")
+
+                                doc_status = fsm_repo.get_status(document_id, ast_hash)
+                                safe_version = doc_status.get("version", 0) if doc_status else 0
+                                
+                                # Forzamos la transición a nivel repositorio para respetar el enrutamiento dinámico
+                                fsm_repo.transition_to(
+                                    document_id, ast_hash, current_state.value, target_state.value,
+                                    safe_version, owner_id, is_terminal=(target_state == DocumentState.FAILED_FATAL), failure_reason=str(e)[:250]
+                                )
+                            except Exception as fsm_err:
+                                logger.critical(f"DOOMSDAY: Falla catastrófica persistiendo FAILED_*. {fsm_err}")
+                            break 
+
+                        finally:
+                            ctx_execution_id.reset(t_exec)
+                            ctx_worker_id.reset(t_work)
+                            ctx_task_id.reset(t_task)
+                            ctx_node_id.reset(t_node)
+                finally:
+                    # SOTA: Garantizar que el hilo muera al terminar la fase
+                    stop_event.set()
+                    hb_thread.join(timeout=2.0)
                 
                 # 3. Barrera de Integridad CQRS Estricta
                 valid_chunks_data = mat_repo.get_assemblable_chunks(
@@ -366,17 +437,38 @@ def run_pipeline(pdf_input_path: str = "input.pdf", pdf_output_name: str = "MVP_
             break
             
         except Exception as e:
-            # SOTA: Extracción segura del valor por si current_state sigue siendo None
-            state_val = current_state.value if current_state else "UNKNOWN"
+            # SOTA: Coerción explícita de tipos. Apaga el linter y previene AttributeError.
+            state_val = current_state.value if current_state is not None else "UNKNOWN"
             logger.error("STATE_EXECUTION_FAILURE", extra={"extra_data": {"state": state_val, "error": str(e)[:250]}})
+            
             try:
+                # SOTA: Portabilidad ANSI SQL sin RETURNING, usando lock explícito
+                ctrl_conn.execute("BEGIN IMMEDIATE")
+                try:
+                    ctrl_conn.execute("UPDATE document_fsm SET retry_count = retry_count + 1 WHERE document_id = ?", (document_id,))
+                    cursor = ctrl_conn.execute("SELECT retry_count FROM document_fsm WHERE document_id = ?", (document_id,))
+                    row = cursor.fetchone()
+                    ctrl_conn.execute("COMMIT")
+                except Exception as inner_db_err:
+                    ctrl_conn.execute("ROLLBACK")
+                    raise inner_db_err
+                
+                current_retries = row[0] if row else 1
+                target_state = DocumentState.FAILED_FATAL if current_retries >= 3 else DocumentState.FAILED_RETRYABLE
+                
+                if current_retries >= 3:
+                    logger.critical(f"POISON_PILL DETECTADO: Doc {document_id} superó {current_retries} retries. Promoviendo a FAILED_FATAL.")
+
                 doc_status = fsm_repo.get_status(document_id, ast_hash)
-                # Si falla antes de tener versión, intentamos usar 0 o la de la DB
                 safe_version = doc_status.get("version", 0) if doc_status else 0
-                fail_cmd = FailDocumentCommand(document_id, ast_hash, owner_id, safe_version, reason=str(e)[:250])
-                cmd_handler.handle(fail_cmd)
+                
+                # SOTA: Inyectamos 'state_val' en lugar del peligroso 'current_state.value'
+                fsm_repo.transition_to(
+                    document_id, ast_hash, state_val, target_state.value,
+                    safe_version, owner_id, is_terminal=(target_state == DocumentState.FAILED_FATAL), failure_reason=str(e)[:250]
+                )
             except Exception as fsm_err:
-                logger.critical(f"DOOMSDAY: No se pudo persistir FAILED. Lock Roto permanentemente. {fsm_err}")
+                logger.critical(f"DOOMSDAY: Falla catastrófica persistiendo FAILED_*. {fsm_err}")
             break
 
     try:

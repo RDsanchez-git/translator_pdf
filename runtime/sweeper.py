@@ -1,6 +1,5 @@
 import time
 import logging
-import sqlite3
 import random
 from core.execution.state import (
     StallDocumentCommand, FailDocumentCommand
@@ -8,6 +7,7 @@ from core.execution.state import (
 from core.execution.handlers import DocumentCommandHandler
 from infra.db.fsm_repository import FSMRepository
 from core.utils.logger import setup_logger
+from infra.db.connection import get_connection
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +24,7 @@ class RecoveryDaemon:
         """SOTA: Evita el colapso de latencia por crecimiento descontrolado del WAL."""
         try:
             # SOTA: Conexión efímera solo para mantenimiento
-            with sqlite3.connect(db_path, timeout=5) as conn:
+            with get_connection(db_path) as conn:
                 cursor = conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
                 row = cursor.fetchone()
                 # row[0] indica si el checkpoint fue bloqueado. 0 = Éxito.
@@ -43,7 +43,7 @@ class RecoveryDaemon:
         self._force_wal_checkpoint(CONTROL_DB_PATH, "Control Plane")
 
         # --- FASE 2: RECUPERACIÓN LÓGICA (FSM & LEASES) ---
-        conn_ctrl = sqlite3.connect(CONTROL_DB_PATH, timeout=15)
+        conn_ctrl = get_connection(CONTROL_DB_PATH, timeout = 15)
         try:
             fsm_repo = FSMRepository(conn_ctrl)
             cmd_handler = DocumentCommandHandler(fsm_repo)

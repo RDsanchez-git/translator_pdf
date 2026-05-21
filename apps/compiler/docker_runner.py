@@ -22,7 +22,7 @@ class DockerRunner:
                 f.write(tex_content)
 
             # SOTA: Invocación nativa, eliminando el wrapper de Docker.
-            cmd = ["tectonic", "doc.tex"]
+            cmd = ["tectonic", "--untrusted", "doc.tex"]
 
             try:
                 # SOTA: Forzar utf-8 en el I/O del subproceso.

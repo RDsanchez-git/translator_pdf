@@ -3,6 +3,23 @@ import uuid
 import sqlite3
 from typing import Optional
 from core.execution.ports import EventPlanePort, ReplayPayload, EventLifecycle 
+from collections import namedtuple
+
+EventRecord = namedtuple(
+    "EventRecord",
+    [
+        'execution_id',
+        'document_id',
+        'node_id',
+        'content_hash',
+        'raw_response',
+        'prompt_version',
+        'model_version',
+        'projection_version',
+        'lifecycle',
+        'timestamp'
+    ]
+)
 
 class EventPlaneRepository(EventPlanePort):
     def __init__(self, conn: sqlite3.Connection):
@@ -34,3 +51,25 @@ class EventPlaneRepository(EventPlanePort):
              prompt_v, model_v, projection_v, lifecycle.value, time.time())
         )
         self.conn.commit()
+
+    def get_latest_event(self, node_id: str):
+        cursor = self.conn.execute(
+            """
+            SELECT execution_id, document_id, node_id,
+                content_hash, raw_response,
+                prompt_version, model_version,
+                projection_version, lifecycle, timestamp
+            FROM chunk_events_log
+            WHERE node_id = ?
+            ORDER BY execution_id DESC
+            LIMIT 1
+            """,
+            (node_id,)
+        )
+
+        row = cursor.fetchone()
+
+        if not row:
+            return None
+
+        return EventRecord(*row)

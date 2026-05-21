@@ -13,32 +13,50 @@ class DocumentState(Enum):
     READY_FOR_COMPILATION = "READY_FOR_COMPILATION"
     COMPILING = "COMPILING"
     COMPLETED = "COMPLETED"
-    FAILED = "FAILED"
+    
+    # SOTA: Desacoplamiento semántico de fallos
+    FAILED_RETRYABLE = "FAILED_RETRYABLE" 
+    FAILED_FATAL = "FAILED_FATAL"
     CANCELLED = "CANCELLED"
     STALLED = "STALLED"
 
 # --- 2. GRAFO LEGAL ---
-# --- 2. GRAFO LEGAL ---
+# SOTA: Agrupamos los fallos para no repetir código visualmente
+_FAILURES = {DocumentState.FAILED_RETRYABLE, DocumentState.FAILED_FATAL}
+
 LEGAL_TRANSITIONS: dict[DocumentState, Set[DocumentState]] = {
-    DocumentState.CREATED: {DocumentState.PARSING, DocumentState.FAILED, DocumentState.CANCELLED, DocumentState.STALLED},
-    DocumentState.PARSING: {DocumentState.PROCESSING, DocumentState.FAILED, DocumentState.CANCELLED, DocumentState.STALLED},
-    DocumentState.PROCESSING: {DocumentState.READY_FOR_ASSEMBLY, DocumentState.FAILED, DocumentState.CANCELLED, DocumentState.STALLED},
-    DocumentState.READY_FOR_ASSEMBLY: {DocumentState.ASSEMBLING, DocumentState.FAILED, DocumentState.CANCELLED, DocumentState.STALLED},
-    DocumentState.ASSEMBLING: {DocumentState.READY_FOR_COMPILATION, DocumentState.FAILED, DocumentState.CANCELLED, DocumentState.STALLED},
-    DocumentState.READY_FOR_COMPILATION: {DocumentState.COMPILING, DocumentState.FAILED, DocumentState.CANCELLED, DocumentState.STALLED},
-    DocumentState.COMPILING: {DocumentState.COMPLETED, DocumentState.FAILED, DocumentState.CANCELLED, DocumentState.STALLED},
+    DocumentState.CREATED: {DocumentState.PARSING, DocumentState.CANCELLED, DocumentState.STALLED} | _FAILURES,
+    DocumentState.PARSING: {DocumentState.PROCESSING, DocumentState.CANCELLED, DocumentState.STALLED} | _FAILURES,
+    DocumentState.PROCESSING: {DocumentState.READY_FOR_ASSEMBLY, DocumentState.CANCELLED, DocumentState.STALLED} | _FAILURES,
+    DocumentState.READY_FOR_ASSEMBLY: {DocumentState.ASSEMBLING, DocumentState.CANCELLED, DocumentState.STALLED} | _FAILURES,
+    DocumentState.ASSEMBLING: {DocumentState.READY_FOR_COMPILATION, DocumentState.CANCELLED, DocumentState.STALLED} | _FAILURES,
+    DocumentState.READY_FOR_COMPILATION: {DocumentState.COMPILING, DocumentState.CANCELLED, DocumentState.STALLED} | _FAILURES,
+    DocumentState.COMPILING: {DocumentState.COMPLETED, DocumentState.CANCELLED, DocumentState.STALLED} | _FAILURES,
+    
     DocumentState.STALLED: {
         DocumentState.PARSING, DocumentState.PROCESSING, DocumentState.READY_FOR_ASSEMBLY,
         DocumentState.ASSEMBLING, DocumentState.READY_FOR_COMPILATION, DocumentState.COMPILING, 
-        DocumentState.FAILED, DocumentState.CANCELLED
+        DocumentState.CANCELLED
+    } | _FAILURES,
+    
+    # SOTA: Desde un fallo recuperable, un worker puede volver a intentar la fase en la que falló
+    DocumentState.FAILED_RETRYABLE: {
+        DocumentState.PARSING, DocumentState.PROCESSING, DocumentState.READY_FOR_ASSEMBLY,
+        DocumentState.ASSEMBLING, DocumentState.READY_FOR_COMPILATION, DocumentState.COMPILING,
+        DocumentState.FAILED_FATAL, DocumentState.CANCELLED
     },
-    # Terminales
+    
+    # Terminales reales
     DocumentState.COMPLETED: set(),
-    DocumentState.FAILED: set(), 
+    DocumentState.FAILED_FATAL: set(), 
     DocumentState.CANCELLED: set(),
 }
 
-TERMINAL_STATES = {DocumentState.COMPLETED, DocumentState.FAILED, DocumentState.CANCELLED}
+TERMINAL_STATES = {
+    DocumentState.COMPLETED, 
+    DocumentState.FAILED_FATAL, 
+    DocumentState.CANCELLED
+}
 
 # --- 3. TRANSITION VALIDATOR PURO ---
 class FSMValidator:

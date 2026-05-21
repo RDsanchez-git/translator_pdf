@@ -9,13 +9,25 @@ env/
 MVP_traduccion.pdf
 debug.tex
 
-# Persistencia Local (Crucial ignorar esto)
+# Persistencia Local (Cachés legacy)
 checkpoint.json
 checkpoint.json.tmp
 translation_cache.json
 translation_cache.json.tmp
+translation_cache.db*
+
+# =====================================================================
+# SOTA: ARQUITECTURA NUEVA (CACHÉS UNIFICADAS Y BASES DE DATOS WAL)
+# =====================================================================
+
+# Ignorar TODAS las bases de datos SQLite (.db, .db-wal, .db-shm)
+*.db
+*.db-wal
+*.db-shm
+infra/db/*.db*
+
+# Ignorar la carpeta unificada de modelos, torch y tectonic
+.cache/
 
 # Entornos locales de IDE
 .vscode/
-
-translation_cache.db*

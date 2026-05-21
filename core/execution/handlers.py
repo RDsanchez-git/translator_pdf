@@ -46,7 +46,8 @@ class DocumentCommandHandler:
             MarkCompilationReadyCommand: DocumentState.READY_FOR_COMPILATION,
             StartCompilationCommand: DocumentState.COMPILING,
             CompleteDocumentCommand: DocumentState.COMPLETED,
-            FailDocumentCommand: DocumentState.FAILED,
+            # SOTA: Actualizamos al nuevo estado base de fallos
+            FailDocumentCommand: DocumentState.FAILED_RETRYABLE, 
             CancelDocumentCommand: DocumentState.CANCELLED,
             StallDocumentCommand: DocumentState.STALLED 
         }
@@ -109,6 +110,15 @@ class ReconciliationCommandHandler:
         self.event = event_repo
         self.mat = mat_repo
         self.metrics = metrics
+    
+    def handle(self, cmd):
+        if isinstance(cmd, RematerializeTaskCommand):
+            return self.handle_rematerialize(cmd)
+
+        if isinstance(cmd, RecoverZombieTaskCommand):
+            return self.handle_recover_zombie(cmd)
+
+        raise TypeError(f"Unsupported reconciliation command: {type(cmd)}")
 
     def handle_rematerialize(self, cmd: RematerializeTaskCommand):
         t_start = time.perf_counter()

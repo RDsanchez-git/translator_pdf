@@ -7,7 +7,6 @@ from contextvars import copy_context
 from core.utils.telemetry import ctx_worker_id
 from core.execution.state import RecoverZombieTaskCommand, RematerializeTaskCommand
 from core.execution.state import MarkAssemblyReadyCommand
-
 # (Importa los comandos definidos arriba)
 
 
@@ -40,12 +39,12 @@ class ReconcilerDaemon:
         # JOIN inter-tablas. El FSM y las tareas viven en control.db.
         # Condición: Procesamiento detenido en el tiempo, 100% de chunks en COMPLETED.
         cursor = self.task_repo.conn.execute("""
-            SELECT d.document_id, d.ast_hash, d.version
+            SELECT d.document_id, d.ast_hash, d.state_version
             FROM document_fsm d
             JOIN chunk_tasks c ON d.document_id = c.document_id AND d.ast_hash = c.ast_hash
-            WHERE d.state = 'PROCESSING'
+            WHERE d.current_state = 'PROCESSING'
               AND d.updated_at < ?
-            GROUP BY d.document_id, d.ast_hash, d.version
+            GROUP BY d.document_id, d.ast_hash, d.state_version
             HAVING COUNT(c.task_id) > 0
                AND COUNT(c.task_id) = SUM(CASE WHEN c.task_state = 'COMPLETED' THEN 1 ELSE 0 END)
             LIMIT 50
@@ -57,7 +56,7 @@ class ReconcilerDaemon:
             if not self.is_leader: 
                 return
             
-            doc_id, ast_hash, version = row
+            doc_id, ast_hash, state_version = row
             logger.info("FSM stall detectado. Despachando forward progress.", extra={"extra_data": {"doc_id": doc_id[:8]}})
             
             # SOTA: Forward Progress a través de la vía oficial (CQRS Command)
@@ -66,7 +65,7 @@ class ReconcilerDaemon:
                 document_id=doc_id,
                 ast_hash=ast_hash,
                 owner_id=self.node_id, 
-                expected_version=version
+                expected_version=state_version
             )
             try:
                 self.doc_cmd_handler.handle(cmd)
@@ -100,7 +99,8 @@ class ReconcilerDaemon:
                     epoch = self.system.acquire_leadership(self.lease_name, self.node_id, self.ttl_sec)
                     if epoch == 0:
                         # SOTA: Jitter para evitar election storms
-                        time.sleep(random.uniform(10.0, 20.0))
+                        if self.stop_event.wait(timeout=random.uniform(25.0, 35.0)):
+                            break
                         continue
                         
                     self.is_leader = True
@@ -117,7 +117,8 @@ class ReconcilerDaemon:
                     logger.exception(f"Error crítico durante barrido paginado: {e}")
                 
                 # SOTA: Jitter en el ciclo principal
-                time.sleep(random.uniform(25.0, 35.0))
+                if self.stop_event.wait(timeout=random.uniform(25.0, 35.0)):
+                    break
                 
         finally:
             self.stop_event.set()
@@ -181,6 +182,53 @@ class ReconcilerDaemon:
                 self.recon_cmd_handler.handle(cmd)
 
 if __name__ == "__main__":
-     print("Reconciler iniciado") 
-     while True:
-         time.sleep(60)
+    from core.utils.telemetry import setup_distributed_logger
+    from core.metrics.metrics import Metrics
+    from infra.db.control_repo import ControlPlaneRepository
+    from infra.db.system_repo import SystemPlaneRepository
+    from infra.db.event_repo import EventPlaneRepository
+    from infra.db.materialized_repo import MaterializedPlaneRepository
+    from infra.db.fsm_repository import FSMRepository
+    from core.execution.handlers import DocumentCommandHandler, ReconciliationCommandHandler
+    from infra.db.connection import get_connection
+    
+    setup_distributed_logger()
+    metrics = Metrics()
+
+    CONTROL_DB_PATH = "infra/db/control.db"
+    EVENT_DB_PATH = "infra/db/event.db"
+    MAT_DB_PATH = "infra/db/materialized.db"
+
+    ctrl_conn = get_connection(CONTROL_DB_PATH,timeout=30)
+    evt_conn = get_connection(EVENT_DB_PATH,timeout=30)
+    mat_conn = get_connection(MAT_DB_PATH,timeout=30)
+
+
+    # 2. Inyección de Repositorios
+    system_repo = SystemPlaneRepository(ctrl_conn) 
+    task_repo = ControlPlaneRepository(ctrl_conn)
+    event_repo = EventPlaneRepository(evt_conn)
+    mat_repo = MaterializedPlaneRepository(mat_conn)
+    fsm_repo = FSMRepository(ctrl_conn)
+
+    # 3. Inyección de Handlers
+    doc_cmd_handler = DocumentCommandHandler(fsm_repo)
+    recon_cmd_handler = ReconciliationCommandHandler(
+        system_repo=system_repo,
+        task_repo=task_repo,
+        event_repo=event_repo,
+        mat_repo=mat_repo,
+        metrics=metrics
+    )
+
+    # 4. Arranque del Demonio
+    daemon = ReconcilerDaemon(
+        system_repo=system_repo,
+        task_repo=task_repo,
+        event_repo=event_repo,
+        recon_cmd_handler=recon_cmd_handler,
+        doc_cmd_handler=doc_cmd_handler,
+        ttl_sec=120
+    )
+    
+    daemon.run()
