@@ -1,6 +1,5 @@
 import os
 import sys
-import json
 import hashlib
 import time
 import uuid
@@ -11,7 +10,7 @@ from core.ast.parser import parse_pdf
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from core.ast.models import ASTNode, NodeType
+
 from apps.llm_workers.gemini_client import GeminiClient
 from apps.llm_workers.chunk_processor import ChunkProcessor
 from apps.compiler.tex_builder import TexBuilder
@@ -41,7 +40,9 @@ from core.execution.exceptions import CircuitTripError, CircuitOpenError
 import threading
 from core.execution.exceptions import LeaseExpiredError
 from infra.db.connection import get_connection
-
+from core.normalization.normalizer import TextNormalizer
+from core.execution.ports import EventLifecycle
+from core.ast.hashing import compute_ast_hash, build_semantic_chunks
 
 def heartbeat_daemon(doc_id: str, ast_hash: str, owner_id: str, stop_event: threading.Event, cancel_event: threading.Event, db_path: str):
     """SOTA: Demonio de liveness con conexión SQLite 100% aislada (Thread-Safe)."""
@@ -83,58 +84,6 @@ CONTROL_DB_PATH = "infra/db/control.db"
 EVENT_DB_PATH = "infra/db/event.db"
 MAT_DB_PATH = "infra/db/materialized.db"
 
-def compute_ast_hash(ast: list[ASTNode]) -> str:
-    def serialize_node(n: ASTNode) -> dict:
-        return {
-            "node_id": n.node_id,
-            "type": str(n.type),
-            "content": n.content,
-            "latex": getattr(n, "latex", None),
-            "children": [serialize_node(c) for c in getattr(n, "children", [])] if getattr(n, "children", None) else []
-        }
-        
-    raw = json.dumps(
-        [serialize_node(n) for n in ast], 
-        sort_keys=True,
-        ensure_ascii=False,
-        separators=(",", ":")
-    )
-    return hashlib.sha256(raw.encode("utf-8")).hexdigest()
-
-def _build_semantic_chunks(ast: list[ASTNode]) -> list[ASTNode]:
-    macro_nodes = []
-    current_content = []
-    current_len = 0
-    chunk_idx = 1
-    boundaries = {NodeType.SECTION}
-
-    for node in ast:
-        content = node.content or ""
-        if content is None:
-            continue
-            
-        is_boundary = node.type in boundaries
-        if is_boundary and current_len > 800:
-            macro_nodes.append(ASTNode(node_id=f"macro_{chunk_idx}", type=NodeType.MACRO_CHUNK, content="\n\n".join(current_content)))
-            chunk_idx += 1
-            current_content = []
-            current_len = 0
-            
-        current_content.append(content)
-        current_len += len(content)
-        
-        if current_len > 4000:
-            macro_nodes.append(ASTNode(node_id=f"macro_{chunk_idx}", type=NodeType.MACRO_CHUNK, content="\n\n".join(current_content)))
-            chunk_idx += 1
-            current_content = []
-            current_len = 0
-            
-    if current_content:
-        macro_nodes.append(ASTNode(node_id=f"macro_{chunk_idx}", type=NodeType.MACRO_CHUNK, content="\n\n".join(current_content)))
-        
-    logger.info("macro_chunks_built", extra={"extra_data": {"count": len(macro_nodes)}})
-    return macro_nodes
-
 def run_pipeline(pdf_input_path: str = "input.pdf", pdf_output_name: str = "MVP_traduccion.pdf") -> dict:
     pipeline_start = time.time()
     
@@ -144,7 +93,7 @@ def run_pipeline(pdf_input_path: str = "input.pdf", pdf_output_name: str = "MVP_
     logger.info(f"Procesando Documento [ID: {document_id[:8]}]")
     
     raw_ast = parse_pdf(pdf_input_path)
-    ast = _build_semantic_chunks(raw_ast)
+    ast = build_semantic_chunks(raw_ast)
     ast_hash = compute_ast_hash(ast)
     
    # Bootstrap de Infraestructura TPS (Triple Plane Split)
@@ -172,7 +121,7 @@ def run_pipeline(pdf_input_path: str = "input.pdf", pdf_output_name: str = "MVP_
     client = GeminiClient()
     
     # SOTA: Inyectamos los objetos que cumplen los Protocols, NO las rutas de texto
-    processor = ChunkProcessor(client, metrics, task_repo, event_repo, mat_repo)
+    processor = ChunkProcessor(client, metrics)
     owner_id = f"orchestrator_{uuid.uuid4().hex[:8]}"
     fsm_repo.initialize_document(document_id, ast_hash)
 
@@ -267,9 +216,32 @@ def run_pipeline(pdf_input_path: str = "input.pdf", pdf_output_name: str = "MVP_
                         
                         try:
                             target_node = ast_index[node_id]
-                            processor.process_and_commit(target_node, document_id, ast_hash, task, owner_id)
+                            
+                            # 1. Ejecución pura del LLM
+                            raw_response = processor.execute(target_node)
+                            
+                            # 2. Append al WAL (Event Sourcing)
+                            event_repo.append_wal(
+                                task.execution_id, document_id, node_id, 
+                                hashlib.sha256(target_node.content.encode('utf-8')).hexdigest(), 
+                                raw_response, processor.prompt_v, processor.model_v, 
+                                processor.projection_v, EventLifecycle.GENERATED
+                            )
+                            
+                            # 3. Postprocesado / Normalización fuera de la llamada al LLM
+                            normalized = TextNormalizer.normalize(raw_response) if getattr(target_node, 'type', None) != 'EQUATION' else raw_response
+                            normalized_hash = hashlib.sha256(normalized.encode('utf-8')).hexdigest()
+                            
+                            # 4. Upsert en la Vista Materializada
+                            mat_repo.upsert_projection(
+                                document_id, ast_hash, node_id, 
+                                hashlib.sha256(target_node.content.encode('utf-8')).hexdigest(), 
+                                normalized, normalized_hash, processor.projection_v
+                            )
+                            
+                            # 5. Cierre atómico de la tarea
                             task_repo.acknowledge_execution(task_id, owner_id)
-                            logger.info("Chunk procesado y materializado exitosamente.")
+                            logger.info("Chunk procesado, registrado en WAL y materializado exitosamente.")
                             
                         except CircuitTripError as e:
                             logger.critical(f"CIRCUIT TRIPPED! {e} Liberando tarea intacta y durmiendo...")

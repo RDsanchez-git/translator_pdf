@@ -13,11 +13,24 @@ class ControlPlaneRepository(ControlPlanePort):
         self.conn = conn
 
     def enqueue_tasks(self, document_id: str, ast_hash: str, nodes: List[str]) -> None:
+        """
+        SOTA Pragmática: Inyección atómica masiva de chunks con Hash Determinístico
+        compuesto anti-colisiones. Respeta el esquema físico exacto de 8 columnas.
+        """
+        import hashlib
         now = time.time()
-        tasks = [
-            (f"task_{uuid.uuid4().hex[:8]}", document_id, ast_hash, node, 'PENDING', None, now, now)
-            for node in nodes
-        ]
+        
+        tasks = []
+        for node in nodes:
+            # Token único determinístico basado en la tupla estructural
+            raw_seed = f"{document_id}:{ast_hash}:{node}".encode('utf-8')
+            task_hash = hashlib.sha256(raw_seed).hexdigest()[:24]
+            task_id = f"task_{task_hash}"
+            
+            # Mantenemos estrictamente tus 8 parámetros originales:
+            # (task_id, document_id, ast_hash, node_id, task_state, execution_id, created_at, updated_at)
+            tasks.append((task_id, document_id, ast_hash, node, 'PENDING', None, now, now))
+            
         self.conn.executemany(
             """INSERT OR IGNORE INTO chunk_tasks 
                (task_id, document_id, ast_hash, node_id, task_state, execution_id, created_at, updated_at)

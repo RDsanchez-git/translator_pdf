@@ -14,8 +14,11 @@ class ASTRegistry:
     """
     def __init__(self, workspace_dir: str = "."):
         self.workspace_dir = workspace_dir
-        # Estructura física corregida: { (document_id, ast_hash): { node_id: ASTNode } }
+        # Estructura en RAM local O(1)
         self._cache: Dict[Tuple[str, str], Dict[str, ASTNode]] = {}
+        # Centralización de la ruta física del AST
+        self.ast_dir = os.path.join(self.workspace_dir, "data", "ast_cache")
+        os.makedirs(self.ast_dir, exist_ok=True)
 
     def get_node(self, document_id: str, ast_hash: str, node_id: str) -> Optional[ASTNode]:
         """Recupera un nodo de la memoria RAM o lo carga desde disco ante un cache miss."""
@@ -28,36 +31,63 @@ class ASTRegistry:
         return doc_cache.get(node_id)
 
     def _load_document(self, document_id: str, ast_hash: str):
-        """Carga y valida el AST completo desde disco hacia la memoria RAM."""
+        """Carga lineal y durable del AST desde disco hacia la memoria RAM."""
         cache_key = (document_id, ast_hash)
+        ast_path = os.path.join(self.ast_dir, f"{document_id}.ast.json")
         
-        # Estructura estándar del pipeline
-        ast_path = os.path.join(self.workspace_dir, f"{document_id}.ast.json")
-        
-        # Fallback para pruebas locales en testing
+        # Fallback exclusivo para entornos de Testing local
         if not os.path.exists(ast_path):
             ast_path = os.path.join(self.workspace_dir, "tests", "corpus", f"{document_id}.ast.json")
             
         if not os.path.exists(ast_path):
-            logger.error(f"SRE_AST_FAULT: Archivo no encontrado en disco: {ast_path}")
+            logger.error(f"SRE_AST_FAULT: Estructura no encontrada en: {ast_path}")
             return
 
         try:
-            with open(ast_path, 'r', encoding='utf-8') as f:
+            with open(ast_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
-            
+                
             node_map = {}
             for node_dict in data.get("nodes", []):
-                # SOTA: Deserialización nativa y rápida con Pydantic V2
                 node = ASTNode.model_validate(node_dict) 
                 node_map[node.node_id] = node
                 
-            # Asignación atómica a la clave compuesta para blindar la consistencia
             self._cache[cache_key] = node_map
-            logger.info(
-                f"AST materializado en memoria RAM para clave {cache_key} | "
-                f"{len(node_map)} nodos indexados de forma segura."
-            )
+            logger.info(f"AST hidratado en RAM desde almacenamiento persistente: {document_id[:12]}")
             
         except Exception as e:
-            logger.error(f"Fallo crítico parseando AST para {document_id} ({ast_hash}): {e}")
+            logger.error(f"Fallo crítico parseando AST para {document_id}: {e}")
+
+    def register_ast(self, document_id: str, ast_hash: str, ast_nodes: list[ASTNode]) -> None:
+        """
+        SOTA Pragmática: Persistencia atómica del AST (Inmune a cortes/OOM)
+        e hidratación inmediata de la caché RAM local.
+        """
+        import tempfile
+        cache_key = (document_id, ast_hash)
+        
+        # 1. Sincronización en caché RAM local
+        self._cache[cache_key] = {n.node_id: n for n in ast_nodes}
+        
+        # 2. Preparación del payload respetando tu raíz "nodes"
+        final_path = os.path.join(self.ast_dir, f"{document_id}.ast.json")
+        payload = {
+            "document_id": document_id,
+            "ast_hash": ast_hash,
+            "nodes": [n.model_dump() for n in ast_nodes]
+        }
+        
+        # 3. Escritura Atómica en el mismo sistema de archivos (POSIX/Windows Safe)
+        fd, temp_path = tempfile.mkstemp(dir=self.ast_dir, suffix=".tmp")
+        try:
+            with os.fdopen(fd, "w", encoding="utf-8") as f:
+                json.dump(payload, f, indent=2, ensure_ascii=False)
+            # Reemplazo a nivel de Kernel (Atomic Swap)
+            os.replace(temp_path, final_path)
+        except Exception as e:
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+            logger.error(f"Fallo persistiendo AST atómico para {document_id}: {e}")
+            raise e
+            
+        logger.info(f"AST persistido atómicamente en disco: {document_id[:12]}.ast.json")
