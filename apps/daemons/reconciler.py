@@ -212,7 +212,7 @@ if __name__ == "__main__":
     fsm_repo = FSMRepository(ctrl_conn)
 
     # 3. Inyección de Handlers
-    doc_cmd_handler = DocumentCommandHandler(fsm_repo)
+    doc_cmd_handler = DocumentCommandHandler(fsm_repo, task_repo=task_repo)
     recon_cmd_handler = ReconciliationCommandHandler(
         system_repo=system_repo,
         task_repo=task_repo,

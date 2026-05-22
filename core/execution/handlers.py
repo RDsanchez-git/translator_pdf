@@ -28,8 +28,10 @@ logger = logging.getLogger(__name__)
 class DocumentCommandHandler:
     """SOTA: Capa de coordinación pura. Transiciona estados sin ejecutar side-effects."""
     
-    def __init__(self, repository: FSMRepository):
+    # Inyectamos de forma obligatoria el task_repo para manejar los efectos secundarios físicos
+    def __init__(self, repository: FSMRepository, task_repo=None):
         self.repo = repository
+        self.task_repo = task_repo
 
     def _get_target_state(self, command: DocumentCommand, doc_status: dict) -> DocumentState:
         if isinstance(command, ResumeDocumentCommand):
@@ -46,7 +48,6 @@ class DocumentCommandHandler:
             MarkCompilationReadyCommand: DocumentState.READY_FOR_COMPILATION,
             StartCompilationCommand: DocumentState.COMPILING,
             CompleteDocumentCommand: DocumentState.COMPLETED,
-            # SOTA: Actualizamos al nuevo estado base de fallos
             FailDocumentCommand: DocumentState.FAILED_RETRYABLE, 
             CancelDocumentCommand: DocumentState.CANCELLED,
             StallDocumentCommand: DocumentState.STALLED 
@@ -74,6 +75,7 @@ class DocumentCommandHandler:
         failure_reason = getattr(command, "reason", None) if is_terminal or target_state == DocumentState.STALLED else None
         suspended_state = current_state.value if target_state == DocumentState.STALLED else None
 
+        # SOTA: Ejecutamos la transición de estado bajo bloqueo optimista
         self.repo.transition_to(
             document_id=command.document_id,
             ast_hash=command.ast_hash,
@@ -85,6 +87,27 @@ class DocumentCommandHandler:
             failure_reason=failure_reason,
             suspended_state=suspended_state
         )
+
+        # ---------------------------------------------------------------------
+        # EFECTO SECUNDARIO SOTA: Encolado del Trigger para el Worker Assembler
+        # ---------------------------------------------------------------------
+        if target_state == DocumentState.READY_FOR_ASSEMBLY:
+            if not self.task_repo:
+                raise RuntimeError("SRE_FATAL: Se requería inyectar task_repo para materializar la tarea ASSEMBLER.")
+            
+            # Hashing determinístico fuerte para prevenir colisiones
+            raw_seed = f"{command.document_id}:{command.ast_hash}".encode('utf-8')
+            token_hash = hashlib.sha256(raw_seed).hexdigest()[:16]
+            task_id = f"task_asm_{token_hash}"
+            
+            # Invocación limpia a través de la capa de abstracción física
+            self.task_repo.enqueue_assembler_task(
+                task_id=task_id,
+                document_id=command.document_id,
+                ast_hash=command.ast_hash
+            )
+            
+            logger.info("ASSEMBLER_TRIGGER_ENQUEUED", extra={"extra_data": {"task": task_id[:12]}})
 
         logger.info("FSM_TRANSITION_SUCCESS", extra={
             "extra_data": {

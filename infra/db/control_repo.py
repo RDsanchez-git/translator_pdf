@@ -4,6 +4,9 @@ import sqlite3
 from typing import Optional, List
 from core.execution.ports import ControlPlanePort, TaskLease
 from core.execution.exceptions import OptimisticLockError 
+import logging
+
+logger = logging.getLogger(__name__)
 
 class ControlPlaneRepository(ControlPlanePort):
     def __init__(self, conn: sqlite3.Connection):
@@ -176,3 +179,30 @@ class ControlPlaneRepository(ControlPlanePort):
         except Exception as e:
             self.conn.rollback()
             raise e
+        
+    def enqueue_assembler_task(self, task_id: str, document_id: str, ast_hash: str) -> bool:
+        """
+        SOTA: Encola el trigger para el Worker Assembler.
+        Maneja la idempotencia de forma explícita capturando IntegrityError.
+        """
+        now = time.time()
+        try:
+            self.conn.execute("""
+                INSERT INTO chunk_tasks 
+                (task_id, document_id, ast_hash, node_id, task_state, worker_type, created_at, updated_at, state_version)
+                VALUES (?, ?, ?, 'ROOT_ASSEMBLY', 'PENDING', 'ASSEMBLER', ?, ?, 0)
+            """, (task_id, document_id, ast_hash, now, now))
+            self.conn.commit()
+            return True
+        except sqlite3.IntegrityError:
+            # Idempotencia alcanzada de forma consciente si la tarea ya existía
+            if self.conn.in_transaction:
+                self.conn.rollback()
+            logger.info(f"Idempotencia detectada: la tarea {task_id[:12]} ya fue encolada previamente.")
+            return False
+        except Exception as e:
+            if self.conn.in_transaction:
+                self.conn.rollback()
+            logger.error(f"Fallo insertando tarea ASSEMBLER: {e}")
+            raise e
+        
