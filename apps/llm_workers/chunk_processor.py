@@ -1,19 +1,12 @@
 import time
-import hashlib
 import logging
-import threading
 from tenacity import (
     retry, wait_exponential, stop_after_attempt, 
     stop_after_delay, retry_if_exception_type, before_sleep_log
 )
-from core.execution.ports import ControlPlanePort, EventPlanePort, MaterializedPlanePort
-from core.execution.exceptions import OptimisticLockError
-from core.execution.ports import ProcessingOutcome, ProjectionState, EventLifecycle, TaskLease
 from core.ast.models import ASTNode, NodeType
 from core.metrics.metrics import Metrics
 from apps.llm_workers.gemini_client import GeminiClient
-from core.normalization.normalizer import TextNormalizer
-from contextvars import copy_context
 from core.utils.rate_limiter import IN_FLIGHT_LIMITER
 
 logger = logging.getLogger(__name__)
@@ -29,62 +22,15 @@ def _is_transient(e: Exception) -> bool:
     ]
     return any(sig in error_str for sig in transient_signals)
 
-class TaskLeaseHeartbeat:
-    """
-    SOTA: Daemon Thread encapsulado.
-    Mantiene vivo el chunk en control.db mientras Gemini procesa.
-    Aborta el worker automáticamente si el lease se pierde.
-    """
-    # SOTA: Firma corregida. Recibe el DTO lease completo.
-    def __init__(self, control_port, lease: TaskLease, worker_id: str, ttl_sec: int = 300):
-        self.control = control_port
-        self.lease = lease
-        self.task_id = lease.task_id # Extraído lógicamente del DTO
-        self.worker_id = worker_id
-        self.ttl_sec = ttl_sec
-        self.interval = ttl_sec * 0.25 
-        
-        self.stop_event = threading.Event()
-        self.lease_lost = threading.Event()
-
-        ctx = copy_context()
-        self.thread = threading.Thread(target=lambda: ctx.run(self._beat), daemon=True)
-
-    def _beat(self):
-        while not self.stop_event.wait(self.interval):
-            # SOTA: Validación con reloj monotónico para prevenir starvation extrema
-            if time.monotonic() > self.lease.absolute_deadline_monotonic:
-                logger.critical("ABSOLUTE_DEADLINE_EXCEEDED", extra={"extra_data": {"task_id": self.task_id[:8]}})
-                self.lease_lost.set()
-                break
-            
-            success = self.control.renew_task_lease(self.task_id, self.worker_id, self.ttl_sec)
-            if not success:
-                logger.critical("LEASE_LOST_DURING_IO", extra={"extra_data": {"task_id": self.task_id[:8]}})
-                self.lease_lost.set()
-                break 
-
-    def __enter__(self):
-        self.thread.start()
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.stop_event.set() 
-        self.thread.join(timeout=2.0)
-
-
 class ChunkProcessor:
-    def __init__(self, client: GeminiClient, metrics: Metrics, 
-                 control_port: ControlPlanePort, 
-                 event_port: EventPlanePort, 
-                 mat_port: MaterializedPlanePort):
-        
+    """
+    SOTA: Procesador Puro. 
+    Cero acoplamiento transaccional. Entra ASTNode, sale texto.
+    """
+    def __init__(self, client: GeminiClient, metrics: Metrics):
         self.client = client
         self.metrics = metrics
-        self.control = control_port
-        self.event = event_port
-        self.materialized = mat_port
-        
+        # Extraemos las versiones aquí para que el daemon las lea y las inyecte al WAL
         self.prompt_v = "v3_latex_optimized"
         self.model_v = "gemini-2.5-flash" 
         self.projection_v = 1 
@@ -96,74 +42,31 @@ class ChunkProcessor:
         before_sleep=before_sleep_log(logger, logging.WARNING),
         reraise=True
     )
-    def _pure_llm_call(self, node: ASTNode, chunk_idx: int, total_chunks: int) -> str:
+    def execute(self, node: ASTNode, chunk_idx: int = 1, total_chunks: int = 1) -> str:
+        """SOTA: Lógica de negocio aislada. Lanza excepciones si falla, retorna texto si triunfa."""
+        
+        # Fast-Path Nativo de la IA
+        if node.type == NodeType.EQUATION:
+            return node.latex or node.content
+
+        # Si el OCR nos filtró mal algo que no soportamos, hacemos passthrough
+        if node.type not in (NodeType.MACRO_CHUNK, NodeType.PARAGRAPH, NodeType.SECTION):
+            return node.content
+
         start_net = time.perf_counter()
         try:
-            raw_response = self.client.translate(node, chunk_idx, total_chunks)
+            # SOTA: Semáforo de Red sigue aquí porque protege las llamadas concurrentes externas
+            with IN_FLIGHT_LIMITER:
+                raw_response = self.client.translate(node, chunk_idx, total_chunks)
+            
             latency_net = time.perf_counter() - start_net
             self.metrics.observe("llm_latency", latency_net)
             self.metrics.inc("llm_calls")
+            
             return raw_response
+            
         except Exception as e:
             if _is_transient(e):
                 raise LLMTransientError(e)
             logger.error("terminal_error", extra={"extra_data": {"node_id": node.node_id, "error": str(e)}})
             raise e
-
-    def process_and_commit(self, node: ASTNode, document_id: str, ast_hash: str, 
-                           lease: TaskLease, worker_id: str, chunk_idx: int = 1, total_chunks: int = 1) -> str:
-        
-        if node.type not in (NodeType.MACRO_CHUNK, NodeType.PARAGRAPH, NodeType.SECTION, NodeType.EQUATION):
-            return ProcessingOutcome.SKIPPED_UNSUPPORTED.value
-
-        start_node = time.perf_counter()
-        content = node.content or ""
-        content_hash = hashlib.sha256(content.encode('utf-8')).hexdigest()
-
-        # 1. Validación de Proyección
-        proj_status = self.materialized.get_projection_status(document_id, ast_hash, node.node_id, self.projection_v)
-        if proj_status.state == ProjectionState.CURRENT:
-            return ProcessingOutcome.ALREADY_CURRENT.value
-
-        raw_response = None
-        
-        if node.type == NodeType.EQUATION:
-            raw_response = node.latex or node.content
-        else:
-            # 2. Replay Económico
-            replay = self.event.get_replay(content_hash, self.prompt_v, self.model_v)
-            
-            if replay:
-                raw_response = replay.raw_response
-                logger.info("ECONOMIC_REPLAY_HIT", extra={"extra_data": {"exec_id": lease.execution_id}})
-            else:
-                # 3. Zona de Riesgo. SOTA: Pasamos el objeto 'lease' al Heartbeat
-                with TaskLeaseHeartbeat(self.control, lease, worker_id) as heartbeat:
-                    
-                    # SOTA: El semáforo SOLO penaliza la I/O de red, no las lecturas a DB
-                    with IN_FLIGHT_LIMITER:
-                        raw_response = self._pure_llm_call(node, chunk_idx, total_chunks)
-                    
-                    # SOTA: Post-I/O Fencing
-                    if time.monotonic() > lease.absolute_deadline_monotonic:
-                        raise OptimisticLockError(f"Absolute deadline excedido post-I/O para task {lease.task_id}.")
-                    
-                    if heartbeat.lease_lost.is_set():
-                        raise OptimisticLockError(f"Split-Brain evitado: lease {lease.task_id} perdido durante I/O.")
-
-                    self.event.append_wal(
-                        lease.execution_id, document_id, node.node_id, content_hash, 
-                        raw_response, self.prompt_v, self.model_v, self.projection_v, EventLifecycle.GENERATED
-                    )
-
-        # 4. CQRS Upsert
-        normalized = TextNormalizer.normalize(raw_response) if node.type != NodeType.EQUATION else raw_response
-        normalized_hash = hashlib.sha256(normalized.encode('utf-8')).hexdigest()
-        
-        self.materialized.upsert_projection(
-            document_id, ast_hash, node.node_id, content_hash, 
-            normalized, normalized_hash, self.projection_v
-        )
-        
-        self.metrics.observe("node_latency", time.perf_counter() - start_node)
-        return ProcessingOutcome.MATERIALIZED.value

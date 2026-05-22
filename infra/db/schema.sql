@@ -92,3 +92,9 @@ CREATE TABLE IF NOT EXISTS system_leases (
 
 -- Inicialización del candado del Reconciliador
 INSERT OR IGNORE INTO system_leases (lease_name) VALUES ('global_reconciler');
+
+-- =====================================================================
+-- SOTA: SUPER-ÍNDICE DE PLANIFICACIÓN (Evita Scans parciales con OR)
+-- =====================================================================
+CREATE INDEX IF NOT EXISTS idx_chunk_tasks_scheduler
+ON chunk_tasks(worker_type, task_state, lease_expires_at, created_at);
