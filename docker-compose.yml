@@ -6,7 +6,6 @@ x-worker-base: &worker-base
   volumes:
     # HOT RELOAD Y PERSISTENCIA COMPARTIDA (SQLite + Inbox)
     - ./:/app
-
     # CACHES PERSISTENTES SOTA
     - hf_models_cache:/app/.cache/hf
     - torch_cache:/app/.cache/torch
@@ -14,13 +13,18 @@ x-worker-base: &worker-base
 
   networks:
     - chaos_net
-
   restart: unless-stopped
   init: true
 
+  stop_grace_period: 30s
+  pids_limit: 256
+  ulimits:
+    nofile:
+      soft: 65535
+      hard: 65535
+
   environment:
     PYTHONPATH: /app
-
     # CACHE UNIFICADO
     XDG_CACHE_HOME: /app/.cache
     HF_HOME: /app/.cache/hf
@@ -28,13 +32,6 @@ x-worker-base: &worker-base
     HUGGINGFACE_HUB_CACHE: /app/.cache/hf
     TORCH_HOME: /app/.cache/torch
     TECTONIC_CACHE_DIR: /app/.cache/tectonic
-
-  stop_grace_period: 15s
-
-  ulimits:
-    nofile:
-      soft: 65535
-      hard: 65535
 
   logging:
     driver: json-file
@@ -82,13 +79,16 @@ services:
     environment:
       PYTHONPATH: /app
       NODE_ID: ocr_router_alpha
+      OMP_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+      OPENBLAS_NUM_THREADS: "1"
 
   llm_worker:
     <<: *worker-base
     # Corregido a invocación modular nativa para evitar fallos de importación
     command: ["python", "runtime/engine.py"] #el -m va recién cuando tengamos los __init__ configurados
     # Principalmente I/O Bound. Configuración ultra-ligera y eficiente
-    mem_limit: 512m
+    mem_limit: 1g
     cpus: "1.0"
     depends_on:
       toxiproxy:
@@ -99,7 +99,7 @@ services:
       PYTHONPATH: /app
       NODE_ID: llm_worker_alpha
       GEMINI_API_URL: http://toxiproxy:8443
-      MAX_CONCURRENCY: 10
+      MAX_CONCURRENCY: 4
       GEMINI_API_KEY: dummy_sre_key_para_fake_gemini
       ENABLE_CHAOS_TEST: "0"
 
