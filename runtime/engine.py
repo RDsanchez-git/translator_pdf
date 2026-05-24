@@ -101,7 +101,7 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
     event_repo = EventPlaneRepository(evt_conn)
     fsm_repo = FSMRepository(ctrl_conn)
     task_repo = ControlPlaneRepository(ctrl_conn)
-    cmd_handler = DocumentCommandHandler(fsm_repo)
+    cmd_handler = DocumentCommandHandler(fsm_repo, task_repo=task_repo)
     ast_registry = ASTRegistry()
     
     client = GeminiClient()
@@ -391,14 +391,50 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
     return {"status": "terminal_reached", "final_state": final_state_val}
 
 if __name__ == "__main__":
+    import random
     setup_distributed_logger()
     metrics = Metrics()
     
-    # SOTA: Para depuración local, requiere pasar la clave de identidad generada por el OCR Router
-    DOC_ID = os.getenv("TARGET_DOC_ID")
-    AST_HEX = os.getenv("TARGET_AST_HASH")
+    NODE_ID = os.getenv("NODE_ID", f"orchestrator_daemon_{uuid.uuid4().hex[:8]}")
+    logger.info(f"SOTA: Runtime Orchestrator Daemon inicializado [{NODE_ID}].")
     
-    if DOC_ID and AST_HEX:
-        run_pipeline(document_id=DOC_ID, ast_hash=AST_HEX)
-    else:
-        logger.warning("Runtime coordinator en espera. Inicia pasándole TARGET_DOC_ID y TARGET_AST_HASH.")
+    base_sleep = 2.0
+    max_sleep = 10.0
+    consecutive_idle = 0
+    
+    while True:
+        ctrl_conn = None
+        try:
+            ctrl_conn = get_connection(CONTROL_DB_PATH, timeout=30)
+            task_repo = ControlPlaneRepository(ctrl_conn)
+            
+            candidates = task_repo.find_documents_with_pending_chunks(sample_size=10)
+            ctrl_conn.close()
+            
+            if not candidates:
+                consecutive_idle += 1
+                sleep_time = min(base_sleep * (1.3 ** consecutive_idle), max_sleep)
+                time.sleep(sleep_time + random.uniform(0.0, 1.0))
+                continue
+                
+            consecutive_idle = 0
+            
+            selected_doc_id, selected_ast_hash = random.choice(candidates)
+            logger.info(f"Contexto seleccionado probabilísticamente: Doc {selected_doc_id[:8]} -> Lanzando Runtime.")
+            
+            try:
+                run_pipeline(document_id=selected_doc_id, ast_hash=selected_ast_hash)
+            except OptimisticLockError:
+                logger.warning(f"Fencing Activo: Documento {selected_doc_id[:8]} ya posee un lease válido. Buscando nuevo contexto.")
+                continue
+                
+            time.sleep(random.uniform(0.5, 1.5))
+            
+        except Exception as err:
+            logger.error(f"Fallo crítico en el bucle principal del Runtime Orchestrator Daemon: {err}")
+            if ctrl_conn:
+                try:
+                    ctrl_conn.close()
+                except Exception:
+                    pass
+            time.sleep(max_sleep)

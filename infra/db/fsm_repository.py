@@ -156,3 +156,37 @@ class FSMRepository:
             raise OptimisticLockError(f"Fallo al robar lease. Posible carrera con otro Sweeper en Doc {document_id[:8]}.")
         return row[0]
     
+    def find_next_ready_for_assembly(self) -> tuple[str, str] | None:
+        """SOTA: Encapsulación estricta de querying a nivel FSM documental con fairness."""
+        now = time.time()
+        cursor = self.db.execute(
+            """
+            SELECT document_id, ast_hash 
+            FROM document_fsm 
+            WHERE current_state = 'READY_FOR_ASSEMBLY'
+              AND is_terminal = 0
+              AND (lease_owner IS NULL OR lease_expires_at < ?)
+            ORDER BY updated_at ASC 
+            LIMIT 1
+            """,
+            (now,)
+        )
+        row = cursor.fetchone()
+        return (row[0], row[1]) if row else None
+    
+    def is_document_already_processed(self, document_id: str) -> bool:
+        """
+        SOTA: Query de sondeo rápido indexado para cortocircuito en el segundo cero.
+        Retorna True si el ID documental ya existe en la FSM en un estado no fallido.
+        """
+        cursor = self.db.execute(
+            """
+            SELECT 1 FROM document_fsm 
+            WHERE document_id = ? 
+              AND current_state NOT IN ('FAILED_FATAL', 'FAILED_RETRYABLE')
+            LIMIT 1
+            """,
+            (document_id,)
+        )
+        return cursor.fetchone() is not None
+    

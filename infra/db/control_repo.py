@@ -219,3 +219,24 @@ class ControlPlaneRepository(ControlPlanePort):
             logger.error(f"Fallo insertando tarea ASSEMBLER: {e}")
             raise e
         
+    def find_documents_with_pending_chunks(self, sample_size: int = 10) -> list[tuple[str, str]]:
+        """
+        SOTA: Selector probabilístico de documentos candidatos (Buscador de Contexto).
+        Cruza la existencia de chunks pendientes/reintentables con el estado no terminal de la FSM.
+        Aplica un ordenamiento por antigüedad con fairness y extrae una muestra (Sample N).
+        """
+        cursor = self.conn.execute(
+            """
+            SELECT DISTINCT t.document_id, t.ast_hash
+            FROM chunk_tasks t
+            JOIN document_fsm f ON t.document_id = f.document_id AND t.ast_hash = f.ast_hash
+            WHERE t.task_state IN ('PENDING', 'RETRYABLE_ERROR')
+              AND f.current_state NOT IN ('COMPLETED', 'FAILED_FATAL')
+              AND (f.lease_owner IS NULL OR f.lease_expires_at < ?)
+            ORDER BY t.created_at ASC
+            LIMIT ?
+            """,
+            (time.time(), sample_size)
+        )
+        return cursor.fetchall()
+    

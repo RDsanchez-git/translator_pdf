@@ -4,7 +4,7 @@ x-worker-base: &worker-base
     dockerfile: Dockerfile
 
   volumes:
-    # HOT RELOAD DEL CÓDIGO
+    # HOT RELOAD Y PERSISTENCIA COMPARTIDA (SQLite + Inbox)
     - ./:/app
 
     # CACHES PERSISTENTES SOTA
@@ -23,18 +23,11 @@ x-worker-base: &worker-base
 
     # CACHE UNIFICADO
     XDG_CACHE_HOME: /app/.cache
-
     HF_HOME: /app/.cache/hf
     TRANSFORMERS_CACHE: /app/.cache/hf
     HUGGINGFACE_HUB_CACHE: /app/.cache/hf
-
     TORCH_HOME: /app/.cache/torch
-
     TECTONIC_CACHE_DIR: /app/.cache/tectonic
-
-  depends_on:
-    toxiproxy:
-      condition: service_healthy
 
   stop_grace_period: 15s
 
@@ -49,66 +42,105 @@ x-worker-base: &worker-base
       max-size: "10m"
       max-file: "3"
 
-  mem_limit: 8g
-  cpus: "3.0"
-
 services:
 
+# --- INIT CONTAINER SOTA DE INFRAESTRUCTURA ---
+  db_bootstrap:
+    <<: *worker-base
+    command: ["python", "infra/db/bootstrap.py"]
+    mem_limit: 256m
+    cpus: "0.5"
+    depends_on: []
+    restart: "no" # Ejecución única, muere con éxito al crear los esquemas
+
+
+  # --- DAEMONS OPERATIVOS ---
   reconciler:
     <<: *worker-base
-
-    command: ["python", "-m", "apps.daemons.reconciler"]
-
+    command: ["python", "apps/daemons/reconciler.py"]
+    mem_limit: 512m
+    cpus: "0.5"
+    depends_on:
+      db_bootstrap:
+        condition: service_completed_successfully
     environment:
       PYTHONPATH: /app
       NODE_ID: reconciler_alpha
       GEMINI_API_URL: http://toxiproxy:8443
 
-  worker-a:
+
+  # --- NUEVA ARQUITECTURA DISTRIBUIDA CON AISLAMIENTO REAL (8A) ---
+
+  ocr_router:
     <<: *worker-base
-
-    command: ["python", "runtime/engine.py"]
-
+    command: ["python", "apps/ocr_router/__main__.py"]
+    mem_limit: 7g # Preservado: Evita el OOM Killer (Código 137)
+    cpus: "1.0"   # Preservado tu escalamiento original
+    depends_on:
+      db_bootstrap:
+        condition: service_completed_successfully
     environment:
       PYTHONPATH: /app
-      NODE_ID: worker_a
+      NODE_ID: ocr_router_alpha
+
+  llm_worker:
+    <<: *worker-base
+    # Corregido a invocación modular nativa para evitar fallos de importación
+    command: ["python", "runtime/engine.py"] #el -m va recién cuando tengamos los __init__ configurados
+    # Principalmente I/O Bound. Configuración ultra-ligera y eficiente
+    mem_limit: 512m
+    cpus: "1.0"
+    depends_on:
+      toxiproxy:
+        condition: service_healthy
+      db_bootstrap:
+        condition: service_completed_successfully
+    environment:
+      PYTHONPATH: /app
+      NODE_ID: llm_worker_alpha
       GEMINI_API_URL: http://toxiproxy:8443
       MAX_CONCURRENCY: 10
       GEMINI_API_KEY: dummy_sre_key_para_fake_gemini
+      ENABLE_CHAOS_TEST: "0"
 
-    restart: "no"
+  assembler:
+    <<: *worker-base
+    command: ["python", "apps/compiler/__main__.py"]
+    # Consumo moderado asignado a la ejecución de Tectonic
+    mem_limit: 2g
+    cpus: "1.5"
+    depends_on:
+      db_bootstrap:
+        condition: service_completed_successfully
+    environment:
+      PYTHONPATH: /app
+      NODE_ID: assembler_alpha
+
+  # --- INFRAESTRUCTURA DE CAOS ---
 
   toxiproxy:
     image: ghcr.io/shopify/toxiproxy:2.5.0
-
     command:
       - "-host"
       - "0.0.0.0"
       - "-config"
       - "/config/toxiproxy.json"
-
     volumes:
       - ./toxiproxy.json:/config/toxiproxy.json:ro
-
     networks:
       - chaos_net
-
     ports:
       - "8474:8474"
       - "8443:8443"
-
     restart: unless-stopped
-
     depends_on:
       fake-gemini:
         condition: service_healthy
-
     healthcheck:
       test: ["CMD", "/toxiproxy-cli", "list"]
       interval: 5s
       timeout: 2s
       retries: 3
-
     logging:
       driver: json-file
       options:
@@ -119,19 +151,14 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.fake
-
     networks:
       - chaos_net
-
     expose:
       - "8000"
-
     ports:
       - "8000:8000"
-
     restart: unless-stopped
     init: true
-
     healthcheck:
       test:
         [
@@ -143,7 +170,6 @@ services:
       interval: 5s
       timeout: 2s
       retries: 3
-
     logging:
       driver: json-file
       options:

@@ -71,8 +71,21 @@ class OCRRouterDaemon:
             
         logger.info("Validando estado previo de ingesta...", extra={"extra_data": {"doc_id": document_id[:8]}})
         
+        # SOTA: Cortocircuito defensivo en el segundo cero.
+        # Verifica duplicados por ID documental antes de instanciar los modelos de Marker.
         try:
-            # 1. Pipeline de Inferencia Puro
+            # Reutilizamos un método genérico o directo para leer registros existentes por ID
+            is_active_or_completed = self.fsm.is_document_already_processed(document_id)
+            if is_active_or_completed:
+                logger.warning(f"Cortocircuito Activo: Documento {document_id[:8]} ya procesado o en cola activa. Evitando Marker.")
+                # Mover de inmediato al archivo con prefijo de duplicado sin gastar CPU
+                shutil.move(str(pdf_path), str(self.archive_dir / f"DUP_SHORT_{document_id[:8]}_{pdf_path.name}"))
+                return
+        except Exception as db_err:
+            logger.error(f"Error consultando cortocircuito en FSM: {db_err}. Continuando por vía lenta de seguridad.")
+
+        try:
+            # 1. Pipeline de Inferencia Puro (Solo se alcanza si el documento es verdaderamente nuevo)
             raw_ast = parse_pdf(str(pdf_path))
             ast = build_semantic_chunks(raw_ast)
             ast_hash = compute_ast_hash(ast)
@@ -81,7 +94,7 @@ class OCRRouterDaemon:
             # 2. Persistencia del AST
             self.ast_registry.register_ast(document_id, ast_hash, ast)
             
-            # 3. Control de Idempotencia de Reingesta (Problema 2)
+            # 3. Control de Idempotencia de Reingesta
             self.fsm.initialize_document(document_id, ast_hash)
             status = self.fsm.get_status(document_id, ast_hash)
             

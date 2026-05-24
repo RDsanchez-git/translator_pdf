@@ -25,10 +25,7 @@ from core.execution.state import (
     StartCompilationCommand,
     CompleteDocumentCommand,
     FailDocumentCommand
-)
-
-# Reutilizamos el Heartbeat SOTA blindado de la Fase 7A
-from apps.llm_workers.__main__ import TaskLeaseHeartbeat 
+) 
 
 setup_distributed_logger()
 logger = logging.getLogger("worker_assembler")
@@ -55,29 +52,34 @@ class AssemblerWorkerDaemon:
         self.max_sleep = 8.0
 
     def run(self):
-        logger.info(f"Iniciando Assembler Worker Daemon [{self.node_id}] - CPU/IO Bound")
+        logger.info(f"Iniciando Assembler Worker Daemon [{self.node_id}] - FSM Driven (CPU/IO Bound)")
         consecutive_idle = 0
-        task = None 
         
         while True:
             try:
-                task = self.control.claim_next_pending_task(self.node_id, self.worker_type)
+                # 1. Polling limpio a través de la API del repositorio encapsulado
+                next_doc = self.fsm.find_next_ready_for_assembly()
                 
-                if not task:
+                if not next_doc:
                     consecutive_idle += 1
                     sleep_time = min(self.base_sleep * (1.2 ** consecutive_idle), self.max_sleep)
                     time.sleep(sleep_time + random.uniform(0.0, 1.0))
                     continue
                 
                 consecutive_idle = 0
-                self._process_assembly_task(task)
-                task = None 
+                doc_id, ast_hash = next_doc
+                
+                try:
+                    self._process_assembly_task(doc_id, ast_hash)
+                except OptimisticLockError:
+                    # Mitigación nativa TOCTOU: Otro assembler ganó el lease de forma concurrente
+                    logger.warning(f"TOCTOU Evitado: El documento {doc_id[:8]} ya fue tomado por otro nodo.")
+                    continue
                 
                 time.sleep(random.uniform(0.5, 1.0))
                 
             except Exception as e:
                 logger.exception(f"Error crítico en Assembler Worker loop: {e}")
-                task = None
                 time.sleep(self.max_sleep)
 
     def _fail_document_safely(self, doc_id: str, ast_hash: str, current_version: int | None, reason: str):
@@ -98,12 +100,11 @@ class AssemblerWorkerDaemon:
             except Exception as fsm_err:
                 logger.critical(f"DOOMSDAY: No se pudo abortar el documento en la FSM: {fsm_err}")
 
-    def _process_assembly_task(self, task: dict):
+    def _process_assembly_task(self, doc_id: str, ast_hash: str):
+        """
+        SOTA: Procesamiento directo FSM-driven sin diccionarios intermedios de colas.
+        """
         start_assembly = time.perf_counter()
-        
-        doc_id = task["document_id"]
-        ast_hash = task["ast_hash"]
-        task_id = task["task_id"]
         
         logger.info("Iniciando compilación del documento...", extra={"extra_data": {"doc": doc_id}})
         
@@ -116,7 +117,7 @@ class AssemblerWorkerDaemon:
 
             current_version = status["version"]
             
-            # Adquisición formal del lease del documento
+            # Adquisición formal del lease del documento (Exclusión mutua distribuida)
             current_version = self.fsm.acquire_lease(doc_id, ast_hash, self.node_id, ttl_sec=300)
             
             # Transición Start Assembly si el documento está listo
@@ -157,43 +158,27 @@ class AssemblerWorkerDaemon:
             if not valid_chunks:
                 raise ValueError("No se encontraron fragmentos válidos para proceder con el ensamblado.")
 
-            # 4. Compilación protegida por Heartbeat distribuidos
+            # 4. Compilación (Gobernada y protegida por el lease de la FSM documental)
             output_filename = f"translated_{doc_id}.pdf"
-            CONTROL_DB_PATH = os.getenv("CONTROL_DB_PATH", "infra/db/control.db")
+            tex_content = self.tex_builder.build(valid_chunks)
             
-            with TaskLeaseHeartbeat(CONTROL_DB_PATH, task_id, self.node_id, ttl_sec=60) as heartbeat:
-                tex_content = self.tex_builder.build(valid_chunks)
-                
-                cmd_ready = MarkCompilationReadyCommand(doc_id, ast_hash, self.node_id, current_version)
-                current_version = self.cmd_handler.handle(cmd_ready)
-                
-                cmd_compile = StartCompilationCommand(doc_id, ast_hash, self.node_id, current_version)
-                current_version = self.cmd_handler.handle(cmd_compile)
-                
-                final_pdf_path = self.runner.compile(tex_content, output_filename)
-                
-                if heartbeat.lease_lost.is_set():
-                    raise OptimisticLockError(f"Split-Brain evitado: lease de compilación {task_id} revocado.")
+            cmd_ready = MarkCompilationReadyCommand(doc_id, ast_hash, self.node_id, current_version)
+            current_version = self.cmd_handler.handle(cmd_ready)
+            
+            cmd_compile = StartCompilationCommand(doc_id, ast_hash, self.node_id, current_version)
+            current_version = self.cmd_handler.handle(cmd_compile)
+            
+            final_pdf_path = self.runner.compile(tex_content, output_filename)
 
             logger.info(f"Compilación exitosa: {final_pdf_path}", extra={"extra_data": {"latency": time.perf_counter() - start_assembly}})
             
-            # 5. Marcar tarea completa en el plano de control
-            self.control.mark_task_completed(task_id, self.node_id, task["state_version"])
-            
-            # 6. Transicionar FSM a COMPLETED
+            # 5. Transicionar FSM a COMPLETED (CQRS Command puro)
             cmd_complete = CompleteDocumentCommand(doc_id, ast_hash, self.node_id, current_version)
             self.cmd_handler.handle(cmd_complete)
             
         except Exception as err:
             logger.error(f"Fallo crítico durante el ensamblado/compilación para {doc_id}: {err}")
-            
-            # Registrar fallo en el Control Plane de tareas
-            try:
-                self.control.mark_task_failed(task_id, str(err)[:250], self.node_id, task["state_version"])
-            except Exception as db_err:
-                logger.error(f"Fallo registrando error de tarea en DB: {db_err}")
-            
-            # Evitar estados colgados (READY_FOR_ASSEMBLY, ASSEMBLING, COMPILING) abortando de forma legal
+            # Evitar estados colgados abortando de forma legal a nivel de Kernel FSM
             self._fail_document_safely(doc_id, ast_hash, current_version, str(err)[:250])
             raise err
             
