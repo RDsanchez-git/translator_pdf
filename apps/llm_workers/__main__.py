@@ -157,9 +157,9 @@ class LLMWorkerDaemon:
             raw_response = replay.raw_response
             logger.info("ECONOMIC_REPLAY_HIT", extra={"extra_data": {"exec_id": exec_id}})
         else:
-            # Corrección 2: Pasamos la ruta física de la DB para la conexión aislada del hilo
-            CONTROL_DB_PATH = os.getenv("CONTROL_DB_PATH", "infra/db/control.db")
-            with TaskLeaseHeartbeat(CONTROL_DB_PATH, task_id, self.node_id) as heartbeat:
+            # Uso de la cola segregada para la renovación aislada del lease de la tarea
+            QUEUE_DB_PATH = os.getenv("QUEUE_DB_PATH", "infra/db/queue.db")
+            with TaskLeaseHeartbeat(QUEUE_DB_PATH, task_id, self.node_id) as heartbeat:
                 
                 raw_response = self.processor.execute(node)
                 
@@ -187,15 +187,18 @@ class LLMWorkerDaemon:
 
 
 if __name__ == "__main__":
-    CONTROL_DB_PATH = os.getenv("CONTROL_DB_PATH", "infra/db/control.db")
+    QUEUE_DB_PATH = os.getenv("QUEUE_DB_PATH", "infra/db/queue.db")
     EVENT_DB_PATH = os.getenv("EVENT_DB_PATH", "infra/db/event.db")
     MAT_DB_PATH = os.getenv("MAT_DB_PATH", "infra/db/materialized.db")
     
-    ctrl_conn = get_connection(CONTROL_DB_PATH)
+    queue_conn = get_connection(QUEUE_DB_PATH)
     evt_conn = get_connection(EVENT_DB_PATH)
     mat_conn = get_connection(MAT_DB_PATH)
     
-    control_repo = ControlPlaneRepository(ctrl_conn)
+    for conn in (queue_conn, evt_conn, mat_conn):
+        conn.execute("PRAGMA busy_timeout=30000")
+    
+    control_repo = ControlPlaneRepository(queue_conn)
     event_repo = EventPlaneRepository(evt_conn)
     mat_repo = MaterializedPlaneRepository(mat_conn)
     

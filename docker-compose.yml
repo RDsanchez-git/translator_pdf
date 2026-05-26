@@ -4,8 +4,9 @@ x-worker-base: &worker-base
     dockerfile: Dockerfile
 
   volumes:
-    # HOT RELOAD Y PERSISTENCIA COMPARTIDA (SQLite + Inbox)
     - ./:/app
+    - sqlite_data:/app/infra/db
+
     # CACHES PERSISTENTES SOTA
     - hf_models_cache:/app/.cache/hf
     - torch_cache:/app/.cache/torch
@@ -13,11 +14,14 @@ x-worker-base: &worker-base
 
   networks:
     - chaos_net
+
   restart: unless-stopped
   init: true
 
   stop_grace_period: 30s
+
   pids_limit: 256
+
   ulimits:
     nofile:
       soft: 65535
@@ -25,6 +29,12 @@ x-worker-base: &worker-base
 
   environment:
     PYTHONPATH: /app
+    APP_ROOT: /app
+
+    # PATHS ABSOLUTOS SOTA
+    FSM_DB_PATH: /app/infra/db/fsm.db
+    QUEUE_DB_PATH: /app/infra/db/queue.db
+
     # CACHE UNIFICADO
     XDG_CACHE_HOME: /app/.cache
     HF_HOME: /app/.cache/hf
@@ -41,106 +51,161 @@ x-worker-base: &worker-base
 
 services:
 
-# --- INIT CONTAINER SOTA DE INFRAESTRUCTURA ---
+  # --- INIT CONTAINER SOTA DE INFRAESTRUCTURA ---
   db_bootstrap:
     <<: *worker-base
     command: ["python", "infra/db/bootstrap.py"]
+
     mem_limit: 256m
     cpus: "0.5"
-    depends_on: []
-    restart: "no" # Ejecución única, muere con éxito al crear los esquemas
 
+    depends_on: []
+
+    restart: "no"
 
   # --- DAEMONS OPERATIVOS ---
   reconciler:
     <<: *worker-base
     command: ["python", "apps/daemons/reconciler.py"]
+
     mem_limit: 512m
     cpus: "0.5"
+
     depends_on:
       db_bootstrap:
         condition: service_completed_successfully
+
     environment:
       PYTHONPATH: /app
+      APP_ROOT: /app
+
+      FSM_DB_PATH: /app/infra/db/fsm.db
+      QUEUE_DB_PATH: /app/infra/db/queue.db
+
       NODE_ID: reconciler_alpha
       GEMINI_API_URL: http://toxiproxy:8443
 
-
-  # --- NUEVA ARQUITECTURA DISTRIBUIDA CON AISLAMIENTO REAL (8A) ---
-
+  # --- NUEVA ARQUITECTURA DISTRIBUIDA CON AISLAMIENTO REAL ---
   ocr_router:
     <<: *worker-base
     command: ["python", "apps/ocr_router/__main__.py"]
-    mem_limit: 7g # Preservado: Evita el OOM Killer (Código 137)
-    cpus: "1.0"   # Preservado tu escalamiento original
+
+    mem_limit: 7g
+    cpus: "1.0"
+
     depends_on:
       db_bootstrap:
         condition: service_completed_successfully
+
     environment:
       PYTHONPATH: /app
+      APP_ROOT: /app
+
+      FSM_DB_PATH: /app/infra/db/fsm.db
+      QUEUE_DB_PATH: /app/infra/db/queue.db
+
       NODE_ID: ocr_router_alpha
+
       OMP_NUM_THREADS: "1"
       MKL_NUM_THREADS: "1"
       OPENBLAS_NUM_THREADS: "1"
 
   llm_worker:
     <<: *worker-base
-    # Corregido a invocación modular nativa para evitar fallos de importación
-    command: ["python", "runtime/engine.py"] #el -m va recién cuando tengamos los __init__ configurados
-    # Principalmente I/O Bound. Configuración ultra-ligera y eficiente
+    command: ["python", "runtime/engine.py"]
+
     mem_limit: 1g
     cpus: "1.0"
+
     depends_on:
       toxiproxy:
         condition: service_healthy
+
       db_bootstrap:
         condition: service_completed_successfully
+
     environment:
       PYTHONPATH: /app
+      APP_ROOT: /app
+
+      FSM_DB_PATH: /app/infra/db/fsm.db
+      QUEUE_DB_PATH: /app/infra/db/queue.db
+
       NODE_ID: llm_worker_alpha
+
       GEMINI_API_URL: http://toxiproxy:8443
-      MAX_CONCURRENCY: 4
+
+      MAX_CONCURRENT_CHUNKS: 4
+      MAX_GLOBAL_LLM_CONCURRENCY: 4
+
       GEMINI_API_KEY: dummy_sre_key_para_fake_gemini
+
       ENABLE_CHAOS_TEST: "0"
+      IS_BENCHMARK: "1"
 
   assembler:
     <<: *worker-base
     command: ["python", "apps/compiler/__main__.py"]
-    # Consumo moderado asignado a la ejecución de Tectonic
+
     mem_limit: 2g
     cpus: "1.5"
+
     depends_on:
       db_bootstrap:
         condition: service_completed_successfully
+
     environment:
       PYTHONPATH: /app
+      APP_ROOT: /app
+
+      FSM_DB_PATH: /app/infra/db/fsm.db
+      QUEUE_DB_PATH: /app/infra/db/queue.db
+
       NODE_ID: assembler_alpha
 
-  # --- INFRAESTRUCTURA DE CAOS ---
+  sweeper:
+    <<: *worker-base
+    command: ["python", "runtime/sweeper.py"]
 
+    mem_limit: 256m
+    cpus: "0.2"
+
+    depends_on:
+      db_bootstrap:
+        condition: service_completed_successfully
+
+  # --- INFRAESTRUCTURA DE CAOS ---
   toxiproxy:
     image: ghcr.io/shopify/toxiproxy:2.5.0
+
     command:
       - "-host"
       - "0.0.0.0"
       - "-config"
       - "/config/toxiproxy.json"
+
     volumes:
       - ./toxiproxy.json:/config/toxiproxy.json:ro
+
     networks:
       - chaos_net
+
     ports:
       - "8474:8474"
       - "8443:8443"
+
     restart: unless-stopped
+
     depends_on:
       fake-gemini:
         condition: service_healthy
+
     healthcheck:
       test: ["CMD", "/toxiproxy-cli", "list"]
       interval: 5s
       timeout: 2s
       retries: 3
+
     logging:
       driver: json-file
       options:
@@ -151,14 +216,19 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.fake
+
     networks:
       - chaos_net
+
     expose:
       - "8000"
+
     ports:
       - "8000:8000"
+
     restart: unless-stopped
     init: true
+
     healthcheck:
       test:
         [
@@ -170,6 +240,7 @@ services:
       interval: 5s
       timeout: 2s
       retries: 3
+
     logging:
       driver: json-file
       options:
@@ -181,6 +252,7 @@ networks:
     driver: bridge
 
 volumes:
+  sqlite_data:
   hf_models_cache:
   torch_cache:
   tectonic_cache:

@@ -1,10 +1,10 @@
 import time
 import uuid
 import sqlite3
+import logging
 from typing import Optional, List
 from core.execution.ports import ControlPlanePort, TaskLease
 from core.execution.exceptions import OptimisticLockError 
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -13,22 +13,16 @@ class ControlPlaneRepository(ControlPlanePort):
         self.conn = conn
 
     def enqueue_tasks(self, document_id: str, ast_hash: str, nodes: List[str]) -> None:
-        """
-        SOTA Pragmática: Inyección atómica masiva de chunks con Hash Determinístico
-        compuesto anti-colisiones. Respeta el esquema físico exacto de 8 columnas.
-        """
+        """Inyección atómica masiva de chunks con Hash Determinístico compuesto anti-colisiones."""
         import hashlib
         now = time.time()
         
         tasks = []
         for node in nodes:
-            # Token único determinístico basado en la tupla estructural
             raw_seed = f"{document_id}:{ast_hash}:{node}".encode('utf-8')
             task_hash = hashlib.sha256(raw_seed).hexdigest()[:24]
             task_id = f"task_{task_hash}"
             
-            # Mantenemos estrictamente tus 8 parámetros originales:
-            # (task_id, document_id, ast_hash, node_id, task_state, execution_id, created_at, updated_at)
             tasks.append((task_id, document_id, ast_hash, node, 'PENDING', None, now, now))
             
         self.conn.executemany(
@@ -40,7 +34,6 @@ class ControlPlaneRepository(ControlPlanePort):
         self.conn.commit()
 
     def pick_task(self, worker_id: str, document_id: str, ast_hash: str) -> Optional[TaskLease]:
-        # ULID/UUIDv7 simulado nativamente si no hay dependencias externas
         execution_id = f"exec_{int(time.time()*1000):015d}_{uuid.uuid4().hex[:8]}" 
         now = time.time()
         lease_expires = now + 300
@@ -56,7 +49,7 @@ class ControlPlaneRepository(ControlPlanePort):
                     WHERE document_id = ? AND ast_hash = ? 
                         AND task_state IN ('PENDING', 'RETRYABLE_ERROR')
                         AND (lease_owner IS NULL OR lease_expires_at < ?)
-                    ORDER BY created_at ASC LIMIT 1 -- SOTA: Fairness
+                    ORDER BY created_at ASC LIMIT 1
                 ) RETURNING task_id, node_id, execution_id, lease_expires_at""",
                 (worker_id, lease_expires, execution_id, document_id, ast_hash, now)
             )
@@ -78,7 +71,6 @@ class ControlPlaneRepository(ControlPlanePort):
 
     def acknowledge_execution(self, task_id: str, worker_id: str) -> None:
         now = time.time()
-        # SOTA: Fencing Temporal Distribuido
         cursor = self.conn.execute(
             """UPDATE chunk_tasks
                SET task_state = 'COMPLETED', lease_owner = NULL, lease_expires_at = NULL, updated_at = ?
@@ -91,27 +83,24 @@ class ControlPlaneRepository(ControlPlanePort):
 
     def abandon_execution(self, task_id: str, worker_id: str, error: str) -> None:
         now = time.time()
-        # SOTA: Fencing Temporal Distribuido
         cursor = self.conn.execute(
             """UPDATE chunk_tasks
                SET task_state = CASE 
-                       WHEN retry_count + 1 >= max_retries THEN 'FAILED' 
-                       ELSE 'RETRYABLE_ERROR' 
-                   END,
-                   retry_count = retry_count + 1, lease_owner = NULL, lease_expires_at = NULL,
-                   error_log = ?, updated_at = ?
+                        WHEN retry_count + 1 >= max_retries THEN 'FAILED' 
+                        ELSE 'RETRYABLE_ERROR' 
+                    END,
+                    retry_count = retry_count + 1, lease_owner = NULL, lease_expires_at = NULL,
+                    error_log = ?, updated_at = ?
                WHERE task_id = ? AND lease_owner = ? AND lease_expires_at >= ?""",
             (error, now, task_id, worker_id, now)
         )
         self.conn.commit()
         
-        # SOTA: Aserción simétrica. Si rowcount es 0, el lease ya no nos pertenece.
         if cursor.rowcount == 0:
             raise OptimisticLockError(f"Zombie write interceptado al fallar tarea: El lease de {task_id} expiró o fue robado.")
         
     def renew_task_lease(self, task_id: str, worker_id: str, additional_ttl_sec: int = 300) -> bool:
         now = time.time()
-        # SOTA: Fencing temporal doble. Protege contra pausas del GC en el propio hilo de heartbeat.
         cursor = self.conn.execute(
             """UPDATE chunk_tasks
                SET lease_expires_at = ?, updated_at = ?
@@ -124,7 +113,6 @@ class ControlPlaneRepository(ControlPlanePort):
         return cursor.rowcount > 0
     
     def release_task_untouched(self, task_id: str, worker_id: str) -> None:
-        """SOTA: Requeue sin penalización con barrera de fencing."""
         now = time.time()
         cursor = self.conn.execute(
             """UPDATE chunk_tasks
@@ -138,21 +126,18 @@ class ControlPlaneRepository(ControlPlanePort):
             raise OptimisticLockError(f"Zombie write interceptado al liberar: El lease de {task_id} expiró o fue robado.")
 
     def mark_cqrs_reconciled(self, task_id: str, reconciliation_id: str) -> bool:
-        """SOTA: Atomo transaccional (Idempotencia + Reparación de estado) sin validación de lease."""
         now = time.time()
         try:
             self.conn.execute("BEGIN IMMEDIATE")
             
-            # 1. Barrera de Idempotencia Física
             cursor = self.conn.execute(
                 "INSERT OR IGNORE INTO processed_reconciliation_commands (reconciliation_id, processed_at) VALUES (?, ?)",
                 (reconciliation_id, now)
             )
             if cursor.rowcount == 0:
                 self.conn.rollback()
-                return False # El comando ya fue procesado
+                return False
             
-            # 2. Forzar COMPLETED (Ignora quién era el owner porque es reparación por intervención divina)
             self.conn.execute(
                 """UPDATE chunk_tasks 
                    SET task_state = 'COMPLETED', lease_owner = NULL, lease_expires_at = NULL, updated_at = ? 
@@ -166,7 +151,6 @@ class ControlPlaneRepository(ControlPlanePort):
             raise e
         
     def mark_zombie_recovered(self, task_id: str, reconciliation_id: str) -> bool:
-        """SOTA: Rollback lógico puramente confinado al Control Plane."""
         now = time.time()
         try:
             self.conn.execute("BEGIN IMMEDIATE")
@@ -179,7 +163,6 @@ class ControlPlaneRepository(ControlPlanePort):
                 self.conn.rollback()
                 return False
             
-            # Devolver a PENDING, limpiar lock, incrementar retry_count
             self.conn.execute(
                 """UPDATE chunk_tasks 
                    SET task_state = 'PENDING', lease_owner = NULL, lease_expires_at = NULL, 
@@ -194,10 +177,6 @@ class ControlPlaneRepository(ControlPlanePort):
             raise e
         
     def enqueue_assembler_task(self, task_id: str, document_id: str, ast_hash: str) -> bool:
-        """
-        SOTA: Encola el trigger para el Worker Assembler.
-        Maneja la idempotencia de forma explícita capturando IntegrityError.
-        """
         now = time.time()
         try:
             self.conn.execute("""
@@ -208,7 +187,6 @@ class ControlPlaneRepository(ControlPlanePort):
             self.conn.commit()
             return True
         except sqlite3.IntegrityError:
-            # Idempotencia alcanzada de forma consciente si la tarea ya existía
             if self.conn.in_transaction:
                 self.conn.rollback()
             logger.info(f"Idempotencia detectada: la tarea {task_id[:12]} ya fue encolada previamente.")
@@ -216,27 +194,32 @@ class ControlPlaneRepository(ControlPlanePort):
         except Exception as e:
             if self.conn.in_transaction:
                 self.conn.rollback()
-            logger.error(f"Fallo insertando tarea ASSEMBLER: {e}")
+            logger.error(f"Fallo lasing tarea ASSEMBLER: {e}")
             raise e
         
     def find_documents_with_pending_chunks(self, sample_size: int = 10) -> list[tuple[str, str]]:
-        """
-        SOTA: Selector probabilístico de documentos candidatos (Buscador de Contexto).
-        Cruza la existencia de chunks pendientes/reintentables con el estado no terminal de la FSM.
-        Aplica un ordenamiento por antigüedad con fairness y extrae una muestra (Sample N).
-        """
         cursor = self.conn.execute(
             """
-            SELECT DISTINCT t.document_id, t.ast_hash
-            FROM chunk_tasks t
-            JOIN document_fsm f ON t.document_id = f.document_id AND t.ast_hash = f.ast_hash
-            WHERE t.task_state IN ('PENDING', 'RETRYABLE_ERROR')
-              AND f.current_state NOT IN ('COMPLETED', 'FAILED_FATAL')
-              AND (f.lease_owner IS NULL OR f.lease_expires_at < ?)
-            ORDER BY t.created_at ASC
+            SELECT DISTINCT f.document_id, f.ast_hash
+            FROM fsm_db.document_fsm f
+            WHERE f.current_state = 'PROCESSING'
+              AND (
+                  EXISTS (
+                      SELECT 1 FROM chunk_tasks t2
+                      WHERE t2.document_id = f.document_id
+                        AND t2.ast_hash = f.ast_hash
+                        AND t2.task_state IN ('PENDING', 'RETRYABLE_ERROR')
+                  )
+                  OR NOT EXISTS (
+                      SELECT 1 FROM chunk_tasks t3
+                      WHERE t3.document_id = f.document_id
+                        AND t3.ast_hash = f.ast_hash
+                        AND t3.task_state IN ('PENDING', 'PROCESSING', 'RETRYABLE_ERROR')
+                  )
+              )
+            ORDER BY f.updated_at ASC
             LIMIT ?
             """,
-            (time.time(), sample_size)
+            (sample_size,)
         )
         return cursor.fetchall()
-    

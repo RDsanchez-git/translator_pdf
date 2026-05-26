@@ -88,7 +88,7 @@ class AssemblerWorkerDaemon:
             try:
                 status = self.fsm.get_status(doc_id, ast_hash)
                 if status:
-                    current_version = status["version"]
+                    current_version = status.state_version
             except Exception as read_err:
                 logger.error(f"No se pudo recuperar la versión del FSM durante mitigación de desastre: {read_err}")
         
@@ -115,13 +115,10 @@ class AssemblerWorkerDaemon:
             if not status:
                 raise ValueError("No se encontró el estado del documento en la FSM.")
 
-            current_version = status["version"]
+            current_version = status.state_version
             
-            # Adquisición formal del lease del documento (Exclusión mutua distribuida)
-            current_version = self.fsm.acquire_lease(doc_id, ast_hash, self.node_id, ttl_sec=300)
-            
-            # Transición Start Assembly si el documento está listo
-            if status["state"] == DocumentState.READY_FOR_ASSEMBLY.value:
+            # Transición Start Assembly gobernada por CAS puro
+            if status.current_state == DocumentState.READY_FOR_ASSEMBLY.value:
                 cmd_start = StartAssemblyCommand(doc_id, ast_hash, self.node_id, current_version)
                 current_version = self.cmd_handler.handle(cmd_start)
             
@@ -162,43 +159,59 @@ class AssemblerWorkerDaemon:
             output_filename = f"translated_{doc_id}.pdf"
             tex_content = self.tex_builder.build(valid_chunks)
             
-            cmd_ready = MarkCompilationReadyCommand(doc_id, ast_hash, self.node_id, current_version)
+            # CAS Duro: Validar versión antes de marcar disponibilidad de compilación
+            status = self.fsm.get_status(doc_id, ast_hash)
+            if not status: 
+                raise ValueError("FSM desincronizada antes de empaquetar TeX.")
+            
+            cmd_ready = MarkCompilationReadyCommand(doc_id, ast_hash, self.node_id, status.state_version)
             current_version = self.cmd_handler.handle(cmd_ready)
             
-            cmd_compile = StartCompilationCommand(doc_id, ast_hash, self.node_id, current_version)
+            # CAS Duro: Validar versión antes de iniciar el binario del compilador
+            status = self.fsm.get_status(doc_id, ast_hash)
+            if not status: 
+                raise ValueError("FSM desincronizada antes de compilar PDF.")
+            
+            cmd_compile = StartCompilationCommand(doc_id, ast_hash, self.node_id, status.state_version)
             current_version = self.cmd_handler.handle(cmd_compile)
             
             final_pdf_path = self.runner.compile(tex_content, output_filename)
 
             logger.info(f"Compilación exitosa: {final_pdf_path}", extra={"extra_data": {"latency": time.perf_counter() - start_assembly}})
             
+            # CAS Duro: Hot-fetch final pre-cierre de ciclo de vida
+            status = self.fsm.get_status(doc_id, ast_hash)
+            if not status: 
+                raise ValueError("FSM desincronizada en fase final de guardado.")
+
             # 5. Transicionar FSM a COMPLETED (CQRS Command puro)
-            cmd_complete = CompleteDocumentCommand(doc_id, ast_hash, self.node_id, current_version)
+            cmd_complete = CompleteDocumentCommand(doc_id, ast_hash, self.node_id, status.state_version)
             self.cmd_handler.handle(cmd_complete)
             
         except Exception as err:
             logger.error(f"Fallo crítico durante el ensamblado/compilación para {doc_id}: {err}")
-            # Evitar estados colgados abortando de forma legal a nivel de Kernel FSM
             self._fail_document_safely(doc_id, ast_hash, current_version, str(err)[:250])
             raise err
             
         finally:
-            # Liberación del lease garantizado a nivel de Kernel FSM
-            try:
-                self.fsm.release_lease(doc_id, ast_hash, self.node_id)
-            except Exception as lease_err:
-                logger.debug(f"Error silencioso liberando lease: {lease_err}")
+            # El fencing documental ahora es administrado por CAS; sin operaciones pendientes en cleanup
+            pass
 
 if __name__ == "__main__":
-    CONTROL_DB_PATH = os.getenv("CONTROL_DB_PATH", "infra/db/control.db")
+    FSM_DB_PATH = os.getenv("FSM_DB_PATH", "infra/db/fsm.db")
+    QUEUE_DB_PATH = os.getenv("QUEUE_DB_PATH", "infra/db/queue.db")
     MAT_DB_PATH = os.getenv("MAT_DB_PATH", "infra/db/materialized.db")
     
-    ctrl_conn = get_connection(CONTROL_DB_PATH)
+    fsm_conn = get_connection(FSM_DB_PATH)
+    queue_conn = get_connection(QUEUE_DB_PATH)
     mat_conn = get_connection(MAT_DB_PATH)
     
-    control_repo = ControlPlaneRepository(ctrl_conn)
+    for conn in (fsm_conn, queue_conn, mat_conn):
+        conn.execute("PRAGMA busy_timeout=30000")
+    
+    control_repo = ControlPlaneRepository(queue_conn)
     mat_repo = MaterializedPlaneRepository(mat_conn)
-    fsm_repo = FSMRepository(ctrl_conn)
+    fsm_repo = FSMRepository(fsm_conn)
     cmd_handler = DocumentCommandHandler(fsm_repo, task_repo=control_repo)
     ast_registry = ASTRegistry() 
     

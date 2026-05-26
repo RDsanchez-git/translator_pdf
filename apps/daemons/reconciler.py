@@ -2,6 +2,7 @@ import time
 import uuid
 import random
 import logging
+import os
 import threading
 from contextvars import copy_context
 from core.utils.telemetry import ctx_worker_id
@@ -36,11 +37,10 @@ class ReconcilerDaemon:
         if not self.is_leader: 
             return
 
-        # JOIN inter-tablas. El FSM y las tareas viven en control.db.
-        # Condición: Procesamiento detenido en el tiempo, 100% de chunks en COMPLETED.
+        # JOIN optimizado a través de base de datos adjunta (ATTACH)
         cursor = self.task_repo.conn.execute("""
             SELECT d.document_id, d.ast_hash, d.state_version
-            FROM document_fsm d
+            FROM fsm_db.document_fsm d
             JOIN chunk_tasks c ON d.document_id = c.document_id AND d.ast_hash = c.ast_hash
             WHERE d.current_state = 'PROCESSING'
               AND d.updated_at < ?
@@ -195,21 +195,30 @@ if __name__ == "__main__":
     setup_distributed_logger()
     metrics = Metrics()
 
-    CONTROL_DB_PATH = "infra/db/control.db"
-    EVENT_DB_PATH = "infra/db/event.db"
-    MAT_DB_PATH = "infra/db/materialized.db"
+    FSM_DB_PATH = os.getenv("FSM_DB_PATH", "infra/db/fsm.db")
+    QUEUE_DB_PATH = os.getenv("QUEUE_DB_PATH", "infra/db/queue.db")
+    EVENT_DB_PATH = os.getenv("EVENT_DB_PATH", "infra/db/event.db")
+    MAT_DB_PATH = os.getenv("MAT_DB_PATH", "infra/db/materialized.db")
 
-    ctrl_conn = get_connection(CONTROL_DB_PATH,timeout=30)
-    evt_conn = get_connection(EVENT_DB_PATH,timeout=30)
-    mat_conn = get_connection(MAT_DB_PATH,timeout=30)
+    fsm_conn = get_connection(FSM_DB_PATH, timeout=30)
+    queue_conn = get_connection(QUEUE_DB_PATH, timeout=30)
+    evt_conn = get_connection(EVENT_DB_PATH, timeout=30)
+    mat_conn = get_connection(MAT_DB_PATH, timeout=30)
 
+    for conn in (fsm_conn, queue_conn, evt_conn, mat_conn):
+        conn.execute("PRAGMA busy_timeout=30000")
 
-    # 2. Inyección de Repositorios
-    system_repo = SystemPlaneRepository(ctrl_conn) 
-    task_repo = ControlPlaneRepository(ctrl_conn)
+    # Registro estático e idempotente para habilitar el JOIN inter-bases de datos en _sweep_fsm_stalls
+    attached = queue_conn.execute("PRAGMA database_list").fetchall()
+    if not any(db[1] == "fsm_db" for db in attached):
+        queue_conn.execute(f"ATTACH DATABASE '{FSM_DB_PATH}' AS fsm_db")
+
+    # 2. Inyección de Repositorios con asignación física segregada
+    system_repo = SystemPlaneRepository(queue_conn) 
+    task_repo = ControlPlaneRepository(queue_conn)
     event_repo = EventPlaneRepository(evt_conn)
     mat_repo = MaterializedPlaneRepository(mat_conn)
-    fsm_repo = FSMRepository(ctrl_conn)
+    fsm_repo = FSMRepository(fsm_conn)
 
     # 3. Inyección de Handlers
     doc_cmd_handler = DocumentCommandHandler(fsm_repo, task_repo=task_repo)

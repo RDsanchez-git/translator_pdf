@@ -10,10 +10,13 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(me
 logger = logging.getLogger("db_bootstrap")
 
 # Matriz de Configuración SOTA para el Triple Plane Split
+BASE_DIR = Path(__file__).resolve().parent
+
 DB_CONFIGS = {
-    "infra/db/control.db": "infra/db/schema_control.sql",
-    "infra/db/event.db": "infra/db/schema_event.sql",
-    "infra/db/materialized.db": "infra/db/schema_materialized.sql"
+    str(BASE_DIR / "fsm.db"): str(BASE_DIR / "schema_fsm.sql"),
+    str(BASE_DIR / "queue.db"): str(BASE_DIR / "schema_queue.sql"),
+    str(BASE_DIR / "event.db"): str(BASE_DIR / "schema_event.sql"),
+    str(BASE_DIR / "materialized.db"): str(BASE_DIR / "schema_materialized.sql"),
 }
 
 def bootstrap_all_databases():
@@ -21,7 +24,7 @@ def bootstrap_all_databases():
     logger.info("   STARTING TRIPLE PLANE SPLIT INFRASTRUCTURE BOOTSTRAP  ")
     logger.info("=========================================================")
     
-    Path("infra/db").mkdir(parents=True, exist_ok=True)
+    BASE_DIR.mkdir(parents=True, exist_ok=True)
 
     for db_path, schema_path in DB_CONFIGS.items():
         logger.info(f"Evaluando plano de persistencia: {db_path}")

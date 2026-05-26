@@ -33,9 +33,9 @@ class DocumentCommandHandler:
         self.repo = repository
         self.task_repo = task_repo
 
-    def _get_target_state(self, command: DocumentCommand, doc_status: dict) -> DocumentState:
+    def _get_target_state(self, command: DocumentCommand, doc_status) -> DocumentState:
         if isinstance(command, ResumeDocumentCommand):
-            suspended = doc_status.get("suspended_state")
+            suspended = getattr(doc_status, "suspended_state", None)
             if not suspended:
                 raise ValueError(f"No existe suspended_state para reanudar el doc {command.document_id}")
             return DocumentState(suspended)
@@ -62,8 +62,8 @@ class DocumentCommandHandler:
         if not doc_status:
             raise ValueError(f"Documento {command.document_id} no inicializado en FSM.")
         
-        current_state = DocumentState(doc_status["state"])
-        db_ast_hash = doc_status["ast_hash"]
+        current_state = DocumentState(doc_status.current_state)
+        db_ast_hash = doc_status.ast_hash
 
         if db_ast_hash != command.ast_hash:
             raise ValueError(f"Fuga generacional: Comando esperaba {command.ast_hash}, FSM tiene {db_ast_hash}")

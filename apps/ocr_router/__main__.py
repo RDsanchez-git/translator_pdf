@@ -94,27 +94,35 @@ class OCRRouterDaemon:
             # 2. Persistencia del AST
             self.ast_registry.register_ast(document_id, ast_hash, ast)
             
-            # 3. Control de Idempotencia de Reingesta
+            # 3. Control de Idempotencia de Reingesta via DTO
             self.fsm.initialize_document(document_id, ast_hash)
             status = self.fsm.get_status(document_id, ast_hash)
             
-            if status and status.get("state") == DocumentState.PROCESSING.value:
+            if status and status.current_state == DocumentState.PROCESSING.value:
                 logger.warning(f"Documento {document_id[:8]} ya se encuentra en procesamiento activo. Saltando transiciones.")
                 shutil.move(str(pdf_path), str(self.archive_dir / f"DUP_{document_id[:8]}_{pdf_path.name}"))
                 return
 
-            # 4. Coreografía CQRS con Transiciones Legales (Problema 1 resuelto por diseño nativo)
-            current_version = self.fsm.acquire_lease(document_id, ast_hash, self.owner_id, ttl_sec=300)
+            # 4. Coreografía CQRS gobernada por CAS Duro sin Lease Documental
+            status = self.fsm.get_status(document_id, ast_hash)
+            if not status:
+                raise ValueError("Fallo crítico al recuperar el DTO de inicialización en la FSM.")
+                
+            current_version = status.state_version
             
             cmd_parse = StartParsingCommand(document_id, ast_hash, self.owner_id, current_version)
             current_version = self.cmd_handler.handle(cmd_parse)
             
+            # Inyección atómica masiva de chunks en queue.db
             self.task_repo.enqueue_tasks(document_id, ast_hash, ordered_node_ids)
             
-            cmd_process = StartProcessingCommand(document_id, ast_hash, self.owner_id, current_version)
+            # Hot-fetch: Sincronización estricta de versión pre-comando de procesamiento
+            status = self.fsm.get_status(document_id, ast_hash)
+            if not status:
+                raise ValueError("Desincronización de la FSM previo a la transición a PROCESSING.")
+                
+            cmd_process = StartProcessingCommand(document_id, ast_hash, self.owner_id, status.state_version)
             self.cmd_handler.handle(cmd_process)
-            
-            self.fsm.release_lease(document_id, ast_hash, self.owner_id)
             
             # 5. Archivo Histórico
             shutil.move(str(pdf_path), str(self.archive_dir / f"{document_id[:8]}_{pdf_path.name}"))
@@ -127,14 +135,10 @@ class OCRRouterDaemon:
             error_token = uuid.uuid4().hex[:6]
             logger.error(f"Fallo en la ingesta del documento [{error_token}] {pdf_path.name}: {e}")
             
-            # SOTA: Guardia lógica con aserción explícita para el linter (Pylance Safe)
             if document_id is not None and ast_hash is not None:
                 assert isinstance(document_id, str)
                 assert isinstance(ast_hash, str)
-                try:
-                    self.fsm.release_lease(document_id, ast_hash, self.owner_id)
-                except Exception:
-                    pass
+                # El control de fallas ahora es atómico por CAS; sin operaciones de liberación pendientes
                 
             # Mover PDF corrupto a cuarentena
             failed_pdf_name = f"FAILED_{error_token}_{pdf_path.name}"
@@ -155,11 +159,17 @@ class OCRRouterDaemon:
                 json.dump(meta_err, f, indent=2, ensure_ascii=False)
 
 if __name__ == "__main__":
-    CONTROL_DB_PATH = os.getenv("CONTROL_DB_PATH", "infra/db/control.db")
-    ctrl_conn = get_connection(CONTROL_DB_PATH)
+    FSM_DB_PATH = os.getenv("FSM_DB_PATH", "infra/db/fsm.db")
+    QUEUE_DB_PATH = os.getenv("QUEUE_DB_PATH", "infra/db/queue.db")
     
-    fsm_repo = FSMRepository(ctrl_conn)
-    task_repo = ControlPlaneRepository(ctrl_conn)
+    fsm_conn = get_connection(FSM_DB_PATH)
+    queue_conn = get_connection(QUEUE_DB_PATH)
+    
+    for conn in (fsm_conn, queue_conn):
+        conn.execute("PRAGMA busy_timeout=30000")
+    
+    fsm_repo = FSMRepository(fsm_conn)
+    task_repo = ControlPlaneRepository(queue_conn)
     cmd_handler = DocumentCommandHandler(fsm_repo, task_repo=task_repo)
     ast_registry = ASTRegistry()
     

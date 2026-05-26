@@ -1,8 +1,8 @@
 import time
 import logging
+import os
 import random
-from core.execution.state import (
-    StallDocumentCommand, FailDocumentCommand
+from core.execution.state import (FailDocumentCommand
 )
 from core.execution.handlers import DocumentCommandHandler
 from infra.db.fsm_repository import FSMRepository
@@ -11,10 +11,12 @@ from infra.db.connection import get_connection
 
 logger = logging.getLogger(__name__)
 
-# SOTA: Rutas físicas del Triple Plane Split
-CONTROL_DB_PATH = "infra/db/control.db"
-EVENT_DB_PATH = "infra/db/event.db"
-MAT_DB_PATH = "infra/db/materialized.db"
+
+
+FSM_DB_PATH = os.getenv("FSM_DB_PATH", "infra/db/fsm.db")
+QUEUE_DB_PATH = os.getenv("QUEUE_DB_PATH", "infra/db/queue.db")
+EVENT_DB_PATH = os.getenv("EVENT_DB_PATH", "infra/db/event.db")
+MAT_DB_PATH = os.getenv("MAT_DB_PATH", "infra/db/materialized.db")
 
 class RecoveryDaemon:
     def __init__(self):
@@ -37,47 +39,48 @@ class RecoveryDaemon:
         """SOTA: Ciclo forense de detección, corrección y mantenimiento de disco."""
         
         # --- FASE 1: MANTENIMIENTO FÍSICO (WAL CHECKPOINT) ---
-        # Forzamos el vaciado del WAL al archivo .db principal antes de hacer queries pesadas
         self._force_wal_checkpoint(EVENT_DB_PATH, "Event Plane")
         self._force_wal_checkpoint(MAT_DB_PATH, "Materialized Plane")
-        self._force_wal_checkpoint(CONTROL_DB_PATH, "Control Plane")
+        self._force_wal_checkpoint(FSM_DB_PATH, "FSM Plane")
+        self._force_wal_checkpoint(QUEUE_DB_PATH, "Queue Plane")
 
-        # --- FASE 2: RECUPERACIÓN LÓGICA (FSM & LEASES) ---
-        conn_ctrl = get_connection(CONTROL_DB_PATH, timeout = 15)
+        # --- FASE 2: RECUPERACIÓN LÓGICA VÍA CAS DURO ---
+        conn_fsm = get_connection(FSM_DB_PATH, timeout=15)
+        conn_queue = get_connection(QUEUE_DB_PATH, timeout=15)
         try:
-            fsm_repo = FSMRepository(conn_ctrl)
-            cmd_handler = DocumentCommandHandler(fsm_repo)
+            conn_fsm.execute("PRAGMA busy_timeout=15000")
+            conn_queue.execute("PRAGMA busy_timeout=15000")
             
-            # 1. Caza de Leases Zombies (Workers que murieron por OOM o Crash)
-            stale_docs = fsm_repo.find_stale_leases()
-            for doc_id, ast_hash, state, owner in stale_docs:
-                logger.warning(f"SWEEPER_DETECTED_STALE_LEASE: Doc {doc_id[:8]} abandonado por {owner} en estado {state}")
-                try:
-                    # SOTA: El Sweeper "roba" el ownership legítimamente
-                    current_version = fsm_repo.steal_expired_lease(doc_id, ast_hash, self.identity, ttl_sec=60)
-                    
-                    cmd = StallDocumentCommand(doc_id, ast_hash, self.identity, current_version, reason="Sweeper revoked dead lease")
-                    cmd_handler.handle(cmd)
-                    
-                    fsm_repo.release_lease(doc_id, ast_hash, self.identity)
-                    logger.info(f"SWEEPER_QUARANTINED: Doc {doc_id[:8]} movido a STALLED.")
-                    
-                except Exception as e:
-                    logger.error(f"Fallo del Sweeper al procesar zombie {doc_id[:8]}: {e}")
+            fsm_repo = FSMRepository(conn_fsm)
+            from infra.db.control_repo import ControlPlaneRepository
+            task_repo = ControlPlaneRepository(conn_queue)
+            cmd_handler = DocumentCommandHandler(fsm_repo, task_repo=task_repo)
 
-            # 2. Purgatorio (Documentos estancados demasiado tiempo)
-            stalled_docs = fsm_repo.find_stalled_documents(threshold_sec=3600) # 1 hora
+            # Purgatorio: Desalojo de documentos estancados en STALLED por más de una hora
+            stalled_docs = fsm_repo.find_stalled_documents(threshold_sec=3600)
             for doc_id, ast_hash in stalled_docs:
-                 logger.warning(f"SWEEPER_PERMANENT_FAILURE: Doc {doc_id[:8]} lleva 1 hora STALLED. Abortando.")
+                 logger.warning(f"SWEEPER_PERMANENT_FAILURE: Doc {doc_id[:8]} excedió el TTL de cuarentena. Abortando.")
                  try:
-                     current_version = fsm_repo.steal_expired_lease(doc_id, ast_hash, self.identity, ttl_sec=60)
-                     cmd = FailDocumentCommand(doc_id, ast_hash, self.identity, current_version, reason="TTL de Cuarentena (STALLED) excedido.")
-                     cmd_handler.handle(cmd)
-                     fsm_repo.release_lease(doc_id, ast_hash, self.identity)
+                     # Hot-fetch inmutable para blindar el lock optimista (CAS)
+                     status = fsm_repo.get_status(doc_id, ast_hash)
+                     if status:
+                         cmd = FailDocumentCommand(
+                             document_id=doc_id, 
+                             ast_hash=ast_hash, 
+                             owner_id=self.identity, 
+                             expected_version=status.state_version, 
+                             reason="TTL de Cuarentena (STALLED) excedido."
+                         )
+                         cmd_handler.handle(cmd)
+                         logger.info(f"SWEEPER_ABORTED: Doc {doc_id[:8]} movido a FAILED_FATAL de forma segura.")
                  except Exception as e:
-                     logger.error(f"Fallo del Sweeper al abortar {doc_id[:8]}: {e}")
+                     logger.error(f"Fallo del Sweeper al abortar {doc_id[:8]} vía CAS: {e}")
         finally:
-            conn_ctrl.close()
+            for c in (conn_fsm, conn_queue):
+                try:
+                    c.close()
+                except Exception:
+                    pass
 
 if __name__ == "__main__":
     setup_logger()
