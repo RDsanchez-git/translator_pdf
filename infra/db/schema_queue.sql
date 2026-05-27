@@ -17,11 +17,20 @@ CREATE TABLE IF NOT EXISTS chunk_tasks (
     UNIQUE(document_id, ast_hash, node_id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_chunk_tasks_pickup ON chunk_tasks(document_id, ast_hash, task_state, lease_expires_at);
-CREATE INDEX IF NOT EXISTS idx_chunk_tasks_scheduler ON chunk_tasks(worker_type, task_state, lease_expires_at, created_at);
+-- OPTIMIZACIÓN SOTA: Índice parcial de cobertura y ordenamiento para suprimir Filesort
+DROP INDEX IF EXISTS idx_chunk_tasks_pickup;
+DROP INDEX IF EXISTS idx_chunk_tasks_pickup_v2;
+
+CREATE INDEX IF NOT EXISTS idx_chunk_tasks_ready_queue
+ON chunk_tasks (document_id, ast_hash, created_at, lease_expires_at, lease_owner)
+WHERE task_state IN ('PENDING', 'RETRYABLE_ERROR');
+
+CREATE INDEX IF NOT EXISTS idx_chunk_tasks_scheduler 
+ON chunk_tasks (worker_type, lease_expires_at, created_at)
+WHERE task_state IN ('PENDING', 'RETRYABLE_ERROR');
 
 CREATE TABLE IF NOT EXISTS system_leases (
-    lease_name TEXT PRIMARY KEY,
+    text_name TEXT PRIMARY KEY,
     owner_id TEXT,
     lease_expires_at REAL,
     updated_at REAL,
