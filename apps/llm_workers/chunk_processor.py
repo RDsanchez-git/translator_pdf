@@ -4,12 +4,47 @@ from tenacity import (
     retry, wait_exponential, stop_after_attempt, 
     stop_after_delay, retry_if_exception_type, before_sleep_log
 )
-from core.ast.models import ASTNode, NodeType
+# SOTA Fix 1: Importar los Enums reales (NodeType es ahora solo un Union)
+from core.ast.models import ASTNode, ContentNodeType, StructuralNodeType
 from core.metrics.metrics import Metrics
 from apps.llm_workers.gemini_client import GeminiClient
 from core.utils.rate_limiter import IN_FLIGHT_LIMITER
 
 logger = logging.getLogger(__name__)
+
+# CONTRATO SEMÁNTICO SOTA: Capa de desacoplamiento para control de Inferencia
+NODE_POLICY = {
+    # --- PRESERVE (Nodos semánticos puros / STEM) ---
+    ContentNodeType.EQUATION: "PRESERVE",
+    ContentNodeType.INLINE_EQUATION: "PRESERVE",
+    ContentNodeType.TABLE: "PRESERVE",
+    ContentNodeType.CODE_BLOCK: "PRESERVE",
+    ContentNodeType.ALGORITHM: "PRESERVE",
+    ContentNodeType.FIGURE: "PRESERVE",
+    ContentNodeType.IMAGE: "PRESERVE",
+    ContentNodeType.COMPOSITE_BLOCK: "PRESERVE",
+    ContentNodeType.UNKNOWN: "PRESERVE",
+    ContentNodeType.CITATION: "PRESERVE",
+    ContentNodeType.REFERENCE_ENTRY: "PRESERVE",
+    ContentNodeType.BIBLIOGRAPHY: "PRESERVE",
+    
+    # --- TRANSLATE (Nodos semánticos narrativos) ---
+    ContentNodeType.PARAGRAPH: "TRANSLATE",
+    ContentNodeType.MACRO_CHUNK: "TRANSLATE",
+    ContentNodeType.CAPTION: "TRANSLATE",
+    ContentNodeType.LIST: "TRANSLATE",
+    ContentNodeType.LIST_ITEM: "TRANSLATE",
+    ContentNodeType.FOOTNOTE: "TRANSLATE",
+    
+    # --- PRESERVE ESTRUCTURAL (Fallback defensivo) ---
+    # Los nodos estructurales NO deberían llegar al ChunkProcessor (los ataja el engine),
+    # pero si llegan por un bug en el orquestador, los neutralizamos sin consumir tokens.
+    StructuralNodeType.DOCUMENT: "PRESERVE",
+    StructuralNodeType.PART: "PRESERVE",
+    StructuralNodeType.CHAPTER: "PRESERVE",
+    StructuralNodeType.SECTION: "PRESERVE",
+    StructuralNodeType.SUBSECTION: "PRESERVE"
+}
 
 class LLMTransientError(Exception):
     pass
@@ -30,7 +65,6 @@ class ChunkProcessor:
     def __init__(self, client: GeminiClient, metrics: Metrics):
         self.client = client
         self.metrics = metrics
-        # Extraemos las versiones aquí para que el daemon las lea y las inyecte al WAL
         self.prompt_v = "v3_latex_optimized"
         self.model_v = "gemini-2.5-flash" 
         self.projection_v = 1 
@@ -43,19 +77,17 @@ class ChunkProcessor:
         reraise=True
     )
     def execute(self, node: ASTNode, chunk_idx: int = 1, total_chunks: int = 1) -> str:
-        """SOTA: Lógica de negocio aislada. Lanza excepciones si falla, retorna texto si triunfa."""
+        """SOTA: Lógica de negocio aislada gobernada por política de nodo."""
         
-        # Fast-Path Nativo de la IA
-        if node.type == NodeType.EQUATION:
-            return node.latex or node.content
-
-        # Si el OCR nos filtró mal algo que no soportamos, hacemos passthrough
-        if node.type not in (NodeType.MACRO_CHUNK, NodeType.PARAGRAPH, NodeType.SECTION):
-            return node.content
+        policy = NODE_POLICY.get(node.type, "PRESERVE")
+        
+        # Fast-Path Nativo: Evade el consumo de TPM/RPM y previene mutaciones
+        if policy == "PRESERVE":
+            # SOTA Fix 2: Cast seguro a string puro para cumplir con firma -> str
+            return str(node.latex or node.content or "")
 
         start_net = time.perf_counter()
         try:
-            # SOTA: Semáforo de Red sigue aquí porque protege las llamadas concurrentes externas
             with IN_FLIGHT_LIMITER:
                 raw_response = self.client.translate(node, chunk_idx, total_chunks)
             

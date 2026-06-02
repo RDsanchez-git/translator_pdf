@@ -31,17 +31,11 @@ class ASTRegistry:
         return doc_cache.get(node_id)
 
     def _load_document(self, document_id: str, ast_hash: str):
-        """Carga lineal y durable del AST desde disco hacia la memoria RAM."""
         cache_key = (document_id, ast_hash)
-        ast_path = os.path.join(self.ast_dir, f"{document_id}.ast.json")
+        ast_path = os.path.join(self.ast_dir, f"{document_id}.{ast_hash}.ast.json")
         
-        # Fallback exclusivo para entornos de Testing local
         if not os.path.exists(ast_path):
-            ast_path = os.path.join(self.workspace_dir, "tests", "corpus", f"{document_id}.ast.json")
-            
-        if not os.path.exists(ast_path):
-            logger.error(f"SRE_AST_FAULT: Estructura no encontrada en: {ast_path}")
-            return
+            ast_path = os.path.join(self.workspace_dir, "tests", "corpus", f"{document_id}.{ast_hash}.ast.json")
 
         try:
             with open(ast_path, "r", encoding="utf-8") as f:
@@ -70,7 +64,7 @@ class ASTRegistry:
         self._cache[cache_key] = {n.node_id: n for n in ast_nodes}
         
         # 2. Preparación del payload respetando tu raíz "nodes"
-        final_path = os.path.join(self.ast_dir, f"{document_id}.ast.json")
+        final_path = os.path.join(self.ast_dir, f"{document_id}.{ast_hash}.ast.json")
         payload = {
             "document_id": document_id,
             "ast_hash": ast_hash,

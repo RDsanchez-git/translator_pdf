@@ -5,22 +5,17 @@ import time
 import uuid
 import random
 import logging
-from pathlib import Path
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from apps.llm_workers.gemini_client import GeminiClient
 from apps.llm_workers.chunk_processor import ChunkProcessor
-from apps.compiler.tex_builder import TexBuilder
-from apps.compiler.docker_runner import DockerRunner
 from core.metrics.metrics import Metrics
 
 from infra.db.fsm_repository import FSMRepository
 from core.execution.exceptions import PipelineIntegrityError, OptimisticLockError
 from core.execution.state import (
-    DocumentState, TERMINAL_STATES, MarkAssemblyReadyCommand,
-    StartAssemblyCommand, MarkCompilationReadyCommand, StartCompilationCommand,
-    CompleteDocumentCommand
+    DocumentState, TERMINAL_STATES, MarkAssemblyReadyCommand
 )
 from core.execution.handlers import DocumentCommandHandler
 from infra.db.control_repo import ControlPlaneRepository
@@ -40,6 +35,7 @@ from core.ast.registry import ASTRegistry
 import typing
 from concurrent.futures import ThreadPoolExecutor
 import threading
+from core.normalization.latex_sanitizer import InlineMathProtector
 
 
 logger = logging.getLogger(__name__)
@@ -71,6 +67,7 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
     ast_registry = ASTRegistry()
     
     client = GeminiClient()
+    metrics = Metrics()
     processor = ChunkProcessor(client, metrics)
     owner_id = f"orchestrator_{uuid.uuid4().hex[:8]}"
 
@@ -79,10 +76,13 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
     if os.getenv("IS_BENCHMARK") == "1" or document_id.startswith("doc_"):
         cursor = queue_conn.execute("SELECT node_id FROM chunk_tasks WHERE document_id = ?", (document_id,))
         ordered_node_ids = [row[0] for row in cursor.fetchall()]
+        
+        from core.ast.models import ContentNodeType
         class FakeASTNode:
             def __init__(self):
                 self.content = "SOTA synthetic content benchmarking"
-                self.type = "TEXT"
+                self.type = ContentNodeType.PARAGRAPH
+                
         doc_nodes = typing.cast(typing.Any, {nid: FakeASTNode() for nid in ordered_node_ids})
     else:
         if cache_key not in ast_registry._cache:
@@ -93,8 +93,6 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
         ordered_node_ids = list(doc_nodes.keys())
 
     retry_attempt = 0 
-    output_path_obj = Path(pdf_output_name)
-    tex_path = str(output_path_obj.parent / f"debug_{output_path_obj.stem}.tex")
     current_state = None
 
     while True:
@@ -157,23 +155,44 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
                             try:
                                 target_node = ast_index[node_id]
                                 
-                                # Control de saturación atómico pre-adquisición de red
-                                with GLOBAL_LLM_SEMAPHORE:
+                                # SOTA: Centralizamos la lógica de ruteo consultando la política oficial
+                                from apps.llm_workers.chunk_processor import NODE_POLICY
+                                policy = NODE_POLICY.get(target_node.type, "PRESERVE")
+                                
+                                if policy in ("PRESERVE", "IGNORE"):
+                                    # Bypass nativo sin enmascaramiento de LaTeX
                                     raw_response = local_processor.execute(target_node)
+                                else:
+                                    # TRANSLATE: Solo el texto narrativo entra al flujo LLM y se enmascara
+                                    original_content = target_node.content or ""
+                                    masked_content, math_map = InlineMathProtector.mask(original_content)
+                                    
+                                    target_node.content = masked_content
+                                    
+                                    with GLOBAL_LLM_SEMAPHORE:
+                                        raw_response = local_processor.execute(target_node)
+                                        
+                                    # Restauración limpia y única (se eliminó la duplicación del código viejo)
+                                    target_node.content = original_content
+                                    raw_response = InlineMathProtector.restore(raw_response, math_map)
+                                
+                                # SOTA FIX: Protección contra Optional[str]
+                                content_to_hash = target_node.content or ""
                                 
                                 th_event_repo.append_wal(
                                     task.execution_id, document_id, node_id, 
-                                    hashlib.sha256(target_node.content.encode('utf-8')).hexdigest(), 
+                                    hashlib.sha256(content_to_hash.encode('utf-8')).hexdigest(), 
                                     raw_response, processor.prompt_v, processor.model_v, 
                                     processor.projection_v, EventLifecycle.GENERATED
                                 )
-                                
-                                normalized = TextNormalizer.normalize(raw_response) if getattr(target_node, 'type', None) != 'EQUATION' else raw_response
+
+                                # SOTA FIX: Normalizamos únicamente lo traducido. Fin de la comparación errónea estática.
+                                normalized = TextNormalizer.normalize(raw_response) if policy == "TRANSLATE" else raw_response
                                 normalized_hash = hashlib.sha256(normalized.encode('utf-8')).hexdigest()
                                 
                                 th_mat_repo.upsert_projection(
                                     document_id, ast_hash, node_id, 
-                                    hashlib.sha256(target_node.content.encode('utf-8')).hexdigest(), 
+                                    hashlib.sha256(content_to_hash.encode('utf-8')).hexdigest(), 
                                     normalized, normalized_hash, processor.projection_v
                                 )
                                 
@@ -252,8 +271,6 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
                 if set_expected == set_returned:
                     if os.getenv("IS_BENCHMARK") == "1":
                         logger.info(f"[BENCHMARK] Documento {document_id[:8]} forzando transición terminal en repositorio.")
-                        
-                        # Bypass SOTA: Mutación directa via Repositorio con kwargs (salta el FSMValidator de producción)
                         fsm_repo.transition_to(
                             document_id=document_id,
                             ast_hash=ast_hash,
@@ -263,27 +280,18 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
                             owner_id=owner_id,
                             is_terminal=True
                         )
-                        
-                        # Persistencia Física: El commit manual evita el rollback automático de SQLite al cerrar la conexión
                         fsm_conn.commit()
-                        
-                        current_state = DocumentState.COMPLETED
+                        current_state = DocumentState.COMPLETED  # SOTA: Sincronización local pre-salida
                         break
                         
-                    # CAS DURO: Forzar lectura fresca antes de emitir el comando modificador
                     doc_status = fsm_repo.get_status(document_id, ast_hash)
                     if not doc_status:
                         break
                     
                     cmd = MarkAssemblyReadyCommand(document_id, ast_hash, owner_id, doc_status.state_version)
                     cmd_handler.handle(cmd)
-                    
-                    # Carga del nuevo estado post-mutación
-                    doc_status = fsm_repo.get_status(document_id, ast_hash)
-                    if doc_status:
-                        current_state = DocumentState(doc_status.current_state)
-                        current_version = doc_status.state_version
-                    retry_attempt = 0
+                    current_state = DocumentState.READY_FOR_ASSEMBLY  # SOTA: Sincronización local pre-salida
+                    break # MOTO DE DESACOPLAMIENTO: Finaliza la ejecución local del llm_worker
                 else:
                     sleep_sec = min(30.0, 2.0 * (1.5 ** retry_attempt)) + random.uniform(0.1, 1.0)
                     missing_count = len(set_expected - set_returned)
@@ -291,74 +299,6 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
                     time.sleep(sleep_sec)
                     retry_attempt += 1
                     
-            elif current_state == DocumentState.READY_FOR_ASSEMBLY:
-                doc_status = fsm_repo.get_status(document_id, ast_hash)
-                if not doc_status:
-                    break
-                    
-                cmd = StartAssemblyCommand(document_id, ast_hash, owner_id, doc_status.state_version)
-                cmd_handler.handle(cmd)
-                
-                doc_status = fsm_repo.get_status(document_id, ast_hash)
-                if doc_status:
-                    current_state = DocumentState(doc_status.current_state)
-                    current_version = doc_status.state_version
-                retry_attempt = 0
-                
-            elif current_state == DocumentState.ASSEMBLING:
-                valid_chunks_data = mat_repo.get_assemblable_chunks(
-                    document_id, ast_hash, ordered_node_ids, required_projection_v=1
-                )
-                builder = TexBuilder()
-                legacy_chunks_format = [(p.node_id, p.normalized_response) for p in valid_chunks_data]
-                tex_document = builder.build(legacy_chunks_format)
-                
-                Path(tex_path).parent.mkdir(parents=True, exist_ok=True)
-                with open(tex_path, "w", encoding="utf-8") as f:
-                    f.write(tex_document)
-                    
-                cmd = MarkCompilationReadyCommand(document_id, ast_hash, owner_id, current_version)
-                cmd_handler.handle(cmd)
-                
-                doc_status = fsm_repo.get_status(document_id, ast_hash)
-                if doc_status:
-                    current_state = DocumentState(doc_status.current_state)
-                    current_version = doc_status.state_version
-                retry_attempt = 0
-                
-            elif current_state == DocumentState.READY_FOR_COMPILATION:
-                cmd = StartCompilationCommand(document_id, ast_hash, owner_id, current_version)
-                cmd_handler.handle(cmd)
-                
-                doc_status = fsm_repo.get_status(document_id, ast_hash)
-                if doc_status:
-                    current_state = DocumentState(doc_status.current_state)
-                    current_version = doc_status.state_version
-                retry_attempt = 0
-                
-            elif current_state == DocumentState.COMPILING:
-                if not os.path.exists(tex_path):
-                    raise PipelineIntegrityError(f"Artefacto intermedio perdido: {tex_path}")
-                    
-                runner = DockerRunner()
-                with open(tex_path, "r", encoding="utf-8") as f:
-                    tex_payload = f.read()
-                    
-                t_comp_start = time.perf_counter()
-                pdf_path = runner.compile(tex_payload, output_filename=pdf_output_name)
-                metrics.observe("compile_sec", time.perf_counter() - t_comp_start)
-                
-                logger.info("artifact_compiled", extra={"extra_data": {"pdf_path": str(pdf_path)}})
-                cmd = CompleteDocumentCommand(document_id, ast_hash, owner_id, current_version)
-                cmd_handler.handle(cmd)
-                
-                doc_status = fsm_repo.get_status(document_id, ast_hash)
-                if doc_status:
-                    current_state = DocumentState(doc_status.current_state)
-                    current_version = doc_status.state_version
-                retry_attempt = 0
-
-            # --- FASE 2: MANEJO EXPLICITO DE FAILED_RETRYABLE Y STALLED (ANTI CPU-SPIN) ---
             elif current_state == DocumentState.FAILED_RETRYABLE:
                 target_recovery = doc_status.suspended_state or DocumentState.PROCESSING.value
                 logger.warning(f"Auto-recuperación de FAILED_RETRYABLE detectada. Retornando flujo hacia: {target_recovery}")

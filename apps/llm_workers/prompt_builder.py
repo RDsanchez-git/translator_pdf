@@ -1,4 +1,4 @@
-from core.ast.models import ASTNode, NodeType
+from core.ast.models import ASTNode, ContentNodeType, StructuralNodeType
 
 class PromptBuilder:
     @staticmethod
@@ -17,7 +17,7 @@ class PromptBuilder:
         # SOTA: Enrutamiento dinámico (Strategy)
         type_context = ""
         
-        if node.type == NodeType.MACRO_CHUNK:
+        if node.type == ContentNodeType.MACRO_CHUNK:
             type_context = """
             INSTRUCCIONES PARA BLOQUE MACRO (TEXTO + ESTRUCTURA):
             - Este bloque contiene múltiples párrafos agrupados.
@@ -25,19 +25,19 @@ class PromptBuilder:
             - Escapa caracteres reservados de LaTeX (%, &, _, #) si aparecen en texto plano.
             - NO modifiques la estructura de comandos LaTeX si detectas alguno.
             """
-        elif node.type == NodeType.SECTION:
+        elif node.type == StructuralNodeType.SECTION:
             type_context = """
             INSTRUCCIONES PARA TÍTULO/SECCIÓN:
             - Traduce de forma concisa. Es un encabezado estructural.
             - Mantén las mayúsculas iniciales si corresponde.
             """
-        elif node.type == NodeType.TABLE:
+        elif node.type == ContentNodeType.TABLE:
             type_context = """
             INSTRUCCIONES PARA TABLA:
             - PROHIBIDO traducir código estructural (alineaciones, bordes, comandos de celda).
             - Traduce ÚNICAMENTE el texto legible dentro de las celdas.
             """
-        elif node.type == NodeType.EQUATION:
+        elif node.type == ContentNodeType.EQUATION:
             type_context = """
             INSTRUCCIONES PARA ECUACIÓN:
             - PROHIBIDO modificar símbolos matemáticos o renombrar variables.

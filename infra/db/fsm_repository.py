@@ -67,12 +67,13 @@ class FSMRepository:
         )
 
     def find_stalled_documents(self, threshold_sec: int = 3600) -> list[tuple[str, str]]:
-        """Busca documentos que llevan demasiado tiempo en STALLED sin recuperación."""
+        """SOTA: Detecta verdaderos procesos zombies (caídas físicas de workers)."""
         threshold = time.time() - threshold_sec
         cursor = self.db.execute(
             """SELECT document_id, ast_hash 
                FROM document_fsm 
-               WHERE current_state = 'STALLED' AND updated_at < ?""",
+               WHERE current_state IN ('PARSING', 'PROCESSING', 'READY_FOR_ASSEMBLY', 'ASSEMBLING', 'READY_FOR_COMPILATION', 'COMPILING') 
+                 AND updated_at < ?""",
             (threshold,)
         )
         return cursor.fetchall()

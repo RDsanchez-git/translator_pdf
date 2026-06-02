@@ -35,7 +35,8 @@ class MaterializedPlaneRepository(MaterializedPlanePort):
                DO UPDATE SET normalized_response = excluded.normalized_response, 
                              normalized_hash = excluded.normalized_hash,
                              projection_version = excluded.projection_version, 
-                             last_updated = excluded.last_updated""",
+                             last_updated = excluded.last_updated
+               WHERE excluded.projection_version >= valid_chunks_cache.projection_version""",
             (document_id, ast_hash, node_id, content_hash, normalized_text, normalized_hash, projection_v, time.time())
         )
         self.conn.commit()

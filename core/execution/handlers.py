@@ -72,7 +72,10 @@ class DocumentCommandHandler:
         FSMValidator.validate(current_state, target_state)
 
         is_terminal = target_state in TERMINAL_STATES
-        failure_reason = getattr(command, "reason", None) if is_terminal or target_state == DocumentState.STALLED else None
+        
+        # SOTA: Telemetría de fallos extendida a estados de transición e intermitencia
+        allowed_reason_states = (DocumentState.STALLED, DocumentState.FAILED_RETRYABLE)
+        failure_reason = getattr(command, "reason", None) if is_terminal or target_state in allowed_reason_states else None
         suspended_state = current_state.value if target_state == DocumentState.STALLED else None
 
         # SOTA: Ejecutamos la transición de estado bajo bloqueo optimista
@@ -87,27 +90,6 @@ class DocumentCommandHandler:
             failure_reason=failure_reason,
             suspended_state=suspended_state
         )
-
-        # ---------------------------------------------------------------------
-        # EFECTO SECUNDARIO SOTA: Encolado del Trigger para el Worker Assembler
-        # ---------------------------------------------------------------------
-        if target_state == DocumentState.READY_FOR_ASSEMBLY:
-            if not self.task_repo:
-                raise RuntimeError("SRE_FATAL: Se requería inyectar task_repo para materializar la tarea ASSEMBLER.")
-            
-            # Hashing determinístico fuerte para prevenir colisiones
-            raw_seed = f"{command.document_id}:{command.ast_hash}".encode('utf-8')
-            token_hash = hashlib.sha256(raw_seed).hexdigest()[:16]
-            task_id = f"task_asm_{token_hash}"
-            
-            # Invocación limpia a través de la capa de abstracción física
-            self.task_repo.enqueue_assembler_task(
-                task_id=task_id,
-                document_id=command.document_id,
-                ast_hash=command.ast_hash
-            )
-            
-            logger.info("ASSEMBLER_TRIGGER_ENQUEUED", extra={"extra_data": {"task": task_id[:12]}})
 
         logger.info("FSM_TRANSITION_SUCCESS", extra={
             "extra_data": {

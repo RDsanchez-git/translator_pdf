@@ -1,16 +1,18 @@
 import json
 import hashlib
 import logging
-from core.ast.models import ASTNode, NodeType
+from core.ast.models import ASTNode, ContentNodeType, StructuralNodeType
 
 logger = logging.getLogger(__name__)
 
 def compute_ast_hash(ast: list[ASTNode]) -> str:
     """SOTA: Generación determinística de firma para el árbol sintáctico completo."""
     def serialize_node(n: ASTNode) -> dict:
+        # Usamos .value para extraer el string nativo puro ('paragraph', 'section', etc.)
+        type_str = n.type.value if hasattr(n.type, "value") else str(n.type)
         return {
             "node_id": n.node_id,
-            "type": str(n.type),
+            "type": type_str,
             "content": n.content,
             "latex": getattr(n, "latex", None),
             "children": [serialize_node(c) for c in getattr(n, "children", [])] if getattr(n, "children", None) else []
@@ -30,7 +32,7 @@ def build_semantic_chunks(ast: list[ASTNode]) -> list[ASTNode]:
     current_content = []
     current_len = 0
     chunk_idx = 1
-    boundaries = {NodeType.SECTION}
+    boundaries = {StructuralNodeType.SECTION}
 
     for node in ast:
         content = node.content or ""
@@ -39,7 +41,7 @@ def build_semantic_chunks(ast: list[ASTNode]) -> list[ASTNode]:
             
         is_boundary = node.type in boundaries
         if is_boundary and current_len > 800:
-            macro_nodes.append(ASTNode(node_id=f"macro_{chunk_idx}", type=NodeType.MACRO_CHUNK, content="\n\n".join(current_content)))
+            macro_nodes.append(ASTNode(node_id=f"macro_{chunk_idx}", type=ContentNodeType.MACRO_CHUNK, content="\n\n".join(current_content)))
             chunk_idx += 1
             current_content = []
             current_len = 0
@@ -48,13 +50,13 @@ def build_semantic_chunks(ast: list[ASTNode]) -> list[ASTNode]:
         current_len += len(content)
         
         if current_len > 4000:
-            macro_nodes.append(ASTNode(node_id=f"macro_{chunk_idx}", type=NodeType.MACRO_CHUNK, content="\n\n".join(current_content)))
+            macro_nodes.append(ASTNode(node_id=f"macro_{chunk_idx}", type=ContentNodeType.MACRO_CHUNK, content="\n\n".join(current_content)))
             chunk_idx += 1
             current_content = []
             current_len = 0
             
     if current_content:
-        macro_nodes.append(ASTNode(node_id=f"macro_{chunk_idx}", type=NodeType.MACRO_CHUNK, content="\n\n".join(current_content)))
+        macro_nodes.append(ASTNode(node_id=f"macro_{chunk_idx}", type=ContentNodeType.MACRO_CHUNK, content="\n\n".join(current_content)))
         
     logger.info("macro_chunks_built", extra={"extra_data": {"count": len(macro_nodes)}})
     return macro_nodes
