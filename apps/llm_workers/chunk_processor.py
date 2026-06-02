@@ -5,46 +5,13 @@ from tenacity import (
     stop_after_delay, retry_if_exception_type, before_sleep_log
 )
 # SOTA Fix 1: Importar los Enums reales (NodeType es ahora solo un Union)
-from core.ast.models import ASTNode, ContentNodeType, StructuralNodeType
+from core.ast.models import ASTNode
 from core.metrics.metrics import Metrics
 from apps.llm_workers.gemini_client import GeminiClient
 from core.utils.rate_limiter import IN_FLIGHT_LIMITER
+from apps.llm_workers.router_translation import TranslationRouter
 
 logger = logging.getLogger(__name__)
-
-# CONTRATO SEMÁNTICO SOTA: Capa de desacoplamiento para control de Inferencia
-NODE_POLICY = {
-    # --- PRESERVE (Nodos semánticos puros / STEM) ---
-    ContentNodeType.EQUATION: "PRESERVE",
-    ContentNodeType.INLINE_EQUATION: "PRESERVE",
-    ContentNodeType.TABLE: "PRESERVE",
-    ContentNodeType.CODE_BLOCK: "PRESERVE",
-    ContentNodeType.ALGORITHM: "PRESERVE",
-    ContentNodeType.FIGURE: "PRESERVE",
-    ContentNodeType.IMAGE: "PRESERVE",
-    ContentNodeType.COMPOSITE_BLOCK: "PRESERVE",
-    ContentNodeType.UNKNOWN: "PRESERVE",
-    ContentNodeType.CITATION: "PRESERVE",
-    ContentNodeType.REFERENCE_ENTRY: "PRESERVE",
-    ContentNodeType.BIBLIOGRAPHY: "PRESERVE",
-    
-    # --- TRANSLATE (Nodos semánticos narrativos) ---
-    ContentNodeType.PARAGRAPH: "TRANSLATE",
-    ContentNodeType.MACRO_CHUNK: "TRANSLATE",
-    ContentNodeType.CAPTION: "TRANSLATE",
-    ContentNodeType.LIST: "TRANSLATE",
-    ContentNodeType.LIST_ITEM: "TRANSLATE",
-    ContentNodeType.FOOTNOTE: "TRANSLATE",
-    
-    # --- PRESERVE ESTRUCTURAL (Fallback defensivo) ---
-    # Los nodos estructurales NO deberían llegar al ChunkProcessor (los ataja el engine),
-    # pero si llegan por un bug en el orquestador, los neutralizamos sin consumir tokens.
-    StructuralNodeType.DOCUMENT: "PRESERVE",
-    StructuralNodeType.PART: "PRESERVE",
-    StructuralNodeType.CHAPTER: "PRESERVE",
-    StructuralNodeType.SECTION: "PRESERVE",
-    StructuralNodeType.SUBSECTION: "PRESERVE"
-}
 
 class LLMTransientError(Exception):
     pass
@@ -79,7 +46,7 @@ class ChunkProcessor:
     def execute(self, node: ASTNode, chunk_idx: int = 1, total_chunks: int = 1) -> str:
         """SOTA: Lógica de negocio aislada gobernada por política de nodo."""
         
-        policy = NODE_POLICY.get(node.type, "PRESERVE")
+        policy = TranslationRouter.get_strategy(node.type)
         
         # Fast-Path Nativo: Evade el consumo de TPM/RPM y previene mutaciones
         if policy == "PRESERVE":

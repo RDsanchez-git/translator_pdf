@@ -27,36 +27,82 @@ def compute_ast_hash(ast: list[ASTNode]) -> str:
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
 def build_semantic_chunks(ast: list[ASTNode]) -> list[ASTNode]:
-    """SOTA: Agrupación semántica de nodos crudos en Macro Chunks para optimización de LLM."""
+    """SOTA: Agrupación semántica segura con preservación topológica y memoria optimizada O(1)."""
     macro_nodes = []
     current_content = []
+    absorbed_nodes = []  
     current_len = 0
     chunk_idx = 1
-    boundaries = {StructuralNodeType.SECTION}
+    
+    STRUCTURAL_BOUNDARIES = {
+        StructuralNodeType.DOCUMENT,
+        StructuralNodeType.PART,
+        StructuralNodeType.CHAPTER,
+        StructuralNodeType.SECTION,
+        StructuralNodeType.SUBSECTION
+    }
+    
+    PROTECTED_CONTENT_TYPES = {
+        ContentNodeType.EQUATION,
+        ContentNodeType.INLINE_EQUATION,
+        ContentNodeType.TABLE,
+        ContentNodeType.CODE_BLOCK,
+        ContentNodeType.ALGORITHM,
+        ContentNodeType.FIGURE,
+        ContentNodeType.IMAGE,
+        ContentNodeType.COMPOSITE_BLOCK,
+        ContentNodeType.UNKNOWN,
+        ContentNodeType.CITATION,
+        ContentNodeType.REFERENCE_ENTRY,
+        ContentNodeType.BIBLIOGRAPHY
+    }
+
+    def flush_current_chunk():
+        nonlocal chunk_idx, current_content, current_len, absorbed_nodes
+        if current_content:
+            first_seq_id = absorbed_nodes[0].sequence_id if absorbed_nodes else -1
+            last_seq_id = absorbed_nodes[-1].sequence_id if absorbed_nodes else -1
+            
+            macro_nodes.append(ASTNode(
+                node_id=f"macro_{chunk_idx}",
+                sequence_id=first_seq_id,
+                type=ContentNodeType.MACRO_CHUNK,
+                content="\n\n".join(current_content),
+                metadata={
+                    # Optimización SOTA: Rango O(1) inmutable en lugar de listado dinámico de strings
+                    "source_sequence_range": (first_seq_id, last_seq_id)
+                }
+            ))
+            chunk_idx += 1
+            current_content = []
+            absorbed_nodes = []
+            current_len = 0
 
     for node in ast:
         content = node.content or ""
-        if content is None:
+
+        if node.type in STRUCTURAL_BOUNDARIES:
+            flush_current_chunk()
+            macro_nodes.append(node)
+            continue
+
+        # Corte duro inmediato ante cualquier nodo de contenido protegido por passthrough
+        if node.type in PROTECTED_CONTENT_TYPES:
+            flush_current_chunk()
+            macro_nodes.append(node)
+            continue
+
+        if not content:
             continue
             
-        is_boundary = node.type in boundaries
-        if is_boundary and current_len > 800:
-            macro_nodes.append(ASTNode(node_id=f"macro_{chunk_idx}", type=ContentNodeType.MACRO_CHUNK, content="\n\n".join(current_content)))
-            chunk_idx += 1
-            current_content = []
-            current_len = 0
-            
         current_content.append(content)
+        absorbed_nodes.append(node)
         current_len += len(content)
         
         if current_len > 4000:
-            macro_nodes.append(ASTNode(node_id=f"macro_{chunk_idx}", type=ContentNodeType.MACRO_CHUNK, content="\n\n".join(current_content)))
-            chunk_idx += 1
-            current_content = []
-            current_len = 0
+            flush_current_chunk()
             
-    if current_content:
-        macro_nodes.append(ASTNode(node_id=f"macro_{chunk_idx}", type=ContentNodeType.MACRO_CHUNK, content="\n\n".join(current_content)))
-        
+    flush_current_chunk()
+    
     logger.info("macro_chunks_built", extra={"extra_data": {"count": len(macro_nodes)}})
     return macro_nodes

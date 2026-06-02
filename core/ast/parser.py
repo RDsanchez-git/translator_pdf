@@ -16,7 +16,7 @@ from core.ast.router import PDFRouter
 
 logger = logging.getLogger(__name__)
 DEBUG_PARSER = True
-KEEP_ASSETS = False  # FIX 5: Política de persistencia (False = Borra directorio de imágenes al finalizar el AST)
+KEEP_ASSETS = True  # Modificado para congelar las imágenes en disco hasta la integración de Gemini Vision
 
 EQUATION_BLOCK_PATTERNS = re.compile(
     r'(^\s*\$\$)|(\\begin\{(equation|align|aligned|gather)\*?\})|(^\s*\\\[)',
@@ -174,6 +174,7 @@ def parse_pdf(pdf_path: str) -> list[ASTNode]:
                     node_id = f"node_{node_counter}"
                     ast_nodes.append(ASTNode(
                         node_id=node_id,
+                        sequence_id=len(ast_nodes) + 1,  # Ajuste Base 1
                         type=ContentNodeType.PARAGRAPH,
                         content=text_before,
                         metadata={}
@@ -184,6 +185,7 @@ def parse_pdf(pdf_path: str) -> list[ASTNode]:
                 image_node_id = f"node_{node_counter}"
                 ast_nodes.append(ASTNode(
                     node_id=image_node_id,
+                    sequence_id=len(ast_nodes) + 1,  # Ajuste Base 1
                     type=ContentNodeType.IMAGE,
                     content="<IMAGE_OMITTED>",
                     metadata={"asset_path": match.group(2), "alt_text": match.group(1)}
@@ -197,6 +199,7 @@ def parse_pdf(pdf_path: str) -> list[ASTNode]:
                 ref_id = anchor_node_id if anchor_node_id else last_image_node_id
                 ast_nodes.append(ASTNode(
                     node_id=f"node_{node_counter}",
+                    sequence_id=len(ast_nodes) + 1,  # Ajuste Base 1
                     type=ContentNodeType.PARAGRAPH,
                     content=text_after,
                     metadata={"continuation_of": ref_id}
@@ -222,6 +225,7 @@ def parse_pdf(pdf_path: str) -> list[ASTNode]:
         
         ast_nodes.append(ASTNode(
             node_id=f"node_{node_counter}",
+            sequence_id=len(ast_nodes) + 1,  # Ajuste Base 1
             type=node_type,
             content=block,
             metadata={}

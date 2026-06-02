@@ -13,9 +13,11 @@ from infra.db.control_repo import ControlPlaneRepository
 from infra.db.materialized_repo import MaterializedPlaneRepository
 from infra.db.fsm_repository import FSMRepository
 from core.ast.registry import ASTRegistry
+from core.ast.models import NodeType, ContentNodeType
 
 from apps.compiler.tex_builder import TexBuilder
 from apps.compiler.docker_runner import DockerRunner
+
 
 from core.execution.handlers import DocumentCommandHandler
 from core.execution.state import (
@@ -131,7 +133,8 @@ class AssemblerWorkerDaemon:
             if not doc_nodes:
                 raise ValueError("Los datos estructurales del AST no se encuentran disponibles (Cache Miss).")
 
-            ordered_node_ids = list(doc_nodes.keys())
+            # Sprint 10A.1 SOTA: Ordenamiento explícito gobernado por el sequence_id del esquema de datos
+            ordered_node_ids = sorted(doc_nodes.keys(), key=lambda x: doc_nodes[x].sequence_id)
 
             # 3. Recolección segura desde la proyección materializada
             projection_records = self.materialized.get_assemblable_chunks(
@@ -143,14 +146,17 @@ class AssemblerWorkerDaemon:
             
             text_map = {record.node_id: record.normalized_response for record in projection_records}
 
-            valid_chunks: List[Tuple[str, str]] = []
+            # Sprint 10A.4: Assembler tipado. Mantiene el contrato polimórfico pasando (node_id, text, type)
+            valid_chunks: List[Tuple[str, str, NodeType]] = []
             for n_id in ordered_node_ids:
+                original_node = doc_nodes.get(n_id)
+                node_type = original_node.type if original_node else ContentNodeType.PARAGRAPH
+                
                 if n_id in text_map:
-                    valid_chunks.append((n_id, text_map[n_id]))
+                    valid_chunks.append((n_id, text_map[n_id], node_type))
                 else:
-                    original_node = doc_nodes.get(n_id)
                     if original_node and original_node.content:
-                        valid_chunks.append((n_id, original_node.content))
+                        valid_chunks.append((n_id, original_node.content, node_type))
 
             if not valid_chunks:
                 raise ValueError("No se encontraron fragmentos válidos para proceder con el ensamblado.")

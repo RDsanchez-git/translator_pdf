@@ -156,8 +156,8 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
                                 target_node = ast_index[node_id]
                                 
                                 # SOTA: Centralizamos la lógica de ruteo consultando la política oficial
-                                from apps.llm_workers.chunk_processor import NODE_POLICY
-                                policy = NODE_POLICY.get(target_node.type, "PRESERVE")
+                                from apps.llm_workers.router_translation import TranslationRouter
+                                policy = TranslationRouter.get_strategy(target_node.type)   
                                 
                                 if policy in ("PRESERVE", "IGNORE"):
                                     # Bypass nativo sin enmascaramiento de LaTeX

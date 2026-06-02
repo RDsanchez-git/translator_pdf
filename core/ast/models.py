@@ -49,9 +49,15 @@ NodeType = Union[StructuralNodeType, ContentNodeType]
 
 class ASTNode(BaseModel):
     node_id: str
+    sequence_id: int = -1  # Control de evolución del esquema
     type: NodeType
-    content: Optional[str] = None  # SOTA: Nodos estructurales puros pueden no tener string crudo
+    content: Optional[str] = None  
     latex: Optional[str] = None
     status: Optional[str] = None
     metadata: Dict[str, Any] = Field(default_factory=dict)
-    parent_id: Optional[str] = None # SOTA: Habilitador de árbol jerárquico (DOM)
+    parent_id: Optional[str] = None 
+
+    @property
+    def has_valid_sequence(self) -> bool:
+        """Garantiza que el nodo posee un índice topológico real en base 1."""
+        return self.sequence_id >= 1

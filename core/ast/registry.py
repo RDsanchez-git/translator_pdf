@@ -37,12 +37,25 @@ class ASTRegistry:
         if not os.path.exists(ast_path):
             ast_path = os.path.join(self.workspace_dir, "tests", "corpus", f"{document_id}.{ast_hash}.ast.json")
 
+        # CORRECCION PUNTO 7 (Mejora Production-Grade): Mitigación de alertas ruidosas en logs
+        if not os.path.exists(ast_path):
+            logger.warning(f"Archivo de persistencia AST no encontrado para el documento {document_id} en ninguna ruta.")
+            return
+
         try:
             with open(ast_path, "r", encoding="utf-8") as f:
-                data = json.load(f)
+                raw_data = json.load(f)
+                
+            # Soporte polimórfico para esquemas de lista plana o sobres estructurados
+            if isinstance(raw_data, list):
+                nodes_list = raw_data
+            elif isinstance(raw_data, dict) and "nodes" in raw_data:
+                nodes_list = raw_data.get("nodes", [])
+            else:
+                raise ValueError("Estructura de persistencia AST no reconocible o corrupta.")
                 
             node_map = {}
-            for node_dict in data.get("nodes", []):
+            for node_dict in nodes_list:
                 node = ASTNode.model_validate(node_dict) 
                 node_map[node.node_id] = node
                 
