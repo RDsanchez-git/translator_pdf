@@ -17,7 +17,8 @@ from core.execution.state import StartParsingCommand, StartProcessingCommand, Do
 from core.ast.registry import ASTRegistry
 
 from core.ast.parser import parse_pdf
-from core.ast.hashing import compute_ast_hash, build_semantic_chunks
+from core.ast.hashing import compute_ast_hash, build_semantic_chunks_as_units
+from core.ast.models import FastWordEstimator
 
 setup_distributed_logger()
 logger = logging.getLogger("ocr_router")
@@ -85,14 +86,20 @@ class OCRRouterDaemon:
             logger.error(f"Error consultando cortocircuito en FSM: {db_err}. Continuando por vía lenta de seguridad.")
 
         try:
-            # 1. Pipeline de Inferencia Puro (Solo se alcanza si el documento es verdaderamente nuevo)
+            # 1. Pipeline de Inferencia Puro Fase 10B
             raw_ast = parse_pdf(str(pdf_path))
-            ast = build_semantic_chunks(raw_ast)
-            ast_hash = compute_ast_hash(ast)
-            ordered_node_ids = [n.node_id for n in ast]
             
-            # 2. Persistencia del AST
-            self.ast_registry.register_ast(document_id, ast_hash, ast)
+            # SOTA: El hash criptográfico se calcula sobre el AST base congelado. 
+            # Esto blinda el ID documental contra futuros cambios en la política de tokens.
+            ast_hash = compute_ast_hash(raw_ast)
+            
+            # Instanciación de la estrategia de empaquetado semántico por tokens
+            estimator = FastWordEstimator()
+            translation_units = build_semantic_chunks_as_units(raw_ast, estimator)
+            ordered_chunk_ids = [u.chunk_id for u in translation_units]
+            
+            # 2. Persistencia del AST Base estructural
+            self.ast_registry.register_ast(document_id, ast_hash, raw_ast)
             
             # 3. Control de Idempotencia de Reingesta via DTO
             self.fsm.initialize_document(document_id, ast_hash)
@@ -113,8 +120,8 @@ class OCRRouterDaemon:
             cmd_parse = StartParsingCommand(document_id, ast_hash, self.owner_id, current_version)
             current_version = self.cmd_handler.handle(cmd_parse)
             
-            # Inyección atómica masiva de chunks en queue.db
-            self.task_repo.enqueue_tasks(document_id, ast_hash, ordered_node_ids)
+            # Inyección atómica masiva de identificadores únicos deterministas en queue.db
+            self.task_repo.enqueue_tasks(document_id, ast_hash, ordered_chunk_ids)
             
             # Hot-fetch: Sincronización estricta de versión pre-comando de procesamiento
             status = self.fsm.get_status(document_id, ast_hash)
@@ -129,7 +136,7 @@ class OCRRouterDaemon:
             
             latency = time.perf_counter() - start_time
             logger.info("Documento enrutado exitosamente a PROCESSING.", 
-                        extra={"extra_data": {"chunks": len(ordered_node_ids), "latency_sec": round(latency, 1)}})
+                        extra={"extra_data": {"chunks": len(ordered_chunk_ids), "latency_sec": round(latency, 1)}})
             
         except Exception as e:
             error_token = uuid.uuid4().hex[:6]
