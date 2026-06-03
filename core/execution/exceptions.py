@@ -36,3 +36,11 @@ class CircuitTripError(Exception):
 class TransientAPIError(Exception):
     """Clasificación estandarizada para fallos de red/API (429, 50x, Timeout)."""
     pass
+
+class ChunkExecutionError(Exception):
+    """SOTA: Excepción específica para fallos irrecuperables en la capa de ejecución de chunks."""
+    def __init__(self, chunk_index: int, chunk_id: str, original_error: Exception):
+        self.chunk_index = chunk_index
+        self.chunk_id = chunk_id
+        self.original_error = original_error
+        super().__init__(f"Fallo de ejecución en chunk_index={chunk_index} ({chunk_id}): {str(original_error)}")

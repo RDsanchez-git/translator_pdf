@@ -95,3 +95,18 @@ class TranslationUnit:
     target_payload: str                     # Bloque exclusivo de transformación para el LLM
     estimated_tokens: int                   # Conteo indexado de tokens del payload objetivo
     payload_sha256: str                     # Firma SHA256 completa para almacenamiento e invalidación de caché
+
+@dataclass(frozen=True)
+class TranslatedUnit:
+    """SOTA: Contrato inmutable de salida de la capa de ejecución distribuida (Fase 10C)."""
+    chunk_index: int
+    chunk_id: str
+    chunk_type: str
+    source_sequence_range: Tuple[int, int]
+    translated_payload: str
+    payload_sha256: str
+    model_name: str
+    prompt_version: str                     # Corrección 5: Trazabilidad inmutable para Cache Key
+    input_tokens: int
+    output_tokens: int
+    latency_ms: float
