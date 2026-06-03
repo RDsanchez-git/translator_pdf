@@ -118,5 +118,15 @@ class TestTrueWalkingSkeletonE2E(unittest.IsolatedAsyncioTestCase):
             elif unit.chunk_type == "passthrough":
                 self.assertEqual(unit.model_name, "bypass_passthrough")
 
-        doc_2 = self.assembler.assemble(translated_units_run_2)
-        self.assertEqual(doc_1.content, doc_2.content, "Corrupción latente: La hidratación de la caché alteró los datos.")
+        doc = self.assembler.assemble(translated_units_run_2)
+        self.assertEqual(doc_1.content, doc.content)
+
+        # Inyección de validación FinOps adaptativa
+        from core.metrics.summary import SummaryBuilder
+        summary = SummaryBuilder.build(translated_units_run_2, doc)
+
+        # Aserciones robustas tolerantes a invalidación por cambio de prompts o hashes
+        self.assertEqual(summary.total_chunks, len(translation_units))
+        self.assertGreater(summary.translated_chunks_cache, 0, "La reentrabilidad falló: No se detectaron hits en SQLite.")
+        self.assertGreater(summary.cache_hit_ratio, 0.0)
+        self.assertGreater(summary.cost_saved_by_cache_usd, 0.0)
