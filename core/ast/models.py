@@ -110,3 +110,13 @@ class TranslatedUnit:
     input_tokens: int
     output_tokens: int
     latency_ms: float
+
+@dataclass(frozen=True)
+class ReconstructedDocument:
+    """SOTA: DTO final inmutable que encapsula el documento ensamblado y su telemetría base."""
+    content: str
+    total_chunks: int
+    translated_chunks: int
+    passthrough_chunks: int
+    total_input_tokens: int
+    total_output_tokens: int
