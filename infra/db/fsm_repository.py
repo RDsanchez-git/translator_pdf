@@ -108,3 +108,24 @@ class FSMRepository:
             (document_id,)
         )
         return cursor.fetchone() is not None
+    
+    def get_by_document_id(self, document_id: str) -> Optional[DocumentStatusDTO]:
+        """SOTA: Puerta de acceso única por ID para evitar fugas relacionales en adaptadores externos."""
+        row = self.db.execute(
+            """SELECT current_state, state_version, suspended_state, ast_hash
+               FROM document_fsm 
+               WHERE document_id = ? 
+               ORDER BY updated_at DESC LIMIT 1""", 
+            (document_id,)
+        ).fetchone()
+        
+        if row is None:
+            return None
+            
+        return DocumentStatusDTO(
+            document_id=document_id,
+            ast_hash=row[3],
+            current_state=row[0],
+            state_version=row[1],
+            suspended_state=row[2]
+        )

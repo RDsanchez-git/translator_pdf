@@ -28,6 +28,11 @@ class TranslationJob:
     """SOTA: Entidad de dominio pura. Máquina de estados desacoplada de la persistencia."""
     job_id: str
     source_path: str
+    
+    # Ajuste operacional 11C.1: Vinculación con FSM sin filtrado de control de versiones
+    document_id: Optional[str] = None
+    ast_hash: Optional[str] = None
+    
     status: JobStatus = JobStatus.PENDING
     current_step: PipelineStep = PipelineStep.INITIALIZING
     
