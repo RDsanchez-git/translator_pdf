@@ -1,0 +1,27 @@
+import unittest
+import os
+import json
+from core.pipeline.job import TranslationJob
+from apps.bootstrap.pipeline_factory import build_pipeline
+from tests.helpers.fakes import FakeChunker, FakeDispatcher
+from tests.helpers.markdown_inspector import MarkdownInspector
+
+class TestTranslationStructure(unittest.IsolatedAsyncioTestCase):
+    def setUp(self):
+        self.pdf_real_path = "tests/fixtures/sample_3_pages.pdf"
+        self.golden_path = "tests/golden/sample_3_pages.structure.json"
+        self.pipeline = build_pipeline(chunker=FakeChunker(), dispatcher=FakeDispatcher())
+
+    async def test_structural_integrity_against_golden_snapshot(self):
+        if not os.path.exists(self.golden_path):
+            self.skipTest("Molde estructural ausente. Ejecute el script de captura primero.")
+
+        job = TranslationJob(job_id="job_gold_struct", source_path=self.pdf_real_path)
+        result = await self.pipeline.execute(job)
+        runtime_struct = MarkdownInspector.extract_structure(result.document.content)
+
+        with open(self.golden_path, "r", encoding="utf-8") as f:
+            expected_struct = json.load(f)
+
+        for key in ["headings", "tables", "lists", "display_equations", "inline_equations"]:
+            self.assertEqual(runtime_struct[key], expected_struct[key], f"Regresión Estructural: '{key}'")
