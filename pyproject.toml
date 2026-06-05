@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "translator-pdf"
+version = "0.1.0"
+description = "SOTA PDF Translator with Hexagonal Pipeline and FSM Resilience"
+readme = "README.md"
+requires-python = ">=3.11"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "rich>=13.0.0",
+    "pydantic>=2.0.0",
+]
+
+[project.scripts]
+translator-pdf = "apps.cli.main:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["apps*", "core*", "infra*", "runtime*"]
+namespaces = true
