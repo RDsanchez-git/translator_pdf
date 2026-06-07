@@ -77,6 +77,24 @@ class AsyncDispatcher:
             translated_payload=translated_unit.translated_payload
         )
 
+        logger.info(
+            "chunk_translated",
+            extra={
+                "extra_data": {
+                    "chunk_index": unit.chunk_index,
+                    "chunk_id": unit.chunk_id,
+                    "chunk_type": unit.chunk_type,
+                    "payload_sha256": unit.payload_sha256,
+                    "model": translated_unit.model_name,
+                    "input_tokens": translated_unit.input_tokens,
+                    "output_tokens": translated_unit.output_tokens,
+                    "latency_ms": translated_unit.latency_ms,
+                    "original_length": len(unit.target_payload),
+                    "translated_length": len(translated_unit.translated_payload),
+                }
+            }
+        )
+
         return translated_unit
 
     async def dispatch(self, units: List[TranslationUnit]) -> List[TranslatedUnit]:
@@ -92,7 +110,18 @@ class AsyncDispatcher:
         final_units = []
         for i, result in enumerate(results):
             if isinstance(result, Exception):
-                logger.error(f"Fallo irrecuperable en chunk_index {units[i].chunk_index}: {result}")
+                logger.error(
+                    "chunk_failed",
+                    extra={
+                        "extra_data": {
+                            "chunk_index": units[i].chunk_index,
+                            "chunk_id": units[i].chunk_id,
+                            "error_class": result.__class__.__name__,
+                            "error_message": str(result),
+                            "original_length": len(units[i].target_payload),
+                        }
+                    }
+                )
                 raise ChunkExecutionError(units[i].chunk_index, units[i].chunk_id, result) from result
             
             final_units.append(result)
