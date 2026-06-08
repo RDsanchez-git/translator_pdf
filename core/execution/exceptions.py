@@ -44,3 +44,15 @@ class ChunkExecutionError(Exception):
         self.chunk_id = chunk_id
         self.original_error = original_error
         super().__init__(f"Fallo de ejecución en chunk_index={chunk_index} ({chunk_id}): {str(original_error)}")
+
+class ChunkValidationError(ChunkExecutionError):
+    """Lanzada cuando la validación de un chunk produce un resultado HARD_FAIL."""
+    def __init__(self, chunk_index: int, chunk_id: str, invariant_id: str, message: str):
+        super().__init__(chunk_index, chunk_id, Exception(message))
+        self.invariant_id = invariant_id
+
+class DocumentValidationError(Exception):
+    """Lanzada cuando la validación del documento completo produce un resultado HARD_FAIL."""
+    def __init__(self, invariant_id: str, message: str):
+        self.invariant_id = invariant_id
+        super().__init__(message)
