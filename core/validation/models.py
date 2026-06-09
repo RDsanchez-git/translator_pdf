@@ -36,3 +36,4 @@ class ValidationResult:
     severity: Severity
     message: str
     context: ValidationContext
+    invariant_family: Optional[str] = None

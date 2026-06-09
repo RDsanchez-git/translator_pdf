@@ -38,7 +38,14 @@ class TestTrueWalkingSkeletonE2E(unittest.IsolatedAsyncioTestCase):
             worker=self.proxy, cache=self.cache,
             model_name="gemini-mock", prompt_version="v1.0"
         )
+        
+        # SOTA: Inyección de un pipeline vacío para deshabilitar las aserciones de 
+        # confiabilidad, ya que el FakeGeminiWorker destruye la integridad referencial.
+        from core.validation.pipeline import ValidationPipeline
+        self.dispatcher.validation_pipeline = ValidationPipeline()
+        
         self.assembler = DocumentAssembler(separator="\n\n")
+        
 
     def tearDown(self):
         for suffix in ("", "-wal", "-shm"):

@@ -13,6 +13,7 @@ from core.validation.structural_validator import StructuralValidator
 from core.validation.preservation import PreservationValidator
 from core.validation.perimeter import PerimeterValidator
 from core.validation.semantic import SemanticValidator
+from core.validation.volumetric import VolumetricValidator
 
 logger = logging.getLogger(__name__)
 
@@ -50,13 +51,16 @@ class AsyncDispatcher:
         adapter = LegacyValidatorAdapter(StructuralValidator, severity_map)
         pv = PreservationValidator()
         pe = PerimeterValidator()
-        sv = SemanticValidator()  # Instancia semántica cuantitativa
+        sv = SemanticValidator()
+        vv = VolumetricValidator()  # Instancia volumétrica
         
         pipeline = ValidationPipeline()
         pipeline.add_chunk_validator(adapter)
+        pipeline.add_document_validator(adapter)  # Necesario para que corra el chequeo global de SI-03 (Entornos)
         pipeline.add_chunk_validator(pv)
         pipeline.add_chunk_validator(pe)
-        pipeline.add_chunk_validator(sv)  # Registro bajo alcance CHUNK (WARNING)
+        pipeline.add_chunk_validator(sv)
+        pipeline.add_chunk_validator(vv)  # Registro bajo alcance CHUNK (WARNING)
         pipeline.add_document_validator(pv)
         return pipeline
    
