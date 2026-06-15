@@ -2,6 +2,7 @@
 import asyncio
 import logging
 from typing import List, Optional
+from dataclasses import replace
 from core.ast.models import TranslationUnit, TranslatedUnit
 from apps.llm_workers.workers import TranslationWorkerProtocol
 from apps.llm_workers.cache import SQLiteTranslationCache
@@ -154,9 +155,9 @@ class AsyncDispatcher:
                     )
                     force_cache_update = True
                     
-                    # Forzar regeneración limpia de logs informativos/warnings sobre el texto curado
+                    # Forzar regeneración limpia de logs preservando los metadatos genéticos del contexto
                     results = self.validation_pipeline.validate_chunk(
-                        ValidationContext(unit.target_payload, translated.translated_payload, Scope.CHUNK)
+                        replace(ctx, target_text=translated.translated_payload)
                     )
                     hard_fails = [] # Limpiar estados de quiebre
 

@@ -38,7 +38,7 @@ class ChunkProcessor:
 
     @retry(
         wait=wait_exponential(multiplier=2, min=10, max=65),
-        stop=stop_after_attempt(8) | stop_after_delay(600),
+        stop=stop_after_attempt(1) | stop_after_delay(600),
         retry=retry_if_exception_type(LLMTransientError),
         before_sleep=before_sleep_log(logger, logging.WARNING),
         reraise=True

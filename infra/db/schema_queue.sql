@@ -30,7 +30,7 @@ ON chunk_tasks (worker_type, lease_expires_at, created_at)
 WHERE task_state IN ('PENDING', 'RETRYABLE_ERROR');
 
 CREATE TABLE IF NOT EXISTS system_leases (
-    text_name TEXT PRIMARY KEY,
+    lease_name TEXT PRIMARY KEY,
     owner_id TEXT,
     lease_expires_at REAL,
     updated_at REAL,

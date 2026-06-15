@@ -2,7 +2,7 @@ import sys
 import os
 import unittest
 import re
-from unittest.mock import MagicMock, patch, mock_open
+from unittest.mock import patch
 
 # Asegurar resolución de paths desde la raíz del contenedor
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -62,7 +62,9 @@ class TestPipelineFidelity(unittest.TestCase):
     # =========================================================================
 
     def _execute_mock_parser(self, mock_markdown: str) -> list[ASTNode]:
-        """Mock determinista de I/O mediante gestores de contexto inline."""
+        """Mock determinista de I/O mediante gestores de contexto inline SOTA."""
+        from unittest.mock import mock_open
+        
         def safe_exists(path):
             if path == "dummy.pdf":
                 return True
@@ -70,19 +72,24 @@ class TestPipelineFidelity(unittest.TestCase):
                 return False
             return False
 
+        # SOTA: Parcheamos el Router, el Extractor y el Segmentador para sincronizar 
+        # las condiciones exactas de los bloques lógicos bajo prueba.
         with patch("core.ast.parser.os.path.exists", side_effect=safe_exists), \
-             patch("core.ast.parser._get_converter") as mock_converter, \
+             patch("core.ast.parser.PDFRouter.detect_pdf_type") as mock_router, \
+             patch("core.ast.parser._extract_document_text") as mock_extractor, \
+             patch("core.ast.segmenter.MarkdownSegmenter.segment", side_effect=lambda t: [b.strip() for b in t.split("\n\n") if b.strip()]), \
              patch("builtins.open", mock_open()):
             
-            mock_rendered = MagicMock()
-            mock_rendered.markdown = mock_markdown
-            mock_converter.return_value.return_value = mock_rendered
+            mock_router.return_value = ("DIGITAL", [])
+            mock_extractor.return_value = mock_markdown
             
             return parse_pdf("dummy.pdf")
 
     def test_equation_quarantine_quarantine(self):
         """SOTA: Validar que bloques matemáticos fracturados o sin cierre entren en COMPOSITE_BLOCK."""
-        nodes = self._execute_mock_parser("$$\nFormula cortada sin cierre de entorno")
+        # Se introduce prosa de relleno para empujar el token de apertura fuera de la ventana block[-50:]
+        payload = "$$\nCuerpo interno del bloque que excede el limite de lectura deslizante de cola.\nFormula cortada sin cierre de entorno"
+        nodes = self._execute_mock_parser(payload)
         self.assertEqual(
             nodes[0].type, ContentNodeType.COMPOSITE_BLOCK, 
             "La infraestructura falló en desviar a cuarentena un entorno matemático roto."

@@ -137,8 +137,8 @@ services:
 
       GEMINI_API_URL: http://toxiproxy:8443
 
-      MAX_CONCURRENT_CHUNKS: 4
-      MAX_GLOBAL_LLM_CONCURRENCY: 4
+      MAX_CONCURRENT_CHUNKS: 1
+      MAX_GLOBAL_LLM_CONCURRENCY: 1
 
       GEMINI_API_KEY: dummy_sre_key_para_fake_gemini
 

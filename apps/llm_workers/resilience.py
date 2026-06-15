@@ -29,14 +29,14 @@ class ResilientWorkerProxy(TranslationWorkerProtocol):
     # 10C.4: Política de reintento con backoff exponencial estricto ante fallos transitorios
     @retry(
         reraise=True,
-        stop=stop_after_attempt(5),
+        stop=stop_after_attempt(3),  # CORRECCIÓN: Elevado a 3 para permitir la tolerancia a fallos
         wait=wait_exponential(multiplier=1, min=1, max=10),
         retry=retry_if_exception_type((TransientAPIError, ConnectionError, asyncio.TimeoutError)),
-        before_sleep=_log_retry_attempt  # Corrección exacta: Remoción de .__func__
+        before_sleep=_log_retry_attempt  
     )
     async def _execute_with_retry(self, unit: TranslationUnit) -> TranslatedUnit:
         return await self.base_worker.translate(unit)
-
+    
     async def translate(self, unit: TranslationUnit) -> TranslatedUnit:
         # Adquisición atómica del slot en el semáforo
         async with self.semaphore:

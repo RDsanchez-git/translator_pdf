@@ -1,8 +1,8 @@
 from __future__ import annotations
 from enum import Enum, auto
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Optional, TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING, Dict, Any
 
 if TYPE_CHECKING:
     from core.metrics.summary import TranslationAuditSummary
@@ -43,6 +43,9 @@ class TranslationJob:
     error_message: Optional[str] = None
     
     audit_summary: Optional[TranslationAuditSummary] = None
+    
+    # SOTA: Registro seguro para metadatos del pipeline (Fase 12.00.8)
+    pipeline_metadata: Dict[str, Any] = field(default_factory=dict)
 
     def mark_started(self) -> None:
         """Garantiza idempotencia temporal. No sobreescribe si es una reanudación (Resume)."""

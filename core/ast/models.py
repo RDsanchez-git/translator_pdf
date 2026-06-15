@@ -57,7 +57,8 @@ class ASTNode(BaseModel):
     latex: Optional[str] = None
     status: Optional[str] = None
     metadata: Dict[str, Any] = Field(default_factory=dict)
-    parent_id: Optional[str] = None 
+    parent_id: Optional[str] = None
+    control_plane: Dict[str, Any] = Field(default_factory=dict) 
 
     @property
     def has_valid_sequence(self) -> bool:

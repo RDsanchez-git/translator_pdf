@@ -43,9 +43,21 @@ class StructuralValidator:
 
     @staticmethod
     def _has_residual_html(text: str) -> bool:
+        if not text:
+            return False
+            
+        # 1. Purgar bloques matemáticos para evitar conflictos con operadores < o >
         temp = re.sub(r'\$\$.*?\$\$', '', text, flags=re.DOTALL)
         temp = re.sub(r'(?<!\\)\$.*?(?<!\\)\$', '', temp, flags=re.DOTALL)
-        return bool(re.search(r'</?[a-zA-Z][a-zA-Z0-9]*\b[^>]*>', temp))
+        
+        # 2. Whitelist de tags estructurales inline permitidos por el nuevo parser
+        SAFE_TAGS = {"sup", "sub", "b", "i", "strong", "em"}
+        
+        # 3. Capturar nombres de etiquetas HTML
+        matches = re.findall(r'</?([a-zA-Z][a-zA-Z0-9]*)\b[^>]*>', temp)
+        
+        # 4. Validar si existe algún elemento alienígena fuera de la whitelist
+        return any(tag.lower() not in SAFE_TAGS for tag in matches)
 
     # ========== SI-01: Braces ({}) ==========
     @staticmethod

@@ -27,6 +27,7 @@ from core.healing.strategies.markdown_leakage import MarkdownLeakageHealingStrat
 from core.healing.strategies.meta_text_leakage import MetaTextLeakageHealingStrategy
 from core.healing.strategies.structural import EOFBraceClosureStrategy, EOFMathClosureStrategy
 from core.healing.config import HealingPolicy
+from core.normalization.bootstrap import bootstrap_normalization_layer
 
 def _build_default_validation_pipeline() -> ValidationPipeline:
     """Aislamiento explícito de la composición del pipeline de análisis sintáctico."""
@@ -59,6 +60,7 @@ def build_pipeline(
     state_store_override: Optional[StateStoreProtocol] = None
 ) -> TranslationPipeline:
     """Composition Root encargado del wiring explícito mediante asignación de inyección directa."""
+    bootstrap_normalization_layer()
     parser = PdfParserAdapter(parser_callable=parse_pdf, verify_output=True)
     assembler = DocumentAssembler(separator="\n\n")
     audit_builder = audit_override or SummaryBuilder()

@@ -63,7 +63,7 @@ class GeminiClient:
 
     @retry(
         wait=wait_exponential(multiplier=2, min=2, max=30),
-        stop=stop_after_attempt(5),
+        stop=stop_after_attempt(1),
         retry=retry_if_exception_type(TransientAPIError),
         reraise=True
     )
@@ -144,7 +144,7 @@ class GeminiClient:
     
     @retry(
         wait=wait_exponential(multiplier=2, min=2, max=30),
-        stop=stop_after_attempt(5),
+        stop=stop_after_attempt(1),
         retry=retry_if_exception_type(TransientAPIError),
         reraise=True
     )
