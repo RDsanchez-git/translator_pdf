@@ -2,7 +2,7 @@ import os
 import unittest
 import uuid
 from typing import List
-from core.ast.models import ASTNode, TranslationUnit, FastWordEstimator
+from core.ast.models import ASTNode, TranslationUnit, FastWordEstimator, TranslationTaskType
 from core.pipeline.job import TranslationJob, JobStatus
 from apps.bootstrap.pipeline_factory import build_pipeline
 
@@ -22,10 +22,12 @@ class FinOpsControlledChunker:
             TranslationUnit(
                 chunk_index=1,
                 chunk_id="chk_e2e_pro_001",
-                chunk_type="translate",
-                source_sequence_range=(1, min(5, len(nodes))),
-                node_count=min(5, len(nodes)),
-                reference_context="Frontera de inicialización del documento",
+                chunk_fingerprint="fp_e2e_pro_001",           # SOTA: Fase 13
+                chunk_type=TranslationTaskType.TRANSLATE,     # SOTA: Fase 13 (Enum)
+                source_sequence_range=(1, min(5, max(1, len(nodes)))),
+                node_count=min(5, max(1, len(nodes))),
+                context_id="CTX_E2E_PRO",                     # SOTA: Fase 13 (Puntero relacional)
+                context_depth=1,                              # SOTA: Fase 13
                 target_payload="This is a test of the real-time financial translation engine pipeline.",
                 estimated_tokens=20,
                 payload_sha256="85174c85174c85174c85174c85174c85174c85174c85174c85174c85174c8517"

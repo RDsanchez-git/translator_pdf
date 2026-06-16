@@ -1,5 +1,5 @@
 from typing import List
-from core.ast.models import ASTNode, TranslationUnit, TranslatedUnit
+from core.ast.models import ASTNode, TranslationUnit, TranslatedUnit, TranslationTaskType
 
 class FakeChunker:
     """Implementación de control estricta para cumplir con ChunkerProtocol."""
@@ -8,10 +8,12 @@ class FakeChunker:
             TranslationUnit(
                 chunk_index=1,
                 chunk_id="chk_mock_001",
-                chunk_type="translate",
-                source_sequence_range=(1, len(nodes)),
+                chunk_fingerprint="mock_fingerprint_001",  # SOTA: Propiedad añadida en Fase 13
+                chunk_type=TranslationTaskType.TRANSLATE,  # SOTA: Uso estricto del Enum
+                source_sequence_range=(1, max(1, len(nodes))),
                 node_count=len(nodes),
-                reference_context="Contexto de control",
+                context_id="CTX_GLOBAL_MOCK",              # SOTA: Reemplaza a reference_context
+                context_depth=1,                           # SOTA: Propiedad añadida en Fase 13
                 target_payload="Payload extraído del AST real",
                 estimated_tokens=150,
                 payload_sha256="e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
@@ -25,7 +27,8 @@ class FakeDispatcher:
             TranslatedUnit(
                 chunk_index=u.chunk_index,
                 chunk_id=u.chunk_id,
-                chunk_type=u.chunk_type,
+                # Extracción segura del valor primitivo del Enum para serialización mock
+                chunk_type=u.chunk_type.value if hasattr(u.chunk_type, "value") else u.chunk_type, 
                 source_sequence_range=u.source_sequence_range,
                 translated_payload="Texto traducido simulado",
                 payload_sha256=u.payload_sha256,

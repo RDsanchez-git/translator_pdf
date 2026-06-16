@@ -19,19 +19,22 @@ from apps.llm_workers.workers import GeminiWorker
 from apps.llm_workers.prompt_builder import PromptBuilder
 from apps.llm_workers.cache import SQLiteTranslationCache
 from apps.llm_workers.gemini_client import GeminiClient
-from core.ast.hashing import SemanticChunker, ChunkPolicy
+from core.ast.hashing import build_semantic_chunks_as_units
 from core.ast.models import FastWordEstimator
 from infra.db.connection import get_connection
 
 console = Console()
 
 class ChunkerProtocolAdapter:
-    """SOTA Adapter Pattern: Cierra la brecha estructural entre ChunkerProtocol y SemanticChunker."""
-    def __init__(self, semantic_chunker: SemanticChunker):
-        self._chunker = semantic_chunker
+    """SOTA Adapter Pattern: Cierra la brecha estructural para la Fase 13.00, aislando la tupla de telemetría."""
+    def __init__(self, estimator: FastWordEstimator):
+        self._estimator = estimator
+        self.last_report = None
 
     def chunk(self, nodes: list) -> list:
-        return self._chunker.chunk_document(nodes)
+        units, report = build_semantic_chunks_as_units(nodes, self._estimator)
+        self.last_report = report
+        return units
 
 # =====================================================================
 # MANEJADORES OPERACIONALES (HANDLERS)
@@ -68,8 +71,8 @@ async def handle_translate_async(args):
         prompt_version="v1.0"
     )
     
-    base_chunker = SemanticChunker(estimator=estimator, policy=ChunkPolicy())
-    chunker_adapter = ChunkerProtocolAdapter(base_chunker)
+    # SOTA: Instanciación del adaptador con inyección de dependencias directa
+    chunker_adapter = ChunkerProtocolAdapter(estimator=estimator)
     
     pipeline = build_pipeline(chunker=chunker_adapter, dispatcher=dispatcher)
     job = TranslationJob(job_id=job_id, source_path=source_path)
@@ -120,6 +123,12 @@ async def handle_translate_async(args):
         table.add_row("Costo de Operación (USD)", f"${result.summary.total_cost_usd:.6f}")
         table.add_row("Ahorro por Uso de Caché (USD)", f"${result.summary.cost_saved_by_cache_usd:.6f}")
         table.add_row("Eficiencia de Caché (Hit Ratio)", f"{result.summary.cache_hit_ratio * 100:.2f}%")
+        
+        # Inyección dinámica de métricas de la Fase 13 si existen
+        if chunker_adapter.last_report:
+            table.add_row("Grupos Semánticos Lógicos", str(chunker_adapter.last_report.total_groups))
+            table.add_row("Eventos de Desbordamiento (Split)", str(chunker_adapter.last_report.overflow_events))
+            
         console.print(table)
 
     except Exception as err:

@@ -46,6 +46,20 @@ class ContentNodeType(str, Enum):
     COMPOSITE_BLOCK = "composite_block"
     UNKNOWN = "unknown"
 
+# =====================================================================
+# FAMILIA 3: NODOS 
+# =====================================================================
+
+class TranslationTaskType(str, Enum):
+    TRANSLATE = "translate"
+    PRESERVE = "preserve"
+    PARTIAL = "partial_translate"
+
+class OverflowPolicy(str, Enum):
+    BY_SENTENCE = "by_sentence"
+    BY_PARAGRAPH = "by_paragraph"
+    HARD_TRUNCATE = "hard_truncate"
+
 # Tipo compuesto para flexibilidad en tipado estático
 NodeType = Union[StructuralNodeType, ContentNodeType]
 
@@ -80,22 +94,32 @@ class FastWordEstimator(TokenEstimator):
         if not text:
             return 0
         return int(len(text.split()) * 1.3)
+    
 
 @dataclass(frozen=True)
 class TranslationUnit:
-    """
-    SOTA: Contrato estricto e inmutable entre el empaquetador (Chunker) y el LLM.
-    Implementa Sliding Window Asimétrico con presupuesto inclusivo, telemetría e integridad criptográfica.
-    """
-    chunk_index: int                        # Identificador secuencial continuo (Indexación lineal)
-    chunk_id: str                           # Identificador único determinista con prefijo de short_hash
-    chunk_type: str                         # "translate" o "passthrough"
-    source_sequence_range: Tuple[int, int]  # Rango topológico de nodos absorbidos (Base 1)
-    node_count: int                         # Densidad atómica de nodos procesados
-    reference_context: str                  # Ventana de contexto histórico (Solo Lectura)
-    target_payload: str                     # Bloque exclusivo de transformación para el LLM
-    estimated_tokens: int                   # Conteo indexado de tokens del payload objetivo
-    payload_sha256: str                     # Firma SHA256 completa para almacenamiento e invalidación de caché
+    """Contrato inmutable, determinista e independiente del proveedor LLM."""
+    chunk_index: int
+    chunk_id: str
+    chunk_fingerprint: str          # SOTA: Hash de (start_seq, end_seq) para reanudación resiliente
+    chunk_type: TranslationTaskType
+    source_sequence_range: Tuple[int, int]
+    node_count: int
+    context_id: str
+    context_depth: int              # Profundidad en el árbol lógico (ej. 3 para H3)
+    target_payload: str
+    estimated_tokens: int
+    payload_sha256: str
+
+@dataclass
+class ChunkingReport:
+    """Auditoría de ejecución del chunker para la telemetría global."""
+    total_groups: int = 0
+    total_chunks: int = 0
+    average_chunk_tokens: int = 0
+    max_chunk_tokens: int = 0
+    context_switches: int = 0
+    overflow_events: int = 0
 
 @dataclass(frozen=True)
 class TranslatedUnit:

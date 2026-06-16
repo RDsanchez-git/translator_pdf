@@ -3,7 +3,7 @@ import asyncio
 import logging
 from typing import List, Optional
 from dataclasses import replace
-from core.ast.models import TranslationUnit, TranslatedUnit
+from core.ast.models import TranslationUnit, TranslatedUnit, TranslationTaskType
 from apps.llm_workers.workers import TranslationWorkerProtocol
 from apps.llm_workers.cache import SQLiteTranslationCache
 from core.execution.exceptions import ChunkExecutionError, ChunkValidationError, DocumentValidationError
@@ -86,7 +86,8 @@ class AsyncDispatcher:
         )
 
     async def _process_unit(self, unit: TranslationUnit) -> TranslatedUnit:
-        if unit.chunk_type == "passthrough":
+        # SOTA: Evaluación estricta sobre Enum tipado de la Fase 13
+        if unit.chunk_type == TranslationTaskType.PRESERVE:
             return await self._bypass_passthrough(unit)
 
         is_new_translation = False
@@ -102,7 +103,7 @@ class AsyncDispatcher:
             translated = TranslatedUnit(
                 chunk_index=unit.chunk_index,
                 chunk_id=unit.chunk_id,
-                chunk_type=unit.chunk_type,
+                chunk_type=unit.chunk_type.value, # Extraemos el valor del enum para persistencia
                 source_sequence_range=unit.source_sequence_range,
                 translated_payload=cached_payload,
                 payload_sha256=unit.payload_sha256,

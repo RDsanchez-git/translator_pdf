@@ -1,7 +1,7 @@
 import asyncio
 import unittest
 from unittest.mock import AsyncMock
-from core.ast.models import TranslationUnit, TranslatedUnit
+from core.ast.models import TranslationUnit, TranslatedUnit, TranslationTaskType
 from apps.llm_workers.resilience import ResilientWorkerProxy
 from core.execution.exceptions import TransientAPIError
 
@@ -23,10 +23,12 @@ class TestResilientWorkerProxy(unittest.IsolatedAsyncioTestCase):
         self.unit = TranslationUnit(
             chunk_index=1,
             chunk_id="chunk_0001",
-            chunk_type="translate",
+            chunk_fingerprint="fp_0001",
+            chunk_type=TranslationTaskType.TRANSLATE,
             source_sequence_range=(1, 1),
             node_count=1,
-            reference_context="",
+            context_id="CTX_TEST",
+            context_depth=1,
             target_payload="Texto",
             estimated_tokens=2,
             payload_sha256="hash"
@@ -37,7 +39,7 @@ class TestResilientWorkerProxy(unittest.IsolatedAsyncioTestCase):
         expected_unit = TranslatedUnit(
             chunk_index=1,
             chunk_id="chunk_0001",
-            chunk_type="translate",
+            chunk_type=TranslationTaskType.TRANSLATE.value,
             source_sequence_range=(1, 1),
             translated_payload="Éxito Traducido Real",
             payload_sha256="hash",
@@ -82,10 +84,17 @@ class TestResilientWorkerProxy(unittest.IsolatedAsyncioTestCase):
             await asyncio.sleep(0.02)
             entered_tasks -= 1
             return TranslatedUnit(
-                chunk_index=unit.chunk_index, chunk_id=unit.chunk_id, chunk_type=unit.chunk_type,
-                source_sequence_range=unit.source_sequence_range, translated_payload="OK",
-                payload_sha256=unit.payload_sha256, model_name="fake", prompt_version="v1.0",
-                input_tokens=1, output_tokens=1, latency_ms=1.0
+                chunk_index=unit.chunk_index, 
+                chunk_id=unit.chunk_id, 
+                chunk_type=unit.chunk_type.value if hasattr(unit.chunk_type, "value") else unit.chunk_type,
+                source_sequence_range=unit.source_sequence_range, 
+                translated_payload="OK",
+                payload_sha256=unit.payload_sha256, 
+                model_name="fake", 
+                prompt_version="v1.0",
+                input_tokens=1, 
+                output_tokens=1, 
+                latency_ms=1.0
             )
         
         self.mock_worker.translate.side_effect = slow_translate
@@ -93,9 +102,17 @@ class TestResilientWorkerProxy(unittest.IsolatedAsyncioTestCase):
         # Disparar 3 unidades concurrentes sobrepasando el semáforo (límite 2)
         units = [
             TranslationUnit(
-                chunk_index=i, chunk_id=f"chunk_000{i}", chunk_type="translate",
-                source_sequence_range=(i, i), node_count=1, reference_context="",
-                target_payload="T", estimated_tokens=1, payload_sha256="h"
+                chunk_index=i, 
+                chunk_id=f"chunk_000{i}", 
+                chunk_fingerprint=f"fp_000{i}",
+                chunk_type=TranslationTaskType.TRANSLATE,
+                source_sequence_range=(i, i), 
+                node_count=1, 
+                context_id="CTX_TEST",
+                context_depth=1,
+                target_payload="T", 
+                estimated_tokens=1, 
+                payload_sha256="h"
             )
             for i in range(3)
         ]

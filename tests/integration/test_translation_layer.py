@@ -2,7 +2,7 @@ import os
 import unittest
 import uuid  # Corrección de aislamiento: importación de uuid
 from unittest.mock import MagicMock
-from core.ast.models import TranslationUnit
+from core.ast.models import TranslationUnit, TranslationTaskType
 from apps.llm_workers.workers import FakeGeminiWorker
 from apps.llm_workers.resilience import ResilientWorkerProxy
 from apps.llm_workers.cache import SQLiteTranslationCache
@@ -48,9 +48,21 @@ class TestTranslationLayerIntegration(unittest.IsolatedAsyncioTestCase):
     async def test_translation_layer_flow(self):
         """Ajuste 2: Prueba acotada a la capa de traducción y ensamble."""
         units = [
-            TranslationUnit(chunk_index=1, chunk_id="c1", chunk_type="translate", source_sequence_range=(1,1), node_count=1, reference_context="", target_payload="A", estimated_tokens=2, payload_sha256="h1"),
-            TranslationUnit(chunk_index=2, chunk_id="c2", chunk_type="passthrough", source_sequence_range=(2,2), node_count=1, reference_context="", target_payload="B", estimated_tokens=2, payload_sha256="h2"),
-            TranslationUnit(chunk_index=3, chunk_id="c3", chunk_type="translate", source_sequence_range=(3,3), node_count=1, reference_context="", target_payload="C", estimated_tokens=2, payload_sha256="h3")
+            TranslationUnit(
+                chunk_index=1, chunk_id="c1", chunk_fingerprint="fp1",
+                chunk_type=TranslationTaskType.TRANSLATE, source_sequence_range=(1,1), node_count=1, 
+                context_id="CTX_TEST", context_depth=1, target_payload="A", estimated_tokens=2, payload_sha256="h1"
+            ),
+            TranslationUnit(
+                chunk_index=2, chunk_id="c2", chunk_fingerprint="fp2",
+                chunk_type=TranslationTaskType.PRESERVE, source_sequence_range=(2,2), node_count=1, 
+                context_id="CTX_TEST", context_depth=1, target_payload="B", estimated_tokens=2, payload_sha256="h2"
+            ),
+            TranslationUnit(
+                chunk_index=3, chunk_id="c3", chunk_fingerprint="fp3",
+                chunk_type=TranslationTaskType.TRANSLATE, source_sequence_range=(3,3), node_count=1, 
+                context_id="CTX_TEST", context_depth=1, target_payload="C", estimated_tokens=2, payload_sha256="h3"
+            )
         ]
 
         translated_units = await self.dispatcher.dispatch(units)

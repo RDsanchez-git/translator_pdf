@@ -3,7 +3,7 @@ import json
 import logging
 import unittest
 from core.ast.models import ASTNode, ContentNodeType, StructuralNodeType, FastWordEstimator
-from core.ast.hashing import SemanticChunker, ChunkPolicy
+from core.ast.hashing import build_semantic_chunks_as_units, ChunkPolicy
 
 logger = logging.getLogger(__name__)
 
@@ -12,12 +12,11 @@ class TestChunkerSnapshot(unittest.TestCase):
 
     def setUp(self):
         self.estimator = FastWordEstimator()
-        self.chunker = SemanticChunker(estimator=self.estimator, policy=ChunkPolicy())
         self.ast_cache_path = "tests/fixtures/sample_3_pages.pdf.ast.json"
         self.snapshot_path = "tests/fixtures/sample_chunks.json"
 
     def test_snapshot_verification(self):
-        """10B.2.9: Compara el estado actual del empaquetador contra el baseline congelado."""
+        """10B.2.9: Compara el estado actual del empaquetador contra el baseline congelado de la Fase 13."""
         if not os.path.exists(self.ast_cache_path):
             self.skipTest("Caché del AST no disponible. Se requiere ejecutar el pipeline base primero.")
 
@@ -29,21 +28,26 @@ class TestChunkerSnapshot(unittest.TestCase):
                     sequence_id=d["sequence_id"],
                     type=StructuralNodeType(d["type"]) if d["type"] in [e.value for e in StructuralNodeType] else ContentNodeType(d["type"]),
                     content=d["content"],
-                    metadata=d.get("metadata", {})
+                    metadata=d.get("metadata", {}),
+                    # SOTA Fase 13: Inyección defensiva del plano de control para el Grouper topológico
+                    control_plane=d.get("control_plane", {"context_id": "GLOBAL_ROOT", "structural_path": ["ROOT"]})
                 )
                 for d in raw_data
             ]
 
-        production_units = self.chunker.chunk_document(real_ast)
+        # Desempaquetado de la tupla SOTA
+        production_units, _ = build_semantic_chunks_as_units(real_ast, self.estimator)
         
         actual_snapshot = [
             {
                 "chunk_index": u.chunk_index,
                 "chunk_id": u.chunk_id,
-                "chunk_type": u.chunk_type,
+                "chunk_fingerprint": u.chunk_fingerprint,
+                "chunk_type": u.chunk_type.value if hasattr(u.chunk_type, "value") else u.chunk_type,
                 "source_sequence_range": list(u.source_sequence_range), # Tupla a Lista para JSON
                 "node_count": u.node_count,
-                "reference_context": u.reference_context,
+                "context_id": u.context_id,
+                "context_depth": u.context_depth,
                 "target_payload": u.target_payload,
                 "estimated_tokens": u.estimated_tokens,
                 "payload_sha256": u.payload_sha256
@@ -68,4 +72,4 @@ class TestChunkerSnapshot(unittest.TestCase):
             self.assertEqual(actual["chunk_id"], expected["chunk_id"], f"Regresión de ID en chunk {actual['chunk_index']}.")
             self.assertEqual(actual["payload_sha256"], expected["payload_sha256"], f"Regresión criptográfica en chunk {actual['chunk_index']}.")
             self.assertEqual(actual["target_payload"], expected["target_payload"], f"Regresión de Payload en chunk {actual['chunk_index']}.")
-            self.assertEqual(actual["reference_context"], expected["reference_context"], f"Regresión de Sliding Window en chunk {actual['chunk_index']}.")
+            self.assertEqual(actual["context_id"], expected["context_id"], f"Regresión de Frontera Lógica (Contexto) en chunk {actual['chunk_index']}.")

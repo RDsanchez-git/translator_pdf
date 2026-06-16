@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import AsyncMock
-from core.ast.models import TranslationUnit, TranslatedUnit
+from core.ast.models import TranslationUnit, TranslatedUnit, TranslationTaskType
 from apps.llm_workers.dispatcher import AsyncDispatcher
 from core.execution.exceptions import ChunkExecutionError
 
@@ -20,14 +20,16 @@ class TestAsyncDispatcher(unittest.IsolatedAsyncioTestCase):
             prompt_version="v1.0"
         )
 
-    def _create_mock_unit(self, chunk_index: int, chunk_type: str) -> TranslationUnit:
+    def _create_mock_unit(self, chunk_index: int, chunk_type: TranslationTaskType) -> TranslationUnit:
         return TranslationUnit(
             chunk_index=chunk_index,
             chunk_id=f"chunk_{chunk_index:04d}",
+            chunk_fingerprint=f"fp_{chunk_index:04d}",
             chunk_type=chunk_type,
             source_sequence_range=(chunk_index, chunk_index),
             node_count=1,
-            reference_context="",
+            context_id="CTX_DISPATCH_MOCK",
+            context_depth=1,
             target_payload=f"Payload {chunk_index}",
             estimated_tokens=5,
             payload_sha256=f"hash_{chunk_index}"
@@ -37,7 +39,7 @@ class TestAsyncDispatcher(unittest.IsolatedAsyncioTestCase):
         return TranslatedUnit(
             chunk_index=unit.chunk_index,
             chunk_id=unit.chunk_id,
-            chunk_type=unit.chunk_type,
+            chunk_type=unit.chunk_type.value if hasattr(unit.chunk_type, "value") else unit.chunk_type,
             source_sequence_range=unit.source_sequence_range,
             translated_payload=f"MOCK::{unit.target_payload}",
             payload_sha256=unit.payload_sha256,
@@ -49,14 +51,14 @@ class TestAsyncDispatcher(unittest.IsolatedAsyncioTestCase):
         )
 
     async def test_case_A_all_passthrough(self):
-        units = [self._create_mock_unit(i, "passthrough") for i in range(1, 4)]
+        units = [self._create_mock_unit(i, TranslationTaskType.PRESERVE) for i in range(1, 4)]
         results = await self.dispatcher.dispatch(units)
         self.mock_worker.translate.assert_not_called()
         self.assertEqual(len(results), 3)
         self.assertEqual(results[0].model_name, "bypass_passthrough")
 
     async def test_case_B_all_translate(self):
-        units = [self._create_mock_unit(i, "translate") for i in range(1, 4)]
+        units = [self._create_mock_unit(i, TranslationTaskType.TRANSLATE) for i in range(1, 4)]
         self.mock_worker.translate.side_effect = self._mock_translate_side_effect
         
         results = await self.dispatcher.dispatch(units)
@@ -68,9 +70,9 @@ class TestAsyncDispatcher(unittest.IsolatedAsyncioTestCase):
 
     async def test_case_C_mixed_payloads(self):
         units = [
-            self._create_mock_unit(1, "translate"),
-            self._create_mock_unit(2, "passthrough"),
-            self._create_mock_unit(3, "translate")
+            self._create_mock_unit(1, TranslationTaskType.TRANSLATE),
+            self._create_mock_unit(2, TranslationTaskType.PRESERVE),
+            self._create_mock_unit(3, TranslationTaskType.TRANSLATE)
         ]
         self.mock_worker.translate.side_effect = self._mock_translate_side_effect
         results = await self.dispatcher.dispatch(units)
@@ -78,14 +80,14 @@ class TestAsyncDispatcher(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(results[1].model_name, "bypass_passthrough")
 
     async def test_case_D_worker_failure(self):
-        units = [self._create_mock_unit(1, "translate")]
+        units = [self._create_mock_unit(1, TranslationTaskType.TRANSLATE)]
         self.mock_worker.translate.side_effect = ConnectionError("Simulated Network Drop")
         with self.assertRaises(ChunkExecutionError):
             await self.dispatcher.dispatch(units)
 
     async def test_case_E_out_of_order_resolution(self):
         import asyncio
-        units = [self._create_mock_unit(i, "translate") for i in range(1, 4)]
+        units = [self._create_mock_unit(i, TranslationTaskType.TRANSLATE) for i in range(1, 4)]
         async def _variable_latency(unit):
             if unit.chunk_index == 1:
                 await asyncio.sleep(0.04)
@@ -98,20 +100,20 @@ class TestAsyncDispatcher(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(results[2].chunk_index, 3)
 
     async def test_case_F_passthrough_with_simultaneous_failure(self):
-        units = [self._create_mock_unit(1, "passthrough"), self._create_mock_unit(2, "translate")]
+        units = [self._create_mock_unit(1, TranslationTaskType.PRESERVE), self._create_mock_unit(2, TranslationTaskType.TRANSLATE)]
         self.mock_worker.translate.side_effect = ConnectionError("Timeout")
         with self.assertRaises(ChunkExecutionError) as context:
             await self.dispatcher.dispatch(units)
         self.assertEqual(context.exception.chunk_index, 2)
 
     async def test_case_G_duplicate_chunk_index_rejected(self):
-        units = [self._create_mock_unit(5, "translate"), self._create_mock_unit(5, "passthrough")]
+        units = [self._create_mock_unit(5, TranslationTaskType.TRANSLATE), self._create_mock_unit(5, TranslationTaskType.PRESERVE)]
         with self.assertRaises(ValueError):
             await self.dispatcher.dispatch(units)
 
     async def test_case_H_cache_hit_bypass_worker(self):
         """10C.7.1: Certifica que ante un hit de caché se evite la llamada al LLM y la latencia sea cero."""
-        unit = self._create_mock_unit(1, "translate")
+        unit = self._create_mock_unit(1, TranslationTaskType.TRANSLATE)
         self.mock_cache.get.return_value = "Payload recuperado limpio desde cache"
     
         results = await self.dispatcher.dispatch([unit])

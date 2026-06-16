@@ -1,7 +1,6 @@
-# tests/integration/test_validation_integration.py
 import pytest
 from typing import Dict, Optional
-from core.ast.models import TranslationUnit, TranslatedUnit
+from core.ast.models import TranslationUnit, TranslatedUnit, TranslationTaskType
 from apps.llm_workers.dispatcher import AsyncDispatcher
 from apps.llm_workers.cache import SQLiteTranslationCache
 from core.execution.exceptions import ChunkValidationError, DocumentValidationError
@@ -31,10 +30,17 @@ class IntegrationMockWorker(BaseMockWorker):
 
     async def translate(self, unit: TranslationUnit) -> TranslatedUnit:
         return TranslatedUnit(
-            chunk_index=unit.chunk_index, chunk_id=unit.chunk_id, chunk_type=unit.chunk_type,
-            source_sequence_range=unit.source_sequence_range, translated_payload=self.output_text,
-            payload_sha256=unit.payload_sha256, model_name="mock_llm", prompt_version="1.0",
-            input_tokens=10, output_tokens=10, latency_ms=10.0
+            chunk_index=unit.chunk_index, 
+            chunk_id=unit.chunk_id, 
+            chunk_type=unit.chunk_type.value if hasattr(unit.chunk_type, "value") else unit.chunk_type,
+            source_sequence_range=unit.source_sequence_range, 
+            translated_payload=self.output_text,
+            payload_sha256=unit.payload_sha256, 
+            model_name="mock_llm", 
+            prompt_version="1.0",
+            input_tokens=10, 
+            output_tokens=10, 
+            latency_ms=10.0
         )
 
 class SequenceMockWorker(BaseMockWorker):
@@ -46,10 +52,17 @@ class SequenceMockWorker(BaseMockWorker):
         out = self.outputs[self.calls]
         self.calls += 1
         return TranslatedUnit(
-            chunk_index=unit.chunk_index, chunk_id=unit.chunk_id, chunk_type=unit.chunk_type,
-            source_sequence_range=unit.source_sequence_range, translated_payload=out,
-            payload_sha256=unit.payload_sha256, model_name="mock_llm", prompt_version="1.0",
-            input_tokens=10, output_tokens=10, latency_ms=10.0
+            chunk_index=unit.chunk_index, 
+            chunk_id=unit.chunk_id, 
+            chunk_type=unit.chunk_type.value if hasattr(unit.chunk_type, "value") else unit.chunk_type,
+            source_sequence_range=unit.source_sequence_range, 
+            translated_payload=out,
+            payload_sha256=unit.payload_sha256, 
+            model_name="mock_llm", 
+            prompt_version="1.0",
+            input_tokens=10, 
+            output_tokens=10, 
+            latency_ms=10.0
         )
 
 # ==============================================================================
@@ -63,8 +76,10 @@ async def test_integration_hard_fail_on_unbalanced_braces():
     dispatcher = AsyncDispatcher(worker, cache, "model", "v1")
     
     unit = TranslationUnit(
-        chunk_index=1, chunk_id="id1", chunk_type="translate",
-        source_sequence_range=(1,2), node_count=1, reference_context="",
+        chunk_index=1, chunk_id="id1", chunk_fingerprint="fp1",
+        chunk_type=TranslationTaskType.TRANSLATE,
+        source_sequence_range=(1,2), node_count=1, 
+        context_id="CTX_TEST", context_depth=1,
         target_payload="some source", estimated_tokens=5, payload_sha256="sha_brace"
     )
     
@@ -82,8 +97,10 @@ async def test_integration_preservation_fail_on_missing_doi():
     dispatcher = AsyncDispatcher(worker, cache, "model", "v1")
     
     unit = TranslationUnit(
-        chunk_index=1, chunk_id="id2", chunk_type="translate",
-        source_sequence_range=(1,2), node_count=1, reference_context="",
+        chunk_index=1, chunk_id="id2", chunk_fingerprint="fp2",
+        chunk_type=TranslationTaskType.TRANSLATE,
+        source_sequence_range=(1,2), node_count=1, 
+        context_id="CTX_TEST", context_depth=1,
         target_payload="Source with DOI 10.1000/xyz123",
         estimated_tokens=5, payload_sha256="sha_doi"
     )
@@ -102,8 +119,10 @@ async def test_integration_warning_does_not_block():
     dispatcher = AsyncDispatcher(worker, cache, "model", "v1")
     
     unit = TranslationUnit(
-        chunk_index=1, chunk_id="id3", chunk_type="translate",
-        source_sequence_range=(1,2), node_count=1, reference_context="",
+        chunk_index=1, chunk_id="id3", chunk_fingerprint="fp3",
+        chunk_type=TranslationTaskType.TRANSLATE,
+        source_sequence_range=(1,2), node_count=1, 
+        context_id="CTX_TEST", context_depth=1,
         target_payload="Error: 404",
         estimated_tokens=5, payload_sha256="sha_warn"
     )
@@ -119,8 +138,10 @@ async def test_integration_perimeter_fail_on_markdown():
     dispatcher = AsyncDispatcher(worker, cache, "model", "v1")
     
     unit = TranslationUnit(
-        chunk_index=1, chunk_id="id4", chunk_type="translate",
-        source_sequence_range=(1,2), node_count=1, reference_context="",
+        chunk_index=1, chunk_id="id4", chunk_fingerprint="fp4",
+        chunk_type=TranslationTaskType.TRANSLATE,
+        source_sequence_range=(1,2), node_count=1, 
+        context_id="CTX_TEST", context_depth=1,
         target_payload="source text", estimated_tokens=5, payload_sha256="sha_mark"
     )
     
@@ -142,13 +163,17 @@ async def test_integration_document_level_pi04_fail():
     
     units = [
         TranslationUnit(
-            chunk_index=1, chunk_id="id_lbl", chunk_type="translate", source_sequence_range=(1,1),
-            node_count=1, reference_context="", target_payload=r"\label{sec1}", 
+            chunk_index=1, chunk_id="id_lbl", chunk_fingerprint="fp_lbl",
+            chunk_type=TranslationTaskType.TRANSLATE, source_sequence_range=(1,1),
+            node_count=1, context_id="CTX_TEST", context_depth=1, 
+            target_payload=r"\label{sec1}", 
             estimated_tokens=5, payload_sha256="sha_L1"
         ),
         TranslationUnit(
-            chunk_index=2, chunk_id="id_ref", chunk_type="translate", source_sequence_range=(2,2),
-            node_count=1, reference_context="", target_payload=r"\ref{sec1}", 
+            chunk_index=2, chunk_id="id_ref", chunk_fingerprint="fp_ref",
+            chunk_type=TranslationTaskType.TRANSLATE, source_sequence_range=(2,2),
+            node_count=1, context_id="CTX_TEST", context_depth=1, 
+            target_payload=r"\ref{sec1}", 
             estimated_tokens=5, payload_sha256="sha_R1"
         )
     ]

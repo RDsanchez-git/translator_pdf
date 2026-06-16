@@ -1,7 +1,6 @@
-# tests/unit/test_dispatcher_validation.py
 import pytest
 from typing import Dict, List, Optional
-from core.ast.models import TranslationUnit, TranslatedUnit
+from core.ast.models import TranslationUnit, TranslatedUnit, TranslationTaskType
 from apps.llm_workers.dispatcher import AsyncDispatcher
 from apps.llm_workers.cache import SQLiteTranslationCache
 from core.execution.exceptions import ChunkValidationError, DocumentValidationError
@@ -16,7 +15,7 @@ class MockWorker:
         return TranslatedUnit(
             chunk_index=unit.chunk_index, 
             chunk_id=unit.chunk_id, 
-            chunk_type=unit.chunk_type,
+            chunk_type=unit.chunk_type.value if hasattr(unit.chunk_type, "value") else unit.chunk_type,
             source_sequence_range=unit.source_sequence_range, 
             translated_payload=self.output_text,
             payload_sha256=unit.payload_sha256, 
@@ -55,10 +54,12 @@ async def test_dispatcher_hard_fail_prevents_cache_storage():
     unit = TranslationUnit(
         chunk_index=1, 
         chunk_id="id1", 
-        chunk_type="translate", 
+        chunk_fingerprint="fp1",
+        chunk_type=TranslationTaskType.TRANSLATE, 
         source_sequence_range=(1, 2),
-        node_count=1,  # Corrección: Parámetro contractual obligatorio
-        reference_context="", 
+        node_count=1,
+        context_id="CTX_TEST",
+        context_depth=1,
         target_payload="{normal brace", 
         estimated_tokens=5, 
         payload_sha256="sha_miss"
@@ -78,10 +79,12 @@ async def test_dispatcher_revalidates_cache_hits():
     unit = TranslationUnit(
         chunk_index=1, 
         chunk_id="id1", 
-        chunk_type="translate", 
+        chunk_fingerprint="fp1",
+        chunk_type=TranslationTaskType.TRANSLATE, 
         source_sequence_range=(1, 2),
-        node_count=1,  # Corrección: Parámetro contractual obligatorio
-        reference_context="", 
+        node_count=1,
+        context_id="CTX_TEST",
+        context_depth=1,
         target_payload="test", 
         estimated_tokens=5, 
         payload_sha256="sha_key"
@@ -102,10 +105,12 @@ async def test_dispatcher_document_level_hard_fail():
     unit = TranslationUnit(
         chunk_index=1, 
         chunk_id="id1", 
-        chunk_type="translate", 
+        chunk_fingerprint="fp1",
+        chunk_type=TranslationTaskType.TRANSLATE, 
         source_sequence_range=(1, 2),
-        node_count=1,  # Corrección: Parámetro contractual obligatorio
-        reference_context="", 
+        node_count=1,
+        context_id="CTX_TEST",
+        context_depth=1,
         target_payload="test", 
         estimated_tokens=5, 
         payload_sha256="sha_doc"

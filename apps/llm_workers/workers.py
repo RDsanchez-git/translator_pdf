@@ -33,7 +33,7 @@ class FakeGeminiWorker:
         return TranslatedUnit(
             chunk_index=unit.chunk_index,
             chunk_id=unit.chunk_id,
-            chunk_type=unit.chunk_type,
+            chunk_type=unit.chunk_type.value if hasattr(unit.chunk_type, "value") else unit.chunk_type, # Corrección
             source_sequence_range=unit.source_sequence_range,
             translated_payload=simulated_translation,
             payload_sha256=unit.payload_sha256,
@@ -75,7 +75,7 @@ class GeminiWorker:
         return TranslatedUnit(
             chunk_index=unit.chunk_index,
             chunk_id=unit.chunk_id,
-            chunk_type=unit.chunk_type,
+            chunk_type=unit.chunk_type.value if hasattr(unit.chunk_type, "value") else unit.chunk_type, # Corrección
             source_sequence_range=unit.source_sequence_range,
             translated_payload=translated_payload,
             payload_sha256=unit.payload_sha256,

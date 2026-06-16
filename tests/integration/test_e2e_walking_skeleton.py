@@ -2,7 +2,7 @@ import os
 import json
 import unittest
 import hashlib
-from core.ast.models import TranslationUnit
+from core.ast.models import TranslationUnit, TranslationTaskType
 from unittest.mock import MagicMock
 from apps.llm_workers.workers import FakeGeminiWorker
 from apps.llm_workers.resilience import ResilientWorkerProxy
@@ -57,7 +57,7 @@ class TestTrueWalkingSkeletonE2E(unittest.IsolatedAsyncioTestCase):
                     pass
 
     def _bridge_ast_to_units(self, ast_nodes: list) -> list[TranslationUnit]:
-        """Adaptador tolerante que traduce el esquema físico del AST a DTOs de ejecución."""
+        """Adaptador tolerante que traduce el esquema físico del AST a DTOs de ejecución (Fase 13)."""
         units = []
         for i, node in enumerate(ast_nodes, start=1):
             node_type = node.get("type", "unknown")
@@ -71,15 +71,20 @@ class TestTrueWalkingSkeletonE2E(unittest.IsolatedAsyncioTestCase):
             # Ajuste 1: Firma criptográfica determinista estable entre subprocesos
             sha256_hash = hashlib.sha256(payload.encode("utf-8")).hexdigest()
                 
+            # SOTA: Mapeo a los contratos estrictos de la Fase 13
+            task_type = TranslationTaskType.PRESERVE if is_passthrough else TranslationTaskType.TRANSLATE
+                
             units.append(TranslationUnit(
                 chunk_index=i,
                 chunk_id=node.get("node_id", f"node_{i}"),
-                chunk_type="passthrough" if is_passthrough else "translate",
+                chunk_fingerprint=f"mock_fingerprint_{i}", # Nuevo campo Fase 13
+                chunk_type=task_type,                      # SOTA Enum
                 source_sequence_range=(i, i),
                 node_count=1,
-                reference_context="",
+                context_id="CTX_E2E_MOCK",                 # Reemplaza a reference_context
+                context_depth=1,                           # Nuevo campo Fase 13
                 target_payload=payload,
-                estimated_tokens=len(payload) // 4,
+                estimated_tokens=max(1, len(payload) // 4),
                 payload_sha256=sha256_hash
             ))
         return units
@@ -99,10 +104,10 @@ class TestTrueWalkingSkeletonE2E(unittest.IsolatedAsyncioTestCase):
         # ==========================================
         translated_units_run_1 = await self.dispatcher.dispatch(translation_units)
         
-        # Ajuste 3: Eliminación de tautología y evaluación condicional del passthrough
-        passthrough_count = sum(1 for u in translated_units_run_1 if u.chunk_type == "passthrough")
+        # Ajuste 3: Evaluación condicional del passthrough usando los valores del Enum serializados
+        passthrough_count = sum(1 for u in translated_units_run_1 if u.chunk_type == TranslationTaskType.PRESERVE.value or u.chunk_type == TranslationTaskType.PRESERVE)
         if passthrough_count > 0:
-            passthrough_unit = next(u for u in translated_units_run_1 if u.chunk_type == "passthrough")
+            passthrough_unit = next(u for u in translated_units_run_1 if u.chunk_type == TranslationTaskType.PRESERVE.value or u.chunk_type == TranslationTaskType.PRESERVE)
             self.assertEqual(passthrough_unit.model_name, "bypass_passthrough")
 
         # Ajuste 4: Verificación estricta de cobertura del ensamblador
@@ -110,19 +115,22 @@ class TestTrueWalkingSkeletonE2E(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(doc_1.total_chunks, len(translation_units), "El ensamblador omitió elementos del pipeline.")
         self.assertEqual(doc_1.translated_chunks + doc_1.passthrough_chunks, doc_1.total_chunks)
 
-        # ==========================================
+      # ==========================================
         # SEGUNDA CORRIDA (Cache Hit Reentrante)
         # ==========================================
         translated_units_run_2 = await self.dispatcher.dispatch(translation_units)
         
         # Validación criptográfica del hit
         for unit in translated_units_run_2:
-            if unit.chunk_type == "translate":
+            # SOTA: Cast seguro a primitivo para neutralizar colisiones entre Enum y SQLite
+            current_type = str(unit.chunk_type)
+            
+            if current_type == TranslationTaskType.TRANSLATE.value:
                 self.assertTrue(
                     unit.model_name.startswith("cache_hit:"), 
                     f"Fallo de persistencia en disco. El chunk {unit.chunk_index} re-ejecutó el worker."
                 )
-            elif unit.chunk_type == "passthrough":
+            elif current_type == TranslationTaskType.PRESERVE.value:
                 self.assertEqual(unit.model_name, "bypass_passthrough")
 
         doc = self.assembler.assemble(translated_units_run_2)

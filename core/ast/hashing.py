@@ -1,10 +1,15 @@
 import json
 import hashlib
 import logging
-from collections import deque
+import re
 from dataclasses import dataclass, field
 from typing import List, Tuple
-from core.ast.models import ASTNode, ContentNodeType, StructuralNodeType, TokenEstimator, TranslationUnit
+
+from core.ast.models import (
+    ASTNode, ContentNodeType, StructuralNodeType, TokenEstimator, 
+    TranslationUnit, TranslationTaskType, OverflowPolicy, ChunkingReport
+)
+from core.ast.grouper import SemanticGroup, ContextAwareSemanticGrouper
 
 logger = logging.getLogger(__name__)
 
@@ -28,183 +33,154 @@ def compute_ast_hash(ast: List[ASTNode]) -> str:
     )
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
-
-# --- FASE 10B: SEMANTIC PACKAGING LAYER ---
+# --- FASE 13.00: SEMANTIC PACKAGING LAYER ---
 
 @dataclass(frozen=True)
 class ChunkPolicy:
-    """SOTA: Configuración externa parametrizada con inicialización segura de fábricas mutables."""
+    """SOTA: Configuración externa parametrizada con presupuestos duros."""
     max_tokens: int = 1500
-    sliding_window_tokens: int = 150
     prompt_overhead_tokens: int = 100        
+    overflow_policy: OverflowPolicy = OverflowPolicy.BY_SENTENCE
     structural_boundaries: set = field(default_factory=set)
     protected_content_types: set = field(default_factory=set)
 
-class SemanticChunker:
-    """Motor perimetral de segmentación determinista con Sliding Window inclusivo y acotado."""
+class TokenBudgetChunker:
+    """SOTA: Chunker de tiempo lineal O(N) que respeta fronteras de subgrafos semánticos."""
+    
     def __init__(self, estimator: TokenEstimator, policy: ChunkPolicy | None = None):
         self.estimator = estimator
         self.policy = policy if policy else ChunkPolicy()
-        
-        if self.policy.sliding_window_tokens + self.policy.prompt_overhead_tokens >= self.policy.max_tokens:
-            raise ValueError(
-                "Sliding window tokens + prompt overhead tokens must be strictly smaller than max_tokens"
-            )
+        self.report = ChunkingReport()
         
         self.boundaries = self.policy.structural_boundaries if self.policy.structural_boundaries else {
-            StructuralNodeType.DOCUMENT,
-            StructuralNodeType.PART,
-            StructuralNodeType.CHAPTER,
-            StructuralNodeType.SECTION,
+            StructuralNodeType.DOCUMENT, StructuralNodeType.PART,
+            StructuralNodeType.CHAPTER, StructuralNodeType.SECTION,
             StructuralNodeType.SUBSECTION
         }
+        
         self.protected_types = self.policy.protected_content_types if self.policy.protected_content_types else {
-            ContentNodeType.EQUATION,
-            ContentNodeType.INLINE_EQUATION,
-            ContentNodeType.TABLE,
-            ContentNodeType.CODE_BLOCK,
-            ContentNodeType.ALGORITHM,
-            ContentNodeType.FIGURE,
-            ContentNodeType.IMAGE,
-            ContentNodeType.COMPOSITE_BLOCK,
-            ContentNodeType.UNKNOWN,
-            ContentNodeType.CITATION,
-            ContentNodeType.REFERENCE_ENTRY,
-            ContentNodeType.BIBLIOGRAPHY
+            ContentNodeType.EQUATION, ContentNodeType.INLINE_EQUATION,
+            ContentNodeType.CODE_BLOCK, ContentNodeType.ALGORITHM,
+            ContentNodeType.CITATION, ContentNodeType.REFERENCE_ENTRY, ContentNodeType.BIBLIOGRAPHY
         }
         
-        self._context_buffer = deque()
-        self._buffer_tokens = 0
+        self.partial_types = {ContentNodeType.TABLE, ContentNodeType.FIGURE, ContentNodeType.IMAGE}
 
-    def _add_to_buffer(self, content: str, tokens: int):
-        self._context_buffer.append((content, tokens))
-        self._buffer_tokens += tokens
-        while self._buffer_tokens > (self.policy.sliding_window_tokens * 2) and self._context_buffer:
-            _, t = self._context_buffer.popleft()
-            self._buffer_tokens -= t
+    def _split_by_sentence(self, text: str) -> List[str]:
+        """Partición heurística ligera sin depender de NLP pesados (spaCy)."""
+        sentences = re.split(r'(?<=[.!?])\s+(?=[A-Z0-9])', text)
+        return [s.strip() for s in sentences if s.strip()]
 
-    def _build_reference_context(self) -> Tuple[str, int]:
-        context_nodes = []
-        accumulated_tokens = 0
-        for content, token_count in reversed(self._context_buffer):
-            if accumulated_tokens + token_count > self.policy.sliding_window_tokens:
-                break
-            context_nodes.insert(0, content)
-            accumulated_tokens += token_count
-        return "\n\n".join(context_nodes) if context_nodes else "", accumulated_tokens
-
-    def chunk_document(self, ast: List[ASTNode]) -> List[TranslationUnit]:
-        # SOTA: Garantizar pureza funcional e idempotencia limpiando el estado de la instancia
-        self._context_buffer.clear()
-        self._buffer_tokens = 0
-
+    def chunk_group(self, group: SemanticGroup, start_index: int) -> List[TranslationUnit]:
         units = []
         current_nodes = []
         current_tokens = 0
-        chunk_index = 1
-
-        context_text, current_context_tokens = self._build_reference_context()
-        available_payload_tokens = (
-            self.policy.max_tokens 
-            - current_context_tokens 
-            - self.policy.prompt_overhead_tokens
-        )
+        chunk_index = start_index
+        available_payload_tokens = self.policy.max_tokens - self.policy.prompt_overhead_tokens
 
         def flush_translate_chunk():
-            nonlocal chunk_index, current_nodes, current_tokens, context_text, current_context_tokens, available_payload_tokens
-            if current_nodes:
-                payload_text = "\n\n".join([n.content or "" for n in current_nodes])
-                first_seq = current_nodes[0].sequence_id
-                last_seq = current_nodes[-1].sequence_id
-                
-                full_hash = hashlib.sha256(payload_text.encode("utf-8")).hexdigest()
-                short_hash = full_hash[:8]
-                det_chunk_id = f"chunk_{chunk_index:04d}_{first_seq}_{last_seq}_{short_hash}"
-                
-                units.append(TranslationUnit(
-                    chunk_index=chunk_index,
-                    chunk_id=det_chunk_id,
-                    chunk_type="translate",
-                    source_sequence_range=(first_seq, last_seq),
-                    node_count=len(current_nodes),
-                    reference_context=context_text,
-                    target_payload=payload_text,
-                    estimated_tokens=current_tokens,
-                    payload_sha256=full_hash
-                ))
-                chunk_index += 1
-                
-                for n in current_nodes:
-                    if n.content:
-                        n_tokens = self.estimator.estimate(n.content)
-                        self._add_to_buffer(n.content, n_tokens)
-                        
-                current_nodes = []
-                current_tokens = 0
-                
-                context_text, current_context_tokens = self._build_reference_context()
-                available_payload_tokens = (
-                    self.policy.max_tokens 
-                    - current_context_tokens 
-                    - self.policy.prompt_overhead_tokens
-                )
+            nonlocal chunk_index, current_nodes, current_tokens
+            if not current_nodes:
+                return
+            
+            payload_text = "\n\n".join([n.content or "" for n in current_nodes])
+            first_seq = current_nodes[0].sequence_id
+            last_seq = current_nodes[-1].sequence_id
+            
+            # Criptografía determinista SOTA
+            full_hash = hashlib.sha256(payload_text.encode("utf-8")).hexdigest()
+            short_hash = full_hash[:8]
+            det_chunk_id = f"chunk_{chunk_index:04d}_{first_seq}_{last_seq}_{short_hash}"
+            fingerprint = hashlib.md5(f"{first_seq}-{last_seq}".encode()).hexdigest()
+            
+            units.append(TranslationUnit(
+                chunk_index=chunk_index,
+                chunk_id=det_chunk_id,
+                chunk_fingerprint=fingerprint,
+                chunk_type=TranslationTaskType.TRANSLATE,
+                source_sequence_range=(first_seq, last_seq),
+                node_count=len(current_nodes),
+                context_id=group.context_id,
+                context_depth=len(group.structural_path),
+                target_payload=payload_text,
+                estimated_tokens=current_tokens,
+                payload_sha256=full_hash
+            ))
+            
+            self.report.total_chunks += 1
+            self.report.max_chunk_tokens = max(self.report.max_chunk_tokens, current_tokens)
+            
+            chunk_index += 1
+            current_nodes = []
+            current_tokens = 0
 
-        for node in ast:
+        for node in group.nodes:
             content = node.content or ""
-
-            if node.type in self.boundaries:
-                flush_translate_chunk()
-                full_hash = hashlib.sha256(content.encode("utf-8")).hexdigest()
-                units.append(TranslationUnit(
-                    chunk_index=chunk_index,
-                    chunk_id=f"boundary_{chunk_index:04d}_{node.sequence_id}_{full_hash[:8]}",
-                    chunk_type="passthrough",
-                    source_sequence_range=(node.sequence_id, node.sequence_id),
-                    node_count=1,
-                    reference_context="",
-                    target_payload=content,
-                    estimated_tokens=self.estimator.estimate(content),
-                    payload_sha256=full_hash
-                ))
-                chunk_index += 1
-                
-                context_text, current_context_tokens = self._build_reference_context()
-                available_payload_tokens = (
-                    self.policy.max_tokens 
-                    - current_context_tokens 
-                    - self.policy.prompt_overhead_tokens
-                )
-                continue
-
-            if node.type in self.protected_types:
-                flush_translate_chunk()
-                full_hash = hashlib.sha256(content.encode("utf-8")).hexdigest()
-                units.append(TranslationUnit(
-                    chunk_index=chunk_index,
-                    chunk_id=f"passthrough_{chunk_index:04d}_{node.sequence_id}_{full_hash[:8]}",
-                    chunk_type="passthrough",
-                    source_sequence_range=(node.sequence_id, node.sequence_id),
-                    node_count=1,
-                    reference_context="",
-                    target_payload=content,
-                    estimated_tokens=self.estimator.estimate(content),
-                    payload_sha256=full_hash
-                ))
-                chunk_index += 1
-                
-                context_text, current_context_tokens = self._build_reference_context()
-                available_payload_tokens = (
-                    self.policy.max_tokens 
-                    - current_context_tokens 
-                    - self.policy.prompt_overhead_tokens
-                )
-                continue
-
             if not content:
                 continue
 
+            # Bypass Lógico: Entidades estructurales y matemáticas se aíslan intactas
+            if node.type in self.protected_types or node.type in self.boundaries or node.type in self.partial_types:
+                flush_translate_chunk()
+                
+                task_type = TranslationTaskType.PARTIAL if node.type in self.partial_types else TranslationTaskType.PRESERVE
+                node_tokens = self.estimator.estimate(content)
+                full_hash = hashlib.sha256(content.encode("utf-8")).hexdigest()
+                fingerprint = hashlib.md5(f"{node.sequence_id}-{node.sequence_id}".encode()).hexdigest()
+                
+                units.append(TranslationUnit(
+                    chunk_index=chunk_index,
+                    chunk_id=f"isolated_{chunk_index:04d}_{node.sequence_id}_{full_hash[:8]}",
+                    chunk_fingerprint=fingerprint,
+                    chunk_type=task_type,
+                    source_sequence_range=(node.sequence_id, node.sequence_id),
+                    node_count=1,
+                    context_id=group.context_id,
+                    context_depth=len(group.structural_path),
+                    target_payload=content,
+                    estimated_tokens=node_tokens,
+                    payload_sha256=full_hash
+                ))
+                
+                self.report.total_chunks += 1
+                self.report.max_chunk_tokens = max(self.report.max_chunk_tokens, node_tokens)
+                chunk_index += 1
+                continue
+
+            # Lógica Transaccional de Tokens
             node_tokens = self.estimator.estimate(content)
             
+            # --- OVERFLOW POLICY ---
+            if node_tokens > available_payload_tokens:
+                self.report.overflow_events += 1
+                flush_translate_chunk()
+                
+                if self.policy.overflow_policy == OverflowPolicy.BY_SENTENCE:
+                    sentences = self._split_by_sentence(content)
+                    for sentence in sentences:
+                        s_tokens = self.estimator.estimate(sentence)
+                        if current_tokens + s_tokens > available_payload_tokens and current_nodes:
+                            flush_translate_chunk()
+                        
+                        # Sub-nodo fantasma que hereda el sequence_id físico
+                        sub_node = ASTNode(
+                            node_id=f"{node.node_id}_sub_{len(current_nodes)}",
+                            sequence_id=node.sequence_id,
+                            type=node.type,
+                            content=sentence,
+                            metadata=node.metadata,
+                            control_plane=node.control_plane
+                        )
+                        current_nodes.append(sub_node)
+                        current_tokens += s_tokens
+                else:
+                    # Fallback de truncamiento duro o inyección forzada
+                    current_nodes.append(node)
+                    current_tokens += node_tokens
+                    flush_translate_chunk()
+                continue
+
+            # --- NORMAL APPEND ---
             if current_tokens + node_tokens > available_payload_tokens and current_nodes:
                 flush_translate_chunk()
 
@@ -214,7 +190,25 @@ class SemanticChunker:
         flush_translate_chunk()
         return units
 
-def build_semantic_chunks_as_units(ast: List[ASTNode], estimator: TokenEstimator) -> List[TranslationUnit]:
-    """Punto de entrada SOTA para la generación de unidades empaquetadas de la Fase 10B."""
-    chunker = SemanticChunker(estimator, ChunkPolicy())
-    return chunker.chunk_document(ast)
+def build_semantic_chunks_as_units(ast: List[ASTNode], estimator: TokenEstimator) -> Tuple[List[TranslationUnit], ChunkingReport]:
+    """Punto de entrada SOTA para la generación de unidades empaquetadas de la Fase 13.00."""
+    # 1. Partición por fronteras topológicas lógicas
+    semantic_groups = ContextAwareSemanticGrouper.group(ast)
+    
+    # 2. Partición por presupuestos de tokens
+    chunker = TokenBudgetChunker(estimator, ChunkPolicy())
+    chunker.report.total_groups = len(semantic_groups)
+    
+    all_units = []
+    current_index = 1
+    
+    for group in semantic_groups:
+        group_units = chunker.chunk_group(group, start_index=current_index)
+        all_units.extend(group_units)
+        current_index += len(group_units)
+        chunker.report.context_switches += 1
+        
+    if all_units:
+        chunker.report.average_chunk_tokens = int(sum(u.estimated_tokens for u in all_units) / len(all_units))
+        
+    return all_units, chunker.report
