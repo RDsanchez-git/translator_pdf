@@ -8,7 +8,7 @@ import threading
 from contextvars import copy_context
 
 from core.utils.telemetry import setup_distributed_logger
-from core.execution.exceptions import OptimisticLockError
+from core.execution.exceptions import OptimisticLockError, TransientAPIError, CircuitOpenError
 from core.execution.ports import EventLifecycle, ProjectionState
 from core.normalization.normalizer import TextNormalizer
 from core.ast.registry import ASTRegistry
@@ -17,9 +17,7 @@ from infra.db.control_repo import ControlPlaneRepository
 from infra.db.event_repo import EventPlaneRepository
 from infra.db.materialized_repo import MaterializedPlaneRepository
 from core.metrics.metrics import Metrics
-
-from apps.llm_workers.gemini_client import GeminiClient
-from apps.llm_workers.chunk_processor import ChunkProcessor, LLMTransientError
+import signal
 
 setup_distributed_logger()
 logger = logging.getLogger("worker_llm")
@@ -88,40 +86,53 @@ class LLMWorkerDaemon:
         self.node_id = f"llm_worker_{uuid.uuid4().hex[:8]}"
         self.worker_type = "LLM"
         
-        # Adaptive Sleep Config
         self.base_sleep = 1.0
         self.max_sleep = 4.0
+        
+        # SOTA: Señal de control cooperativo para Graceful Shutdown
+        self._stop_event = threading.Event()
+
+    def stop(self) -> None:
+        """Solicita la detención segura del bucle principal."""
+        self._stop_event.set()
 
     def run(self):
         logger.info(f"Iniciando LLM Worker Daemon [{self.node_id}] - VRAM Bound")
         consecutive_idle = 0
-        task = None  # Corrección 1: Previene UnboundLocalError si claim falla catastróficamente
+        task = None 
         
-        while True:
+        # SOTA: Reemplazo de 'while True' por evaluación del evento
+        while not self._stop_event.is_set():
             try:
                 task = self.control.claim_next_pending_task(self.node_id, self.worker_type)
                 
                 if not task:
                     consecutive_idle += 1
                     sleep_time = min(self.base_sleep * (1.2 ** consecutive_idle), self.max_sleep)
-                    time.sleep(sleep_time + random.uniform(0.0, 0.5))
+                    # SOTA: El wait() se interrumpe inmediatamente si se llama a stop() durante el idle
+                    if self._stop_event.wait(timeout=sleep_time + random.uniform(0.0, 0.5)):
+                        break
                     continue
                 
                 consecutive_idle = 0
                 self._process_task(task)
-                task = None # Reset post-ejecución limpia
+                task = None
                 
-                time.sleep(random.uniform(0.1, 0.3))
+                if self._stop_event.wait(timeout=random.uniform(0.1, 0.3)):
+                    break
                 
-            except LLMTransientError:
+            # SOTA: Captura de interrupciones de red estandarizadas por el nuevo stack
+            except (TransientAPIError, CircuitOpenError, TimeoutError):
                 task_id_err = task["task_id"][:8] if task else "UNKNOWN"
                 logger.warning(f"Abandono transitorio. Self-healing reasignará. Tarea: {task_id_err}")
                 task = None
-                time.sleep(self.max_sleep)
+                self._stop_event.wait(timeout=self.max_sleep)
             except Exception as e:
                 logger.exception(f"Error crítico en LLM Worker loop: {e}")
                 task = None
-                time.sleep(self.max_sleep)
+                self._stop_event.wait(timeout=self.max_sleep)
+                
+        logger.info(f"Daemon [{self.node_id}] detenido de forma segura.")
 
     def _process_task(self, task: dict):
         start_node = time.perf_counter()
@@ -187,6 +198,18 @@ class LLMWorkerDaemon:
 
 
 if __name__ == "__main__":
+    import os
+    import signal
+    import asyncio
+    from apps.llm_workers.sync_bridge import SyncProviderBridge
+    from apps.llm_workers.adapters import GroqProvider
+    from apps.llm_workers.resilient_provider import ResilientProvider
+    from core.resilience.circuit_breaker import CircuitBreakerRegistry
+    from apps.llm_workers.rate_limiter import RateLimitedProvider, QuotaManager
+    from apps.llm_workers.cache_provider import CachedLLMProvider
+    from apps.llm_workers.prompt_builder import PromptBuilder
+    from core.ast.models import FastWordEstimator
+
     QUEUE_DB_PATH = os.getenv("QUEUE_DB_PATH", "infra/db/queue.db")
     EVENT_DB_PATH = os.getenv("EVENT_DB_PATH", "infra/db/event.db")
     MAT_DB_PATH = os.getenv("MAT_DB_PATH", "infra/db/materialized.db")
@@ -202,13 +225,30 @@ if __name__ == "__main__":
     event_repo = EventPlaneRepository(evt_conn)
     mat_repo = MaterializedPlaneRepository(mat_conn)
     
-    # Asume instanciación estándar de tus componentes core
     ast_registry = ASTRegistry() 
     metrics = Metrics()
-    client = GeminiClient() 
     
-    processor = ChunkProcessor(client, metrics)
+    api_key = os.getenv("GROQ_API_KEY")
+    if not api_key:
+        raise RuntimeError("GROQ_API_KEY no configurada. Imposible operar motor LLM.")
+
+    estimator = FastWordEstimator()
+    builder = PromptBuilder(model_name="llama3-70b-8192", prompt_version="v1.0", estimator=estimator)
     
+    groq_provider = GroqProvider(api_key=api_key)
+    breaker = CircuitBreakerRegistry.get_breaker("groq")
+    resilient = ResilientProvider(groq_provider, breaker)
+    quota = QuotaManager(rpm_limit=30, tpm_limit=6000)
+    rate_provider = RateLimitedProvider(resilient, quota)
+    
+    cached_provider = CachedLLMProvider(rate_provider, db_path=MAT_DB_PATH)
+    
+    # Deuda técnica operativa: asyncio.run() para DDL asíncrono.
+    # Se mantiene aquí por pragmatismo para evitar sobreingeniería en el SyncProviderBridge.
+    asyncio.run(cached_provider.initialize())
+    
+    processor = SyncProviderBridge(async_provider=cached_provider, prompt_builder=builder)
+
     daemon = LLMWorkerDaemon(
         control_repo=control_repo,
         event_repo=event_repo,
@@ -217,4 +257,27 @@ if __name__ == "__main__":
         processor=processor,
         metrics=metrics
     )
-    daemon.run()
+    
+    # SOTA: Signal handler delegativo. Solo notifica la detención, no destruye el proceso.
+    def shutdown_handler(signum, frame):
+        logger.info(f"Señal de terminación ({signum}) recibida. Iniciando Graceful Shutdown...")
+        daemon.stop()
+
+    signal.signal(signal.SIGINT, shutdown_handler)
+    signal.signal(signal.SIGTERM, shutdown_handler)
+
+    try:
+        daemon.run()
+    except KeyboardInterrupt:
+        daemon.stop()
+    finally:
+        # SOTA: Único punto de destrucción real de recursos. 
+        # Garantiza que SQLite y los Event Loops se cierren independientemente 
+        # de si la detención fue por señal, KeyboardInterrupt o colapso interno.
+        logger.info("Liberando recursos globales...")
+        processor.shutdown()
+        for conn in (queue_conn, evt_conn, mat_conn):
+            try:
+                conn.close()
+            except Exception:
+                pass

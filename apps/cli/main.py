@@ -9,24 +9,29 @@ from rich.status import Status
 from rich.panel import Panel
 from rich.table import Table
 
-# SOTA: Corrección del Path Raíz subiendo 3 niveles desde apps/cli/main.py hasta translator_pdf
 sys.path.append(str(Path(__file__).resolve().parents[2]))
 
 from apps.bootstrap.pipeline_factory import build_pipeline
 from core.pipeline.job import TranslationJob, PipelineStep
-from apps.llm_workers.dispatcher import AsyncDispatcher
-from apps.llm_workers.workers import GeminiWorker
-from apps.llm_workers.prompt_builder import PromptBuilder
-from apps.llm_workers.cache import SQLiteTranslationCache
-from apps.llm_workers.gemini_client import GeminiClient
 from core.ast.hashing import build_semantic_chunks_as_units
 from core.ast.models import FastWordEstimator
 from infra.db.connection import get_connection
 
+# SOTA: Importaciones de Fase 14 (ADR 007)
+from apps.llm_workers.adapters import GroqProvider
+from apps.llm_workers.resilient_provider import ResilientProvider
+from core.resilience.circuit_breaker import CircuitBreakerRegistry
+from apps.llm_workers.rate_limiter import RateLimitedProvider, QuotaManager
+from apps.llm_workers.cache_provider import CachedLLMProvider
+from apps.llm_workers.prompt_builder import PromptBuilder
+from apps.llm_workers.dispatcher import AsyncDispatcher
+from typing import Iterable, Dict
+from core.context.context_resolver import ResolvedContext
+
 console = Console()
 
 class ChunkerProtocolAdapter:
-    """SOTA Adapter Pattern: Cierra la brecha estructural para la Fase 13.00, aislando la tupla de telemetría."""
+    """SOTA Adapter Pattern: Cierra la brecha estructural para la Fase 13.00."""
     def __init__(self, estimator: FastWordEstimator):
         self._estimator = estimator
         self.last_report = None
@@ -36,12 +41,26 @@ class ChunkerProtocolAdapter:
         self.last_report = report
         return units
 
+
+class DummyContextResolver:
+    """
+    TODO_PHASE15: Implementación temporal para aislar la Fase 14.
+    Deuda Técnica Aceptada: Satisface ContextResolverProtocol emitiendo nulos estructurados rígidos.
+    """
+    def resolve(self, context_id: str) -> ResolvedContext:
+        return ResolvedContext(
+            context_id=context_id,
+            breadcrumbs=()
+        )
+
+    def resolve_many(self, context_ids: Iterable[str]) -> Dict[str, ResolvedContext]:
+        return {}
+
 # =====================================================================
 # MANEJADORES OPERACIONALES (HANDLERS)
 # =====================================================================
 
 def handle_sweep(args):
-    """Ejecuta el aislamiento forense de procesos colapsados."""
     from runtime.recovery import AbandonedProcessWatchdog
     watchdog = AbandonedProcessWatchdog()
     console.print("[bold yellow]Iniciando barrido de aislamiento manual en FSM...[/]")
@@ -57,42 +76,50 @@ async def handle_translate_async(args):
 
     job_id = args.job_id or f"job_{Path(source_path).stem}"
 
-    # Bootstrap e inyección de contratos de la Fase 10C/11C
-    client = GeminiClient()
-    prompt_builder = PromptBuilder()
+    # SOTA Fail-Fast: Validación estricta de credenciales
+    api_key = os.getenv("GROQ_API_KEY")
+    if not api_key:
+        raise RuntimeError("GROQ_API_KEY no configurada. Abortando inicialización de pipeline.")
+
     estimator = FastWordEstimator()
-    worker = GeminiWorker(client=client, prompt_builder=prompt_builder, estimator=estimator)
-    cache = SQLiteTranslationCache(db_path="infra/db/materialized.db")
+    prompt_builder = PromptBuilder(model_name="llama3-70b-8192", prompt_version="v1.0", estimator=estimator)
     
-    dispatcher = AsyncDispatcher(
-        worker=worker, 
-        cache=cache, 
-        model_name="gemini-1.5-pro", 
-        prompt_version="v1.0"
-    )
+    groq_provider = GroqProvider(api_key=api_key)
+    breaker = CircuitBreakerRegistry.get_breaker("groq", threshold=5)
+    resilient_provider = ResilientProvider(underlying=groq_provider, breaker=breaker)
+    quota_manager = QuotaManager(rpm_limit=30, tpm_limit=6000)
+    rate_provider = RateLimitedProvider(underlying=resilient_provider, quota_manager=quota_manager)
+    cached_provider = CachedLLMProvider(underlying=rate_provider, db_path="infra/db/materialized.db")
     
-    # SOTA: Instanciación del adaptador con inyección de dependencias directa
-    chunker_adapter = ChunkerProtocolAdapter(estimator=estimator)
-    
-    pipeline = build_pipeline(chunker=chunker_adapter, dispatcher=dispatcher)
-    job = TranslationJob(job_id=job_id, source_path=source_path)
-
-    console.print(Panel(
-        f"[bold green]SOTA Pipeline Runtime Inicializado[/]\n"
-        f"[bold white]Job ID:[/] {job_id}\n"
-        f"[bold white]Archivo:[/] {source_path}",
-        title="[bold blue]TPS Control Plane[/]"
-    ))
-
-    with Status("[bold yellow]Validando identidad genética en FSM...", console=console) as status:
-        snapshot = pipeline.state_store.load(job.job_id)
-        if snapshot:
-            status.update(f"[bold cyan]Snapshot de FSM detectado ({snapshot.state_value}). Aplicando Resume Macro...[/]")
-        else:
-            status.update("[bold green]Línea de tiempo limpia. Inicializando contexto documental...[/]")
-        await asyncio.sleep(0.5)
+    await cached_provider.initialize()
 
     try:
+        dispatcher = AsyncDispatcher(
+            context_resolver=DummyContextResolver(),
+            prompt_builder=prompt_builder,
+            provider_stack=cached_provider,
+            concurrency=10
+        )
+        
+        chunker_adapter = ChunkerProtocolAdapter(estimator=estimator)
+        pipeline = build_pipeline(chunker=chunker_adapter, dispatcher=dispatcher)
+        job = TranslationJob(job_id=job_id, source_path=source_path)
+
+        console.print(Panel(
+            f"[bold green]SOTA Pipeline Runtime Inicializado (Fase 14)[/]\n"
+            f"[bold white]Job ID:[/] {job_id}\n"
+            f"[bold white]Archivo:[/] {source_path}",
+            title="[bold blue]TPS Control Plane[/]"
+        ))
+
+        with Status("[bold yellow]Validando identidad genética en FSM...", console=console) as status:
+            snapshot = pipeline.state_store.load(job.job_id)
+            if snapshot:
+                status.update(f"[bold cyan]Snapshot de FSM detectado ({snapshot.state_value}). Aplicando Resume Macro...[/]")
+            else:
+                status.update("[bold green]Línea de tiempo limpia. Inicializando contexto documental...[/]")
+            await asyncio.sleep(0.5)
+
         with Status("[bold magenta]Ejecutando Fase de Parseo Estructural...[/]", console=console) as macro_status:
             def update_ux_boundary():
                 if job.current_step == PipelineStep.CHUNKING:
@@ -124,7 +151,6 @@ async def handle_translate_async(args):
         table.add_row("Ahorro por Uso de Caché (USD)", f"${result.summary.cost_saved_by_cache_usd:.6f}")
         table.add_row("Eficiencia de Caché (Hit Ratio)", f"{result.summary.cache_hit_ratio * 100:.2f}%")
         
-        # Inyección dinámica de métricas de la Fase 13 si existen
         if chunker_adapter.last_report:
             table.add_row("Grupos Semánticos Lógicos", str(chunker_adapter.last_report.total_groups))
             table.add_row("Eventos de Desbordamiento (Split)", str(chunker_adapter.last_report.overflow_events))
@@ -133,14 +159,14 @@ async def handle_translate_async(args):
 
     except Exception as err:
         console.print(f"\n[bold red]✖ COLAPSO DEL RUNTIME:[/] {str(err)}")
+        import traceback
+        traceback.print_exc()
         sys.exit(1)
 
 def handle_translate(args):
-    """Punto de entrada síncrono para el bucle asíncrono."""
     asyncio.run(handle_translate_async(args))
 
 def handle_resume(args):
-    """Revoca el aislamiento de cuarentena de un documento estancado."""
     from runtime.resumer import OnDemandResumeManager
     resumer = OnDemandResumeManager()
     console.print(f"[bold yellow]Emitiendo orden de rescate para documento {args.document_id}...[/]")
@@ -151,7 +177,6 @@ def handle_resume(args):
         console.print("[bold red]No se pudo reanudar el documento. Verifique locks relacionales.[/]")
 
 def handle_status(args):
-    """Inspecciona y renderiza los metadatos de la FSM relacional."""
     from infra.db.fsm_repository import FSMRepository
     with get_connection("infra/db/fsm.db") as conn:
         repo = FSMRepository(conn)
@@ -168,31 +193,23 @@ def handle_status(args):
         table.add_row("Estado de Suspensión Interno", str(status.suspended_state or "Ninguno"))
         console.print(table)
 
-# =====================================================================
-# CONFIGURACIÓN DEL ENRUTADOR SINTÁCTICO (ARGPARSE)
-# =====================================================================
-
 def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="SOTA PDF Translator CLI")
     subparsers = parser.add_subparsers(dest="command", required=True, help="Comandos operacionales:")
     
-    # Subcomando: translate
     t_parser = subparsers.add_parser("translate", help="Ejecuta el pipeline completo de traducción.")
     t_parser.add_argument("file_path", type=str, help="Ruta física al archivo PDF de entrada.")
     t_parser.add_argument("--job-id", type=str, default=None, help="Fuerza un ID único de ejecución.")
     t_parser.set_defaults(func=handle_translate)
     
-    # Subcomando: sweep
     sw_parser = subparsers.add_parser("sweep", help="Ejecuta un barrido manual de procesos zombies en la FSM.")
     sw_parser.set_defaults(func=handle_sweep)
     
-    # Subcomando: resume
     r_parser = subparsers.add_parser("resume", help="Levanta la cuarentena de un documento congelado en STALLED.")
     r_parser.add_argument("document_id", type=str, help="ID del documento.")
     r_parser.add_argument("ast_hash", type=str, help="Firma SHA256 genética del árbol AST.")
     r_parser.set_defaults(func=handle_resume)
     
-    # Subcomando: status
     st_parser = subparsers.add_parser("status", help="Inspecciona el estado físico del documento en la FSM.")
     st_parser.add_argument("document_id", type=str, help="ID del documento.")
     st_parser.add_argument("ast_hash", type=str, help="Firma SHA256 genética del árbol AST.")

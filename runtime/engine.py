@@ -7,9 +7,6 @@ import random
 import logging
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from apps.llm_workers.gemini_client import GeminiClient
-from apps.llm_workers.chunk_processor import ChunkProcessor
 from core.metrics.metrics import Metrics
 
 from infra.db.fsm_repository import FSMRepository
@@ -36,6 +33,8 @@ import typing
 from concurrent.futures import ThreadPoolExecutor
 import threading
 from core.normalization.latex_sanitizer import InlineMathProtector
+
+
 
 
 logger = logging.getLogger(__name__)
@@ -66,9 +65,30 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
     cmd_handler = DocumentCommandHandler(fsm_repo, task_repo=task_repo)
     ast_registry = ASTRegistry()
     
-    client = GeminiClient()
-    metrics = Metrics()
-    processor = ChunkProcessor(client, metrics)
+    # SOTA: Instanciación Singleton del Bridge para aislamiento Thread-Safe
+    from apps.llm_workers.sync_bridge import SyncProviderBridge
+    from apps.llm_workers.adapters import GroqProvider
+    from apps.llm_workers.resilient_provider import ResilientProvider
+    from core.resilience.circuit_breaker import CircuitBreakerRegistry
+    from apps.llm_workers.rate_limiter import RateLimitedProvider, QuotaManager
+    from apps.llm_workers.prompt_builder import PromptBuilder
+    from core.ast.models import FastWordEstimator
+
+    api_key = os.getenv("GROQ_API_KEY")
+    if not api_key:
+        raise RuntimeError("GROQ_API_KEY no configurada. Imposible operar motor LLM.")
+
+    estimator = FastWordEstimator()
+    builder = PromptBuilder(model_name="llama3-70b-8192", prompt_version="v1.0", estimator=estimator)
+    
+    groq_provider = GroqProvider(api_key=api_key)
+    breaker = CircuitBreakerRegistry.get_breaker("groq")
+    resilient = ResilientProvider(groq_provider, breaker)
+    quota = QuotaManager(rpm_limit=30, tpm_limit=6000)
+    rate_provider = RateLimitedProvider(resilient, quota)
+    
+    # SOTA: Se elimina 'metrics = Metrics()' para limpiar el scope de variables zombis
+    processor = SyncProviderBridge(async_provider=rate_provider, prompt_builder=builder)
     owner_id = f"orchestrator_{uuid.uuid4().hex[:8]}"
 
     cache_key = (document_id, ast_hash)
@@ -135,8 +155,7 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
                     th_event_repo = EventPlaneRepository(th_evt_conn)
                     th_mat_repo = MaterializedPlaneRepository(th_mat_conn)
                     
-                    # Thread-Local Processor: Corta race conditions en sesiones y caché mutable
-                    local_processor = ChunkProcessor(client, metrics)
+                    local_processor = processor  # SOTA: Referencia compartida Thread-Safe
                     
                     try:
                         while True:
@@ -337,6 +356,9 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
     # Bloque terminal de run_pipeline con recolección de conexiones determinista
     total_time = time.time() - pipeline_start
     final_state_val = current_state.value if current_state else "UNKNOWN"
+
+    # SOTA: Destrucción explícita del hilo daemon y Event Loop
+    processor.shutdown()
     
     for conn in (fsm_conn, queue_conn, evt_conn, mat_conn):
         try:

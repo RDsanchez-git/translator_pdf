@@ -1,23 +1,32 @@
 import unittest
-from unittest.mock import AsyncMock
-from core.ast.models import TranslationUnit, TranslatedUnit, TranslationTaskType
+import asyncio
+from unittest.mock import AsyncMock, MagicMock
+from core.ast.models import TranslationUnit, TranslationTaskType
 from apps.llm_workers.dispatcher import AsyncDispatcher
 from core.execution.exceptions import ChunkExecutionError
 
+# SOTA: Contratos de la nueva arquitectura de Proveedores
+from apps.llm_workers.routing import ProviderResult
+from apps.llm_workers.prompt_builder import PromptEnvelope, PromptBuilder
+
 class TestAsyncDispatcher(unittest.IsolatedAsyncioTestCase):
-    """SOTA: Certificación del orquestador concurrente unificado (Fase 10C.7)."""
+    """SOTA: Certificación del orquestador concurrente unificado (Fase 14)."""
 
     def setUp(self):
-        self.mock_worker = AsyncMock()
-        self.mock_cache = AsyncMock()
-        # Cache Miss por defecto para mantener la retrocompatibilidad de los tests previos
-        self.mock_cache.get.return_value = None
+        self.mock_provider = AsyncMock()
+        
+        # SOTA: Inyección de contexto y estimador falsos para aislar al orquestador
+        self.mock_resolver = MagicMock()
+        self.mock_resolver.resolve.return_value = MagicMock(breadcrumbs=(), depth=0)
+        
+        mock_estimator = MagicMock()
+        mock_estimator.estimate.return_value = 5
+        self.prompt_builder = PromptBuilder(model_name="fake-gemini", prompt_version="v1.0", estimator=mock_estimator)
         
         self.dispatcher = AsyncDispatcher(
-            worker=self.mock_worker,
-            cache=self.mock_cache,
-            model_name="fake-gemini",
-            prompt_version="v1.0"
+            context_resolver=self.mock_resolver,
+            prompt_builder=self.prompt_builder,
+            provider_stack=self.mock_provider
         )
 
     def _create_mock_unit(self, chunk_index: int, chunk_type: TranslationTaskType) -> TranslationUnit:
@@ -35,89 +44,74 @@ class TestAsyncDispatcher(unittest.IsolatedAsyncioTestCase):
             payload_sha256=f"hash_{chunk_index}"
         )
 
-    def _mock_translate_side_effect(self, unit: TranslationUnit) -> TranslatedUnit:
-        return TranslatedUnit(
-            chunk_index=unit.chunk_index,
-            chunk_id=unit.chunk_id,
-            chunk_type=unit.chunk_type.value if hasattr(unit.chunk_type, "value") else unit.chunk_type,
-            source_sequence_range=unit.source_sequence_range,
-            translated_payload=f"MOCK::{unit.target_payload}",
-            payload_sha256=unit.payload_sha256,
-            model_name="fake-gemini",
-            prompt_version="v1.0",
+    def _mock_translate_side_effect(self, envelope: PromptEnvelope) -> ProviderResult:
+        """SOTA: Responde estrictamente al contrato del LLMProvider."""
+        return ProviderResult(
+            chunk_id=envelope.chunk_id,
+            translated_text=f"MOCK::{envelope.raw_payload}",
             input_tokens=5,
             output_tokens=5,
-            latency_ms=10.0
+            latency_ms=10.0,
+            finish_reason="stop"
         )
-
-    async def test_case_A_all_passthrough(self):
-        units = [self._create_mock_unit(i, TranslationTaskType.PRESERVE) for i in range(1, 4)]
-        results = await self.dispatcher.dispatch(units)
-        self.mock_worker.translate.assert_not_called()
-        self.assertEqual(len(results), 3)
-        self.assertEqual(results[0].model_name, "bypass_passthrough")
-
-    async def test_case_B_all_translate(self):
-        units = [self._create_mock_unit(i, TranslationTaskType.TRANSLATE) for i in range(1, 4)]
-        self.mock_worker.translate.side_effect = self._mock_translate_side_effect
-        
-        results = await self.dispatcher.dispatch(units)
-        
-        # Corrección: Validar la densidad del lote de salida para consumir la variable
-        self.assertEqual(len(results), 3)
-        self.assertEqual(self.mock_worker.translate.call_count, 3)
-        self.mock_cache.set.assert_called() # Certifica el guardado pos-miss
-
-    async def test_case_C_mixed_payloads(self):
-        units = [
-            self._create_mock_unit(1, TranslationTaskType.TRANSLATE),
-            self._create_mock_unit(2, TranslationTaskType.PRESERVE),
-            self._create_mock_unit(3, TranslationTaskType.TRANSLATE)
-        ]
-        self.mock_worker.translate.side_effect = self._mock_translate_side_effect
-        results = await self.dispatcher.dispatch(units)
-        self.assertEqual(self.mock_worker.translate.call_count, 2)
-        self.assertEqual(results[1].model_name, "bypass_passthrough")
 
     async def test_case_D_worker_failure(self):
         units = [self._create_mock_unit(1, TranslationTaskType.TRANSLATE)]
-        self.mock_worker.translate.side_effect = ConnectionError("Simulated Network Drop")
+        self.mock_provider.translate.side_effect = ConnectionError("Simulated Network Drop")
+        
         with self.assertRaises(ChunkExecutionError):
             await self.dispatcher.dispatch(units)
 
     async def test_case_E_out_of_order_resolution(self):
-        import asyncio
         units = [self._create_mock_unit(i, TranslationTaskType.TRANSLATE) for i in range(1, 4)]
-        async def _variable_latency(unit):
-            if unit.chunk_index == 1:
+        
+        async def _variable_latency(envelope: PromptEnvelope):
+            # Extrae el índice del chunk_id (e.g. "chunk_0001")
+            index = int(envelope.chunk_id.split('_')[1])
+            if index == 1:
                 await asyncio.sleep(0.04)
-            elif unit.chunk_index == 2:
+            elif index == 2:
                 await asyncio.sleep(0.01)
-            return self._mock_translate_side_effect(unit)
-        self.mock_worker.translate.side_effect = _variable_latency
+            return self._mock_translate_side_effect(envelope)
+            
+        self.mock_provider.translate.side_effect = _variable_latency
         results = await self.dispatcher.dispatch(units)
+        
         self.assertEqual(results[0].chunk_index, 1)
         self.assertEqual(results[2].chunk_index, 3)
 
     async def test_case_F_passthrough_with_simultaneous_failure(self):
         units = [self._create_mock_unit(1, TranslationTaskType.PRESERVE), self._create_mock_unit(2, TranslationTaskType.TRANSLATE)]
-        self.mock_worker.translate.side_effect = ConnectionError("Timeout")
+        self.mock_provider.translate.side_effect = ConnectionError("Timeout")
+        
         with self.assertRaises(ChunkExecutionError) as context:
             await self.dispatcher.dispatch(units)
-        self.assertEqual(context.exception.chunk_index, 2)
+        # SOTA: El error detona en el chunk 1 porque el orquestador ya no filtra los PRESERVE
+        self.assertEqual(context.exception.chunk_index, 1)
 
     async def test_case_G_duplicate_chunk_index_rejected(self):
         units = [self._create_mock_unit(5, TranslationTaskType.TRANSLATE), self._create_mock_unit(5, TranslationTaskType.PRESERVE)]
+        
         with self.assertRaises(ValueError):
             await self.dispatcher.dispatch(units)
 
-    async def test_case_H_cache_hit_bypass_worker(self):
-        """10C.7.1: Certifica que ante un hit de caché se evite la llamada al LLM y la latencia sea cero."""
+    async def test_case_H_provider_result_mapping(self):
+        """SOTA: Certifica el mapeo estructural desde ProviderResult hacia TranslatedUnit."""
         unit = self._create_mock_unit(1, TranslationTaskType.TRANSLATE)
-        self.mock_cache.get.return_value = "Payload recuperado limpio desde cache"
+        
+        self.mock_provider.translate.return_value = ProviderResult(
+            chunk_id=unit.chunk_id,
+            translated_text="Mapeo perfecto",
+            input_tokens=100,
+            output_tokens=200,
+            latency_ms=150.0,
+            finish_reason="stop"
+        )
     
         results = await self.dispatcher.dispatch([unit])
     
         self.assertEqual(len(results), 1)
-        # Sincronización exacta del assert con el mock perimetral limpio
-        self.assertEqual(results[0].translated_payload, "Payload recuperado limpio desde cache")
+        self.assertEqual(results[0].translated_payload, "Mapeo perfecto")
+        self.assertEqual(results[0].input_tokens, 100)
+        self.assertEqual(results[0].output_tokens, 200)
+        self.assertEqual(results[0].latency_ms, 150.0)

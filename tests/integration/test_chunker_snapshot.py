@@ -3,7 +3,7 @@ import json
 import logging
 import unittest
 from core.ast.models import ASTNode, ContentNodeType, StructuralNodeType, FastWordEstimator
-from core.ast.hashing import build_semantic_chunks_as_units, ChunkPolicy
+from core.ast.hashing import build_semantic_chunks_as_units
 
 logger = logging.getLogger(__name__)
 
@@ -72,4 +72,7 @@ class TestChunkerSnapshot(unittest.TestCase):
             self.assertEqual(actual["chunk_id"], expected["chunk_id"], f"Regresión de ID en chunk {actual['chunk_index']}.")
             self.assertEqual(actual["payload_sha256"], expected["payload_sha256"], f"Regresión criptográfica en chunk {actual['chunk_index']}.")
             self.assertEqual(actual["target_payload"], expected["target_payload"], f"Regresión de Payload en chunk {actual['chunk_index']}.")
-            self.assertEqual(actual["context_id"], expected["context_id"], f"Regresión de Frontera Lógica (Contexto) en chunk {actual['chunk_index']}.")
+            
+            # SOTA: Retrocompatibilidad con snapshots previos a la Fase 13
+            if "context_id" in expected:
+                self.assertEqual(actual["context_id"], expected["context_id"], f"Regresión de Frontera Lógica (Contexto) en chunk {actual['chunk_index']}.")

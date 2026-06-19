@@ -1,69 +1,64 @@
 import pytest
-from typing import Dict, Optional
-from core.ast.models import TranslationUnit, TranslatedUnit, TranslationTaskType
+from unittest.mock import MagicMock
+from core.ast.models import TranslationUnit, TranslationTaskType
 from apps.llm_workers.dispatcher import AsyncDispatcher
-from apps.llm_workers.cache import SQLiteTranslationCache
 from core.execution.exceptions import ChunkValidationError, DocumentValidationError
 
+# SOTA: Importaciones de los contratos del Provider Stack (Fase 14)
+from apps.llm_workers.routing import LLMProvider, ProviderResult
+from apps.llm_workers.prompt_builder import PromptEnvelope, PromptBuilder
+
 # ==============================================================================
-# Mocks Locales de Infraestructura (E/S y Red Aisladas)
+# Mocks de Infraestructura (E/S y Red Aisladas)
 # ==============================================================================
 
-class IntegrationMockCache(SQLiteTranslationCache):
-    def __init__(self) -> None:
-        self.store: Dict[str, str] = {}
-        
-    async def get(self, payload_sha256: str, model_name: str, prompt_version: str) -> Optional[str]:
-        return self.store.get(payload_sha256)
-
-    async def set(self, payload_sha256: str, model_name: str, prompt_version: str, translated_payload: str) -> None:
-        self.store[payload_sha256] = translated_payload
-
-class BaseMockWorker:
-    """Clase base genérica para la integración"""
-    async def translate(self, unit: TranslationUnit) -> TranslatedUnit:
-        raise NotImplementedError
-
-class IntegrationMockWorker(BaseMockWorker):
+class StaticMockProvider(LLMProvider):
+    """SOTA: Simula respuestas estáticas del LLM respetando el contrato de la Fase 14."""
     def __init__(self, output_text: str):
         self.output_text = output_text
 
-    async def translate(self, unit: TranslationUnit) -> TranslatedUnit:
-        return TranslatedUnit(
-            chunk_index=unit.chunk_index, 
-            chunk_id=unit.chunk_id, 
-            chunk_type=unit.chunk_type.value if hasattr(unit.chunk_type, "value") else unit.chunk_type,
-            source_sequence_range=unit.source_sequence_range, 
-            translated_payload=self.output_text,
-            payload_sha256=unit.payload_sha256, 
-            model_name="mock_llm", 
-            prompt_version="1.0",
-            input_tokens=10, 
-            output_tokens=10, 
-            latency_ms=10.0
+    async def translate(self, envelope: PromptEnvelope) -> ProviderResult:
+        return ProviderResult(
+            chunk_id=envelope.chunk_id,
+            translated_text=self.output_text,
+            input_tokens=10,
+            output_tokens=10,
+            latency_ms=10.0,
+            finish_reason="stop"
         )
 
-class SequenceMockWorker(BaseMockWorker):
+class SequenceMockProvider(LLMProvider):
+    """SOTA: Simula respuestas secuenciales del LLM."""
     def __init__(self, outputs: list[str]):
         self.outputs = outputs
         self.calls = 0
 
-    async def translate(self, unit: TranslationUnit) -> TranslatedUnit:
+    async def translate(self, envelope: PromptEnvelope) -> ProviderResult:
         out = self.outputs[self.calls]
         self.calls += 1
-        return TranslatedUnit(
-            chunk_index=unit.chunk_index, 
-            chunk_id=unit.chunk_id, 
-            chunk_type=unit.chunk_type.value if hasattr(unit.chunk_type, "value") else unit.chunk_type,
-            source_sequence_range=unit.source_sequence_range, 
-            translated_payload=out,
-            payload_sha256=unit.payload_sha256, 
-            model_name="mock_llm", 
-            prompt_version="1.0",
-            input_tokens=10, 
-            output_tokens=10, 
-            latency_ms=10.0
+        return ProviderResult(
+            chunk_id=envelope.chunk_id,
+            translated_text=out,
+            input_tokens=10,
+            output_tokens=10,
+            latency_ms=10.0,
+            finish_reason="stop"
         )
+
+def build_test_dispatcher(provider: LLMProvider) -> AsyncDispatcher:
+    """Fábrica de inyección de dependencias para el Dispatcher aislado."""
+    mock_resolver = MagicMock()
+    mock_resolver.resolve.return_value = MagicMock(breadcrumbs=(), depth=0)
+    
+    mock_estimator = MagicMock()
+    mock_estimator.estimate.return_value = 5
+    prompt_builder = PromptBuilder(model_name="mock_llm", prompt_version="v1.0", estimator=mock_estimator)
+    
+    return AsyncDispatcher(
+        context_resolver=mock_resolver,
+        prompt_builder=prompt_builder,
+        provider_stack=provider
+    )
 
 # ==============================================================================
 # Suite de Pruebas de Integración (End-to-End)
@@ -71,9 +66,8 @@ class SequenceMockWorker(BaseMockWorker):
 
 @pytest.mark.anyio
 async def test_integration_hard_fail_on_unbalanced_braces():
-    worker = IntegrationMockWorker(output_text="{unbalanced brace")
-    cache = IntegrationMockCache()
-    dispatcher = AsyncDispatcher(worker, cache, "model", "v1")
+    provider = StaticMockProvider(output_text="{unbalanced brace")
+    dispatcher = build_test_dispatcher(provider)
     
     unit = TranslationUnit(
         chunk_index=1, chunk_id="id1", chunk_fingerprint="fp1",
@@ -86,15 +80,12 @@ async def test_integration_hard_fail_on_unbalanced_braces():
     with pytest.raises(ChunkValidationError) as exc:
         await dispatcher.dispatch([unit])
 
-    # Corrección: Evaluación directa sobre el atributo del objeto
     assert exc.value.invariant_id == "UNBALANCED_BRACES_OPEN"
-    assert "sha_brace" not in cache.store
 
 @pytest.mark.anyio
 async def test_integration_preservation_fail_on_missing_doi():
-    worker = IntegrationMockWorker(output_text="Some text without DOI")
-    cache = IntegrationMockCache()
-    dispatcher = AsyncDispatcher(worker, cache, "model", "v1")
+    provider = StaticMockProvider(output_text="Some text without DOI")
+    dispatcher = build_test_dispatcher(provider)
     
     unit = TranslationUnit(
         chunk_index=1, chunk_id="id2", chunk_fingerprint="fp2",
@@ -108,15 +99,12 @@ async def test_integration_preservation_fail_on_missing_doi():
     with pytest.raises(ChunkValidationError) as exc:
         await dispatcher.dispatch([unit])
         
-    # Corrección: Evaluación directa sobre el atributo del objeto
     assert exc.value.invariant_id == "PI-01"
-    assert "sha_doi" not in cache.store
 
 @pytest.mark.anyio
 async def test_integration_warning_does_not_block():
-    worker = IntegrationMockWorker(output_text="El valor es")
-    cache = IntegrationMockCache()
-    dispatcher = AsyncDispatcher(worker, cache, "model", "v1")
+    provider = StaticMockProvider(output_text="El valor es")
+    dispatcher = build_test_dispatcher(provider)
     
     unit = TranslationUnit(
         chunk_index=1, chunk_id="id3", chunk_fingerprint="fp3",
@@ -129,13 +117,11 @@ async def test_integration_warning_does_not_block():
     
     result = await dispatcher.dispatch([unit])
     assert len(result) == 1
-    assert "sha_warn" in cache.store
 
 @pytest.mark.anyio
 async def test_integration_perimeter_fail_on_markdown():
-    worker = IntegrationMockWorker(output_text="```latex\nE=mc^2\n```")
-    cache = IntegrationMockCache()
-    dispatcher = AsyncDispatcher(worker, cache, "model", "v1")
+    provider = StaticMockProvider(output_text="```latex\nE=mc^2\n```")
+    dispatcher = build_test_dispatcher(provider)
     
     unit = TranslationUnit(
         chunk_index=1, chunk_id="id4", chunk_fingerprint="fp4",
@@ -148,18 +134,15 @@ async def test_integration_perimeter_fail_on_markdown():
     with pytest.raises(ChunkValidationError) as exc:
         await dispatcher.dispatch([unit])
         
-    # Corrección: Evaluación directa sobre el atributo del objeto
     assert exc.value.invariant_id == "PeI-01"
-    assert "sha_mark" not in cache.store
 
 @pytest.mark.anyio
 async def test_integration_document_level_pi04_fail():
-    worker = SequenceMockWorker([
+    provider = SequenceMockProvider([
         r"\label{sec1}",
         r"\ref{sec2}"
     ])
-    cache = IntegrationMockCache()
-    dispatcher = AsyncDispatcher(worker, cache, "model", "v1")
+    dispatcher = build_test_dispatcher(provider)
     
     units = [
         TranslationUnit(
@@ -181,5 +164,4 @@ async def test_integration_document_level_pi04_fail():
     with pytest.raises(DocumentValidationError) as exc:
         await dispatcher.dispatch(units)
         
-    # Corrección: Aserción desacoplada del stringificador por contrato unificado
     assert exc.value.invariant_id == "PI-04"

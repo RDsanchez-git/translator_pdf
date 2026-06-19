@@ -1,0 +1,10 @@
+Metadata-Version: 2.4
+Name: translator-pdf
+Version: 0.1.0
+Summary: SOTA PDF Translator with Hexagonal Pipeline and FSM Resilience
+Classifier: Programming Language :: Python :: 3
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+Requires-Dist: rich>=13.0.0
+Requires-Dist: pydantic>=2.0.0

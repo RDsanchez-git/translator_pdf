@@ -1,0 +1,147 @@
+Quarterly Review of Economics and Finance 88 (2023) 215–227 
+
+
+![](tests/fixtures/sample_3_pages.pdf_assets/sample_3_pages.pdf-0001-01.png)
+
+
+Contents lists available at ScienceDirect 
+
+## Quarterly Review of Economics and Finance 
+
+journal homepage: www.elsevier.com/locate/qref 
+
+
+![](tests/fixtures/sample_3_pages.pdf_assets/sample_3_pages.pdf-0001-05.png)
+
+
+## Real exchange rate misalignments and economic growth in Tunisia: New evidence from a threshold analysis of asymmetric adjustments[☆] 
+
+
+![](tests/fixtures/sample_3_pages.pdf_assets/sample_3_pages.pdf-0001-07.png)
+
+
+Thouraya Hadj Amor[a][,][e] , Ridha Nouira[b] , Christophe Rault[c][,][⁎][,][1] , Anamaria Diana Sova[d] 
+
+> a _Business Administration departement, Shaqra University, Saudi Arabia_ 
+
+> b _ISFF and LAMIDED Sousse University, Tunisia_ 
+
+> c _LEO, Université d_ ′ _Orléans, Rue de Blois-B.P. 6739, 45067 Orléans Cedex 2, France_ 
+
+> d _Brunel University London, United Kingdom_ 
+
+> e _Economics departement- EAS,University of Monastir, Tunisia_ 
+
+|a r t i c l e i n f o|a b s t r a c t|
+|---|---|
+|_Article history:_|In this paper, we focus on both the impact of real exchange rate (RER) misalignments on economic growth|
+|Received 18 February 2021|and the assessment of misalignments’ thresholds in the case of Tunisia. Our contribution to the literature is|
+|Received in revised form 22 January 2023<br>Accepted 26 January 2023<br>Available online 27 January 2023|threefold. First, we reassess the main factors driving the equilibrium RER using a dynamic model approach.<br>Second, we investigate the possible asymmetric effects of real misalignment on economic growth in Tunisia<br>using the non-linear autoregressive distributed lag (NARDL) estimator developed by Shin et al. (2014) which|
+|_JEL Classifcation:_<br>F31|takes into account the nonlinearity in the relationship between exchange rate misalignments and economic<br>growth. Third, using a threshold model inspired by Hansen (2000), we identify the level of misalignments of|
+|F43|the Tunisian dinar that can enhance (or hamper) economic growth. Our main fndings are the following: i)|
+|F41|the Tunisian dinar has experienced periods of overvaluation and undervaluation during the 2001–2016|
+|C10|period; ii) there is a negative impact of real overvaluation of the dinar on Tunisia’s growth performance,|
+|O55|while an undervaluation has no signifcant impact; iii) there exists a threshold for the effects of RER|
+||misalignment on growth. Specifcally, real undervaluation promotes growth until an estimated threshold of|
+|_Keywords:_|10.02% deviation from the equilibrium RER has been reached, while an overvaluation can boost growth until|
+|Growth<br>Exchange rate misalignments<br>Non-linearities|a 9.02% threshold is reached. These fndings have important implications from a policymaker’s perspective.<br>© 2023 Board of Trustees of the University of Illinois. Published by Elsevier Inc. All rights reserved.|
+|NARDL||
+|Thresholds||
+|Tunisia||
+
+
+
+## **1. Introduction** 
+
+After 2010, the Tunisian economic convergence process experienced a remarkable slowdown. Indeed, this period was marked by an instability of the social climate and a considerable deterioration of security. The increase in demand, which exerted pressure on prices, was explained mainly by the increase in private consumption supported by the exaggerated creation of jobs in the public sector and 
+
+- ☆ We are grateful to two anonymous referees for very useful suggestions on pre- 
+
+- vious versions of the paper. 
+
+- ⁎ Corresponding author. 
+
+- _E-mail addresses:_ t.amor@su.edu.sa, hathouraya@yahoo.fr (T.H. Amor), 
+
+- nouira.ridha75@gmail.com (R. Nouira), chrault@hotmail.com (C. Rault), AnamariaDiana.Sova@brunel.ac.uk (A.D. Sova). 
+
+- 1 Website: http://chrault3.free.fr. 
+
+thus the increase in the wage bill. On the contrary, the private sector has been marked by a deterioration of its economic activity. 
+
+Social unrest as well as the deterioration of security, also intensified by the Libyan crisis, affected external payments. Against this background, the current account deficit increased considerably, going on average from 3.1% of GDP between 2006 and 2010–9.1% of GDP between 2013 and 2017. The trade deficit deteriorated from 13.2% of GDP in 2010–16% of GDP in 2017. This mainly was down to security problems in 2011, the slowdown in the productive activity of the extractive industries, in particular the industrial phosphate sector in Gafsa, and the uncontrolled imports of consumer goods. In addition, the decline in investments in oil and gas exploration has increased the energy balance deficit in recent years. 
+
+Tunisia entered the COVID-19 pandemic crisis with a slow rate of economic growth and rising debt levels and it has been strongly affected by the crisis due to its heavy dependence on Europe. The depth of the pandemic’s impact on the Tunisian economy became 
+
+https://doi.org/10.1016/j.qref.2023.01.007 
+
+1062-9769/© 2023 Board of Trustees of the University of Illinois. Published by Elsevier Inc. All rights reserved. 
+
+_T.H. Amor, R. Nouira, C. Rault et al._ 
+
+_Quarterly Review of Economics and Finance 88 (2023) 215–227_ 
+
+more apparent at the end of 2020. Indeed, real GDP contracted by 8.8% in 2020 due to the general decline in economic activity, characterized by a decrease of production in the main sectors, in the service sector (including tourism), investment and exports. Unemployment increased from 15% prior to the pandemic to 17.8% by the end of the first quarter of 2021. The current account stabilized at a deficit of 8.1% of GDP in 2020. Total exports in 2020 declined 11.7% compared to 2019 (World Bank, 2019, 2021). 
+
+In this context, the macroeconomic balance and the external competitiveness of any country remain dependent on an adjustment of the real value of the exchange rate and its equilibrium value, a necessity which is explained by the harmful consequences of the recurrent and persistent misalignments, which can lead to structural imbalances in the labor market and the market for tradable and nontradable goods (Elfathaoui, 2019). Indeed, the evolution of the international financial integration process has engendered a growing disconnection between RER variability and growth (Hadj Amor, 2009; Béreau et al., 2012) A large volume of literature has highlighted the importance of closely observing the exchange rate for countries in transition such as Tunisia, and that it may also be used as a regulatory measure to mitigate, if not eliminate, the adverse effects of an overvalued exchange rate (Derbali, 2021). 
+
+In the Tunisian context, the question of the misalignment of the real exchange rate, defined as the deviation of the real effective exchange rate from its equilibrium level, and its impact on economic growth has been the subject of debate for some time for many reasons, a debate that has been accentuated after the adoption of a more flexible exchange regime. Indeed, since 1990, the Central Bank of Tunisia (CBT) has opted for a flexible exchange rate policy accompanied by more economic liberalization in Tunisia, aimed at giving exchange rate policy a more active role. The objective was to improve the competitiveness of the national economy while stabilizing the Tunisian dinar (Balazs et al., 2014). 
+
+The last deterioration in Tunisian economic conditions, as noted above, may point toward a possible RER distortion. Given the seriousness of the consequences of a potential misalignment of the economy, the Tunisian monetary authorities must prioritize and analyze the question of the misalignment of the Tunisian RER and its effects on economic growth. 
+
+Tunisia, as a small open economy, has been committed since 2011 to a New Operational Framework, based on monetary autonomy and the transition from crawling peg to crawling band. Furthermore, in recent years, the dinar, the national currency of Tunisia, has recorded a strong depreciation of its value vis-à-vis other foreign currencies. More recently, especially after the Jasmine Revolution of 2011, the Tunisian dinar broke its historic record and has depreciated against the euro and the US dollar. While the depreciation of the dinar, in a partial equilibrium model of the trade balance, can increase net exports with some partner countries, under the assumption that there is room for the export sector to grow (Bahmani-Oskooee et al., 2017, 2019), its benefits might not outweigh the negative impact of an undervaluation on the real economy, given that the value of the currency is lower than it should be in equilibrium or severely depreciated. 
+
+Since October 2017, and to fight against the decline in foreign currency assets, economic actors importing non-essential consumer goods have no right to use bank loans for these operations. Tunisia’s external debt increased considerably to reach 70% of GDP at the end of 2016. Such external debt was expected to bear various shocks, except for the significant depreciation of the real exchange rate (IMF, 2017). In November 2017, foreign exchange reserves were at the level of covering 90 days of imports of goods and services. The Tunisian public debt, 70% of which is external, has risen from 72% of GDP in 2019–87% of GDP in 2020, which is well above the emerging market debt burden benchmark of 70% of GDP (Central Bank of Tunisia (CBT) and National Institute of Statistics (NIS), 2020). 
+
+Although some studies have shown the costs of exchange rate undervaluation on economic growth (Grekou, 2015, 2018a; Chen, 2017; Morvillier, 2020), many developing countries have relied on an undervalued real exchange rate to boost their exports (Levy-Yeyati & Sturzzenegger, 2007; Elbadawi et al., 2012; Rodrik, 2009; Korinek & Serven, 2010; Iyke & Odhiambo, 2015; Habib et al., 2017; Mazorodze & Tewari, 2018), but in the aftermath of the global financial crisis an intense debate has emerged on the associated merits of these export-led growth strategies. Since global economic prospects are weaker than in the past, there is a greater uncertainty about the capacity of advanced economies to continue to absorb developing countries’ exports. Additionally, if the real exchange rate is kept too low for too long, export-led growth strategies based on currency undervaluation are likely to result in costs for the aggregate economy. In this context, the relationship between real exchange misalignment (REM), i.e. the deviation between the Real Exchange Rate (RER) and its equilibrium level, and the real economy, has been the focus of recent macroeconomic policy discussions in Tunisia. There have been many debates among Tunisian economic analysts about the causes of the depreciation of the RER and the extent to which it reflects changes in Tunisia’s macroeconomic fundamentals, underlining the need to reassess the main determinants of the equilibrium RER, the degree of the distortion of Tunisia’s dinar and to what extent the misalignment of the Tunisian currency affects its growth performance. 
+
+Theoretically, there is an ongoing debate on whether RER misalignments impede or facilitate economic growth. Related literature revolves around two main axes: through the Washington Consensus (WC), Williamson (1990) defends an RER close to its equilibrium level and consistent in the medium term with macroeconomic objectives that stimulate growth. On the contrary, the hypothesis of growth driven by exports highlights the asymmetric nature of the misalignments. Indeed, economic growth is hampered by overvaluations while being encouraged by currency undervaluation. 
+
+Currency undervaluation promotes growth through faster capital accumulation, technological change and information spillovers to other firms and industries in the economy. Indeed, recent empirical literature that incorporates non-linearities in the analysis of the RER–growth nexus suggests that overvaluations and undervaluations may affect differently on growth (Hadj Amor & Sarkar, 2009; Hadj Amor, 2009; Nouira & Sekkat, 2012; Schroder, 2013), while the level of the RER misalignment also matters (Aguirre & Calderon, 2005; Couharde & Sallenave, 2013; Tipoy et al., 2018). 
+
+Some studies focused on Tunisia have discussed the questions of equilibrium RER and misalignment. Charfi (2008) estimated the equilibrium real exchange rate of the Dinar from 1983 to 2000, using quarterly data, based on the following fundamental variables: terms of trade; net capital inflows; and the differential of productivity. The results showed that the Tunisian dinar was overvalued before the 1986 devaluation and became close to its equilibrium value during the 90 s. At the beginning of this century (2000), the authorities permitted a larger fluctuation of the real effective exchange rate. Amaira (2021) studied the misalignment of the real effective exchange rate (REER) during the 1986–2015 period. The results showed that the equilibrium level of the long-run exchange rate depends on productivity, the terms of trade and government spending, and on misalignment being very low especially since the implementation of the structural adjustment plan. Derbali (2021) used the behavioral equilibrium exchange rate (BEER) approach to estimate the Tunisian equilibrium exchange rate using vector autoregressive models and vector error correction models for quarterly data over the 1990–2020 period. The results showed a low sensitivity of the RER to monetary and trade shocks and a convergence of the real exchange rate series of its trajectory to its long-term target value. Benzid (2021) assessed the misalignments in Tunisia’s real effective exchange rate with an emphasis on their persistence over the 
+
+216 
+
+_T.H. Amor, R. Nouira, C. Rault et al._ 
+
+_Quarterly Review of Economics and Finance 88 (2023) 215–227_ 
+
+
+![](tests/fixtures/sample_3_pages.pdf_assets/sample_3_pages.pdf-0003-02.png)
+
+
+**Fig. 1.** RE Misalignment of Tunisia. Source: Author's Calculation. (RER in blue and ERER in green, left axis; Mis in red, right axis). 
+
+Appendix.[4] It turns out that except for terms of trade ( _ToT_ ), all other variables of the model are found to be non-stationary in levels. In addition, the null hypotheses of a unit root for all series in first differences is rejected. This implies that all variables are I(1) except for terms of trade, which is stationary in level, I(0). To check whether ADF-GLS test results are robust, we performed the unit root test with structural breaks of Zivot and Andrews (1992). The results reported in Table A.4 in the Appendix confirm the results of the ADF-GLS test. Pesaran and Smith (1995), and Pesaran and Shin (1999) show that the ARDL approach can be used for long-run analysis, and that the ARDL methodology is valid even if variables are I(0) or I(1). We thus apply an autoregressive distributed lag (ARDL) model or bound testing approach (Pesaran et al., 2001) to estimate the equilibrium real exchange rate in Tunisia. According to Pesaran et al. (2001) this approach is more adequate when the number of time observations is small. Before performing the estimation of the ARDL model, it is essential to write Eq. (1) as a conditional ARDL model, as follows: 
+
+
+![](tests/fixtures/sample_3_pages.pdf_assets/sample_3_pages.pdf-0003-05.png)
+
+
+All variables are expressed in log, is the first difference operator. The long-run relationship between the RER and its determinants can be identified based on the Wald test (F-statistic). This statistic determines joint significance of lagged level variables under the null hypothesis. If the coefficients are jointly not all equal to zero, then it implies the existence of cointegration, i.e. a long-run relationship between the RER and its determinants.[5] Once a cointegration 
+
+> 4 The efficient unit-root test suggested by Kwiatkovski–Phillips–Schmidt–Shin (1992), extended by Carrion-i-Silvestre and Sanso (2006), has also been implemented, leading to similar results. 
+
+> 5 Notice, however, that rejecting the null ( 1 = 2 = 3 = 4 = 5 = 6 = 0) does not necessarily imply that all coefficients _i_ 0, _for i_ = 1, …,6. For instance, in Table 1, the coefficient of unemployment is equal to zero, which explains why this variable is not included in equation (3). Besides, a closer investigation also reveals that unemployment does not have an influence on RER in the short run, see equation (4). 
+
+relationship has been established, we proceed to the estimation of the long-run and short-run parameters of the model. Specifically, we estimate the long-run coefficients using Eq. (3), as given below: 
+
+
+![](tests/fixtures/sample_3_pages.pdf_assets/sample_3_pages.pdf-0003-10.png)
+
+
+The short-run dynamic coefficients may be obtained by estimating the corresponding vector error correction (VEC) model as given below – Eq. (4): 
+
+
+![](tests/fixtures/sample_3_pages.pdf_assets/sample_3_pages.pdf-0003-12.png)
+
+
+where _ECMt_ 1[is the error correction term lagged one period esti-] mated from Eq. (4). is the coefficient for the speed of adjustment of the model to the equilibrium situation, which is expected to have a negative sign. 
+
+The estimated ARDL bounds show that the F-statistic of the Wald test, 4.82, is significant at the 1% level. Indeed, comparing the F- statistics against the critical values extracted from Pesaran et al. (2001), the F-statistic is higher than the upper bound critical value of 4.68 at the 1% significance level. This implies that the null hypothesis (Ho: 1 = 2 = 3 = 4 = 5 = 6 = 0) of no long-run relationship can be rejected by data. There is thus evidence for cointegration between RER and its determinants. Next, we estimate the long-run coefficients of the equilibrium real exchange rate model. To do so, we estimate ARDL models (Eq. 2). The specification of our ARDL model is determined by the Akaike information criterion (AIC). The results in Table 1 show that the coefficients for the variables _Gov_ , _Balassa, TOT_ and _Def_ are statistically significant and have the expected signs. The estimated coefficient for the speed of adjustment ( ) is negative and is statistically significant at the 5% level. 
+
+The empirical results show a positive and significant impact of the terms of trade, government expenditure and the Balassa–Samuelson effect, and a negative and significant effect of the trade deficit. For the terms of trade an improvement of 10% leads to an ERER appreciation of 2.4%. This implies that the income effect outweighs the substitution effect. BalSam is a variable that aims to 
+
+220 
+

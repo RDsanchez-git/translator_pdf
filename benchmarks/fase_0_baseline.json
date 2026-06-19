@@ -1,0 +1,42 @@
+{
+  "benchmark_meta": {
+    "timestamp": "2026-05-27T02:11:08Z",
+    "initial_backlog": 1552,
+    "duration_seconds": 210.16
+  },
+  "performance": {
+    "avg_throughput_chk_s": 7.39,
+    "peak_throughput_chk_s": 13.33,
+    "min_throughput_chk_s": 5.33,
+    "smoothed_segments_30s": [
+      8.0,
+      8.0,
+      7.47,
+      8.0,
+      8.0,
+      7.2,
+      6.67
+    ]
+  },
+  "latency_exec_seconds": {
+    "avg": 0.000817,
+    "p95": 0.001073,
+    "p99": 0.003154,
+    "max_spike": 0.003154
+  },
+  "sqlite_infrastructure": {
+    "max_wal_size_mb": 4.66,
+    "avg_wal_growth_rate_mb": 0.7762,
+    "peak_wal_growth_rate_mb": 1.7013,
+    "wal_checkpoints_detected": 6,
+    "lock_spikes_5ms": 0,
+    "lock_spikes_10ms": 0,
+    "starvation_events_recorded": 0
+  },
+  "fsm_integrity": {
+    "zombies": 0,
+    "retries": 0,
+    "err_perm": 0
+  },
+  "result": "PASS"
+}

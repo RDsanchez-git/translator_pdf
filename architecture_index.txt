@@ -1,0 +1,1184 @@
+
+=== apps\api\server.py ===
+
+=== apps\api\__init__.py ===
+
+=== apps\bootstrap\pipeline_factory.py ===
+[FUNC] _build_default_validation_pipeline()
+[FUNC] build_pipeline()
+
+=== apps\bootstrap\__init__.py ===
+
+=== apps\cli\main.py ===
+[CLASS] ChunkerProtocolAdapter
+    └─ __init__()
+    └─ chunk()
+[CLASS] DummyContextResolver
+    └─ resolve()
+    └─ resolve_many()
+[FUNC] handle_sweep()
+[FUNC] handle_translate()
+[FUNC] handle_resume()
+[FUNC] handle_status()
+[FUNC] parse_arguments()
+[FUNC] main()
+
+=== apps\compiler\docker_runner.py ===
+[CLASS] DockerRunner
+    └─ compile()
+
+=== apps\compiler\log_parser.py ===
+[CLASS] ErrorType
+[CLASS] ParsedError
+[CLASS] LogParser
+    └─ parse()
+    └─ _extract_context()
+
+=== apps\compiler\tex_builder.py ===
+[CLASS] TexBuilder
+    └─ __init__()
+    └─ build()
+
+=== apps\compiler\__init__.py ===
+
+=== apps\compiler\__main__.py ===
+[CLASS] AssemblerWorkerDaemon
+    └─ __init__()
+    └─ run()
+    └─ _fail_document_safely()
+    └─ _process_assembly_task()
+
+=== apps\compiler\sandbox\server.py ===
+[CLASS] CompileRequest
+[CLASS] CompileResult
+
+=== apps\daemons\chaos_runner.py ===
+[CLASS] SystemObserver
+    └─ __init__()
+    └─ _get_ro_connection()
+    └─ inject_load()
+    └─ get_convergence_metrics()
+    └─ wait_for_convergence()
+[CLASS] ChaosInjector
+    └─ __init__()
+    └─ kill_service()
+    └─ mutate_upstream()
+[FUNC] game_day_1_crash_consistency()
+
+=== apps\daemons\fake_gemini.py ===
+[CLASS] ChaosConfig
+    └─ __init__()
+[CLASS] Metrics
+    └─ __init__()
+[CLASS] ChaosMutation
+[FUNC] health_check()
+
+=== apps\daemons\reconciler.py ===
+[CLASS] ReconcilerDaemon
+    └─ __init__()
+    └─ _sweep_fsm_stalls()
+    └─ _leadership_heartbeat()
+    └─ run()
+    └─ _sweep_tasks()
+
+=== apps\llm_workers\adapters.py ===
+[CLASS] BypassProvider
+[CLASS] GroqProvider
+    └─ __init__()
+
+=== apps\llm_workers\cache_provider.py ===
+[CLASS] CachedLLMProvider
+    └─ __init__()
+
+=== apps\llm_workers\dispatcher.py ===
+[CLASS] AsyncDispatcher
+    └─ __init__()
+    └─ _default_pipeline()
+
+=== apps\llm_workers\prompt_builder.py ===
+[CLASS] PromptEnvelope
+[CLASS] PromptBuilder
+    └─ __init__()
+    └─ build()
+
+=== apps\llm_workers\rate_limiter.py ===
+[CLASS] ClockProtocol
+    └─ now()
+[CLASS] SystemClock
+    └─ now()
+[CLASS] TokenBucket
+    └─ __init__()
+    └─ _refill()
+    └─ get_wait_time()
+    └─ consume()
+[CLASS] QuotaManager
+    └─ __init__()
+[CLASS] RateLimitedProvider
+    └─ __init__()
+
+=== apps\llm_workers\resilient_provider.py ===
+[CLASS] ResilientProvider
+    └─ __init__()
+
+=== apps\llm_workers\router_translation.py ===
+[CLASS] TranslationRouter
+    └─ get_strategy()
+
+=== apps\llm_workers\routing.py ===
+[CLASS] ProviderResult
+[CLASS] LLMProvider
+[CLASS] ProviderStrategy
+[CLASS] TranslationStrategyRouter
+    └─ __init__()
+    └─ route()
+
+=== apps\llm_workers\sync_bridge.py ===
+[CLASS] SyncProviderBridge
+    └─ __init__()
+    └─ _start_loop()
+    └─ shutdown()
+    └─ execute()
+
+=== apps\llm_workers\__init__.py ===
+
+=== apps\llm_workers\__main__.py ===
+[CLASS] TaskLeaseHeartbeat
+    └─ __init__()
+    └─ _beat()
+    └─ __enter__()
+    └─ __exit__()
+[CLASS] LLMWorkerDaemon
+    └─ __init__()
+    └─ stop()
+    └─ run()
+    └─ _process_task()
+
+=== apps\ocr_router\__main__.py ===
+[CLASS] OCRRouterDaemon
+    └─ __init__()
+    └─ run()
+    └─ _process_document()
+
+=== apps\ocr_workers\router.py ===
+
+=== apps\ocr_workers\__init__.py ===
+
+=== core\ast\grouper.py ===
+[CLASS] SemanticGroup
+[CLASS] ContextAwareSemanticGrouper
+    └─ group()
+
+=== core\ast\hashing.py ===
+[FUNC] compute_ast_hash()
+[CLASS] ChunkPolicy
+[CLASS] TokenBudgetChunker
+    └─ __init__()
+    └─ _split_by_sentence()
+    └─ chunk_group()
+[FUNC] build_semantic_chunks_as_units()
+
+=== core\ast\models.py ===
+[CLASS] StructuralNodeType
+[CLASS] ContentNodeType
+[CLASS] TranslationTaskType
+[CLASS] OverflowPolicy
+[CLASS] ASTNode
+    └─ has_valid_sequence()
+[CLASS] TokenEstimator
+    └─ estimate()
+[CLASS] FastWordEstimator
+    └─ estimate()
+[CLASS] TranslationUnit
+[CLASS] ChunkingReport
+[CLASS] TranslatedUnit
+[CLASS] ReconstructedDocument
+
+=== core\ast\parser.py ===
+[FUNC] sanitize_marker_html()
+[FUNC] _is_stem_table()
+[FUNC] _run_tesseract_on_bytes()
+[FUNC] _extract_document_text()
+[FUNC] parse_pdf()
+
+=== core\ast\registry.py ===
+[CLASS] ASTRegistry
+    └─ __init__()
+    └─ get_node()
+    └─ _load_document()
+    └─ register_ast()
+
+=== core\ast\router.py ===
+[CLASS] PDFRouter
+    └─ detect_pdf_type()
+
+=== core\ast\segmenter.py ===
+[CLASS] SegmentState
+[CLASS] MarkdownSegmenter
+    └─ __init__()
+    └─ segment()
+
+=== core\ast\validator.py ===
+[CLASS] ASTValidationError
+[CLASS] ASTHealthReport
+    └─ __init__()
+    └─ from_ast()
+    └─ __str__()
+[CLASS] ASTValidator
+    └─ validate()
+
+=== core\ast\__init__.py ===
+
+=== core\compiler\assembler.py ===
+[CLASS] DocumentAssembler
+    └─ __init__()
+    └─ _validate_sequence()
+    └─ assemble()
+
+=== core\context\context_resolver.py ===
+[CLASS] ResolvedContext
+    └─ depth()
+[CLASS] ContextResolverProtocol
+    └─ resolve()
+    └─ resolve_many()
+[CLASS] ContextMappingProvider
+    └─ mappings()
+[CLASS] InMemoryContextResolver
+    └─ __init__()
+    └─ resolve()
+    └─ resolve_many()
+
+=== core\execution\constants.py ===
+
+=== core\execution\event_log.py ===
+
+=== core\execution\exceptions.py ===
+[CLASS] PipelineIntegrityError
+[CLASS] IncompleteDocumentError
+    └─ __init__()
+[CLASS] OptimisticLockError
+[CLASS] LeaseExpiredError
+[CLASS] IllegalStateTransitionError
+[CLASS] CircuitOpenError
+    └─ __init__()
+[CLASS] CircuitTripError
+[CLASS] TransientAPIError
+[CLASS] ChunkExecutionError
+    └─ __init__()
+[CLASS] ChunkValidationError
+    └─ __init__()
+[CLASS] DocumentValidationError
+    └─ __init__()
+
+=== core\execution\handlers.py ===
+[CLASS] DocumentCommandHandler
+    └─ __init__()
+    └─ _get_target_state()
+    └─ handle()
+[CLASS] ReconciliationCommandHandler
+    └─ __init__()
+    └─ handle()
+    └─ handle_rematerialize()
+    └─ handle_recover_zombie()
+
+=== core\execution\invariants.py ===
+
+=== core\execution\job_model.py ===
+
+=== core\execution\models.py ===
+[CLASS] ProcessingStage
+[CLASS] ChunkLifecycle
+[CLASS] FailureType
+[CLASS] ValidationError
+[CLASS] ChunkPayload
+[CLASS] ChunkExecutionEvent
+    └─ content_hash()
+    └─ is_assemblable()
+
+=== core\execution\ports.py ===
+[CLASS] ProcessingOutcome
+[CLASS] ProjectionState
+[CLASS] EventLifecycle
+[CLASS] TaskLease
+[CLASS] ReplayPayload
+[CLASS] ProjectionStatus
+[CLASS] ProjectionRecord
+[CLASS] ControlPlanePort
+    └─ enqueue_tasks()
+    └─ pick_task()
+    └─ acknowledge_execution()
+    └─ abandon_execution()
+    └─ renew_task_lease()
+[CLASS] EventPlanePort
+    └─ get_replay()
+    └─ append_wal()
+[CLASS] MaterializedPlanePort
+    └─ get_projection_status()
+    └─ upsert_projection()
+    └─ get_assemblable_chunks()
+
+=== core\execution\state.py ===
+[CLASS] DocumentState
+[CLASS] FSMValidator
+    └─ validate()
+[CLASS] DocumentCommand
+[CLASS] StartParsingCommand
+[CLASS] StartProcessingCommand
+[CLASS] MarkAssemblyReadyCommand
+[CLASS] StartAssemblyCommand
+[CLASS] MarkCompilationReadyCommand
+[CLASS] StartCompilationCommand
+[CLASS] CompleteDocumentCommand
+[CLASS] FailDocumentCommand
+[CLASS] CancelDocumentCommand
+[CLASS] StallDocumentCommand
+[CLASS] ResumeDocumentCommand
+[CLASS] ReconcilerCommand
+[CLASS] RecoverZombieTaskCommand
+[CLASS] RematerializeTaskCommand
+
+=== core\execution\state_mapping.py ===
+[CLASS] RecoveredJobSnapshot
+
+=== core\execution\__init__.py ===
+
+=== core\healing\base.py ===
+[CLASS] BaseHealingStrategy
+    └─ invariant_family()
+    └─ priority()
+    └─ heal()
+
+=== core\healing\config.py ===
+[CLASS] HealingPolicy
+
+=== core\healing\models.py ===
+[CLASS] HealingContractViolationError
+[CLASS] HealingOutcome
+[CLASS] HealingResult
+    └─ final_text()
+[CLASS] HealingContext
+    └─ __post_init__()
+
+=== core\healing\pipeline.py ===
+[CLASS] HealingPipeline
+    └─ __init__()
+    └─ heal_and_revalidate()
+
+=== core\healing\telemetry.py ===
+[CLASS] HealingEvent
+    └─ to_dict()
+[CLASS] HealingTelemetryRegistry
+    └─ __init__()
+    └─ record()
+    └─ _update_aggregates_unlocked()
+    └─ get_aggregate_metrics()
+    └─ get_events()
+
+=== core\healing\testing_factories.py ===
+[FUNC] make_test_healing_context()
+
+=== core\healing\__init__.py ===
+
+=== core\healing\strategies\markdown_leakage.py ===
+[CLASS] MarkdownLeakageHealingStrategy
+    └─ invariant_family()
+    └─ priority()
+    └─ heal()
+
+=== core\healing\strategies\meta_text_leakage.py ===
+[CLASS] MetaTextLeakageHealingStrategy
+    └─ invariant_family()
+    └─ priority()
+    └─ heal()
+
+=== core\healing\strategies\structural.py ===
+[CLASS] MathState
+[CLASS] EOFBraceClosureStrategy
+    └─ __init__()
+    └─ invariant_family()
+    └─ priority()
+    └─ heal()
+[CLASS] EOFMathClosureStrategy
+    └─ __init__()
+    └─ invariant_family()
+    └─ priority()
+    └─ heal()
+
+=== core\metrics\exporters.py ===
+[CLASS] MetricsExporter
+    └─ export()
+[CLASS] ConsoleMetricsExporter
+    └─ export()
+[CLASS] JsonMetricsExporter
+    └─ __init__()
+    └─ export()
+
+=== core\metrics\measure_density.py ===
+[FUNC] measure_pdf_density()
+
+=== core\metrics\metrics.py ===
+[CLASS] Metrics
+    └─ __init__()
+    └─ inc()
+    └─ observe()
+    └─ summary()
+
+=== core\metrics\pricing.py ===
+[CLASS] PricingEngine
+    └─ calculate_cost()
+
+=== core\metrics\summary.py ===
+[CLASS] TranslationAuditSummary
+[CLASS] SummaryBuilder
+    └─ build()
+
+=== core\normalization\base.py ===
+[CLASS] WarningEntry
+[CLASS] NormalizerResult
+[CLASS] NormalizerTrace
+[CLASS] NormalizationReport
+[CLASS] NormalizationEvent
+[CLASS] BaseNormalizer
+    └─ normalizer_id()
+    └─ normalizer_version()
+    └─ signature()
+    └─ normalize()
+
+=== core\normalization\bootstrap.py ===
+[FUNC] bootstrap_normalization_layer()
+
+=== core\normalization\classifier.py ===
+[CLASS] SemanticNodeClassifier
+    └─ __init__()
+    └─ _infer_heading()
+    └─ classify_node()
+    └─ _mutate_node_type()
+    └─ classify_batch()
+
+=== core\normalization\html_decoder.py ===
+
+=== core\normalization\latex_sanitizer.py ===
+[CLASS] InlineMathProtector
+    └─ mask()
+    └─ restore()
+
+=== core\normalization\normalizer.py ===
+[CLASS] TextNormalizer
+    └─ _decode_html()
+    └─ _normalize_unicode()
+    └─ _strip_control_chars()
+    └─ normalize()
+
+=== core\normalization\pipeline.py ===
+[CLASS] NormalizationPipeline
+    └─ __init__()
+    └─ dropped_events_count()
+    └─ _compute_deterministic_hash()
+    └─ process_node()
+    └─ process_batch()
+
+=== core\normalization\registry.py ===
+[CLASS] NormalizationDomain
+[CLASS] NormalizationPolicy
+    └─ __init__()
+    └─ append()
+[CLASS] NormalizationPolicyRegistry
+    └─ __new__()
+    └─ _init_registry()
+    └─ is_bootstrapped()
+    └─ map_type_to_domain()
+    └─ register_policy()
+    └─ get_policy_for_type()
+    └─ freeze()
+    └─ get_instance()
+
+=== core\normalization\unicode.py ===
+
+=== core\normalization\enrichers\context_enricher.py ===
+[CLASS] HierarchicalContextEnricher
+    └─ __init__()
+    └─ _validate_registry()
+    └─ enrich_document()
+
+=== core\normalization\fixers\asset_placeholder.py ===
+[CLASS] StructuralAssetPlaceholder
+    └─ __init__()
+    └─ normalizer_id()
+    └─ normalizer_version()
+    └─ normalize()
+
+=== core\normalization\fixers\math_pipeline.py ===
+[CLASS] ProtectedRegionMasker
+    └─ _scan_inline_verbatim()
+    └─ mask()
+[CLASS] ProtectedRegionRestorer
+    └─ restore()
+[CLASS] MathDelimiterValidator
+    └─ validate()
+[CLASS] MathEnvironmentValidator
+    └─ validate()
+[CLASS] MathHtmlPurifier
+    └─ purify()
+[CLASS] DeprecatedDelimiterConverter
+    └─ convert()
+[CLASS] MathDomainNormalizer
+    └─ __init__()
+    └─ normalizer_id()
+    └─ normalizer_version()
+    └─ normalize()
+
+=== core\normalization\fixers\paragraph_normalizer.py ===
+[CLASS] ParagraphNormalizer
+    └─ __init__()
+    └─ normalizer_id()
+    └─ normalizer_version()
+    └─ _check_domain_anomalies()
+    └─ _normalize_html_dom()
+    └─ _normalize_markdown_syntax()
+    └─ normalize()
+
+=== core\normalization\validators\ast_integrity.py ===
+[CLASS] ASTIntegrityValidator
+    └─ __init__()
+    └─ validate_ast()
+
+=== core\pipeline\job.py ===
+[CLASS] JobStatus
+[CLASS] PipelineStep
+[CLASS] TranslationJob
+    └─ mark_started()
+    └─ mark_processing()
+    └─ enter_step()
+    └─ mark_completed()
+    └─ mark_failed()
+
+=== core\pipeline\orchestrator.py ===
+[CLASS] PipelineResult
+[CLASS] ParserProtocol
+    └─ parse()
+[CLASS] ChunkerProtocol
+    └─ chunk()
+[CLASS] DispatcherProtocol
+[CLASS] AssemblerProtocol
+    └─ assemble()
+[CLASS] AuditBuilderProtocol
+    └─ build()
+[CLASS] TranslationPipeline
+    └─ __init__()
+
+=== core\pipeline\state_store.py ===
+[CLASS] StateStoreProtocol
+    └─ save()
+    └─ load()
+[CLASS] FSMStateStore
+    └─ __init__()
+    └─ load()
+    └─ save()
+
+=== core\pipeline\__init__.py ===
+
+=== core\resilience\circuit_breaker.py ===
+[CLASS] CircuitState
+[CLASS] GlobalCircuitBreaker
+    └─ __init__()
+    └─ _prune_window()
+[CLASS] CircuitBreakerRegistry
+    └─ get_breaker()
+
+=== core\utils\config.py ===
+
+=== core\utils\fs.py ===
+[FUNC] ensure_parent_dir()
+
+=== core\utils\logger.py ===
+[CLASS] JsonFormatter
+    └─ format()
+[FUNC] setup_logger()
+
+=== core\utils\telemetry.py ===
+[CLASS] DistributedContextFilter
+    └─ filter()
+[CLASS] JSONFormatter
+    └─ format()
+[FUNC] setup_distributed_logger()
+[FUNC] track_latency()
+
+=== core\utils\time.py ===
+
+=== core\utils\__init__.py ===
+
+=== core\validation\base.py ===
+[CLASS] Validator
+    └─ validate()
+
+=== core\validation\error_taxonomy.py ===
+
+=== core\validation\interfaces.py ===
+[CLASS] BaseValidator
+    └─ validate()
+
+=== core\validation\latex_validator.py ===
+
+=== core\validation\legacy_adapter.py ===
+[CLASS] UnknownLegacyValidationCodeError
+[CLASS] LegacyValidatorAdapter
+    └─ __init__()
+    └─ validate()
+
+=== core\validation\math_validator.py ===
+
+=== core\validation\models.py ===
+[CLASS] Severity
+[CLASS] Scope
+[CLASS] ValidationContext
+[CLASS] ValidationResult
+
+=== core\validation\perimeter.py ===
+[CLASS] PerimeterValidator
+    └─ validate()
+
+=== core\validation\pipeline.py ===
+[CLASS] ValidationPipeline
+    └─ __init__()
+    └─ add_chunk_validator()
+    └─ add_document_validator()
+    └─ validate_chunk()
+    └─ validate_document()
+    └─ _run_validators()
+
+=== core\validation\preservation.py ===
+[CLASS] PreservationValidator
+    └─ validate()
+    └─ _check_doi()
+    └─ _check_url()
+    └─ _check_isbn_orcid()
+    └─ _check_cross_references()
+    └─ _check_labels()
+    └─ _check_dependencies()
+    └─ _extract_sub_keys()
+
+=== core\validation\semantic.py ===
+[CLASS] SemanticValidator
+    └─ validate()
+    └─ _missing_numbers()
+    └─ _missing_units()
+
+=== core\validation\structural_validator.py ===
+[CLASS] StructuralValidator
+    └─ validate()
+    └─ _has_residual_html()
+    └─ _check_braces()
+    └─ _check_brackets()
+    └─ _check_math_delimiters()
+    └─ _check_environments()
+
+=== core\validation\volumetric.py ===
+[CLASS] VolumetricValidator
+    └─ __init__()
+    └─ validate()
+
+=== core\validation\__init__.py ===
+
+=== graveyard\gemini_client.py ===
+[CLASS] GeminiClient
+    └─ __init__()
+    └─ _clean_response()
+    └─ _build_fix_prompt()
+    └─ _is_transient()
+    └─ _execute_with_local_retries()
+    └─ translate()
+    └─ fix_latex()
+    └─ generate()
+    └─ _embed_with_local_retries()
+    └─ embed_text()
+
+=== infra\adapters\pdf_parser.py ===
+[CLASS] PdfParserAdapter
+    └─ __init__()
+    └─ parse()
+
+=== infra\adapters\__init__.py ===
+
+=== infra\db\bootstrap.py ===
+[FUNC] bootstrap_all_databases()
+
+=== infra\db\connection.py ===
+[FUNC] _to_absolute_path()
+[FUNC] _attach_fsm_database()
+[FUNC] get_connection()
+
+=== infra\db\control_repo.py ===
+[CLASS] ControlPlaneRepository
+    └─ __init__()
+    └─ enqueue_tasks()
+    └─ pick_task()
+    └─ acknowledge_execution()
+    └─ abandon_execution()
+    └─ renew_task_lease()
+    └─ release_task_untouched()
+    └─ mark_cqrs_reconciled()
+    └─ mark_zombie_recovered()
+    └─ enqueue_assembler_task()
+    └─ find_documents_with_pending_chunks()
+
+=== infra\db\event_repo.py ===
+[CLASS] EventPlaneRepository
+    └─ __init__()
+    └─ get_replay()
+    └─ append_wal()
+    └─ get_latest_event()
+
+=== infra\db\fsm_repository.py ===
+[CLASS] DocumentStatusDTO
+[CLASS] FSMRepository
+    └─ __init__()
+    └─ initialize_document()
+    └─ transition_to()
+    └─ get_status()
+    └─ find_stalled_documents()
+    └─ find_next_ready_for_assembly()
+    └─ is_document_already_processed()
+    └─ get_by_document_id()
+
+=== infra\db\materialized_repo.py ===
+[CLASS] MaterializedPlaneRepository
+    └─ __init__()
+    └─ get_projection_status()
+    └─ upsert_projection()
+    └─ get_assemblable_chunks()
+
+=== infra\db\system_repo.py ===
+[CLASS] SystemPlaneRepository
+    └─ __init__()
+    └─ acquire_leadership()
+    └─ renew_leadership()
+    └─ release_leadership()
+    └─ get_current_epoch()
+
+=== infra\db\__init__.py ===
+
+=== infra\redis\queues.py ===
+
+=== infra\redis\__init__.py ===
+
+=== runtime\reconciliation.py ===
+[CLASS] CQRSReconciliationDaemon
+    └─ __init__()
+    └─ run_reconciliation_cycle()
+
+=== runtime\recovery.py ===
+[CLASS] AbandonedProcessWatchdog
+    └─ __init__()
+    └─ execute_sweep()
+
+=== runtime\resumer.py ===
+[CLASS] OnDemandResumeManager
+    └─ __init__()
+    └─ rescue_stalled_document()
+
+=== runtime\sweeper.py ===
+[CLASS] RecoveryDaemon
+    └─ __init__()
+    └─ _force_wal_checkpoint()
+    └─ run_sweep_cycle()
+
+=== runtime\__init__.py ===
+
+=== tests\test_architecture_contract.py ===
+[FUNC] test_ports_compliance()
+
+=== tests\test_ast.py ===
+
+=== tests\test_dag.py ===
+
+=== tests\test_fencing.py ===
+
+=== tests\test_math_protector.py ===
+[FUNC] test_inline_math_protector()
+
+=== tests\test_pipeline.py ===
+[FUNC] run_stress_tests()
+
+=== tests\test_pipeline_fidelity.py ===
+[CLASS] TestPipelineFidelity
+    └─ test_html_sanitization_variants()
+    └─ test_semantic_adjacency_and_mutations()
+    └─ test_mixed_inline_and_block_math()
+    └─ _execute_mock_parser()
+    └─ test_equation_quarantine_quarantine()
+    └─ test_mixed_image_block_continuation()
+    └─ test_equation_ratio_and_false_positives()
+    └─ test_worker_passthrough_alignment()
+
+=== tests\helpers\bootstrap_translation_golden.py ===
+
+=== tests\helpers\fakes.py ===
+[CLASS] FakeChunker
+    └─ chunk()
+[CLASS] FakeDispatcher
+
+=== tests\helpers\markdown_inspector.py ===
+[CLASS] MarkdownInspector
+    └─ extract_structure()
+    └─ extract_technical_tokens()
+    └─ verify_balances()
+
+=== tests\helpers\__init__.py ===
+
+=== tests\integration\test_chunker_snapshot.py ===
+[CLASS] TestChunkerSnapshot
+    └─ setUp()
+    └─ test_snapshot_verification()
+
+=== tests\integration\test_cli_router.py ===
+[CLASS] TestCLIRoutingAndArgparse
+    └─ test_translate_subcommand_routing()
+    └─ test_resume_subcommand_routing()
+    └─ test_sweep_subcommand_routing()
+    └─ test_status_subcommand_routing()
+
+=== tests\integration\test_e2e_walking_skeleton.py ===
+[CLASS] TestTrueWalkingSkeletonE2E
+    └─ setUp()
+    └─ tearDown()
+    └─ _bridge_ast_to_units()
+
+=== tests\integration\test_embedding_smoke.py ===
+[CLASS] TestProviderSmoke
+
+=== tests\integration\test_golden_parser.py ===
+[CLASS] TestGoldenParser
+    └─ setUp()
+    └─ _generate_fingerprint()
+    └─ test_parser_runtime_matches_golden_fingerprint()
+
+=== tests\integration\test_healing_concurrency.py ===
+[FUNC] test_telemetry_registry_async_concurrency()
+[CLASS] ContextDrivenMockValidationPipeline
+    └─ __init__()
+    └─ validate_chunk()
+[FUNC] test_healing_pipeline_emits_full_audit_on_rollback()
+
+=== tests\integration\test_healing_e2e_telemetry.py ===
+[CLASS] MockValidationPipeline
+    └─ __init__()
+    └─ validate_chunk()
+[FUNC] build_pipeline_and_registry()
+[FUNC] _make_ctx()
+[FUNC] test_e2e_case_a_markdown_leakage()
+[FUNC] test_e2e_case_b_unbalanced_braces()
+[FUNC] test_e2e_case_c_math_truncation()
+[FUNC] test_e2e_rollback_guarantee_on_revalidation_failure()
+[FUNC] test_e2e_telemetry_aggregate_metrics()
+
+=== tests\integration\test_pipeline_orchestration.py ===
+[CLASS] FakeChunker
+    └─ chunk()
+[CLASS] FakeDispatcher
+[CLASS] TestPipelineOrchestration
+    └─ setUp()
+
+=== tests\integration\test_real_e2e.py ===
+[CLASS] FinOpsControlledChunker
+    └─ chunk()
+[CLASS] TestRealE2EFinOps
+    └─ setUp()
+    └─ tearDown()
+
+=== tests\integration\test_real_paper.py ===
+[CLASS] TestRealPaperIntegration
+    └─ setUp()
+    └─ test_parser_and_validation_e2e_local()
+
+=== tests\integration\test_real_parser_pipeline.py ===
+[CLASS] TestRealParserIsolation
+    └─ setUp()
+    └─ test_parser_adapter_extracts_and_verifies_structural_presence()
+
+=== tests\integration\test_recovery_flow.py ===
+[CLASS] MockComponent
+    └─ parse()
+    └─ chunk()
+    └─ assemble()
+    └─ build()
+[CLASS] TestRecoveryAndResumeEndToEnd
+    └─ setUpClass()
+    └─ test_complete_crash_recovery_and_resume_lifecycle()
+    └─ tearDownClass()
+
+=== tests\integration\test_translation_layer.py ===
+[CLASS] TestTranslationLayerIntegration
+    └─ setUp()
+    └─ tearDown()
+
+=== tests\integration\test_translation_semantics.py ===
+[CLASS] TestSemanticChunkRegression
+    └─ setUp()
+    └─ tearDown()
+    └─ _calculate_cosine_similarity()
+
+=== tests\integration\test_translation_structure.py ===
+[CLASS] TestTranslationStructure
+    └─ setUp()
+
+=== tests\integration\test_translation_technical.py ===
+[CLASS] TestTranslationTechnical
+    └─ setUp()
+
+=== tests\integration\test_validation_integration.py ===
+[CLASS] StaticMockProvider
+    └─ __init__()
+[CLASS] SequenceMockProvider
+    └─ __init__()
+[FUNC] build_test_dispatcher()
+
+=== tests\integration\__init__.py ===
+
+=== tests\smoke\conftest.py ===
+[FUNC] reliability_pipeline()
+
+=== tests\smoke\test_invariants_smoke.py ===
+[FUNC] run_chunk_validation()
+[FUNC] run_doc_validation()
+[FUNC] test_smoke_si01_unclosed_brace()
+[FUNC] test_smoke_si02_unbalanced_math()
+[FUNC] test_smoke_si03_unclosed_environment()
+[FUNC] test_smoke_pi01_doi_alteration()
+[FUNC] test_smoke_pi02_url_domain_alteration()
+[FUNC] test_smoke_pi03_orcid_lost()
+[FUNC] test_smoke_pi04_cross_reference_lost()
+[FUNC] test_smoke_pei01_markdown_block()
+[FUNC] test_smoke_pei02_conversational_leak()
+[FUNC] test_smoke_sei01_missing_number()
+[FUNC] test_smoke_sei02_unit_mutation()
+[FUNC] test_smoke_vi01_ratio_contraction()
+[FUNC] test_smoke_vi01_ratio_expansion()
+
+=== tests\unit\test_adapters.py ===
+[FUNC] _make_envelope()
+
+=== tests\unit\test_assembler.py ===
+[CLASS] TestDocumentAssembler
+    └─ setUp()
+    └─ _mock_unit()
+    └─ test_successful_assembly_and_token_telemetry()
+    └─ test_missing_chunk_raises_incomplete_error()
+    └─ test_duplicate_chunk_raises_value_error()
+
+=== tests\unit\test_asset_placeholder.py ===
+[FUNC] fixer()
+[FUNC] test_canonical_placeholder_generation()
+[FUNC] test_empty_content_passthrough()
+
+=== tests\unit\test_ast_integrity.py ===
+[FUNC] validator()
+[FUNC] test_empty_ast_triggers_warning_only()
+[FUNC] test_duplicate_node_id_collision()
+[FUNC] test_malformed_placeholder_syntax()
+[FUNC] test_orphan_list_item_emits_info_only()
+
+=== tests\unit\test_cache_provider.py ===
+[CLASS] MockLowLevelProvider
+    └─ __init__()
+[FUNC] temp_db_path()
+
+=== tests\unit\test_context_enricher.py ===
+[FUNC] enricher()
+[FUNC] test_homonym_section_isolation()
+[FUNC] test_no_context_document_warning()
+
+=== tests\unit\test_context_resolver.py ===
+[CLASS] FakeRegistry
+    └─ __init__()
+    └─ mappings()
+[CLASS] TestInMemoryContextResolver
+    └─ setUp()
+    └─ test_resolve_valid_context()
+    └─ test_resolve_unknown_context()
+    └─ test_breadcrumbs_are_tuple()
+    └─ test_resolved_context_hashable()
+    └─ test_resolve_many_success_and_deduplication()
+    └─ test_resolve_many_preserves_order()
+    └─ test_resolve_many_atomic_failure()
+
+=== tests\unit\test_dispatcher.py ===
+[CLASS] TestAsyncDispatcher
+    └─ setUp()
+    └─ _create_mock_unit()
+    └─ _mock_translate_side_effect()
+
+=== tests\unit\test_dispatcher_validation.py ===
+[CLASS] StaticMockProvider
+    └─ __init__()
+[CLASS] MockDocumentFailValidator
+    └─ validate()
+[FUNC] build_test_dispatcher()
+
+=== tests\unit\test_healing_idempotency.py ===
+[CLASS] MockValidationPipelineWithResidualFail
+    └─ validate_chunk()
+[CLASS] MockValidationPipelinePass
+    └─ validate_chunk()
+[FUNC] test_markdown_healing_is_idempotent()
+[FUNC] test_metatext_healing_is_idempotent()
+[FUNC] test_healing_idempotency_not_applicable_chain()
+[FUNC] test_healing_edge_case_payload_vacio_returns_failure()
+[FUNC] test_healing_pipeline_enforces_rollback_on_residual_hard_fail()
+
+=== tests\unit\test_legacy_adapter.py ===
+[CLASS] DummyLegacyValid
+    └─ validate()
+[CLASS] DummyLegacyInvalid
+    └─ validate()
+[FUNC] test_adapter_converts_error_to_validation_result()
+[FUNC] test_adapter_default_severity_hard_fail()
+[FUNC] test_adapter_unknown_code_raises_domain_exception()
+
+=== tests\unit\test_math_normalizer.py ===
+[FUNC] normalizer()
+[FUNC] test_verbatim_environment_is_immune()
+[FUNC] test_nested_verbatim_immunity()
+[FUNC] test_verb_with_dynamic_delimiter()
+[FUNC] test_lstinline_preserved()
+[FUNC] test_mintinline_preserved()
+[FUNC] test_mintinline_with_options()
+[FUNC] test_html_sup_conversion()
+[FUNC] test_html_sub_conversion()
+[FUNC] test_html_double_wrap_protection()
+[FUNC] test_balanced_inline_math()
+[FUNC] test_unbalanced_inline_math_detection()
+[FUNC] test_balanced_display_math()
+[FUNC] test_unclosed_environment_detection()
+[FUNC] test_environment_mismatch_detection()
+[FUNC] test_orphaned_end_detection()
+[FUNC] test_inline_deprecated_conversion()
+[FUNC] test_display_deprecated_conversion()
+[FUNC] test_multiple_pass_idempotency()
+[FUNC] test_empty_input()
+[FUNC] test_whitespace_input()
+[FUNC] test_protected_region_roundtrip()
+[FUNC] test_strict_warning_severity_and_telemetry()
+[FUNC] test_illegal_recursive_nesting_detection()
+[FUNC] test_complex_environment_arguments_parsing()
+[FUNC] test_escaped_dollar_immunity_in_fsm()
+[FUNC] test_verbatim_masking()
+[FUNC] test_inequalities_not_removed()
+[FUNC] test_math_delimiter_automaton()
+[FUNC] test_illegal_nesting_detection()
+[FUNC] test_idempotency_preserve_contract()
+
+=== tests\unit\test_paragraph_idempotency.py ===
+[FUNC] test_paragraph_normalizer_invariants_and_strict_idempotency()
+[FUNC] test_strict_idempotency_contract_over_corpus()
+
+=== tests\unit\test_perimeter_validator.py ===
+[FUNC] test_markdown_block_detected()
+[FUNC] test_conversational_leak_with_leading_whitespace_detected()
+[FUNC] test_extended_conversational_leak_detected()
+[FUNC] test_technical_prose_prefixes_pass_successfully()
+[FUNC] test_clean_translation_payload_passes()
+
+=== tests\unit\test_preservation_validator.py ===
+[FUNC] test_doi_case_insensitivity_is_preserved()
+[FUNC] test_addbibresource_with_optional_arguments()
+[FUNC] test_modern_reference_commands()
+
+=== tests\unit\test_pricing_engine.py ===
+[CLASS] TestPricingEngine
+    └─ test_flash_calculation()
+    └─ test_zero_usd_conditions()
+    └─ test_invalid_model_raises_value_error()
+
+=== tests\unit\test_prompt_builder.py ===
+[CLASS] TestPromptBuilder
+    └─ setUp()
+    └─ test_envelope_structure_and_types()
+    └─ test_deterministic_prompt_hash()
+    └─ test_hash_collision_avoidance()
+    └─ test_prompt_hash_stability()
+    └─ test_hash_mutation_on_model_or_version_change()
+
+=== tests\unit\test_rate_limiter.py ===
+[CLASS] FakeClock
+    └─ __init__()
+    └─ now()
+    └─ advance()
+[CLASS] MockUnderlyingProvider
+[FUNC] _make_envelope()
+
+=== tests\unit\test_resilient_provider.py ===
+[CLASS] MockNetworkFailureProvider
+    └─ __init__()
+[FUNC] _make_envelope()
+
+=== tests\unit\test_routing.py ===
+[CLASS] TestTranslationStrategyRouter
+    └─ setUp()
+    └─ test_default_routing_translate()
+    └─ test_default_routing_partial()
+    └─ test_default_routing_preserve()
+    └─ test_fail_fast_on_unknown_task_type()
+    └─ test_custom_routing_table_injection()
+
+=== tests\unit\test_semantic_chunker.py ===
+[CLASS] TestSemanticChunkerZeroLoss
+    └─ setUp()
+    └─ _create_node()
+    └─ test_zero_loss_reconstruction()
+    └─ test_deterministic_purity()
+    └─ test_context_aware_hard_boundary()
+
+=== tests\unit\test_semantic_classifier.py ===
+[FUNC] classifier()
+[FUNC] test_academic_pdf_greek_mix_reclassification()
+[FUNC] test_financial_false_positive_immunity()
+[FUNC] test_financial_noise_with_many_operators()
+[FUNC] test_algebraic_indices_are_equation()
+[FUNC] test_large_formula_diluted_in_prosa_reclassification()
+[FUNC] test_complete_batch_idempotency()
+[FUNC] test_unbalanced_tokens_immunity()
+[FUNC] test_pure_operators_noise_immunity()
+
+=== tests\unit\test_semantic_validator.py ===
+[FUNC] test_number_cardinality_mismatch_exact_content()
+[FUNC] test_ip_address_not_parsed_as_number()
+[FUNC] test_complex_scientific_units_exact_content()
+[FUNC] test_unit_case_sensitivity_kelvin_vs_kilo()
+
+=== tests\unit\test_structural_healing.py ===
+[FUNC] test_brace_closure_strategy_success_on_nested_macros()
+[FUNC] test_verb_does_not_consume_neighboring_braces()
+[FUNC] test_brace_closure_ignores_escaped_braces()
+[FUNC] test_brace_closure_bounds_trigger_failure_from_policy()
+[FUNC] test_brace_closure_not_applicable()
+[FUNC] test_math_closure_strategy_inline_success()
+[FUNC] test_math_closure_strategy_display_success()
+[FUNC] test_math_closure_strategy_handles_truncated_display_state()
+[FUNC] test_math_closure_not_applicable()
+
+=== tests\unit\test_structural_validator.py ===
+[FUNC] test_braces_balanced_and_escaped()
+[FUNC] test_braces_unbalanced()
+[FUNC] test_brackets_balanced_and_escaped()
+[FUNC] test_brackets_unbalanced()
+[FUNC] test_math_delimiters_balanced()
+[FUNC] test_math_delimiters_unbalanced()
+[FUNC] test_environments_balanced()
+[FUNC] test_environments_unbalanced()
+
+=== tests\unit\test_summary_builder.py ===
+[CLASS] TestSummaryBuilder
+    └─ test_metrics_and_roi_aggregation()
+
+=== tests\unit\test_validation_pipeline.py ===
+[CLASS] MockPassValidator
+    └─ validate()
+[CLASS] MockFailValidator
+    └─ validate()
+[FUNC] test_pipeline_runs_chunk_validators_only()
+[FUNC] test_pipeline_runs_document_validators_only()
+[FUNC] test_pipeline_preserves_registration_order()
+
+=== tests\unit\__init__.py ===
+
+=== tools\load_test\db_injector_variable.py ===
+[FUNC] run_db_injection()
