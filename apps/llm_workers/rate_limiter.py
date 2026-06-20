@@ -82,9 +82,9 @@ class RateLimitedProvider:
             await asyncio.sleep(max_wait + jitter)
 
     async def translate(self, envelope: PromptEnvelope) -> ProviderResult:
-        # SOTA FinOps: Para traducción, el output suele ser ~1x a 1.5x del input. 
-        # Multiplicar por 2.0 asegura un buffer defensivo contra subestimaciones que causen 429.
-        total_expected_tokens = int(envelope.estimated_tokens * 2.0)
+        # SOTA Fase 15.3: Consumo predictivo estricto desde el DTO BudgetStats (TPM Real).
+        # Se elimina la heurística ciega (x 2.0) a favor del cálculo asimétrico.
+        total_expected_tokens = envelope.budget_stats.predicted_tpm
         
         await self._wait_for_capacity(total_expected_tokens)
         return await self._underlying.translate(envelope)

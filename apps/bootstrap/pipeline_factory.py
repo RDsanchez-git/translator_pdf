@@ -1,4 +1,3 @@
-# apps/bootstrap/pipeline_factory.py
 """Composition Root libre de introspección por patito (hasattr) y desacoplado de dependencias cruzadas."""
 
 from typing import Optional, Any
@@ -9,10 +8,14 @@ from core.pipeline.state_store import FSMStateStore, StateStoreProtocol
 from core.pipeline.orchestrator import TranslationPipeline, ChunkerProtocol, AuditBuilderProtocol
 from infra.adapters.pdf_parser import PdfParserAdapter
 from core.metrics.summary import SummaryBuilder
-from core.compiler.assembler import DocumentAssembler
 from core.ast.parser import parse_pdf
 
-# Infraestructura de validación y curación nativa (Problema 1)
+# SOTA Fase 15.4-D: Importaciones del Motor de Ensamblado e Hidratación
+from core.ast.models import FailureReason
+from core.compiler.assembler import DocumentAssembler, AssemblyPolicy
+from infra.db.document_repository import SQLiteDocumentRepository
+
+# Infraestructura de validación y curación nativa
 from core.validation.pipeline import ValidationPipeline
 from core.validation.models import Severity
 from core.validation.legacy_adapter import LegacyValidatorAdapter
@@ -28,6 +31,7 @@ from core.healing.strategies.meta_text_leakage import MetaTextLeakageHealingStra
 from core.healing.strategies.structural import EOFBraceClosureStrategy, EOFMathClosureStrategy
 from core.healing.config import HealingPolicy
 from core.normalization.bootstrap import bootstrap_normalization_layer
+
 
 def _build_default_validation_pipeline() -> ValidationPipeline:
     """Aislamiento explícito de la composición del pipeline de análisis sintáctico."""
@@ -53,6 +57,7 @@ def _build_default_validation_pipeline() -> ValidationPipeline:
     pipeline.add_document_validator(PreservationValidator())
     return pipeline
 
+
 def build_pipeline(
     chunker: ChunkerProtocol,
     dispatcher: Any,  # AsyncDispatcher libre de duck-typing
@@ -62,7 +67,31 @@ def build_pipeline(
     """Composition Root encargado del wiring explícito mediante asignación de inyección directa."""
     bootstrap_normalization_layer()
     parser = PdfParserAdapter(parser_callable=parse_pdf, verify_output=True)
-    assembler = DocumentAssembler(separator="\n\n")
+    
+    # -----------------------------------------------------------------
+    # SOTA Fase 15.4: Setup del Repositorio de Hidratación y Políticas
+    # -----------------------------------------------------------------
+    doc_conn = get_connection("infra/db/documents.db", timeout=30)
+    document_repository = SQLiteDocumentRepository(doc_conn)
+    
+    assembly_policy = AssemblyPolicy(
+        tolerance_ratio=0.05, # Tolerancia del 5% de fallos a nivel documento
+        allow_fallback=True,  # Activa la mitigación (Graceful Degradation)
+        degradable_failures=frozenset([
+            FailureReason.CONTEXT_OVERFLOW,
+            FailureReason.PROVIDER_FAILURE,
+            FailureReason.RETRY_EXHAUSTED
+            # NOTA: VALIDATION_FAILURE intencionalmente excluido. (Hard Fail)
+        ])
+    )
+    
+    assembler = DocumentAssembler(
+        repository=document_repository, 
+        separator="\n\n", 
+        policy=assembly_policy
+    )
+    # -----------------------------------------------------------------
+
     audit_builder = audit_override or SummaryBuilder()
     
     # Construcción desacoplada aislada de los entornos del Dispatcher
@@ -78,7 +107,7 @@ def build_pipeline(
 
     healing_pipeline = HealingPipeline(validation_pipeline, strategies)
     
-    # Inyección explícita por propiedades sin verificación de atributos en runtime (Problema 2)
+    # Inyección explícita por propiedades sin verificación de atributos en runtime
     dispatcher.validation_pipeline = validation_pipeline
     dispatcher.healing_pipeline = healing_pipeline
     
@@ -96,5 +125,6 @@ def build_pipeline(
         dispatcher=dispatcher,
         assembler=assembler,
         audit_builder=audit_builder,
-        state_store=state_store
+        state_store=state_store,
+        document_repository=document_repository # SOTA FIX: Inyección del 7mo parámetro
     )

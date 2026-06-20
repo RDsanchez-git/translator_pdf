@@ -106,7 +106,7 @@ async def handle_translate_async(args):
         job = TranslationJob(job_id=job_id, source_path=source_path)
 
         console.print(Panel(
-            f"[bold green]SOTA Pipeline Runtime Inicializado (Fase 14)[/]\n"
+            f"[bold green]SOTA Pipeline Runtime Inicializado (Fase 15.4)[/]\n"
             f"[bold white]Job ID:[/] {job_id}\n"
             f"[bold white]Archivo:[/] {source_path}",
             title="[bold blue]TPS Control Plane[/]"
@@ -139,10 +139,18 @@ async def handle_translate_async(args):
 
         console.print("\n[bold green]✓ Ejecución de Pipeline Completada Exitosamente.[/]\n")
         
-        table = Table(title="Reporte FinOps de Cierre Operacional")
+        # SOTA: Consumo de métricas operacionales de Fase 15.4
+        table = Table(title="Reporte FinOps y Telemetría Operacional")
         table.add_column("Métrica de Control", justify="left", style="cyan")
         table.add_column("Valor Registrado", justify="right", style="magenta")
         table.add_row("Total Chunks Procesados", str(result.document.total_chunks))
+        # Cálculo on-the-fly para la vista
+
+        # SOTA FIX: Consumo directo de DTO inmutable. Cero cálculos en presentación.
+        table.add_row("Total Chunks Procesados", str(result.document.total_chunks))
+        table.add_row("Tasa de Éxito (Dispatch)", f"{result.summary.dispatch_success_rate * 100:.2f}%")
+        table.add_row("Fallos de Ejecución", str(result.summary.total_failed_chunks))
+        table.add_row("Degradación Aplicada (Fallback)", "Sí" if result.assembly_report.degradation_applied else "No")
         table.add_row("Chunks Atajados por Caché", str(result.summary.translated_chunks_cache))
         table.add_row("Chunks Despachados a Red", str(result.summary.translated_chunks_network))
         table.add_row("Tokens de Entrada Consumidos", str(result.summary.total_input_tokens))
@@ -156,6 +164,15 @@ async def handle_translate_async(args):
             table.add_row("Eventos de Desbordamiento (Split)", str(chunker_adapter.last_report.overflow_events))
             
         console.print(table)
+
+        # Desglose de cardinalidad de fallos si existieron
+        if result.assembly_report.failure_reasons:
+            fail_table = Table(title="Taxonomía Analítica de Fallos")
+            fail_table.add_column("Razón de Fallo", style="red")
+            fail_table.add_column("Frecuencia", justify="right", style="white")
+            for reason, count in result.assembly_report.failure_reasons.items():
+                fail_table.add_row(reason, str(count))
+            console.print(fail_table)
 
     except Exception as err:
         console.print(f"\n[bold red]✖ COLAPSO DEL RUNTIME:[/] {str(err)}")

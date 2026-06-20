@@ -1,8 +1,9 @@
 from enum import Enum
 from pydantic import BaseModel, Field
-from typing import Dict, Any, Optional, Union, Tuple
+from typing import Dict, Any, Optional, Union, Tuple, List
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from collections import Counter
 
 # =====================================================================
 # FAMILIA 1: NODOS ESTRUCTURALES (Contenedores lógicos / Layout)
@@ -145,3 +146,87 @@ class ReconstructedDocument:
     passthrough_chunks: int
     total_input_tokens: int
     total_output_tokens: int
+
+
+class ExecutionStatus(str, Enum):
+    SUCCESS = "success"
+    FAILED = "failed"
+    SKIPPED = "skipped"
+
+class FailureReason(str, Enum):
+    CONTEXT_OVERFLOW = "context_overflow"
+    PROVIDER_FAILURE = "provider_failure"
+    VALIDATION_FAILURE = "validation_failure"
+    RETRY_EXHAUSTED = "retry_exhausted"               # Corrección: Causa de negocio, no mecanismo
+    UNHANDLED_WORKER_CRASH = "unhandled_worker_crash" # SOTA: Red de seguridad
+
+@dataclass(frozen=True)
+class ChunkOutcome:
+    chunk_index: int
+    chunk_id: str
+    status: ExecutionStatus
+    original_payload_sha256: str                      # SOTA: O(1) memory footprint
+    translated_unit: Optional["TranslatedUnit"] = None
+    failure_reason: Optional[FailureReason] = None
+    error_message: Optional[str] = None
+
+    def __post_init__(self):
+        """SOTA: Invariante fuerte. Imposibilita estados contradictorios."""
+        if self.status == ExecutionStatus.SUCCESS and self.translated_unit is None:
+            raise ValueError("Invariante Roto: SUCCESS requiere un translated_unit válido.")
+
+    @property
+    def is_success(self) -> bool:
+        return self.status == ExecutionStatus.SUCCESS
+
+@dataclass(frozen=True)
+class DispatchResult:
+    outcomes: List[ChunkOutcome]
+    
+    @property
+    def total_processed(self) -> int:
+        return len(self.outcomes)
+        
+    @property
+    def total_failed(self) -> int:
+        return sum(1 for o in self.outcomes if not o.is_success)
+
+    @property
+    def success_rate(self) -> float:
+        if not self.outcomes:
+            return 0.0
+        return (self.total_processed - self.total_failed) / self.total_processed
+
+    @property
+    def failed_by_reason(self) -> Dict[str, int]:
+        """SOTA: Taxonomía de fallos empaquetada lista para métricas prometheus/datadog."""
+        counts = Counter(
+            o.failure_reason.value for o in self.outcomes 
+            if not o.is_success and o.failure_reason
+        )
+        return dict(counts)
+
+
+@dataclass(frozen=True, slots=True)
+class OriginalChunk:
+    """SOTA: DTO de hidratación segura para el Assembler."""
+    chunk_id: str
+    payload: str
+    payload_sha256: str
+
+class DispatchAnalytics:
+    """SOTA: Separación de Responsabilidades (SRP). Motor de cálculo FinOps/SRE."""
+    
+    @staticmethod
+    def calculate_success_rate(result: 'DispatchResult') -> float:
+        if not result.outcomes:
+            return 0.0
+        return (result.total_processed - result.total_failed) / result.total_processed
+
+    @staticmethod
+    def aggregate_failures(result: 'DispatchResult') -> Dict[str, int]:
+        counts = Counter(
+            o.failure_reason.value for o in result.outcomes 
+            if not o.is_success and o.failure_reason
+        )
+        return dict(counts)

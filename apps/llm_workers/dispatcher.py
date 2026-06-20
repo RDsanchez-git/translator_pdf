@@ -2,12 +2,11 @@ import asyncio
 import logging
 from typing import List, Optional, Dict
 from dataclasses import replace
-from core.ast.models import TranslationUnit, TranslatedUnit
-from apps.llm_workers.prompt_builder import PromptEnvelope, PromptBuilder
+from core.ast.models import TranslationUnit, TranslatedUnit, ChunkOutcome, ExecutionStatus, FailureReason, DispatchResult
+from apps.llm_workers.prompt_builder import PromptEnvelope, PromptBuilder, PromptBuildResult, BuildFailureReason
 from apps.llm_workers.routing import ProviderResult, LLMProvider
 from core.execution.exceptions import CircuitOpenError
-from core.context.context_resolver import ContextResolverProtocol
-from core.execution.exceptions import ChunkExecutionError, ChunkValidationError, DocumentValidationError
+from core.context.context_resolver import ContextResolverProtocol, ResolvedContext
 from core.validation.models import ValidationContext, Scope, Severity
 from core.validation.pipeline import ValidationPipeline
 from core.validation.legacy_adapter import LegacyValidatorAdapter
@@ -18,13 +17,10 @@ from core.validation.semantic import SemanticValidator
 from core.validation.volumetric import VolumetricValidator
 from core.healing.models import HealingContext, HealingOutcome
 from core.healing.pipeline import HealingPipeline
-from core.context.context_resolver import ResolvedContext
 
 logger = logging.getLogger(__name__)
 
 class AsyncDispatcher:
-    """SOTA: Orquestador concurrente con Worker Pool, Stack Decorado (ADR 007), Validación y Healing."""
-    
     def __init__(
         self, 
         context_resolver: ContextResolverProtocol,
@@ -66,7 +62,6 @@ class AsyncDispatcher:
         return pipeline
 
     async def _process_validation_and_healing(self, unit: TranslationUnit, provider_result: ProviderResult, envelope: PromptEnvelope) -> TranslatedUnit:
-        # SOTA: Extracción pragmática segura independiente de la resolución de importaciones.
         chunk_type_str = getattr(unit.chunk_type, 'value', unit.chunk_type)
 
         translated = TranslatedUnit(
@@ -102,7 +97,6 @@ class AsyncDispatcher:
             healing_result = self.healing_pipeline.heal_and_revalidate(healing_ctx)
             
             if healing_result.outcome == HealingOutcome.SUCCESS:
-                logger.info(f"HEALING_SUCCESS: Chunk {unit.chunk_id} reparado mediante {hard_fails[0].invariant_family}.")
                 translated = replace(
                     translated, 
                     translated_payload=healing_result.final_text,
@@ -113,23 +107,11 @@ class AsyncDispatcher:
 
         if hard_fails:
             res = hard_fails[0]
-            logger.error(f"Validation HARD_FAIL: [{res.invariant_id}] {res.message}")
-            raise ChunkValidationError(unit.chunk_index, unit.chunk_id, res.invariant_id, res.message)
+            raise ValueError(f"[{res.invariant_id}] {res.message}")
 
-        for res in results:
-            if res.severity == Severity.WARNING:
-                logger.warning(f"Validation WARNING: [{res.invariant_id}] {res.message}")
-
-        logger.info("chunk_translated", extra={"extra_data": {
-            "chunk_index": translated.chunk_index, "chunk_id": translated.chunk_id,
-            "chunk_type": translated.chunk_type, "model": translated.model_name,
-            "input_tokens": translated.input_tokens, "output_tokens": translated.output_tokens,
-            "latency_ms": translated.latency_ms, "original_length": len(unit.target_payload),
-            "translated_length": len(translated.translated_payload)
-        }})
         return translated
 
-    async def _worker(self, queue: asyncio.Queue, results: Dict[int, TranslatedUnit], errors: Dict[int, Exception]) -> None:
+    async def _worker(self, queue: asyncio.Queue, results: Dict[int, ChunkOutcome]) -> None:
         while True:
             try:
                 unit, envelope = await queue.get()
@@ -139,20 +121,52 @@ class AsyncDispatcher:
             try:
                 provider_result = await self._provider.translate(envelope)
                 translated = await self._process_validation_and_healing(unit, provider_result, envelope)
-                # SOTA: Indexación segura posicional
-                results[unit.chunk_index] = translated
-            except CircuitOpenError:
-                logger.warning(f"Circuito abierto. Suspendiendo 5s y reencolando índice {unit.chunk_index}.")
-                await asyncio.sleep(5.0)
-                await queue.put((unit, envelope))
+                
+                results[unit.chunk_index] = ChunkOutcome(
+                    chunk_index=unit.chunk_index,
+                    chunk_id=unit.chunk_id,
+                    status=ExecutionStatus.SUCCESS,
+                    original_payload_sha256=unit.payload_sha256, # SOTA: O(1) memory footprint
+                    translated_unit=translated,
+                    failure_reason=None,
+                    error_message=None
+                )
+            except CircuitOpenError as e:
+                results[unit.chunk_index] = ChunkOutcome(
+                    chunk_index=unit.chunk_index,
+                    chunk_id=unit.chunk_id,
+                    status=ExecutionStatus.FAILED,
+                    original_payload_sha256=unit.payload_sha256,
+                    translated_unit=None,
+                    failure_reason=FailureReason.RETRY_EXHAUSTED,
+                    error_message=str(e)
+                )
+            except ValueError as e: # Captura el hard fail del validador
+                results[unit.chunk_index] = ChunkOutcome(
+                    chunk_index=unit.chunk_index,
+                    chunk_id=unit.chunk_id,
+                    status=ExecutionStatus.FAILED,
+                    original_payload_sha256=unit.payload_sha256,
+                    translated_unit=None,
+                    failure_reason=FailureReason.VALIDATION_FAILURE,
+                    error_message=str(e)
+                )
             except Exception as e:
-                errors[unit.chunk_index] = e
+                results[unit.chunk_index] = ChunkOutcome(
+                    chunk_index=unit.chunk_index,
+                    chunk_id=unit.chunk_id,
+                    status=ExecutionStatus.FAILED,
+                    original_payload_sha256=unit.payload_sha256,
+                    translated_unit=None,
+                    failure_reason=FailureReason.PROVIDER_FAILURE,
+                    error_message=str(e)
+                )
             finally:
                 queue.task_done()
 
-    async def dispatch(self, units: List[TranslationUnit]) -> List[TranslatedUnit]:
+    async def dispatch(self, units: List[TranslationUnit]) -> DispatchResult:
         if not units:
-            return []
+            return DispatchResult(outcomes=[])
 
         chunk_indexes = [u.chunk_index for u in units]
         if len(set(chunk_indexes)) != len(chunk_indexes):
@@ -162,19 +176,31 @@ class AsyncDispatcher:
         resolved_contexts = self.context_resolver.resolve_many(context_ids)
 
         queue: asyncio.Queue = asyncio.Queue()
-        results: Dict[int, TranslatedUnit] = {}
-        errors: Dict[int, Exception] = {}
+        outcomes_map: Dict[int, ChunkOutcome] = {} 
 
         for unit in units:
-            # SOTA: Inyección de la identidad técnica del context_id y tupla vacía para cumplir el DTO con slots
             context = resolved_contexts.get(unit.context_id) or ResolvedContext(
                 context_id=unit.context_id,
                 breadcrumbs=()
             )
-            envelope = self.prompt_builder.build(unit, context)
-            queue.put_nowait((unit, envelope))
+            
+            # SOTA: Consumo del Discriminated Union
+            build_result: PromptBuildResult = self.prompt_builder.build(unit, context)
+            
+            if build_result.status == "success":
+                queue.put_nowait((unit, build_result.envelope))
+            else:
+                outcomes_map[unit.chunk_index] = ChunkOutcome(
+                    chunk_index=unit.chunk_index,
+                    chunk_id=unit.chunk_id,
+                    status=ExecutionStatus.FAILED,
+                    original_payload_sha256=unit.payload_sha256,
+                    translated_unit=None,
+                    failure_reason=FailureReason.CONTEXT_OVERFLOW if build_result.error_reason == BuildFailureReason.CONTEXT_OVERFLOW else FailureReason.PROVIDER_FAILURE,
+                    error_message=build_result.message
+                )
 
-        workers = [asyncio.create_task(self._worker(queue, results, errors)) for _ in range(self._concurrency)]
+        workers = [asyncio.create_task(self._worker(queue, outcomes_map)) for _ in range(self._concurrency)]
 
         try:
             await queue.join()
@@ -183,25 +209,22 @@ class AsyncDispatcher:
                 w.cancel()
             await asyncio.gather(*workers, return_exceptions=True)
 
-        if errors:
-            first_error_index = min(errors.keys())
-            first_error = errors[first_error_index]
-            first_error_unit = next(u for u in units if u.chunk_index == first_error_index)
-            
-            if isinstance(first_error, ChunkValidationError):
-                raise first_error
-            raise ChunkExecutionError(first_error_unit.chunk_index, first_error_unit.chunk_id, first_error) from first_error
+        # SOTA FIX: Red de seguridad para outcomes_map incompleto (Worker Hard-Crash)
+        missing_indexes = set(chunk_indexes) - set(outcomes_map.keys())
+        if missing_indexes:
+            logger.error(f"FATAL: {len(missing_indexes)} chunks perdidos por crash no controlado en Workers.")
+            for idx in missing_indexes:
+                unit = next(u for u in units if u.chunk_index == idx)
+                outcomes_map[idx] = ChunkOutcome(
+                    chunk_index=idx,
+                    chunk_id=unit.chunk_id,
+                    status=ExecutionStatus.FAILED,
+                    original_payload_sha256=unit.payload_sha256,
+                    translated_unit=None,
+                    failure_reason=FailureReason.UNHANDLED_WORKER_CRASH,
+                    error_message="El Worker colapsó o fue cancelado antes de registrar el outcome."
+                )
 
-        # SOTA: Extracción 100% determinista basada en el índice topológico
-        final_units_sorted = [results[idx] for idx in sorted(results.keys())]
+        final_outcomes_sorted = [outcomes_map[idx] for idx in sorted(outcomes_map.keys())]
 
-        if self.validation_pipeline:
-            full_source = "".join([u.target_payload for u in sorted(units, key=lambda x: x.chunk_index)])
-            full_document = "".join([u.translated_payload for u in final_units_sorted])
-            ctx = ValidationContext(source_text=full_source, target_text=full_document, scope=Scope.DOCUMENT)
-            results_doc = self.validation_pipeline.validate_document(ctx)
-            for res in results_doc:
-                if res.severity == Severity.HARD_FAIL:
-                    raise DocumentValidationError(res.invariant_id, f"Document validation failed: {res.message}")
-
-        return final_units_sorted
+        return DispatchResult(outcomes=final_outcomes_sorted)
