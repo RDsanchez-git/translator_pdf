@@ -1,3 +1,6 @@
+from core.validation.budget import BudgetViolationReason
+from core.ast.models import FailureReason
+
 class PipelineIntegrityError(Exception):
     """Clase base para violaciones de invariantes del framework."""
     pass
@@ -56,3 +59,39 @@ class DocumentValidationError(Exception):
     def __init__(self, invariant_id: str, message: str):
         self.invariant_id = invariant_id
         super().__init__(message)
+
+
+class TranslationDomainError(Exception):
+    """SOTA: Clase base estricta para errores esperados del dominio, separada de errores técnicos (ej. KeyError)."""
+    pass
+
+class ContextOverflowError(TranslationDomainError):
+    """
+    SOTA: Excepción de dominio enriquecida.
+    Informa a la capa superior (Dispatcher) por qué el presupuesto falló, 
+    permitiendo telemetría fina y mapeo directo a políticas de degradación.
+    """
+    def __init__(self, message: str, violation_reason: BudgetViolationReason, utilization_ratio: float):
+        super().__init__(message)
+        self.violation_reason = violation_reason
+        self.utilization_ratio = utilization_ratio
+        
+        # SOTA: Enlace duro con la taxonomía del Assembler (Fase 15.4-D)
+        # Esto permite que el Dispatcher marque el outcome como degradable automáticamente.
+        self.failure_reason_enum = FailureReason.CONTEXT_OVERFLOW
+
+    def __str__(self) -> str:
+        return (
+            f"{super().__str__()} | "
+            f"Razón: {self.violation_reason.value} | "
+            f"Utilización: {self.utilization_ratio:.2f}x"
+        )
+
+class PermanentQuotaRejection(TranslationDomainError):
+    """SOTA: Fallo matemático insalvable o timeout de retención en el bucket de cuotas."""
+    pass
+
+class QuotaTimeoutError(TranslationDomainError):
+    """SOTA: Timeout de retención excedido esperando disponibilidad de cuota."""
+    pass
+

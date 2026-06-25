@@ -27,6 +27,7 @@ from apps.llm_workers.prompt_builder import PromptBuilder
 from apps.llm_workers.dispatcher import AsyncDispatcher
 from typing import Iterable, Dict
 from core.context.context_resolver import ResolvedContext
+from core.validation.budget import PromptBudgetCalculator
 
 console = Console()
 
@@ -81,24 +82,46 @@ async def handle_translate_async(args):
     if not api_key:
         raise RuntimeError("GROQ_API_KEY no configurada. Abortando inicialización de pipeline.")
 
-    estimator = FastWordEstimator()
-    prompt_builder = PromptBuilder(model_name="llama3-70b-8192", prompt_version="v1.0", estimator=estimator)
+    # SOTA FIX: Instanciación e Inyección del Motor de Presupuesto (Fase 15.2)
+    estimator = FastWordEstimator() # Nota: Migrar a ExactBPEEstimator cuando esté disponible en el entorno
+    budget_calculator = PromptBudgetCalculator(
+        estimator=estimator,
+        primary_window_limit=8192,
+        fallback_window_limit=1048576,
+        min_output_reserve=256,
+        max_output_reserve=4096
+    )
+    
+    prompt_builder = PromptBuilder(
+        model_name="llama3-70b-8192", 
+        prompt_version="v1.0", 
+        budget_calculator=budget_calculator,
+        estimator=estimator
+    )
+    
+    # SOTA FIX: Extracción de cuotas operativas (Fase 15.3)
+    rpm_limit = int(os.getenv("GROQ_RPM_LIMIT", "30"))
+    tpm_limit = int(os.getenv("GROQ_TPM_LIMIT", "6000"))
     
     groq_provider = GroqProvider(api_key=api_key)
     breaker = CircuitBreakerRegistry.get_breaker("groq", threshold=5)
     resilient_provider = ResilientProvider(underlying=groq_provider, breaker=breaker)
-    quota_manager = QuotaManager(rpm_limit=30, tpm_limit=6000)
+    quota_manager = QuotaManager(rpm_limit=rpm_limit, tpm_limit=tpm_limit)
     rate_provider = RateLimitedProvider(underlying=resilient_provider, quota_manager=quota_manager)
     cached_provider = CachedLLMProvider(underlying=rate_provider, db_path="infra/db/materialized.db")
     
     await cached_provider.initialize()
+
+    # SOTA FIX: Ley de Little heurística (L = λW). Evita thread starvation.
+    # Asume ~1.5s de latencia de red. Ajusta el factor multiplicador según la ráfaga deseada.
+    optimal_concurrency = max(1, min(int((rpm_limit / 60.0) * 1.5) * 2, 50))
 
     try:
         dispatcher = AsyncDispatcher(
             context_resolver=DummyContextResolver(),
             prompt_builder=prompt_builder,
             provider_stack=cached_provider,
-            concurrency=10
+            concurrency=optimal_concurrency # Reemplaza el 10 hardcodeado
         )
         
         chunker_adapter = ChunkerProtocolAdapter(estimator=estimator)

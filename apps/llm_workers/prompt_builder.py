@@ -1,24 +1,25 @@
 import hashlib
-from enum import Enum
-from dataclasses import dataclass
 from typing import Optional, Literal, Union
-from core.ast.models import TranslationUnit, TranslationTaskType, TokenEstimator
+from core.ast.models import TranslationUnit, TranslationTaskType
 from core.context.context_resolver import ResolvedContext
 
-class BuildFailureReason(str, Enum):
-    """SOTA: Taxonomía determinista de fallos en construcción."""
-    CONTEXT_OVERFLOW = "context_overflow"
-    MISSING_TARGET_PAYLOAD = "missing_target_payload"
+# SOTA: Integración estricta con el nuevo motor de validación algebraica (Fase 15.2)
+from core.validation.budget import (
+    PromptBudgetCalculator, 
+    BudgetDecisionType, 
+    ContextReductionLevel, 
+    StandardCompressionPolicy,
+    ContextCompressionPolicy,
+    TokenEstimatorProtocol,
+    PromptBudget,
+    BudgetViolationReason
+)
 
-@dataclass(frozen=True, slots=True)
-class PromptBudget:
-    estimated_input: int
-    safe_input: int
-    output_reserve: int
-    total_required: int
-    window_limit: int
-    pruning_level: int
-    predicted_tpm: int
+# =====================================================================
+# SOTA: DISCRIMINATED UNION (Result Pattern Estricto)
+# =====================================================================
+
+from dataclasses import dataclass, field
 
 @dataclass(frozen=True, slots=True)
 class PromptEnvelope:
@@ -33,22 +34,18 @@ class PromptEnvelope:
     raw_payload: str
     estimated_tokens: int
     budget_stats: PromptBudget
-
-# =====================================================================
-# SOTA: DISCRIMINATED UNION (Result Pattern Estricto)
-# Erradica los estados inválidos (ej. success=True pero envelope=None)
-# =====================================================================
+    telemetry: dict = field(default_factory=dict)
+    target_provider: str = "primary"
 
 @dataclass(frozen=True, slots=True)
 class BuildSuccess:
     status: Literal["success"]
     envelope: PromptEnvelope
-    budget_stats: PromptBudget
 
 @dataclass(frozen=True, slots=True)
 class BuildFailure:
     status: Literal["failed"]
-    error_reason: BuildFailureReason
+    error_reason: BudgetViolationReason
     message: str
     budget_stats: Optional[PromptBudget] = None
 
@@ -56,149 +53,155 @@ PromptBuildResult = Union[BuildSuccess, BuildFailure]
 
 # =====================================================================
 
-class AdaptiveBudgetManager:
-    @staticmethod
-    def calculate(system_prompt: str, user_prompt: str, payload: str, 
-                  estimator: TokenEstimator, window_limit: int, pruning_level: int) -> PromptBudget:
-        
-        input_tokens = estimator.estimate(system_prompt + user_prompt)
-        payload_tokens = estimator.estimate(payload)
-        output_reserve = int(payload_tokens * 1.3)
-        safe_input = int(input_tokens * 1.2)
-        total_required = safe_input + output_reserve
-        predicted_tpm = input_tokens + output_reserve
-
-        return PromptBudget(
-            estimated_input=input_tokens,
-            safe_input=safe_input,
-            output_reserve=output_reserve,
-            total_required=total_required,
-            window_limit=window_limit,
-            pruning_level=pruning_level,
-            predicted_tpm=predicted_tpm
-        )
-
 class PromptBuilder:
-    def __init__(self, model_name: str, prompt_version: str, estimator: TokenEstimator, 
-                 context_window: int = 8192, enforce_budget: bool = True):
+    def __init__(
+        self, 
+        model_name: str, 
+        prompt_version: str, 
+        budget_calculator: PromptBudgetCalculator, 
+        estimator: TokenEstimatorProtocol,
+        compression_policy: Optional[ContextCompressionPolicy] = None
+    ):
         self.model_name = model_name
         self.prompt_version = prompt_version
+        self.budget_calculator = budget_calculator
         self.estimator = estimator
-        self.context_window = context_window
-        self.enforce_budget = enforce_budget
+        # SOTA FIX: Instanciar la política concreta, no el Protocolo
+        self.compression_policy = compression_policy or StandardCompressionPolicy()
 
-    def _build_system(self, unit: TranslationUnit, context: ResolvedContext, pruning_level: int) -> str:
-        if pruning_level >= 1 or not context.breadcrumbs:
+    def _build_system(self, unit: TranslationUnit, context: str, is_pruned: bool, depth: int) -> str:
+        if is_pruned or not context:
             breadcrumbs_str = "CONTEXTO OMITIDO (PRUNED)"
         else:
-            breadcrumbs_str = " > ".join(context.breadcrumbs)
+            breadcrumbs_str = context
             
-        if pruning_level >= 2:
-            base_system = (
-                f"PARTE {unit.chunk_index}.\n"
-                f"Profundidad: Nivel {context.depth}\n"
-                f"REGLAS: Traducir fielmente, no omitir, no resumir."
-            )
-        else:
-            base_system = (
-                f"ESTA ES LA PARTE {unit.chunk_index} DEL DOCUMENTO COMPLETO.\n"
-                f"[CONTEXTO ESTRUCTURAL]\n"
-                f"Jerarquía Lógica: {breadcrumbs_str}\n"
-                f"Profundidad: Nivel {context.depth}\n\n"
-                f"REGLAS CRÍTICAS UNIVERSALES:\n"
-                f"- NO omitir contenido.\n"
-                f"- NO resumir ni agregar explicaciones.\n"
-                f"- NO inventar texto.\n"
-                f"- Traducir fielmente manteniendo la terminología técnica."
-            )
+        base_system = (
+            f"ESTA ES LA PARTE {unit.chunk_index} DEL DOCUMENTO COMPLETO.\n"
+            f"[CONTEXTO ESTRUCTURAL]\n"
+            f"Jerarquía Lógica: {breadcrumbs_str}\n"
+            f"Profundidad: Nivel {depth}\n\n"
+            f"REGLAS CRÍTICAS UNIVERSALES:\n"
+            f"- NO omitir contenido.\n"
+            f"- NO resumir ni agregar explicaciones.\n"
+            f"- NO inventar texto.\n"
+            f"- Traducir fielmente manteniendo la terminología técnica."
+        )
 
         type_instructions = ""
         if unit.chunk_type == TranslationTaskType.TRANSLATE:
-            if pruning_level >= 2:
-                type_instructions = "\nMACRO: Mantén saltos de línea (\\n\\n). Escapa LaTeX reservado."
-            else:
-                type_instructions = (
-                    "\nINSTRUCCIONES PARA BLOQUE MACRO:\n"
-                    "- PROHIBIDO fusionar párrafos. Mantén estrictamente los saltos de línea originales (\\n\\n).\n"
-                    "- Escapa caracteres reservados de LaTeX (%, &, _, #) si aparecen en texto plano.\n"
-                    "- NO modifiques la estructura de comandos LaTeX si detectas alguno."
-                )
+            type_instructions = (
+                "\nINSTRUCCIONES PARA BLOQUE MACRO:\n"
+                "- PROHIBIDO fusionar párrafos. Mantén estrictamente los saltos de línea originales (\\n\\n).\n"
+                "- Escapa caracteres reservados de LaTeX (%, &, _, #) si aparecen en texto plano.\n"
+                "- NO modifiques la estructura de comandos LaTeX si detectas alguno."
+            )
         elif unit.chunk_type == TranslationTaskType.PARTIAL:
-            if pruning_level >= 2:
-                type_instructions = "\nHÍBRIDO: Traduce SOLO texto natural. Mantén grilla/LaTeX."
-            else:
-                type_instructions = (
-                    "\nINSTRUCCIONES PARA ELEMENTOS HÍBRIDOS:\n"
-                    "- Traduce EXCLUSIVAMENTE el texto natural (captions, celdas de texto).\n"
-                    "- MANTÉN INTACTA la grilla Markdown o la estructura LaTeX."
-                )
+            type_instructions = (
+                "\nINSTRUCCIONES PARA ELEMENTOS HÍBRIDOS:\n"
+                "- Traduce EXCLUSIVAMENTE el texto natural (captions, celdas de texto).\n"
+                "- MANTÉN INTACTA la grilla Markdown o la estructura LaTeX."
+            )
         elif unit.chunk_type == TranslationTaskType.PRESERVE:
-            if pruning_level >= 2:
-                type_instructions = "\nPROTEGIDO: NO MODIFICAR. DEVUELVE IGUAL."
-            else:
-                type_instructions = (
-                    "\nINSTRUCCIONES PROTEGIDAS:\n"
-                    "- PROHIBIDO modificar contenido. DEVUELVE EL TEXTO EXACTAMENTE IGUAL."
-                )
+            type_instructions = (
+                "\nINSTRUCCIONES PROTEGIDAS:\n"
+                "- PROHIBIDO modificar contenido. DEVUELVE EL TEXTO EXACTAMENTE IGUAL."
+            )
 
         return f"{base_system}{type_instructions}"
 
-    def build(self, unit: TranslationUnit, context: ResolvedContext) -> PromptBuildResult:
+    def build(self, unit: TranslationUnit, resolved_context: ResolvedContext, target_lang_expansion: float = 1.2) -> PromptBuildResult:
         # 1. Validación temprana
         if not unit.target_payload:
             return BuildFailure(
                 status="failed",
-                error_reason=BuildFailureReason.MISSING_TARGET_PAYLOAD, 
+                error_reason=BudgetViolationReason.NONE, 
                 message="Target payload vacío.",
                 budget_stats=None
             )
 
-        user_prompt = f"TEXT TO TRANSLATE:\n{unit.target_payload}\n\nOUTPUT:\n"
+        # 2. Extracción de niveles de contexto
+        # Nota: Asume que resolved_context provee propiedades o diccionarios para los niveles.
+        full_context_str = " > ".join(resolved_context.breadcrumbs) if resolved_context.breadcrumbs else ""
+        context_levels = {
+            ContextReductionLevel.FULL: full_context_str,
+            ContextReductionLevel.HEADINGS: full_context_str, # Simplificado para el ejemplo
+            ContextReductionLevel.BREADCRUMBS: full_context_str.split(" > ")[-1] if full_context_str else "",
+            ContextReductionLevel.NONE: ""
+        }
         
-        # 2. Bypass (Testing / Forzado)
-        if not self.enforce_budget or self.context_window <= 0:
-            system_prompt = self._build_system(unit, context, pruning_level=0)
-            dummy_budget = PromptBudget(0, 0, 0, 0, self.context_window, 0, 0)
-            envelope = self._forge_envelope(unit, system_prompt, user_prompt, dummy_budget)
-            return BuildSuccess(status="success", envelope=envelope, budget_stats=dummy_budget)
+        full_context = context_levels.get(ContextReductionLevel.FULL, "")
+        
+        # 3. Creación del System Prompt Base (requerido para calcular budget)
+        base_system_prompt = self._build_system(unit, full_context, is_pruned=False, depth=resolved_context.depth)
+        user_prompt = f"TEXT TO TRANSLATE:\n{unit.target_payload}\n\nOUTPUT:\n"
 
-        # 3. Cascading Pruning
-        budget = None
-        for current_level in range(3):
-            system_prompt = self._build_system(unit, context, pruning_level=current_level)
-            budget = AdaptiveBudgetManager.calculate(
-                system_prompt, user_prompt, unit.target_payload, 
-                self.estimator, self.context_window, current_level
+        # 4. Cálculo Algebraico (Fase 15.2 SOTA)
+        decision = self.budget_calculator.calculate(
+            system_text=base_system_prompt,
+            context_text=full_context,
+            payload_text=user_prompt,
+            expansion_factor=target_lang_expansion
+        )
+        
+        telemetry = {
+            "utilization_ratio": decision.budget.utilization_ratio,
+            "decision": decision.status.value,
+            "violation_reason": decision.violation_reason.value,
+            "required_window": decision.required_window_size,
+        }
+
+        # 5. Aplicación de Directivas de Enrutamiento y Degradación
+        target_provider = "primary"
+        final_context_str = full_context
+        is_pruned = False
+
+        if decision.status == BudgetDecisionType.VALID:
+            pass # Mantiene full_context
+            
+        elif decision.status == BudgetDecisionType.COMPRESS_CONTEXT:
+            final_context_str = ""
+            is_pruned = True
+            # SOTA FIX: Usar el método del protocolo, no un atributo
+            for level in self.compression_policy.get_levels():
+                test_ctx = context_levels.get(level, "")
+                if self.estimator.estimate_tokens(test_ctx) <= decision.max_allowed_context_tokens:
+                    final_context_str = test_ctx
+                    telemetry["compression_level"] = level.value
+                    is_pruned = (level != ContextReductionLevel.FULL)
+                    break
+                    
+        elif decision.status == BudgetDecisionType.SWITCH_MODEL:
+            target_provider = "fallback_large_window"
+            
+        else: # REJECT (Fallo determinista)
+            return BuildFailure(
+                status="failed",
+                error_reason=decision.violation_reason,
+                message=f"Presupuesto excedido (Razón: {decision.violation_reason.value}). Requerido: {decision.required_window_size}",
+                budget_stats=decision.budget
             )
             
-            if budget.total_required <= self.context_window:
-                envelope = self._forge_envelope(unit, system_prompt, user_prompt, budget)
-                return BuildSuccess(status="success", envelope=envelope, budget_stats=budget)
-                
-        assert budget is not None
+        # 6. Ensamblado Final (Construcción del Sobre Seguro)
+        final_system_prompt = self._build_system(unit, final_context_str, is_pruned=is_pruned, depth=resolved_context.depth)
         
-        # 4. Fallo Determinista sin excepciones (Context Overflow)
-        return BuildFailure(
-            status="failed",
-            error_reason=BuildFailureReason.CONTEXT_OVERFLOW,
-            message=f"Requerido: {budget.total_required} (SafeInput: {budget.safe_input}, OutputReserve: {budget.output_reserve})",
-            budget_stats=budget
-        )
-
-    def _forge_envelope(self, unit: TranslationUnit, system_prompt: str, user_prompt: str, budget: PromptBudget) -> PromptEnvelope:
-        hash_input = f"{self.model_name}|{self.prompt_version}|{system_prompt}|{user_prompt}"
+        hash_input = f"{self.model_name}|{self.prompt_version}|{final_system_prompt}|{user_prompt}"
         prompt_hash = hashlib.sha256(hash_input.encode("utf-8")).hexdigest()
         
-        return PromptEnvelope(
+        envelope = PromptEnvelope(
             prompt_id=f"prm_{prompt_hash[:16]}",
             chunk_id=unit.chunk_id,
             chunk_type=unit.chunk_type,
             model_name=self.model_name,
             prompt_version=self.prompt_version,
             prompt_hash=prompt_hash,
-            system_prompt=system_prompt,
+            system_prompt=final_system_prompt,
             user_prompt=user_prompt,
             raw_payload=unit.target_payload,
-            estimated_tokens=budget.estimated_input,
-            budget_stats=budget
+            # SOTA FIX: Uso de la propiedad canónica del DTO
+            estimated_tokens=decision.budget.total_estimated,
+            budget_stats=decision.budget,
+            telemetry=telemetry,
+            target_provider=target_provider
         )
+        
+        return BuildSuccess(status="success", envelope=envelope)

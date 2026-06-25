@@ -1,11 +1,13 @@
 import asyncio
 import logging
+import itertools
 from typing import List, Optional, Dict
 from dataclasses import replace
+
 from core.ast.models import TranslationUnit, TranslatedUnit, ChunkOutcome, ExecutionStatus, FailureReason, DispatchResult
-from apps.llm_workers.prompt_builder import PromptEnvelope, PromptBuilder, PromptBuildResult, BuildFailureReason
+from apps.llm_workers.prompt_builder import PromptEnvelope, PromptBuilder, BuildFailure
 from apps.llm_workers.routing import ProviderResult, LLMProvider
-from core.execution.exceptions import CircuitOpenError
+from core.execution.exceptions import CircuitOpenError, PermanentQuotaRejection, QuotaTimeoutError
 from core.context.context_resolver import ContextResolverProtocol, ResolvedContext
 from core.validation.models import ValidationContext, Scope, Severity
 from core.validation.pipeline import ValidationPipeline
@@ -17,8 +19,23 @@ from core.validation.semantic import SemanticValidator
 from core.validation.volumetric import VolumetricValidator
 from core.healing.models import HealingContext, HealingOutcome
 from core.healing.pipeline import HealingPipeline
+from core.validation.budget import BudgetViolationReason
+
 
 logger = logging.getLogger(__name__)
+
+# =====================================================================
+# SOTA: RESOLUCIÓN DE ENRUTAMIENTO Y PRESUPUESTO
+# =====================================================================
+MAX_GLOBAL_SUPPORTED_WINDOW = 2097152 # Límite físico absoluto del Stack (ej. Gemini 1.5 Pro)
+
+BUDGET_TO_EXECUTION_FAILURE_MAP = {
+    BudgetViolationReason.PAYLOAD_TOO_LARGE: FailureReason.CONTEXT_OVERFLOW,
+    BudgetViolationReason.SYSTEM_PROMPT_TOO_LARGE: FailureReason.CONTEXT_OVERFLOW,
+    BudgetViolationReason.CONTEXT_TOO_LARGE: FailureReason.CONTEXT_OVERFLOW,
+    BudgetViolationReason.OUTPUT_RESERVE_TOO_LARGE: FailureReason.CONTEXT_OVERFLOW,
+    BudgetViolationReason.NONE: FailureReason.UNKNOWN_ERROR
+}
 
 class AsyncDispatcher:
     def __init__(
@@ -89,6 +106,7 @@ class AsyncDispatcher:
             chunk_type=unit.chunk_type,
             payload_sha256=unit.payload_sha256
         )
+        
         results = self.validation_pipeline.validate_chunk(ctx)
         hard_fails = [r for r in results if r.severity == Severity.HARD_FAIL]
         
@@ -103,7 +121,7 @@ class AsyncDispatcher:
                     model_name=f"healed:{translated.model_name}"
                 )
                 results = self.validation_pipeline.validate_chunk(replace(ctx, target_text=translated.translated_payload))
-                hard_fails = [] 
+                hard_fails = [r for r in results if r.severity == Severity.HARD_FAIL]
 
         if hard_fails:
             res = hard_fails[0]
@@ -111,10 +129,11 @@ class AsyncDispatcher:
 
         return translated
 
-    async def _worker(self, queue: asyncio.Queue, results: Dict[int, ChunkOutcome]) -> None:
+    async def _worker(self, queue: asyncio.PriorityQueue, results: Dict[int, ChunkOutcome]) -> None:
         while True:
             try:
-                unit, envelope = await queue.get()
+                # SOTA FIX 15.3-D: Extracción de tupla LPT. priority y seq_id se descartan de forma segura.
+                priority, seq_id, unit, envelope = await queue.get()
             except asyncio.CancelledError:
                 break
 
@@ -126,22 +145,34 @@ class AsyncDispatcher:
                     chunk_index=unit.chunk_index,
                     chunk_id=unit.chunk_id,
                     status=ExecutionStatus.SUCCESS,
-                    original_payload_sha256=unit.payload_sha256, # SOTA: O(1) memory footprint
+                    original_payload_sha256=unit.payload_sha256, 
                     translated_unit=translated,
                     failure_reason=None,
-                    error_message=None
+                    error_message=None,
+                    telemetry=envelope.telemetry # Propagación de telemetría SRE
                 )
             except CircuitOpenError as e:
+                # SOTA FIX: Mapeo exacto a apertura de circuito
                 results[unit.chunk_index] = ChunkOutcome(
-                    chunk_index=unit.chunk_index,
-                    chunk_id=unit.chunk_id,
-                    status=ExecutionStatus.FAILED,
-                    original_payload_sha256=unit.payload_sha256,
-                    translated_unit=None,
-                    failure_reason=FailureReason.RETRY_EXHAUSTED,
-                    error_message=str(e)
+                    chunk_index=unit.chunk_index, chunk_id=unit.chunk_id, status=ExecutionStatus.FAILED,
+                    original_payload_sha256=unit.payload_sha256, translated_unit=None,
+                    failure_reason=FailureReason.CIRCUIT_OPEN, error_message=str(e), telemetry=envelope.telemetry
                 )
-            except ValueError as e: # Captura el hard fail del validador
+            except QuotaTimeoutError as e:
+                # SOTA FIX: Mapeo exacto a timeout de bucket
+                results[unit.chunk_index] = ChunkOutcome(
+                    chunk_index=unit.chunk_index, chunk_id=unit.chunk_id, status=ExecutionStatus.FAILED,
+                    original_payload_sha256=unit.payload_sha256, translated_unit=None,
+                    failure_reason=FailureReason.QUOTA_TIMEOUT, error_message=str(e), telemetry=envelope.telemetry
+                )
+            except PermanentQuotaRejection as e:
+                # SOTA FIX: Mapeo exacto a rechazo matemático
+                results[unit.chunk_index] = ChunkOutcome(
+                    chunk_index=unit.chunk_index, chunk_id=unit.chunk_id, status=ExecutionStatus.FAILED,
+                    original_payload_sha256=unit.payload_sha256, translated_unit=None,
+                    failure_reason=FailureReason.QUOTA_REJECTION, error_message=str(e), telemetry=envelope.telemetry
+                )
+            except ValueError as e:
                 results[unit.chunk_index] = ChunkOutcome(
                     chunk_index=unit.chunk_index,
                     chunk_id=unit.chunk_id,
@@ -149,7 +180,8 @@ class AsyncDispatcher:
                     original_payload_sha256=unit.payload_sha256,
                     translated_unit=None,
                     failure_reason=FailureReason.VALIDATION_FAILURE,
-                    error_message=str(e)
+                    error_message=str(e),
+                    telemetry=envelope.telemetry
                 )
             except Exception as e:
                 results[unit.chunk_index] = ChunkOutcome(
@@ -159,7 +191,8 @@ class AsyncDispatcher:
                     original_payload_sha256=unit.payload_sha256,
                     translated_unit=None,
                     failure_reason=FailureReason.PROVIDER_FAILURE,
-                    error_message=str(e)
+                    error_message=str(e),
+                    telemetry=envelope.telemetry
                 )
             finally:
                 queue.task_done()
@@ -175,7 +208,9 @@ class AsyncDispatcher:
         context_ids = {u.context_id for u in units if u.context_id}
         resolved_contexts = self.context_resolver.resolve_many(context_ids)
 
-        queue: asyncio.Queue = asyncio.Queue()
+        # SOTA FIX 15.3-D: Cola priorizada y contador determinista contra colisiones (Same-Cost)
+        queue: asyncio.PriorityQueue = asyncio.PriorityQueue()
+        sequence_counter = itertools.count()
         outcomes_map: Dict[int, ChunkOutcome] = {} 
 
         for unit in units:
@@ -184,21 +219,47 @@ class AsyncDispatcher:
                 breadcrumbs=()
             )
             
-            # SOTA: Consumo del Discriminated Union
-            build_result: PromptBuildResult = self.prompt_builder.build(unit, context)
+            build_result = self.prompt_builder.build(unit, context)
             
-            if build_result.status == "success":
-                queue.put_nowait((unit, build_result.envelope))
-            else:
+            # SOTA FIX: Fallback DTO Pattern Matching
+            if isinstance(build_result, BuildFailure):
+                mapped_reason = BUDGET_TO_EXECUTION_FAILURE_MAP.get(
+                    build_result.error_reason, 
+                    FailureReason.UNKNOWN_ERROR
+                )
                 outcomes_map[unit.chunk_index] = ChunkOutcome(
                     chunk_index=unit.chunk_index,
                     chunk_id=unit.chunk_id,
                     status=ExecutionStatus.FAILED,
                     original_payload_sha256=unit.payload_sha256,
                     translated_unit=None,
-                    failure_reason=FailureReason.CONTEXT_OVERFLOW if build_result.error_reason == BuildFailureReason.CONTEXT_OVERFLOW else FailureReason.PROVIDER_FAILURE,
-                    error_message=build_result.message
+                    failure_reason=mapped_reason,
+                    error_message=build_result.message,
+                    telemetry={"violation_reason": build_result.error_reason.value}
                 )
+                continue
+
+            envelope = build_result.envelope
+            req_window = envelope.telemetry.get("required_window", 0)
+
+            # SOTA FIX: Hard Reject (Pre-Red)
+            if req_window > MAX_GLOBAL_SUPPORTED_WINDOW:
+                outcomes_map[unit.chunk_index] = ChunkOutcome(
+                    chunk_index=unit.chunk_index,
+                    chunk_id=unit.chunk_id,
+                    status=ExecutionStatus.FAILED,
+                    original_payload_sha256=unit.payload_sha256,
+                    translated_unit=None,
+                    failure_reason=FailureReason.UNPROCESSABLE_ENTITY,
+                    error_message=f"Rechazo Absoluto: required_window ({req_window}) excede la capacidad total ({MAX_GLOBAL_SUPPORTED_WINDOW}).",
+                    telemetry={"target_provider": "rejected", "required_window": req_window}
+                )
+                continue
+
+            # SOTA FIX 15.3-D: Inserción LPT (Largest Estimated Cost First)
+            cost_priority = -envelope.estimated_tokens
+            seq_id = next(sequence_counter)
+            queue.put_nowait((cost_priority, seq_id, unit, envelope))
 
         workers = [asyncio.create_task(self._worker(queue, outcomes_map)) for _ in range(self._concurrency)]
 
@@ -209,7 +270,7 @@ class AsyncDispatcher:
                 w.cancel()
             await asyncio.gather(*workers, return_exceptions=True)
 
-        # SOTA FIX: Red de seguridad para outcomes_map incompleto (Worker Hard-Crash)
+        # SOTA: Integridad final contra crashes huérfanos
         missing_indexes = set(chunk_indexes) - set(outcomes_map.keys())
         if missing_indexes:
             logger.error(f"FATAL: {len(missing_indexes)} chunks perdidos por crash no controlado en Workers.")
@@ -222,9 +283,9 @@ class AsyncDispatcher:
                     original_payload_sha256=unit.payload_sha256,
                     translated_unit=None,
                     failure_reason=FailureReason.UNHANDLED_WORKER_CRASH,
-                    error_message="El Worker colapsó o fue cancelado antes de registrar el outcome."
+                    error_message="El Worker colapsó o fue cancelado antes de registrar el outcome.",
+                    telemetry={"violation_reason": "worker_crash"}
                 )
 
         final_outcomes_sorted = [outcomes_map[idx] for idx in sorted(outcomes_map.keys())]
-
         return DispatchResult(outcomes=final_outcomes_sorted)

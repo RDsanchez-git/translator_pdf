@@ -33,6 +33,7 @@ import typing
 from concurrent.futures import ThreadPoolExecutor
 import threading
 from core.normalization.latex_sanitizer import InlineMathProtector
+from core.validation.budget import PromptBudgetCalculator
 
 
 
@@ -79,15 +80,33 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
         raise RuntimeError("GROQ_API_KEY no configurada. Imposible operar motor LLM.")
 
     estimator = FastWordEstimator()
-    builder = PromptBuilder(model_name="llama3-70b-8192", prompt_version="v1.0", estimator=estimator)
+    
+    # SOTA FIX: Inyección del Motor de Presupuesto en el plano del Daemon (Fase 15.2)
+    budget_calculator = PromptBudgetCalculator(
+        estimator=estimator,
+        primary_window_limit=8192,
+        fallback_window_limit=1048576,
+        min_output_reserve=256,
+        max_output_reserve=4096
+    )
+    
+    builder = PromptBuilder(
+        model_name="llama3-70b-8192", 
+        prompt_version="v1.0", 
+        budget_calculator=budget_calculator,
+        estimator=estimator
+    )
+    
+    # SOTA FIX: Extracción de cuotas operativas (Fase 15.3)
+    rpm_limit = int(os.getenv("GROQ_RPM_LIMIT", "30"))
+    tpm_limit = int(os.getenv("GROQ_TPM_LIMIT", "6000"))
     
     groq_provider = GroqProvider(api_key=api_key)
     breaker = CircuitBreakerRegistry.get_breaker("groq")
     resilient = ResilientProvider(groq_provider, breaker)
-    quota = QuotaManager(rpm_limit=30, tpm_limit=6000)
+    quota = QuotaManager(rpm_limit=rpm_limit, tpm_limit=tpm_limit)
     rate_provider = RateLimitedProvider(resilient, quota)
     
-    # SOTA: Se elimina 'metrics = Metrics()' para limpiar el scope de variables zombis
     processor = SyncProviderBridge(async_provider=rate_provider, prompt_builder=builder)
     owner_id = f"orchestrator_{uuid.uuid4().hex[:8]}"
 

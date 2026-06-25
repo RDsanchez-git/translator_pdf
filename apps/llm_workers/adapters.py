@@ -2,10 +2,12 @@ import time
 import logging
 from groq import AsyncGroq
 import groq
+import google.generativeai as genai
 
 from apps.llm_workers.prompt_builder import PromptEnvelope
 from apps.llm_workers.routing import ProviderResult
 from core.execution.exceptions import TransientAPIError
+
 
 logger = logging.getLogger(__name__)
 
@@ -68,3 +70,46 @@ class GroqProvider:
             if e.status_code >= 500 or e.status_code == 429:
                 raise TransientAPIError(f"Groq HTTP {e.status_code}: {str(e)}") from e
             raise ValueError(f"Groq Fatal Error HTTP {e.status_code}: {str(e)}") from e
+
+
+class GeminiProvider:
+    """SOTA: Adaptador restaurado exclusivamente para el entorno de Benchmark Harness."""
+    
+    def __init__(self, api_key: str):
+        genai.configure(api_key=api_key) #type: ignore
+
+    async def translate(self, envelope: PromptEnvelope) -> ProviderResult:
+        start_time = time.monotonic()
+        
+        try:
+            model = genai.GenerativeModel(#type: ignore
+                model_name=envelope.model_name,
+                system_instruction=envelope.system_prompt
+            )
+            
+            response = await model.generate_content_async(
+                envelope.user_prompt,
+                generation_config=genai.GenerationConfig(temperature=0.0) #type: ignore
+            )
+            
+            latency = (time.monotonic() - start_time) * 1000
+            
+            # SOTA Fail-Fast: Detección de bloqueos de seguridad o nulos
+            if not response.parts:
+                raise ValueError(f"Gemini API Error: Contenido nulo o bloqueado para el chunk {envelope.chunk_id}.")
+
+            usage = response.usage_metadata
+            finish_reason = response.candidates[0].finish_reason if response.candidates else None
+
+            return ProviderResult(
+                chunk_id=envelope.chunk_id,
+                translated_text=response.text,
+                input_tokens=usage.prompt_token_count if usage else 0,
+                output_tokens=usage.candidates_token_count if usage else 0,
+                latency_ms=latency,
+                finish_reason=str(finish_reason.name) if finish_reason else "unknown"
+            )
+            
+        except Exception as e:
+            # SOTA: Todo fallo crudo (incluyendo 429 de red o HTTP 503) se mapea para que el ResilientProvider lo intercepte
+            raise TransientAPIError(f"Gemini Upstream Error: {str(e)}") from e

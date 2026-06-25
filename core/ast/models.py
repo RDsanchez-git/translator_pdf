@@ -95,6 +95,9 @@ class FastWordEstimator(TokenEstimator):
         if not text:
             return 0
         return int(len(text.split()) * 1.3)
+
+    def estimate_tokens(self, text: str) -> int:
+        return int(self.estimate(text))
     
 
 @dataclass(frozen=True)
@@ -159,16 +162,27 @@ class FailureReason(str, Enum):
     VALIDATION_FAILURE = "validation_failure"
     RETRY_EXHAUSTED = "retry_exhausted"               # Corrección: Causa de negocio, no mecanismo
     UNHANDLED_WORKER_CRASH = "unhandled_worker_crash" # SOTA: Red de seguridad
+    # SOTA FIX: Nuevos estados de infraestructura y enrutamiento
+    UNKNOWN_ERROR = "unknown_error"
+    UNPROCESSABLE_ENTITY = "unprocessable_entity"
+    # SOTA FIX: Separación estricta de dominios de falla
+    CIRCUIT_OPEN = "circuit_open"
+    QUOTA_REJECTION = "quota_rejection"
+    QUOTA_TIMEOUT = "quota_timeout"
+    
 
-@dataclass(frozen=True)
+@dataclass(frozen=True) # (o slots=True dependiendo de tu versión)
 class ChunkOutcome:
     chunk_index: int
     chunk_id: str
     status: ExecutionStatus
-    original_payload_sha256: str                      # SOTA: O(1) memory footprint
-    translated_unit: Optional["TranslatedUnit"] = None
-    failure_reason: Optional[FailureReason] = None
-    error_message: Optional[str] = None
+    original_payload_sha256: str
+    translated_unit: Optional[TranslatedUnit]
+    failure_reason: Optional[FailureReason]
+    error_message: Optional[str]
+    
+    # SOTA FIX: Soporte de propagación de telemetría SRE
+    telemetry: Optional[dict] = None
 
     def __post_init__(self):
         """SOTA: Invariante fuerte. Imposibilita estados contradictorios."""
@@ -230,3 +244,15 @@ class DispatchAnalytics:
             if not o.is_success and o.failure_reason
         )
         return dict(counts)
+
+
+class ExecutionRoute(str, Enum):
+    """SOTA: Trazabilidad tipada del enrutamiento de inferencia."""
+    PRIMARY = "primary"
+    FALLBACK = "fallback"
+    BYPASS = "bypass"
+
+class ExecutionStage(str, Enum):
+    PRE_NETWORK = "pre_network"  # Fallo en budget/limiter. Costo garantizado 0.
+    NETWORK = "network"          # Vuelo HTTP. Costo posible.
+    POST_NETWORK = "post_network" # Fallo en validación/ensamblado. Costo garantizado > 0.

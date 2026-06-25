@@ -16,6 +16,7 @@ from infra.db.connection import get_connection
 from infra.db.control_repo import ControlPlaneRepository
 from infra.db.event_repo import EventPlaneRepository
 from infra.db.materialized_repo import MaterializedPlaneRepository
+from core.validation.budget import PromptBudgetCalculator
 from core.metrics.metrics import Metrics
 import signal
 
@@ -233,7 +234,23 @@ if __name__ == "__main__":
         raise RuntimeError("GROQ_API_KEY no configurada. Imposible operar motor LLM.")
 
     estimator = FastWordEstimator()
-    builder = PromptBuilder(model_name="llama3-70b-8192", prompt_version="v1.0", estimator=estimator)
+
+    # SOTA FIX: Instanciar motor de presupuesto algebraico
+    budget_calculator = PromptBudgetCalculator(
+        estimator=estimator,
+        primary_window_limit=8192,
+        fallback_window_limit=1048576,
+        min_output_reserve=256,
+        max_output_reserve=4096
+    )
+
+    # SOTA FIX: Inyectar dependencia en el constructor
+    builder = PromptBuilder(
+        model_name="llama3-70b-8192", 
+        prompt_version="v1.0", 
+        budget_calculator=budget_calculator,
+        estimator=estimator
+)
     
     groq_provider = GroqProvider(api_key=api_key)
     breaker = CircuitBreakerRegistry.get_breaker("groq")
