@@ -95,3 +95,32 @@ class QuotaTimeoutError(TranslationDomainError):
     """SOTA: Timeout de retención excedido esperando disponibilidad de cuota."""
     pass
 
+
+# =================================================================================
+# Proveedores de OCR
+# =================================================================================
+
+class DomainException(Exception):
+    """Base inmutable para todas las excepciones del dominio del sistema."""
+    pass
+
+class ExtractionError(DomainException):
+    """Heredado si ocurre un fallo crítico durante el proceso de ingesta o parsing."""
+    def __init__(self, message: str, provider_name: str, pdf_path: str):
+        super().__init__(f"[{provider_name}] Fallo de extracción en {pdf_path}: {message}")
+        self.provider_name = provider_name
+        self.pdf_path = pdf_path
+
+class ProviderFailure(ExtractionError):
+    """Heredado ante caídas de subprocesos, timeouts de API o fallos de binaries físicos (Tesseract/Drivers)."""
+    pass
+
+class LayoutRecoveryError(ExtractionError):
+    """Heredado ante corrupciones geométricas o incapacidad de validar invariantes topológicos."""
+    pass
+
+class ASTMappingError(DomainException):
+    """Heredado ante fallas de traducción estructural desde el Layout físico hacia el AST lógico."""
+    def __init__(self, message: str, pdf_path: str):
+        super().__init__(f"Fallo en mapeo lógico de AST para {pdf_path}: {message}")
+        self.pdf_path = pdf_path
