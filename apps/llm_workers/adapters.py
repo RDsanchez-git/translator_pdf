@@ -41,7 +41,7 @@ class GroqProvider:
                     {"role": "user", "content": envelope.user_prompt}
                 ],
                 model=envelope.model_name,
-                temperature=0.0,
+                temperature=1e-5,  # SOTA FIX: Límite asintótico inferior exigido por Groq
                 stream=False
             )
             
@@ -49,7 +49,6 @@ class GroqProvider:
             choice = response.choices[0]
             content = choice.message.content
             
-            # SOTA Fail-Fast: Prevención de propagación de nulos (ej. tool calls inesperados)
             if content is None:
                 raise ValueError(f"Groq API Error: Contenido nulo devuelto para el chunk {envelope.chunk_id}.")
 
@@ -64,8 +63,6 @@ class GroqProvider:
                 finish_reason=choice.finish_reason
             )
             
-        except (groq.APIConnectionError, groq.RateLimitError, groq.InternalServerError) as e:
-            raise TransientAPIError(f"Groq Upstream Error: {str(e)}") from e
         except groq.APIStatusError as e:
             if e.status_code >= 500 or e.status_code == 429:
                 raise TransientAPIError(f"Groq HTTP {e.status_code}: {str(e)}") from e
@@ -94,7 +91,6 @@ class GeminiProvider:
             
             latency = (time.monotonic() - start_time) * 1000
             
-            # SOTA Fail-Fast: Detección de bloqueos de seguridad o nulos
             if not response.parts:
                 raise ValueError(f"Gemini API Error: Contenido nulo o bloqueado para el chunk {envelope.chunk_id}.")
 
@@ -111,5 +107,4 @@ class GeminiProvider:
             )
             
         except Exception as e:
-            # SOTA: Todo fallo crudo (incluyendo 429 de red o HTTP 503) se mapea para que el ResilientProvider lo intercepte
             raise TransientAPIError(f"Gemini Upstream Error: {str(e)}") from e

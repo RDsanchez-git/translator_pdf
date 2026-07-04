@@ -141,6 +141,12 @@ class AsyncDispatcher:
                 provider_result = await self._provider.translate(envelope)
                 translated = await self._process_validation_and_healing(unit, provider_result, envelope)
                 
+                # SOTA FIX: Puente de telemetría de red. Inyección estricta de métricas LPU/TPU
+                execution_telemetry = envelope.telemetry.copy() if envelope.telemetry else {}
+                execution_telemetry["input_tokens"] = provider_result.input_tokens
+                execution_telemetry["output_tokens"] = provider_result.output_tokens
+                execution_telemetry["latency_ms"] = provider_result.latency_ms
+                
                 results[unit.chunk_index] = ChunkOutcome(
                     chunk_index=unit.chunk_index,
                     chunk_id=unit.chunk_id,
@@ -149,7 +155,7 @@ class AsyncDispatcher:
                     translated_unit=translated,
                     failure_reason=None,
                     error_message=None,
-                    telemetry=envelope.telemetry # Propagación de telemetría SRE
+                    telemetry=execution_telemetry # Propagación de telemetría SRE corregida
                 )
             except CircuitOpenError as e:
                 # SOTA FIX: Mapeo exacto a apertura de circuito

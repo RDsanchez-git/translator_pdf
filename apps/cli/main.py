@@ -160,6 +160,12 @@ async def handle_translate_async(args):
 
             result = await pipeline.execute(job)
 
+            # ──► INYECCIÓN TEMPORAL DE SEGURIDAD PARA FASE 8 ◄── BORRAR LUEGO
+            console.print("[bold yellow]\n[GUARDRAIL] Deteniendo ejecución antes del despacho a Groq. Archivos AST y Debug MD preservados.[/]")
+            sys.exit(0)
+            ### aquí BORRAR
+
+        
         console.print("\n[bold green]✓ Ejecución de Pipeline Completada Exitosamente.[/]\n")
         
         # SOTA: Consumo de métricas operacionales de Fase 15.4
