@@ -1,0 +1,12 @@
+{
+  "dataset_id": "ds_validation_01",
+  "git_commit_sha": "unknown",
+  "baseline": {
+    "provider": "google",
+    "latencies_ms": []
+  },
+  "challenger": {
+    "provider": "groq",
+    "latencies_ms": []
+  }
+}

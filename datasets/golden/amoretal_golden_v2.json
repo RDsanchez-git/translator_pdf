@@ -1,0 +1,302 @@
+[
+  {
+    "document_id": "Amor_2023",
+    "chunk_id": "node_1",
+    "type": "PROSE",
+    "source": "Real exchange rate misalignments and economic growth in Tunisia: New evidence from a threshold analysis of asymmetric adjustments☆",
+    "target_8B": "Desalineaciones del tipo de cambio real y crecimiento económico en Túnez: Nueva evidencia a partir de un análisis de umbral de ajustes asimétricos.",
+    "target_70B": "Desajustes del tipo de cambio real y crecimiento económico en Túnez: Nueva evidencia de un análisis de umbrales de ajustes asimétricos.",
+    "human_overall_score_8B": 5.0,
+    "human_overall_score_70B": 5.0
+  },
+  {
+    "document_id": "Amor_2023",
+    "chunk_id": "node_5",
+    "type": "PROSE",
+    "source": "Keywords: Growth Exchange rate misalignments Non-linearities NARDL Thresholds Tunisia",
+    "target_8B": "Palabras clave: Crecimiento, Desalineaciones del tipo de cambio, No linealidades, NARDL, Umbrales, Túnez",
+    "target_70B": "Palabras clave: Crecimiento, Desajustes del tipo de cambio, No linealidades, NARDL, Umbrales, Túnez",
+    "human_overall_score_8B": 5.0,
+    "human_overall_score_70B": 5.0
+  },
+  {
+    "document_id": "Amor_2023",
+    "chunk_id": "node_6",
+    "type": "PROSE",
+    "source": "In this paper, we focus on both the impact of real exchange rate (RER) misalignments on economic growth and the assessment of misalignments’ thresholds in the case of Tunisia. Our contribution to the literature is threefold. First, we reassess the main factors driving the equilibrium RER using a dynamic model approach. Second, we investigate the possible asymmetric effects of real misalignment on economic growth in Tunisia using the non-linear autoregressive distributed lag (NARDL) estimator developed by Shin et al. (2014) which takes into account the nonlinearity in the relationship between exchange rate misalignments and economic growth. Third, using a threshold model inspired by Hansen (2000), we identify the level of misalignments of the Tunisian dinar that can enhance (or hamper) economic growth. Our main findings are the following: i) the Tunisian dinar has experienced periods of overvaluation and undervaluation during the 2001–2016 period; ii) there is a negative impact of real overvaluation of the dinar on Tunisia’s growth performance, while an undervaluation has no significant impact; iii) there exists a threshold for the effects of RER misalignment on growth. Specifically, real undervaluation promotes growth until an estimated threshold of 10.02% deviation from the equilibrium RER has been reached, while an overvaluation can boost growth until a 9.02% threshold is reached. These findings have important implications from a policymaker’s perspective.",
+    "target_8B": "En este paper, nos enfocamos en ambos el impacto de las desalineaciones del tipo de cambio real (TCR) sobre el crecimiento económico y la evaluación de los umbrales de desalineación en el caso de Túnez. Nuestra contribución a la literatura es triple. Primero, reevaluamos los principales factores que impulsan el TCR de equilibrio usando un enfoque de modelo dinámico. Segundo, investigamos los posibles efectos asimétricos de la desalineación real sobre el crecimiento económico en Túnez usando el estimador de rezagos distribuidos autorregresivos no lineales (NARDL) desarrollado por Shin et al. (2014) el cual toma en cuenta la no linealidad en la relación entre desalineaciones del tipo de cambio y crecimiento económico. Tercero, usando un modelo de umbral inspirado en Hansen (2000), identificamos el nivel de desalineaciones del dinar tunecino que puede mejorar (o dificultar) el crecimiento económico. Nuestros principales hallazgos son los siguientes: i) el dinar tunecino ha experimentado períodos de sobrevaloración y subvaloración durante el período 2001–2016; ii) existe un impacto negativo de la sobrevaloración real del dinar sobre el desempeño del crecimiento de Túnez, mientras que una subvaloración no tiene un impacto significativo; iii) existe un umbral para los efectos de la desalineación del TCR sobre el crecimiento. Específicamente, la subvaloración real promueve el crecimiento hasta que se alcanza un umbral estimado de 10.02% de desviación del TCR de equilibrio, mientras que una sobrevaloración puede impulsar el crecimiento hasta que se alcanza un umbral de 9.02%. Estos hallazgos tienen implicaciones importantes desde la perspectiva de los hacedores de políticas.",
+    "target_70B": "En este artículo nos centramos tanto en el impacto de los desajustes del tipo de cambio real (TCR) sobre el crecimiento económico como en la evaluación de los umbrales de desajuste en el caso de Túnez. Nuestra contribución a la literatura es triple. En primer lugar, reevaluamos los principales factores que determinan el TCR de equilibrio utilizando un enfoque de modelo dinámico. En segundo lugar, investigamos los posibles efectos asimétricos del desajuste real sobre el crecimiento económico en Túnez mediante el estimador de rezagos distribuidos autorregresivos no lineales (NARDL) desarrollado por Shin et al. (2014), el cual tiene en cuenta la no linealidad en la relación entre los desajustes del tipo de cambio y el crecimiento económico. En tercer lugar, utilizando un modelo de umbral inspirado en Hansen (2000), identificamos el nivel de desajuste del dinar tunecino que puede potenciar (o deprimir) el crecimiento económico. Nuestros principales resultados son los siguientes: i) el dinar tunecino ha experimentado periodos de sobrevaloración y subvaloración durante el periodo 2001-2016; ii) existe un impacto negativo de la sobrevaloración real del dinar en el desempeño del crecimiento de Túnez, mientras que la subvaloración no tiene un impacto significativo; iii) existe un umbral para los efectos del desajuste del TCR sobre el crecimiento. Específicamente, la subvaloración real promueve el crecimiento hasta alcanzar un umbral estimado de desviación del 10.02% respecto al TCR de equilibrio, mientras que la sobrevaloración puede impulsar el crecimiento hasta alcanzar un umbral del 9.02%. Estos hallazgos tienen implicaciones importantes desde la perspectiva de la política económica.",
+    "human_overall_score_8B": 4.0,
+    "human_overall_score_70B": 5.0
+  },
+  {
+    "document_id": "Amor_2023",
+    "chunk_id": "node_8",
+    "type": "PROSE",
+    "source": "After 2010, the Tunisian economic convergence process experi­ enced a remarkable slowdown. Indeed, this period was marked by an instability of the social climate and a considerable deterioration of security. The increase in demand, which exerted pressure on prices, was explained mainly by the increase in private consumption sup­ ported by the exaggerated creation of jobs in the public sector and",
+    "target_8B": "Después de 2010, el proceso de convergencia económica de Túnez experimentó una desaceleración notable. De hecho, este período estuvo marcado por una inestabilidad del clima social y un deterioro considerable de la seguridad. El aumento de la demanda, que ejerció presión sobre los precios, se explicó principalmente por el aumento del consumo privado respaldado por la creación exagerada de empleos en el sector público y",
+    "target_70B": "Después de 2010, el proceso de convergencia económica tunecina experimentó una marcada desaceleración. En efecto, este periodo estuvo caracterizado por la inestabilidad del clima social y un deterioro considerable de la seguridad. El aumento de la demanda, que presionó los precios al alza, se debió principalmente al incremento del consumo privado, impulsado por una creación desmedida de empleo en el sector público y",
+    "human_overall_score_8B": 5.0,
+    "human_overall_score_70B": 5.0
+  },
+  {
+    "document_id": "Amor_2023",
+    "chunk_id": "node_9",
+    "type": "PROSE",
+    "source": "thus the increase in the wage bill. On the contrary, the private sector has been marked by a deterioration of its economic activity.",
+    "target_8B": "por lo tanto, el aumento de la masa salarial. Por el contrario, el sector privado ha estado marcado por un deterioro de su actividad económica.",
+    "target_70B": "por consiguiente, al aumento de la masa salarial. Por el contrario, el sector privado se vio afectado por un deterioro de su actividad económica.",
+    "human_overall_score_8B": 5.0,
+    "human_overall_score_70B": 5.0
+  },
+  {
+    "document_id": "Amor_2023",
+    "chunk_id": "node_10",
+    "type": "PROSE",
+    "source": "Social unrest as well as the deterioration of security, also in­ tensified by the Libyan crisis, affected external payments. Against this background, the current account deficit increased considerably, going on average from 3.1% of GDP between 2006 and 2010–9.1% of GDP between 2013 and 2017. The trade deficit deteriorated from 13.2% of GDP in 2010–16% of GDP in 2017. This mainly was down to security problems in 2011, the slowdown in the productive activity of the extractive industries, in particular the industrial phosphate sector in Gafsa, and the uncontrolled imports of consumer goods. In addition, the decline in investments in oil and gas exploration has increased the energy balance deficit in recent years.",
+    "target_8B": "La agitación social y el deterioro de la seguridad afectaron los pagos externos. En este contexto, el déficit de cuenta corriente subió un montón, pasando de un promedio menor a uno mucho más alto entre los periodos analizados. El déficit comercial también empeoró significativamente entre 2010 y 2017. Esto se debió principalmente a problemas de seguridad en 2011, la desaceleración de la actividad productiva de las industrias extractivas, en particular el sector del fosfato industrial en Gafsa, y las importaciones descontroladas de bienes de consumo.",
+    "target_70B": "La agitación social y el deterioro de la seguridad, intensificados asimismo por la crisis libia, afectaron a los pagos exteriores. En este contexto, el déficit por cuenta corriente aumentó considerablemente, pasando de un promedio del 3.1% del PIB entre 2006 y 2010 al 9.1% del PIB entre 2013 y 2017. El déficit comercial se deterioró del 13.2% del PIB en 2010 al 16% del PIB en 2017. Esto se atribuyó principalmente a los problemas de seguridad en 2011, a la desaceleración de la actividad productiva de las industrias extractivas, en particular del sector del fosfato industrial en Gafsa, y a las importaciones descontroladas de bienes de consumo. Además, la caída de las inversiones en exploración de petróleo y gas ha incrementado el déficit de la balanza energética en los últimos años.",
+    "human_overall_score_8B": 2.0,
+    "human_overall_score_70B": 5.0
+  },
+  {
+    "document_id": "Amor_2023",
+    "chunk_id": "node_11",
+    "type": "PROSE",
+    "source": "Tunisia entered the COVID-19 pandemic crisis with a slow rate of economic growth and rising debt levels and it has been strongly affected by the crisis due to its heavy dependence on Europe. The depth of the pandemic’s impact on the Tunisian economy became",
+    "target_8B": "Túnez entró en la crisis de la pandemia de COVID-19 con una tasa lenta de crecimiento económico y niveles de deuda crecientes, y se ha visto fuertemente afectada por la crisis debido a su gran dependencia de Europa. La profundidad del impacto de la pandemia en la economía tunecina se volvió",
+    "target_70B": "Túnez afrontó la crisis de la pandemia de COVID-19 con una baja tasa de crecimiento económico y niveles de endeudamiento al alza, resultando severamente afectada por la crisis debido a su estrecha dependencia de Europa. La magnitud del impacto de la pandemia sobre la economía tunecina se hizo",
+    "human_overall_score_8B": 5.0,
+    "human_overall_score_70B": 5.0
+  },
+  {
+    "document_id": "Amor_2023",
+    "chunk_id": "node_14",
+    "type": "MATHEMATICS",
+    "source": "E-mail addresses: t.amor@su.edu.sa, hathouraya@yahoo.fr (T.H. Amor), nouira.ridha75@gmail.com (R. Nouira), chrault@hotmail.com (C. Rault), AnamariaDiana.Sova@brunel.ac.uk (A.D. Sova).",
+    "target_8B": "Direcciones de correo electrónico: t.amor@su.edu.sa, hathouraya@yahoo.fr (T.H. Amor), nouira.ridha75@gmail.com (R. Nouira), chrault@hotmail.com (C. Rault), AnamariaDiana.Sova@brunel.ac.uk (A.D. Sova).",
+    "target_70B": "Direcciones de correo electrónico: t.amor@su.edu.sa, hathouraya@yahoo.fr (T.H. Amor), nouira.ridha75@gmail.com (R. Nouira), chrault@hotmail.com (C. Rault), AnamariaDiana.Sova@brunel.ac.uk (A.D. Sova).",
+    "human_overall_score_8B": 5.0,
+    "human_overall_score_70B": 5.0
+  },
+  {
+    "document_id": "Amor_2023",
+    "chunk_id": "node_15",
+    "type": "MATHEMATICS",
+    "source": "more apparent at the end of 2020. Indeed, real GDP contracted by 8.8% in 2020 due to the general decline in economic activity, char­ acterized by a decrease of production in the main sectors, in the service sector (including tourism), investment and exports. Unemployment increased from 15% prior to the pandemic to 17.8% by the end of the first quarter of 2021. The current account stabilized at a deficit of 8.1% of GDP in 2020. Total exports in 2020 declined 11.7% compared to 2019 (World Bank, 2019, 2021).",
+    "target_8B": "más evidente a finales de 2020. De hecho, el PIB real se contrajo un 8.8% en 2020 debido al declive general de la actividad económica, caracterizado por una disminución de la producción en los principales sectores, en el sector servicios (incluyendo el turismo), la inversión y las exportaciones. El desempleo aumentó del 15% antes de la pandemia al 17.8% al final del primer trimestre de 2021. La cuenta corriente se estabilizó en un déficit del 8.1% del PIB en 2020. Las exportaciones totales en 2020 disminuyeron un 11.7% en comparación con 2019 (Banco Mundial, 2019, 2021).",
+    "target_70B": "más evidente a finales de 2020. En efecto, el PIB real se contrajo un 8.8% en 2020 debido al declive generalizado de la actividad económica, caracterizado por una caída de la producción en los sectores clave, en el sector servicios (incluido el turismo), la inversión y las exportaciones. El desempleo aumentó desde el 15% previo a la pandemia al 17.8% al cierre del primer trimestre de 2021. La cuenta corriente se estabilizó en un déficit del 8.1% del PIB en 2020. Las exportaciones totales en 2020 disminuyeron un 11.7% en comparación con las de 2019 (Banco Mundial, 2019, 2021).",
+    "human_overall_score_8B": 5.0,
+    "human_overall_score_70B": 5.0
+  },
+  {
+    "document_id": "Amor_2023",
+    "chunk_id": "node_16",
+    "type": "MATHEMATICS",
+    "source": "In this context, the macroeconomic balance and the external competitiveness of any country remain dependent on an adjustment of the real value of the exchange rate and its equilibrium value, a necessity which is explained by the harmful consequences of the recurrent and persistent misalignments, which can lead to structural imbalances in the labor market and the market for tradable and non- tradable goods (Elfathaoui, 2019). Indeed, the evolution of the in­ ternational financial integration process has engendered a growing disconnection between RER variability and growth (Hadj Amor, 2009; Béreau et al., 2012) A large volume of literature has high­ lighted the importance of closely observing the exchange rate for countries in transition such as Tunisia, and that it may also be used as a regulatory measure to mitigate, if not eliminate, the adverse effects of an overvalued exchange rate (Derbali, 2021).",
+    "target_8B": "En este contexto, el balance macroeconómico y la competitividad externa de cualquier país se quedan dependiendo de un ajuste del valor real del tipo de cambio y su valor de equilibrio, una necesidad que se explica por las consecuencias dañinas de las desalineaciones recurrentes y persistentes, que pueden llevar a desbalances estructurales en el mercado laboral y el mercado de bienes transables y no transables (Elfathaoui, 2019). De hecho, la evolución del proceso de integración financiera internacional ha engendrado una desconexión creciente entre la variabilidad del TCR y el crecimiento (Hadj Amor, 2009; Béreau et al., 2012). Un gran volumen de literatura ha resaltado la importancia de observar de cerca el tipo de cambio para países en transición como Túnez...",
+    "target_70B": "En este contexto, el equilibrio macroeconómico y la competitividad externa de cualquier nación siguen dependiendo del ajuste entre el valor real del tipo de cambio y su nivel de equilibrio, una necesidad explicada por las nocivas consecuencias de los desajustes recurrentes y persistentes, que pueden inducir desequilibrios estructurales en el mercado laboral y en el de bienes transables y no transables (Elfathaoui, 2019). En efecto, la evolución del proceso de integración financiera internacional ha generado una desconexión creciente entre la variabilidad del TCR y el crecimiento (Hadj Amor, 2009; Béreau et al., 2012). Una vasta literatura ha destacado la importancia de vigilar estrechamente el tipo de cambio en economías en transición como Túnez...",
+    "human_overall_score_8B": 3.0,
+    "human_overall_score_70B": 5.0
+  },
+  {
+    "document_id": "Amor_2023",
+    "chunk_id": "node_17",
+    "type": "MATHEMATICS",
+    "source": "In the Tunisian context, the question of the misalignment of the real exchange rate, defined as the deviation of the real effective exchange rate from its equilibrium level, and its impact on economic growth has been the subject of debate for some time for many reasons, a debate that has been accentuated after the adoption of a more flexible exchange regime. Indeed, since 1990, the Central Bank of Tunisia (CBT) has opted for a flexible exchange rate policy ac­ companied by more economic liberalization in Tunisia, aimed at giving exchange rate policy a more active role. The objective was to improve the competitiveness of the national economy while stabi­ lizing the Tunisian dinar (Balazs et al., 2014).",
+    "target_8B": "En el contexto tunecino, la cuestión de la desalineación del tipo de cambio real, definida como la desviación del tipo de cambio efectivo real de su nivel de equilibrio, y su impacto en el crecimiento económico ha sido objeto de debate durante algún tiempo por muchas razones, un debate que se ha acentuado tras la adopción de un régimen cambiario más flexible. De hecho, desde 1990, el Banco Central de Túnez (BCT) ha optado por una política de tipo de cambio flexible acompañada de una mayor liberalización económica en Túnez, con el objetivo de dar a la política cambiaria un papel más activo. El objetivo era mejorar la competitividad de la economía nacional estabilizando al mismo tiempo el dinar tunecino (Balazs et al., 2014).",
+    "target_70B": "En el contexto tunecino, la cuestión del desajuste del tipo de cambio real, definido como la desviación del tipo de cambio efectivo real respecto a su nivel de equilibrio, y su impacto sobre el crecimiento económico ha sido objeto de debate desde hace tiempo por diversas razones, una discusión acentuada tras la adopción de un régimen cambiario más flexible. En efecto, desde 1990, el Banco Central de Túnez (BCT) ha optado por una política de tipo de cambio flexible acompañada de una mayor liberalización económica, orientada a otorgar un papel más activo a la política cambiaria. El objetivo era mejorar la competitividad de la economía nacional al tiempo que se estabilizaba el dinar tunecino (Balazs et al., 2014).",
+    "human_overall_score_8B": 5.0,
+    "human_overall_score_70B": 5.0
+  },
+  {
+    "document_id": "Amor_2023",
+    "chunk_id": "node_18",
+    "type": "PROSE",
+    "source": "The last deterioration in Tunisian economic conditions, as noted above, may point toward a possible RER distortion. Given the ser­ iousness of the consequences of a potential misalignment of the economy, the Tunisian monetary authorities must prioritize and analyze the question of the misalignment of the Tunisian RER and its effects on economic growth.",
+    "target_8B": "El último deterioro de las condiciones económicas tunecinas, como se señaló anteriormente, puede apuntar hacia una posible distorsión del TCR. Dada la gravedad de las consecuencias de una desalineación potencial de la economía, las autoridades monetarias tunecinas deben priorizar y analizar la cuestión de la desalineación del TCR tunecino y sus efectos sobre el crecimiento económico.",
+    "target_70B": "El reciente deterioro de las condiciones económicas en Túnez, señalado anteriormente, podría apuntar a una posible distorsión del TCR. Dada la gravedad de las consecuencias de un desajuste potencial en la economía, las autoridades monetarias tunecinas deben priorizar el análisis del desajuste del TCR tunecino y sus efectos sobre el crecimiento económico.",
+    "human_overall_score_8B": 5.0,
+    "human_overall_score_70B": 5.0
+  },
+  {
+    "document_id": "Amor_2023",
+    "chunk_id": "node_19",
+    "type": "MATHEMATICS",
+    "source": "Tunisia, as a small open economy, has been committed since 2011 to a New Operational Framework, based on monetary autonomy and the transition from crawling peg to crawling band. Furthermore, in recent years, the dinar, the national currency of Tunisia, has recorded a strong depreciation of its value vis-à-vis other foreign currencies. More recently, especially after the Jasmine Revolution of 2011, the Tunisian dinar broke its historic record and has depreciated against the euro and the US dollar. While the depreciation of the dinar, in a partial equilibrium model of the trade balance, can increase net exports with some partner countries, under the assumption that there is room for the export sector to grow (Bahmani-Oskooee et al., 2017, 2019), its benefits might not outweigh the negative impact of an undervaluation on the real economy, given that the value of the currency is lower than it should be in equilibrium or severely de­ preciated.",
+    "target_8B": "Túnez, como una economía abierta pequeña, se ha comprometido desde 2011 con un Nuevo Marco Operativo, basado en la autonomía monetaria y la transición desde la clavija de arrastre hacia la banda de arrastre. Además, en años recientes, el dinar, la moneda nacional de Túnez, ha registrado una fuerte depreciación de su valor vis-à-vis otras monedas extranjeras...",
+    "target_70B": "Túnez, como pequeña economía abierta, se ha comprometido desde 2011 con un Nuevo Marco Operacional, basado en la autonomía monetaria y en la transición de un régimen de paridad móvil a una banda de fluctuación móvil. Además, en los últimos años, el dinar, la moneda nacional de Túnez, ha registrado una fuerte depreciación de su valor frente a otras divisas extranjeras...",
+    "human_overall_score_8B": 3.0,
+    "human_overall_score_70B": 5.0
+  },
+  {
+    "document_id": "Amor_2023",
+    "chunk_id": "node_20",
+    "type": "MATHEMATICS",
+    "source": "Since October 2017, and to fight against the decline in foreign currency assets, economic actors importing non-essential consumer goods have no right to use bank loans for these operations. Tunisia’s external debt increased considerably to reach 70% of GDP at the end of 2016. Such external debt was expected to bear various shocks, except for the significant depreciation of the real exchange rate (IMF, 2017). In November 2017, foreign exchange reserves were at the level of covering 90 days of imports of goods and services. The Tunisian public debt, 70% of which is external, has risen from 72% of GDP in 2019–87% of GDP in 2020, which is well above the emerging market debt burden benchmark of 70% of GDP (Central Bank of Tunisia (CBT) and National Institute of Statistics (NIS), 2020).",
+    "target_8B": "Desde octubre de 2017, y para luchar contra la disminución de los activos en moneda extranjera, los actores económicos que importan bienes de consumo no esenciales no tienen derecho a utilizar préstamos bancarios para estas operaciones. La deuda externa de Túnez aumentó considerablemente hasta alcanzar el 70% del PIB a finales de 2016. Se esperaba que dicha deuda externa soportara varios choques, excepto por la depreciación significativa del tipo de cambio real (FMI, 2017). En noviembre de 2017, las reservas de divisas estaban al nivel de cubrir 90 días de importaciones de bienes y servicios. La deuda pública tunecina, de la cual el 70% es externa, ha pasado del 72% del PIB en 2019 al 87% del PIB en 2020, lo que está muy por encima del límite de carga de la deuda para mercados emergentes del 70% del PIB (Banco Central de Túnez (BCT) e Instituto Nacional de Estadística (INE), 2020).",
+    "target_70B": "Desde octubre de 2017, y con el fin de contrarrestar la caída de los activos en divisas, los agentes económicos que importan bienes de consumo no esenciales carecen del derecho a utilizar créditos bancarios para dichas operaciones. La deuda externa de Túnez aumentó considerablemente hasta alcanzar el 70% del PIB a finales de 2016. Se preveía que dicha deuda externa fuera capaz de absorber diversos choques, a excepción de una depreciación significativa del tipo de cambio real (FMI, 2017). En noviembre de 2017, las reservas de divisas se situaban en un nivel de cobertura equivalente a 90 días de importaciones de bienes y servicios. La deuda pública tunecina, estructurada externamente en un 70%, escaló desde el 72% del PIB en 2019 al 87% del PIB en 2020, situándose significativamente por encima del umbral de referencia para mercados emergentes fijado en el 70% del PIB (Banco Central de Túnez (BCT) e Instituto Nacional de Estadística (INE), 2020).",
+    "human_overall_score_8B": 5.0,
+    "human_overall_score_70B": 5.0
+  },
+  {
+    "document_id": "Amor_2023",
+    "chunk_id": "node_21",
+    "type": "MATHEMATICS",
+    "source": "Although some studies have shown the costs of exchange rate undervaluation on economic growth (Grekou, 2015, 2018a; Chen, 2017; Morvillier, 2020), many developing countries have relied on an undervalued real exchange rate to boost their exports (Levy-Yeyati & Sturzzenegger, 2007; Elbadawi et al., 2012; Rodrik, 2009; Korinek & Serven, 2010; Iyke & Odhiambo, 2015; Habib et al., 2017; Mazorodze & Tewari, 2018), but in the aftermath of the global financial crisis an intense debate has emerged on the associated merits of these ex­ port-led growth strategies. Since global economic prospects are weaker than in the past, there is a greater uncertainty about the capacity of advanced economies to continue to absorb developing countries’ exports. Additionally, if the real exchange rate is kept too low for too long, export-led growth strategies based on currency undervaluation are likely to result in costs for the aggregate economy. In this context, the relationship between real exchange misalignment (REM), i.e. the deviation between the Real Exchange Rate (RER) and its equilibrium level, and the real economy, has been the focus of recent macroeconomic policy discussions in Tunisia. There have been many debates among Tunisian economic analysts about the causes of the depreciation of the RER and the extent to which it reflects changes in Tunisia’s macroeconomic fundamentals, underlining the need to reassess the main determinants of the equilibrium RER, the degree of the distortion of Tunisia’s dinar and to what extent the misalignment of the Tunisian currency affects its growth performance.",
+    "target_8B": "Aunque algunos estudios han mostrado los costos de la subvaloración del tipo de cambio sobre el crecimiento económico (Grekou, 2015, 2018a; Chen, 2017; Morvillier, 2020), muchos países en desarrollo han confiado en un tipo de cambio real subvalorado para impulsar sus exportaciones (Levy-Yeyati y Sturzzenegger, 2007; Elbadawi et al., 2012; Rodrik, 2009; Korinek y Serven, 2010; Iyke y Odhiambo, 2015; Habib et al., 2017; Mazorodze y Tewari, 2018), pero tras la crisis financiera mundial ha surgido un intenso debate sobre los méritos asociados de estas estrategias de crecimiento lideradas por las exportaciones. Dado que las perspectivas económicas globales son más débiles que en el pasado, existe una mayor incertidumbre sobre la capacidad de las economías avanzadas para continuar absorbiendo las exportaciones de los países en desarrollo. Además, si el tipo de cambio real se mantiene demasiado bajo durante demasiado tiempo, las estrategias de crecimiento lideradas por las exportaciones basadas en la subvaloración de la moneda probablemente resulten en costos para la economía agregada. En este contexto, la relación entre el desalineamiento cambiario real (DCR), es decir, la desviación entre el Tipo de Cambio Real (TCR) y su nivel de equilibrio, y la economía real, ha sido el foco de las discusiones recientes de política macroeconómica en Túnez...",
+    "target_70B": "A pesar de que ciertos estudios han evidenciado los costos de la subvaloración del tipo de cambio sobre el crecimiento económico (Grekou, 2015, 2018a; Chen, 2017; Morvillier, 2020), múltiples economías en desarrollo han recurrido a un tipo de cambio real subvalorado para dinamizar sus exportaciones (Levy-Yeyati y Sturzzenegger, 2007; Elbadawi et al., 2012; Rodrik, 2009; Korinek y Serven, 2010; Iyke y Odhiambo, 2015; Habib et al., 2017; Mazorodze y Tewari, 2018); no obstante, a raíz de la crisis financiera global, ha emergido un intenso debate sobre las virtudes de estas estrategias de crecimiento basadas en las exportaciones. Debido a que las perspectivas económicas mundiales son más débiles que en el pasado, la incertidumbre respecto a la capacidad de las economías avanzadas para seguir absorbiendo las exportaciones de los países en desarrollo es mayor. Asimismo, si el tipo de cambio real se mantiene artificialmente bajo por periodos prolongados, las estrategias dirigidas a la exportación mediante subvaloración cambiaria tienden a generar costos para la economía agregada. En este marco, la relación entre el desajuste cambiario real (DCR) —esto es, la desviación entre el Tipo de Cambio Real (TCR) y su nivel de equilibrio— y la economía real ha centrado los recientes debates de política macroeconómica en Túnez...",
+    "human_overall_score_8B": 5.0,
+    "human_overall_score_70B": 5.0
+  },
+  {
+    "document_id": "Amor_2023",
+    "chunk_id": "node_22",
+    "type": "MATHEMATICS",
+    "source": "Theoretically, there is an ongoing debate on whether RER mis­ alignments impede or facilitate economic growth. Related literature revolves around two main axes: through the Washington Consensus (WC), Williamson (1990) defends an RER close to its equilibrium level and consistent in the medium term with macroeconomic ob­ jectives that stimulate growth. On the contrary, the hypothesis of growth driven by exports highlights the asymmetric nature of the misalignments. Indeed, economic growth is hampered by over­ valuations while being encouraged by currency undervaluation.",
+    "target_8B": "Teóricamente, existe un debate continuo sobre si las desalineaciones del TCR impiden o facilitan el crecimiento económico. La literatura relacionada gira en torno a dos ejes principales: a través del Consenso de Washington (CW), Williamson (1990) defiende un TCR cercano a su nivel de equilibrio y consistente a mediano plazo con objetivos macroeconómicos que estimulen el crecimiento. Por el contrario, la hipótesis del crecimiento liderado por las exportaciones resalta la naturaleza asimétrica de las desalineaciones. De hecho, el crecimiento económico se ve obstaculizado por las sobrevaloraciones mientras que es fomentado por la subvaloración de la moneda.",
+    "target_70B": "Desde el punto de vista teórico, persiste un debate en torno a si los desajustes del TCR obstaculizan o promueven el crecimiento económico. La literatura especializada se articula en torno a dos ejes principales: mediante el Consenso de Washington (CW), Williamson (1990) aboga por un TCR próximo a su nivel de equilibrio y compatible en el mediano plazo con objetivos macroeconómicos que dinamicen el crecimiento. Por el contrario, la hipótesis del crecimiento guiado por las exportaciones subraya el carácter asimétrico de los desajustes. En efecto, el crecimiento económico se ve penalizado por las sobrevaloraciones, mientras que resulta estimulado por la subvaloración cambiaria.",
+    "human_overall_score_8B": 5.0,
+    "human_overall_score_70B": 5.0
+  },
+  {
+    "document_id": "Amor_2023",
+    "chunk_id": "node_23",
+    "type": "MATHEMATICS",
+    "source": "Currency undervaluation promotes growth through faster capital accumulation, technological change and information spillovers to other firms and industries in the economy. Indeed, recent empirical literature that incorporates non-linearities in the analysis of the RER–growth nexus suggests that overvaluations and under­ valuations may affect differently on growth (Hadj Amor & Sarkar, 2009; Hadj Amor, 2009; Nouira & Sekkat, 2012; Schroder, 2013), while the level of the RER misalignment also matters (Aguirre & Calderon, 2005; Couharde & Sallenave, 2013; Tipoy et al., 2018).",
+    "target_8B": "La subvaloración de la moneda promueve el crecimiento a través de una acumulación de capital más rápida, el cambio tecnológico y los desbordamientos de información hacia otras empresas e industrias de la economía. De hecho, la literatura empírica reciente que incorpora no linealidades en el análisis del nexo TCR-crecimiento sugiere que las sobrevaloraciones y subvaloraciones pueden afectar de manera diferente al crecimiento (Hadj Amor y Sarkar, 2009; Hadj Amor, 2009; Nouira y Sekkat, 2012; Schroder, 2013), mientras que el nivel de la desalineación del TCR también importa (Aguirre y Calderon, 2005; Couharde y Sallenave, 2013; Tipoy et al., 2018).",
+    "target_70B": "La subvaloración cambiaria fomenta el crecimiento mediante una acumulación más veloz de capital, el cambio tecnológico y las externalidades de información (*spillovers*) hacia otras empresas e industrias de la economía. En efecto, la literatura empírica reciente que incorpora no linealidades en el análisis del nexo entre TCR y crecimiento sugiere que las sobrevaloraciones y subvaloraciones pueden ejercer efectos dispares sobre el crecimiento (Hadj Amor y Sarkar, 2009; Hadj Amor, 2009; Nouira y Sekkat, 2012; Schroder, 2013), al tiempo que el orden de magnitud del desajuste del TCR también resulta crítico (Aguirre y Calderón, 2005; Couharde y Sallenave, 2013; Tipoy et al., 2018).",
+    "human_overall_score_8B": 5.0,
+    "human_overall_score_70B": 5.0
+  },
+  {
+    "document_id": "Amor_2023",
+    "chunk_id": "node_24",
+    "type": "MATHEMATICS",
+    "source": "Some studies focused on Tunisia have discussed the questions of equilibrium RER and misalignment. Charfi (2008) estimated the equilibrium real exchange rate of the Dinar from 1983 to 2000, using quarterly data, based on the following fundamental variables: terms of trade; net capital inflows; and the differential of productivity. The results showed that the Tunisian dinar was overvalued before the 1986 devaluation and became close to its equilibrium value during the 90 s. At the beginning of this century (2000), the authorities permitted a larger fluctuation of the real effective exchange rate. Amaira (2021) studied the misalignment of the real effective ex­ change rate (REER) during the 1986–2015 period. The results showed that the equilibrium level of the long-run exchange rate depends on productivity, the terms of trade and government spending, and on misalignment being very low especially since the implementation of the structural adjustment plan. Derbali (2021) used the behavioral equilibrium exchange rate (BEER) approach to estimate the Tunisian equilibrium exchange rate using vector autoregressive models and vector error correction models for quarterly data over the 1990–2020 period. The results showed a low sensitivity of the RER to monetary and trade shocks and a convergence of the real exchange rate series of its trajectory to its long-term target value. Benzid (2021) assessed the misalignments in Tunisia’s real effective ex­ change rate with an emphasis on their persistence over the",
+    "target_8B": "Algunos estudios centrados en Túnez han discutido las cuestiones del TCR de equilibrio y la desalineación. Charfi (2008) estimó el tipo de cambio real de equilibrio del dinar de 1983 a 2000, usando datos trimestrales, basado en las siguientes variables fundamentales: términos de intercambio; flujos netos de capital; y el diferencial de productividad. Los resultados mostraron que el dinar tunecino estaba sobrevalorado antes de la devaluación de 1986 y se acercó a su valor de equilibrio durante los años 90. A principios de este siglo (2000), las autoridades permitieron una mayor fluctuación del tipo de cambio efectivo real. Amaira (2021) estudió la desalineación del tipo de cambio efectivo real (TCER) durante el período 1986–2015. Los resultados mostraron que el nivel de equilibrio del tipo de cambio de largo plazo depende de la productividad, los términos de intercambio y el gasto público, y que la desalineación fue muy baja, especialmente desde la implementación del plan de ajuste estructural. Derbali (2021) utilizó el enfoque del tipo de cambio de equilibrio conductual (BEER) para estimar el tipo de cambio de equilibrio tunecino...",
+    "target_70B": "Diversos estudios enfocados en Túnez han abordado las cuestiones del TCR de equilibrio y su desajuste. Charfi (2008) estimó el tipo de cambio real de equilibrio del dinar desde 1983 hasta 2000, empleando datos trimestrales, a partir de las siguientes variables fundamentales: términos de intercambio, flujos netos de capital y diferencial de productividad. Los resultados indicaron que el dinar tunecino se encontraba sobrevalorado antes de la devaluación de 1986 y se aproximó a su valor de equilibrio durante la década de los noventa. A comienzos de este siglo (2000), las autoridades permitieron una mayor banda de fluctuación del tipo de cambio efectivo real. Amaira (2021) analizó el desajuste del tipo de cambio efectivo real (TCER) durante el periodo 1986-2015. Los resultados evidenciaron que el nivel de equilibrio del tipo de cambio a largo plazo depende de la productividad, los términos de intercambio y el gasto público, manteniéndose el desajuste en niveles muy bajos, especialmente tras la implantación del plan de ajuste estructural. Derbali (2021) aplicó el enfoque del tipo de cambio de equilibrio conductual (BEER) para estimar el tipo de cambio de equilibrio tunecino...",
+    "human_overall_score_8B": 5.0,
+    "human_overall_score_70B": 5.0
+  },
+  {
+    "document_id": "Amor_2023",
+    "chunk_id": "node_25",
+    "type": "MATHEMATICS",
+    "source": "T.H. Amor, R. Nouira, C. Rault et al. Quarterly Review of Economics and Finance 88 (2023) 215–227",
+    "target_8B": "T.H. Amor, R. Nouira, C. Rault et al. Quarterly Review of Economics and Finance 88 (2023) 215–227",
+    "target_70B": "T.H. Amor, R. Nouira, C. Rault et al. Quarterly Review of Economics and Finance 88 (2023) 215–227",
+    "human_overall_score_8B": 5.0,
+    "human_overall_score_70B": 5.0
+  },
+  {
+    "document_id": "Amor_2023",
+    "chunk_id": "node_26",
+    "type": "MATHEMATICS",
+    "source": "Appendix.4 It turns out that except for terms of trade (ToT), all other variables of the model are found to be non-stationary in levels. In addition, the null hypotheses of a unit root for all series in first differences is rejected. This implies that all variables are I(1) except for terms of trade, which is stationary in level, I(0). To check whether ADF-GLS test results are robust, we performed the unit root test with structural breaks of Zivot and Andrews (1992). The results reported in Table A.4 in the Appendix confirm the results of the ADF-GLS test. Pesaran and Smith (1995), and Pesaran and Shin (1999) show that the ARDL approach can be used for long-run analysis, and that the ARDL methodology is valid even if variables are I(0) or I(1). We thus apply an autoregressive distributed lag (ARDL) model or bound testing approach (Pesaran et al., 2001) to estimate the equilibrium real exchange rate in Tunisia. According to Pesaran et al. (2001) this approach is more adequate when the number of time observations is small. Before performing the estimation of the ARDL model, it is essential to write Eq. (1) as a conditional ARDL model, as follows:",
+    "target_8B": "Apéndice 4. Resulta que, excepto por los términos de intercambio (ToT), todas las demás variables del modelo resultan ser no estacionarias en niveles. Además, se rechaza la hipótesis nula de raíz unitaria para todas las series en primeras diferencias. Esto implica que todas las variables son I(1) excepto los términos de intercambio, que son estacionarios en nivel, I(0). Para verificar si los resultados de la prueba ADF-GLS son robustos, realizamos la prueba de raíz unitaria con cambios estructurales de Zivot y Andrews (1992). Los resultados reportados en la Tabla A.4 del Apéndice confirman los resultados de la prueba ADF-GLS. Pesaran y Smith (1995) y Pesaran y Shin (1999) muestran que el enfoque ARDL se puede utilizar para el análisis de largo plazo, y que la metodología ARDL es válida incluso si las variables son I(0) o I(1). Por lo tanto, aplicamos un modelo de rezagos distribuidos autorregresivos (ARDL) o enfoque de prueba de límites (Pesaran et al., 2001) para estimar el tipo de cambio real de equilibrio en Túnez...",
+    "target_70B": "Apéndice 4. Se observa que, a excepción de los términos de intercambio (ToT), todas las demás variables del modelo resultan no estacionarias en niveles. Asimismo, se rechaza la hipótesis nula de una raíz unitaria para todas las series en primeras diferencias. Esto implica que todas las variables son integradas de orden uno, I(1), salvo los términos de intercambio, que son estacionarios en niveles, I(0). Con el fin de evaluar la robustez de los resultados de la prueba ADF-GLS, ejecutamos la prueba de raíz unitaria con cambios estructurales de Zivot y Andrews (1992). Los resultados detallados en la Tabla A.4 del Apéndice corroboran los de la prueba ADF-GLS. Pesaran y Smith (1995) junto con Pesaran y Shin (1999) demuestran que el enfoque ARDL es idóneo para el análisis de largo plazo, y que dicha metodología resulta válida independientemente de si las variables son I(0) o I(1). Consiguientemente, aplicamos un modelo de rezagos distribuidos autorregresivos (ARDL) o enfoque de pruebas de frontera (Pesaran et al., 2001) para estimar el tipo de cambio real de equilibrio en Túnez...",
+    "human_overall_score_8B": 5.0,
+    "human_overall_score_70B": 5.0
+  },
+  {
+    "document_id": "Amor_2023",
+    "chunk_id": "node_27",
+    "type": "MATHEMATICS",
+    "source": "All variables are expressed in log, is the first difference operator. The long-run relationship between the RER and its determinants can be identified based on the Wald test (F-statistic). This statistic determines joint significance of lagged level variables under the null hypothesis. If the coefficients are jointly not all equal to zero, then it implies the existence of cointegration, i.e. a long-run relationship between the RER and its determinants.5 Once a cointegration",
+    "target_8B": "Todas las variables están expresadas en logaritmos, es el operador de primera diferencia. La relación de largo plazo entre el TCR y sus determinantes puede identificarse basándose en la prueba de Wald (estadístico F). Este estadístico determina la significancia conjunta de las variables de nivel rezagadas bajo la hipótesis nula. Si los coeficientes son conjuntamente iguales a cero, entonces esto implica la existencia de cointegración, es decir, una relación de largo plazo entre el TCR y sus determinantes.",
+    "target_70B": "Todas las variables se expresan en logaritmos, siendo el operador de primera diferencia. La relación a largo plazo entre el TCR y sus determinantes puede identificarse mediante la prueba de Wald (estadístico F). Este estadístico determina la significancia conjunta de las variables en niveles rezagadas bajo la hipótesis nula. Si los coeficientes no son conjuntamente iguales a cero, se implica la existencia de cointegración, es decir, una relación a largo plazo entre el TCR y sus determinantes.",
+    "human_overall_score_8B": 1.0,
+    "human_overall_score_70B": 5.0
+  },
+  {
+    "document_id": "Amor_2023",
+    "chunk_id": "node_28",
+    "type": "MATHEMATICS",
+    "source": "relationship has been established, we proceed to the estimation of the long-run and short-run parameters of the model. Specifically, we estimate the long-run coefficients using Eq. (3), as given below:",
+    "target_8B": "Una vez que se ha establecido una relación de cointegración, procedemos a la estimación de los parámetros de largo y corto plazo del modelo. Específicamente, estimamos los coeficientes de largo plazo usando la Ecuación (3), dada a continuación:",
+    "target_70B": "Una vez establecida la relación de cointegración, se procede a la estimación de los parámetros a largo y corto plazo del modelo. En concreto, se estiman los coeficientes a largo plazo mediante la Ec. (3), detallada a continuación:",
+    "human_overall_score_8B": 5.0,
+    "human_overall_score_70B": 5.0
+  },
+  {
+    "document_id": "Amor_2023",
+    "chunk_id": "node_29",
+    "type": "MATHEMATICS",
+    "source": "The short-run dynamic coefficients may be obtained by esti­ mating the corresponding vector error correction (VEC) model as given below – Eq. (4):",
+    "target_8B": "Los coeficientes dinámicos de corto plazo pueden obtenerse estimando el modelo de corrección de errores de vector correspondiente (VEC) dado abajo – Ecuación Cuatro:",
+    "target_70B": "Los coeficientes dinámicos a corto plazo pueden obtenerse mediante la estimación del correspondiente modelo de vector de corrección de errores (VEC), tal como se presenta a continuación en la Ec. (4):",
+    "human_overall_score_8B": 1.0,
+    "human_overall_score_70B": 5.0
+  },
+  {
+    "document_id": "Amor_2023",
+    "chunk_id": "node_30",
+    "type": "MATHEMATICS",
+    "source": "where ECMt 1is the error correction term lagged one period esti­ mated from Eq. (4). is the coefficient for the speed of adjustment of the model to the equilibrium situation, which is expected to have a negative sign.",
+    "target_8B": "donde ECMt-1 es el término de corrección de errores rezagado un período estimado de la Ec. (4). es el coeficiente para la velocidad de ajuste del modelo a la situación de equilibrio, del cual se espera que tenga un signo negativo.",
+    "target_70B": "donde $ECM_{t-1}$ es el término de corrección de errores rezagado un periodo, estimado a partir de la Ec. (4). El parámetro representa la velocidad de ajuste del modelo hacia la situación de equilibrio, del cual se espera un signo negativo.",
+    "human_overall_score_8B": 5.0,
+    "human_overall_score_70B": 5.0
+  },
+  {
+    "document_id": "Amor_2023",
+    "chunk_id": "node_31",
+    "type": "MATHEMATICS",
+    "source": "The estimated ARDL bounds show that the F-statistic of the Wald test, 4.82, is significant at the 1% level. Indeed, comparing the F- statistics against the critical values extracted from Pesaran et al. (2001), the F-statistic is higher than the upper bound critical value of 4.68 at the 1% significance level. This implies that the null hypothesis (Ho: = = = = = = 0 1 2 3 4 5 6 ) of no long-run relationship can be rejected by data. There is thus evidence for cointegration between RER and its determinants. Next, we estimate the long-run coeffi­ cients of the equilibrium real exchange rate model. To do so, we estimate ARDL models (Eq. 2). The specification of our ARDL model is determined by the Akaike information criterion (AIC). The results in Table 1 show that the coefficients for the variables Gov, Balassa, TOT and Def are statistically significant and have the expected signs. The estimated coefficient for the speed of adjustment ( ) is negative and is statistically significant at the 5% level.",
+    "target_8B": "Los límites estimados de ARDL muestran que el estadístico F de la prueba de Wald, 4.82, es limitado y poco significativo en la muestra. De hecho, al comparar el estadístico F contra valores del libro de texto, no se encuentra cointegración clara entre el TCR y sus determinantes, sugiriendo un ajuste débil al 5%.",
+    "target_70B": "Las fronteras calculadas del modelo ARDL revelan que el estadístico F de la prueba de Wald, con un valor de 4.82, resulta significativo al nivel del 1%. En efecto, al contrastar los estadísticos F con los valores críticos extraídos de Pesaran et al. (2001), el estadístico F se sitúa por encima del valor crítico del límite superior (4.68) al nivel de significancia del 1%. Esto implica que la hipótesis nula ($H_0$) de ausencia de relación a largo plazo puede ser rechazada por los datos. Existe, por tanto, evidencia empírica de cointegración entre el TCR y sus determinantes. A continuación, estimamos los coeficientes a largo plazo del modelo de tipo de cambio real de equilibrio recurriendo a modelos ARDL (Ec. 2). El orden de especificación de nuestro modelo ARDL se determina mediante el Criterio de Información de Akaike (AIC). Los resultados expuestos en la Tabla 1 muestran que los coeficientes de las variables Gov, Balassa, TOT y Def son estadísticamente significativos y exhiben los signos esperados. El coeficiente estimado para la velocidad de ajuste es negativo y estadísticamente significativo al nivel del 5%.",
+    "human_overall_score_8B": 2.0,
+    "human_overall_score_70B": 5.0
+  },
+  {
+    "document_id": "Amor_2023",
+    "chunk_id": "node_32",
+    "type": "PROSE",
+    "source": "The empirical results show a positive and significant impact of the terms of trade, government expenditure and the Balassa–Samuelson effect, and a negative and significant effect of the trade deficit. For the terms of trade an improvement of 10% leads to an ERER appreciation of 2.4%. This implies that the income effect outweighs the substitution effect. BalSam is a variable that aims to",
+    "target_8B": "Los resultados empíricos muestran un impacto positivo y significativo de los términos de intercambio, el gasto público y el efecto Balassa-Samuelson, y un efecto negativo y significativo del déficit comercial. Para los términos de intercambio, una mejora del 10% conduce a una apreciación del TCRE del 2.4%. Esto implica que el efecto ingreso supera al efecto sustitución. BalSam es una variable que tiene como objetivo",
+    "target_70B": "Los resultados empíricos muestran un impacto positivo y significativo de los términos de intercambio, el gasto público y el efecto Balassa-Samuelson, así como un efecto negativo y significativo del déficit comercial. En el caso de los términos de intercambio, una mejora del 10% induce una apreciación del TCRE del 2.4%. Esto implica que el efecto ingreso predomina sobre el efecto sustitución. BalSam constituye una variable orientada a",
+    "human_overall_score_8B": 5.0,
+    "human_overall_score_70B": 5.0
+  },
+  {
+    "document_id": "Amor_2023",
+    "chunk_id": "node_33",
+    "type": "MATHEMATICS",
+    "source": "Fig. 1. RE Misalignment of Tunisia. Source: Author's Calculation. (RER in blue and ERER in green, left axis; Mis in red, right axis).",
+    "target_8B": "Fig. 1. Desalineación real de Túnez. Fuente: Cálculos del autor. (TCR en azul y TCRE en verde, eje izquierdo; Desalineación en rojo, eje derecho).",
+    "target_70B": "Fig. 1. Desajuste cambiario real de Túnez. Fuente: Cálculos del autor. (TCR en azul y TCRE en verde, eje izquierdo; Desajuste en rojo, eje derecho).",
+    "human_overall_score_8B": 5.0,
+    "human_overall_score_70B": 5.0
+  },
+  {
+    "document_id": "Amor_2023",
+    "chunk_id": "node_34",
+    "type": "MATHEMATICS",
+    "source": "4 The efficient unit-root test suggested by Kwiatkovski–Phillips–Schmidt–Shin (1992), extended by Carrion-i-Silvestre and Sanso (2006), has also been implemented, leading to similar results.",
+    "target_8B": "4 La prueba de raíz unitaria eficiente sugerida por Kwiatkovski–Phillips–Schmidt–Shin (1992), extendida por Carrion-i-Silvestre y Sanso (2006), también ha sido implementada, llevando a resultados similares.",
+    "target_70B": "4 También se ha implementado la prueba eficiente de raíz unitaria propuesta por Kwiatkowski-Phillips-Schmidt-Shin (1992), extendida por Carrión-i-Silvestre y Sansó (2006), arrojando resultados similares.",
+    "human_overall_score_8B": 5.0,
+    "human_overall_score_70B": 5.0
+  },
+  {
+    "document_id": "Amor_2023",
+    "chunk_id": "node_35",
+    "type": "MATHEMATICS",
+    "source": "5 Notice, however, that rejecting the null ( = = = = = = 0 1 2 3 4 5 6 ) does not necessarily imply that all coefficients = … for i 0, 1, ,6 i . For instance, in Table 1, the coefficient of unemployment is equal to zero, which explains why this variable is not included in equation (3). Besides, a closer investigation also reveals that unemploy­ ment does not have an influence on RER in the short run, see equation (4).",
+    "target_8B": "5 Nótese, sin embargo, que rechazar la nula no implica necesariamente que todos los coeficientes sean distintos de cero. Por ejemplo, en la Tabla 1, el coeficiente del desempleo es igual a cero, lo que explica por qué esta variable no está incluida en la ecuación (3). Además, una investigación más detallada también revela que el desempleo no tiene influencia sobre el TCR a corto plazo, ver ecuación (4).",
+    "target_70B": "5 Adviértase, no obstante, que el rechazo de la hipótesis nula no implica forzosamente que todos los coeficientes sean distintos de cero. Por ejemplo, en la Tabla 1, el coeficiente del desempleo es igual a cero, razón por la cual dicha variable queda excluida de la ecuación (3). Asimismo, un análisis pormenorizado revela que el desempleo carece de influencia sobre el TCR en el corto plazo, tal como se observa en la ecuación (4).",
+    "human_overall_score_8B": 5.0,
+    "human_overall_score_70B": 5.0
+  },
+  {
+    "document_id": "Amor_2023",
+    "chunk_id": "node_36",
+    "type": "MATHEMATICS",
+    "source": "T.H. Amor, R. Nouira, C. Rault et al. Quarterly Review of Economics and Finance 88 (2023) 215–227",
+    "target_8B": "T.H. Amor, R. Nouira, C. Rault et al. Quarterly Review of Economics and Finance 88 (2023) 215–227",
+    "target_70B": "T.H. Amor, R. Nouira, C. Rault et al. Quarterly Review of Economics and Finance 88 (2023) 215–227",
+    "human_overall_score_8B": 5.0,
+    "human_overall_score_70B": 5.0
+  }
+]

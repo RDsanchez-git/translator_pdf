@@ -1,0 +1,92 @@
+[
+  {
+    "chunk_id": "node_1",
+    "type": "PROSE",
+    "source": "In this paper, we focus on both the impact of real exchange rate (RER) misalignments on economic growth and the assessment of misalignments thresholds in the case of Tunisia.",
+    "target_8B": "En este artículo, nos enfocamos en el impacto de las desalineaciones del tipo de cambio real (TCR) sobre el crecimiento económico y en la evaluación de los umbrales de desalineación en el caso de Túnez.",
+    "target_70B": "En este documento, nos centramos tanto en el impacto de los desajustes del tipo de cambio real (TCR) sobre el crecimiento económico como en la evaluación de los umbrales de desajuste para el caso de Túnez.",
+    "human_overall_score_8B": 4.50,
+    "human_overall_score_70B": 4.90
+  },
+  {
+    "chunk_id": "node_2",
+    "type": "PROSE",
+    "source": "Our main findings are the following: i) the Tunisian dinar has experienced periods of overvaluation and undervaluation during the 2001-2016 period; ii) there is a negative impact of real overvaluation of the dinar on Tunisia's growth performance, while an undervaluation has no significant impact.",
+    "target_8B": "Nuestros principales hallazgos son los siguientes: i) el dinar tunecino ha experimentado períodos de sobrevaloración y subvaloración durante el período 2001-2016; ii) hay un impacto negativo de la sobrevaloración real del dinar en el rendimiento del crecimiento de Túnez, mientras que la subvaloración no tiene un impacto significativo.",
+    "target_70B": "Nuestros principales resultados son los siguientes: i) el dinar tunecino ha experimentado períodos de sobrevaloración y subvaloración durante el período 2001-2016; ii) existe un impacto negativo de la sobrevaloración real del dinar sobre el desempeño del crecimiento de Túnez, mientras que la subvaloración no tiene un impacto significativo.",
+    "human_overall_score_8B": 4.60,
+    "human_overall_score_70B": 4.85
+  },
+  {
+    "chunk_id": "node_3",
+    "type": "PROSE",
+    "source": "Social unrest as well as the deterioration of security, also intensified by the Libyan crisis, affected external payments. Against this background, the current account deficit increased considerably, going on average from 3.1% of GDP between 2006 and 2010 to 9.1% of GDP between 2013 and 2017.",
+    "target_8B": "El descontento social y el deterioro de la seguridad, intensificados por la crisis libia, afectaron los pagos externos. En este contexto, el déficit de cuenta corriente aumentó de forma considerable, pasando en promedio del 3.1% del PIB entre 2006 y 2010 al 9.1% del PIB entre 2013 y 2017.",
+    "target_70B": "La agitación social, así como el deterioro de la seguridad, intensificados también por la crisis libia, afectaron los pagos externos. En este contexto, el déficit de cuenta corriente aumentó considerablemente, pasando en promedio del 3.1% del PIB entre 2006 y 2010 al 9.1% del PIB entre 2013 y 2017.",
+    "human_overall_score_8B": 4.70,
+    "human_overall_score_70B": 4.95
+  },
+  {
+    "chunk_id": "node_4",
+    "type": "PROSE",
+    "source": "Tunisia, as a small open economy, has been committed since 2011 to a New Operational Framework, based on monetary autonomy and the transition from crawling peg to crawling band.",
+    "target_8B": "Túnez, como una economía pequeña y abierta, se ha comprometido desde 2011 con un Nuevo Marco Operativo, basado en la autonomía monetaria y la transición de una paridad móvil a una banda móvil.",
+    "target_70B": "Túnez, como pequeña economía abierta, se ha comprometido desde 2011 con un Nuevo Marco Operacional, basado en la autonomía monetaria y la transición de un tipo de cambio de paridad móvil (crawling peg) a una banda de fluctuación móvil (crawling band).",
+    "human_overall_score_8B": 4.20,
+    "human_overall_score_70B": 4.90
+  },
+  {
+    "chunk_id": "node_5",
+    "type": "MATHEMATICS",
+    "source": "$$\\Delta IRER_{t}=\\mu+\\sum_{i=1}^{p}\\delta_{1i}\\Delta IRER_{t-i}+\\sum_{i=0}^{p}\\delta_{2i}\\Delta IToT_{t-i}+\\sum_{i=0}^{p}\\delta_{3i}\\Delta lGov_{t-i}$$",
+    "target_8B": "$$\\Delta IRER_{t}=\\mu+\\sum_{i=1}^{p}\\delta_{1i}\\Delta IRER_{t-i}+\\sum_{i=0}^{p}\\delta_{2i}\\Delta IToT_{t-i}+\\sum_{i=0}^{p}\\delta_{3i}\\Delta lGov_{t-i}$$",
+    "target_70B": "$$\\Delta IRER_{t}=\\mu+\\sum_{i=1}^{p}\\delta_{1i}\\Delta IRER_{t-i}+\\sum_{i=0}^{p}\\delta_{2i}\\Delta IToT_{t-i}+\\sum_{i=0}^{p}\\delta_{3i}\\Delta lGov_{t-i}$$",
+    "human_overall_score_8B": 5.00,
+    "human_overall_score_70B": 5.00
+  },
+  {
+    "chunk_id": "node_6",
+    "type": "MATHEMATICS",
+    "source": "If the coefficients are jointly not all equal to zero, then it implies the existence of cointegration, i.e. a long-run relationship between the RER and its determinants.",
+    "target_8B": "Si los coeficientes no son todos iguales a cero en su conjunto, esto implica la existencia de cointegración, es decir, una relación de largo plazo entre el TCR y sus determinantes.",
+    "target_70B": "Si los coeficientes no son conjuntamente iguales a cero, esto implica la existencia de cointegración, es decir, una relación a largo plazo entre el RER y sus determinantes.",
+    "human_overall_score_8B": 4.40,
+    "human_overall_score_70B": 4.80
+  },
+  {
+    "chunk_id": "node_7",
+    "type": "MATHEMATICS",
+    "source": "The empirical results show a positive and significant impact of terms of trade, government expenditure and the Balassa-Samuelson effect, and a negative and significant effect of the trade deficit. For the terms of trade an improvement of 10% leads to an ERER appreciation of 2.4%.",
+    "target_8B": "Los resultados empíricos muestran un impacto positivo y significativo de los términos de intercambio, el gasto público y el efecto Balassa-Samuelson, y un efecto negativo y significativo del déficit comercial. Para los términos de intercambio, una mejora del 10% conduce a una apreciación del ERER del 2.4%.",
+    "target_70B": "Los resultados empíricos muestran un impacto positivo y significativo de los términos de intercambio, el gasto público y el efecto Balassa-Samuelson, así como un efecto negativo y significativo del déficit comercial. En el caso de los términos de intercambio, una mejora del 10% conduce a una apreciación del TCER (ERER) del 2.4%.",
+    "human_overall_score_8B": 4.50,
+    "human_overall_score_70B": 4.85
+  },
+  {
+    "chunk_id": "node_8",
+    "type": "TABLES",
+    "source": "The trade deficit deteriorated from 13.2% of GDP in 2010 to 16% of GDP in 2017. This mainly was down to security problems in 2011, the slowdown in the productive activity of the extractive industries, in particular the industrial phosphate sector in Gafsa, and the uncontrolled imports of consumer goods.",
+    "target_8B": "El déficit comercial se deterioró del 13.2% del PIB en 2010 al 16% del PIB en 2017. Esto se debió principalmente a problemas de seguridad en 2011, la desaceleración de la actividad productiva de las industrias extractivas, en particular el sector del fosfato industrial en Gafsa, y las importaciones descontroladas de bienes de consumo.",
+    "target_70B": "El déficit comercial se deterioró desde el 13.2% del PIB en 2010 hasta el 16% del PIB en 2017. Esto se atribuyó principalmente a los problemas de seguridad en 2011, la desaceleración de la actividad productiva de las industrias extractivas, en particular el sector del fosfato industrial en Gafsa, y las importaciones no controladas de bienes de consumo.",
+    "human_overall_score_8B": 4.60,
+    "human_overall_score_70B": 4.80
+  },
+  {
+    "chunk_id": "node_9",
+    "type": "TABLES",
+    "source": "The Tunisian public debt, 70% of which is external, has risen from 72% of GDP in 2019 to 87% of GDP in 2020, which is well above the emerging market debt burden benchmark of 70% of GDP (Central Bank of Tunisia (CBT) and National Institute of Statistics (NIS), 2020).",
+    "target_8B": "La deuda pública tunecina, de la cual el 70% es externa, ha aumentado del 72% del PIB en 2019 al 87% del PIB en 2020, lo que está muy por encima del límite de la carga de la deuda de los mercados emergentes del 70% del PIB (Banco Central de Túnez (BCT) e Instituto Nacional de Estadística (INE), 2020).",
+    "target_70B": "La deuda pública tunecina, cuyo 70% es externa, aumentó del 72% del PIB en 2019 al 87% del PIB en 2020, lo cual se sitúa muy por encima del nivel de referencia para la carga de la deuda de mercados emergentes (70% del PIB) (Banco Central de Túnez (CBT) e Instituto Nacional de Estadística (NIS), 2020).",
+    "human_overall_score_8B": 4.30,
+    "human_overall_score_70B": 4.90
+  },
+  {
+    "chunk_id": "node_10",
+    "type": "REFERENCES",
+    "source": "Second, we investigate the possible asymmetric effects of real misalignment on economic growth in Tunisia using the non-linear autoregressive distributed lag (NARDL) estimator developed by Shin et al. (2014) which takes into account the nonlinearity in the relationship...",
+    "target_8B": "Segundo, investigamos los posibles efectos asimétricos del desalineamiento real sobre el crecimiento económico en Túnez utilizando el estimador no lineal de rezagos distribuidos autorregresivos (NARDL) desarrollado por Shin et al. (2014) el cual toma en cuenta la no linealidad en la relación...",
+    "target_70B": "En segundo lugar, investigamos los posibles efectos asimétricos de la desalineación real sobre el crecimiento económico en Túnez utilizando el estimador de rezagos distribuidos autorregresivos no lineales (NARDL) desarrollado por Shin et al. (2014), el cual considera la no linealidad en la relación...",
+    "human_overall_score_8B": 4.50,
+    "human_overall_score_70B": 4.90
+  }
+]
