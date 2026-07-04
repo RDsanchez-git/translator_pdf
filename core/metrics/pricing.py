@@ -4,8 +4,10 @@ class PricingEngine:
     RATES_USD_PER_1M = {
         "gemini-2.5-flash": {"input": 0.075, "output": 0.30},
         "gemini-2.5-pro": {"input": 1.25, "output": 5.00},
-        "gemini-mock": {"input": 0.075, "output": 0.30}
-    }
+        "gemini-mock": {"input": 0.075, "output": 0.30},
+        "llama-3.1-8b-instant": {"input": 0.05 / 1_000_000, "output": 0.08 / 1_000_000},
+        "llama-3.3-70b-versatile": {"input": 0.59 / 1_000_000, "output": 0.79 / 1_000_000},
+                                 }
 
     @classmethod
     def calculate_cost(cls, model_name: str, input_tokens: int, output_tokens: int) -> float:

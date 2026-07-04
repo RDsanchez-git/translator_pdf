@@ -15,6 +15,16 @@ from core.ast.models import ASTNode, NodeType, ContentNodeType, StructuralNodeTy
 from core.ast.router import PDFRouter
 
 logger = logging.getLogger(__name__)
+
+# SOTA Windows Guardrail: Configuración estricta del motor OCR
+TESSERACT_PATH = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+TESSDATA_PATH = r"C:\Program Files\Tesseract-OCR\tessdata"
+
+pytesseract.pytesseract.tesseract_cmd = TESSERACT_PATH
+# Inyectar la variable de entorno de Tesseract directamente en el subproceso
+os.environ["TESSDATA_PREFIX"] = TESSDATA_PATH
+
+
 DEBUG_PARSER = True
 KEEP_ASSETS = True  # Modificado para congelar las imágenes en disco hasta la integración de Gemini Vision
 
@@ -116,6 +126,10 @@ def parse_pdf(pdf_path: str) -> list[ASTNode]:
     # Ejecución del Router determinista por ratio de densidad de páginas
     pdf_type, empty_pages = PDFRouter.detect_pdf_type(pdf_path)
     logger.info(f"Clasificación de Ingesta: {pdf_type} | Páginas Opacas: {len(empty_pages)}")
+
+    # Inyección forzada para evadir la corrupción de CMap. borrar esto
+    pdf_type, empty_pages = "OCR", []
+    # borrar esto
 
     raw_markdown = _extract_document_text(pdf_path, pdf_type, empty_pages)
     full_text = sanitize_marker_html(raw_markdown)

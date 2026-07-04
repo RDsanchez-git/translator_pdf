@@ -23,7 +23,8 @@ class SQLiteDocumentRepository(IntegrityCheckedDocumentRepository, DocumentRepos
 
     def _ensure_schema(self):
         with self.conn:
-            self.conn.execute("""
+            # SOTA FIX: executescript permite procesar el lote completo de tablas e índices secuencialmente
+            self.conn.executescript("""
                 CREATE TABLE IF NOT EXISTS original_chunks (
                 job_id TEXT NOT NULL,
                 chunk_id TEXT NOT NULL,

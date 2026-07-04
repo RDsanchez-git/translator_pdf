@@ -21,6 +21,10 @@ graph TD
         apps_bootstrap_pipeline_factory_py_build_pipeline["[FUNC] build_pipeline()"]:::funcStyle
     call_bootstrap_normalization_layer["--> bootstrap_normalization_layer()"]:::callStyle
     call_PdfParserAdapter["--> PdfParserAdapter()"]:::callStyle
+    call_get_connection["--> get_connection()"]:::callStyle
+    call_SQLiteDocumentRepository["--> SQLiteDocumentRepository()"]:::callStyle
+    call_AssemblyPolicy["--> AssemblyPolicy()"]:::callStyle
+    call_frozenset["--> frozenset()"]:::callStyle
     call_DocumentAssembler["--> DocumentAssembler()"]:::callStyle
     call_SummaryBuilder["--> SummaryBuilder()"]:::callStyle
     call__build_default_validation_pipeline["--> _build_default_validation_pipeline()"]:::callStyle
@@ -30,7 +34,6 @@ graph TD
     call_EOFBraceClosureStrategy["--> EOFBraceClosureStrategy()"]:::callStyle
     call_EOFMathClosureStrategy["--> EOFMathClosureStrategy()"]:::callStyle
     call_HealingPipeline["--> HealingPipeline()"]:::callStyle
-    call_get_connection["--> get_connection()"]:::callStyle
     call_FSMRepository["--> FSMRepository()"]:::callStyle
     call_DocumentCommandHandler["--> DocumentCommandHandler()"]:::callStyle
     call_FSMStateStore["--> FSMStateStore()"]:::callStyle
@@ -255,6 +258,9 @@ graph TD
         apps_llm_workers_adapters_py_GroqProvider["[CLASS] GroqProvider"]:::classStyle
         apps_llm_workers_adapters_py_GroqProvider___init__["__init__()"]:::funcStyle
     call_AsyncGroq["--> AsyncGroq()"]:::callStyle
+        apps_llm_workers_adapters_py_GeminiProvider["[CLASS] GeminiProvider"]:::classStyle
+        apps_llm_workers_adapters_py_GeminiProvider___init__["__init__()"]:::funcStyle
+    call_genai_configure["--> genai.configure()"]:::callStyle
 
     subgraph apps_llm_workers_cache_provider_py ["?? apps/llm_workers/cache_provider.py"]
         apps_llm_workers_cache_provider_py_CachedLLMProvider["[CLASS] CachedLLMProvider"]:::classStyle
@@ -268,16 +274,33 @@ graph TD
 
     subgraph apps_llm_workers_prompt_builder_py ["?? apps/llm_workers/prompt_builder.py"]
         apps_llm_workers_prompt_builder_py_PromptEnvelope["[CLASS] PromptEnvelope"]:::classStyle
+        apps_llm_workers_prompt_builder_py_BuildSuccess["[CLASS] BuildSuccess"]:::classStyle
+        apps_llm_workers_prompt_builder_py_BuildFailure["[CLASS] BuildFailure"]:::classStyle
         apps_llm_workers_prompt_builder_py_PromptBuilder["[CLASS] PromptBuilder"]:::classStyle
         apps_llm_workers_prompt_builder_py_PromptBuilder___init__["__init__()"]:::funcStyle
+    call_StandardCompressionPolicy["--> StandardCompressionPolicy()"]:::callStyle
+        apps_llm_workers_prompt_builder_py_PromptBuilder__build_system["_build_system()"]:::funcStyle
         apps_llm_workers_prompt_builder_py_PromptBuilder_build["build()"]:::funcStyle
+    call_BuildFailure["--> BuildFailure()"]:::callStyle
+    call_full_context_str_split["--> full_context_str.split()"]:::callStyle
+    call_context_levels_get["--> context_levels.get()"]:::callStyle
+    call_self__build_system["--> self._build_system()"]:::callStyle
+    call___calculate["--> *.calculate()"]:::callStyle
+    call___get_levels["--> *.get_levels()"]:::callStyle
+    call___estimate_tokens["--> *.estimate_tokens()"]:::callStyle
     call___hexdigest["--> *.hexdigest()"]:::callStyle
     call_hashlib_sha256["--> hashlib.sha256()"]:::callStyle
     call_hash_input_encode["--> hash_input.encode()"]:::callStyle
-    call___estimate["--> *.estimate()"]:::callStyle
     call_PromptEnvelope["--> PromptEnvelope()"]:::callStyle
+    call_BuildSuccess["--> BuildSuccess()"]:::callStyle
 
     subgraph apps_llm_workers_rate_limiter_py ["?? apps/llm_workers/rate_limiter.py"]
+        apps_llm_workers_rate_limiter_py_QuotaRejectionReason["[CLASS] QuotaRejectionReason"]:::classStyle
+        apps_llm_workers_rate_limiter_py_QuotaReservation["[CLASS] QuotaReservation"]:::classStyle
+        apps_llm_workers_rate_limiter_py_QuotaReservation_create_granted["create_granted()"]:::funcStyle
+    call_cls["--> cls()"]:::callStyle
+        apps_llm_workers_rate_limiter_py_QuotaReservation_create_rejected["create_rejected()"]:::funcStyle
+        apps_llm_workers_rate_limiter_py_QuotaManagerProtocol["[CLASS] QuotaManagerProtocol"]:::classStyle
         apps_llm_workers_rate_limiter_py_ClockProtocol["[CLASS] ClockProtocol"]:::classStyle
         apps_llm_workers_rate_limiter_py_ClockProtocol_now["now()"]:::funcStyle
         apps_llm_workers_rate_limiter_py_SystemClock["[CLASS] SystemClock"]:::classStyle
@@ -436,6 +459,7 @@ graph TD
     call___encode["--> *.encode()"]:::callStyle
     call_units_append["--> units.append()"]:::callStyle
     call_flush_translate_chunk["--> flush_translate_chunk()"]:::callStyle
+    call___estimate["--> *.estimate()"]:::callStyle
     call_self__split_by_sentence["--> self._split_by_sentence()"]:::callStyle
     call_ASTNode["--> ASTNode()"]:::callStyle
         core_ast_hashing_py_build_semantic_chunks_as_units["[FUNC] build_semantic_chunks_as_units()"]:::funcStyle
@@ -457,10 +481,30 @@ graph TD
         core_ast_models_py_FastWordEstimator["[CLASS] FastWordEstimator"]:::classStyle
         core_ast_models_py_FastWordEstimator_estimate["estimate()"]:::funcStyle
     call_text_split["--> text.split()"]:::callStyle
+        core_ast_models_py_FastWordEstimator_estimate_tokens["estimate_tokens()"]:::funcStyle
+    call_self_estimate["--> self.estimate()"]:::callStyle
         core_ast_models_py_TranslationUnit["[CLASS] TranslationUnit"]:::classStyle
         core_ast_models_py_ChunkingReport["[CLASS] ChunkingReport"]:::classStyle
         core_ast_models_py_TranslatedUnit["[CLASS] TranslatedUnit"]:::classStyle
         core_ast_models_py_ReconstructedDocument["[CLASS] ReconstructedDocument"]:::classStyle
+        core_ast_models_py_ExecutionStatus["[CLASS] ExecutionStatus"]:::classStyle
+        core_ast_models_py_FailureReason["[CLASS] FailureReason"]:::classStyle
+        core_ast_models_py_ChunkOutcome["[CLASS] ChunkOutcome"]:::classStyle
+        core_ast_models_py_ChunkOutcome___post_init__["__post_init__()"]:::funcStyle
+        core_ast_models_py_ChunkOutcome_is_success["is_success()"]:::funcStyle
+        core_ast_models_py_DispatchResult["[CLASS] DispatchResult"]:::classStyle
+        core_ast_models_py_DispatchResult_total_processed["total_processed()"]:::funcStyle
+        core_ast_models_py_DispatchResult_total_failed["total_failed()"]:::funcStyle
+        core_ast_models_py_DispatchResult_success_rate["success_rate()"]:::funcStyle
+        core_ast_models_py_DispatchResult_failed_by_reason["failed_by_reason()"]:::funcStyle
+    call_Counter["--> Counter()"]:::callStyle
+    call_dict["--> dict()"]:::callStyle
+        core_ast_models_py_OriginalChunk["[CLASS] OriginalChunk"]:::classStyle
+        core_ast_models_py_DispatchAnalytics["[CLASS] DispatchAnalytics"]:::classStyle
+        core_ast_models_py_DispatchAnalytics_calculate_success_rate["calculate_success_rate()"]:::funcStyle
+        core_ast_models_py_DispatchAnalytics_aggregate_failures["aggregate_failures()"]:::funcStyle
+        core_ast_models_py_ExecutionRoute["[CLASS] ExecutionRoute"]:::classStyle
+        core_ast_models_py_ExecutionStage["[CLASS] ExecutionStage"]:::classStyle
 
     subgraph core_ast_parser_py ["?? core/ast/parser.py"]
         core_ast_parser_py_sanitize_marker_html["[FUNC] sanitize_marker_html()"]:::funcStyle
@@ -555,7 +599,6 @@ graph TD
         core_ast_validator_py_ASTHealthReport["[CLASS] ASTHealthReport"]:::classStyle
         core_ast_validator_py_ASTHealthReport___init__["__init__()"]:::funcStyle
         core_ast_validator_py_ASTHealthReport_from_ast["from_ast()"]:::funcStyle
-    call_cls["--> cls()"]:::callStyle
         core_ast_validator_py_ASTHealthReport___str__["__str__()"]:::funcStyle
         core_ast_validator_py_ASTValidator["[CLASS] ASTValidator"]:::classStyle
         core_ast_validator_py_ASTValidator_validate["validate()"]:::funcStyle
@@ -567,14 +610,163 @@ graph TD
 
     subgraph core_ast___init___py ["?? core/ast/__init__.py"]
 
+    subgraph core_benchmark_aggregation_py ["?? core/benchmark/aggregation.py"]
+        core_benchmark_aggregation_py_calculate_decoupled_overall_score["[FUNC] calculate_decoupled_overall_score()"]:::funcStyle
+    call___upper["--> *.upper()"]:::callStyle
+
+    subgraph core_benchmark_judge_models_py ["?? core/benchmark/judge_models.py"]
+        core_benchmark_judge_models_py_DefectCategory["[CLASS] DefectCategory"]:::classStyle
+        core_benchmark_judge_models_py_ChunkEvaluationScore["[CLASS] ChunkEvaluationScore"]:::classStyle
+        core_benchmark_judge_models_py_ChunkEvaluationScore_overall_score["overall_score()"]:::funcStyle
+    call_calculate_decoupled_overall_score["--> calculate_decoupled_overall_score()"]:::callStyle
+
+    subgraph core_benchmark_judge_prompts_py ["?? core/benchmark/judge_prompts.py"]
+        core_benchmark_judge_prompts_py_build_judge_prompt["[FUNC] build_judge_prompt()"]:::funcStyle
+
+    subgraph core_benchmark_models_py ["?? core/benchmark/models.py"]
+        core_benchmark_models_py_ProviderDescriptor["[CLASS] ProviderDescriptor"]:::classStyle
+        core_benchmark_models_py_HardwareTelemetry["[CLASS] HardwareTelemetry"]:::classStyle
+        core_benchmark_models_py_BenchmarkMetadata["[CLASS] BenchmarkMetadata"]:::classStyle
+        core_benchmark_models_py_DocumentComplexity["[CLASS] DocumentComplexity"]:::classStyle
+        core_benchmark_models_py_BenchmarkMode["[CLASS] BenchmarkMode"]:::classStyle
+        core_benchmark_models_py_QuotaSnapshot["[CLASS] QuotaSnapshot"]:::classStyle
+        core_benchmark_models_py_QualityPolicy["[CLASS] QualityPolicy"]:::classStyle
+        core_benchmark_models_py_StructuralQualityMetrics["[CLASS] StructuralQualityMetrics"]:::classStyle
+        core_benchmark_models_py_TranslatedArtifact["[CLASS] TranslatedArtifact"]:::classStyle
+        core_benchmark_models_py_ChunkBenchmarkRecord["[CLASS] ChunkBenchmarkRecord"]:::classStyle
+        core_benchmark_models_py_ChunkBenchmarkRecord_tps_formula["tps_formula()"]:::funcStyle
+        core_benchmark_models_py_BenchmarkDocument["[CLASS] BenchmarkDocument"]:::classStyle
+        core_benchmark_models_py_BenchmarkDataset["[CLASS] BenchmarkDataset"]:::classStyle
+        core_benchmark_models_py_LatencyMetrics["[CLASS] LatencyMetrics"]:::classStyle
+        core_benchmark_models_py_StatisticalMoments["[CLASS] StatisticalMoments"]:::classStyle
+        core_benchmark_models_py_ProviderBenchmarkMetrics["[CLASS] ProviderBenchmarkMetrics"]:::classStyle
+        core_benchmark_models_py_ProviderBenchmarkMetrics_total_tokens["total_tokens()"]:::funcStyle
+        core_benchmark_models_py_ProviderBenchmarkMetrics_reliability_score["reliability_score()"]:::funcStyle
+        core_benchmark_models_py_ProviderBenchmarkMetrics_input_tps["input_tps()"]:::funcStyle
+        core_benchmark_models_py_ProviderBenchmarkMetrics_output_tps["output_tps()"]:::funcStyle
+        core_benchmark_models_py_ProviderBenchmarkMetrics_total_tps["total_tps()"]:::funcStyle
+        core_benchmark_models_py_ProviderBenchmarkMetrics_cost_per_1m_tokens_usd["cost_per_1m_tokens_usd()"]:::funcStyle
+        core_benchmark_models_py_ProviderBenchmarkMetrics_cost_per_1k_tokens_usd["cost_per_1k_tokens_usd()"]:::funcStyle
+        core_benchmark_models_py_MetricAggregator["[CLASS] MetricAggregator"]:::classStyle
+        core_benchmark_models_py_MetricAggregator__percentile["_percentile()"]:::funcStyle
+    call_math_ceil["--> math.ceil()"]:::callStyle
+        core_benchmark_models_py_MetricAggregator_aggregate["aggregate()"]:::funcStyle
+    call_LatencyMetrics["--> LatencyMetrics()"]:::callStyle
+    call_MetricAggregator__percentile["--> MetricAggregator._percentile()"]:::callStyle
+    call_ProviderBenchmarkMetrics["--> ProviderBenchmarkMetrics()"]:::callStyle
+        core_benchmark_models_py_BenchmarkRunReport["[CLASS] BenchmarkRunReport"]:::classStyle
+        core_benchmark_models_py_BenchmarkRunReport_total_tps_delta_percentage["total_tps_delta_percentage()"]:::funcStyle
+        core_benchmark_models_py_BenchmarkRunReport_cost_delta_percentage["cost_delta_percentage()"]:::funcStyle
+        core_benchmark_models_py_PreparedBenchmarkDataset["[CLASS] PreparedBenchmarkDataset"]:::classStyle
+
+    subgraph core_benchmark_orchestrator_py ["?? core/benchmark/orchestrator.py"]
+        core_benchmark_orchestrator_py_DatasetIntegrityValidator["[CLASS] DatasetIntegrityValidator"]:::classStyle
+        core_benchmark_orchestrator_py_DatasetIntegrityValidator_verify["verify()"]:::funcStyle
+    call_sha256_update["--> sha256.update()"]:::callStyle
+    call_sha256_hexdigest["--> sha256.hexdigest()"]:::callStyle
+        core_benchmark_orchestrator_py_SequentialBenchmarkOrchestrator["[CLASS] SequentialBenchmarkOrchestrator"]:::classStyle
+        core_benchmark_orchestrator_py_SequentialBenchmarkOrchestrator___init__["__init__()"]:::funcStyle
+
+    subgraph core_benchmark_persistence_py ["?? core/benchmark/persistence.py"]
+        core_benchmark_persistence_py_BenchmarkPersistenceGateway["[CLASS] BenchmarkPersistenceGateway"]:::classStyle
+        core_benchmark_persistence_py_BenchmarkPersistenceGateway___init__["__init__()"]:::funcStyle
+    call___mkdir["--> *.mkdir()"]:::callStyle
+        core_benchmark_persistence_py_BenchmarkPersistenceGateway_save_raw_records_checkpoint["save_raw_records_checkpoint()"]:::funcStyle
+        core_benchmark_persistence_py_BenchmarkPersistenceGateway_save_final_report["save_final_report()"]:::funcStyle
+    call_base_dir_mkdir["--> base_dir.mkdir()"]:::callStyle
+
+    subgraph core_benchmark_ports_py ["?? core/benchmark/ports.py"]
+        core_benchmark_ports_py_RunnerExecutionResult["[CLASS] RunnerExecutionResult"]:::classStyle
+        core_benchmark_ports_py_BenchmarkRunnerProtocol["[CLASS] BenchmarkRunnerProtocol"]:::classStyle
+
+    subgraph core_benchmark_quality_py ["?? core/benchmark/quality.py"]
+        core_benchmark_quality_py_FormalLatexSyntaxParser["[CLASS] FormalLatexSyntaxParser"]:::classStyle
+        core_benchmark_quality_py_FormalLatexSyntaxParser_validate_syntax["validate_syntax()"]:::funcStyle
+    call_LatexWalker["--> LatexWalker()"]:::callStyle
+    call_walker_get_latex_nodes["--> walker.get_latex_nodes()"]:::callStyle
+    call_logger_debug["--> logger.debug()"]:::callStyle
+        core_benchmark_quality_py_FormalMarkdownTableParser["[CLASS] FormalMarkdownTableParser"]:::classStyle
+        core_benchmark_quality_py_FormalMarkdownTableParser_validate_syntax["validate_syntax()"]:::funcStyle
+    call_MarkdownIt["--> MarkdownIt()"]:::callStyle
+    call_md_parse["--> md.parse()"]:::callStyle
+        core_benchmark_quality_py_StructuralQualityEvaluator["[CLASS] StructuralQualityEvaluator"]:::classStyle
+        core_benchmark_quality_py_StructuralQualityEvaluator_evaluate["evaluate()"]:::funcStyle
+    call_StructuralQualityMetrics["--> StructuralQualityMetrics()"]:::callStyle
+    call_original_nodes_map_get["--> original_nodes_map.get()"]:::callStyle
+    call_density_ratios_append["--> density_ratios.append()"]:::callStyle
+
+    subgraph core_benchmark_reporter_py ["?? core/benchmark/reporter.py"]
+        core_benchmark_reporter_py_ScientificSignificanceReport["[CLASS] ScientificSignificanceReport"]:::classStyle
+        core_benchmark_reporter_py_StatisticalComparator["[CLASS] StatisticalComparator"]:::classStyle
+        core_benchmark_reporter_py_StatisticalComparator__interpret_cliffs_delta["_interpret_cliffs_delta()"]:::funcStyle
+    call_abs["--> abs()"]:::callStyle
+        core_benchmark_reporter_py_StatisticalComparator__bootstrap_estimator_ci["_bootstrap_estimator_ci()"]:::funcStyle
+    call_np_array["--> np.array()"]:::callStyle
+    call_estimator_func["--> estimator_func()"]:::callStyle
+    call___choice["--> *.choice()"]:::callStyle
+    call_np_percentile["--> np.percentile()"]:::callStyle
+        core_benchmark_reporter_py_StatisticalComparator_compare_series["compare_series()"]:::funcStyle
+    call_ScientificSignificanceReport["--> ScientificSignificanceReport()"]:::callStyle
+    call_cast["--> cast()"]:::callStyle
+    call_stats_mannwhitneyu["--> stats.mannwhitneyu()"]:::callStyle
+    call_stats_ks_2samp["--> stats.ks_2samp()"]:::callStyle
+    call_cls__bootstrap_estimator_ci["--> cls._bootstrap_estimator_ci()"]:::callStyle
+        core_benchmark_reporter_py_StatisticalComparator__p95_estimator["_p95_estimator()"]:::funcStyle
+    call_cls__interpret_cliffs_delta["--> cls._interpret_cliffs_delta()"]:::callStyle
+        core_benchmark_reporter_py_StatisticalComparator__apply_holm_bonferroni["_apply_holm_bonferroni()"]:::funcStyle
+    call_reports_items["--> reports.items()"]:::callStyle
+    call_items_sort["--> items.sort()"]:::callStyle
+    call_replace["--> replace()"]:::callStyle
+        core_benchmark_reporter_py_StatisticalComparator_run_stratified_analysis["run_stratified_analysis()"]:::funcStyle
+    call_cls_compare_series["--> cls.compare_series()"]:::callStyle
+    call_cls__apply_holm_bonferroni["--> cls._apply_holm_bonferroni()"]:::callStyle
+
+    subgraph core_benchmark_semantic_judge_py ["?? core/benchmark/semantic_judge.py"]
+        core_benchmark_semantic_judge_py_SemanticJudge["[CLASS] SemanticJudge"]:::classStyle
+        core_benchmark_semantic_judge_py_SemanticJudge___init__["__init__()"]:::funcStyle
+
+    subgraph core_benchmark___init___py ["?? core/benchmark/__init__.py"]
+
+    subgraph core_benchmark___main___py ["?? core/benchmark/__main__.py"]
+
+    subgraph core_benchmark_runners_gemini_runner_py ["?? core/benchmark/runners/gemini_runner.py"]
+        core_benchmark_runners_gemini_runner_py_DummyContextResolver["[CLASS] DummyContextResolver"]:::classStyle
+        core_benchmark_runners_gemini_runner_py_DummyContextResolver_resolve_many["resolve_many()"]:::funcStyle
+        core_benchmark_runners_gemini_runner_py_DummyContextResolver_resolve["resolve()"]:::funcStyle
+        core_benchmark_runners_gemini_runner_py_GeminiBenchmarkRunner["[CLASS] GeminiBenchmarkRunner"]:::classStyle
+        core_benchmark_runners_gemini_runner_py_GeminiBenchmarkRunner___init__["__init__()"]:::funcStyle
+
+    subgraph core_benchmark_runners_groq_runner_py ["?? core/benchmark/runners/groq_runner.py"]
+        core_benchmark_runners_groq_runner_py_DummyContextResolver["[CLASS] DummyContextResolver"]:::classStyle
+        core_benchmark_runners_groq_runner_py_DummyContextResolver_resolve_many["resolve_many()"]:::funcStyle
+        core_benchmark_runners_groq_runner_py_DummyContextResolver_resolve["resolve()"]:::funcStyle
+        core_benchmark_runners_groq_runner_py_GroqBenchmarkRunner["[CLASS] GroqBenchmarkRunner"]:::classStyle
+        core_benchmark_runners_groq_runner_py_GroqBenchmarkRunner___init__["__init__()"]:::funcStyle
+
     subgraph core_compiler_assembler_py ["?? core/compiler/assembler.py"]
+        core_compiler_assembler_py_RepositoryUnavailableError["[CLASS] RepositoryUnavailableError"]:::classStyle
+        core_compiler_assembler_py_PayloadNotFoundError["[CLASS] PayloadNotFoundError"]:::classStyle
+        core_compiler_assembler_py_HashMismatchError["[CLASS] HashMismatchError"]:::classStyle
+        core_compiler_assembler_py_IntegrityCheckedDocumentRepository["[CLASS] IntegrityCheckedDocumentRepository"]:::classStyle
+        core_compiler_assembler_py_IntegrityCheckedDocumentRepository_get_verified_payload["get_verified_payload()"]:::funcStyle
+        core_compiler_assembler_py_AssemblyStatus["[CLASS] AssemblyStatus"]:::classStyle
+        core_compiler_assembler_py_AssemblyPolicy["[CLASS] AssemblyPolicy"]:::classStyle
+        core_compiler_assembler_py_AssemblyReport["[CLASS] AssemblyReport"]:::classStyle
+        core_compiler_assembler_py_DocumentAssemblyDecision["[CLASS] DocumentAssemblyDecision"]:::classStyle
+        core_compiler_assembler_py_DocumentAssemblyDecision_is_accepted["is_accepted()"]:::funcStyle
         core_compiler_assembler_py_DocumentAssembler["[CLASS] DocumentAssembler"]:::classStyle
         core_compiler_assembler_py_DocumentAssembler___init__["__init__()"]:::funcStyle
         core_compiler_assembler_py_DocumentAssembler__validate_sequence["_validate_sequence()"]:::funcStyle
     call_IncompleteDocumentError["--> IncompleteDocumentError()"]:::callStyle
         core_compiler_assembler_py_DocumentAssembler_assemble["assemble()"]:::funcStyle
-    call_ReconstructedDocument["--> ReconstructedDocument()"]:::callStyle
+    call_self__build_rejection["--> self._build_rejection()"]:::callStyle
     call_self__validate_sequence["--> self._validate_sequence()"]:::callStyle
+    call_content_parts_append["--> content_parts.append()"]:::callStyle
+    call___get_verified_payload["--> *.get_verified_payload()"]:::callStyle
+    call_ReconstructedDocument["--> ReconstructedDocument()"]:::callStyle
+    call_AssemblyReport["--> AssemblyReport()"]:::callStyle
+    call_DocumentAssemblyDecision["--> DocumentAssemblyDecision()"]:::callStyle
+        core_compiler_assembler_py_DocumentAssembler__build_rejection["_build_rejection()"]:::funcStyle
 
     subgraph core_context_context_resolver_py ["?? core/context/context_resolver.py"]
         core_context_context_resolver_py_ResolvedContext["[CLASS] ResolvedContext"]:::classStyle
@@ -615,6 +807,13 @@ graph TD
         core_execution_exceptions_py_ChunkValidationError___init__["__init__()"]:::funcStyle
         core_execution_exceptions_py_DocumentValidationError["[CLASS] DocumentValidationError"]:::classStyle
         core_execution_exceptions_py_DocumentValidationError___init__["__init__()"]:::funcStyle
+        core_execution_exceptions_py_TranslationDomainError["[CLASS] TranslationDomainError"]:::classStyle
+        core_execution_exceptions_py_ContextOverflowError["[CLASS] ContextOverflowError"]:::classStyle
+        core_execution_exceptions_py_ContextOverflowError___init__["__init__()"]:::funcStyle
+        core_execution_exceptions_py_ContextOverflowError___str__["__str__()"]:::funcStyle
+    call_____str__["--> *.__str__()"]:::callStyle
+        core_execution_exceptions_py_PermanentQuotaRejection["[CLASS] PermanentQuotaRejection"]:::classStyle
+        core_execution_exceptions_py_QuotaTimeoutError["[CLASS] QuotaTimeoutError"]:::classStyle
 
     subgraph core_execution_handlers_py ["?? core/execution/handlers.py"]
         core_execution_handlers_py_DocumentCommandHandler["[CLASS] DocumentCommandHandler"]:::classStyle
@@ -731,7 +930,6 @@ graph TD
     call___record["--> *.record()"]:::callStyle
     call_HealingEvent["--> HealingEvent()"]:::callStyle
     call_strategy_heal["--> strategy.heal()"]:::callStyle
-    call_replace["--> replace()"]:::callStyle
     call___validate_chunk["--> *.validate_chunk()"]:::callStyle
 
     subgraph core_healing_telemetry_py ["?? core/healing/telemetry.py"]
@@ -815,7 +1013,6 @@ graph TD
         core_metrics_metrics_py_Metrics_inc["inc()"]:::funcStyle
         core_metrics_metrics_py_Metrics_observe["observe()"]:::funcStyle
         core_metrics_metrics_py_Metrics_summary["summary()"]:::funcStyle
-    call_dict["--> dict()"]:::callStyle
 
     subgraph core_metrics_pricing_py ["?? core/metrics/pricing.py"]
         core_metrics_pricing_py_PricingEngine["[CLASS] PricingEngine"]:::classStyle
@@ -825,9 +1022,14 @@ graph TD
     subgraph core_metrics_summary_py ["?? core/metrics/summary.py"]
         core_metrics_summary_py_TranslationAuditSummary["[CLASS] TranslationAuditSummary"]:::classStyle
         core_metrics_summary_py_SummaryBuilder["[CLASS] SummaryBuilder"]:::classStyle
+        core_metrics_summary_py_SummaryBuilder__percentile["_percentile()"]:::funcStyle
         core_metrics_summary_py_SummaryBuilder_build["build()"]:::funcStyle
+    call_utilization_ratios_append["--> utilization_ratios.append()"]:::callStyle
+    call_quota_waits_append["--> quota_waits.append()"]:::callStyle
+    call_quota_attempts_append["--> quota_attempts.append()"]:::callStyle
     call_PricingEngine_calculate_cost["--> PricingEngine.calculate_cost()"]:::callStyle
     call_TranslationAuditSummary["--> TranslationAuditSummary()"]:::callStyle
+    call_SummaryBuilder__percentile["--> SummaryBuilder._percentile()"]:::callStyle
 
     subgraph core_normalization_base_py ["?? core/normalization/base.py"]
         core_normalization_base_py_WarningEntry["[CLASS] WarningEntry"]:::classStyle
@@ -844,7 +1046,6 @@ graph TD
     subgraph core_normalization_bootstrap_py ["?? core/normalization/bootstrap.py"]
         core_normalization_bootstrap_py_bootstrap_normalization_layer["[FUNC] bootstrap_normalization_layer()"]:::funcStyle
     call_NormalizationPolicyRegistry_get_instance["--> NormalizationPolicyRegistry.get_instance()"]:::callStyle
-    call_logger_debug["--> logger.debug()"]:::callStyle
     call___find_spec["--> *.find_spec()"]:::callStyle
     call_NormalizationPolicy["--> NormalizationPolicy()"]:::callStyle
     call_paragraph_policy_append["--> paragraph_policy.append()"]:::callStyle
@@ -946,7 +1147,6 @@ graph TD
     call_WarningEntry["--> WarningEntry()"]:::callStyle
     call_hierarchy_stack_append["--> hierarchy_stack.append()"]:::callStyle
     call_enriched_nodes_append["--> enriched_nodes.append()"]:::callStyle
-    call___upper["--> *.upper()"]:::callStyle
     call_hashlib_blake2b["--> hashlib.blake2b()"]:::callStyle
     call_self__validate_registry["--> self._validate_registry()"]:::callStyle
 
@@ -1057,6 +1257,8 @@ graph TD
         core_pipeline_orchestrator_py_AssemblerProtocol_assemble["assemble()"]:::funcStyle
         core_pipeline_orchestrator_py_AuditBuilderProtocol["[CLASS] AuditBuilderProtocol"]:::classStyle
         core_pipeline_orchestrator_py_AuditBuilderProtocol_build["build()"]:::funcStyle
+        core_pipeline_orchestrator_py_DocumentRepositoryProtocol["[CLASS] DocumentRepositoryProtocol"]:::classStyle
+        core_pipeline_orchestrator_py_DocumentRepositoryProtocol_save_batch["save_batch()"]:::funcStyle
         core_pipeline_orchestrator_py_TranslationPipeline["[CLASS] TranslationPipeline"]:::classStyle
         core_pipeline_orchestrator_py_TranslationPipeline___init__["__init__()"]:::funcStyle
 
@@ -1084,11 +1286,48 @@ graph TD
         core_resilience_circuit_breaker_py_CircuitBreakerRegistry_get_breaker["get_breaker()"]:::funcStyle
     call_GlobalCircuitBreaker["--> GlobalCircuitBreaker()"]:::callStyle
 
+    subgraph core_telemetry_analyzer_py ["?? core/telemetry/analyzer.py"]
+        core_telemetry_analyzer_py_TelemetryAnalyzer["[CLASS] TelemetryAnalyzer"]:::classStyle
+        core_telemetry_analyzer_py_TelemetryAnalyzer___init__["__init__()"]:::funcStyle
+    call_SLOConfig["--> SLOConfig()"]:::callStyle
+        core_telemetry_analyzer_py_TelemetryAnalyzer__query_scalar["_query_scalar()"]:::funcStyle
+        core_telemetry_analyzer_py_TelemetryAnalyzer__query_list["_query_list()"]:::funcStyle
+        core_telemetry_analyzer_py_TelemetryAnalyzer_generate_report["generate_report()"]:::funcStyle
+    call_self__query_scalar["--> self._query_scalar()"]:::callStyle
+    call_ProductionHealthReport["--> ProductionHealthReport()"]:::callStyle
+    call_self__query_list["--> self._query_list()"]:::callStyle
+    call_violations_append["--> violations.append()"]:::callStyle
+    call_SLOViolation["--> SLOViolation()"]:::callStyle
+
+    subgraph core_telemetry_gates_py ["?? core/telemetry/gates.py"]
+        core_telemetry_gates_py_SystemHealthState["[CLASS] SystemHealthState"]:::classStyle
+        core_telemetry_gates_py_HealthGateEvaluator["[CLASS] HealthGateEvaluator"]:::classStyle
+        core_telemetry_gates_py_HealthGateEvaluator_evaluate["evaluate()"]:::funcStyle
+        core_telemetry_gates_py_HealthGateEvaluator_enforce["enforce()"]:::funcStyle
+    call_HealthGateEvaluator_evaluate["--> HealthGateEvaluator.evaluate()"]:::callStyle
+
+    subgraph core_telemetry_gateway_py ["?? core/telemetry/gateway.py"]
+        core_telemetry_gateway_py_SQLiteTelemetryGateway["[CLASS] SQLiteTelemetryGateway"]:::classStyle
+        core_telemetry_gateway_py_SQLiteTelemetryGateway___init__["__init__()"]:::funcStyle
+    call_asyncio_Queue["--> asyncio.Queue()"]:::callStyle
+    call_self__init_db["--> self._init_db()"]:::callStyle
+        core_telemetry_gateway_py_SQLiteTelemetryGateway__init_db["_init_db()"]:::funcStyle
+        core_telemetry_gateway_py_SQLiteTelemetryGateway_emit["emit()"]:::funcStyle
+        core_telemetry_gateway_py_SQLiteTelemetryGateway__write_batch["_write_batch()"]:::funcStyle
+    call_conn_executemany["--> conn.executemany()"]:::callStyle
+
+    subgraph core_telemetry_models_py ["?? core/telemetry/models.py"]
+        core_telemetry_models_py_TelemetryEventType["[CLASS] TelemetryEventType"]:::classStyle
+        core_telemetry_models_py_ProviderSelectionReason["[CLASS] ProviderSelectionReason"]:::classStyle
+        core_telemetry_models_py_ProductionTelemetryEvent["[CLASS] ProductionTelemetryEvent"]:::classStyle
+        core_telemetry_models_py_SLOConfig["[CLASS] SLOConfig"]:::classStyle
+        core_telemetry_models_py_SLOViolation["[CLASS] SLOViolation"]:::classStyle
+        core_telemetry_models_py_ProductionHealthReport["[CLASS] ProductionHealthReport"]:::classStyle
+
     subgraph core_utils_config_py ["?? core/utils/config.py"]
 
     subgraph core_utils_fs_py ["?? core/utils/fs.py"]
         core_utils_fs_py_ensure_parent_dir["[FUNC] ensure_parent_dir()"]:::funcStyle
-    call___mkdir["--> *.mkdir()"]:::callStyle
 
     subgraph core_utils_logger_py ["?? core/utils/logger.py"]
         core_utils_logger_py_JsonFormatter["[CLASS] JsonFormatter"]:::classStyle
@@ -1135,7 +1374,33 @@ graph TD
         core_validation_base_py_Validator["[CLASS] Validator"]:::classStyle
         core_validation_base_py_Validator_validate["validate()"]:::funcStyle
 
+    subgraph core_validation_budget_py ["?? core/validation/budget.py"]
+        core_validation_budget_py_TokenEstimatorProtocol["[CLASS] TokenEstimatorProtocol"]:::classStyle
+        core_validation_budget_py_TokenEstimatorProtocol_estimate_tokens["estimate_tokens()"]:::funcStyle
+        core_validation_budget_py_BudgetViolationReason["[CLASS] BudgetViolationReason"]:::classStyle
+        core_validation_budget_py_BudgetDecisionType["[CLASS] BudgetDecisionType"]:::classStyle
+        core_validation_budget_py_ContextReductionLevel["[CLASS] ContextReductionLevel"]:::classStyle
+        core_validation_budget_py_ContextCompressionPolicy["[CLASS] ContextCompressionPolicy"]:::classStyle
+        core_validation_budget_py_ContextCompressionPolicy_get_levels["get_levels()"]:::funcStyle
+        core_validation_budget_py_StandardCompressionPolicy["[CLASS] StandardCompressionPolicy"]:::classStyle
+        core_validation_budget_py_StandardCompressionPolicy_get_levels["get_levels()"]:::funcStyle
+        core_validation_budget_py_PromptBudget["[CLASS] PromptBudget"]:::classStyle
+        core_validation_budget_py_PromptBudget_total_estimated["total_estimated()"]:::funcStyle
+        core_validation_budget_py_PromptBudget_utilization_ratio["utilization_ratio()"]:::funcStyle
+        core_validation_budget_py_BudgetDecision["[CLASS] BudgetDecision"]:::classStyle
+        core_validation_budget_py_PromptBudgetCalculator["[CLASS] PromptBudgetCalculator"]:::classStyle
+        core_validation_budget_py_PromptBudgetCalculator___init__["__init__()"]:::funcStyle
+        core_validation_budget_py_PromptBudgetCalculator_calculate["calculate()"]:::funcStyle
+    call_PromptBudget["--> PromptBudget()"]:::callStyle
+    call_BudgetDecision["--> BudgetDecision()"]:::callStyle
+
     subgraph core_validation_error_taxonomy_py ["?? core/validation/error_taxonomy.py"]
+
+    subgraph core_validation_estimators_py ["?? core/validation/estimators.py"]
+        core_validation_estimators_py_ExactBPEEstimator["[CLASS] ExactBPEEstimator"]:::classStyle
+        core_validation_estimators_py_ExactBPEEstimator___init__["__init__()"]:::funcStyle
+    call_tiktoken_get_encoding["--> tiktoken.get_encoding()"]:::callStyle
+        core_validation_estimators_py_ExactBPEEstimator_estimate_tokens["estimate_tokens()"]:::funcStyle
 
     subgraph core_validation_interfaces_py ["?? core/validation/interfaces.py"]
         core_validation_interfaces_py_BaseValidator["[CLASS] BaseValidator"]:::classStyle
@@ -1206,7 +1471,6 @@ graph TD
     call_self__missing_numbers["--> self._missing_numbers()"]:::callStyle
     call_self__missing_units["--> self._missing_units()"]:::callStyle
         core_validation_semantic_py_SemanticValidator__missing_numbers["_missing_numbers()"]:::funcStyle
-    call_Counter["--> Counter()"]:::callStyle
     call_source_counts_items["--> source_counts.items()"]:::callStyle
     call_missing_extend["--> missing.extend()"]:::callStyle
         core_validation_semantic_py_SemanticValidator__missing_units["_missing_units()"]:::funcStyle
@@ -1237,43 +1501,6 @@ graph TD
         core_validation_volumetric_py_VolumetricValidator_validate["validate()"]:::funcStyle
 
     subgraph core_validation___init___py ["?? core/validation/__init__.py"]
-
-    subgraph graveyard_gemini_client_py ["?? graveyard/gemini_client.py"]
-        graveyard_gemini_client_py_GeminiClient["[CLASS] GeminiClient"]:::classStyle
-        graveyard_gemini_client_py_GeminiClient___init__["__init__()"]:::funcStyle
-    call_CircuitBreakerRegistry_get_breaker["--> CircuitBreakerRegistry.get_breaker()"]:::callStyle
-    call_requests_Session["--> requests.Session()"]:::callStyle
-        graveyard_gemini_client_py_GeminiClient__clean_response["_clean_response()"]:::funcStyle
-    call_result_startswith["--> result.startswith()"]:::callStyle
-    call_result_endswith["--> result.endswith()"]:::callStyle
-    call_result_strip["--> result.strip()"]:::callStyle
-        graveyard_gemini_client_py_GeminiClient__build_fix_prompt["_build_fix_prompt()"]:::funcStyle
-        graveyard_gemini_client_py_GeminiClient__is_transient["_is_transient()"]:::funcStyle
-        graveyard_gemini_client_py_GeminiClient__execute_with_local_retries["_execute_with_local_retries()"]:::funcStyle
-    call___check_state["--> *.check_state()"]:::callStyle
-    call___acquire["--> *.acquire()"]:::callStyle
-    call___post["--> *.post()"]:::callStyle
-    call_self__is_transient["--> self._is_transient()"]:::callStyle
-    call_TransientAPIError["--> TransientAPIError()"]:::callStyle
-    call_response_raise_for_status["--> response.raise_for_status()"]:::callStyle
-    call_response_json["--> response.json()"]:::callStyle
-    call_self__clean_response["--> self._clean_response()"]:::callStyle
-    call___release["--> *.release()"]:::callStyle
-    call_retry["--> retry()"]:::callStyle
-    call_wait_exponential["--> wait_exponential()"]:::callStyle
-    call_stop_after_attempt["--> stop_after_attempt()"]:::callStyle
-    call_retry_if_exception_type["--> retry_if_exception_type()"]:::callStyle
-        graveyard_gemini_client_py_GeminiClient_translate["translate()"]:::funcStyle
-    call_PromptBuilder["--> PromptBuilder()"]:::callStyle
-    call_builder_build["--> builder.build()"]:::callStyle
-    call___call["--> *.call()"]:::callStyle
-    call_self__execute_with_local_retries["--> self._execute_with_local_retries()"]:::callStyle
-        graveyard_gemini_client_py_GeminiClient_fix_latex["fix_latex()"]:::funcStyle
-    call_self__build_fix_prompt["--> self._build_fix_prompt()"]:::callStyle
-        graveyard_gemini_client_py_GeminiClient_generate["generate()"]:::funcStyle
-        graveyard_gemini_client_py_GeminiClient__embed_with_local_retries["_embed_with_local_retries()"]:::funcStyle
-        graveyard_gemini_client_py_GeminiClient_embed_text["embed_text()"]:::funcStyle
-    call_self__embed_with_local_retries["--> self._embed_with_local_retries()"]:::callStyle
 
     subgraph infra_adapters_pdf_parser_py ["?? infra/adapters/pdf_parser.py"]
         infra_adapters_pdf_parser_py_PdfParserAdapter["[CLASS] PdfParserAdapter"]:::classStyle
@@ -1323,6 +1550,19 @@ graph TD
         infra_db_control_repo_py_ControlPlaneRepository_mark_zombie_recovered["mark_zombie_recovered()"]:::funcStyle
         infra_db_control_repo_py_ControlPlaneRepository_enqueue_assembler_task["enqueue_assembler_task()"]:::funcStyle
         infra_db_control_repo_py_ControlPlaneRepository_find_documents_with_pending_chunks["find_documents_with_pending_chunks()"]:::funcStyle
+
+    subgraph infra_db_document_repository_py ["?? infra/db/document_repository.py"]
+        infra_db_document_repository_py_SQLiteDocumentRepository["[CLASS] SQLiteDocumentRepository"]:::classStyle
+        infra_db_document_repository_py_SQLiteDocumentRepository___init__["__init__()"]:::funcStyle
+    call_self__ensure_schema["--> self._ensure_schema()"]:::callStyle
+        infra_db_document_repository_py_SQLiteDocumentRepository__ensure_schema["_ensure_schema()"]:::funcStyle
+    call___executescript["--> *.executescript()"]:::callStyle
+        infra_db_document_repository_py_SQLiteDocumentRepository_save_batch["save_batch()"]:::funcStyle
+        infra_db_document_repository_py_SQLiteDocumentRepository_get_verified_payload["get_verified_payload()"]:::funcStyle
+    call___cursor["--> *.cursor()"]:::callStyle
+    call_PayloadNotFoundError["--> PayloadNotFoundError()"]:::callStyle
+    call_HashMismatchError["--> HashMismatchError()"]:::callStyle
+    call_payload_encode["--> payload.encode()"]:::callStyle
 
     subgraph infra_db_event_repo_py ["?? infra/db/event_repo.py"]
         infra_db_event_repo_py_EventPlaneRepository["[CLASS] EventPlaneRepository"]:::classStyle
@@ -1412,535 +1652,6 @@ graph TD
     call_c_close["--> c.close()"]:::callStyle
 
     subgraph runtime___init___py ["?? runtime/__init__.py"]
-
-    subgraph tests_test_architecture_contract_py ["?? tests/test_architecture_contract.py"]
-        tests_test_architecture_contract_py_test_ports_compliance["[FUNC] test_ports_compliance()"]:::funcStyle
-
-    subgraph tests_test_ast_py ["?? tests/test_ast.py"]
-
-    subgraph tests_test_dag_py ["?? tests/test_dag.py"]
-
-    subgraph tests_test_fencing_py ["?? tests/test_fencing.py"]
-
-    subgraph tests_test_math_protector_py ["?? tests/test_math_protector.py"]
-        tests_test_math_protector_py_test_inline_math_protector["[FUNC] test_inline_math_protector()"]:::funcStyle
-    call_InlineMathProtector_mask["--> InlineMathProtector.mask()"]:::callStyle
-    call_masked_replace["--> masked.replace()"]:::callStyle
-    call_InlineMathProtector_restore["--> InlineMathProtector.restore()"]:::callStyle
-
-    subgraph tests_test_pipeline_py ["?? tests/test_pipeline.py"]
-        tests_test_pipeline_py_run_stress_tests["[FUNC] run_stress_tests()"]:::funcStyle
-    call_CORPUS_DIR_mkdir["--> CORPUS_DIR.mkdir()"]:::callStyle
-    call_OUTPUT_DIR_mkdir["--> OUTPUT_DIR.mkdir()"]:::callStyle
-    call_CORPUS_DIR_glob["--> CORPUS_DIR.glob()"]:::callStyle
-    call_run_pipeline["--> run_pipeline()"]:::callStyle
-    call_metrics_get["--> metrics.get()"]:::callStyle
-
-    subgraph tests_test_pipeline_fidelity_py ["?? tests/test_pipeline_fidelity.py"]
-        tests_test_pipeline_fidelity_py_TestPipelineFidelity["[CLASS] TestPipelineFidelity"]:::classStyle
-        tests_test_pipeline_fidelity_py_TestPipelineFidelity_test_html_sanitization_variants["test_html_sanitization_variants()"]:::funcStyle
-    call_self_assertEqual["--> self.assertEqual()"]:::callStyle
-        tests_test_pipeline_fidelity_py_TestPipelineFidelity_test_semantic_adjacency_and_mutations["test_semantic_adjacency_and_mutations()"]:::funcStyle
-    call_restored_lower["--> restored.lower()"]:::callStyle
-    call_self_assertTrue["--> self.assertTrue()"]:::callStyle
-        tests_test_pipeline_fidelity_py_TestPipelineFidelity_test_mixed_inline_and_block_math["test_mixed_inline_and_block_math()"]:::funcStyle
-    call_self_assertIn["--> self.assertIn()"]:::callStyle
-        tests_test_pipeline_fidelity_py_TestPipelineFidelity__execute_mock_parser["_execute_mock_parser()"]:::funcStyle
-        tests_test_pipeline_fidelity_py_TestPipelineFidelity_safe_exists["safe_exists()"]:::funcStyle
-    call_path_endswith["--> path.endswith()"]:::callStyle
-    call_patch["--> patch()"]:::callStyle
-    call_t_split["--> t.split()"]:::callStyle
-    call_mock_open["--> mock_open()"]:::callStyle
-        tests_test_pipeline_fidelity_py_TestPipelineFidelity_test_equation_quarantine_quarantine["test_equation_quarantine_quarantine()"]:::funcStyle
-    call_self__execute_mock_parser["--> self._execute_mock_parser()"]:::callStyle
-        tests_test_pipeline_fidelity_py_TestPipelineFidelity_test_mixed_image_block_continuation["test_mixed_image_block_continuation()"]:::funcStyle
-        tests_test_pipeline_fidelity_py_TestPipelineFidelity_test_equation_ratio_and_false_positives["test_equation_ratio_and_false_positives()"]:::funcStyle
-        tests_test_pipeline_fidelity_py_TestPipelineFidelity_test_worker_passthrough_alignment["test_worker_passthrough_alignment()"]:::funcStyle
-
-    subgraph tests_helpers_bootstrap_translation_golden_py ["?? tests/helpers/bootstrap_translation_golden.py"]
-
-    subgraph tests_helpers_fakes_py ["?? tests/helpers/fakes.py"]
-        tests_helpers_fakes_py_FakeChunker["[CLASS] FakeChunker"]:::classStyle
-        tests_helpers_fakes_py_FakeChunker_chunk["chunk()"]:::funcStyle
-        tests_helpers_fakes_py_FakeDispatcher["[CLASS] FakeDispatcher"]:::classStyle
-
-    subgraph tests_helpers_markdown_inspector_py ["?? tests/helpers/markdown_inspector.py"]
-        tests_helpers_markdown_inspector_py_MarkdownInspector["[CLASS] MarkdownInspector"]:::classStyle
-        tests_helpers_markdown_inspector_py_MarkdownInspector_extract_structure["extract_structure()"]:::funcStyle
-        tests_helpers_markdown_inspector_py_MarkdownInspector_extract_technical_tokens["extract_technical_tokens()"]:::funcStyle
-        tests_helpers_markdown_inspector_py_MarkdownInspector_verify_balances["verify_balances()"]:::funcStyle
-    call_content_count["--> content.count()"]:::callStyle
-
-    subgraph tests_helpers___init___py ["?? tests/helpers/__init__.py"]
-
-    subgraph tests_integration_test_chunker_snapshot_py ["?? tests/integration/test_chunker_snapshot.py"]
-        tests_integration_test_chunker_snapshot_py_TestChunkerSnapshot["[CLASS] TestChunkerSnapshot"]:::classStyle
-        tests_integration_test_chunker_snapshot_py_TestChunkerSnapshot_setUp["setUp()"]:::funcStyle
-        tests_integration_test_chunker_snapshot_py_TestChunkerSnapshot_test_snapshot_verification["test_snapshot_verification()"]:::funcStyle
-    call_self_skipTest["--> self.skipTest()"]:::callStyle
-    call_StructuralNodeType["--> StructuralNodeType()"]:::callStyle
-    call_ContentNodeType["--> ContentNodeType()"]:::callStyle
-    call_d_get["--> d.get()"]:::callStyle
-    call_zip["--> zip()"]:::callStyle
-
-    subgraph tests_integration_test_cli_router_py ["?? tests/integration/test_cli_router.py"]
-        tests_integration_test_cli_router_py_TestCLIRoutingAndArgparse["[CLASS] TestCLIRoutingAndArgparse"]:::classStyle
-        tests_integration_test_cli_router_py_TestCLIRoutingAndArgparse_test_translate_subcommand_routing["test_translate_subcommand_routing()"]:::funcStyle
-    call_argparse_Namespace["--> argparse.Namespace()"]:::callStyle
-    call_main["--> main()"]:::callStyle
-    call_mock_handle_assert_called_once_with["--> mock_handle.assert_called_once_with()"]:::callStyle
-        tests_integration_test_cli_router_py_TestCLIRoutingAndArgparse_test_resume_subcommand_routing["test_resume_subcommand_routing()"]:::funcStyle
-        tests_integration_test_cli_router_py_TestCLIRoutingAndArgparse_test_sweep_subcommand_routing["test_sweep_subcommand_routing()"]:::funcStyle
-        tests_integration_test_cli_router_py_TestCLIRoutingAndArgparse_test_status_subcommand_routing["test_status_subcommand_routing()"]:::funcStyle
-
-    subgraph tests_integration_test_e2e_walking_skeleton_py ["?? tests/integration/test_e2e_walking_skeleton.py"]
-        tests_integration_test_e2e_walking_skeleton_py_TestTrueWalkingSkeletonE2E["[CLASS] TestTrueWalkingSkeletonE2E"]:::classStyle
-        tests_integration_test_e2e_walking_skeleton_py_TestTrueWalkingSkeletonE2E_setUp["setUp()"]:::funcStyle
-    call_BypassProvider["--> BypassProvider()"]:::callStyle
-    call_ResilientProvider["--> ResilientProvider()"]:::callStyle
-    call_QuotaManager["--> QuotaManager()"]:::callStyle
-    call_RateLimitedProvider["--> RateLimitedProvider()"]:::callStyle
-    call_CachedLLMProvider["--> CachedLLMProvider()"]:::callStyle
-    call___initialize["--> *.initialize()"]:::callStyle
-    call_MagicMock["--> MagicMock()"]:::callStyle
-    call_AsyncDispatcher["--> AsyncDispatcher()"]:::callStyle
-        tests_integration_test_e2e_walking_skeleton_py_TestTrueWalkingSkeletonE2E_tearDown["tearDown()"]:::funcStyle
-        tests_integration_test_e2e_walking_skeleton_py_TestTrueWalkingSkeletonE2E__bridge_ast_to_units["_bridge_ast_to_units()"]:::funcStyle
-    call_node_get["--> node.get()"]:::callStyle
-    call_payload_strip["--> payload.strip()"]:::callStyle
-    call_payload_encode["--> payload.encode()"]:::callStyle
-
-    subgraph tests_integration_test_embedding_smoke_py ["?? tests/integration/test_embedding_smoke.py"]
-        tests_integration_test_embedding_smoke_py_TestProviderSmoke["[CLASS] TestProviderSmoke"]:::classStyle
-
-    subgraph tests_integration_test_golden_parser_py ["?? tests/integration/test_golden_parser.py"]
-        tests_integration_test_golden_parser_py_TestGoldenParser["[CLASS] TestGoldenParser"]:::classStyle
-        tests_integration_test_golden_parser_py_TestGoldenParser_setUp["setUp()"]:::funcStyle
-        tests_integration_test_golden_parser_py_TestGoldenParser__generate_fingerprint["_generate_fingerprint()"]:::funcStyle
-    call_distribution_get["--> distribution.get()"]:::callStyle
-    call_sequence_append["--> sequence.append()"]:::callStyle
-    call_content_str_strip["--> content_str.strip()"]:::callStyle
-        tests_integration_test_golden_parser_py_TestGoldenParser_test_parser_runtime_matches_golden_fingerprint["test_parser_runtime_matches_golden_fingerprint()"]:::funcStyle
-    call___parse["--> *.parse()"]:::callStyle
-    call_self__generate_fingerprint["--> self._generate_fingerprint()"]:::callStyle
-    call_abs["--> abs()"]:::callStyle
-    call_self_assertLessEqual["--> self.assertLessEqual()"]:::callStyle
-
-    subgraph tests_integration_test_healing_concurrency_py ["?? tests/integration/test_healing_concurrency.py"]
-        tests_integration_test_healing_concurrency_py_test_telemetry_registry_async_concurrency["[FUNC] test_telemetry_registry_async_concurrency()"]:::funcStyle
-    call_registry_record["--> registry.record()"]:::callStyle
-    call_asyncio_sleep["--> asyncio.sleep()"]:::callStyle
-    call__async_worker["--> _async_worker()"]:::callStyle
-    call__main_orchestrator["--> _main_orchestrator()"]:::callStyle
-    call_registry_get_events["--> registry.get_events()"]:::callStyle
-    call_registry_get_aggregate_metrics["--> registry.get_aggregate_metrics()"]:::callStyle
-        tests_integration_test_healing_concurrency_py_ContextDrivenMockValidationPipeline["[CLASS] ContextDrivenMockValidationPipeline"]:::classStyle
-        tests_integration_test_healing_concurrency_py_ContextDrivenMockValidationPipeline___init__["__init__()"]:::funcStyle
-        tests_integration_test_healing_concurrency_py_ContextDrivenMockValidationPipeline_validate_chunk["validate_chunk()"]:::funcStyle
-        tests_integration_test_healing_concurrency_py_test_healing_pipeline_emits_full_audit_on_rollback["[FUNC] test_healing_pipeline_emits_full_audit_on_rollback()"]:::funcStyle
-    call_ContextDrivenMockValidationPipeline["--> ContextDrivenMockValidationPipeline()"]:::callStyle
-    call_pipeline_heal_and_revalidate["--> pipeline.heal_and_revalidate()"]:::callStyle
-
-    subgraph tests_integration_test_healing_e2e_telemetry_py ["?? tests/integration/test_healing_e2e_telemetry.py"]
-        tests_integration_test_healing_e2e_telemetry_py_MockValidationPipeline["[CLASS] MockValidationPipeline"]:::classStyle
-        tests_integration_test_healing_e2e_telemetry_py_MockValidationPipeline___init__["__init__()"]:::funcStyle
-        tests_integration_test_healing_e2e_telemetry_py_MockValidationPipeline_validate_chunk["validate_chunk()"]:::funcStyle
-        tests_integration_test_healing_e2e_telemetry_py_build_pipeline_and_registry["[FUNC] build_pipeline_and_registry()"]:::funcStyle
-        tests_integration_test_healing_e2e_telemetry_py__builder["[FUNC] _builder()"]:::funcStyle
-    call_MockValidationPipeline["--> MockValidationPipeline()"]:::callStyle
-        tests_integration_test_healing_e2e_telemetry_py__make_ctx["[FUNC] _make_ctx()"]:::funcStyle
-        tests_integration_test_healing_e2e_telemetry_py_test_e2e_case_a_markdown_leakage["[FUNC] test_e2e_case_a_markdown_leakage()"]:::funcStyle
-    call_build_pipeline_and_registry["--> build_pipeline_and_registry()"]:::callStyle
-    call__make_ctx["--> _make_ctx()"]:::callStyle
-        tests_integration_test_healing_e2e_telemetry_py_test_e2e_case_b_unbalanced_braces["[FUNC] test_e2e_case_b_unbalanced_braces()"]:::funcStyle
-        tests_integration_test_healing_e2e_telemetry_py_test_e2e_case_c_math_truncation["[FUNC] test_e2e_case_c_math_truncation()"]:::funcStyle
-        tests_integration_test_healing_e2e_telemetry_py_test_e2e_rollback_guarantee_on_revalidation_failure["[FUNC] test_e2e_rollback_guarantee_on_revalidation_failure()"]:::funcStyle
-        tests_integration_test_healing_e2e_telemetry_py_test_e2e_telemetry_aggregate_metrics["[FUNC] test_e2e_telemetry_aggregate_metrics()"]:::funcStyle
-
-    subgraph tests_integration_test_pipeline_orchestration_py ["?? tests/integration/test_pipeline_orchestration.py"]
-        tests_integration_test_pipeline_orchestration_py_FakeChunker["[CLASS] FakeChunker"]:::classStyle
-        tests_integration_test_pipeline_orchestration_py_FakeChunker_chunk["chunk()"]:::funcStyle
-        tests_integration_test_pipeline_orchestration_py_FakeDispatcher["[CLASS] FakeDispatcher"]:::classStyle
-        tests_integration_test_pipeline_orchestration_py_TestPipelineOrchestration["[CLASS] TestPipelineOrchestration"]:::classStyle
-        tests_integration_test_pipeline_orchestration_py_TestPipelineOrchestration_setUp["setUp()"]:::funcStyle
-    call_build_pipeline["--> build_pipeline()"]:::callStyle
-    call_FakeChunker["--> FakeChunker()"]:::callStyle
-    call_FakeDispatcher["--> FakeDispatcher()"]:::callStyle
-
-    subgraph tests_integration_test_real_e2e_py ["?? tests/integration/test_real_e2e.py"]
-        tests_integration_test_real_e2e_py_FinOpsControlledChunker["[CLASS] FinOpsControlledChunker"]:::classStyle
-        tests_integration_test_real_e2e_py_FinOpsControlledChunker_chunk["chunk()"]:::funcStyle
-        tests_integration_test_real_e2e_py_TestRealE2EFinOps["[CLASS] TestRealE2EFinOps"]:::classStyle
-        tests_integration_test_real_e2e_py_TestRealE2EFinOps_setUp["setUp()"]:::funcStyle
-    call_SyncProviderBridge["--> SyncProviderBridge()"]:::callStyle
-    call_FinOpsControlledChunker["--> FinOpsControlledChunker()"]:::callStyle
-    call_fsm_db_execute["--> fsm_db.execute()"]:::callStyle
-    call_fsm_db_commit["--> fsm_db.commit()"]:::callStyle
-        tests_integration_test_real_e2e_py_TestRealE2EFinOps_tearDown["tearDown()"]:::funcStyle
-    call___shutdown["--> *.shutdown()"]:::callStyle
-
-    subgraph tests_integration_test_real_paper_py ["?? tests/integration/test_real_paper.py"]
-        tests_integration_test_real_paper_py_TestRealPaperIntegration["[CLASS] TestRealPaperIntegration"]:::classStyle
-        tests_integration_test_real_paper_py_TestRealPaperIntegration_setUp["setUp()"]:::funcStyle
-        tests_integration_test_real_paper_py_TestRealPaperIntegration_test_parser_and_validation_e2e_local["test_parser_and_validation_e2e_local()"]:::funcStyle
-    call_ASTHealthReport_from_ast["--> ASTHealthReport.from_ast()"]:::callStyle
-    call_ASTValidator_validate["--> ASTValidator.validate()"]:::callStyle
-    call_self_assertGreater["--> self.assertGreater()"]:::callStyle
-    call_self_fail["--> self.fail()"]:::callStyle
-
-    subgraph tests_integration_test_real_parser_pipeline_py ["?? tests/integration/test_real_parser_pipeline.py"]
-        tests_integration_test_real_parser_pipeline_py_TestRealParserIsolation["[CLASS] TestRealParserIsolation"]:::classStyle
-        tests_integration_test_real_parser_pipeline_py_TestRealParserIsolation_setUp["setUp()"]:::funcStyle
-        tests_integration_test_real_parser_pipeline_py_TestRealParserIsolation_test_parser_adapter_extracts_and_verifies_structural_presence["test_parser_adapter_extracts_and_verifies_structural_presence()"]:::funcStyle
-    call_self_assertIsInstance["--> self.assertIsInstance()"]:::callStyle
-    call_self_assertIsNotNone["--> self.assertIsNotNone()"]:::callStyle
-
-    subgraph tests_integration_test_recovery_flow_py ["?? tests/integration/test_recovery_flow.py"]
-        tests_integration_test_recovery_flow_py_MockComponent["[CLASS] MockComponent"]:::classStyle
-        tests_integration_test_recovery_flow_py_MockComponent_parse["parse()"]:::funcStyle
-        tests_integration_test_recovery_flow_py_MockComponent_chunk["chunk()"]:::funcStyle
-        tests_integration_test_recovery_flow_py_MockComponent_assemble["assemble()"]:::funcStyle
-        tests_integration_test_recovery_flow_py_MockComponent_build["build()"]:::funcStyle
-        tests_integration_test_recovery_flow_py_TestRecoveryAndResumeEndToEnd["[CLASS] TestRecoveryAndResumeEndToEnd"]:::classStyle
-        tests_integration_test_recovery_flow_py_TestRecoveryAndResumeEndToEnd_setUpClass["setUpClass()"]:::funcStyle
-        tests_integration_test_recovery_flow_py_TestRecoveryAndResumeEndToEnd_test_complete_crash_recovery_and_resume_lifecycle["test_complete_crash_recovery_and_resume_lifecycle()"]:::funcStyle
-    call_MockComponent["--> MockComponent()"]:::callStyle
-    call_TranslationJob["--> TranslationJob()"]:::callStyle
-    call_pipeline_execute["--> pipeline.execute()"]:::callStyle
-        tests_integration_test_recovery_flow_py_TestRecoveryAndResumeEndToEnd_tearDownClass["tearDownClass()"]:::funcStyle
-
-    subgraph tests_integration_test_translation_layer_py ["?? tests/integration/test_translation_layer.py"]
-        tests_integration_test_translation_layer_py_TestTranslationLayerIntegration["[CLASS] TestTranslationLayerIntegration"]:::classStyle
-        tests_integration_test_translation_layer_py_TestTranslationLayerIntegration_setUp["setUp()"]:::funcStyle
-        tests_integration_test_translation_layer_py_TestTranslationLayerIntegration_tearDown["tearDown()"]:::funcStyle
-
-    subgraph tests_integration_test_translation_semantics_py ["?? tests/integration/test_translation_semantics.py"]
-        tests_integration_test_translation_semantics_py_TestSemanticChunkRegression["[CLASS] TestSemanticChunkRegression"]:::classStyle
-        tests_integration_test_translation_semantics_py_TestSemanticChunkRegression_setUp["setUp()"]:::funcStyle
-        tests_integration_test_translation_semantics_py_TestSemanticChunkRegression_tearDown["tearDown()"]:::funcStyle
-        tests_integration_test_translation_semantics_py_TestSemanticChunkRegression__calculate_cosine_similarity["_calculate_cosine_similarity()"]:::funcStyle
-    call_math_sqrt["--> math.sqrt()"]:::callStyle
-
-    subgraph tests_integration_test_translation_structure_py ["?? tests/integration/test_translation_structure.py"]
-        tests_integration_test_translation_structure_py_TestTranslationStructure["[CLASS] TestTranslationStructure"]:::classStyle
-        tests_integration_test_translation_structure_py_TestTranslationStructure_setUp["setUp()"]:::funcStyle
-
-    subgraph tests_integration_test_translation_technical_py ["?? tests/integration/test_translation_technical.py"]
-        tests_integration_test_translation_technical_py_TestTranslationTechnical["[CLASS] TestTranslationTechnical"]:::classStyle
-        tests_integration_test_translation_technical_py_TestTranslationTechnical_setUp["setUp()"]:::funcStyle
-
-    subgraph tests_integration_test_validation_integration_py ["?? tests/integration/test_validation_integration.py"]
-        tests_integration_test_validation_integration_py_StaticMockProvider["[CLASS] StaticMockProvider"]:::classStyle
-        tests_integration_test_validation_integration_py_StaticMockProvider___init__["__init__()"]:::funcStyle
-        tests_integration_test_validation_integration_py_SequenceMockProvider["[CLASS] SequenceMockProvider"]:::classStyle
-        tests_integration_test_validation_integration_py_SequenceMockProvider___init__["__init__()"]:::funcStyle
-        tests_integration_test_validation_integration_py_build_test_dispatcher["[FUNC] build_test_dispatcher()"]:::funcStyle
-
-    subgraph tests_integration___init___py ["?? tests/integration/__init__.py"]
-
-    subgraph tests_smoke_conftest_py ["?? tests/smoke/conftest.py"]
-        tests_smoke_conftest_py_reliability_pipeline["[FUNC] reliability_pipeline()"]:::funcStyle
-
-    subgraph tests_smoke_test_invariants_smoke_py ["?? tests/smoke/test_invariants_smoke.py"]
-        tests_smoke_test_invariants_smoke_py_run_chunk_validation["[FUNC] run_chunk_validation()"]:::funcStyle
-    call_pipeline_validate_chunk["--> pipeline.validate_chunk()"]:::callStyle
-        tests_smoke_test_invariants_smoke_py_run_doc_validation["[FUNC] run_doc_validation()"]:::funcStyle
-    call_pipeline_validate_document["--> pipeline.validate_document()"]:::callStyle
-        tests_smoke_test_invariants_smoke_py_test_smoke_si01_unclosed_brace["[FUNC] test_smoke_si01_unclosed_brace()"]:::funcStyle
-    call_run_chunk_validation["--> run_chunk_validation()"]:::callStyle
-        tests_smoke_test_invariants_smoke_py_test_smoke_si02_unbalanced_math["[FUNC] test_smoke_si02_unbalanced_math()"]:::funcStyle
-        tests_smoke_test_invariants_smoke_py_test_smoke_si03_unclosed_environment["[FUNC] test_smoke_si03_unclosed_environment()"]:::funcStyle
-    call_run_doc_validation["--> run_doc_validation()"]:::callStyle
-        tests_smoke_test_invariants_smoke_py_test_smoke_pi01_doi_alteration["[FUNC] test_smoke_pi01_doi_alteration()"]:::funcStyle
-        tests_smoke_test_invariants_smoke_py_test_smoke_pi02_url_domain_alteration["[FUNC] test_smoke_pi02_url_domain_alteration()"]:::funcStyle
-        tests_smoke_test_invariants_smoke_py_test_smoke_pi03_orcid_lost["[FUNC] test_smoke_pi03_orcid_lost()"]:::funcStyle
-        tests_smoke_test_invariants_smoke_py_test_smoke_pi04_cross_reference_lost["[FUNC] test_smoke_pi04_cross_reference_lost()"]:::funcStyle
-        tests_smoke_test_invariants_smoke_py_test_smoke_pei01_markdown_block["[FUNC] test_smoke_pei01_markdown_block()"]:::funcStyle
-        tests_smoke_test_invariants_smoke_py_test_smoke_pei02_conversational_leak["[FUNC] test_smoke_pei02_conversational_leak()"]:::funcStyle
-        tests_smoke_test_invariants_smoke_py_test_smoke_sei01_missing_number["[FUNC] test_smoke_sei01_missing_number()"]:::funcStyle
-        tests_smoke_test_invariants_smoke_py_test_smoke_sei02_unit_mutation["[FUNC] test_smoke_sei02_unit_mutation()"]:::funcStyle
-        tests_smoke_test_invariants_smoke_py_test_smoke_vi01_ratio_contraction["[FUNC] test_smoke_vi01_ratio_contraction()"]:::funcStyle
-        tests_smoke_test_invariants_smoke_py_test_smoke_vi01_ratio_expansion["[FUNC] test_smoke_vi01_ratio_expansion()"]:::funcStyle
-
-    subgraph tests_unit_test_adapters_py ["?? tests/unit/test_adapters.py"]
-        tests_unit_test_adapters_py__make_envelope["[FUNC] _make_envelope()"]:::funcStyle
-
-    subgraph tests_unit_test_assembler_py ["?? tests/unit/test_assembler.py"]
-        tests_unit_test_assembler_py_TestDocumentAssembler["[CLASS] TestDocumentAssembler"]:::classStyle
-        tests_unit_test_assembler_py_TestDocumentAssembler_setUp["setUp()"]:::funcStyle
-        tests_unit_test_assembler_py_TestDocumentAssembler__mock_unit["_mock_unit()"]:::funcStyle
-    call_TranslatedUnit["--> TranslatedUnit()"]:::callStyle
-        tests_unit_test_assembler_py_TestDocumentAssembler_test_successful_assembly_and_token_telemetry["test_successful_assembly_and_token_telemetry()"]:::funcStyle
-    call_self__mock_unit["--> self._mock_unit()"]:::callStyle
-    call___assemble["--> *.assemble()"]:::callStyle
-        tests_unit_test_assembler_py_TestDocumentAssembler_test_missing_chunk_raises_incomplete_error["test_missing_chunk_raises_incomplete_error()"]:::funcStyle
-    call_self_assertRaises["--> self.assertRaises()"]:::callStyle
-        tests_unit_test_assembler_py_TestDocumentAssembler_test_duplicate_chunk_raises_value_error["test_duplicate_chunk_raises_value_error()"]:::funcStyle
-
-    subgraph tests_unit_test_asset_placeholder_py ["?? tests/unit/test_asset_placeholder.py"]
-        tests_unit_test_asset_placeholder_py_fixer["[FUNC] fixer()"]:::funcStyle
-    call_StructuralAssetPlaceholder["--> StructuralAssetPlaceholder()"]:::callStyle
-        tests_unit_test_asset_placeholder_py_test_canonical_placeholder_generation["[FUNC] test_canonical_placeholder_generation()"]:::funcStyle
-    call_fixer_normalize["--> fixer.normalize()"]:::callStyle
-        tests_unit_test_asset_placeholder_py_test_empty_content_passthrough["[FUNC] test_empty_content_passthrough()"]:::funcStyle
-
-    subgraph tests_unit_test_ast_integrity_py ["?? tests/unit/test_ast_integrity.py"]
-        tests_unit_test_ast_integrity_py_validator["[FUNC] validator()"]:::funcStyle
-    call_ASTIntegrityValidator["--> ASTIntegrityValidator()"]:::callStyle
-        tests_unit_test_ast_integrity_py_test_empty_ast_triggers_warning_only["[FUNC] test_empty_ast_triggers_warning_only()"]:::funcStyle
-    call_validator_validate_ast["--> validator.validate_ast()"]:::callStyle
-        tests_unit_test_ast_integrity_py_test_duplicate_node_id_collision["[FUNC] test_duplicate_node_id_collision()"]:::funcStyle
-        tests_unit_test_ast_integrity_py_test_malformed_placeholder_syntax["[FUNC] test_malformed_placeholder_syntax()"]:::funcStyle
-        tests_unit_test_ast_integrity_py_test_orphan_list_item_emits_info_only["[FUNC] test_orphan_list_item_emits_info_only()"]:::funcStyle
-
-    subgraph tests_unit_test_cache_provider_py ["?? tests/unit/test_cache_provider.py"]
-        tests_unit_test_cache_provider_py_MockLowLevelProvider["[CLASS] MockLowLevelProvider"]:::classStyle
-        tests_unit_test_cache_provider_py_MockLowLevelProvider___init__["__init__()"]:::funcStyle
-        tests_unit_test_cache_provider_py_temp_db_path["[FUNC] temp_db_path()"]:::funcStyle
-    call_os_close["--> os.close()"]:::callStyle
-
-    subgraph tests_unit_test_context_enricher_py ["?? tests/unit/test_context_enricher.py"]
-        tests_unit_test_context_enricher_py_enricher["[FUNC] enricher()"]:::funcStyle
-    call_HierarchicalContextEnricher["--> HierarchicalContextEnricher()"]:::callStyle
-        tests_unit_test_context_enricher_py_test_homonym_section_isolation["[FUNC] test_homonym_section_isolation()"]:::funcStyle
-    call_enricher_enrich_document["--> enricher.enrich_document()"]:::callStyle
-        tests_unit_test_context_enricher_py_test_no_context_document_warning["[FUNC] test_no_context_document_warning()"]:::funcStyle
-
-    subgraph tests_unit_test_context_resolver_py ["?? tests/unit/test_context_resolver.py"]
-        tests_unit_test_context_resolver_py_FakeRegistry["[CLASS] FakeRegistry"]:::classStyle
-        tests_unit_test_context_resolver_py_FakeRegistry___init__["__init__()"]:::funcStyle
-        tests_unit_test_context_resolver_py_FakeRegistry_mappings["mappings()"]:::funcStyle
-        tests_unit_test_context_resolver_py_TestInMemoryContextResolver["[CLASS] TestInMemoryContextResolver"]:::classStyle
-        tests_unit_test_context_resolver_py_TestInMemoryContextResolver_setUp["setUp()"]:::funcStyle
-    call_FakeRegistry["--> FakeRegistry()"]:::callStyle
-    call_InMemoryContextResolver["--> InMemoryContextResolver()"]:::callStyle
-        tests_unit_test_context_resolver_py_TestInMemoryContextResolver_test_resolve_valid_context["test_resolve_valid_context()"]:::funcStyle
-        tests_unit_test_context_resolver_py_TestInMemoryContextResolver_test_resolve_unknown_context["test_resolve_unknown_context()"]:::funcStyle
-    call_self_assertRaisesRegex["--> self.assertRaisesRegex()"]:::callStyle
-        tests_unit_test_context_resolver_py_TestInMemoryContextResolver_test_breadcrumbs_are_tuple["test_breadcrumbs_are_tuple()"]:::funcStyle
-        tests_unit_test_context_resolver_py_TestInMemoryContextResolver_test_resolved_context_hashable["test_resolved_context_hashable()"]:::funcStyle
-        tests_unit_test_context_resolver_py_TestInMemoryContextResolver_test_resolve_many_success_and_deduplication["test_resolve_many_success_and_deduplication()"]:::funcStyle
-    call___resolve_many["--> *.resolve_many()"]:::callStyle
-        tests_unit_test_context_resolver_py_TestInMemoryContextResolver_test_resolve_many_preserves_order["test_resolve_many_preserves_order()"]:::funcStyle
-    call_res_keys["--> res.keys()"]:::callStyle
-        tests_unit_test_context_resolver_py_TestInMemoryContextResolver_test_resolve_many_atomic_failure["test_resolve_many_atomic_failure()"]:::funcStyle
-
-    subgraph tests_unit_test_dispatcher_py ["?? tests/unit/test_dispatcher.py"]
-        tests_unit_test_dispatcher_py_TestAsyncDispatcher["[CLASS] TestAsyncDispatcher"]:::classStyle
-        tests_unit_test_dispatcher_py_TestAsyncDispatcher_setUp["setUp()"]:::funcStyle
-    call_AsyncMock["--> AsyncMock()"]:::callStyle
-        tests_unit_test_dispatcher_py_TestAsyncDispatcher__create_mock_unit["_create_mock_unit()"]:::funcStyle
-        tests_unit_test_dispatcher_py_TestAsyncDispatcher__mock_translate_side_effect["_mock_translate_side_effect()"]:::funcStyle
-    call_ProviderResult["--> ProviderResult()"]:::callStyle
-
-    subgraph tests_unit_test_dispatcher_validation_py ["?? tests/unit/test_dispatcher_validation.py"]
-        tests_unit_test_dispatcher_validation_py_StaticMockProvider["[CLASS] StaticMockProvider"]:::classStyle
-        tests_unit_test_dispatcher_validation_py_StaticMockProvider___init__["__init__()"]:::funcStyle
-        tests_unit_test_dispatcher_validation_py_MockDocumentFailValidator["[CLASS] MockDocumentFailValidator"]:::classStyle
-        tests_unit_test_dispatcher_validation_py_MockDocumentFailValidator_validate["validate()"]:::funcStyle
-        tests_unit_test_dispatcher_validation_py_build_test_dispatcher["[FUNC] build_test_dispatcher()"]:::funcStyle
-
-    subgraph tests_unit_test_healing_idempotency_py ["?? tests/unit/test_healing_idempotency.py"]
-        tests_unit_test_healing_idempotency_py_MockValidationPipelineWithResidualFail["[CLASS] MockValidationPipelineWithResidualFail"]:::classStyle
-        tests_unit_test_healing_idempotency_py_MockValidationPipelineWithResidualFail_validate_chunk["validate_chunk()"]:::funcStyle
-        tests_unit_test_healing_idempotency_py_MockValidationPipelinePass["[CLASS] MockValidationPipelinePass"]:::classStyle
-        tests_unit_test_healing_idempotency_py_MockValidationPipelinePass_validate_chunk["validate_chunk()"]:::funcStyle
-        tests_unit_test_healing_idempotency_py_test_markdown_healing_is_idempotent["[FUNC] test_markdown_healing_is_idempotent()"]:::funcStyle
-    call_make_test_healing_context["--> make_test_healing_context()"]:::callStyle
-        tests_unit_test_healing_idempotency_py_test_metatext_healing_is_idempotent["[FUNC] test_metatext_healing_is_idempotent()"]:::funcStyle
-        tests_unit_test_healing_idempotency_py_test_healing_idempotency_not_applicable_chain["[FUNC] test_healing_idempotency_not_applicable_chain()"]:::funcStyle
-        tests_unit_test_healing_idempotency_py_test_healing_edge_case_payload_vacio_returns_failure["[FUNC] test_healing_edge_case_payload_vacio_returns_failure()"]:::funcStyle
-        tests_unit_test_healing_idempotency_py_test_healing_pipeline_enforces_rollback_on_residual_hard_fail["[FUNC] test_healing_pipeline_enforces_rollback_on_residual_hard_fail()"]:::funcStyle
-    call_MockValidationPipelineWithResidualFail["--> MockValidationPipelineWithResidualFail()"]:::callStyle
-
-    subgraph tests_unit_test_legacy_adapter_py ["?? tests/unit/test_legacy_adapter.py"]
-        tests_unit_test_legacy_adapter_py_DummyLegacyValid["[CLASS] DummyLegacyValid"]:::classStyle
-        tests_unit_test_legacy_adapter_py_DummyLegacyValid_validate["validate()"]:::funcStyle
-        tests_unit_test_legacy_adapter_py_DummyLegacyInvalid["[CLASS] DummyLegacyInvalid"]:::classStyle
-        tests_unit_test_legacy_adapter_py_DummyLegacyInvalid_validate["validate()"]:::funcStyle
-        tests_unit_test_legacy_adapter_py_test_adapter_converts_error_to_validation_result["[FUNC] test_adapter_converts_error_to_validation_result()"]:::funcStyle
-    call_adapter_validate["--> adapter.validate()"]:::callStyle
-        tests_unit_test_legacy_adapter_py_test_adapter_default_severity_hard_fail["[FUNC] test_adapter_default_severity_hard_fail()"]:::funcStyle
-        tests_unit_test_legacy_adapter_py_test_adapter_unknown_code_raises_domain_exception["[FUNC] test_adapter_unknown_code_raises_domain_exception()"]:::funcStyle
-    call_pytest_raises["--> pytest.raises()"]:::callStyle
-
-    subgraph tests_unit_test_math_normalizer_py ["?? tests/unit/test_math_normalizer.py"]
-        tests_unit_test_math_normalizer_py_normalizer["[FUNC] normalizer()"]:::funcStyle
-        tests_unit_test_math_normalizer_py_test_verbatim_environment_is_immune["[FUNC] test_verbatim_environment_is_immune()"]:::funcStyle
-        tests_unit_test_math_normalizer_py_test_nested_verbatim_immunity["[FUNC] test_nested_verbatim_immunity()"]:::funcStyle
-        tests_unit_test_math_normalizer_py_test_verb_with_dynamic_delimiter["[FUNC] test_verb_with_dynamic_delimiter()"]:::funcStyle
-        tests_unit_test_math_normalizer_py_test_lstinline_preserved["[FUNC] test_lstinline_preserved()"]:::funcStyle
-        tests_unit_test_math_normalizer_py_test_mintinline_preserved["[FUNC] test_mintinline_preserved()"]:::funcStyle
-        tests_unit_test_math_normalizer_py_test_mintinline_with_options["[FUNC] test_mintinline_with_options()"]:::funcStyle
-        tests_unit_test_math_normalizer_py_test_html_sup_conversion["[FUNC] test_html_sup_conversion()"]:::funcStyle
-        tests_unit_test_math_normalizer_py_test_html_sub_conversion["[FUNC] test_html_sub_conversion()"]:::funcStyle
-        tests_unit_test_math_normalizer_py_test_html_double_wrap_protection["[FUNC] test_html_double_wrap_protection()"]:::funcStyle
-        tests_unit_test_math_normalizer_py_test_balanced_inline_math["[FUNC] test_balanced_inline_math()"]:::funcStyle
-        tests_unit_test_math_normalizer_py_test_unbalanced_inline_math_detection["[FUNC] test_unbalanced_inline_math_detection()"]:::funcStyle
-        tests_unit_test_math_normalizer_py_test_balanced_display_math["[FUNC] test_balanced_display_math()"]:::funcStyle
-        tests_unit_test_math_normalizer_py_test_unclosed_environment_detection["[FUNC] test_unclosed_environment_detection()"]:::funcStyle
-        tests_unit_test_math_normalizer_py_test_environment_mismatch_detection["[FUNC] test_environment_mismatch_detection()"]:::funcStyle
-        tests_unit_test_math_normalizer_py_test_orphaned_end_detection["[FUNC] test_orphaned_end_detection()"]:::funcStyle
-        tests_unit_test_math_normalizer_py_test_inline_deprecated_conversion["[FUNC] test_inline_deprecated_conversion()"]:::funcStyle
-        tests_unit_test_math_normalizer_py_test_display_deprecated_conversion["[FUNC] test_display_deprecated_conversion()"]:::funcStyle
-        tests_unit_test_math_normalizer_py_test_multiple_pass_idempotency["[FUNC] test_multiple_pass_idempotency()"]:::funcStyle
-        tests_unit_test_math_normalizer_py_test_empty_input["[FUNC] test_empty_input()"]:::funcStyle
-        tests_unit_test_math_normalizer_py_test_whitespace_input["[FUNC] test_whitespace_input()"]:::funcStyle
-        tests_unit_test_math_normalizer_py_test_protected_region_roundtrip["[FUNC] test_protected_region_roundtrip()"]:::funcStyle
-        tests_unit_test_math_normalizer_py_test_strict_warning_severity_and_telemetry["[FUNC] test_strict_warning_severity_and_telemetry()"]:::funcStyle
-        tests_unit_test_math_normalizer_py_test_illegal_recursive_nesting_detection["[FUNC] test_illegal_recursive_nesting_detection()"]:::funcStyle
-        tests_unit_test_math_normalizer_py_test_complex_environment_arguments_parsing["[FUNC] test_complex_environment_arguments_parsing()"]:::funcStyle
-        tests_unit_test_math_normalizer_py_test_escaped_dollar_immunity_in_fsm["[FUNC] test_escaped_dollar_immunity_in_fsm()"]:::funcStyle
-        tests_unit_test_math_normalizer_py_test_verbatim_masking["[FUNC] test_verbatim_masking()"]:::funcStyle
-        tests_unit_test_math_normalizer_py_test_inequalities_not_removed["[FUNC] test_inequalities_not_removed()"]:::funcStyle
-        tests_unit_test_math_normalizer_py_test_math_delimiter_automaton["[FUNC] test_math_delimiter_automaton()"]:::funcStyle
-        tests_unit_test_math_normalizer_py_test_illegal_nesting_detection["[FUNC] test_illegal_nesting_detection()"]:::funcStyle
-        tests_unit_test_math_normalizer_py_test_idempotency_preserve_contract["[FUNC] test_idempotency_preserve_contract()"]:::funcStyle
-
-    subgraph tests_unit_test_paragraph_idempotency_py ["?? tests/unit/test_paragraph_idempotency.py"]
-        tests_unit_test_paragraph_idempotency_py_test_paragraph_normalizer_invariants_and_strict_idempotency["[FUNC] test_paragraph_normalizer_invariants_and_strict_idempotency()"]:::funcStyle
-    call_f_startswith["--> f.startswith()"]:::callStyle
-        tests_unit_test_paragraph_idempotency_py_test_strict_idempotency_contract_over_corpus["[FUNC] test_strict_idempotency_contract_over_corpus()"]:::funcStyle
-
-    subgraph tests_unit_test_perimeter_validator_py ["?? tests/unit/test_perimeter_validator.py"]
-        tests_unit_test_perimeter_validator_py_test_markdown_block_detected["[FUNC] test_markdown_block_detected()"]:::funcStyle
-        tests_unit_test_perimeter_validator_py_test_conversational_leak_with_leading_whitespace_detected["[FUNC] test_conversational_leak_with_leading_whitespace_detected()"]:::funcStyle
-        tests_unit_test_perimeter_validator_py_test_extended_conversational_leak_detected["[FUNC] test_extended_conversational_leak_detected()"]:::funcStyle
-        tests_unit_test_perimeter_validator_py_test_technical_prose_prefixes_pass_successfully["[FUNC] test_technical_prose_prefixes_pass_successfully()"]:::funcStyle
-        tests_unit_test_perimeter_validator_py_test_clean_translation_payload_passes["[FUNC] test_clean_translation_payload_passes()"]:::funcStyle
-
-    subgraph tests_unit_test_preservation_validator_py ["?? tests/unit/test_preservation_validator.py"]
-        tests_unit_test_preservation_validator_py_test_doi_case_insensitivity_is_preserved["[FUNC] test_doi_case_insensitivity_is_preserved()"]:::funcStyle
-        tests_unit_test_preservation_validator_py_test_addbibresource_with_optional_arguments["[FUNC] test_addbibresource_with_optional_arguments()"]:::funcStyle
-        tests_unit_test_preservation_validator_py_test_modern_reference_commands["[FUNC] test_modern_reference_commands()"]:::funcStyle
-
-    subgraph tests_unit_test_pricing_engine_py ["?? tests/unit/test_pricing_engine.py"]
-        tests_unit_test_pricing_engine_py_TestPricingEngine["[CLASS] TestPricingEngine"]:::classStyle
-        tests_unit_test_pricing_engine_py_TestPricingEngine_test_flash_calculation["test_flash_calculation()"]:::funcStyle
-    call_self_assertAlmostEqual["--> self.assertAlmostEqual()"]:::callStyle
-        tests_unit_test_pricing_engine_py_TestPricingEngine_test_zero_usd_conditions["test_zero_usd_conditions()"]:::funcStyle
-        tests_unit_test_pricing_engine_py_TestPricingEngine_test_invalid_model_raises_value_error["test_invalid_model_raises_value_error()"]:::funcStyle
-
-    subgraph tests_unit_test_prompt_builder_py ["?? tests/unit/test_prompt_builder.py"]
-        tests_unit_test_prompt_builder_py_TestPromptBuilder["[CLASS] TestPromptBuilder"]:::classStyle
-        tests_unit_test_prompt_builder_py_TestPromptBuilder_setUp["setUp()"]:::funcStyle
-        tests_unit_test_prompt_builder_py_TestPromptBuilder_test_envelope_structure_and_types["test_envelope_structure_and_types()"]:::funcStyle
-        tests_unit_test_prompt_builder_py_TestPromptBuilder_test_deterministic_prompt_hash["test_deterministic_prompt_hash()"]:::funcStyle
-        tests_unit_test_prompt_builder_py_TestPromptBuilder_test_hash_collision_avoidance["test_hash_collision_avoidance()"]:::funcStyle
-    call_self_assertNotEqual["--> self.assertNotEqual()"]:::callStyle
-        tests_unit_test_prompt_builder_py_TestPromptBuilder_test_prompt_hash_stability["test_prompt_hash_stability()"]:::funcStyle
-        tests_unit_test_prompt_builder_py_TestPromptBuilder_test_hash_mutation_on_model_or_version_change["test_hash_mutation_on_model_or_version_change()"]:::funcStyle
-    call_builder_alt_model_build["--> builder_alt_model.build()"]:::callStyle
-    call_builder_alt_version_build["--> builder_alt_version.build()"]:::callStyle
-
-    subgraph tests_unit_test_rate_limiter_py ["?? tests/unit/test_rate_limiter.py"]
-        tests_unit_test_rate_limiter_py_FakeClock["[CLASS] FakeClock"]:::classStyle
-        tests_unit_test_rate_limiter_py_FakeClock___init__["__init__()"]:::funcStyle
-        tests_unit_test_rate_limiter_py_FakeClock_now["now()"]:::funcStyle
-        tests_unit_test_rate_limiter_py_FakeClock_advance["advance()"]:::funcStyle
-        tests_unit_test_rate_limiter_py_MockUnderlyingProvider["[CLASS] MockUnderlyingProvider"]:::classStyle
-        tests_unit_test_rate_limiter_py__make_envelope["[FUNC] _make_envelope()"]:::funcStyle
-
-    subgraph tests_unit_test_resilient_provider_py ["?? tests/unit/test_resilient_provider.py"]
-        tests_unit_test_resilient_provider_py_MockNetworkFailureProvider["[CLASS] MockNetworkFailureProvider"]:::classStyle
-        tests_unit_test_resilient_provider_py_MockNetworkFailureProvider___init__["__init__()"]:::funcStyle
-        tests_unit_test_resilient_provider_py__make_envelope["[FUNC] _make_envelope()"]:::funcStyle
-
-    subgraph tests_unit_test_routing_py ["?? tests/unit/test_routing.py"]
-        tests_unit_test_routing_py_TestTranslationStrategyRouter["[CLASS] TestTranslationStrategyRouter"]:::classStyle
-        tests_unit_test_routing_py_TestTranslationStrategyRouter_setUp["setUp()"]:::funcStyle
-    call_TranslationStrategyRouter["--> TranslationStrategyRouter()"]:::callStyle
-        tests_unit_test_routing_py_TestTranslationStrategyRouter_test_default_routing_translate["test_default_routing_translate()"]:::funcStyle
-    call___route["--> *.route()"]:::callStyle
-        tests_unit_test_routing_py_TestTranslationStrategyRouter_test_default_routing_partial["test_default_routing_partial()"]:::funcStyle
-        tests_unit_test_routing_py_TestTranslationStrategyRouter_test_default_routing_preserve["test_default_routing_preserve()"]:::funcStyle
-        tests_unit_test_routing_py_TestTranslationStrategyRouter_test_fail_fast_on_unknown_task_type["test_fail_fast_on_unknown_task_type()"]:::funcStyle
-        tests_unit_test_routing_py_FakeTaskType["[CLASS] FakeTaskType"]:::classStyle
-    call_FakeTaskType["--> FakeTaskType()"]:::callStyle
-        tests_unit_test_routing_py_TestTranslationStrategyRouter_test_custom_routing_table_injection["test_custom_routing_table_injection()"]:::funcStyle
-    call_custom_router_route["--> custom_router.route()"]:::callStyle
-
-    subgraph tests_unit_test_semantic_chunker_py ["?? tests/unit/test_semantic_chunker.py"]
-        tests_unit_test_semantic_chunker_py_TestSemanticChunkerZeroLoss["[CLASS] TestSemanticChunkerZeroLoss"]:::classStyle
-        tests_unit_test_semantic_chunker_py_TestSemanticChunkerZeroLoss_setUp["setUp()"]:::funcStyle
-        tests_unit_test_semantic_chunker_py_TestSemanticChunkerZeroLoss__create_node["_create_node()"]:::funcStyle
-        tests_unit_test_semantic_chunker_py_TestSemanticChunkerZeroLoss_test_zero_loss_reconstruction["test_zero_loss_reconstruction()"]:::funcStyle
-    call_self__create_node["--> self._create_node()"]:::callStyle
-    call_reconstructed_seqs_extend["--> reconstructed_seqs.extend()"]:::callStyle
-        tests_unit_test_semantic_chunker_py_TestSemanticChunkerZeroLoss_normalize["normalize()"]:::funcStyle
-    call___splitlines["--> *.splitlines()"]:::callStyle
-    call_normalize["--> normalize()"]:::callStyle
-        tests_unit_test_semantic_chunker_py_TestSemanticChunkerZeroLoss_test_deterministic_purity["test_deterministic_purity()"]:::funcStyle
-        tests_unit_test_semantic_chunker_py_TestSemanticChunkerZeroLoss_test_context_aware_hard_boundary["test_context_aware_hard_boundary()"]:::funcStyle
-
-    subgraph tests_unit_test_semantic_classifier_py ["?? tests/unit/test_semantic_classifier.py"]
-        tests_unit_test_semantic_classifier_py_classifier["[FUNC] classifier()"]:::funcStyle
-    call_SemanticNodeClassifier["--> SemanticNodeClassifier()"]:::callStyle
-        tests_unit_test_semantic_classifier_py_test_academic_pdf_greek_mix_reclassification["[FUNC] test_academic_pdf_greek_mix_reclassification()"]:::funcStyle
-    call_classifier_classify_node["--> classifier.classify_node()"]:::callStyle
-        tests_unit_test_semantic_classifier_py_test_financial_false_positive_immunity["[FUNC] test_financial_false_positive_immunity()"]:::funcStyle
-        tests_unit_test_semantic_classifier_py_test_financial_noise_with_many_operators["[FUNC] test_financial_noise_with_many_operators()"]:::funcStyle
-        tests_unit_test_semantic_classifier_py_test_algebraic_indices_are_equation["[FUNC] test_algebraic_indices_are_equation()"]:::funcStyle
-        tests_unit_test_semantic_classifier_py_test_large_formula_diluted_in_prosa_reclassification["[FUNC] test_large_formula_diluted_in_prosa_reclassification()"]:::funcStyle
-        tests_unit_test_semantic_classifier_py_test_complete_batch_idempotency["[FUNC] test_complete_batch_idempotency()"]:::funcStyle
-    call_classifier_classify_batch["--> classifier.classify_batch()"]:::callStyle
-        tests_unit_test_semantic_classifier_py_test_unbalanced_tokens_immunity["[FUNC] test_unbalanced_tokens_immunity()"]:::funcStyle
-        tests_unit_test_semantic_classifier_py_test_pure_operators_noise_immunity["[FUNC] test_pure_operators_noise_immunity()"]:::funcStyle
-
-    subgraph tests_unit_test_semantic_validator_py ["?? tests/unit/test_semantic_validator.py"]
-        tests_unit_test_semantic_validator_py_test_number_cardinality_mismatch_exact_content["[FUNC] test_number_cardinality_mismatch_exact_content()"]:::funcStyle
-        tests_unit_test_semantic_validator_py_test_ip_address_not_parsed_as_number["[FUNC] test_ip_address_not_parsed_as_number()"]:::funcStyle
-        tests_unit_test_semantic_validator_py_test_complex_scientific_units_exact_content["[FUNC] test_complex_scientific_units_exact_content()"]:::funcStyle
-        tests_unit_test_semantic_validator_py_test_unit_case_sensitivity_kelvin_vs_kilo["[FUNC] test_unit_case_sensitivity_kelvin_vs_kilo()"]:::funcStyle
-
-    subgraph tests_unit_test_structural_healing_py ["?? tests/unit/test_structural_healing.py"]
-        tests_unit_test_structural_healing_py_test_brace_closure_strategy_success_on_nested_macros["[FUNC] test_brace_closure_strategy_success_on_nested_macros()"]:::funcStyle
-        tests_unit_test_structural_healing_py_test_verb_does_not_consume_neighboring_braces["[FUNC] test_verb_does_not_consume_neighboring_braces()"]:::funcStyle
-        tests_unit_test_structural_healing_py_test_brace_closure_ignores_escaped_braces["[FUNC] test_brace_closure_ignores_escaped_braces()"]:::funcStyle
-        tests_unit_test_structural_healing_py_test_brace_closure_bounds_trigger_failure_from_policy["[FUNC] test_brace_closure_bounds_trigger_failure_from_policy()"]:::funcStyle
-        tests_unit_test_structural_healing_py_test_brace_closure_not_applicable["[FUNC] test_brace_closure_not_applicable()"]:::funcStyle
-        tests_unit_test_structural_healing_py_test_math_closure_strategy_inline_success["[FUNC] test_math_closure_strategy_inline_success()"]:::funcStyle
-        tests_unit_test_structural_healing_py_test_math_closure_strategy_display_success["[FUNC] test_math_closure_strategy_display_success()"]:::funcStyle
-        tests_unit_test_structural_healing_py_test_math_closure_strategy_handles_truncated_display_state["[FUNC] test_math_closure_strategy_handles_truncated_display_state()"]:::funcStyle
-        tests_unit_test_structural_healing_py_test_math_closure_not_applicable["[FUNC] test_math_closure_not_applicable()"]:::funcStyle
-
-    subgraph tests_unit_test_structural_validator_py ["?? tests/unit/test_structural_validator.py"]
-        tests_unit_test_structural_validator_py_test_braces_balanced_and_escaped["[FUNC] test_braces_balanced_and_escaped()"]:::funcStyle
-    call_StructuralValidator__check_braces["--> StructuralValidator._check_braces()"]:::callStyle
-        tests_unit_test_structural_validator_py_test_braces_unbalanced["[FUNC] test_braces_unbalanced()"]:::funcStyle
-        tests_unit_test_structural_validator_py_test_brackets_balanced_and_escaped["[FUNC] test_brackets_balanced_and_escaped()"]:::funcStyle
-    call_StructuralValidator__check_brackets["--> StructuralValidator._check_brackets()"]:::callStyle
-        tests_unit_test_structural_validator_py_test_brackets_unbalanced["[FUNC] test_brackets_unbalanced()"]:::funcStyle
-        tests_unit_test_structural_validator_py_test_math_delimiters_balanced["[FUNC] test_math_delimiters_balanced()"]:::funcStyle
-    call_StructuralValidator__check_math_delimiters["--> StructuralValidator._check_math_delimiters()"]:::callStyle
-        tests_unit_test_structural_validator_py_test_math_delimiters_unbalanced["[FUNC] test_math_delimiters_unbalanced()"]:::funcStyle
-        tests_unit_test_structural_validator_py_test_environments_balanced["[FUNC] test_environments_balanced()"]:::funcStyle
-    call_StructuralValidator__check_environments["--> StructuralValidator._check_environments()"]:::callStyle
-        tests_unit_test_structural_validator_py_test_environments_unbalanced["[FUNC] test_environments_unbalanced()"]:::funcStyle
-
-    subgraph tests_unit_test_summary_builder_py ["?? tests/unit/test_summary_builder.py"]
-        tests_unit_test_summary_builder_py_TestSummaryBuilder["[CLASS] TestSummaryBuilder"]:::classStyle
-        tests_unit_test_summary_builder_py_TestSummaryBuilder_test_metrics_and_roi_aggregation["test_metrics_and_roi_aggregation()"]:::funcStyle
-    call_SummaryBuilder_build["--> SummaryBuilder.build()"]:::callStyle
-
-    subgraph tests_unit_test_validation_pipeline_py ["?? tests/unit/test_validation_pipeline.py"]
-        tests_unit_test_validation_pipeline_py_MockPassValidator["[CLASS] MockPassValidator"]:::classStyle
-        tests_unit_test_validation_pipeline_py_MockPassValidator_validate["validate()"]:::funcStyle
-        tests_unit_test_validation_pipeline_py_MockFailValidator["[CLASS] MockFailValidator"]:::classStyle
-        tests_unit_test_validation_pipeline_py_MockFailValidator_validate["validate()"]:::funcStyle
-        tests_unit_test_validation_pipeline_py_test_pipeline_runs_chunk_validators_only["[FUNC] test_pipeline_runs_chunk_validators_only()"]:::funcStyle
-    call_MockPassValidator["--> MockPassValidator()"]:::callStyle
-    call_MockFailValidator["--> MockFailValidator()"]:::callStyle
-        tests_unit_test_validation_pipeline_py_test_pipeline_runs_document_validators_only["[FUNC] test_pipeline_runs_document_validators_only()"]:::funcStyle
-        tests_unit_test_validation_pipeline_py_test_pipeline_preserves_registration_order["[FUNC] test_pipeline_preserves_registration_order()"]:::funcStyle
-
-    subgraph tests_unit___init___py ["?? tests/unit/__init__.py"]
-
-    subgraph tools_load_test_db_injector_variable_py ["?? tools/load_test/db_injector_variable.py"]
-        tools_load_test_db_injector_variable_py_run_db_injection["[FUNC] run_db_injection()"]:::funcStyle
-    call_mode_upper["--> mode.upper()"]:::callStyle
-    call_random_choices["--> random.choices()"]:::callStyle
-    call_conn_rollback["--> conn.rollback()"]:::callStyle
     apps_bootstrap_pipeline_factory_py__build_default_validation_pipeline --> call_LegacyValidatorAdapter
     apps_bootstrap_pipeline_factory_py__build_default_validation_pipeline --> call_ValidationPipeline
     apps_bootstrap_pipeline_factory_py__build_default_validation_pipeline --> call_pipeline_add_chunk_validator
@@ -1951,6 +1662,10 @@ graph TD
     apps_bootstrap_pipeline_factory_py__build_default_validation_pipeline --> call_VolumetricValidator
     apps_bootstrap_pipeline_factory_py_build_pipeline --> call_bootstrap_normalization_layer
     apps_bootstrap_pipeline_factory_py_build_pipeline --> call_PdfParserAdapter
+    apps_bootstrap_pipeline_factory_py_build_pipeline --> call_get_connection
+    apps_bootstrap_pipeline_factory_py_build_pipeline --> call_SQLiteDocumentRepository
+    apps_bootstrap_pipeline_factory_py_build_pipeline --> call_AssemblyPolicy
+    apps_bootstrap_pipeline_factory_py_build_pipeline --> call_frozenset
     apps_bootstrap_pipeline_factory_py_build_pipeline --> call_DocumentAssembler
     apps_bootstrap_pipeline_factory_py_build_pipeline --> call_SummaryBuilder
     apps_bootstrap_pipeline_factory_py_build_pipeline --> call__build_default_validation_pipeline
@@ -1960,7 +1675,6 @@ graph TD
     apps_bootstrap_pipeline_factory_py_build_pipeline --> call_EOFBraceClosureStrategy
     apps_bootstrap_pipeline_factory_py_build_pipeline --> call_EOFMathClosureStrategy
     apps_bootstrap_pipeline_factory_py_build_pipeline --> call_HealingPipeline
-    apps_bootstrap_pipeline_factory_py_build_pipeline --> call_get_connection
     apps_bootstrap_pipeline_factory_py_build_pipeline --> call_FSMRepository
     apps_bootstrap_pipeline_factory_py_build_pipeline --> call_DocumentCommandHandler
     apps_bootstrap_pipeline_factory_py_build_pipeline --> call_FSMStateStore
@@ -2182,6 +1896,8 @@ graph TD
     apps_daemons_reconciler_py_ReconcilerDaemon__sweep_tasks --> call_RecoverZombieTaskCommand
         apps_llm_workers_adapters_py_GroqProvider --- apps_llm_workers_adapters_py_GroqProvider___init__
     apps_llm_workers_adapters_py_GroqProvider___init__ --> call_AsyncGroq
+        apps_llm_workers_adapters_py_GeminiProvider --- apps_llm_workers_adapters_py_GeminiProvider___init__
+    apps_llm_workers_adapters_py_GeminiProvider___init__ --> call_genai_configure
         apps_llm_workers_cache_provider_py_CachedLLMProvider --- apps_llm_workers_cache_provider_py_CachedLLMProvider___init__
     apps_llm_workers_cache_provider_py_CachedLLMProvider___init__ --> call_asyncio_Lock
         apps_llm_workers_dispatcher_py_AsyncDispatcher --- apps_llm_workers_dispatcher_py_AsyncDispatcher___init__
@@ -2196,13 +1912,26 @@ graph TD
     apps_llm_workers_dispatcher_py_AsyncDispatcher__default_pipeline --> call_SemanticValidator
     apps_llm_workers_dispatcher_py_AsyncDispatcher__default_pipeline --> call_VolumetricValidator
         apps_llm_workers_prompt_builder_py_PromptBuilder --- apps_llm_workers_prompt_builder_py_PromptBuilder___init__
+    apps_llm_workers_prompt_builder_py_PromptBuilder___init__ --> call_StandardCompressionPolicy
+        apps_llm_workers_prompt_builder_py_PromptBuilder --- apps_llm_workers_prompt_builder_py_PromptBuilder__build_system
         apps_llm_workers_prompt_builder_py_PromptBuilder --- apps_llm_workers_prompt_builder_py_PromptBuilder_build
+    apps_llm_workers_prompt_builder_py_PromptBuilder_build --> call_BuildFailure
     apps_llm_workers_prompt_builder_py_PromptBuilder_build --> call___join
+    apps_llm_workers_prompt_builder_py_PromptBuilder_build --> call_full_context_str_split
+    apps_llm_workers_prompt_builder_py_PromptBuilder_build --> call_context_levels_get
+    apps_llm_workers_prompt_builder_py_PromptBuilder_build --> call_self__build_system
+    apps_llm_workers_prompt_builder_py_PromptBuilder_build --> call___calculate
+    apps_llm_workers_prompt_builder_py_PromptBuilder_build --> call___get_levels
+    apps_llm_workers_prompt_builder_py_PromptBuilder_build --> call___estimate_tokens
     apps_llm_workers_prompt_builder_py_PromptBuilder_build --> call___hexdigest
     apps_llm_workers_prompt_builder_py_PromptBuilder_build --> call_hashlib_sha256
     apps_llm_workers_prompt_builder_py_PromptBuilder_build --> call_hash_input_encode
-    apps_llm_workers_prompt_builder_py_PromptBuilder_build --> call___estimate
     apps_llm_workers_prompt_builder_py_PromptBuilder_build --> call_PromptEnvelope
+    apps_llm_workers_prompt_builder_py_PromptBuilder_build --> call_BuildSuccess
+        apps_llm_workers_rate_limiter_py_QuotaReservation --- apps_llm_workers_rate_limiter_py_QuotaReservation_create_granted
+    apps_llm_workers_rate_limiter_py_QuotaReservation_create_granted --> call_cls
+        apps_llm_workers_rate_limiter_py_QuotaReservation --- apps_llm_workers_rate_limiter_py_QuotaReservation_create_rejected
+    apps_llm_workers_rate_limiter_py_QuotaReservation_create_rejected --> call_cls
         apps_llm_workers_rate_limiter_py_ClockProtocol --- apps_llm_workers_rate_limiter_py_ClockProtocol_now
         apps_llm_workers_rate_limiter_py_SystemClock --- apps_llm_workers_rate_limiter_py_SystemClock_now
     apps_llm_workers_rate_limiter_py_SystemClock_now --> call_time_monotonic
@@ -2427,6 +2156,24 @@ graph TD
     core_ast_models_py_FastWordEstimator_estimate --> call_int
     core_ast_models_py_FastWordEstimator_estimate --> call_len
     core_ast_models_py_FastWordEstimator_estimate --> call_text_split
+        core_ast_models_py_FastWordEstimator --- core_ast_models_py_FastWordEstimator_estimate_tokens
+    core_ast_models_py_FastWordEstimator_estimate_tokens --> call_int
+    core_ast_models_py_FastWordEstimator_estimate_tokens --> call_self_estimate
+        core_ast_models_py_ChunkOutcome --- core_ast_models_py_ChunkOutcome___post_init__
+    core_ast_models_py_ChunkOutcome___post_init__ --> call_ValueError
+        core_ast_models_py_ChunkOutcome --- core_ast_models_py_ChunkOutcome_is_success
+        core_ast_models_py_DispatchResult --- core_ast_models_py_DispatchResult_total_processed
+    core_ast_models_py_DispatchResult_total_processed --> call_len
+        core_ast_models_py_DispatchResult --- core_ast_models_py_DispatchResult_total_failed
+    core_ast_models_py_DispatchResult_total_failed --> call_sum
+        core_ast_models_py_DispatchResult --- core_ast_models_py_DispatchResult_success_rate
+        core_ast_models_py_DispatchResult --- core_ast_models_py_DispatchResult_failed_by_reason
+    core_ast_models_py_DispatchResult_failed_by_reason --> call_Counter
+    core_ast_models_py_DispatchResult_failed_by_reason --> call_dict
+        core_ast_models_py_DispatchAnalytics --- core_ast_models_py_DispatchAnalytics_calculate_success_rate
+        core_ast_models_py_DispatchAnalytics --- core_ast_models_py_DispatchAnalytics_aggregate_failures
+    core_ast_models_py_DispatchAnalytics_aggregate_failures --> call_Counter
+    core_ast_models_py_DispatchAnalytics_aggregate_failures --> call_dict
     core_ast_parser_py_sanitize_marker_html --> call_re_sub
     core_ast_parser_py_sanitize_marker_html --> call_html_unescape
     core_ast_parser_py__is_stem_table --> call_re_search
@@ -2567,19 +2314,160 @@ graph TD
     core_ast_validator_py_ASTValidator_validate --> call_bool
     core_ast_validator_py_ASTValidator_validate --> call_LATEX_MATH_OPEN_search
     core_ast_validator_py_ASTValidator_validate --> call_LATEX_MATH_CLOSE_search
+    core_benchmark_aggregation_py_calculate_decoupled_overall_score --> call___upper
+    core_benchmark_aggregation_py_calculate_decoupled_overall_score --> call_os_getenv
+    core_benchmark_aggregation_py_calculate_decoupled_overall_score --> call_round
+    core_benchmark_aggregation_py_calculate_decoupled_overall_score --> call_min
+        core_benchmark_judge_models_py_ChunkEvaluationScore --- core_benchmark_judge_models_py_ChunkEvaluationScore_overall_score
+    core_benchmark_judge_models_py_ChunkEvaluationScore_overall_score --> call_calculate_decoupled_overall_score
+        core_benchmark_models_py_ChunkBenchmarkRecord --- core_benchmark_models_py_ChunkBenchmarkRecord_tps_formula
+        core_benchmark_models_py_ProviderBenchmarkMetrics --- core_benchmark_models_py_ProviderBenchmarkMetrics_total_tokens
+        core_benchmark_models_py_ProviderBenchmarkMetrics --- core_benchmark_models_py_ProviderBenchmarkMetrics_reliability_score
+    core_benchmark_models_py_ProviderBenchmarkMetrics_reliability_score --> call_round
+        core_benchmark_models_py_ProviderBenchmarkMetrics --- core_benchmark_models_py_ProviderBenchmarkMetrics_input_tps
+    core_benchmark_models_py_ProviderBenchmarkMetrics_input_tps --> call_round
+        core_benchmark_models_py_ProviderBenchmarkMetrics --- core_benchmark_models_py_ProviderBenchmarkMetrics_output_tps
+    core_benchmark_models_py_ProviderBenchmarkMetrics_output_tps --> call_round
+        core_benchmark_models_py_ProviderBenchmarkMetrics --- core_benchmark_models_py_ProviderBenchmarkMetrics_total_tps
+    core_benchmark_models_py_ProviderBenchmarkMetrics_total_tps --> call_round
+        core_benchmark_models_py_ProviderBenchmarkMetrics --- core_benchmark_models_py_ProviderBenchmarkMetrics_cost_per_1m_tokens_usd
+    core_benchmark_models_py_ProviderBenchmarkMetrics_cost_per_1m_tokens_usd --> call_round
+        core_benchmark_models_py_ProviderBenchmarkMetrics --- core_benchmark_models_py_ProviderBenchmarkMetrics_cost_per_1k_tokens_usd
+    core_benchmark_models_py_ProviderBenchmarkMetrics_cost_per_1k_tokens_usd --> call_round
+        core_benchmark_models_py_MetricAggregator --- core_benchmark_models_py_MetricAggregator__percentile
+    core_benchmark_models_py_MetricAggregator__percentile --> call_sorted
+    core_benchmark_models_py_MetricAggregator__percentile --> call_math_ceil
+    core_benchmark_models_py_MetricAggregator__percentile --> call_len
+    core_benchmark_models_py_MetricAggregator__percentile --> call_max
+        core_benchmark_models_py_MetricAggregator --- core_benchmark_models_py_MetricAggregator_aggregate
+    core_benchmark_models_py_MetricAggregator_aggregate --> call_len
+    core_benchmark_models_py_MetricAggregator_aggregate --> call_sum
+    core_benchmark_models_py_MetricAggregator_aggregate --> call_LatencyMetrics
+    core_benchmark_models_py_MetricAggregator_aggregate --> call_MetricAggregator__percentile
+    core_benchmark_models_py_MetricAggregator_aggregate --> call_max
+    core_benchmark_models_py_MetricAggregator_aggregate --> call_ProviderBenchmarkMetrics
+    core_benchmark_models_py_MetricAggregator_aggregate --> call_round
+        core_benchmark_models_py_BenchmarkRunReport --- core_benchmark_models_py_BenchmarkRunReport_total_tps_delta_percentage
+    core_benchmark_models_py_BenchmarkRunReport_total_tps_delta_percentage --> call_round
+        core_benchmark_models_py_BenchmarkRunReport --- core_benchmark_models_py_BenchmarkRunReport_cost_delta_percentage
+    core_benchmark_models_py_BenchmarkRunReport_cost_delta_percentage --> call_round
+        core_benchmark_orchestrator_py_DatasetIntegrityValidator --- core_benchmark_orchestrator_py_DatasetIntegrityValidator_verify
+    core_benchmark_orchestrator_py_DatasetIntegrityValidator_verify --> call___exists
+    core_benchmark_orchestrator_py_DatasetIntegrityValidator_verify --> call_logger_error
+    core_benchmark_orchestrator_py_DatasetIntegrityValidator_verify --> call_hashlib_sha256
+    core_benchmark_orchestrator_py_DatasetIntegrityValidator_verify --> call_open
+    core_benchmark_orchestrator_py_DatasetIntegrityValidator_verify --> call_f_read
+    core_benchmark_orchestrator_py_DatasetIntegrityValidator_verify --> call_sha256_update
+    core_benchmark_orchestrator_py_DatasetIntegrityValidator_verify --> call_sha256_hexdigest
+        core_benchmark_orchestrator_py_SequentialBenchmarkOrchestrator --- core_benchmark_orchestrator_py_SequentialBenchmarkOrchestrator___init__
+        core_benchmark_persistence_py_BenchmarkPersistenceGateway --- core_benchmark_persistence_py_BenchmarkPersistenceGateway___init__
+    core_benchmark_persistence_py_BenchmarkPersistenceGateway___init__ --> call_Path
+    core_benchmark_persistence_py_BenchmarkPersistenceGateway___init__ --> call___mkdir
+        core_benchmark_persistence_py_BenchmarkPersistenceGateway --- core_benchmark_persistence_py_BenchmarkPersistenceGateway_save_raw_records_checkpoint
+    core_benchmark_persistence_py_BenchmarkPersistenceGateway_save_raw_records_checkpoint --> call_logger_info
+        core_benchmark_persistence_py_BenchmarkPersistenceGateway --- core_benchmark_persistence_py_BenchmarkPersistenceGateway_save_final_report
+    core_benchmark_persistence_py_BenchmarkPersistenceGateway_save_final_report --> call_int
+    core_benchmark_persistence_py_BenchmarkPersistenceGateway_save_final_report --> call_base_dir_mkdir
+    core_benchmark_persistence_py_BenchmarkPersistenceGateway_save_final_report --> call_open
+    core_benchmark_persistence_py_BenchmarkPersistenceGateway_save_final_report --> call_json_dump
+    core_benchmark_persistence_py_BenchmarkPersistenceGateway_save_final_report --> call_logger_info
+        core_benchmark_quality_py_FormalLatexSyntaxParser --- core_benchmark_quality_py_FormalLatexSyntaxParser_validate_syntax
+    core_benchmark_quality_py_FormalLatexSyntaxParser_validate_syntax --> call_LatexWalker
+    core_benchmark_quality_py_FormalLatexSyntaxParser_validate_syntax --> call_walker_get_latex_nodes
+    core_benchmark_quality_py_FormalLatexSyntaxParser_validate_syntax --> call_logger_debug
+        core_benchmark_quality_py_FormalMarkdownTableParser --- core_benchmark_quality_py_FormalMarkdownTableParser_validate_syntax
+    core_benchmark_quality_py_FormalMarkdownTableParser_validate_syntax --> call_MarkdownIt
+    core_benchmark_quality_py_FormalMarkdownTableParser_validate_syntax --> call_md_parse
+    core_benchmark_quality_py_FormalMarkdownTableParser_validate_syntax --> call_sum
+        core_benchmark_quality_py_StructuralQualityEvaluator --- core_benchmark_quality_py_StructuralQualityEvaluator_evaluate
+    core_benchmark_quality_py_StructuralQualityEvaluator_evaluate --> call_StructuralQualityMetrics
+    core_benchmark_quality_py_StructuralQualityEvaluator_evaluate --> call_len
+    core_benchmark_quality_py_StructuralQualityEvaluator_evaluate --> call_sum
+    core_benchmark_quality_py_StructuralQualityEvaluator_evaluate --> call_original_nodes_map_get
+    core_benchmark_quality_py_StructuralQualityEvaluator_evaluate --> call_min
+    core_benchmark_quality_py_StructuralQualityEvaluator_evaluate --> call_max
+    core_benchmark_quality_py_StructuralQualityEvaluator_evaluate --> call_density_ratios_append
+    core_benchmark_quality_py_StructuralQualityEvaluator_evaluate --> call_round
+        core_benchmark_reporter_py_StatisticalComparator --- core_benchmark_reporter_py_StatisticalComparator__interpret_cliffs_delta
+    core_benchmark_reporter_py_StatisticalComparator__interpret_cliffs_delta --> call_abs
+        core_benchmark_reporter_py_StatisticalComparator --- core_benchmark_reporter_py_StatisticalComparator__bootstrap_estimator_ci
+    core_benchmark_reporter_py_StatisticalComparator__bootstrap_estimator_ci --> call_np_array
+    core_benchmark_reporter_py_StatisticalComparator__bootstrap_estimator_ci --> call_estimator_func
+    core_benchmark_reporter_py_StatisticalComparator__bootstrap_estimator_ci --> call___choice
+    core_benchmark_reporter_py_StatisticalComparator__bootstrap_estimator_ci --> call_len
+    core_benchmark_reporter_py_StatisticalComparator__bootstrap_estimator_ci --> call_range
+    core_benchmark_reporter_py_StatisticalComparator__bootstrap_estimator_ci --> call_round
+    core_benchmark_reporter_py_StatisticalComparator__bootstrap_estimator_ci --> call_float
+    core_benchmark_reporter_py_StatisticalComparator__bootstrap_estimator_ci --> call_np_percentile
+        core_benchmark_reporter_py_StatisticalComparator --- core_benchmark_reporter_py_StatisticalComparator_compare_series
+    core_benchmark_reporter_py_StatisticalComparator_compare_series --> call_ScientificSignificanceReport
+    core_benchmark_reporter_py_StatisticalComparator_compare_series --> call_cast
+    core_benchmark_reporter_py_StatisticalComparator_compare_series --> call_stats_mannwhitneyu
+    core_benchmark_reporter_py_StatisticalComparator_compare_series --> call_float
+    core_benchmark_reporter_py_StatisticalComparator_compare_series --> call_hasattr
+    core_benchmark_reporter_py_StatisticalComparator_compare_series --> call_stats_ks_2samp
+    core_benchmark_reporter_py_StatisticalComparator_compare_series --> call_len
+    core_benchmark_reporter_py_StatisticalComparator_compare_series --> call_cls__bootstrap_estimator_ci
+        core_benchmark_reporter_py_StatisticalComparator --- core_benchmark_reporter_py_StatisticalComparator__p95_estimator
+    core_benchmark_reporter_py_StatisticalComparator__p95_estimator --> call_float
+    core_benchmark_reporter_py_StatisticalComparator__p95_estimator --> call_np_percentile
+    core_benchmark_reporter_py_StatisticalComparator_compare_series --> call_round
+    core_benchmark_reporter_py_StatisticalComparator_compare_series --> call_cls__interpret_cliffs_delta
+        core_benchmark_reporter_py_StatisticalComparator --- core_benchmark_reporter_py_StatisticalComparator__apply_holm_bonferroni
+    core_benchmark_reporter_py_StatisticalComparator__apply_holm_bonferroni --> call_list
+    core_benchmark_reporter_py_StatisticalComparator__apply_holm_bonferroni --> call_reports_items
+    core_benchmark_reporter_py_StatisticalComparator__apply_holm_bonferroni --> call_items_sort
+    core_benchmark_reporter_py_StatisticalComparator__apply_holm_bonferroni --> call_min
+    core_benchmark_reporter_py_StatisticalComparator__apply_holm_bonferroni --> call_len
+    core_benchmark_reporter_py_StatisticalComparator__apply_holm_bonferroni --> call_enumerate
+    core_benchmark_reporter_py_StatisticalComparator__apply_holm_bonferroni --> call_replace
+        core_benchmark_reporter_py_StatisticalComparator --- core_benchmark_reporter_py_StatisticalComparator_run_stratified_analysis
+    core_benchmark_reporter_py_StatisticalComparator_run_stratified_analysis --> call_cls_compare_series
+    core_benchmark_reporter_py_StatisticalComparator_run_stratified_analysis --> call_cls__apply_holm_bonferroni
+        core_benchmark_semantic_judge_py_SemanticJudge --- core_benchmark_semantic_judge_py_SemanticJudge___init__
+    core_benchmark_semantic_judge_py_SemanticJudge___init__ --> call_AsyncGroq
+    core_benchmark_semantic_judge_py_SemanticJudge___init__ --> call_os_getenv
+        core_benchmark_runners_gemini_runner_py_DummyContextResolver --- core_benchmark_runners_gemini_runner_py_DummyContextResolver_resolve_many
+        core_benchmark_runners_gemini_runner_py_DummyContextResolver --- core_benchmark_runners_gemini_runner_py_DummyContextResolver_resolve
+    core_benchmark_runners_gemini_runner_py_DummyContextResolver_resolve --> call_ResolvedContext
+        core_benchmark_runners_gemini_runner_py_GeminiBenchmarkRunner --- core_benchmark_runners_gemini_runner_py_GeminiBenchmarkRunner___init__
+        core_benchmark_runners_groq_runner_py_DummyContextResolver --- core_benchmark_runners_groq_runner_py_DummyContextResolver_resolve_many
+        core_benchmark_runners_groq_runner_py_DummyContextResolver --- core_benchmark_runners_groq_runner_py_DummyContextResolver_resolve
+    core_benchmark_runners_groq_runner_py_DummyContextResolver_resolve --> call_ResolvedContext
+        core_benchmark_runners_groq_runner_py_GroqBenchmarkRunner --- core_benchmark_runners_groq_runner_py_GroqBenchmarkRunner___init__
+        core_compiler_assembler_py_IntegrityCheckedDocumentRepository --- core_compiler_assembler_py_IntegrityCheckedDocumentRepository_get_verified_payload
+        core_compiler_assembler_py_DocumentAssemblyDecision --- core_compiler_assembler_py_DocumentAssemblyDecision_is_accepted
         core_compiler_assembler_py_DocumentAssembler --- core_compiler_assembler_py_DocumentAssembler___init__
+    core_compiler_assembler_py_DocumentAssembler___init__ --> call_AssemblyPolicy
         core_compiler_assembler_py_DocumentAssembler --- core_compiler_assembler_py_DocumentAssembler__validate_sequence
     core_compiler_assembler_py_DocumentAssembler__validate_sequence --> call_len
     core_compiler_assembler_py_DocumentAssembler__validate_sequence --> call_set
     core_compiler_assembler_py_DocumentAssembler__validate_sequence --> call_ValueError
     core_compiler_assembler_py_DocumentAssembler__validate_sequence --> call_IncompleteDocumentError
         core_compiler_assembler_py_DocumentAssembler --- core_compiler_assembler_py_DocumentAssembler_assemble
-    core_compiler_assembler_py_DocumentAssembler_assemble --> call_ReconstructedDocument
+    core_compiler_assembler_py_DocumentAssembler_assemble --> call_self__build_rejection
     core_compiler_assembler_py_DocumentAssembler_assemble --> call_sorted
     core_compiler_assembler_py_DocumentAssembler_assemble --> call_self__validate_sequence
     core_compiler_assembler_py_DocumentAssembler_assemble --> call_len
-    core_compiler_assembler_py_DocumentAssembler_assemble --> call_sum
+    core_compiler_assembler_py_DocumentAssembler_assemble --> call_content_parts_append
+    core_compiler_assembler_py_DocumentAssembler_assemble --> call___get_verified_payload
+    core_compiler_assembler_py_DocumentAssembler_assemble --> call_str
     core_compiler_assembler_py_DocumentAssembler_assemble --> call___join
+    core_compiler_assembler_py_DocumentAssembler_assemble --> call_ReconstructedDocument
+    core_compiler_assembler_py_DocumentAssembler_assemble --> call_AssemblyReport
+    core_compiler_assembler_py_DocumentAssembler_assemble --> call_time_time
+    core_compiler_assembler_py_DocumentAssembler_assemble --> call_dict
+    core_compiler_assembler_py_DocumentAssembler_assemble --> call_Counter
+    core_compiler_assembler_py_DocumentAssembler_assemble --> call_bool
+    core_compiler_assembler_py_DocumentAssembler_assemble --> call_DocumentAssemblyDecision
+        core_compiler_assembler_py_DocumentAssembler --- core_compiler_assembler_py_DocumentAssembler__build_rejection
+    core_compiler_assembler_py_DocumentAssembler__build_rejection --> call_AssemblyReport
+    core_compiler_assembler_py_DocumentAssembler__build_rejection --> call_time_time
+    core_compiler_assembler_py_DocumentAssembler__build_rejection --> call_max
+    core_compiler_assembler_py_DocumentAssembler__build_rejection --> call_len
+    core_compiler_assembler_py_DocumentAssembler__build_rejection --> call_dict
+    core_compiler_assembler_py_DocumentAssembler__build_rejection --> call_Counter
+    core_compiler_assembler_py_DocumentAssembler__build_rejection --> call_DocumentAssemblyDecision
         core_context_context_resolver_py_ResolvedContext --- core_context_context_resolver_py_ResolvedContext_depth
     core_context_context_resolver_py_ResolvedContext_depth --> call_len
         core_context_context_resolver_py_ContextResolverProtocol --- core_context_context_resolver_py_ContextResolverProtocol_resolve
@@ -2615,6 +2503,12 @@ graph TD
         core_execution_exceptions_py_DocumentValidationError --- core_execution_exceptions_py_DocumentValidationError___init__
     core_execution_exceptions_py_DocumentValidationError___init__ --> call_____init__
     core_execution_exceptions_py_DocumentValidationError___init__ --> call_super
+        core_execution_exceptions_py_ContextOverflowError --- core_execution_exceptions_py_ContextOverflowError___init__
+    core_execution_exceptions_py_ContextOverflowError___init__ --> call_____init__
+    core_execution_exceptions_py_ContextOverflowError___init__ --> call_super
+        core_execution_exceptions_py_ContextOverflowError --- core_execution_exceptions_py_ContextOverflowError___str__
+    core_execution_exceptions_py_ContextOverflowError___str__ --> call_____str__
+    core_execution_exceptions_py_ContextOverflowError___str__ --> call_super
         core_execution_handlers_py_DocumentCommandHandler --- core_execution_handlers_py_DocumentCommandHandler___init__
         core_execution_handlers_py_DocumentCommandHandler --- core_execution_handlers_py_DocumentCommandHandler__get_target_state
     core_execution_handlers_py_DocumentCommandHandler__get_target_state --> call_isinstance
@@ -2801,14 +2695,25 @@ graph TD
     core_metrics_pricing_py_PricingEngine_calculate_cost --> call_model_name_startswith
     core_metrics_pricing_py_PricingEngine_calculate_cost --> call___get
     core_metrics_pricing_py_PricingEngine_calculate_cost --> call_ValueError
+        core_metrics_summary_py_SummaryBuilder --- core_metrics_summary_py_SummaryBuilder__percentile
+    core_metrics_summary_py_SummaryBuilder__percentile --> call_sorted
+    core_metrics_summary_py_SummaryBuilder__percentile --> call_len
+    core_metrics_summary_py_SummaryBuilder__percentile --> call_math_ceil
+    core_metrics_summary_py_SummaryBuilder__percentile --> call_max
         core_metrics_summary_py_SummaryBuilder --- core_metrics_summary_py_SummaryBuilder_build
+    core_metrics_summary_py_SummaryBuilder_build --> call_len
+    core_metrics_summary_py_SummaryBuilder_build --> call_utilization_ratios_append
+    core_metrics_summary_py_SummaryBuilder_build --> call___get
+    core_metrics_summary_py_SummaryBuilder_build --> call_quota_waits_append
+    core_metrics_summary_py_SummaryBuilder_build --> call_quota_attempts_append
+    core_metrics_summary_py_SummaryBuilder_build --> call_sum
     core_metrics_summary_py_SummaryBuilder_build --> call___startswith
     core_metrics_summary_py_SummaryBuilder_build --> call___replace
     core_metrics_summary_py_SummaryBuilder_build --> call_max
-    core_metrics_summary_py_SummaryBuilder_build --> call_len
     core_metrics_summary_py_SummaryBuilder_build --> call_PricingEngine_calculate_cost
     core_metrics_summary_py_SummaryBuilder_build --> call_TranslationAuditSummary
     core_metrics_summary_py_SummaryBuilder_build --> call_round
+    core_metrics_summary_py_SummaryBuilder_build --> call_SummaryBuilder__percentile
         core_normalization_base_py_BaseNormalizer --- core_normalization_base_py_BaseNormalizer_normalizer_id
         core_normalization_base_py_BaseNormalizer --- core_normalization_base_py_BaseNormalizer_normalizer_version
         core_normalization_base_py_BaseNormalizer --- core_normalization_base_py_BaseNormalizer_signature
@@ -3094,6 +2999,7 @@ graph TD
         core_pipeline_orchestrator_py_ChunkerProtocol --- core_pipeline_orchestrator_py_ChunkerProtocol_chunk
         core_pipeline_orchestrator_py_AssemblerProtocol --- core_pipeline_orchestrator_py_AssemblerProtocol_assemble
         core_pipeline_orchestrator_py_AuditBuilderProtocol --- core_pipeline_orchestrator_py_AuditBuilderProtocol_build
+        core_pipeline_orchestrator_py_DocumentRepositoryProtocol --- core_pipeline_orchestrator_py_DocumentRepositoryProtocol_save_batch
         core_pipeline_orchestrator_py_TranslationPipeline --- core_pipeline_orchestrator_py_TranslationPipeline___init__
     core_pipeline_orchestrator_py_TranslationPipeline___init__ --> call_re_compile
         core_pipeline_state_store_py_StateStoreProtocol --- core_pipeline_state_store_py_StateStoreProtocol_save
@@ -3120,6 +3026,52 @@ graph TD
     core_resilience_circuit_breaker_py_GlobalCircuitBreaker__prune_window --> call___popleft
         core_resilience_circuit_breaker_py_CircuitBreakerRegistry --- core_resilience_circuit_breaker_py_CircuitBreakerRegistry_get_breaker
     core_resilience_circuit_breaker_py_CircuitBreakerRegistry_get_breaker --> call_GlobalCircuitBreaker
+        core_telemetry_analyzer_py_TelemetryAnalyzer --- core_telemetry_analyzer_py_TelemetryAnalyzer___init__
+    core_telemetry_analyzer_py_TelemetryAnalyzer___init__ --> call_SLOConfig
+        core_telemetry_analyzer_py_TelemetryAnalyzer --- core_telemetry_analyzer_py_TelemetryAnalyzer__query_scalar
+    core_telemetry_analyzer_py_TelemetryAnalyzer__query_scalar --> call_sqlite3_connect
+    core_telemetry_analyzer_py_TelemetryAnalyzer__query_scalar --> call_conn_execute
+    core_telemetry_analyzer_py_TelemetryAnalyzer__query_scalar --> call_cursor_fetchone
+    core_telemetry_analyzer_py_TelemetryAnalyzer__query_scalar --> call_float
+        core_telemetry_analyzer_py_TelemetryAnalyzer --- core_telemetry_analyzer_py_TelemetryAnalyzer__query_list
+    core_telemetry_analyzer_py_TelemetryAnalyzer__query_list --> call_sqlite3_connect
+    core_telemetry_analyzer_py_TelemetryAnalyzer__query_list --> call_conn_execute
+    core_telemetry_analyzer_py_TelemetryAnalyzer__query_list --> call_cursor_fetchall
+        core_telemetry_analyzer_py_TelemetryAnalyzer --- core_telemetry_analyzer_py_TelemetryAnalyzer_generate_report
+    core_telemetry_analyzer_py_TelemetryAnalyzer_generate_report --> call_self__query_scalar
+    core_telemetry_analyzer_py_TelemetryAnalyzer_generate_report --> call_ProductionHealthReport
+    core_telemetry_analyzer_py_TelemetryAnalyzer_generate_report --> call_int
+    core_telemetry_analyzer_py_TelemetryAnalyzer_generate_report --> call_sqlite3_connect
+    core_telemetry_analyzer_py_TelemetryAnalyzer_generate_report --> call_conn_execute
+    core_telemetry_analyzer_py_TelemetryAnalyzer_generate_report --> call_cursor_fetchall
+    core_telemetry_analyzer_py_TelemetryAnalyzer_generate_report --> call_round
+    core_telemetry_analyzer_py_TelemetryAnalyzer_generate_report --> call_self__query_list
+    core_telemetry_analyzer_py_TelemetryAnalyzer_generate_report --> call_float
+    core_telemetry_analyzer_py_TelemetryAnalyzer_generate_report --> call_np_percentile
+    core_telemetry_analyzer_py_TelemetryAnalyzer_generate_report --> call_violations_append
+    core_telemetry_analyzer_py_TelemetryAnalyzer_generate_report --> call_SLOViolation
+    core_telemetry_analyzer_py_TelemetryAnalyzer_generate_report --> call_len
+        core_telemetry_gates_py_HealthGateEvaluator --- core_telemetry_gates_py_HealthGateEvaluator_evaluate
+    core_telemetry_gates_py_HealthGateEvaluator_evaluate --> call_logger_critical
+    core_telemetry_gates_py_HealthGateEvaluator_evaluate --> call_logger_warning
+        core_telemetry_gates_py_HealthGateEvaluator --- core_telemetry_gates_py_HealthGateEvaluator_enforce
+    core_telemetry_gates_py_HealthGateEvaluator_enforce --> call_HealthGateEvaluator_evaluate
+    core_telemetry_gates_py_HealthGateEvaluator_enforce --> call_RuntimeError
+    core_telemetry_gates_py_HealthGateEvaluator_enforce --> call_logger_warning
+        core_telemetry_gateway_py_SQLiteTelemetryGateway --- core_telemetry_gateway_py_SQLiteTelemetryGateway___init__
+    core_telemetry_gateway_py_SQLiteTelemetryGateway___init__ --> call_Path
+    core_telemetry_gateway_py_SQLiteTelemetryGateway___init__ --> call___mkdir
+    core_telemetry_gateway_py_SQLiteTelemetryGateway___init__ --> call_asyncio_Queue
+    core_telemetry_gateway_py_SQLiteTelemetryGateway___init__ --> call_self__init_db
+        core_telemetry_gateway_py_SQLiteTelemetryGateway --- core_telemetry_gateway_py_SQLiteTelemetryGateway__init_db
+    core_telemetry_gateway_py_SQLiteTelemetryGateway__init_db --> call_sqlite3_connect
+    core_telemetry_gateway_py_SQLiteTelemetryGateway__init_db --> call_conn_execute
+        core_telemetry_gateway_py_SQLiteTelemetryGateway --- core_telemetry_gateway_py_SQLiteTelemetryGateway_emit
+    core_telemetry_gateway_py_SQLiteTelemetryGateway_emit --> call___put_nowait
+    core_telemetry_gateway_py_SQLiteTelemetryGateway_emit --> call_logger_error
+        core_telemetry_gateway_py_SQLiteTelemetryGateway --- core_telemetry_gateway_py_SQLiteTelemetryGateway__write_batch
+    core_telemetry_gateway_py_SQLiteTelemetryGateway__write_batch --> call_sqlite3_connect
+    core_telemetry_gateway_py_SQLiteTelemetryGateway__write_batch --> call_conn_executemany
     core_utils_fs_py_ensure_parent_dir --> call___mkdir
     core_utils_fs_py_ensure_parent_dir --> call_Path
         core_utils_logger_py_JsonFormatter --- core_utils_logger_py_JsonFormatter_format
@@ -3163,6 +3115,24 @@ graph TD
     core_utils_telemetry_py_wrapper --> call_round
     core_utils_telemetry_py_wrapper --> call_wraps
         core_validation_base_py_Validator --- core_validation_base_py_Validator_validate
+        core_validation_budget_py_TokenEstimatorProtocol --- core_validation_budget_py_TokenEstimatorProtocol_estimate_tokens
+        core_validation_budget_py_ContextCompressionPolicy --- core_validation_budget_py_ContextCompressionPolicy_get_levels
+        core_validation_budget_py_StandardCompressionPolicy --- core_validation_budget_py_StandardCompressionPolicy_get_levels
+        core_validation_budget_py_PromptBudget --- core_validation_budget_py_PromptBudget_total_estimated
+        core_validation_budget_py_PromptBudget --- core_validation_budget_py_PromptBudget_utilization_ratio
+        core_validation_budget_py_PromptBudgetCalculator --- core_validation_budget_py_PromptBudgetCalculator___init__
+        core_validation_budget_py_PromptBudgetCalculator --- core_validation_budget_py_PromptBudgetCalculator_calculate
+    core_validation_budget_py_PromptBudgetCalculator_calculate --> call___estimate_tokens
+    core_validation_budget_py_PromptBudgetCalculator_calculate --> call_int
+    core_validation_budget_py_PromptBudgetCalculator_calculate --> call_min
+    core_validation_budget_py_PromptBudgetCalculator_calculate --> call_max
+    core_validation_budget_py_PromptBudgetCalculator_calculate --> call_PromptBudget
+    core_validation_budget_py_PromptBudgetCalculator_calculate --> call_BudgetDecision
+        core_validation_estimators_py_ExactBPEEstimator --- core_validation_estimators_py_ExactBPEEstimator___init__
+    core_validation_estimators_py_ExactBPEEstimator___init__ --> call_tiktoken_get_encoding
+        core_validation_estimators_py_ExactBPEEstimator --- core_validation_estimators_py_ExactBPEEstimator_estimate_tokens
+    core_validation_estimators_py_ExactBPEEstimator_estimate_tokens --> call_len
+    core_validation_estimators_py_ExactBPEEstimator_estimate_tokens --> call___encode
         core_validation_interfaces_py_BaseValidator --- core_validation_interfaces_py_BaseValidator_validate
         core_validation_legacy_adapter_py_LegacyValidatorAdapter --- core_validation_legacy_adapter_py_LegacyValidatorAdapter___init__
         core_validation_legacy_adapter_py_LegacyValidatorAdapter --- core_validation_legacy_adapter_py_LegacyValidatorAdapter_validate
@@ -3278,71 +3248,6 @@ graph TD
     core_validation_volumetric_py_VolumetricValidator_validate --> call___strip
     core_validation_volumetric_py_VolumetricValidator_validate --> call_results_append
     core_validation_volumetric_py_VolumetricValidator_validate --> call_ValidationResult
-        graveyard_gemini_client_py_GeminiClient --- graveyard_gemini_client_py_GeminiClient___init__
-    graveyard_gemini_client_py_GeminiClient___init__ --> call___get
-    graveyard_gemini_client_py_GeminiClient___init__ --> call_ValueError
-    graveyard_gemini_client_py_GeminiClient___init__ --> call_os_getenv
-    graveyard_gemini_client_py_GeminiClient___init__ --> call_CircuitBreakerRegistry_get_breaker
-    graveyard_gemini_client_py_GeminiClient___init__ --> call_requests_Session
-        graveyard_gemini_client_py_GeminiClient --- graveyard_gemini_client_py_GeminiClient__clean_response
-    graveyard_gemini_client_py_GeminiClient__clean_response --> call___strip
-    graveyard_gemini_client_py_GeminiClient__clean_response --> call_result_startswith
-    graveyard_gemini_client_py_GeminiClient__clean_response --> call_result_endswith
-    graveyard_gemini_client_py_GeminiClient__clean_response --> call_result_strip
-        graveyard_gemini_client_py_GeminiClient --- graveyard_gemini_client_py_GeminiClient__build_fix_prompt
-        graveyard_gemini_client_py_GeminiClient --- graveyard_gemini_client_py_GeminiClient__is_transient
-        graveyard_gemini_client_py_GeminiClient --- graveyard_gemini_client_py_GeminiClient__execute_with_local_retries
-    graveyard_gemini_client_py_GeminiClient__execute_with_local_retries --> call___check_state
-    graveyard_gemini_client_py_GeminiClient__execute_with_local_retries --> call___acquire
-    graveyard_gemini_client_py_GeminiClient__execute_with_local_retries --> call_ctx_execution_id_get
-    graveyard_gemini_client_py_GeminiClient__execute_with_local_retries --> call_ctx_worker_id_get
-    graveyard_gemini_client_py_GeminiClient__execute_with_local_retries --> call___post
-    graveyard_gemini_client_py_GeminiClient__execute_with_local_retries --> call_logger_warning
-    graveyard_gemini_client_py_GeminiClient__execute_with_local_retries --> call_self__is_transient
-    graveyard_gemini_client_py_GeminiClient__execute_with_local_retries --> call_TransientAPIError
-    graveyard_gemini_client_py_GeminiClient__execute_with_local_retries --> call_response_raise_for_status
-    graveyard_gemini_client_py_GeminiClient__execute_with_local_retries --> call_response_json
-    graveyard_gemini_client_py_GeminiClient__execute_with_local_retries --> call_str
-    graveyard_gemini_client_py_GeminiClient__execute_with_local_retries --> call_self__clean_response
-    graveyard_gemini_client_py_GeminiClient__execute_with_local_retries --> call___release
-    graveyard_gemini_client_py_GeminiClient__execute_with_local_retries --> call_retry
-    graveyard_gemini_client_py_GeminiClient__execute_with_local_retries --> call_wait_exponential
-    graveyard_gemini_client_py_GeminiClient__execute_with_local_retries --> call_stop_after_attempt
-    graveyard_gemini_client_py_GeminiClient__execute_with_local_retries --> call_retry_if_exception_type
-        graveyard_gemini_client_py_GeminiClient --- graveyard_gemini_client_py_GeminiClient_translate
-    graveyard_gemini_client_py_GeminiClient_translate --> call_TranslationUnit
-    graveyard_gemini_client_py_GeminiClient_translate --> call_PromptBuilder
-    graveyard_gemini_client_py_GeminiClient_translate --> call_builder_build
-    graveyard_gemini_client_py_GeminiClient_translate --> call___call
-    graveyard_gemini_client_py_GeminiClient_translate --> call_self__execute_with_local_retries
-        graveyard_gemini_client_py_GeminiClient --- graveyard_gemini_client_py_GeminiClient_fix_latex
-    graveyard_gemini_client_py_GeminiClient_fix_latex --> call_self__build_fix_prompt
-    graveyard_gemini_client_py_GeminiClient_fix_latex --> call___call
-    graveyard_gemini_client_py_GeminiClient_fix_latex --> call_self__execute_with_local_retries
-        graveyard_gemini_client_py_GeminiClient --- graveyard_gemini_client_py_GeminiClient_generate
-    graveyard_gemini_client_py_GeminiClient_generate --> call___call
-    graveyard_gemini_client_py_GeminiClient_generate --> call_self__execute_with_local_retries
-        graveyard_gemini_client_py_GeminiClient --- graveyard_gemini_client_py_GeminiClient__embed_with_local_retries
-    graveyard_gemini_client_py_GeminiClient__embed_with_local_retries --> call___check_state
-    graveyard_gemini_client_py_GeminiClient__embed_with_local_retries --> call___acquire
-    graveyard_gemini_client_py_GeminiClient__embed_with_local_retries --> call_ctx_execution_id_get
-    graveyard_gemini_client_py_GeminiClient__embed_with_local_retries --> call_ctx_worker_id_get
-    graveyard_gemini_client_py_GeminiClient__embed_with_local_retries --> call___post
-    graveyard_gemini_client_py_GeminiClient__embed_with_local_retries --> call_logger_warning
-    graveyard_gemini_client_py_GeminiClient__embed_with_local_retries --> call_self__is_transient
-    graveyard_gemini_client_py_GeminiClient__embed_with_local_retries --> call_TransientAPIError
-    graveyard_gemini_client_py_GeminiClient__embed_with_local_retries --> call_response_raise_for_status
-    graveyard_gemini_client_py_GeminiClient__embed_with_local_retries --> call_response_json
-    graveyard_gemini_client_py_GeminiClient__embed_with_local_retries --> call_str
-    graveyard_gemini_client_py_GeminiClient__embed_with_local_retries --> call___release
-    graveyard_gemini_client_py_GeminiClient__embed_with_local_retries --> call_retry
-    graveyard_gemini_client_py_GeminiClient__embed_with_local_retries --> call_wait_exponential
-    graveyard_gemini_client_py_GeminiClient__embed_with_local_retries --> call_stop_after_attempt
-    graveyard_gemini_client_py_GeminiClient__embed_with_local_retries --> call_retry_if_exception_type
-        graveyard_gemini_client_py_GeminiClient --- graveyard_gemini_client_py_GeminiClient_embed_text
-    graveyard_gemini_client_py_GeminiClient_embed_text --> call_text_strip
-    graveyard_gemini_client_py_GeminiClient_embed_text --> call___call
-    graveyard_gemini_client_py_GeminiClient_embed_text --> call_self__embed_with_local_retries
         infra_adapters_pdf_parser_py_PdfParserAdapter --- infra_adapters_pdf_parser_py_PdfParserAdapter___init__
         infra_adapters_pdf_parser_py_PdfParserAdapter --- infra_adapters_pdf_parser_py_PdfParserAdapter_parse
     infra_adapters_pdf_parser_py_PdfParserAdapter_parse --> call_self__parser_callable
@@ -3444,6 +3349,21 @@ graph TD
     infra_db_control_repo_py_ControlPlaneRepository_find_documents_with_pending_chunks --> call_os_getenv
     infra_db_control_repo_py_ControlPlaneRepository_find_documents_with_pending_chunks --> call___execute
     infra_db_control_repo_py_ControlPlaneRepository_find_documents_with_pending_chunks --> call_cursor_fetchall
+        infra_db_document_repository_py_SQLiteDocumentRepository --- infra_db_document_repository_py_SQLiteDocumentRepository___init__
+    infra_db_document_repository_py_SQLiteDocumentRepository___init__ --> call_self__ensure_schema
+        infra_db_document_repository_py_SQLiteDocumentRepository --- infra_db_document_repository_py_SQLiteDocumentRepository__ensure_schema
+    infra_db_document_repository_py_SQLiteDocumentRepository__ensure_schema --> call___executescript
+        infra_db_document_repository_py_SQLiteDocumentRepository --- infra_db_document_repository_py_SQLiteDocumentRepository_save_batch
+    infra_db_document_repository_py_SQLiteDocumentRepository_save_batch --> call___executemany
+        infra_db_document_repository_py_SQLiteDocumentRepository --- infra_db_document_repository_py_SQLiteDocumentRepository_get_verified_payload
+    infra_db_document_repository_py_SQLiteDocumentRepository_get_verified_payload --> call___cursor
+    infra_db_document_repository_py_SQLiteDocumentRepository_get_verified_payload --> call_cursor_execute
+    infra_db_document_repository_py_SQLiteDocumentRepository_get_verified_payload --> call_cursor_fetchone
+    infra_db_document_repository_py_SQLiteDocumentRepository_get_verified_payload --> call_PayloadNotFoundError
+    infra_db_document_repository_py_SQLiteDocumentRepository_get_verified_payload --> call_HashMismatchError
+    infra_db_document_repository_py_SQLiteDocumentRepository_get_verified_payload --> call___hexdigest
+    infra_db_document_repository_py_SQLiteDocumentRepository_get_verified_payload --> call_hashlib_sha256
+    infra_db_document_repository_py_SQLiteDocumentRepository_get_verified_payload --> call_payload_encode
         infra_db_event_repo_py_EventPlaneRepository --- infra_db_event_repo_py_EventPlaneRepository___init__
         infra_db_event_repo_py_EventPlaneRepository --- infra_db_event_repo_py_EventPlaneRepository_get_replay
     infra_db_event_repo_py_EventPlaneRepository_get_replay --> call___execute
@@ -3591,850 +3511,6 @@ graph TD
     runtime_sweeper_py_RecoveryDaemon_run_sweep_cycle --> call_logger_info
     runtime_sweeper_py_RecoveryDaemon_run_sweep_cycle --> call_logger_error
     runtime_sweeper_py_RecoveryDaemon_run_sweep_cycle --> call_c_close
-    tests_test_architecture_contract_py_test_ports_compliance --> call_sqlite3_connect
-    tests_test_architecture_contract_py_test_ports_compliance --> call_ControlPlaneRepository
-    tests_test_architecture_contract_py_test_ports_compliance --> call_EventPlaneRepository
-    tests_test_architecture_contract_py_test_ports_compliance --> call_MaterializedPlaneRepository
-    tests_test_architecture_contract_py_test_ports_compliance --> call_isinstance
-    tests_test_math_protector_py_test_inline_math_protector --> call_InlineMathProtector_mask
-    tests_test_math_protector_py_test_inline_math_protector --> call_masked_replace
-    tests_test_math_protector_py_test_inline_math_protector --> call_InlineMathProtector_restore
-    tests_test_math_protector_py_test_inline_math_protector --> call_print
-    tests_test_pipeline_py_run_stress_tests --> call_CORPUS_DIR_mkdir
-    tests_test_pipeline_py_run_stress_tests --> call_OUTPUT_DIR_mkdir
-    tests_test_pipeline_py_run_stress_tests --> call_list
-    tests_test_pipeline_py_run_stress_tests --> call_CORPUS_DIR_glob
-    tests_test_pipeline_py_run_stress_tests --> call_print
-    tests_test_pipeline_py_run_stress_tests --> call_len
-    tests_test_pipeline_py_run_stress_tests --> call_str
-    tests_test_pipeline_py_run_stress_tests --> call_run_pipeline
-    tests_test_pipeline_py_run_stress_tests --> call_metrics_get
-    tests_test_pipeline_py_run_stress_tests --> call_round
-    tests_test_pipeline_py_run_stress_tests --> call_open
-    tests_test_pipeline_py_run_stress_tests --> call_json_dump
-        tests_test_pipeline_fidelity_py_TestPipelineFidelity --- tests_test_pipeline_fidelity_py_TestPipelineFidelity_test_html_sanitization_variants
-    tests_test_pipeline_fidelity_py_TestPipelineFidelity_test_html_sanitization_variants --> call_sanitize_marker_html
-    tests_test_pipeline_fidelity_py_TestPipelineFidelity_test_html_sanitization_variants --> call_self_assertEqual
-        tests_test_pipeline_fidelity_py_TestPipelineFidelity --- tests_test_pipeline_fidelity_py_TestPipelineFidelity_test_semantic_adjacency_and_mutations
-    tests_test_pipeline_fidelity_py_TestPipelineFidelity_test_semantic_adjacency_and_mutations --> call_InlineMathProtector_mask
-    tests_test_pipeline_fidelity_py_TestPipelineFidelity_test_semantic_adjacency_and_mutations --> call_InlineMathProtector_restore
-    tests_test_pipeline_fidelity_py_TestPipelineFidelity_test_semantic_adjacency_and_mutations --> call_bool
-    tests_test_pipeline_fidelity_py_TestPipelineFidelity_test_semantic_adjacency_and_mutations --> call_re_search
-    tests_test_pipeline_fidelity_py_TestPipelineFidelity_test_semantic_adjacency_and_mutations --> call_restored_lower
-    tests_test_pipeline_fidelity_py_TestPipelineFidelity_test_semantic_adjacency_and_mutations --> call_self_assertTrue
-        tests_test_pipeline_fidelity_py_TestPipelineFidelity --- tests_test_pipeline_fidelity_py_TestPipelineFidelity_test_mixed_inline_and_block_math
-    tests_test_pipeline_fidelity_py_TestPipelineFidelity_test_mixed_inline_and_block_math --> call_InlineMathProtector_mask
-    tests_test_pipeline_fidelity_py_TestPipelineFidelity_test_mixed_inline_and_block_math --> call_self_assertEqual
-    tests_test_pipeline_fidelity_py_TestPipelineFidelity_test_mixed_inline_and_block_math --> call_len
-    tests_test_pipeline_fidelity_py_TestPipelineFidelity_test_mixed_inline_and_block_math --> call_self_assertIn
-    tests_test_pipeline_fidelity_py_TestPipelineFidelity_test_mixed_inline_and_block_math --> call_InlineMathProtector_restore
-        tests_test_pipeline_fidelity_py_TestPipelineFidelity --- tests_test_pipeline_fidelity_py_TestPipelineFidelity__execute_mock_parser
-        tests_test_pipeline_fidelity_py_TestPipelineFidelity --- tests_test_pipeline_fidelity_py_TestPipelineFidelity_safe_exists
-    tests_test_pipeline_fidelity_py_TestPipelineFidelity_safe_exists --> call_path_endswith
-    tests_test_pipeline_fidelity_py_TestPipelineFidelity__execute_mock_parser --> call_patch
-    tests_test_pipeline_fidelity_py_TestPipelineFidelity__execute_mock_parser --> call_b_strip
-    tests_test_pipeline_fidelity_py_TestPipelineFidelity__execute_mock_parser --> call_t_split
-    tests_test_pipeline_fidelity_py_TestPipelineFidelity__execute_mock_parser --> call_mock_open
-    tests_test_pipeline_fidelity_py_TestPipelineFidelity__execute_mock_parser --> call_parse_pdf
-        tests_test_pipeline_fidelity_py_TestPipelineFidelity --- tests_test_pipeline_fidelity_py_TestPipelineFidelity_test_equation_quarantine_quarantine
-    tests_test_pipeline_fidelity_py_TestPipelineFidelity_test_equation_quarantine_quarantine --> call_self__execute_mock_parser
-    tests_test_pipeline_fidelity_py_TestPipelineFidelity_test_equation_quarantine_quarantine --> call_self_assertEqual
-        tests_test_pipeline_fidelity_py_TestPipelineFidelity --- tests_test_pipeline_fidelity_py_TestPipelineFidelity_test_mixed_image_block_continuation
-    tests_test_pipeline_fidelity_py_TestPipelineFidelity_test_mixed_image_block_continuation --> call_self__execute_mock_parser
-    tests_test_pipeline_fidelity_py_TestPipelineFidelity_test_mixed_image_block_continuation --> call_self_assertEqual
-    tests_test_pipeline_fidelity_py_TestPipelineFidelity_test_mixed_image_block_continuation --> call_len
-    tests_test_pipeline_fidelity_py_TestPipelineFidelity_test_mixed_image_block_continuation --> call___get
-        tests_test_pipeline_fidelity_py_TestPipelineFidelity --- tests_test_pipeline_fidelity_py_TestPipelineFidelity_test_equation_ratio_and_false_positives
-    tests_test_pipeline_fidelity_py_TestPipelineFidelity_test_equation_ratio_and_false_positives --> call_self__execute_mock_parser
-    tests_test_pipeline_fidelity_py_TestPipelineFidelity_test_equation_ratio_and_false_positives --> call_self_assertEqual
-        tests_test_pipeline_fidelity_py_TestPipelineFidelity --- tests_test_pipeline_fidelity_py_TestPipelineFidelity_test_worker_passthrough_alignment
-    tests_test_pipeline_fidelity_py_TestPipelineFidelity_test_worker_passthrough_alignment --> call_self_assertTrue
-    tests_test_pipeline_fidelity_py_TestPipelineFidelity_test_worker_passthrough_alignment --> call_hasattr
-        tests_helpers_fakes_py_FakeChunker --- tests_helpers_fakes_py_FakeChunker_chunk
-    tests_helpers_fakes_py_FakeChunker_chunk --> call_TranslationUnit
-    tests_helpers_fakes_py_FakeChunker_chunk --> call_max
-    tests_helpers_fakes_py_FakeChunker_chunk --> call_len
-        tests_helpers_markdown_inspector_py_MarkdownInspector --- tests_helpers_markdown_inspector_py_MarkdownInspector_extract_structure
-    tests_helpers_markdown_inspector_py_MarkdownInspector_extract_structure --> call_len
-    tests_helpers_markdown_inspector_py_MarkdownInspector_extract_structure --> call_re_findall
-        tests_helpers_markdown_inspector_py_MarkdownInspector --- tests_helpers_markdown_inspector_py_MarkdownInspector_extract_technical_tokens
-    tests_helpers_markdown_inspector_py_MarkdownInspector_extract_technical_tokens --> call_re_findall
-        tests_helpers_markdown_inspector_py_MarkdownInspector --- tests_helpers_markdown_inspector_py_MarkdownInspector_verify_balances
-    tests_helpers_markdown_inspector_py_MarkdownInspector_verify_balances --> call_content_count
-        tests_integration_test_chunker_snapshot_py_TestChunkerSnapshot --- tests_integration_test_chunker_snapshot_py_TestChunkerSnapshot_setUp
-    tests_integration_test_chunker_snapshot_py_TestChunkerSnapshot_setUp --> call_FastWordEstimator
-        tests_integration_test_chunker_snapshot_py_TestChunkerSnapshot --- tests_integration_test_chunker_snapshot_py_TestChunkerSnapshot_test_snapshot_verification
-    tests_integration_test_chunker_snapshot_py_TestChunkerSnapshot_test_snapshot_verification --> call___exists
-    tests_integration_test_chunker_snapshot_py_TestChunkerSnapshot_test_snapshot_verification --> call_self_skipTest
-    tests_integration_test_chunker_snapshot_py_TestChunkerSnapshot_test_snapshot_verification --> call_open
-    tests_integration_test_chunker_snapshot_py_TestChunkerSnapshot_test_snapshot_verification --> call_json_load
-    tests_integration_test_chunker_snapshot_py_TestChunkerSnapshot_test_snapshot_verification --> call_ASTNode
-    tests_integration_test_chunker_snapshot_py_TestChunkerSnapshot_test_snapshot_verification --> call_StructuralNodeType
-    tests_integration_test_chunker_snapshot_py_TestChunkerSnapshot_test_snapshot_verification --> call_ContentNodeType
-    tests_integration_test_chunker_snapshot_py_TestChunkerSnapshot_test_snapshot_verification --> call_d_get
-    tests_integration_test_chunker_snapshot_py_TestChunkerSnapshot_test_snapshot_verification --> call_build_semantic_chunks_as_units
-    tests_integration_test_chunker_snapshot_py_TestChunkerSnapshot_test_snapshot_verification --> call_hasattr
-    tests_integration_test_chunker_snapshot_py_TestChunkerSnapshot_test_snapshot_verification --> call_list
-    tests_integration_test_chunker_snapshot_py_TestChunkerSnapshot_test_snapshot_verification --> call_json_dump
-    tests_integration_test_chunker_snapshot_py_TestChunkerSnapshot_test_snapshot_verification --> call_logger_info
-    tests_integration_test_chunker_snapshot_py_TestChunkerSnapshot_test_snapshot_verification --> call_self_assertEqual
-    tests_integration_test_chunker_snapshot_py_TestChunkerSnapshot_test_snapshot_verification --> call_len
-    tests_integration_test_chunker_snapshot_py_TestChunkerSnapshot_test_snapshot_verification --> call_zip
-        tests_integration_test_cli_router_py_TestCLIRoutingAndArgparse --- tests_integration_test_cli_router_py_TestCLIRoutingAndArgparse_test_translate_subcommand_routing
-    tests_integration_test_cli_router_py_TestCLIRoutingAndArgparse_test_translate_subcommand_routing --> call_argparse_Namespace
-    tests_integration_test_cli_router_py_TestCLIRoutingAndArgparse_test_translate_subcommand_routing --> call_main
-    tests_integration_test_cli_router_py_TestCLIRoutingAndArgparse_test_translate_subcommand_routing --> call_mock_handle_assert_called_once_with
-    tests_integration_test_cli_router_py_TestCLIRoutingAndArgparse_test_translate_subcommand_routing --> call_patch
-        tests_integration_test_cli_router_py_TestCLIRoutingAndArgparse --- tests_integration_test_cli_router_py_TestCLIRoutingAndArgparse_test_resume_subcommand_routing
-    tests_integration_test_cli_router_py_TestCLIRoutingAndArgparse_test_resume_subcommand_routing --> call_argparse_Namespace
-    tests_integration_test_cli_router_py_TestCLIRoutingAndArgparse_test_resume_subcommand_routing --> call_main
-    tests_integration_test_cli_router_py_TestCLIRoutingAndArgparse_test_resume_subcommand_routing --> call_mock_handle_assert_called_once_with
-    tests_integration_test_cli_router_py_TestCLIRoutingAndArgparse_test_resume_subcommand_routing --> call_patch
-        tests_integration_test_cli_router_py_TestCLIRoutingAndArgparse --- tests_integration_test_cli_router_py_TestCLIRoutingAndArgparse_test_sweep_subcommand_routing
-    tests_integration_test_cli_router_py_TestCLIRoutingAndArgparse_test_sweep_subcommand_routing --> call_argparse_Namespace
-    tests_integration_test_cli_router_py_TestCLIRoutingAndArgparse_test_sweep_subcommand_routing --> call_main
-    tests_integration_test_cli_router_py_TestCLIRoutingAndArgparse_test_sweep_subcommand_routing --> call_mock_handle_assert_called_once_with
-    tests_integration_test_cli_router_py_TestCLIRoutingAndArgparse_test_sweep_subcommand_routing --> call_patch
-        tests_integration_test_cli_router_py_TestCLIRoutingAndArgparse --- tests_integration_test_cli_router_py_TestCLIRoutingAndArgparse_test_status_subcommand_routing
-    tests_integration_test_cli_router_py_TestCLIRoutingAndArgparse_test_status_subcommand_routing --> call_argparse_Namespace
-    tests_integration_test_cli_router_py_TestCLIRoutingAndArgparse_test_status_subcommand_routing --> call_main
-    tests_integration_test_cli_router_py_TestCLIRoutingAndArgparse_test_status_subcommand_routing --> call_mock_handle_assert_called_once_with
-    tests_integration_test_cli_router_py_TestCLIRoutingAndArgparse_test_status_subcommand_routing --> call_patch
-        tests_integration_test_e2e_walking_skeleton_py_TestTrueWalkingSkeletonE2E --- tests_integration_test_e2e_walking_skeleton_py_TestTrueWalkingSkeletonE2E_setUp
-    tests_integration_test_e2e_walking_skeleton_py_TestTrueWalkingSkeletonE2E_setUp --> call___exists
-    tests_integration_test_e2e_walking_skeleton_py_TestTrueWalkingSkeletonE2E_setUp --> call_self_skipTest
-    tests_integration_test_e2e_walking_skeleton_py_TestTrueWalkingSkeletonE2E_setUp --> call_FastWordEstimator
-    tests_integration_test_e2e_walking_skeleton_py_TestTrueWalkingSkeletonE2E_setUp --> call_PromptBuilder
-    tests_integration_test_e2e_walking_skeleton_py_TestTrueWalkingSkeletonE2E_setUp --> call_BypassProvider
-    tests_integration_test_e2e_walking_skeleton_py_TestTrueWalkingSkeletonE2E_setUp --> call_CircuitBreakerRegistry_get_breaker
-    tests_integration_test_e2e_walking_skeleton_py_TestTrueWalkingSkeletonE2E_setUp --> call_ResilientProvider
-    tests_integration_test_e2e_walking_skeleton_py_TestTrueWalkingSkeletonE2E_setUp --> call_QuotaManager
-    tests_integration_test_e2e_walking_skeleton_py_TestTrueWalkingSkeletonE2E_setUp --> call_RateLimitedProvider
-    tests_integration_test_e2e_walking_skeleton_py_TestTrueWalkingSkeletonE2E_setUp --> call_CachedLLMProvider
-    tests_integration_test_e2e_walking_skeleton_py_TestTrueWalkingSkeletonE2E_setUp --> call_asyncio_run
-    tests_integration_test_e2e_walking_skeleton_py_TestTrueWalkingSkeletonE2E_setUp --> call___initialize
-    tests_integration_test_e2e_walking_skeleton_py_TestTrueWalkingSkeletonE2E_setUp --> call_MagicMock
-    tests_integration_test_e2e_walking_skeleton_py_TestTrueWalkingSkeletonE2E_setUp --> call_AsyncDispatcher
-    tests_integration_test_e2e_walking_skeleton_py_TestTrueWalkingSkeletonE2E_setUp --> call_ValidationPipeline
-    tests_integration_test_e2e_walking_skeleton_py_TestTrueWalkingSkeletonE2E_setUp --> call_DocumentAssembler
-        tests_integration_test_e2e_walking_skeleton_py_TestTrueWalkingSkeletonE2E --- tests_integration_test_e2e_walking_skeleton_py_TestTrueWalkingSkeletonE2E_tearDown
-    tests_integration_test_e2e_walking_skeleton_py_TestTrueWalkingSkeletonE2E_tearDown --> call___exists
-    tests_integration_test_e2e_walking_skeleton_py_TestTrueWalkingSkeletonE2E_tearDown --> call_os_remove
-        tests_integration_test_e2e_walking_skeleton_py_TestTrueWalkingSkeletonE2E --- tests_integration_test_e2e_walking_skeleton_py_TestTrueWalkingSkeletonE2E__bridge_ast_to_units
-    tests_integration_test_e2e_walking_skeleton_py_TestTrueWalkingSkeletonE2E__bridge_ast_to_units --> call_enumerate
-    tests_integration_test_e2e_walking_skeleton_py_TestTrueWalkingSkeletonE2E__bridge_ast_to_units --> call_node_get
-    tests_integration_test_e2e_walking_skeleton_py_TestTrueWalkingSkeletonE2E__bridge_ast_to_units --> call_payload_strip
-    tests_integration_test_e2e_walking_skeleton_py_TestTrueWalkingSkeletonE2E__bridge_ast_to_units --> call___hexdigest
-    tests_integration_test_e2e_walking_skeleton_py_TestTrueWalkingSkeletonE2E__bridge_ast_to_units --> call_hashlib_sha256
-    tests_integration_test_e2e_walking_skeleton_py_TestTrueWalkingSkeletonE2E__bridge_ast_to_units --> call_payload_encode
-    tests_integration_test_e2e_walking_skeleton_py_TestTrueWalkingSkeletonE2E__bridge_ast_to_units --> call_units_append
-    tests_integration_test_e2e_walking_skeleton_py_TestTrueWalkingSkeletonE2E__bridge_ast_to_units --> call_TranslationUnit
-    tests_integration_test_e2e_walking_skeleton_py_TestTrueWalkingSkeletonE2E__bridge_ast_to_units --> call_max
-    tests_integration_test_e2e_walking_skeleton_py_TestTrueWalkingSkeletonE2E__bridge_ast_to_units --> call_len
-        tests_integration_test_golden_parser_py_TestGoldenParser --- tests_integration_test_golden_parser_py_TestGoldenParser_setUp
-    tests_integration_test_golden_parser_py_TestGoldenParser_setUp --> call_PdfParserAdapter
-    tests_integration_test_golden_parser_py_TestGoldenParser_setUp --> call___exists
-    tests_integration_test_golden_parser_py_TestGoldenParser_setUp --> call_FileNotFoundError
-        tests_integration_test_golden_parser_py_TestGoldenParser --- tests_integration_test_golden_parser_py_TestGoldenParser__generate_fingerprint
-    tests_integration_test_golden_parser_py_TestGoldenParser__generate_fingerprint --> call_hasattr
-    tests_integration_test_golden_parser_py_TestGoldenParser__generate_fingerprint --> call_str
-    tests_integration_test_golden_parser_py_TestGoldenParser__generate_fingerprint --> call_distribution_get
-    tests_integration_test_golden_parser_py_TestGoldenParser__generate_fingerprint --> call_sequence_append
-    tests_integration_test_golden_parser_py_TestGoldenParser__generate_fingerprint --> call_len
-    tests_integration_test_golden_parser_py_TestGoldenParser__generate_fingerprint --> call_content_str_strip
-        tests_integration_test_golden_parser_py_TestGoldenParser --- tests_integration_test_golden_parser_py_TestGoldenParser_test_parser_runtime_matches_golden_fingerprint
-    tests_integration_test_golden_parser_py_TestGoldenParser_test_parser_runtime_matches_golden_fingerprint --> call___exists
-    tests_integration_test_golden_parser_py_TestGoldenParser_test_parser_runtime_matches_golden_fingerprint --> call_self_skipTest
-    tests_integration_test_golden_parser_py_TestGoldenParser_test_parser_runtime_matches_golden_fingerprint --> call___parse
-    tests_integration_test_golden_parser_py_TestGoldenParser_test_parser_runtime_matches_golden_fingerprint --> call_self__generate_fingerprint
-    tests_integration_test_golden_parser_py_TestGoldenParser_test_parser_runtime_matches_golden_fingerprint --> call_open
-    tests_integration_test_golden_parser_py_TestGoldenParser_test_parser_runtime_matches_golden_fingerprint --> call_json_load
-    tests_integration_test_golden_parser_py_TestGoldenParser_test_parser_runtime_matches_golden_fingerprint --> call_self_assertEqual
-    tests_integration_test_golden_parser_py_TestGoldenParser_test_parser_runtime_matches_golden_fingerprint --> call_enumerate
-    tests_integration_test_golden_parser_py_TestGoldenParser_test_parser_runtime_matches_golden_fingerprint --> call_abs
-    tests_integration_test_golden_parser_py_TestGoldenParser_test_parser_runtime_matches_golden_fingerprint --> call_self_assertLessEqual
-    tests_integration_test_healing_concurrency_py_test_telemetry_registry_async_concurrency --> call_HealingTelemetryRegistry
-    tests_integration_test_healing_concurrency_py_test_telemetry_registry_async_concurrency --> call_range
-    tests_integration_test_healing_concurrency_py_test_telemetry_registry_async_concurrency --> call_HealingEvent
-    tests_integration_test_healing_concurrency_py_test_telemetry_registry_async_concurrency --> call_registry_record
-    tests_integration_test_healing_concurrency_py_test_telemetry_registry_async_concurrency --> call_asyncio_sleep
-    tests_integration_test_healing_concurrency_py_test_telemetry_registry_async_concurrency --> call__async_worker
-    tests_integration_test_healing_concurrency_py_test_telemetry_registry_async_concurrency --> call_asyncio_gather
-    tests_integration_test_healing_concurrency_py_test_telemetry_registry_async_concurrency --> call_asyncio_run
-    tests_integration_test_healing_concurrency_py_test_telemetry_registry_async_concurrency --> call__main_orchestrator
-    tests_integration_test_healing_concurrency_py_test_telemetry_registry_async_concurrency --> call_registry_get_events
-    tests_integration_test_healing_concurrency_py_test_telemetry_registry_async_concurrency --> call_len
-    tests_integration_test_healing_concurrency_py_test_telemetry_registry_async_concurrency --> call_registry_get_aggregate_metrics
-        tests_integration_test_healing_concurrency_py_ContextDrivenMockValidationPipeline --- tests_integration_test_healing_concurrency_py_ContextDrivenMockValidationPipeline___init__
-    tests_integration_test_healing_concurrency_py_ContextDrivenMockValidationPipeline___init__ --> call_____init__
-    tests_integration_test_healing_concurrency_py_ContextDrivenMockValidationPipeline___init__ --> call_super
-        tests_integration_test_healing_concurrency_py_ContextDrivenMockValidationPipeline --- tests_integration_test_healing_concurrency_py_ContextDrivenMockValidationPipeline_validate_chunk
-    tests_integration_test_healing_concurrency_py_ContextDrivenMockValidationPipeline_validate_chunk --> call___get
-    tests_integration_test_healing_concurrency_py_ContextDrivenMockValidationPipeline_validate_chunk --> call_ValidationResult
-    tests_integration_test_healing_concurrency_py_test_healing_pipeline_emits_full_audit_on_rollback --> call_ContextDrivenMockValidationPipeline
-    tests_integration_test_healing_concurrency_py_test_healing_pipeline_emits_full_audit_on_rollback --> call_HealingTelemetryRegistry
-    tests_integration_test_healing_concurrency_py_test_healing_pipeline_emits_full_audit_on_rollback --> call_HealingPipeline
-    tests_integration_test_healing_concurrency_py_test_healing_pipeline_emits_full_audit_on_rollback --> call_EOFBraceClosureStrategy
-    tests_integration_test_healing_concurrency_py_test_healing_pipeline_emits_full_audit_on_rollback --> call_ValidationContext
-    tests_integration_test_healing_concurrency_py_test_healing_pipeline_emits_full_audit_on_rollback --> call_ValidationResult
-    tests_integration_test_healing_concurrency_py_test_healing_pipeline_emits_full_audit_on_rollback --> call_HealingContext
-    tests_integration_test_healing_concurrency_py_test_healing_pipeline_emits_full_audit_on_rollback --> call_pipeline_heal_and_revalidate
-    tests_integration_test_healing_concurrency_py_test_healing_pipeline_emits_full_audit_on_rollback --> call_registry_get_events
-    tests_integration_test_healing_concurrency_py_test_healing_pipeline_emits_full_audit_on_rollback --> call_len
-        tests_integration_test_healing_e2e_telemetry_py_MockValidationPipeline --- tests_integration_test_healing_e2e_telemetry_py_MockValidationPipeline___init__
-    tests_integration_test_healing_e2e_telemetry_py_MockValidationPipeline___init__ --> call_____init__
-    tests_integration_test_healing_e2e_telemetry_py_MockValidationPipeline___init__ --> call_super
-        tests_integration_test_healing_e2e_telemetry_py_MockValidationPipeline --- tests_integration_test_healing_e2e_telemetry_py_MockValidationPipeline_validate_chunk
-    tests_integration_test_healing_e2e_telemetry_py_MockValidationPipeline_validate_chunk --> call_ValidationResult
-    tests_integration_test_healing_e2e_telemetry_py__builder --> call_MockValidationPipeline
-    tests_integration_test_healing_e2e_telemetry_py__builder --> call_MarkdownLeakageHealingStrategy
-    tests_integration_test_healing_e2e_telemetry_py__builder --> call_EOFBraceClosureStrategy
-    tests_integration_test_healing_e2e_telemetry_py__builder --> call_EOFMathClosureStrategy
-    tests_integration_test_healing_e2e_telemetry_py__builder --> call_HealingTelemetryRegistry
-    tests_integration_test_healing_e2e_telemetry_py__builder --> call_HealingPipeline
-    tests_integration_test_healing_e2e_telemetry_py__make_ctx --> call_ValidationContext
-    tests_integration_test_healing_e2e_telemetry_py__make_ctx --> call_ValidationResult
-    tests_integration_test_healing_e2e_telemetry_py__make_ctx --> call_HealingContext
-    tests_integration_test_healing_e2e_telemetry_py_test_e2e_case_a_markdown_leakage --> call_build_pipeline_and_registry
-    tests_integration_test_healing_e2e_telemetry_py_test_e2e_case_a_markdown_leakage --> call__make_ctx
-    tests_integration_test_healing_e2e_telemetry_py_test_e2e_case_a_markdown_leakage --> call_pipeline_heal_and_revalidate
-    tests_integration_test_healing_e2e_telemetry_py_test_e2e_case_a_markdown_leakage --> call_registry_get_events
-    tests_integration_test_healing_e2e_telemetry_py_test_e2e_case_b_unbalanced_braces --> call_build_pipeline_and_registry
-    tests_integration_test_healing_e2e_telemetry_py_test_e2e_case_b_unbalanced_braces --> call__make_ctx
-    tests_integration_test_healing_e2e_telemetry_py_test_e2e_case_b_unbalanced_braces --> call_pipeline_heal_and_revalidate
-    tests_integration_test_healing_e2e_telemetry_py_test_e2e_case_b_unbalanced_braces --> call_registry_get_events
-    tests_integration_test_healing_e2e_telemetry_py_test_e2e_case_c_math_truncation --> call_build_pipeline_and_registry
-    tests_integration_test_healing_e2e_telemetry_py_test_e2e_case_c_math_truncation --> call__make_ctx
-    tests_integration_test_healing_e2e_telemetry_py_test_e2e_case_c_math_truncation --> call_pipeline_heal_and_revalidate
-    tests_integration_test_healing_e2e_telemetry_py_test_e2e_rollback_guarantee_on_revalidation_failure --> call_build_pipeline_and_registry
-    tests_integration_test_healing_e2e_telemetry_py_test_e2e_rollback_guarantee_on_revalidation_failure --> call__make_ctx
-    tests_integration_test_healing_e2e_telemetry_py_test_e2e_rollback_guarantee_on_revalidation_failure --> call_pipeline_heal_and_revalidate
-    tests_integration_test_healing_e2e_telemetry_py_test_e2e_rollback_guarantee_on_revalidation_failure --> call_registry_get_events
-    tests_integration_test_healing_e2e_telemetry_py_test_e2e_telemetry_aggregate_metrics --> call_build_pipeline_and_registry
-    tests_integration_test_healing_e2e_telemetry_py_test_e2e_telemetry_aggregate_metrics --> call_pipeline_heal_and_revalidate
-    tests_integration_test_healing_e2e_telemetry_py_test_e2e_telemetry_aggregate_metrics --> call__make_ctx
-    tests_integration_test_healing_e2e_telemetry_py_test_e2e_telemetry_aggregate_metrics --> call_registry_get_aggregate_metrics
-        tests_integration_test_pipeline_orchestration_py_FakeChunker --- tests_integration_test_pipeline_orchestration_py_FakeChunker_chunk
-    tests_integration_test_pipeline_orchestration_py_FakeChunker_chunk --> call_TranslationUnit
-    tests_integration_test_pipeline_orchestration_py_FakeChunker_chunk --> call_max
-    tests_integration_test_pipeline_orchestration_py_FakeChunker_chunk --> call_len
-        tests_integration_test_pipeline_orchestration_py_TestPipelineOrchestration --- tests_integration_test_pipeline_orchestration_py_TestPipelineOrchestration_setUp
-    tests_integration_test_pipeline_orchestration_py_TestPipelineOrchestration_setUp --> call_sqlite3_connect
-    tests_integration_test_pipeline_orchestration_py_TestPipelineOrchestration_setUp --> call___execute
-    tests_integration_test_pipeline_orchestration_py_TestPipelineOrchestration_setUp --> call_FSMRepository
-    tests_integration_test_pipeline_orchestration_py_TestPipelineOrchestration_setUp --> call_DocumentCommandHandler
-    tests_integration_test_pipeline_orchestration_py_TestPipelineOrchestration_setUp --> call_FSMStateStore
-    tests_integration_test_pipeline_orchestration_py_TestPipelineOrchestration_setUp --> call_build_pipeline
-    tests_integration_test_pipeline_orchestration_py_TestPipelineOrchestration_setUp --> call_FakeChunker
-    tests_integration_test_pipeline_orchestration_py_TestPipelineOrchestration_setUp --> call_FakeDispatcher
-    tests_integration_test_pipeline_orchestration_py_TestPipelineOrchestration_setUp --> call___exists
-    tests_integration_test_pipeline_orchestration_py_TestPipelineOrchestration_setUp --> call_FileNotFoundError
-        tests_integration_test_real_e2e_py_FinOpsControlledChunker --- tests_integration_test_real_e2e_py_FinOpsControlledChunker_chunk
-    tests_integration_test_real_e2e_py_FinOpsControlledChunker_chunk --> call_TranslationUnit
-    tests_integration_test_real_e2e_py_FinOpsControlledChunker_chunk --> call_min
-    tests_integration_test_real_e2e_py_FinOpsControlledChunker_chunk --> call_max
-    tests_integration_test_real_e2e_py_FinOpsControlledChunker_chunk --> call_len
-        tests_integration_test_real_e2e_py_TestRealE2EFinOps --- tests_integration_test_real_e2e_py_TestRealE2EFinOps_setUp
-    tests_integration_test_real_e2e_py_TestRealE2EFinOps_setUp --> call_uuid_uuid4
-    tests_integration_test_real_e2e_py_TestRealE2EFinOps_setUp --> call_FastWordEstimator
-    tests_integration_test_real_e2e_py_TestRealE2EFinOps_setUp --> call_PromptBuilder
-    tests_integration_test_real_e2e_py_TestRealE2EFinOps_setUp --> call_BypassProvider
-    tests_integration_test_real_e2e_py_TestRealE2EFinOps_setUp --> call_CircuitBreakerRegistry_get_breaker
-    tests_integration_test_real_e2e_py_TestRealE2EFinOps_setUp --> call_ResilientProvider
-    tests_integration_test_real_e2e_py_TestRealE2EFinOps_setUp --> call_QuotaManager
-    tests_integration_test_real_e2e_py_TestRealE2EFinOps_setUp --> call_RateLimitedProvider
-    tests_integration_test_real_e2e_py_TestRealE2EFinOps_setUp --> call_SyncProviderBridge
-    tests_integration_test_real_e2e_py_TestRealE2EFinOps_setUp --> call_MagicMock
-    tests_integration_test_real_e2e_py_TestRealE2EFinOps_setUp --> call_AsyncDispatcher
-    tests_integration_test_real_e2e_py_TestRealE2EFinOps_setUp --> call_build_pipeline
-    tests_integration_test_real_e2e_py_TestRealE2EFinOps_setUp --> call_FinOpsControlledChunker
-    tests_integration_test_real_e2e_py_TestRealE2EFinOps_setUp --> call_fsm_db_execute
-    tests_integration_test_real_e2e_py_TestRealE2EFinOps_setUp --> call_fsm_db_commit
-        tests_integration_test_real_e2e_py_TestRealE2EFinOps --- tests_integration_test_real_e2e_py_TestRealE2EFinOps_tearDown
-    tests_integration_test_real_e2e_py_TestRealE2EFinOps_tearDown --> call___shutdown
-        tests_integration_test_real_paper_py_TestRealPaperIntegration --- tests_integration_test_real_paper_py_TestRealPaperIntegration_setUp
-    tests_integration_test_real_paper_py_TestRealPaperIntegration_setUp --> call_os_getenv
-    tests_integration_test_real_paper_py_TestRealPaperIntegration_setUp --> call___exists
-    tests_integration_test_real_paper_py_TestRealPaperIntegration_setUp --> call_self_skipTest
-        tests_integration_test_real_paper_py_TestRealPaperIntegration --- tests_integration_test_real_paper_py_TestRealPaperIntegration_test_parser_and_validation_e2e_local
-    tests_integration_test_real_paper_py_TestRealPaperIntegration_test_parser_and_validation_e2e_local --> call_parse_pdf
-    tests_integration_test_real_paper_py_TestRealPaperIntegration_test_parser_and_validation_e2e_local --> call_ASTHealthReport_from_ast
-    tests_integration_test_real_paper_py_TestRealPaperIntegration_test_parser_and_validation_e2e_local --> call_print
-    tests_integration_test_real_paper_py_TestRealPaperIntegration_test_parser_and_validation_e2e_local --> call_ASTValidator_validate
-    tests_integration_test_real_paper_py_TestRealPaperIntegration_test_parser_and_validation_e2e_local --> call_self_assertGreater
-    tests_integration_test_real_paper_py_TestRealPaperIntegration_test_parser_and_validation_e2e_local --> call_logger_info
-    tests_integration_test_real_paper_py_TestRealPaperIntegration_test_parser_and_validation_e2e_local --> call_self_fail
-        tests_integration_test_real_parser_pipeline_py_TestRealParserIsolation --- tests_integration_test_real_parser_pipeline_py_TestRealParserIsolation_setUp
-    tests_integration_test_real_parser_pipeline_py_TestRealParserIsolation_setUp --> call_PdfParserAdapter
-    tests_integration_test_real_parser_pipeline_py_TestRealParserIsolation_setUp --> call___exists
-    tests_integration_test_real_parser_pipeline_py_TestRealParserIsolation_setUp --> call_FileNotFoundError
-        tests_integration_test_real_parser_pipeline_py_TestRealParserIsolation --- tests_integration_test_real_parser_pipeline_py_TestRealParserIsolation_test_parser_adapter_extracts_and_verifies_structural_presence
-    tests_integration_test_real_parser_pipeline_py_TestRealParserIsolation_test_parser_adapter_extracts_and_verifies_structural_presence --> call___parse
-    tests_integration_test_real_parser_pipeline_py_TestRealParserIsolation_test_parser_adapter_extracts_and_verifies_structural_presence --> call_self_assertIsInstance
-    tests_integration_test_real_parser_pipeline_py_TestRealParserIsolation_test_parser_adapter_extracts_and_verifies_structural_presence --> call_self_assertGreater
-    tests_integration_test_real_parser_pipeline_py_TestRealParserIsolation_test_parser_adapter_extracts_and_verifies_structural_presence --> call_len
-    tests_integration_test_real_parser_pipeline_py_TestRealParserIsolation_test_parser_adapter_extracts_and_verifies_structural_presence --> call_self_assertIsNotNone
-        tests_integration_test_recovery_flow_py_MockComponent --- tests_integration_test_recovery_flow_py_MockComponent_parse
-        tests_integration_test_recovery_flow_py_MockComponent --- tests_integration_test_recovery_flow_py_MockComponent_chunk
-        tests_integration_test_recovery_flow_py_MockComponent --- tests_integration_test_recovery_flow_py_MockComponent_assemble
-    tests_integration_test_recovery_flow_py_MockComponent_assemble --> call_ReconstructedDocument
-        tests_integration_test_recovery_flow_py_MockComponent --- tests_integration_test_recovery_flow_py_MockComponent_build
-    tests_integration_test_recovery_flow_py_MockComponent_build --> call_TranslationAuditSummary
-        tests_integration_test_recovery_flow_py_TestRecoveryAndResumeEndToEnd --- tests_integration_test_recovery_flow_py_TestRecoveryAndResumeEndToEnd_setUpClass
-    tests_integration_test_recovery_flow_py_TestRecoveryAndResumeEndToEnd_setUpClass --> call_str
-    tests_integration_test_recovery_flow_py_TestRecoveryAndResumeEndToEnd_setUpClass --> call___exists
-    tests_integration_test_recovery_flow_py_TestRecoveryAndResumeEndToEnd_setUpClass --> call_os_remove
-    tests_integration_test_recovery_flow_py_TestRecoveryAndResumeEndToEnd_setUpClass --> call_get_connection
-    tests_integration_test_recovery_flow_py_TestRecoveryAndResumeEndToEnd_setUpClass --> call_conn_execute
-    tests_integration_test_recovery_flow_py_TestRecoveryAndResumeEndToEnd_setUpClass --> call_conn_commit
-    tests_integration_test_recovery_flow_py_TestRecoveryAndResumeEndToEnd_setUpClass --> call_conn_close
-        tests_integration_test_recovery_flow_py_TestRecoveryAndResumeEndToEnd --- tests_integration_test_recovery_flow_py_TestRecoveryAndResumeEndToEnd_test_complete_crash_recovery_and_resume_lifecycle
-    tests_integration_test_recovery_flow_py_TestRecoveryAndResumeEndToEnd_test_complete_crash_recovery_and_resume_lifecycle --> call_get_connection
-    tests_integration_test_recovery_flow_py_TestRecoveryAndResumeEndToEnd_test_complete_crash_recovery_and_resume_lifecycle --> call_FSMRepository
-    tests_integration_test_recovery_flow_py_TestRecoveryAndResumeEndToEnd_test_complete_crash_recovery_and_resume_lifecycle --> call_fsm_repo_initialize_document
-    tests_integration_test_recovery_flow_py_TestRecoveryAndResumeEndToEnd_test_complete_crash_recovery_and_resume_lifecycle --> call_time_time
-    tests_integration_test_recovery_flow_py_TestRecoveryAndResumeEndToEnd_test_complete_crash_recovery_and_resume_lifecycle --> call_conn_execute
-    tests_integration_test_recovery_flow_py_TestRecoveryAndResumeEndToEnd_test_complete_crash_recovery_and_resume_lifecycle --> call_conn_commit
-    tests_integration_test_recovery_flow_py_TestRecoveryAndResumeEndToEnd_test_complete_crash_recovery_and_resume_lifecycle --> call_fsm_repo_get_status
-    tests_integration_test_recovery_flow_py_TestRecoveryAndResumeEndToEnd_test_complete_crash_recovery_and_resume_lifecycle --> call_self_assertEqual
-    tests_integration_test_recovery_flow_py_TestRecoveryAndResumeEndToEnd_test_complete_crash_recovery_and_resume_lifecycle --> call_conn_close
-    tests_integration_test_recovery_flow_py_TestRecoveryAndResumeEndToEnd_test_complete_crash_recovery_and_resume_lifecycle --> call_AbandonedProcessWatchdog
-    tests_integration_test_recovery_flow_py_TestRecoveryAndResumeEndToEnd_test_complete_crash_recovery_and_resume_lifecycle --> call_watchdog_execute_sweep
-    tests_integration_test_recovery_flow_py_TestRecoveryAndResumeEndToEnd_test_complete_crash_recovery_and_resume_lifecycle --> call_OnDemandResumeManager
-    tests_integration_test_recovery_flow_py_TestRecoveryAndResumeEndToEnd_test_complete_crash_recovery_and_resume_lifecycle --> call_self_assertTrue
-    tests_integration_test_recovery_flow_py_TestRecoveryAndResumeEndToEnd_test_complete_crash_recovery_and_resume_lifecycle --> call_resumer_rescue_stalled_document
-    tests_integration_test_recovery_flow_py_TestRecoveryAndResumeEndToEnd_test_complete_crash_recovery_and_resume_lifecycle --> call_DocumentCommandHandler
-    tests_integration_test_recovery_flow_py_TestRecoveryAndResumeEndToEnd_test_complete_crash_recovery_and_resume_lifecycle --> call_FSMStateStore
-    tests_integration_test_recovery_flow_py_TestRecoveryAndResumeEndToEnd_test_complete_crash_recovery_and_resume_lifecycle --> call_MockComponent
-    tests_integration_test_recovery_flow_py_TestRecoveryAndResumeEndToEnd_test_complete_crash_recovery_and_resume_lifecycle --> call_TranslationPipeline
-    tests_integration_test_recovery_flow_py_TestRecoveryAndResumeEndToEnd_test_complete_crash_recovery_and_resume_lifecycle --> call_TranslationJob
-    tests_integration_test_recovery_flow_py_TestRecoveryAndResumeEndToEnd_test_complete_crash_recovery_and_resume_lifecycle --> call_asyncio_run
-    tests_integration_test_recovery_flow_py_TestRecoveryAndResumeEndToEnd_test_complete_crash_recovery_and_resume_lifecycle --> call_pipeline_execute
-        tests_integration_test_recovery_flow_py_TestRecoveryAndResumeEndToEnd --- tests_integration_test_recovery_flow_py_TestRecoveryAndResumeEndToEnd_tearDownClass
-    tests_integration_test_recovery_flow_py_TestRecoveryAndResumeEndToEnd_tearDownClass --> call_time_sleep
-    tests_integration_test_recovery_flow_py_TestRecoveryAndResumeEndToEnd_tearDownClass --> call___exists
-    tests_integration_test_recovery_flow_py_TestRecoveryAndResumeEndToEnd_tearDownClass --> call_os_remove
-        tests_integration_test_translation_layer_py_TestTranslationLayerIntegration --- tests_integration_test_translation_layer_py_TestTranslationLayerIntegration_setUp
-    tests_integration_test_translation_layer_py_TestTranslationLayerIntegration_setUp --> call_uuid_uuid4
-    tests_integration_test_translation_layer_py_TestTranslationLayerIntegration_setUp --> call_FastWordEstimator
-    tests_integration_test_translation_layer_py_TestTranslationLayerIntegration_setUp --> call_PromptBuilder
-    tests_integration_test_translation_layer_py_TestTranslationLayerIntegration_setUp --> call_BypassProvider
-    tests_integration_test_translation_layer_py_TestTranslationLayerIntegration_setUp --> call_CircuitBreakerRegistry_get_breaker
-    tests_integration_test_translation_layer_py_TestTranslationLayerIntegration_setUp --> call_ResilientProvider
-    tests_integration_test_translation_layer_py_TestTranslationLayerIntegration_setUp --> call_QuotaManager
-    tests_integration_test_translation_layer_py_TestTranslationLayerIntegration_setUp --> call_RateLimitedProvider
-    tests_integration_test_translation_layer_py_TestTranslationLayerIntegration_setUp --> call_CachedLLMProvider
-    tests_integration_test_translation_layer_py_TestTranslationLayerIntegration_setUp --> call_asyncio_run
-    tests_integration_test_translation_layer_py_TestTranslationLayerIntegration_setUp --> call___initialize
-    tests_integration_test_translation_layer_py_TestTranslationLayerIntegration_setUp --> call_MagicMock
-    tests_integration_test_translation_layer_py_TestTranslationLayerIntegration_setUp --> call_AsyncDispatcher
-    tests_integration_test_translation_layer_py_TestTranslationLayerIntegration_setUp --> call_ValidationPipeline
-    tests_integration_test_translation_layer_py_TestTranslationLayerIntegration_setUp --> call_DocumentAssembler
-        tests_integration_test_translation_layer_py_TestTranslationLayerIntegration --- tests_integration_test_translation_layer_py_TestTranslationLayerIntegration_tearDown
-    tests_integration_test_translation_layer_py_TestTranslationLayerIntegration_tearDown --> call___exists
-    tests_integration_test_translation_layer_py_TestTranslationLayerIntegration_tearDown --> call_os_remove
-        tests_integration_test_translation_semantics_py_TestSemanticChunkRegression --- tests_integration_test_translation_semantics_py_TestSemanticChunkRegression_setUp
-    tests_integration_test_translation_semantics_py_TestSemanticChunkRegression_setUp --> call_FastWordEstimator
-    tests_integration_test_translation_semantics_py_TestSemanticChunkRegression_setUp --> call_PromptBuilder
-    tests_integration_test_translation_semantics_py_TestSemanticChunkRegression_setUp --> call_BypassProvider
-    tests_integration_test_translation_semantics_py_TestSemanticChunkRegression_setUp --> call_CircuitBreakerRegistry_get_breaker
-    tests_integration_test_translation_semantics_py_TestSemanticChunkRegression_setUp --> call_ResilientProvider
-    tests_integration_test_translation_semantics_py_TestSemanticChunkRegression_setUp --> call_QuotaManager
-    tests_integration_test_translation_semantics_py_TestSemanticChunkRegression_setUp --> call_RateLimitedProvider
-    tests_integration_test_translation_semantics_py_TestSemanticChunkRegression_setUp --> call_SyncProviderBridge
-    tests_integration_test_translation_semantics_py_TestSemanticChunkRegression_setUp --> call_build_pipeline
-    tests_integration_test_translation_semantics_py_TestSemanticChunkRegression_setUp --> call_FakeChunker
-        tests_integration_test_translation_semantics_py_TestSemanticChunkRegression --- tests_integration_test_translation_semantics_py_TestSemanticChunkRegression_tearDown
-    tests_integration_test_translation_semantics_py_TestSemanticChunkRegression_tearDown --> call___shutdown
-        tests_integration_test_translation_semantics_py_TestSemanticChunkRegression --- tests_integration_test_translation_semantics_py_TestSemanticChunkRegression__calculate_cosine_similarity
-    tests_integration_test_translation_semantics_py_TestSemanticChunkRegression__calculate_cosine_similarity --> call_len
-    tests_integration_test_translation_semantics_py_TestSemanticChunkRegression__calculate_cosine_similarity --> call_sum
-    tests_integration_test_translation_semantics_py_TestSemanticChunkRegression__calculate_cosine_similarity --> call_zip
-    tests_integration_test_translation_semantics_py_TestSemanticChunkRegression__calculate_cosine_similarity --> call_math_sqrt
-        tests_integration_test_translation_structure_py_TestTranslationStructure --- tests_integration_test_translation_structure_py_TestTranslationStructure_setUp
-    tests_integration_test_translation_structure_py_TestTranslationStructure_setUp --> call_sqlite3_connect
-    tests_integration_test_translation_structure_py_TestTranslationStructure_setUp --> call___execute
-    tests_integration_test_translation_structure_py_TestTranslationStructure_setUp --> call_FSMRepository
-    tests_integration_test_translation_structure_py_TestTranslationStructure_setUp --> call_FSMStateStore
-    tests_integration_test_translation_structure_py_TestTranslationStructure_setUp --> call_DocumentCommandHandler
-    tests_integration_test_translation_structure_py_TestTranslationStructure_setUp --> call_build_pipeline
-    tests_integration_test_translation_structure_py_TestTranslationStructure_setUp --> call_FakeChunker
-    tests_integration_test_translation_structure_py_TestTranslationStructure_setUp --> call_FakeDispatcher
-        tests_integration_test_translation_technical_py_TestTranslationTechnical --- tests_integration_test_translation_technical_py_TestTranslationTechnical_setUp
-    tests_integration_test_translation_technical_py_TestTranslationTechnical_setUp --> call_sqlite3_connect
-    tests_integration_test_translation_technical_py_TestTranslationTechnical_setUp --> call___execute
-    tests_integration_test_translation_technical_py_TestTranslationTechnical_setUp --> call_FSMRepository
-    tests_integration_test_translation_technical_py_TestTranslationTechnical_setUp --> call_FSMStateStore
-    tests_integration_test_translation_technical_py_TestTranslationTechnical_setUp --> call_DocumentCommandHandler
-    tests_integration_test_translation_technical_py_TestTranslationTechnical_setUp --> call_build_pipeline
-    tests_integration_test_translation_technical_py_TestTranslationTechnical_setUp --> call_FakeChunker
-    tests_integration_test_translation_technical_py_TestTranslationTechnical_setUp --> call_FakeDispatcher
-        tests_integration_test_validation_integration_py_StaticMockProvider --- tests_integration_test_validation_integration_py_StaticMockProvider___init__
-        tests_integration_test_validation_integration_py_SequenceMockProvider --- tests_integration_test_validation_integration_py_SequenceMockProvider___init__
-    tests_integration_test_validation_integration_py_build_test_dispatcher --> call_MagicMock
-    tests_integration_test_validation_integration_py_build_test_dispatcher --> call_PromptBuilder
-    tests_integration_test_validation_integration_py_build_test_dispatcher --> call_AsyncDispatcher
-    tests_smoke_conftest_py_reliability_pipeline --> call_ValidationPipeline
-    tests_smoke_conftest_py_reliability_pipeline --> call_PreservationValidator
-    tests_smoke_conftest_py_reliability_pipeline --> call_LegacyValidatorAdapter
-    tests_smoke_conftest_py_reliability_pipeline --> call_pipeline_add_chunk_validator
-    tests_smoke_conftest_py_reliability_pipeline --> call_PerimeterValidator
-    tests_smoke_conftest_py_reliability_pipeline --> call_SemanticValidator
-    tests_smoke_conftest_py_reliability_pipeline --> call_VolumetricValidator
-    tests_smoke_conftest_py_reliability_pipeline --> call_pipeline_add_document_validator
-    tests_smoke_test_invariants_smoke_py_run_chunk_validation --> call_ValidationContext
-    tests_smoke_test_invariants_smoke_py_run_chunk_validation --> call_pipeline_validate_chunk
-    tests_smoke_test_invariants_smoke_py_run_doc_validation --> call_ValidationContext
-    tests_smoke_test_invariants_smoke_py_run_doc_validation --> call_pipeline_validate_document
-    tests_smoke_test_invariants_smoke_py_test_smoke_si01_unclosed_brace --> call_run_chunk_validation
-    tests_smoke_test_invariants_smoke_py_test_smoke_si01_unclosed_brace --> call_any
-    tests_smoke_test_invariants_smoke_py_test_smoke_si02_unbalanced_math --> call_run_chunk_validation
-    tests_smoke_test_invariants_smoke_py_test_smoke_si02_unbalanced_math --> call_any
-    tests_smoke_test_invariants_smoke_py_test_smoke_si03_unclosed_environment --> call_run_doc_validation
-    tests_smoke_test_invariants_smoke_py_test_smoke_si03_unclosed_environment --> call_any
-    tests_smoke_test_invariants_smoke_py_test_smoke_pi01_doi_alteration --> call_run_chunk_validation
-    tests_smoke_test_invariants_smoke_py_test_smoke_pi01_doi_alteration --> call_any
-    tests_smoke_test_invariants_smoke_py_test_smoke_pi02_url_domain_alteration --> call_run_chunk_validation
-    tests_smoke_test_invariants_smoke_py_test_smoke_pi02_url_domain_alteration --> call_any
-    tests_smoke_test_invariants_smoke_py_test_smoke_pi03_orcid_lost --> call_run_chunk_validation
-    tests_smoke_test_invariants_smoke_py_test_smoke_pi03_orcid_lost --> call_any
-    tests_smoke_test_invariants_smoke_py_test_smoke_pi04_cross_reference_lost --> call_run_doc_validation
-    tests_smoke_test_invariants_smoke_py_test_smoke_pi04_cross_reference_lost --> call_any
-    tests_smoke_test_invariants_smoke_py_test_smoke_pei01_markdown_block --> call_run_chunk_validation
-    tests_smoke_test_invariants_smoke_py_test_smoke_pei01_markdown_block --> call_any
-    tests_smoke_test_invariants_smoke_py_test_smoke_pei02_conversational_leak --> call_run_chunk_validation
-    tests_smoke_test_invariants_smoke_py_test_smoke_pei02_conversational_leak --> call_any
-    tests_smoke_test_invariants_smoke_py_test_smoke_sei01_missing_number --> call_run_chunk_validation
-    tests_smoke_test_invariants_smoke_py_test_smoke_sei01_missing_number --> call_any
-    tests_smoke_test_invariants_smoke_py_test_smoke_sei02_unit_mutation --> call_run_chunk_validation
-    tests_smoke_test_invariants_smoke_py_test_smoke_sei02_unit_mutation --> call_any
-    tests_smoke_test_invariants_smoke_py_test_smoke_vi01_ratio_contraction --> call_run_chunk_validation
-    tests_smoke_test_invariants_smoke_py_test_smoke_vi01_ratio_contraction --> call_any
-    tests_smoke_test_invariants_smoke_py_test_smoke_vi01_ratio_expansion --> call_run_chunk_validation
-    tests_smoke_test_invariants_smoke_py_test_smoke_vi01_ratio_expansion --> call_any
-    tests_unit_test_adapters_py__make_envelope --> call_PromptEnvelope
-        tests_unit_test_assembler_py_TestDocumentAssembler --- tests_unit_test_assembler_py_TestDocumentAssembler_setUp
-    tests_unit_test_assembler_py_TestDocumentAssembler_setUp --> call_DocumentAssembler
-        tests_unit_test_assembler_py_TestDocumentAssembler --- tests_unit_test_assembler_py_TestDocumentAssembler__mock_unit
-    tests_unit_test_assembler_py_TestDocumentAssembler__mock_unit --> call_TranslatedUnit
-        tests_unit_test_assembler_py_TestDocumentAssembler --- tests_unit_test_assembler_py_TestDocumentAssembler_test_successful_assembly_and_token_telemetry
-    tests_unit_test_assembler_py_TestDocumentAssembler_test_successful_assembly_and_token_telemetry --> call_self__mock_unit
-    tests_unit_test_assembler_py_TestDocumentAssembler_test_successful_assembly_and_token_telemetry --> call___assemble
-    tests_unit_test_assembler_py_TestDocumentAssembler_test_successful_assembly_and_token_telemetry --> call_self_assertEqual
-        tests_unit_test_assembler_py_TestDocumentAssembler --- tests_unit_test_assembler_py_TestDocumentAssembler_test_missing_chunk_raises_incomplete_error
-    tests_unit_test_assembler_py_TestDocumentAssembler_test_missing_chunk_raises_incomplete_error --> call_self__mock_unit
-    tests_unit_test_assembler_py_TestDocumentAssembler_test_missing_chunk_raises_incomplete_error --> call_self_assertRaises
-    tests_unit_test_assembler_py_TestDocumentAssembler_test_missing_chunk_raises_incomplete_error --> call___assemble
-    tests_unit_test_assembler_py_TestDocumentAssembler_test_missing_chunk_raises_incomplete_error --> call_self_assertEqual
-        tests_unit_test_assembler_py_TestDocumentAssembler --- tests_unit_test_assembler_py_TestDocumentAssembler_test_duplicate_chunk_raises_value_error
-    tests_unit_test_assembler_py_TestDocumentAssembler_test_duplicate_chunk_raises_value_error --> call_self__mock_unit
-    tests_unit_test_assembler_py_TestDocumentAssembler_test_duplicate_chunk_raises_value_error --> call_self_assertRaises
-    tests_unit_test_assembler_py_TestDocumentAssembler_test_duplicate_chunk_raises_value_error --> call___assemble
-    tests_unit_test_assembler_py_TestDocumentAssembler_test_duplicate_chunk_raises_value_error --> call_self_assertEqual
-    tests_unit_test_assembler_py_TestDocumentAssembler_test_duplicate_chunk_raises_value_error --> call_str
-    tests_unit_test_asset_placeholder_py_fixer --> call_StructuralAssetPlaceholder
-    tests_unit_test_asset_placeholder_py_test_canonical_placeholder_generation --> call_fixer_normalize
-    tests_unit_test_asset_placeholder_py_test_empty_content_passthrough --> call_fixer_normalize
-    tests_unit_test_ast_integrity_py_validator --> call_ASTIntegrityValidator
-    tests_unit_test_ast_integrity_py_test_empty_ast_triggers_warning_only --> call_validator_validate_ast
-    tests_unit_test_ast_integrity_py_test_empty_ast_triggers_warning_only --> call_any
-    tests_unit_test_ast_integrity_py_test_duplicate_node_id_collision --> call_ASTNode
-    tests_unit_test_ast_integrity_py_test_duplicate_node_id_collision --> call_validator_validate_ast
-    tests_unit_test_ast_integrity_py_test_duplicate_node_id_collision --> call_any
-    tests_unit_test_ast_integrity_py_test_malformed_placeholder_syntax --> call_ASTNode
-    tests_unit_test_ast_integrity_py_test_malformed_placeholder_syntax --> call_validator_validate_ast
-    tests_unit_test_ast_integrity_py_test_malformed_placeholder_syntax --> call_any
-    tests_unit_test_ast_integrity_py_test_orphan_list_item_emits_info_only --> call_ASTNode
-    tests_unit_test_ast_integrity_py_test_orphan_list_item_emits_info_only --> call_validator_validate_ast
-    tests_unit_test_ast_integrity_py_test_orphan_list_item_emits_info_only --> call_any
-        tests_unit_test_cache_provider_py_MockLowLevelProvider --- tests_unit_test_cache_provider_py_MockLowLevelProvider___init__
-    tests_unit_test_cache_provider_py_MockLowLevelProvider___init__ --> call_asyncio_Lock
-    tests_unit_test_cache_provider_py_temp_db_path --> call_tempfile_mkstemp
-    tests_unit_test_cache_provider_py_temp_db_path --> call_os_close
-    tests_unit_test_cache_provider_py_temp_db_path --> call_os_remove
-    tests_unit_test_context_enricher_py_enricher --> call_HierarchicalContextEnricher
-    tests_unit_test_context_enricher_py_test_homonym_section_isolation --> call_ASTNode
-    tests_unit_test_context_enricher_py_test_homonym_section_isolation --> call_enricher_enrich_document
-    tests_unit_test_context_enricher_py_test_no_context_document_warning --> call_ASTNode
-    tests_unit_test_context_enricher_py_test_no_context_document_warning --> call_enricher_enrich_document
-    tests_unit_test_context_enricher_py_test_no_context_document_warning --> call_any
-        tests_unit_test_context_resolver_py_FakeRegistry --- tests_unit_test_context_resolver_py_FakeRegistry___init__
-        tests_unit_test_context_resolver_py_FakeRegistry --- tests_unit_test_context_resolver_py_FakeRegistry_mappings
-        tests_unit_test_context_resolver_py_TestInMemoryContextResolver --- tests_unit_test_context_resolver_py_TestInMemoryContextResolver_setUp
-    tests_unit_test_context_resolver_py_TestInMemoryContextResolver_setUp --> call_FakeRegistry
-    tests_unit_test_context_resolver_py_TestInMemoryContextResolver_setUp --> call_InMemoryContextResolver
-        tests_unit_test_context_resolver_py_TestInMemoryContextResolver --- tests_unit_test_context_resolver_py_TestInMemoryContextResolver_test_resolve_valid_context
-    tests_unit_test_context_resolver_py_TestInMemoryContextResolver_test_resolve_valid_context --> call___resolve
-    tests_unit_test_context_resolver_py_TestInMemoryContextResolver_test_resolve_valid_context --> call_self_assertEqual
-        tests_unit_test_context_resolver_py_TestInMemoryContextResolver --- tests_unit_test_context_resolver_py_TestInMemoryContextResolver_test_resolve_unknown_context
-    tests_unit_test_context_resolver_py_TestInMemoryContextResolver_test_resolve_unknown_context --> call_self_assertRaisesRegex
-    tests_unit_test_context_resolver_py_TestInMemoryContextResolver_test_resolve_unknown_context --> call___resolve
-        tests_unit_test_context_resolver_py_TestInMemoryContextResolver --- tests_unit_test_context_resolver_py_TestInMemoryContextResolver_test_breadcrumbs_are_tuple
-    tests_unit_test_context_resolver_py_TestInMemoryContextResolver_test_breadcrumbs_are_tuple --> call___resolve
-    tests_unit_test_context_resolver_py_TestInMemoryContextResolver_test_breadcrumbs_are_tuple --> call_self_assertIsInstance
-        tests_unit_test_context_resolver_py_TestInMemoryContextResolver --- tests_unit_test_context_resolver_py_TestInMemoryContextResolver_test_resolved_context_hashable
-    tests_unit_test_context_resolver_py_TestInMemoryContextResolver_test_resolved_context_hashable --> call___resolve
-    tests_unit_test_context_resolver_py_TestInMemoryContextResolver_test_resolved_context_hashable --> call_self_assertEqual
-        tests_unit_test_context_resolver_py_TestInMemoryContextResolver --- tests_unit_test_context_resolver_py_TestInMemoryContextResolver_test_resolve_many_success_and_deduplication
-    tests_unit_test_context_resolver_py_TestInMemoryContextResolver_test_resolve_many_success_and_deduplication --> call___resolve_many
-    tests_unit_test_context_resolver_py_TestInMemoryContextResolver_test_resolve_many_success_and_deduplication --> call_self_assertEqual
-    tests_unit_test_context_resolver_py_TestInMemoryContextResolver_test_resolve_many_success_and_deduplication --> call_len
-        tests_unit_test_context_resolver_py_TestInMemoryContextResolver --- tests_unit_test_context_resolver_py_TestInMemoryContextResolver_test_resolve_many_preserves_order
-    tests_unit_test_context_resolver_py_TestInMemoryContextResolver_test_resolve_many_preserves_order --> call___resolve_many
-    tests_unit_test_context_resolver_py_TestInMemoryContextResolver_test_resolve_many_preserves_order --> call_self_assertEqual
-    tests_unit_test_context_resolver_py_TestInMemoryContextResolver_test_resolve_many_preserves_order --> call_list
-    tests_unit_test_context_resolver_py_TestInMemoryContextResolver_test_resolve_many_preserves_order --> call_res_keys
-        tests_unit_test_context_resolver_py_TestInMemoryContextResolver --- tests_unit_test_context_resolver_py_TestInMemoryContextResolver_test_resolve_many_atomic_failure
-    tests_unit_test_context_resolver_py_TestInMemoryContextResolver_test_resolve_many_atomic_failure --> call_self_assertRaisesRegex
-    tests_unit_test_context_resolver_py_TestInMemoryContextResolver_test_resolve_many_atomic_failure --> call___resolve_many
-        tests_unit_test_dispatcher_py_TestAsyncDispatcher --- tests_unit_test_dispatcher_py_TestAsyncDispatcher_setUp
-    tests_unit_test_dispatcher_py_TestAsyncDispatcher_setUp --> call_AsyncMock
-    tests_unit_test_dispatcher_py_TestAsyncDispatcher_setUp --> call_MagicMock
-    tests_unit_test_dispatcher_py_TestAsyncDispatcher_setUp --> call_PromptBuilder
-    tests_unit_test_dispatcher_py_TestAsyncDispatcher_setUp --> call_AsyncDispatcher
-        tests_unit_test_dispatcher_py_TestAsyncDispatcher --- tests_unit_test_dispatcher_py_TestAsyncDispatcher__create_mock_unit
-    tests_unit_test_dispatcher_py_TestAsyncDispatcher__create_mock_unit --> call_TranslationUnit
-        tests_unit_test_dispatcher_py_TestAsyncDispatcher --- tests_unit_test_dispatcher_py_TestAsyncDispatcher__mock_translate_side_effect
-    tests_unit_test_dispatcher_py_TestAsyncDispatcher__mock_translate_side_effect --> call_ProviderResult
-        tests_unit_test_dispatcher_validation_py_StaticMockProvider --- tests_unit_test_dispatcher_validation_py_StaticMockProvider___init__
-        tests_unit_test_dispatcher_validation_py_MockDocumentFailValidator --- tests_unit_test_dispatcher_validation_py_MockDocumentFailValidator_validate
-    tests_unit_test_dispatcher_validation_py_MockDocumentFailValidator_validate --> call_ValidationResult
-    tests_unit_test_dispatcher_validation_py_build_test_dispatcher --> call_MagicMock
-    tests_unit_test_dispatcher_validation_py_build_test_dispatcher --> call_PromptBuilder
-    tests_unit_test_dispatcher_validation_py_build_test_dispatcher --> call_AsyncDispatcher
-        tests_unit_test_healing_idempotency_py_MockValidationPipelineWithResidualFail --- tests_unit_test_healing_idempotency_py_MockValidationPipelineWithResidualFail_validate_chunk
-    tests_unit_test_healing_idempotency_py_MockValidationPipelineWithResidualFail_validate_chunk --> call_ValidationResult
-        tests_unit_test_healing_idempotency_py_MockValidationPipelinePass --- tests_unit_test_healing_idempotency_py_MockValidationPipelinePass_validate_chunk
-    tests_unit_test_healing_idempotency_py_test_markdown_healing_is_idempotent --> call_MarkdownLeakageHealingStrategy
-    tests_unit_test_healing_idempotency_py_test_markdown_healing_is_idempotent --> call_make_test_healing_context
-    tests_unit_test_healing_idempotency_py_test_markdown_healing_is_idempotent --> call_strategy_heal
-    tests_unit_test_healing_idempotency_py_test_metatext_healing_is_idempotent --> call_MetaTextLeakageHealingStrategy
-    tests_unit_test_healing_idempotency_py_test_metatext_healing_is_idempotent --> call_make_test_healing_context
-    tests_unit_test_healing_idempotency_py_test_metatext_healing_is_idempotent --> call_strategy_heal
-    tests_unit_test_healing_idempotency_py_test_healing_idempotency_not_applicable_chain --> call_MarkdownLeakageHealingStrategy
-    tests_unit_test_healing_idempotency_py_test_healing_idempotency_not_applicable_chain --> call_make_test_healing_context
-    tests_unit_test_healing_idempotency_py_test_healing_idempotency_not_applicable_chain --> call_strategy_heal
-    tests_unit_test_healing_idempotency_py_test_healing_edge_case_payload_vacio_returns_failure --> call_MarkdownLeakageHealingStrategy
-    tests_unit_test_healing_idempotency_py_test_healing_edge_case_payload_vacio_returns_failure --> call_make_test_healing_context
-    tests_unit_test_healing_idempotency_py_test_healing_edge_case_payload_vacio_returns_failure --> call_strategy_heal
-    tests_unit_test_healing_idempotency_py_test_healing_pipeline_enforces_rollback_on_residual_hard_fail --> call_MockValidationPipelineWithResidualFail
-    tests_unit_test_healing_idempotency_py_test_healing_pipeline_enforces_rollback_on_residual_hard_fail --> call_MarkdownLeakageHealingStrategy
-    tests_unit_test_healing_idempotency_py_test_healing_pipeline_enforces_rollback_on_residual_hard_fail --> call_HealingPipeline
-    tests_unit_test_healing_idempotency_py_test_healing_pipeline_enforces_rollback_on_residual_hard_fail --> call_make_test_healing_context
-    tests_unit_test_healing_idempotency_py_test_healing_pipeline_enforces_rollback_on_residual_hard_fail --> call_pipeline_heal_and_revalidate
-        tests_unit_test_legacy_adapter_py_DummyLegacyValid --- tests_unit_test_legacy_adapter_py_DummyLegacyValid_validate
-    tests_unit_test_legacy_adapter_py_DummyLegacyValid_validate --> call_ValidationError
-        tests_unit_test_legacy_adapter_py_DummyLegacyInvalid --- tests_unit_test_legacy_adapter_py_DummyLegacyInvalid_validate
-    tests_unit_test_legacy_adapter_py_DummyLegacyInvalid_validate --> call_ValidationError
-    tests_unit_test_legacy_adapter_py_test_adapter_converts_error_to_validation_result --> call_LegacyValidatorAdapter
-    tests_unit_test_legacy_adapter_py_test_adapter_converts_error_to_validation_result --> call_ValidationContext
-    tests_unit_test_legacy_adapter_py_test_adapter_converts_error_to_validation_result --> call_adapter_validate
-    tests_unit_test_legacy_adapter_py_test_adapter_converts_error_to_validation_result --> call_len
-    tests_unit_test_legacy_adapter_py_test_adapter_default_severity_hard_fail --> call_LegacyValidatorAdapter
-    tests_unit_test_legacy_adapter_py_test_adapter_default_severity_hard_fail --> call_ValidationContext
-    tests_unit_test_legacy_adapter_py_test_adapter_default_severity_hard_fail --> call_adapter_validate
-    tests_unit_test_legacy_adapter_py_test_adapter_unknown_code_raises_domain_exception --> call_LegacyValidatorAdapter
-    tests_unit_test_legacy_adapter_py_test_adapter_unknown_code_raises_domain_exception --> call_ValidationContext
-    tests_unit_test_legacy_adapter_py_test_adapter_unknown_code_raises_domain_exception --> call_pytest_raises
-    tests_unit_test_legacy_adapter_py_test_adapter_unknown_code_raises_domain_exception --> call_adapter_validate
-    tests_unit_test_math_normalizer_py_normalizer --> call_MathDomainNormalizer
-    tests_unit_test_math_normalizer_py_test_verbatim_environment_is_immune --> call_normalizer_normalize
-    tests_unit_test_math_normalizer_py_test_verbatim_environment_is_immune --> call_any
-    tests_unit_test_math_normalizer_py_test_nested_verbatim_immunity --> call_normalizer_normalize
-    tests_unit_test_math_normalizer_py_test_nested_verbatim_immunity --> call_len
-    tests_unit_test_math_normalizer_py_test_verb_with_dynamic_delimiter --> call_normalizer_normalize
-    tests_unit_test_math_normalizer_py_test_lstinline_preserved --> call_normalizer_normalize
-    tests_unit_test_math_normalizer_py_test_mintinline_preserved --> call_normalizer_normalize
-    tests_unit_test_math_normalizer_py_test_mintinline_with_options --> call_normalizer_normalize
-    tests_unit_test_math_normalizer_py_test_html_sup_conversion --> call_normalizer_normalize
-    tests_unit_test_math_normalizer_py_test_html_sub_conversion --> call_normalizer_normalize
-    tests_unit_test_math_normalizer_py_test_html_double_wrap_protection --> call_normalizer_normalize
-    tests_unit_test_math_normalizer_py_test_balanced_inline_math --> call_normalizer_normalize
-    tests_unit_test_math_normalizer_py_test_balanced_inline_math --> call_len
-    tests_unit_test_math_normalizer_py_test_unbalanced_inline_math_detection --> call_normalizer_normalize
-    tests_unit_test_math_normalizer_py_test_unbalanced_inline_math_detection --> call_any
-    tests_unit_test_math_normalizer_py_test_balanced_display_math --> call_normalizer_normalize
-    tests_unit_test_math_normalizer_py_test_balanced_display_math --> call_len
-    tests_unit_test_math_normalizer_py_test_unclosed_environment_detection --> call_normalizer_normalize
-    tests_unit_test_math_normalizer_py_test_unclosed_environment_detection --> call_any
-    tests_unit_test_math_normalizer_py_test_environment_mismatch_detection --> call_normalizer_normalize
-    tests_unit_test_math_normalizer_py_test_environment_mismatch_detection --> call_any
-    tests_unit_test_math_normalizer_py_test_orphaned_end_detection --> call_normalizer_normalize
-    tests_unit_test_math_normalizer_py_test_orphaned_end_detection --> call_any
-    tests_unit_test_math_normalizer_py_test_inline_deprecated_conversion --> call_normalizer_normalize
-    tests_unit_test_math_normalizer_py_test_display_deprecated_conversion --> call_normalizer_normalize
-    tests_unit_test_math_normalizer_py_test_multiple_pass_idempotency --> call_normalizer_normalize
-    tests_unit_test_math_normalizer_py_test_empty_input --> call_normalizer_normalize
-    tests_unit_test_math_normalizer_py_test_whitespace_input --> call_normalizer_normalize
-    tests_unit_test_math_normalizer_py_test_protected_region_roundtrip --> call_normalizer_normalize
-    tests_unit_test_math_normalizer_py_test_strict_warning_severity_and_telemetry --> call_normalizer_normalize
-    tests_unit_test_math_normalizer_py_test_strict_warning_severity_and_telemetry --> call_len
-    tests_unit_test_math_normalizer_py_test_strict_warning_severity_and_telemetry --> call_any
-    tests_unit_test_math_normalizer_py_test_illegal_recursive_nesting_detection --> call_normalizer_normalize
-    tests_unit_test_math_normalizer_py_test_illegal_recursive_nesting_detection --> call_any
-    tests_unit_test_math_normalizer_py_test_complex_environment_arguments_parsing --> call_normalizer_normalize
-    tests_unit_test_math_normalizer_py_test_complex_environment_arguments_parsing --> call_any
-    tests_unit_test_math_normalizer_py_test_escaped_dollar_immunity_in_fsm --> call_normalizer_normalize
-    tests_unit_test_math_normalizer_py_test_escaped_dollar_immunity_in_fsm --> call_any
-    tests_unit_test_math_normalizer_py_test_verbatim_masking --> call_normalizer_normalize
-    tests_unit_test_math_normalizer_py_test_verbatim_masking --> call_any
-    tests_unit_test_math_normalizer_py_test_inequalities_not_removed --> call_normalizer_normalize
-    tests_unit_test_math_normalizer_py_test_math_delimiter_automaton --> call_normalizer_normalize
-    tests_unit_test_math_normalizer_py_test_math_delimiter_automaton --> call_len
-    tests_unit_test_math_normalizer_py_test_math_delimiter_automaton --> call_any
-    tests_unit_test_math_normalizer_py_test_illegal_nesting_detection --> call_normalizer_normalize
-    tests_unit_test_math_normalizer_py_test_illegal_nesting_detection --> call_any
-    tests_unit_test_math_normalizer_py_test_idempotency_preserve_contract --> call_normalizer_normalize
-    tests_unit_test_paragraph_idempotency_py_test_paragraph_normalizer_invariants_and_strict_idempotency --> call_ParagraphNormalizer
-    tests_unit_test_paragraph_idempotency_py_test_paragraph_normalizer_invariants_and_strict_idempotency --> call_normalizer_normalize
-    tests_unit_test_paragraph_idempotency_py_test_paragraph_normalizer_invariants_and_strict_idempotency --> call_f_startswith
-    tests_unit_test_paragraph_idempotency_py_test_paragraph_normalizer_invariants_and_strict_idempotency --> call_len
-    tests_unit_test_paragraph_idempotency_py_test_strict_idempotency_contract_over_corpus --> call_ParagraphNormalizer
-    tests_unit_test_paragraph_idempotency_py_test_strict_idempotency_contract_over_corpus --> call_normalizer_normalize
-    tests_unit_test_paragraph_idempotency_py_test_strict_idempotency_contract_over_corpus --> call_len
-    tests_unit_test_perimeter_validator_py_test_markdown_block_detected --> call_PerimeterValidator
-    tests_unit_test_perimeter_validator_py_test_markdown_block_detected --> call_ValidationContext
-    tests_unit_test_perimeter_validator_py_test_markdown_block_detected --> call_validator_validate
-    tests_unit_test_perimeter_validator_py_test_markdown_block_detected --> call_any
-    tests_unit_test_perimeter_validator_py_test_conversational_leak_with_leading_whitespace_detected --> call_PerimeterValidator
-    tests_unit_test_perimeter_validator_py_test_conversational_leak_with_leading_whitespace_detected --> call_ValidationContext
-    tests_unit_test_perimeter_validator_py_test_conversational_leak_with_leading_whitespace_detected --> call_validator_validate
-    tests_unit_test_perimeter_validator_py_test_conversational_leak_with_leading_whitespace_detected --> call_any
-    tests_unit_test_perimeter_validator_py_test_extended_conversational_leak_detected --> call_PerimeterValidator
-    tests_unit_test_perimeter_validator_py_test_extended_conversational_leak_detected --> call_ValidationContext
-    tests_unit_test_perimeter_validator_py_test_extended_conversational_leak_detected --> call_validator_validate
-    tests_unit_test_perimeter_validator_py_test_extended_conversational_leak_detected --> call_any
-    tests_unit_test_perimeter_validator_py_test_technical_prose_prefixes_pass_successfully --> call_PerimeterValidator
-    tests_unit_test_perimeter_validator_py_test_technical_prose_prefixes_pass_successfully --> call_ValidationContext
-    tests_unit_test_perimeter_validator_py_test_technical_prose_prefixes_pass_successfully --> call_validator_validate
-    tests_unit_test_perimeter_validator_py_test_technical_prose_prefixes_pass_successfully --> call_len
-    tests_unit_test_perimeter_validator_py_test_clean_translation_payload_passes --> call_PerimeterValidator
-    tests_unit_test_perimeter_validator_py_test_clean_translation_payload_passes --> call_ValidationContext
-    tests_unit_test_perimeter_validator_py_test_clean_translation_payload_passes --> call_validator_validate
-    tests_unit_test_perimeter_validator_py_test_clean_translation_payload_passes --> call_len
-    tests_unit_test_preservation_validator_py_test_doi_case_insensitivity_is_preserved --> call_PreservationValidator
-    tests_unit_test_preservation_validator_py_test_doi_case_insensitivity_is_preserved --> call_ValidationContext
-    tests_unit_test_preservation_validator_py_test_doi_case_insensitivity_is_preserved --> call_validator_validate
-    tests_unit_test_preservation_validator_py_test_doi_case_insensitivity_is_preserved --> call_any
-    tests_unit_test_preservation_validator_py_test_addbibresource_with_optional_arguments --> call_PreservationValidator
-    tests_unit_test_preservation_validator_py_test_addbibresource_with_optional_arguments --> call_ValidationContext
-    tests_unit_test_preservation_validator_py_test_addbibresource_with_optional_arguments --> call_validator_validate
-    tests_unit_test_preservation_validator_py_test_addbibresource_with_optional_arguments --> call_any
-    tests_unit_test_preservation_validator_py_test_modern_reference_commands --> call_PreservationValidator
-    tests_unit_test_preservation_validator_py_test_modern_reference_commands --> call_ValidationContext
-    tests_unit_test_preservation_validator_py_test_modern_reference_commands --> call_validator_validate
-    tests_unit_test_preservation_validator_py_test_modern_reference_commands --> call_any
-        tests_unit_test_pricing_engine_py_TestPricingEngine --- tests_unit_test_pricing_engine_py_TestPricingEngine_test_flash_calculation
-    tests_unit_test_pricing_engine_py_TestPricingEngine_test_flash_calculation --> call_PricingEngine_calculate_cost
-    tests_unit_test_pricing_engine_py_TestPricingEngine_test_flash_calculation --> call_self_assertAlmostEqual
-        tests_unit_test_pricing_engine_py_TestPricingEngine --- tests_unit_test_pricing_engine_py_TestPricingEngine_test_zero_usd_conditions
-    tests_unit_test_pricing_engine_py_TestPricingEngine_test_zero_usd_conditions --> call_self_assertEqual
-    tests_unit_test_pricing_engine_py_TestPricingEngine_test_zero_usd_conditions --> call_PricingEngine_calculate_cost
-        tests_unit_test_pricing_engine_py_TestPricingEngine --- tests_unit_test_pricing_engine_py_TestPricingEngine_test_invalid_model_raises_value_error
-    tests_unit_test_pricing_engine_py_TestPricingEngine_test_invalid_model_raises_value_error --> call_self_assertRaises
-    tests_unit_test_pricing_engine_py_TestPricingEngine_test_invalid_model_raises_value_error --> call_PricingEngine_calculate_cost
-        tests_unit_test_prompt_builder_py_TestPromptBuilder --- tests_unit_test_prompt_builder_py_TestPromptBuilder_setUp
-    tests_unit_test_prompt_builder_py_TestPromptBuilder_setUp --> call_FastWordEstimator
-    tests_unit_test_prompt_builder_py_TestPromptBuilder_setUp --> call_PromptBuilder
-    tests_unit_test_prompt_builder_py_TestPromptBuilder_setUp --> call_TranslationUnit
-    tests_unit_test_prompt_builder_py_TestPromptBuilder_setUp --> call_ResolvedContext
-        tests_unit_test_prompt_builder_py_TestPromptBuilder --- tests_unit_test_prompt_builder_py_TestPromptBuilder_test_envelope_structure_and_types
-    tests_unit_test_prompt_builder_py_TestPromptBuilder_test_envelope_structure_and_types --> call___build
-    tests_unit_test_prompt_builder_py_TestPromptBuilder_test_envelope_structure_and_types --> call_self_assertIsInstance
-    tests_unit_test_prompt_builder_py_TestPromptBuilder_test_envelope_structure_and_types --> call_self_assertEqual
-    tests_unit_test_prompt_builder_py_TestPromptBuilder_test_envelope_structure_and_types --> call_self_assertTrue
-    tests_unit_test_prompt_builder_py_TestPromptBuilder_test_envelope_structure_and_types --> call___startswith
-    tests_unit_test_prompt_builder_py_TestPromptBuilder_test_envelope_structure_and_types --> call_self_assertGreater
-        tests_unit_test_prompt_builder_py_TestPromptBuilder --- tests_unit_test_prompt_builder_py_TestPromptBuilder_test_deterministic_prompt_hash
-    tests_unit_test_prompt_builder_py_TestPromptBuilder_test_deterministic_prompt_hash --> call___build
-    tests_unit_test_prompt_builder_py_TestPromptBuilder_test_deterministic_prompt_hash --> call_self_assertEqual
-        tests_unit_test_prompt_builder_py_TestPromptBuilder --- tests_unit_test_prompt_builder_py_TestPromptBuilder_test_hash_collision_avoidance
-    tests_unit_test_prompt_builder_py_TestPromptBuilder_test_hash_collision_avoidance --> call_ResolvedContext
-    tests_unit_test_prompt_builder_py_TestPromptBuilder_test_hash_collision_avoidance --> call___build
-    tests_unit_test_prompt_builder_py_TestPromptBuilder_test_hash_collision_avoidance --> call_self_assertNotEqual
-        tests_unit_test_prompt_builder_py_TestPromptBuilder --- tests_unit_test_prompt_builder_py_TestPromptBuilder_test_prompt_hash_stability
-    tests_unit_test_prompt_builder_py_TestPromptBuilder_test_prompt_hash_stability --> call___build
-    tests_unit_test_prompt_builder_py_TestPromptBuilder_test_prompt_hash_stability --> call_range
-    tests_unit_test_prompt_builder_py_TestPromptBuilder_test_prompt_hash_stability --> call_self_assertEqual
-        tests_unit_test_prompt_builder_py_TestPromptBuilder --- tests_unit_test_prompt_builder_py_TestPromptBuilder_test_hash_mutation_on_model_or_version_change
-    tests_unit_test_prompt_builder_py_TestPromptBuilder_test_hash_mutation_on_model_or_version_change --> call_PromptBuilder
-    tests_unit_test_prompt_builder_py_TestPromptBuilder_test_hash_mutation_on_model_or_version_change --> call___build
-    tests_unit_test_prompt_builder_py_TestPromptBuilder_test_hash_mutation_on_model_or_version_change --> call_builder_alt_model_build
-    tests_unit_test_prompt_builder_py_TestPromptBuilder_test_hash_mutation_on_model_or_version_change --> call_builder_alt_version_build
-    tests_unit_test_prompt_builder_py_TestPromptBuilder_test_hash_mutation_on_model_or_version_change --> call_self_assertNotEqual
-        tests_unit_test_rate_limiter_py_FakeClock --- tests_unit_test_rate_limiter_py_FakeClock___init__
-        tests_unit_test_rate_limiter_py_FakeClock --- tests_unit_test_rate_limiter_py_FakeClock_now
-        tests_unit_test_rate_limiter_py_FakeClock --- tests_unit_test_rate_limiter_py_FakeClock_advance
-    tests_unit_test_rate_limiter_py__make_envelope --> call_PromptEnvelope
-        tests_unit_test_resilient_provider_py_MockNetworkFailureProvider --- tests_unit_test_resilient_provider_py_MockNetworkFailureProvider___init__
-    tests_unit_test_resilient_provider_py__make_envelope --> call_PromptEnvelope
-        tests_unit_test_routing_py_TestTranslationStrategyRouter --- tests_unit_test_routing_py_TestTranslationStrategyRouter_setUp
-    tests_unit_test_routing_py_TestTranslationStrategyRouter_setUp --> call_TranslationStrategyRouter
-        tests_unit_test_routing_py_TestTranslationStrategyRouter --- tests_unit_test_routing_py_TestTranslationStrategyRouter_test_default_routing_translate
-    tests_unit_test_routing_py_TestTranslationStrategyRouter_test_default_routing_translate --> call_self_assertEqual
-    tests_unit_test_routing_py_TestTranslationStrategyRouter_test_default_routing_translate --> call___route
-        tests_unit_test_routing_py_TestTranslationStrategyRouter --- tests_unit_test_routing_py_TestTranslationStrategyRouter_test_default_routing_partial
-    tests_unit_test_routing_py_TestTranslationStrategyRouter_test_default_routing_partial --> call_self_assertEqual
-    tests_unit_test_routing_py_TestTranslationStrategyRouter_test_default_routing_partial --> call___route
-        tests_unit_test_routing_py_TestTranslationStrategyRouter --- tests_unit_test_routing_py_TestTranslationStrategyRouter_test_default_routing_preserve
-    tests_unit_test_routing_py_TestTranslationStrategyRouter_test_default_routing_preserve --> call_self_assertEqual
-    tests_unit_test_routing_py_TestTranslationStrategyRouter_test_default_routing_preserve --> call___route
-        tests_unit_test_routing_py_TestTranslationStrategyRouter --- tests_unit_test_routing_py_TestTranslationStrategyRouter_test_fail_fast_on_unknown_task_type
-    tests_unit_test_routing_py_TestTranslationStrategyRouter_test_fail_fast_on_unknown_task_type --> call_self_assertRaisesRegex
-    tests_unit_test_routing_py_TestTranslationStrategyRouter_test_fail_fast_on_unknown_task_type --> call___route
-    tests_unit_test_routing_py_TestTranslationStrategyRouter_test_fail_fast_on_unknown_task_type --> call_FakeTaskType
-        tests_unit_test_routing_py_TestTranslationStrategyRouter --- tests_unit_test_routing_py_TestTranslationStrategyRouter_test_custom_routing_table_injection
-    tests_unit_test_routing_py_TestTranslationStrategyRouter_test_custom_routing_table_injection --> call_TranslationStrategyRouter
-    tests_unit_test_routing_py_TestTranslationStrategyRouter_test_custom_routing_table_injection --> call_self_assertEqual
-    tests_unit_test_routing_py_TestTranslationStrategyRouter_test_custom_routing_table_injection --> call_custom_router_route
-    tests_unit_test_routing_py_TestTranslationStrategyRouter_test_custom_routing_table_injection --> call_self_assertRaisesRegex
-        tests_unit_test_semantic_chunker_py_TestSemanticChunkerZeroLoss --- tests_unit_test_semantic_chunker_py_TestSemanticChunkerZeroLoss_setUp
-    tests_unit_test_semantic_chunker_py_TestSemanticChunkerZeroLoss_setUp --> call_FastWordEstimator
-    tests_unit_test_semantic_chunker_py_TestSemanticChunkerZeroLoss_setUp --> call_ChunkPolicy
-        tests_unit_test_semantic_chunker_py_TestSemanticChunkerZeroLoss --- tests_unit_test_semantic_chunker_py_TestSemanticChunkerZeroLoss__create_node
-    tests_unit_test_semantic_chunker_py_TestSemanticChunkerZeroLoss__create_node --> call_ASTNode
-        tests_unit_test_semantic_chunker_py_TestSemanticChunkerZeroLoss --- tests_unit_test_semantic_chunker_py_TestSemanticChunkerZeroLoss_test_zero_loss_reconstruction
-    tests_unit_test_semantic_chunker_py_TestSemanticChunkerZeroLoss_test_zero_loss_reconstruction --> call_self__create_node
-    tests_unit_test_semantic_chunker_py_TestSemanticChunkerZeroLoss_test_zero_loss_reconstruction --> call_build_semantic_chunks_as_units
-    tests_unit_test_semantic_chunker_py_TestSemanticChunkerZeroLoss_test_zero_loss_reconstruction --> call_self_assertEqual
-    tests_unit_test_semantic_chunker_py_TestSemanticChunkerZeroLoss_test_zero_loss_reconstruction --> call_sum
-    tests_unit_test_semantic_chunker_py_TestSemanticChunkerZeroLoss_test_zero_loss_reconstruction --> call_len
-    tests_unit_test_semantic_chunker_py_TestSemanticChunkerZeroLoss_test_zero_loss_reconstruction --> call_reconstructed_seqs_extend
-    tests_unit_test_semantic_chunker_py_TestSemanticChunkerZeroLoss_test_zero_loss_reconstruction --> call_range
-    tests_unit_test_semantic_chunker_py_TestSemanticChunkerZeroLoss_test_zero_loss_reconstruction --> call_list
-        tests_unit_test_semantic_chunker_py_TestSemanticChunkerZeroLoss --- tests_unit_test_semantic_chunker_py_TestSemanticChunkerZeroLoss_normalize
-    tests_unit_test_semantic_chunker_py_TestSemanticChunkerZeroLoss_normalize --> call___join
-    tests_unit_test_semantic_chunker_py_TestSemanticChunkerZeroLoss_normalize --> call_line_strip
-    tests_unit_test_semantic_chunker_py_TestSemanticChunkerZeroLoss_normalize --> call___splitlines
-    tests_unit_test_semantic_chunker_py_TestSemanticChunkerZeroLoss_test_zero_loss_reconstruction --> call_normalize
-    tests_unit_test_semantic_chunker_py_TestSemanticChunkerZeroLoss_test_zero_loss_reconstruction --> call___join
-        tests_unit_test_semantic_chunker_py_TestSemanticChunkerZeroLoss --- tests_unit_test_semantic_chunker_py_TestSemanticChunkerZeroLoss_test_deterministic_purity
-    tests_unit_test_semantic_chunker_py_TestSemanticChunkerZeroLoss_test_deterministic_purity --> call_self__create_node
-    tests_unit_test_semantic_chunker_py_TestSemanticChunkerZeroLoss_test_deterministic_purity --> call_build_semantic_chunks_as_units
-    tests_unit_test_semantic_chunker_py_TestSemanticChunkerZeroLoss_test_deterministic_purity --> call_self_assertEqual
-        tests_unit_test_semantic_chunker_py_TestSemanticChunkerZeroLoss --- tests_unit_test_semantic_chunker_py_TestSemanticChunkerZeroLoss_test_context_aware_hard_boundary
-    tests_unit_test_semantic_chunker_py_TestSemanticChunkerZeroLoss_test_context_aware_hard_boundary --> call_self__create_node
-    tests_unit_test_semantic_chunker_py_TestSemanticChunkerZeroLoss_test_context_aware_hard_boundary --> call_build_semantic_chunks_as_units
-    tests_unit_test_semantic_chunker_py_TestSemanticChunkerZeroLoss_test_context_aware_hard_boundary --> call_self_assertEqual
-    tests_unit_test_semantic_chunker_py_TestSemanticChunkerZeroLoss_test_context_aware_hard_boundary --> call_len
-    tests_unit_test_semantic_classifier_py_classifier --> call_SemanticNodeClassifier
-    tests_unit_test_semantic_classifier_py_test_academic_pdf_greek_mix_reclassification --> call_ASTNode
-    tests_unit_test_semantic_classifier_py_test_academic_pdf_greek_mix_reclassification --> call_classifier_classify_node
-    tests_unit_test_semantic_classifier_py_test_financial_false_positive_immunity --> call_ASTNode
-    tests_unit_test_semantic_classifier_py_test_financial_false_positive_immunity --> call_classifier_classify_node
-    tests_unit_test_semantic_classifier_py_test_financial_noise_with_many_operators --> call_ASTNode
-    tests_unit_test_semantic_classifier_py_test_financial_noise_with_many_operators --> call_classifier_classify_node
-    tests_unit_test_semantic_classifier_py_test_algebraic_indices_are_equation --> call_ASTNode
-    tests_unit_test_semantic_classifier_py_test_algebraic_indices_are_equation --> call_classifier_classify_node
-    tests_unit_test_semantic_classifier_py_test_large_formula_diluted_in_prosa_reclassification --> call_ASTNode
-    tests_unit_test_semantic_classifier_py_test_large_formula_diluted_in_prosa_reclassification --> call_classifier_classify_node
-    tests_unit_test_semantic_classifier_py_test_complete_batch_idempotency --> call_ASTNode
-    tests_unit_test_semantic_classifier_py_test_complete_batch_idempotency --> call_classifier_classify_batch
-    tests_unit_test_semantic_classifier_py_test_complete_batch_idempotency --> call_zip
-    tests_unit_test_semantic_classifier_py_test_unbalanced_tokens_immunity --> call_ASTNode
-    tests_unit_test_semantic_classifier_py_test_unbalanced_tokens_immunity --> call_classifier_classify_node
-    tests_unit_test_semantic_classifier_py_test_pure_operators_noise_immunity --> call_ASTNode
-    tests_unit_test_semantic_classifier_py_test_pure_operators_noise_immunity --> call_classifier_classify_node
-    tests_unit_test_semantic_validator_py_test_number_cardinality_mismatch_exact_content --> call_SemanticValidator
-    tests_unit_test_semantic_validator_py_test_number_cardinality_mismatch_exact_content --> call_ValidationContext
-    tests_unit_test_semantic_validator_py_test_number_cardinality_mismatch_exact_content --> call_validator_validate
-    tests_unit_test_semantic_validator_py_test_number_cardinality_mismatch_exact_content --> call_len
-    tests_unit_test_semantic_validator_py_test_ip_address_not_parsed_as_number --> call_SemanticValidator
-    tests_unit_test_semantic_validator_py_test_ip_address_not_parsed_as_number --> call_ValidationContext
-    tests_unit_test_semantic_validator_py_test_ip_address_not_parsed_as_number --> call_validator_validate
-    tests_unit_test_semantic_validator_py_test_ip_address_not_parsed_as_number --> call_len
-    tests_unit_test_semantic_validator_py_test_complex_scientific_units_exact_content --> call_SemanticValidator
-    tests_unit_test_semantic_validator_py_test_complex_scientific_units_exact_content --> call_ValidationContext
-    tests_unit_test_semantic_validator_py_test_complex_scientific_units_exact_content --> call_validator_validate
-    tests_unit_test_semantic_validator_py_test_complex_scientific_units_exact_content --> call_len
-    tests_unit_test_semantic_validator_py_test_unit_case_sensitivity_kelvin_vs_kilo --> call_SemanticValidator
-    tests_unit_test_semantic_validator_py_test_unit_case_sensitivity_kelvin_vs_kilo --> call_ValidationContext
-    tests_unit_test_semantic_validator_py_test_unit_case_sensitivity_kelvin_vs_kilo --> call_validator_validate
-    tests_unit_test_semantic_validator_py_test_unit_case_sensitivity_kelvin_vs_kilo --> call_len
-    tests_unit_test_structural_healing_py_test_brace_closure_strategy_success_on_nested_macros --> call_EOFBraceClosureStrategy
-    tests_unit_test_structural_healing_py_test_brace_closure_strategy_success_on_nested_macros --> call_make_test_healing_context
-    tests_unit_test_structural_healing_py_test_brace_closure_strategy_success_on_nested_macros --> call_strategy_heal
-    tests_unit_test_structural_healing_py_test_verb_does_not_consume_neighboring_braces --> call_EOFBraceClosureStrategy
-    tests_unit_test_structural_healing_py_test_verb_does_not_consume_neighboring_braces --> call_make_test_healing_context
-    tests_unit_test_structural_healing_py_test_verb_does_not_consume_neighboring_braces --> call_strategy_heal
-    tests_unit_test_structural_healing_py_test_brace_closure_ignores_escaped_braces --> call_EOFBraceClosureStrategy
-    tests_unit_test_structural_healing_py_test_brace_closure_ignores_escaped_braces --> call_make_test_healing_context
-    tests_unit_test_structural_healing_py_test_brace_closure_ignores_escaped_braces --> call_strategy_heal
-    tests_unit_test_structural_healing_py_test_brace_closure_bounds_trigger_failure_from_policy --> call_HealingPolicy
-    tests_unit_test_structural_healing_py_test_brace_closure_bounds_trigger_failure_from_policy --> call_EOFBraceClosureStrategy
-    tests_unit_test_structural_healing_py_test_brace_closure_bounds_trigger_failure_from_policy --> call_make_test_healing_context
-    tests_unit_test_structural_healing_py_test_brace_closure_bounds_trigger_failure_from_policy --> call_strategy_heal
-    tests_unit_test_structural_healing_py_test_brace_closure_not_applicable --> call_EOFBraceClosureStrategy
-    tests_unit_test_structural_healing_py_test_brace_closure_not_applicable --> call_make_test_healing_context
-    tests_unit_test_structural_healing_py_test_brace_closure_not_applicable --> call_strategy_heal
-    tests_unit_test_structural_healing_py_test_math_closure_strategy_inline_success --> call_EOFMathClosureStrategy
-    tests_unit_test_structural_healing_py_test_math_closure_strategy_inline_success --> call_make_test_healing_context
-    tests_unit_test_structural_healing_py_test_math_closure_strategy_inline_success --> call_strategy_heal
-    tests_unit_test_structural_healing_py_test_math_closure_strategy_display_success --> call_EOFMathClosureStrategy
-    tests_unit_test_structural_healing_py_test_math_closure_strategy_display_success --> call_make_test_healing_context
-    tests_unit_test_structural_healing_py_test_math_closure_strategy_display_success --> call_strategy_heal
-    tests_unit_test_structural_healing_py_test_math_closure_strategy_handles_truncated_display_state --> call_EOFMathClosureStrategy
-    tests_unit_test_structural_healing_py_test_math_closure_strategy_handles_truncated_display_state --> call_make_test_healing_context
-    tests_unit_test_structural_healing_py_test_math_closure_strategy_handles_truncated_display_state --> call_strategy_heal
-    tests_unit_test_structural_healing_py_test_math_closure_not_applicable --> call_EOFMathClosureStrategy
-    tests_unit_test_structural_healing_py_test_math_closure_not_applicable --> call_make_test_healing_context
-    tests_unit_test_structural_healing_py_test_math_closure_not_applicable --> call_strategy_heal
-    tests_unit_test_structural_validator_py_test_braces_balanced_and_escaped --> call_StructuralValidator__check_braces
-    tests_unit_test_structural_validator_py_test_braces_unbalanced --> call_StructuralValidator__check_braces
-    tests_unit_test_structural_validator_py_test_brackets_balanced_and_escaped --> call_StructuralValidator__check_brackets
-    tests_unit_test_structural_validator_py_test_brackets_unbalanced --> call_StructuralValidator__check_brackets
-    tests_unit_test_structural_validator_py_test_math_delimiters_balanced --> call_StructuralValidator__check_math_delimiters
-    tests_unit_test_structural_validator_py_test_math_delimiters_unbalanced --> call_StructuralValidator__check_math_delimiters
-    tests_unit_test_structural_validator_py_test_environments_balanced --> call_StructuralValidator__check_environments
-    tests_unit_test_structural_validator_py_test_environments_unbalanced --> call_StructuralValidator__check_environments
-        tests_unit_test_summary_builder_py_TestSummaryBuilder --- tests_unit_test_summary_builder_py_TestSummaryBuilder_test_metrics_and_roi_aggregation
-    tests_unit_test_summary_builder_py_TestSummaryBuilder_test_metrics_and_roi_aggregation --> call_TranslatedUnit
-    tests_unit_test_summary_builder_py_TestSummaryBuilder_test_metrics_and_roi_aggregation --> call_ReconstructedDocument
-    tests_unit_test_summary_builder_py_TestSummaryBuilder_test_metrics_and_roi_aggregation --> call_SummaryBuilder_build
-    tests_unit_test_summary_builder_py_TestSummaryBuilder_test_metrics_and_roi_aggregation --> call_self_assertEqual
-    tests_unit_test_summary_builder_py_TestSummaryBuilder_test_metrics_and_roi_aggregation --> call_self_assertGreater
-        tests_unit_test_validation_pipeline_py_MockPassValidator --- tests_unit_test_validation_pipeline_py_MockPassValidator_validate
-    tests_unit_test_validation_pipeline_py_MockPassValidator_validate --> call_ValidationResult
-        tests_unit_test_validation_pipeline_py_MockFailValidator --- tests_unit_test_validation_pipeline_py_MockFailValidator_validate
-    tests_unit_test_validation_pipeline_py_MockFailValidator_validate --> call_ValidationResult
-    tests_unit_test_validation_pipeline_py_test_pipeline_runs_chunk_validators_only --> call_ValidationPipeline
-    tests_unit_test_validation_pipeline_py_test_pipeline_runs_chunk_validators_only --> call_pipeline_add_chunk_validator
-    tests_unit_test_validation_pipeline_py_test_pipeline_runs_chunk_validators_only --> call_MockPassValidator
-    tests_unit_test_validation_pipeline_py_test_pipeline_runs_chunk_validators_only --> call_MockFailValidator
-    tests_unit_test_validation_pipeline_py_test_pipeline_runs_chunk_validators_only --> call_pipeline_add_document_validator
-    tests_unit_test_validation_pipeline_py_test_pipeline_runs_chunk_validators_only --> call_ValidationContext
-    tests_unit_test_validation_pipeline_py_test_pipeline_runs_chunk_validators_only --> call_pipeline_validate_chunk
-    tests_unit_test_validation_pipeline_py_test_pipeline_runs_chunk_validators_only --> call_len
-    tests_unit_test_validation_pipeline_py_test_pipeline_runs_document_validators_only --> call_ValidationPipeline
-    tests_unit_test_validation_pipeline_py_test_pipeline_runs_document_validators_only --> call_pipeline_add_chunk_validator
-    tests_unit_test_validation_pipeline_py_test_pipeline_runs_document_validators_only --> call_MockPassValidator
-    tests_unit_test_validation_pipeline_py_test_pipeline_runs_document_validators_only --> call_pipeline_add_document_validator
-    tests_unit_test_validation_pipeline_py_test_pipeline_runs_document_validators_only --> call_MockFailValidator
-    tests_unit_test_validation_pipeline_py_test_pipeline_runs_document_validators_only --> call_ValidationContext
-    tests_unit_test_validation_pipeline_py_test_pipeline_runs_document_validators_only --> call_pipeline_validate_document
-    tests_unit_test_validation_pipeline_py_test_pipeline_runs_document_validators_only --> call_len
-    tests_unit_test_validation_pipeline_py_test_pipeline_preserves_registration_order --> call_ValidationPipeline
-    tests_unit_test_validation_pipeline_py_test_pipeline_preserves_registration_order --> call_pipeline_add_chunk_validator
-    tests_unit_test_validation_pipeline_py_test_pipeline_preserves_registration_order --> call_MockPassValidator
-    tests_unit_test_validation_pipeline_py_test_pipeline_preserves_registration_order --> call_MockFailValidator
-    tests_unit_test_validation_pipeline_py_test_pipeline_preserves_registration_order --> call_ValidationContext
-    tests_unit_test_validation_pipeline_py_test_pipeline_preserves_registration_order --> call_pipeline_validate_chunk
-    tools_load_test_db_injector_variable_py_run_db_injection --> call___abspath
-    tools_load_test_db_injector_variable_py_run_db_injection --> call_print
-    tools_load_test_db_injector_variable_py_run_db_injection --> call_mode_upper
-    tools_load_test_db_injector_variable_py_run_db_injection --> call_time_perf_counter
-    tools_load_test_db_injector_variable_py_run_db_injection --> call_sqlite3_connect
-    tools_load_test_db_injector_variable_py_run_db_injection --> call_conn_execute
-    tools_load_test_db_injector_variable_py_run_db_injection --> call_ControlPlaneRepository
-    tools_load_test_db_injector_variable_py_run_db_injection --> call_range
-    tools_load_test_db_injector_variable_py_run_db_injection --> call_uuid_uuid4
-    tools_load_test_db_injector_variable_py_run_db_injection --> call_random_choices
-    tools_load_test_db_injector_variable_py_run_db_injection --> call_task_repo_enqueue_tasks
-    tools_load_test_db_injector_variable_py_run_db_injection --> call_len
-    tools_load_test_db_injector_variable_py_run_db_injection --> call_conn_commit
-    tools_load_test_db_injector_variable_py_run_db_injection --> call_conn_rollback
-    tools_load_test_db_injector_variable_py_run_db_injection --> call_sys_exit
-    tools_load_test_db_injector_variable_py_run_db_injection --> call_conn_close
     classDef classStyle fill:#1f2937,stroke:#3b82f6,stroke-width:2px,color:#fff;
     classDef funcStyle fill:#1e1b4b,stroke:#818cf8,stroke-width:1px,color:#ddd;
     classDef callStyle fill:#111827,stroke:#374151,stroke-width:1px,color:#9ca3af,stroke-dasharray: 3 3;
