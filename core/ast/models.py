@@ -1,54 +1,172 @@
 from enum import Enum
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 from typing import Dict, Any, Optional, Union, Tuple, List
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from collections import Counter
+from core.domain.document import BoundingBox
+from core.ast.enums import ContentNodeType, TranslationStrategy, HeadingLevel, SemanticOrigin
 
 # =====================================================================
-# FAMILIA 1: NODOS ESTRUCTURALES (Contenedores lógicos / Layout)
+# FAMILIA 1 Y 2: AST V2 COMPOSITION (Estructura Plana y Payloads Tipados)
 # =====================================================================
-class StructuralNodeType(str, Enum):
-    DOCUMENT = "document"
-    PART = "part"
-    CHAPTER = "chapter"
-    SECTION = "section"
-    SUBSECTION = "subsection"
 
-# =====================================================================
-# FAMILIA 2: NODOS SEMÁNTICOS (Payloads de contenido / Traducibles)
-# =====================================================================
-class ContentNodeType(str, Enum):
-    # Texto
-    HEADING = "heading"
-    PARAGRAPH = "paragraph"
-    LIST = "list"
-    LIST_ITEM = "list_item"
+class NodeMetadata(BaseModel):
+    """Value Object inmutable que encapsula el linaje físico y dimensional."""
+    model_config = ConfigDict(frozen=True)
     
-    # STEM
-    EQUATION = "equation"
-    INLINE_EQUATION = "inline_equation"
-    TABLE = "table"
-    FIGURE = "figure"
-    IMAGE = "image"
-    CAPTION = "caption"
-    ALGORITHM = "algorithm"
-    CODE_BLOCK = "code_block"
-    
-    # Académico
-    FOOTNOTE = "footnote"
-    CITATION = "citation"
-    REFERENCE_ENTRY = "reference_entry"
-    BIBLIOGRAPHY = "bibliography"
-    APPENDIX = "appendix"
-    
-    # Recuperación (SOTA Fallbacks)
-    MACRO_CHUNK = "macro_chunk"
-    COMPOSITE_BLOCK = "composite_block"
-    UNKNOWN = "unknown"
+    bboxes: List[BoundingBox] = Field(default_factory=list)
+    pages: List[int] = Field(default_factory=list)
+    provider_native_id: Optional[str] = None
+    confidence: float = Field(default=1.0, ge=0.0, le=1.0)
+    layout_reading_order: int = -1
+    semantic_origin: SemanticOrigin = SemanticOrigin.PDF_TEXT
 
+# --- DEFINICIÓN DE PAYLOADS COMPONENTES (DTOs DE VALOR INMUTABLES) ---
+
+class HeadingPayload(BaseModel):
+    model_config = ConfigDict(frozen=True)
+    content: str
+    heading_level: HeadingLevel = HeadingLevel.UNKNOWN
+
+    def with_content(self, new_content: str) -> "HeadingPayload":
+        return self.model_copy(update={"content": new_content})
+
+class ParagraphPayload(BaseModel):
+    model_config = ConfigDict(frozen=True)
+    content: str
+
+    def with_content(self, new_content: str) -> "ParagraphPayload":
+        return self.model_copy(update={"content": new_content})
+
+class MathPayload(BaseModel):
+    model_config = ConfigDict(frozen=True)
+    content: str
+
+    def with_content(self, new_content: str) -> "MathPayload":
+        return self.model_copy(update={"content": new_content})
+
+class CodePayload(BaseModel):
+    model_config = ConfigDict(frozen=True)
+    content: str
+    language: Optional[str] = None
+
+    def with_content(self, new_content: str) -> "CodePayload":
+        return self.model_copy(update={"content": new_content})
+
+class TablePayload(BaseModel):
+    model_config = ConfigDict(frozen=True)
+    content: str
+
+    def with_content(self, new_content: str) -> "TablePayload":
+        return self.model_copy(update={"content": new_content})
+
+class ImagePayload(BaseModel):
+    """Nodo no combinable por invariante trans-página."""
+    model_config = ConfigDict(frozen=True)
+    alt_text: Optional[str] = None
+    asset_path: Optional[str] = None
+
+class ListPayload(BaseModel):
+    model_config = ConfigDict(frozen=True)
+    content: str
+
+    def with_content(self, new_content: str) -> "ListPayload":
+        return self.model_copy(update={"content": new_content})
+
+ASTPayload = Union[
+    HeadingPayload,
+    ParagraphPayload,
+    MathPayload,
+    CodePayload,
+    TablePayload,
+    ImagePayload,
+    ListPayload
+]
+
+class ASTNode(BaseModel):
+    """SOTA: Contenedor unificado e inmutable. Resuelve la ambigüedad posicional de Pydantic."""
+    model_config = ConfigDict(frozen=True)
+
+    node_id: str
+    sequence_id: int = -1
+    node_type: ContentNodeType
+    strategy: TranslationStrategy = TranslationStrategy.TRANSLATE
+    metadata: NodeMetadata = Field(default_factory=lambda: NodeMetadata())
+    depth: int = 0
+    payload: ASTPayload
+    
+    # Preservado estrictamente para retrocompatibilidad con la capa de Workers/Dispatcher
+    control_plane: Dict[str, Any] = Field(default_factory=dict)
+    
+    # Preservado estrictamente para retrocompatibilidad con la capa de Workers/Dispatcher
+    control_plane: Dict[str, Any] = Field(default_factory=dict)
+
+    @property
+    def has_valid_sequence(self) -> bool:
+        """Garantiza que el nodo posee un índice topológico real en base 1."""
+        return self.sequence_id >= 1
+
+    @model_validator(mode="before")
+    @classmethod
+    def _discriminate_payload(cls, values: Any) -> Any:
+        """Garantiza la correcta instanciación del DTO de payload según el tipo de nodo, 
+        neutralizando por completo el Type Erasure estructural de Pydantic V2."""
+        if not isinstance(values, dict):
+            return values
+        
+        n_type = values.get("node_type")
+        payload_data = values.get("payload")
+        
+        if n_type is None or payload_data is None:
+            return values
+            
+        if isinstance(payload_data, (HeadingPayload, ParagraphPayload, MathPayload, CodePayload, TablePayload, ImagePayload, ListPayload)):
+            return values
+
+        type_mapping = {
+            ContentNodeType.HEADING: HeadingPayload,
+            ContentNodeType.PARAGRAPH: ParagraphPayload,
+            ContentNodeType.DISPLAY_EQUATION: MathPayload,
+            ContentNodeType.INLINE_EQUATION: MathPayload,
+            ContentNodeType.CODE: CodePayload,
+            ContentNodeType.TABLE_SIMPLE: TablePayload,
+            ContentNodeType.TABLE_COMPLEX: TablePayload,
+            ContentNodeType.IMAGE: ImagePayload,
+            ContentNodeType.CAPTION: ParagraphPayload,
+            ContentNodeType.LIST: ListPayload,
+        }
+
+        if isinstance(payload_data, str):
+            if n_type == ContentNodeType.HEADING:
+                values["payload"] = HeadingPayload(content=payload_data)
+            elif n_type == ContentNodeType.IMAGE:
+                values["payload"] = ImagePayload(asset_path=payload_data)
+            else:
+                target_model = type_mapping.get(n_type)
+                if target_model:
+                    values["payload"] = target_model(content=payload_data)
+        elif isinstance(payload_data, dict):
+            target_model = type_mapping.get(n_type)
+            if target_model:
+                values["payload"] = target_model(**payload_data)
+            
+        return values
+
+
+    @property
+    def text_content(self) -> str:
+        """SOTA: Extracción polimórfica segura. Aisla al sistema del DTO subyacente."""
+        return getattr(self.payload, "content", "")
+
+    def with_strategy(self, new_strategy: TranslationStrategy) -> "ASTNode":
+        """Syntactic sugar inmutable para la transición de estados en el pipeline."""
+        if self.strategy == new_strategy:
+            return self
+        return self.model_copy(update={"strategy": new_strategy})
+    
 # =====================================================================
-# FAMILIA 3: NODOS 
+# FAMILIA 3: INFRAESTRUCTURA DE EJECUCIÓN, CHUNKING Y TELEMETRÍA
 # =====================================================================
 
 class TranslationTaskType(str, Enum):
@@ -60,26 +178,6 @@ class OverflowPolicy(str, Enum):
     BY_SENTENCE = "by_sentence"
     BY_PARAGRAPH = "by_paragraph"
     HARD_TRUNCATE = "hard_truncate"
-
-# Tipo compuesto para flexibilidad en tipado estático
-NodeType = Union[StructuralNodeType, ContentNodeType]
-
-class ASTNode(BaseModel):
-    node_id: str
-    sequence_id: int = -1  # Control de evolución del esquema
-    type: NodeType
-    content: Optional[str] = None  
-    latex: Optional[str] = None
-    status: Optional[str] = None
-    metadata: Dict[str, Any] = Field(default_factory=dict)
-    parent_id: Optional[str] = None
-    control_plane: Dict[str, Any] = Field(default_factory=dict) 
-
-    @property
-    def has_valid_sequence(self) -> bool:
-        """Garantiza que el nodo posee un índice topológico real en base 1."""
-        return self.sequence_id >= 1
-
 
 # SEMANTIC PACKAGING LAYER ---
 
@@ -98,7 +196,6 @@ class FastWordEstimator(TokenEstimator):
 
     def estimate_tokens(self, text: str) -> int:
         return int(self.estimate(text))
-    
 
 @dataclass(frozen=True)
 class TranslationUnit:
@@ -135,7 +232,7 @@ class TranslatedUnit:
     translated_payload: str
     payload_sha256: str
     model_name: str
-    prompt_version: str                     # Corrección 5: Trazabilidad inmutable para Cache Key
+    prompt_version: str                     # Trazabilidad inmutable para Cache Key
     input_tokens: int
     output_tokens: int
     latency_ms: float
@@ -150,7 +247,6 @@ class ReconstructedDocument:
     total_input_tokens: int
     total_output_tokens: int
 
-
 class ExecutionStatus(str, Enum):
     SUCCESS = "success"
     FAILED = "failed"
@@ -160,18 +256,15 @@ class FailureReason(str, Enum):
     CONTEXT_OVERFLOW = "context_overflow"
     PROVIDER_FAILURE = "provider_failure"
     VALIDATION_FAILURE = "validation_failure"
-    RETRY_EXHAUSTED = "retry_exhausted"               # Corrección: Causa de negocio, no mecanismo
-    UNHANDLED_WORKER_CRASH = "unhandled_worker_crash" # SOTA: Red de seguridad
-    # SOTA FIX: Nuevos estados de infraestructura y enrutamiento
+    RETRY_EXHAUSTED = "retry_exhausted"
+    UNHANDLED_WORKER_CRASH = "unhandled_worker_crash"
     UNKNOWN_ERROR = "unknown_error"
     UNPROCESSABLE_ENTITY = "unprocessable_entity"
-    # SOTA FIX: Separación estricta de dominios de falla
     CIRCUIT_OPEN = "circuit_open"
     QUOTA_REJECTION = "quota_rejection"
     QUOTA_TIMEOUT = "quota_timeout"
-    
 
-@dataclass(frozen=True) # (o slots=True dependiendo de tu versión)
+@dataclass(frozen=True)
 class ChunkOutcome:
     chunk_index: int
     chunk_id: str
@@ -180,8 +273,6 @@ class ChunkOutcome:
     translated_unit: Optional[TranslatedUnit]
     failure_reason: Optional[FailureReason]
     error_message: Optional[str]
-    
-    # SOTA FIX: Soporte de propagación de telemetría SRE
     telemetry: Optional[dict] = None
 
     def __post_init__(self):
@@ -220,7 +311,6 @@ class DispatchResult:
         )
         return dict(counts)
 
-
 @dataclass(frozen=True, slots=True)
 class OriginalChunk:
     """SOTA: DTO de hidratación segura para el Assembler."""
@@ -245,7 +335,6 @@ class DispatchAnalytics:
         )
         return dict(counts)
 
-
 class ExecutionRoute(str, Enum):
     """SOTA: Trazabilidad tipada del enrutamiento de inferencia."""
     PRIMARY = "primary"
@@ -253,6 +342,8 @@ class ExecutionRoute(str, Enum):
     BYPASS = "bypass"
 
 class ExecutionStage(str, Enum):
-    PRE_NETWORK = "pre_network"  # Fallo en budget/limiter. Costo garantizado 0.
-    NETWORK = "network"          # Vuelo HTTP. Costo posible.
-    POST_NETWORK = "post_network" # Fallo en validación/ensamblado. Costo garantizado > 0.
+    PRE_NETWORK = "pre_network"
+    NETWORK = "network"
+    POST_NETWORK = "post_network"
+
+

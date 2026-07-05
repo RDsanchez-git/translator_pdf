@@ -18,6 +18,7 @@ class LayoutBlockDraft(BaseModel):
     merge_history: List[str] = Field(default_factory=list)
 
     column_index: Optional[int] = None
+    page_index: int
     
 class LayoutBlockCollection(BaseModel):
     """Contenedor tipado inmutable para el transporte seguro entre capas."""
