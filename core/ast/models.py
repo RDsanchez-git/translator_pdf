@@ -98,9 +98,23 @@ class ASTNode(BaseModel):
     
     # Preservado estrictamente para retrocompatibilidad con la capa de Workers/Dispatcher
     control_plane: Dict[str, Any] = Field(default_factory=dict)
-    
-    # Preservado estrictamente para retrocompatibilidad con la capa de Workers/Dispatcher
-    control_plane: Dict[str, Any] = Field(default_factory=dict)
+
+    parent_node_id: Optional[str] = None
+    # segment_index = 0 implica "Nodo intacto / original". Índices 1+ implican fragmentación.
+    segment_index: int = 0
+    # segment_count prepara el terreno para la validación O(1) de la Fase 16.6.
+    segment_count: int = 1
+
+
+    def spawn_fragment(self, new_id: str, new_payload: 'ASTPayload', segment_index: int) -> 'ASTNode':
+        """SOTA: Encapsula la lógica de clonación estructural (Information Hiding).
+        Aísla a los consumidores de conocer la API subyacente del DTO (Pydantic)."""
+        return self.model_copy(update={
+            "node_id": new_id,
+            "payload": new_payload,
+            "parent_node_id": self.node_id,
+            "segment_index": segment_index
+        })
 
     @property
     def has_valid_sequence(self) -> bool:
@@ -164,6 +178,10 @@ class ASTNode(BaseModel):
         if self.strategy == new_strategy:
             return self
         return self.model_copy(update={"strategy": new_strategy})
+
+    def with_sequence_id(self, new_seq: int) -> 'ASTNode':
+        """SOTA: Reasignación inmutable del orden lógico sin exponer la infraestructura."""
+        return self.model_copy(update={"sequence_id": new_seq})
     
 # =====================================================================
 # FAMILIA 3: INFRAESTRUCTURA DE EJECUCIÓN, CHUNKING Y TELEMETRÍA
