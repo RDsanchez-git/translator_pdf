@@ -1,6 +1,7 @@
 from typing import Protocol, Iterable, Optional
 from dataclasses import dataclass
 from core.ast.models import ASTNode, ASTPayload
+from core.routing.models import RouteChannel
 
 
 @dataclass(frozen=True, slots=True)
@@ -45,4 +46,11 @@ class TextPayload(Protocol):
 class NodeIdentityGenerator(Protocol):
     """Puerto Hexagonal para aislar la estrategia de generación de identidades opacas."""
     def generate(self) -> str:
+        ...
+
+class NodeRouter(Protocol):
+    """Puerto funcional puro para la clasificación topológica del AST."""
+    
+    def route(self, node: ASTNode) -> RouteChannel:
+        """Determina el canal destino de forma determinista y referencialmente transparente."""
         ...
