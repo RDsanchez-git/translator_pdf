@@ -19,23 +19,30 @@ from core.ast.registry import ASTRegistry
 from core.ast.parser import parse_pdf
 from core.ast.hashing import compute_ast_hash, build_semantic_chunks_as_units
 from core.ast.models import FastWordEstimator
+from core.document_profile.models import ProfileInput
+from core.document_profile.profiler import HeuristicDocumentProfiler
+from apps.bootstrap.pipeline_factory import build_document_profiler
+
+
+# 1. Importaciones actualizadas
+from core.document_profile.ports import ProfileStore
+from infra.db.profile_store import InMemoryProfileStore
 
 setup_distributed_logger()
 logger = logging.getLogger("ocr_router")
 
 class OCRRouterDaemon:
-    """
-    SOTA Pragmática: Ingestion Gateway con tolerancia a fallos.
-    Vigila el Inbox físico, procesa PyTorch/Marker, gestiona la idempotencia del FSM
-    y genera telemetría de cuarentena ante PDFs corruptos.
-    """
     def __init__(self, fsm_repo: FSMRepository, task_repo: ControlPlaneRepository, 
                  cmd_handler: DocumentCommandHandler, ast_registry: ASTRegistry, 
+                 document_profiler: 'HeuristicDocumentProfiler',
+                 profile_store: ProfileStore, # <--- Puerto abstracto inyectado
                  workspace_dir: str = "."):
         self.fsm = fsm_repo
         self.task_repo = task_repo
         self.cmd_handler = cmd_handler
         self.ast_registry = ast_registry
+        self.document_profiler = document_profiler # <--- Asignación
+        self.profile_store = profile_store
         self.owner_id = f"router_{uuid.uuid4().hex[:8]}"
         
         self.inbox_dir = Path(workspace_dir) / "data" / "inbox"
@@ -86,19 +93,38 @@ class OCRRouterDaemon:
             logger.error(f"Error consultando cortocircuito en FSM: {db_err}. Continuando por vía lenta de seguridad.")
 
         try:
-            # 1. Pipeline de Inferencia Puro Fase 10B
             raw_ast = parse_pdf(str(pdf_path))
             
-            # SOTA: El hash criptográfico se calcula sobre el AST base congelado. 
-            # Esto blinda el ID documental contra futuros cambios en la política de tokens.
+            # SOTA Hito 3B: Inferencia y persistencia asíncrona temporal
+            profile_input = ProfileInput(nodes=raw_ast)
+            profiling_result = self.document_profiler.profile(profile_input)
+            self.profile_store.save(document_id, profiling_result.profile)
+            
+            logger.info(
+                f"Perfil inferido para {document_id[:8]}: "
+                f"Layout={profiling_result.profile.layout}, "
+                f"Tipo={profiling_result.profile.document_type}"
+            )
+            # NOTA DE INTEGRACIÓN: Como el Router no maneja SQLiteDocumentRepository,
+            # el 'profiling_result.profile' debe guardarse junto al AST o pasarse 
+            # como metadata a self.ast_registry.register_ast(...) para que el 
+            # Assembler lo consuma aguas abajo.
+            # =================================================================
+            
             ast_hash = compute_ast_hash(raw_ast)
             
             # Instanciación de la estrategia de empaquetado semántico por tokens
             estimator = FastWordEstimator()
-            translation_units = build_semantic_chunks_as_units(raw_ast, estimator)
+            
+            # SOTA FIX: Desempaquetado estricto de la tupla (Unidades, Telemetría)
+            translation_units, chunking_report = build_semantic_chunks_as_units(raw_ast, estimator)
+            
+            # Iteración O(N) directa sobre la colección materializada List[TranslationUnit]
             ordered_chunk_ids = [u.chunk_id for u in translation_units]
             
             # 2. Persistencia del AST Base estructural
+            self.ast_registry.register_ast(document_id, ast_hash, raw_ast)
+
             self.ast_registry.register_ast(document_id, ast_hash, raw_ast)
             
             # 3. Control de Idempotencia de Reingesta via DTO
@@ -174,11 +200,27 @@ if __name__ == "__main__":
     
     for conn in (fsm_conn, queue_conn):
         conn.execute("PRAGMA busy_timeout=30000")
+
+    ast_registry = ASTRegistry()
+    
+    # SOTA: Inyección de Profiler y Store
+    profiler = build_document_profiler()
+    profile_store = InMemoryProfileStore()
     
     fsm_repo = FSMRepository(fsm_conn)
     task_repo = ControlPlaneRepository(queue_conn)
     cmd_handler = DocumentCommandHandler(fsm_repo, task_repo=task_repo)
     ast_registry = ASTRegistry()
     
-    daemon = OCRRouterDaemon(fsm_repo, task_repo, cmd_handler, ast_registry)
+    # SOTA: Ensamblaje del profiler desde el Composition Root oficial
+    profiler = build_document_profiler()
+    
+    daemon = OCRRouterDaemon(
+        fsm_repo=fsm_repo, 
+        task_repo=task_repo, 
+        cmd_handler=cmd_handler, 
+        ast_registry=ast_registry,
+        document_profiler=profiler,
+        profile_store=profile_store
+    )
     daemon.run()

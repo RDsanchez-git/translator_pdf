@@ -192,3 +192,11 @@ class DocumentLayout(BaseModel):
         if 1 <= page_number <= len(self.pages):
             return self.pages[page_number - 1]
         return None
+
+    def with_profile(self, new_profile: "DocumentProfile") -> "DocumentLayout":
+        """
+        SOTA: Encapsula la mutación inmutable del Aggregate Root.
+        Protege invariantes y centraliza la lógica de actualización estructural.
+        """
+        # Aquí en el futuro se pueden añadir incrementos de versión o audit trails
+        return self.model_copy(update={"profile": new_profile})

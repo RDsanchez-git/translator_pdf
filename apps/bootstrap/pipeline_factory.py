@@ -1,5 +1,5 @@
 """Composition Root libre de introspección por patito (hasattr) y desacoplado de dependencias cruzadas."""
-
+import os
 from typing import Optional, Any
 from infra.db.connection import get_connection
 from infra.db.fsm_repository import FSMRepository
@@ -8,12 +8,15 @@ from core.pipeline.state_store import FSMStateStore, StateStoreProtocol
 from core.pipeline.orchestrator import TranslationPipeline, ChunkerProtocol, AuditBuilderProtocol
 from infra.adapters.pdf_parser import PdfParserAdapter
 from core.metrics.summary import SummaryBuilder
-from core.ast.parser import parse_pdf
 
 # SOTA Fase 15.4-D: Importaciones del Motor de Ensamblado e Hidratación
-from core.ast.models import FailureReason
+from core.ast.models import FailureReason, ASTNode
 from core.compiler.assembler import DocumentAssembler, AssemblyPolicy
 from infra.db.document_repository import SQLiteDocumentRepository
+
+# Importaciones SOTA para el adaptador hexagonal
+from core.extraction.ocr_providers.pymupdf_provider import PyMuPDFProvider
+from core.ast.builder import FlatASTBuilder
 
 # Infraestructura de validación y curación nativa
 from core.validation.pipeline import ValidationPipeline
@@ -32,6 +35,13 @@ from core.healing.strategies.structural import EOFBraceClosureStrategy, EOFMathC
 from core.healing.config import HealingPolicy
 from core.normalization.bootstrap import bootstrap_normalization_layer
 
+from core.document_profile.profiler import HeuristicDocumentProfiler
+from core.document_profile.detectors.layout import HeuristicLayoutDetector
+from core.document_profile.detectors.semantic import HeuristicTypeDetector
+from infra.adapters.ast_profiling import NodeGeometryAdapter, NodeSemanticAdapter, FirstPagesSamplingPolicy
+
+from core.layout.builder import DocumentLayout
+from core.layout.models import LayoutBlockCollection
 
 def _build_default_validation_pipeline() -> ValidationPipeline:
     """Aislamiento explícito de la composición del pipeline de análisis sintáctico."""
@@ -66,7 +76,28 @@ def build_pipeline(
 ) -> TranslationPipeline:
     """Composition Root encargado del wiring explícito mediante asignación de inyección directa."""
     bootstrap_normalization_layer()
-    parser = PdfParserAdapter(parser_callable=parse_pdf, verify_output=True)
+    
+    # SOTA FIX: Encapsulamiento estricto mediante función interna tipada
+    provider = PyMuPDFProvider()
+    mapper = FlatASTBuilder()
+    
+    def _adapter_mapper(document_layout: DocumentLayout) -> list[ASTNode]:
+        """SOTA FIX: Extrae y aplana los bloques del Aggregate jerárquico."""
+        # Aplanar todos los bloques de todas las páginas físicas
+        flat_blocks = []
+        for page in document_layout.pages:
+            flat_blocks.extend(page.blocks)
+            
+        # Empaquetar en el DTO que la firma de FlatASTBuilder exige estrictamente.
+        # (Si LayoutBlockCollection se instancia pasando un argumento posicional, usa LayoutBlockCollection(flat_blocks))
+        collection = LayoutBlockCollection(blocks=flat_blocks) 
+        
+        return mapper.build(collection)
+
+    parser = PdfParserAdapter(
+        provider=provider, 
+        layout_to_ast_mapper=_adapter_mapper
+    )
     
     # -----------------------------------------------------------------
     # SOTA Fase 15.4: Setup del Repositorio de Hidratación y Políticas
@@ -126,5 +157,24 @@ def build_pipeline(
         assembler=assembler,
         audit_builder=audit_builder,
         state_store=state_store,
-        document_repository=document_repository # SOTA FIX: Inyección del 7mo parámetro
+        document_repository=document_repository
+    )
+
+def build_document_profiler() -> HeuristicDocumentProfiler:
+    """Ensambla el servicio de perfilado inyectando configuración de infraestructura."""
+    # Configuración paramétrica
+    max_sampling_pages = int(os.getenv("PROFILER_MAX_SAMPLING_PAGES", "5"))
+
+    geom_adapter = NodeGeometryAdapter()
+    semantic_adapter = NodeSemanticAdapter()
+
+    # Inyección
+    sampler = FirstPagesSamplingPolicy(geom_extractor=geom_adapter, max_pages=max_sampling_pages)
+    layout_detector = HeuristicLayoutDetector(geom_extractor=geom_adapter)
+    type_detector = HeuristicTypeDetector(semantic_adapter=semantic_adapter)
+
+    return HeuristicDocumentProfiler(
+        layout_detector=layout_detector,
+        type_detector=type_detector,
+        sampler=sampler
     )

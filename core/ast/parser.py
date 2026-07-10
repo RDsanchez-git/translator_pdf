@@ -11,19 +11,23 @@ import fitz  # PyMuPDF
 import pymupdf4llm
 import pytesseract
 from PIL import Image
-from core.ast.models import ASTNode, NodeType, ContentNodeType, StructuralNodeType
+
+from core.ast.models import ASTNode, ContentNodeType
 from core.ast.router import PDFRouter
+from core.ast.models import (
+    ParagraphPayload, ImagePayload, HeadingPayload,
+    MathPayload, CodePayload, TablePayload, ListPayload,
+    NodeMetadata
+)
 
 logger = logging.getLogger(__name__)
 
 # SOTA Windows Guardrail: Configuración estricta del motor OCR
 TESSERACT_PATH = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 TESSDATA_PATH = r"C:\Program Files\Tesseract-OCR\tessdata"
-
 pytesseract.pytesseract.tesseract_cmd = TESSERACT_PATH
 # Inyectar la variable de entorno de Tesseract directamente en el subproceso
 os.environ["TESSDATA_PREFIX"] = TESSDATA_PATH
-
 
 DEBUG_PARSER = True
 KEEP_ASSETS = True  # Modificado para congelar las imágenes en disco hasta la integración de Gemini Vision
@@ -87,7 +91,6 @@ def _extract_document_text(pdf_path: str, pdf_type: str, empty_pages: list[int])
             
     doc.close()
     
-    # FIX: Se define explícitamente como list[str] inicializada con strings vacíos
     final_pages: list[str] = [""] * total_pages
     
     def _worker_task(task):
@@ -97,7 +100,7 @@ def _extract_document_text(pdf_path: str, pdf_type: str, empty_pages: list[int])
         else:
             text = _run_tesseract_on_bytes(data)
             return page_num, text + "\n\n"
-
+            
     logger.info(f"Lanzando pool de paralelización para {total_pages} páginas...")
     with ThreadPoolExecutor(max_workers=4) as executor:
         results = executor.map(_worker_task, pages_tasks)
@@ -107,42 +110,53 @@ def _extract_document_text(pdf_path: str, pdf_type: str, empty_pages: list[int])
         
     return "".join(final_pages)
 
+def _build_payload(n_type: ContentNodeType, content: str):
+    """SOTA: Envoltura polimórfica hacia el Payload correcto."""
+    if n_type == ContentNodeType.HEADING:
+        return HeadingPayload(content=content)
+    elif n_type in (ContentNodeType.DISPLAY_EQUATION, ContentNodeType.INLINE_EQUATION):
+        return MathPayload(content=content)
+    elif n_type in (ContentNodeType.TABLE_SIMPLE, ContentNodeType.TABLE_COMPLEX):
+        return TablePayload(content=content)
+    elif n_type == ContentNodeType.IMAGE:
+        # SOTA FIX: Pylance Strict. ImagePayload no requiere content.
+        return ImagePayload() 
+    elif n_type == ContentNodeType.LIST:
+        return ListPayload(content=content)
+    elif n_type == ContentNodeType.CODE:
+        return CodePayload(content=content)
+    return ParagraphPayload(content=content)
+
 def parse_pdf(pdf_path: str) -> list[ASTNode]:
-    for node_attr in ["TABLE", "IMAGE", "EQUATION", "CAPTION", "LIST"]:
+    for node_attr in ["TABLE_SIMPLE", "IMAGE", "DISPLAY_EQUATION", "CAPTION", "LIST"]:
         if not hasattr(ContentNodeType, node_attr):
             raise RuntimeError(f"Falta inicializar la variante enum: ContentNodeType.{node_attr}")
-
+            
     if not os.path.exists(pdf_path):
         raise FileNotFoundError(f"PDF no encontrado: {pdf_path}")
-
+        
     ast_cache_path = f"{pdf_path}.ast.json"
-
     if os.path.exists(ast_cache_path):
         logger.info(f"AST recuperado desde disco ({ast_cache_path}). Saltando extracción...")
         with open(ast_cache_path, "r", encoding="utf-8") as f:
             data = json.load(f)
         return [ASTNode(**node) for node in data]
-
-    # Ejecución del Router determinista por ratio de densidad de páginas
+        
     pdf_type, empty_pages = PDFRouter.detect_pdf_type(pdf_path)
     logger.info(f"Clasificación de Ingesta: {pdf_type} | Páginas Opacas: {len(empty_pages)}")
-
-    # Inyección forzada para evadir la corrupción de CMap. borrar esto
+    
+    # Inyección forzada temporal
     pdf_type, empty_pages = "OCR", []
-    # borrar esto
-
+    
     raw_markdown = _extract_document_text(pdf_path, pdf_type, empty_pages)
     full_text = sanitize_marker_html(raw_markdown)
-
-    # === INYECCIÓN TEMPORAL DE OBSERVABILIDAD DE ORIGEN ===
+    
     with open(f"{pdf_path}.debug.md", "w", encoding="utf-8") as dbg_f:
         dbg_f.write(full_text)
-    # ======================================================
-    
+        
     del raw_markdown
     gc.collect()
     
-    # === REFACTOR SOTA: SEGMENTACIÓN BASADA EN ESTADOS FINITOS ===
     from core.ast.segmenter import MarkdownSegmenter
     segmenter = MarkdownSegmenter()
     blocks = segmenter.segment(full_text)
@@ -152,19 +166,18 @@ def parse_pdf(pdf_path: str) -> list[ASTNode]:
     ast_nodes = []
     stop_keywords = ["# references", "# bibliography", "# referencias", "# bibliografía", "## references"]
     node_counter = 0
-    
-    for idx, block in enumerate(blocks):
-        node_type: NodeType = ContentNodeType.PARAGRAPH
 
+    for idx, block in enumerate(blocks):
+        node_type: ContentNodeType = ContentNodeType.PARAGRAPH
         has_latex_open = bool(re.search(r'\\begin\{|\$\$', block[:50]))
         has_latex_close = bool(re.search(r'\\end\{|\$\$', block[-50:]))
         
         if has_latex_open and not has_latex_close:
             node_type = ContentNodeType.COMPOSITE_BLOCK
         elif re.match(r'^#+\s+', block):
-            node_type = StructuralNodeType.SECTION
+            node_type = ContentNodeType.HEADING
             block = re.sub(r'^#+\s*', '', block)
-
+            
         block = block.strip()
         if not block:
             continue
@@ -179,8 +192,6 @@ def parse_pdf(pdf_path: str) -> list[ASTNode]:
         image_matches = list(re.finditer(r'!\[(.*?)\]\((.*?)\)', block))
         if image_matches:
             last_idx = 0
-            anchor_node_id = None
-            last_image_node_id = None
             
             for match in image_matches:
                 text_before = block[last_idx:match.start()].strip()
@@ -188,35 +199,35 @@ def parse_pdf(pdf_path: str) -> list[ASTNode]:
                     node_id = f"node_{node_counter}"
                     ast_nodes.append(ASTNode(
                         node_id=node_id,
-                        sequence_id=len(ast_nodes) + 1,  # Ajuste Base 1
-                        type=ContentNodeType.PARAGRAPH,
-                        content=text_before,
-                        metadata={}
+                        sequence_id=len(ast_nodes) + 1,
+                        node_type=ContentNodeType.PARAGRAPH,
+                        payload=ParagraphPayload(content=text_before),
+                        metadata=NodeMetadata()
                     ))
-                    anchor_node_id = node_id
                     node_counter += 1
                 
                 image_node_id = f"node_{node_counter}"
                 ast_nodes.append(ASTNode(
                     node_id=image_node_id,
-                    sequence_id=len(ast_nodes) + 1,  # Ajuste Base 1
-                    type=ContentNodeType.IMAGE,
-                    content="<IMAGE_OMITTED>",
-                    metadata={"asset_path": match.group(2), "alt_text": match.group(1)}
+                    sequence_id=len(ast_nodes) + 1,
+                    node_type=ContentNodeType.IMAGE,
+                    payload=ImagePayload(
+                        alt_text=match.group(1),    # SOTA FIX: Eliminado el parámetro "content"
+                        asset_path=match.group(2)   # SOTA FIX: Eliminado el parámetro "content"
+                    ),   
+                    metadata=NodeMetadata()
                 ))
-                last_image_node_id = image_node_id
                 node_counter += 1
                 last_idx = match.end()
                 
             text_after = block[last_idx:].strip()
             if text_after:
-                ref_id = anchor_node_id if anchor_node_id else last_image_node_id
                 ast_nodes.append(ASTNode(
                     node_id=f"node_{node_counter}",
-                    sequence_id=len(ast_nodes) + 1,  # Ajuste Base 1
-                    type=ContentNodeType.PARAGRAPH,
-                    content=text_after,
-                    metadata={"continuation_of": ref_id}
+                    sequence_id=len(ast_nodes) + 1,
+                    node_type=ContentNodeType.PARAGRAPH,
+                    payload=ParagraphPayload(content=text_after),
+                    metadata=NodeMetadata()
                 ))
                 node_counter += 1
             continue
@@ -224,9 +235,9 @@ def parse_pdf(pdf_path: str) -> list[ASTNode]:
         if node_type == ContentNodeType.PARAGRAPH:
             if (match := EQUATION_BLOCK_PATTERNS.search(block)) is not None:
                 if match.start() <= 15 or (match.end() - match.start()) / len(block) > 0.7:
-                    node_type = ContentNodeType.EQUATION
+                    node_type = ContentNodeType.DISPLAY_EQUATION
             elif _is_stem_table(block):
-                node_type = ContentNodeType.TABLE
+                node_type = ContentNodeType.TABLE_SIMPLE
             elif re.match(r'^\*\*Fig\b|^\*\*Table\b|^Fig\.\s|^Table\s|^Figure\s|^Chart\s|^Source\s', block, re.I):
                 node_type = ContentNodeType.CAPTION
             elif block.startswith("- ") or block.startswith("* ") or re.match(r'^\d+\.\s', block):
@@ -239,27 +250,26 @@ def parse_pdf(pdf_path: str) -> list[ASTNode]:
         
         ast_nodes.append(ASTNode(
             node_id=f"node_{node_counter}",
-            sequence_id=len(ast_nodes) + 1,  # Ajuste Base 1
-            type=node_type,
-            content=block,
-            metadata={}
+            sequence_id=len(ast_nodes) + 1,
+            node_type=node_type,
+            payload=_build_payload(node_type, block),
+            metadata=NodeMetadata()
         ))
         node_counter += 1
         
     logger.info(f"Fase 4B: {len(ast_nodes)} Nodos AST tipados inyectados.")
-
+    
     del full_text
     del blocks
     gc.collect()
-
+    
     with open(ast_cache_path, "w", encoding="utf-8") as f:
         json.dump([n.model_dump() for n in ast_nodes], f, indent=2, ensure_ascii=False)
-
-    # FIX 5: Aplicación estricta de la política de limpieza de assets temporales en disco
+        
     if not KEEP_ASSETS:
         image_dir = f"{pdf_path}_assets"
         if os.path.exists(image_dir):
             logger.info(f"Política de limpieza activa: Removiendo directorio de assets {image_dir}")
             shutil.rmtree(image_dir)
-
+            
     return ast_nodes
