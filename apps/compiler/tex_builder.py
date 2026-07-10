@@ -1,58 +1,29 @@
 import logging
-from core.ast.models import ContentNodeType
+from typing import List
+from core.compiler.rendering.models import RenderUnit
+from core.compiler.rendering.context import RenderContext
 
 logger = logging.getLogger(__name__)
 
-# SOTA: Conjunto defensivo alineado con los string values exactos del nuevo AST semántico
-LATEX_PASSTHROUGH_TYPES = {
-    ContentNodeType.EQUATION.value,       # "equation"
-    ContentNodeType.INLINE_EQUATION.value, # "inline_equation"
-    ContentNodeType.TABLE.value,          # "table"
-    ContentNodeType.CODE_BLOCK.value,     # "code_block"
-    ContentNodeType.ALGORITHM.value,      # "algorithm"
-    ContentNodeType.FIGURE.value,         # "figure"
-    ContentNodeType.IMAGE.value,          # "image"
-    ContentNodeType.MACRO_CHUNK.value,    # "macro_chunk"
-    ContentNodeType.COMPOSITE_BLOCK.value # "composite_block"
-}
-
 class TexBuilder:
-    def __init__(self):
-        self.header = [
-            "\\documentclass[11pt,a4paper]{article}",
-            "\\usepackage{amsmath, amssymb}",
-            "\\usepackage{graphicx}",
-            "\\usepackage{hyperref}",
-            "\\begin{document}"
-        ]
-        self.footer = ["\\end{document}"]
+    """
+    SOTA: Compilador Inversion-of-Control (Release Candidate).
+    Cero lógica de negocio, cero strings mágicos, 100% delegación de estrategias.
+    """
+    def __init__(self, context: RenderContext):
+        self._context = context
 
-    def build(self, valid_chunks: list) -> str:
-        document = list(self.header)
+    def build(self, units: List[RenderUnit]) -> str:
+        document = self._context.structure.begin_document()
         
-        for chunk in valid_chunks:
-            # Desempaquetado polimórfico defensivo
-            if len(chunk) == 3:
-                node_id, text_to_render, node_type = chunk
-            else:
-                node_id, text_to_render = chunk
-                node_type = "paragraph"
-                
-            if not text_to_render or not str(text_to_render).strip():
-                raise ValueError(f"CRÍTICO: El nodo {node_id} está vacío. Integridad comprometida.")
-                
-            safe_text = str(text_to_render)
-            # Normalización homogénea en minúsculas para igualar los valores del Enum
-            current_type = str(getattr(node_type, "value", node_type)).lower()
+        for unit in units:
+            rendered_content = self._context.render_unit(unit)
             
-            # Sanitización condicional restrictiva basada en el mapa de tipos
-            if current_type not in LATEX_PASSTHROUGH_TYPES:
-                # Mitigación perimetral para texto plano/narrativo puro
-                safe_text = safe_text.replace("_", "\\_").replace("&", "\\&").replace("%", "\\%")
-            
-            document.append(f"% [NODE_ID: {node_id}] [TYPE: {current_type}]")
-            document.append(safe_text)
-            document.append("") 
+            if rendered_content:
+                # Trazabilidad forense para debugging
+                document.append(f"% [NODE_ID: {unit.node_id}] [TYPE: {unit.node_type.value}]")
+                document.append(rendered_content)
+                document.append("") 
                 
-        document.extend(self.footer)
+        document.extend(self._context.structure.end_document())
         return "\n".join(document)
