@@ -1,6 +1,10 @@
 from enum import Enum
 from dataclasses import dataclass
 from typing import Protocol, List
+from core.prompting.models import PromptSchema
+from core.prompting.canonicalizer import PromptCanonicalizer
+from core.validation.budget_models import BudgetDecision, PromptBudget, BudgetDecisionType, BudgetViolationReason, ContextReductionLevel
+from core.finops.measurement import InferenceMeasurement
 
 class TokenEstimatorProtocol(Protocol):
     """SOTA: Puerto Hexagonal para estimación (FastWordEstimator, TikToken, SentencePiece)."""
@@ -66,36 +70,22 @@ class BudgetDecision:
     required_window_size: int = 0
 
 class PromptBudgetCalculator:
-    """SOTA: Validador algebraico puro basado en Remaining Window con Capping estricto."""
+    """SOTA: Validador algebraico acoplado exclusivamente a la abstracción de medida."""
     
-    def __init__(
-        self,
-        estimator: TokenEstimatorProtocol,
-        primary_window_limit: int = 8192,
-        fallback_window_limit: int = 1048576,
-        min_output_reserve: int = 256,
-        max_output_reserve: int = 4096  # SOTA FIX: Capping para evitar switch_model permanente
-    ):
-        self.estimator = estimator
+    def __init__(self, primary_window_limit: int = 8192, fallback_window_limit: int = 1048576, min_output_reserve: int = 256, max_output_reserve: int = 4096):
+        # NOTA: El TokenEstimatorProtocol fue inyectado al PromptMeasurer. 
+        # El Calculator ya no necesita conocer cómo estimar, solo cómo calcular finanzas.
         self.primary_window_limit = primary_window_limit
         self.fallback_window_limit = fallback_window_limit
         self.min_output_reserve = min_output_reserve
         self.max_output_reserve = max_output_reserve
 
-    def calculate(
-        self,
-        system_text: str,
-        context_text: str,
-        payload_text: str,
-        expansion_factor: float = 1.2
-    ) -> BudgetDecision:
-        
-        sys_tok = self.estimator.estimate_tokens(system_text)
-        ctx_tok = self.estimator.estimate_tokens(context_text)
-        pay_tok = self.estimator.estimate_tokens(payload_text)
+    def calculate(self, measurement: InferenceMeasurement, expansion_factor: float = 1.2) -> BudgetDecision:
+        sys_tok = measurement.instruction_tokens + measurement.structural_overhead
+        ctx_tok = measurement.context_tokens
+        pay_tok = measurement.payload_tokens
 
         dyn_reserve = int(pay_tok * expansion_factor)
-        # SOTA FIX: Aplicación del Cap estricto al output reserve
         reserve = min(self.max_output_reserve, max(self.min_output_reserve, dyn_reserve))
 
         initial_budget = PromptBudget(sys_tok, ctx_tok, pay_tok, reserve, self.primary_window_limit)
@@ -124,9 +114,11 @@ class PromptBudgetCalculator:
             )
 
         if core_tokens <= self.fallback_window_limit:
+            # SOTA FIX: Evaluamos si el rechazo fue por el payload o por reglas de negocio pesadas
+            reason = BudgetViolationReason.PAYLOAD_TOO_LARGE if pay_tok > sys_tok else BudgetViolationReason.SYSTEM_PROMPT_TOO_LARGE
             return BudgetDecision(
                 status=BudgetDecisionType.SWITCH_MODEL,
-                violation_reason=BudgetViolationReason.PAYLOAD_TOO_LARGE if pay_tok > sys_tok else BudgetViolationReason.SYSTEM_PROMPT_TOO_LARGE,
+                violation_reason=reason,
                 budget=initial_budget,
                 suggested_context_level=ContextReductionLevel.FULL,
                 max_allowed_context_tokens=self.fallback_window_limit - core_tokens,

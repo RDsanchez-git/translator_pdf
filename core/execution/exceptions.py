@@ -124,3 +124,16 @@ class ASTMappingError(DomainException):
     def __init__(self, message: str, pdf_path: str):
         super().__init__(f"Fallo en mapeo lógico de AST para {pdf_path}: {message}")
         self.pdf_path = pdf_path
+
+
+class InferenceProtocolError(Exception):
+    """SOTA: Falla base en el contrato de inferencia."""
+    pass
+
+class MalformedInferenceResponse(InferenceProtocolError):
+    """SOTA: La API devolvió un 200 OK, pero la estructura es inservible."""
+    pass
+
+class DialectParsingError(MalformedInferenceResponse):
+    """SOTA: El LLM desobedeció el json_mode o la estrategia de respuesta."""
+    pass
