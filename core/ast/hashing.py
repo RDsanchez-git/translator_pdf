@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 def compute_ast_hash(ast: List[ASTNode]) -> str:
     """SOTA: Generación determinística de firma para el árbol sintáctico completo."""
     def serialize_node(n: ASTNode) -> dict:
-        type_str = n.type.value if hasattr(n.type, "value") else str(n.type)
+        type_str = n.node_type.value if hasattr(n.node_type, "value") else str(n.node_type)
         return {
             "node_id": n.node_id,
             "type": type_str,
@@ -120,10 +120,10 @@ class TokenBudgetChunker:
                 continue
 
             # Bypass Lógico: Entidades estructurales y matemáticas se aíslan intactas
-            if node.type in self.protected_types or node.type in self.boundaries or node.type in self.partial_types:
+            if node.node_type in self.protected_types or node.node_type in self.boundaries or node.node_type in self.partial_types:
                 flush_translate_chunk()
                 
-                task_type = TranslationTaskType.PARTIAL if node.type in self.partial_types else TranslationTaskType.PRESERVE
+                task_type = TranslationTaskType.PARTIAL if node.node_type in self.partial_types else TranslationTaskType.PRESERVE
                 node_tokens = self.estimator.estimate(content)
                 full_hash = hashlib.sha256(content.encode("utf-8")).hexdigest()
                 fingerprint = hashlib.md5(f"{node.sequence_id}-{node.sequence_id}".encode()).hexdigest()
@@ -166,7 +166,7 @@ class TokenBudgetChunker:
                         sub_node = ASTNode(
                             node_id=f"{node.node_id}_sub_{len(current_nodes)}",
                             sequence_id=node.sequence_id,
-                            type=node.type,
+                            node_type=node.node_type,
                             content=sentence,
                             metadata=node.metadata,
                             control_plane=node.control_plane

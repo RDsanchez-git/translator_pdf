@@ -40,7 +40,7 @@ class ASTHealthReport:
         total_nodes = len(ast)
         
         for node in ast:
-            t = node.type
+            t = node.node_type
             content_str = node.content or ""
             
             if content_str and t != ContentNodeType.IMAGE:
@@ -128,17 +128,17 @@ class ASTValidator:
                 raise ASTValidationError(f"Falla de integridad: ID duplicado detectado: {node.node_id}")
             seen_ids.add(node.node_id)
 
-            if node.type == ContentNodeType.UNKNOWN:
+            if node.node_type == ContentNodeType.UNKNOWN:
                 unknown_count += 1
 
-            type_str = node.type.value if hasattr(node.type, "value") else str(node.type)
+            type_str = node.node_type.value if hasattr(node.node_type, "value") else str(node.node_type)
             if type_str in structural_values and node.content and len(node.content) > 1000:
                 logger.warning(
                     f"[AST_STRUCTURE_WARN] El nodo estructural {node.node_id} ({type_str}) "
                     f"excede el umbral estándar con {len(node.content)} caracteres acumulados."
                 )
 
-            if node.type == ContentNodeType.EQUATION:
+            if node.node_type == ContentNodeType.EQUATION:
                 content = node.content or ""
                 has_open = bool(LATEX_MATH_OPEN.search(content))
                 has_close = bool(LATEX_MATH_CLOSE.search(content))
