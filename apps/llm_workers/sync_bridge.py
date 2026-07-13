@@ -51,10 +51,17 @@ class SyncProviderBridge:
         """Contrato de ejecución sincrónico para hilos de ThreadPoolExecutor."""
         import hashlib
         
-        target_payload = node.content or ""
+        # SOTA FIX: Extracción polimórfica segura desde Pydantic Union.
+        # 6 de los 7 payloads usan 'content'. ImagePayload usa 'alt_text'.
+        if not node.payload:
+            target_payload = ""
+        else:
+            raw_text = getattr(node.payload, "content", getattr(node.payload, "alt_text", ""))
+            target_payload = str(raw_text or "")
+            
         payload_sha256 = hashlib.sha256(target_payload.encode('utf-8')).hexdigest()
         
-        # SOTA: Reconstrucción completa del DTO satisfaciendo la firma inmutable de la Fase 13
+        # SOTA: Reconstrucción completa del DTO satisfaciendo la firma inmutable
         unit = TranslationUnit(
             chunk_index=node.control_plane.get("chunk_index", -1),
             chunk_id=node.node_id,
@@ -69,20 +76,24 @@ class SyncProviderBridge:
             payload_sha256=payload_sha256
         )
         
-        # SOTA: Eliminación de degradación de tipo. Se construye un Null-Object válido con tupla vacía.
+        # SOTA: Null-Object válido con tupla vacía.
         fallback_context = ResolvedContext(
             context_id=unit.context_id,
             breadcrumbs=()
         )
         
-        # TODO_PHASE15: Resolver context_id -> semantic context real.
-        envelope = self._builder.build(unit, context=fallback_context)
+        build_result = self._builder.build(unit, resolved_context=fallback_context)
+        
+        if build_result.status == "failed":
+            raise RuntimeError(f"SyncBridge abortado: {build_result.message} (Razón: {build_result.error_reason.value})")
+            
+        envelope = build_result.envelope
 
         future = asyncio.run_coroutine_threadsafe(self._provider.translate(envelope), self._loop)
         
         try:
             result = future.result(timeout=self._timeout)
-            return result.translated_text
+            return result.content
         except TimeoutError as e:
             logger.error(f"SyncBridge Timeout de {self._timeout}s excedido para nodo {node.node_id[:8]}")
             future.cancel()

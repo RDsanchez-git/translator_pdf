@@ -1,12 +1,14 @@
 import asyncio
 import logging
 import itertools
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Any, Tuple
 from dataclasses import replace
 
 from core.ast.models import TranslationUnit, TranslatedUnit, ChunkOutcome, ExecutionStatus, FailureReason, DispatchResult
-from apps.llm_workers.prompt_builder import PromptEnvelope, PromptBuilder, BuildFailure
-from apps.llm_workers.routing import ProviderResult, LLMProvider
+from apps.llm_workers.prompt_builder import PromptEnvelope, PromptBuilder
+from apps.llm_workers.routing import LLMProvider
+from core.prompting.inference_result import InferenceResult  # SOTA FIX: Nuevo contrato
+
 from core.execution.exceptions import CircuitOpenError, PermanentQuotaRejection, QuotaTimeoutError
 from core.context.context_resolver import ContextResolverProtocol, ResolvedContext
 from core.validation.models import ValidationContext, Scope, Severity
@@ -20,7 +22,6 @@ from core.validation.volumetric import VolumetricValidator
 from core.healing.models import HealingContext, HealingOutcome
 from core.healing.pipeline import HealingPipeline
 from core.validation.budget import BudgetViolationReason
-
 
 logger = logging.getLogger(__name__)
 
@@ -78,26 +79,28 @@ class AsyncDispatcher:
         pipeline.add_document_validator(PreservationValidator())
         return pipeline
 
-    async def _process_validation_and_healing(self, unit: TranslationUnit, provider_result: ProviderResult, envelope: PromptEnvelope) -> TranslatedUnit:
+    async def _process_validation_and_healing(self, unit: TranslationUnit, provider_result: InferenceResult, envelope: PromptEnvelope) -> TranslatedUnit:
         chunk_type_str = getattr(unit.chunk_type, 'value', unit.chunk_type)
-
+        
+        # SOTA FIX: Bloqueo de tipo estricto. Transforma InferenceResult.content a str.
+        target_payload_text = str(provider_result.content)
+        
         translated = TranslatedUnit(
             chunk_index=unit.chunk_index,
             chunk_id=unit.chunk_id,
             chunk_type=chunk_type_str,
             source_sequence_range=unit.source_sequence_range,
-            translated_payload=provider_result.translated_text,
+            translated_payload=target_payload_text,
             payload_sha256=unit.payload_sha256,
             model_name=envelope.model_name if provider_result.finish_reason != "cache_hit" else f"cache_hit:{envelope.model_name}",
             prompt_version=envelope.prompt_version,
-            input_tokens=provider_result.input_tokens,
-            output_tokens=provider_result.output_tokens,
-            latency_ms=provider_result.latency_ms
+            input_tokens=int(provider_result.input_tokens),
+            output_tokens=int(provider_result.output_tokens),
+            latency_ms=float(provider_result.latency_ms)
         )
-
         if not self.validation_pipeline:
             return translated
-
+            
         ctx = ValidationContext(
             source_text=unit.target_payload,
             target_text=translated.translated_payload,
@@ -122,30 +125,29 @@ class AsyncDispatcher:
                 )
                 results = self.validation_pipeline.validate_chunk(replace(ctx, target_text=translated.translated_payload))
                 hard_fails = [r for r in results if r.severity == Severity.HARD_FAIL]
-
+                
         if hard_fails:
             res = hard_fails[0]
             raise ValueError(f"[{res.invariant_id}] {res.message}")
-
         return translated
 
-    async def _worker(self, queue: asyncio.PriorityQueue, results: Dict[int, ChunkOutcome]) -> None:
+    # SOTA FIX: Tipado estructural de la Cola para eliminar los Unknowns de priority, seq_id, unit, y envelope.
+    async def _worker(self, queue: 'asyncio.PriorityQueue[Tuple[int, int, TranslationUnit, PromptEnvelope]]', results: Dict[int, ChunkOutcome]) -> None:
         while True:
             try:
-                # SOTA FIX 15.3-D: Extracción de tupla LPT. priority y seq_id se descartan de forma segura.
-                priority, seq_id, unit, envelope = await queue.get()
+               _priority, _seq_id, unit, envelope = await queue.get()
             except asyncio.CancelledError:
                 break
-
             try:
                 provider_result = await self._provider.translate(envelope)
                 translated = await self._process_validation_and_healing(unit, provider_result, envelope)
                 
-                # SOTA FIX: Puente de telemetría de red. Inyección estricta de métricas LPU/TPU
-                execution_telemetry = envelope.telemetry.copy() if envelope.telemetry else {}
-                execution_telemetry["input_tokens"] = provider_result.input_tokens
-                execution_telemetry["output_tokens"] = provider_result.output_tokens
-                execution_telemetry["latency_ms"] = provider_result.latency_ms
+                # SOTA FIX: Aislamiento dict nativo para evitar Unknown Propagation
+                base_telemetry = envelope.telemetry or {}
+                execution_telemetry: Dict[str, Any] = dict(base_telemetry)
+                execution_telemetry["input_tokens"] = int(provider_result.input_tokens)
+                execution_telemetry["output_tokens"] = int(provider_result.output_tokens)
+                execution_telemetry["latency_ms"] = float(provider_result.latency_ms)
                 
                 results[unit.chunk_index] = ChunkOutcome(
                     chunk_index=unit.chunk_index,
@@ -155,24 +157,21 @@ class AsyncDispatcher:
                     translated_unit=translated,
                     failure_reason=None,
                     error_message=None,
-                    telemetry=execution_telemetry # Propagación de telemetría SRE corregida
+                    telemetry=execution_telemetry
                 )
             except CircuitOpenError as e:
-                # SOTA FIX: Mapeo exacto a apertura de circuito
                 results[unit.chunk_index] = ChunkOutcome(
                     chunk_index=unit.chunk_index, chunk_id=unit.chunk_id, status=ExecutionStatus.FAILED,
                     original_payload_sha256=unit.payload_sha256, translated_unit=None,
                     failure_reason=FailureReason.CIRCUIT_OPEN, error_message=str(e), telemetry=envelope.telemetry
                 )
             except QuotaTimeoutError as e:
-                # SOTA FIX: Mapeo exacto a timeout de bucket
                 results[unit.chunk_index] = ChunkOutcome(
                     chunk_index=unit.chunk_index, chunk_id=unit.chunk_id, status=ExecutionStatus.FAILED,
                     original_payload_sha256=unit.payload_sha256, translated_unit=None,
                     failure_reason=FailureReason.QUOTA_TIMEOUT, error_message=str(e), telemetry=envelope.telemetry
                 )
             except PermanentQuotaRejection as e:
-                # SOTA FIX: Mapeo exacto a rechazo matemático
                 results[unit.chunk_index] = ChunkOutcome(
                     chunk_index=unit.chunk_index, chunk_id=unit.chunk_id, status=ExecutionStatus.FAILED,
                     original_payload_sha256=unit.payload_sha256, translated_unit=None,
@@ -206,29 +205,30 @@ class AsyncDispatcher:
     async def dispatch(self, units: List[TranslationUnit]) -> DispatchResult:
         if not units:
             return DispatchResult(outcomes=[])
-
+            
         chunk_indexes = [u.chunk_index for u in units]
         if len(set(chunk_indexes)) != len(chunk_indexes):
             raise ValueError("Duplicate chunk_index detected")
-
+            
         context_ids = {u.context_id for u in units if u.context_id}
         resolved_contexts = self.context_resolver.resolve_many(context_ids)
-
-        # SOTA FIX 15.3-D: Cola priorizada y contador determinista contra colisiones (Same-Cost)
-        queue: asyncio.PriorityQueue = asyncio.PriorityQueue()
+        
+        # SOTA FIX: Instanciación genérica correcta.
+        queue: 'asyncio.PriorityQueue[Tuple[int, int, TranslationUnit, PromptEnvelope]]' = asyncio.PriorityQueue()
         sequence_counter = itertools.count()
         outcomes_map: Dict[int, ChunkOutcome] = {} 
-
+        
         for unit in units:
             context = resolved_contexts.get(unit.context_id) or ResolvedContext(
                 context_id=unit.context_id,
                 breadcrumbs=()
             )
             
-            build_result = self.prompt_builder.build(unit, context)
+            # SOTA FIX: Invocación estricta usando kwargs.
+            build_result = self.prompt_builder.build(unit, resolved_context=context)
             
-            # SOTA FIX: Fallback DTO Pattern Matching
-            if isinstance(build_result, BuildFailure):
+            # SOTA FIX: Discriminación Literal.
+            if build_result.status == "failed":
                 mapped_reason = BUDGET_TO_EXECUTION_FAILURE_MAP.get(
                     build_result.error_reason, 
                     FailureReason.UNKNOWN_ERROR
@@ -244,11 +244,10 @@ class AsyncDispatcher:
                     telemetry={"violation_reason": build_result.error_reason.value}
                 )
                 continue
-
+                
             envelope = build_result.envelope
             req_window = envelope.telemetry.get("required_window", 0)
-
-            # SOTA FIX: Hard Reject (Pre-Red)
+            
             if req_window > MAX_GLOBAL_SUPPORTED_WINDOW:
                 outcomes_map[unit.chunk_index] = ChunkOutcome(
                     chunk_index=unit.chunk_index,
@@ -261,22 +260,20 @@ class AsyncDispatcher:
                     telemetry={"target_provider": "rejected", "required_window": req_window}
                 )
                 continue
-
-            # SOTA FIX 15.3-D: Inserción LPT (Largest Estimated Cost First)
+                
             cost_priority = -envelope.estimated_tokens
             seq_id = next(sequence_counter)
             queue.put_nowait((cost_priority, seq_id, unit, envelope))
-
+            
         workers = [asyncio.create_task(self._worker(queue, outcomes_map)) for _ in range(self._concurrency)]
-
+        
         try:
             await queue.join()
         finally:
             for w in workers:
                 w.cancel()
             await asyncio.gather(*workers, return_exceptions=True)
-
-        # SOTA: Integridad final contra crashes huérfanos
+            
         missing_indexes = set(chunk_indexes) - set(outcomes_map.keys())
         if missing_indexes:
             logger.error(f"FATAL: {len(missing_indexes)} chunks perdidos por crash no controlado en Workers.")
@@ -292,6 +289,6 @@ class AsyncDispatcher:
                     error_message="El Worker colapsó o fue cancelado antes de registrar el outcome.",
                     telemetry={"violation_reason": "worker_crash"}
                 )
-
+                
         final_outcomes_sorted = [outcomes_map[idx] for idx in sorted(outcomes_map.keys())]
         return DispatchResult(outcomes=final_outcomes_sorted)

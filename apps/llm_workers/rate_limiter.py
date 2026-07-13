@@ -6,7 +6,8 @@ from enum import Enum
 from dataclasses import dataclass
 from typing import Protocol
 from apps.llm_workers.prompt_builder import PromptEnvelope
-from apps.llm_workers.routing import ProviderResult, LLMProvider
+from apps.llm_workers.routing import LLMProvider
+from core.prompting.inference_result import InferenceResult
 from core.execution.exceptions import PermanentQuotaRejection, QuotaTimeoutError
 
 
@@ -158,8 +159,8 @@ class RateLimitedProvider(LLMProvider):
         underlying: LLMProvider, 
         quota_manager: QuotaManagerProtocol, 
         max_wait_seconds: float = 300.0,
-        min_jitter: float = 0.005,  # SOTA FIX: Jitter configurable
-        max_jitter: float = 0.050   # SOTA FIX: Jitter configurable
+        min_jitter: float = 0.005,   # SOTA FIX: Jitter configurable
+        max_jitter: float = 0.050    # SOTA FIX: Jitter configurable
     ):
         self._underlying = underlying
         self._quota = quota_manager
@@ -167,7 +168,8 @@ class RateLimitedProvider(LLMProvider):
         self.min_jitter = min_jitter
         self.max_jitter = max_jitter
 
-    async def translate(self, envelope: PromptEnvelope) -> ProviderResult:
+    # SOTA FIX: Contrato actualizado a InferenceResult
+    async def translate(self, envelope: PromptEnvelope) -> InferenceResult:
         target_tokens = envelope.estimated_tokens
         total_wait_time = 0.0
         attempts = 0  # SOTA FIX: Contador de contención
@@ -187,7 +189,6 @@ class RateLimitedProvider(LLMProvider):
                 envelope.telemetry["remaining_rpm"] = reservation.remaining_rpm
                 break
 
-            # ...
             if reservation.rejection_reason in (
                 QuotaRejectionReason.PAYLOAD_EXCEEDS_GLOBAL_LIMIT,
                 QuotaRejectionReason.CONFIGURATION_ERROR,
@@ -205,7 +206,6 @@ class RateLimitedProvider(LLMProvider):
                     f"Timeout de cuota excedido ({self.max_wait_seconds}s). "
                     f"El bucket no logró liberar {target_tokens} tokens tras {attempts} intentos."
                 )
-            # ...
 
             total_wait_time += wait_cycle
             await asyncio.sleep(wait_cycle)

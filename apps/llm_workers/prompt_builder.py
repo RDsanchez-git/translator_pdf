@@ -1,5 +1,5 @@
 # apps/llm_workers/prompt_builder.py
-from typing import Optional, Literal, Union
+from typing import Optional, Literal, Union, Dict, Any, List
 from dataclasses import dataclass, field
 
 from core.ast.models import TranslationUnit, TranslationTaskType
@@ -13,6 +13,9 @@ from core.finops.measurement import InferenceMeasurementService
 from core.prompting.measurement_adapter import PromptMeasurementAdapter
 from core.validation.budget import PromptBudgetCalculator
 
+def _empty_telemetry() -> Dict[str, Any]:
+    return {}
+
 @dataclass(frozen=True, slots=True)
 class PromptEnvelope:
     prompt_id: str
@@ -24,7 +27,7 @@ class PromptEnvelope:
     schema: PromptSchema
     estimated_tokens: int
     budget_stats: PromptBudget
-    telemetry: dict = field(default_factory=dict)
+    telemetry: Dict[str, Any] = field(default_factory=_empty_telemetry)
     target_provider: str = "primary"
 
 @dataclass(frozen=True, slots=True)
@@ -68,11 +71,11 @@ class PromptBuilder:
         decision = None
         final_level = ContextReductionLevel.NONE
 
-        # Corrección: Evaluación explícita de la compresión FULL primero.
         evaluation_levels = [ContextReductionLevel.FULL] + self.compression_policy.get_levels()
 
         for level in evaluation_levels:
-            breadcrumbs = resolved_context.breadcrumbs if level in [ContextReductionLevel.FULL, ContextReductionLevel.BREADCRUMBS] else []
+            # SOTA FIX: Casting explícito a lista para cumplir la firma de PromptContext
+            current_breadcrumbs: List[str] = list(resolved_context.breadcrumbs) if level in [ContextReductionLevel.FULL, ContextReductionLevel.BREADCRUMBS] else []
             is_pruned = level != ContextReductionLevel.FULL
 
             test_schema = PromptSchema(
@@ -80,19 +83,15 @@ class PromptBuilder:
                 context=PromptContext(
                     chunk_index=unit.chunk_index,
                     depth=resolved_context.depth,
-                    breadcrumbs=breadcrumbs,
+                    breadcrumbs=current_breadcrumbs,
                     is_pruned=is_pruned
                 ),
                 constraints=constraints,
                 payload=payload
             )
-            # 1. Adaptación (DIP)
+            
             measurable = PromptMeasurementAdapter(test_schema)
-            
-            # 2. Medición Ortogonal
             measurement = self.measurement_service.measure(measurable)
-            
-            # 3. Decisión FinOps (Políticas a extraer en Fase 18)
             decision = self.budget_calculator.calculate(measurement, target_lang_expansion)
 
             if decision.status in (BudgetDecisionType.VALID, BudgetDecisionType.SWITCH_MODEL):
@@ -107,7 +106,8 @@ class PromptBuilder:
 
         prompt_hash = PromptCanonicalizer.compute_hash(best_schema)
         
-        telemetry = {
+        # SOTA FIX: Tipado estricto en la instanciación local
+        telemetry: Dict[str, Any] = {
             "utilization_ratio": decision.budget.utilization_ratio,
             "decision": decision.status.value,
             "compression_level": final_level.value

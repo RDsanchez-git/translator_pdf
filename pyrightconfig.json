@@ -1,0 +1,8 @@
+{
+  "exclude": [
+    "graveyard",
+    "venv",
+    ".venv",
+    "**/__pycache__"
+  ]
+}

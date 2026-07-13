@@ -3,6 +3,7 @@ from enum import Enum, auto
 from dataclasses import dataclass
 from core.ast.models import TranslationTaskType
 from apps.llm_workers.prompt_builder import PromptEnvelope
+from core.prompting.inference_result import InferenceResult
 
 # ==============================================================================
 # Contratos de Red (DTOs y Protocolos)
@@ -20,7 +21,7 @@ class ProviderResult:
 
 class LLMProvider(Protocol):
     """SOTA: Interfaz pura de inversión de dependencias para la capa de inferencia."""
-    async def translate(self, envelope: PromptEnvelope) -> ProviderResult:
+    async def translate(self, envelope: PromptEnvelope) -> InferenceResult:
         ...
 
 # ==============================================================================
