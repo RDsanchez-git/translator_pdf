@@ -15,7 +15,6 @@ class MockLowLevelProvider:
     async def translate(self, envelope: Any) -> Any:
         async with self.lock:
             self.calls += 1
-        # Simula latencia real de red para facilitar la detección de la condición de carrera
         await asyncio.sleep(0.05)
         
         mock_res = MagicMock()
@@ -25,6 +24,9 @@ class MockLowLevelProvider:
         mock_res.content = "TRANSLATED::Text"
         mock_res.translated_payload = "TRANSLATED::Text"
         mock_res.finish_reason = "stop"
+        mock_res.input_tokens = 10
+        mock_res.output_tokens = 12
+        mock_res.latency_ms = 15.0
         return mock_res
 
 @pytest.fixture
@@ -41,7 +43,7 @@ async def test_cache_stampede_prevention(temp_db_path):
     provider = CachedLLMProvider(underlying=mock_network, db_path=temp_db_path)
     await provider.initialize()
 
-    # SOTA FIX: Uso de Mocks dinámicos para aislar las aserciones de la caché de las firmas de PromptEnvelope
+    # SOTA FIX: Se rellenan todas las propiedades primitivas de texto para evitar fugas de MagicMock hacia SQLite
     tasks = []
     for i in range(100):
         mock_envelope = MagicMock()
@@ -52,6 +54,11 @@ async def test_cache_stampede_prevention(temp_db_path):
         mock_envelope.prompt_version = "v1"
         mock_envelope.prompt_hash = "STAMPEDE_HASH"
         mock_envelope.estimated_tokens = 5
+        mock_envelope.system_prompt = "sys"
+        mock_envelope.user_prompt = "user"
+        mock_envelope.raw_payload = "raw"
+        mock_envelope.payload_sha256 = "sha"
+        mock_envelope.target_language = "es"
         
         tasks.append(provider.translate(mock_envelope))
 
@@ -80,6 +87,11 @@ async def test_cache_fault_tolerance(temp_db_path):
     mock_envelope.prompt_version = "v1"
     mock_envelope.prompt_hash = "hash_fail"
     mock_envelope.estimated_tokens = 5
+    mock_envelope.system_prompt = "sys"
+    mock_envelope.user_prompt = "user"
+    mock_envelope.raw_payload = "raw"
+    mock_envelope.payload_sha256 = "sha"
+    mock_envelope.target_language = "es"
 
     result = await provider.translate(mock_envelope)
     

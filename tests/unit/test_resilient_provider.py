@@ -1,6 +1,6 @@
 import pytest
 from core.resilience.circuit_breaker import GlobalCircuitBreaker, CircuitState
-from core.execution.exceptions import TransientAPIError, CircuitTripError
+from core.execution.exceptions import TransientAPIError, CircuitTripError, CircuitOpenError
 
 class MockNetworkFailureService:
     def __init__(self):
@@ -28,8 +28,9 @@ async def test_sliding_window_circuit_trip():
     # Invariante de seguridad SRE: El circuito corta el paso físico de inmediato
     assert breaker.state == CircuitState.OPEN
 
-    # Intento 3: Llamadas ulteriores rebotan en la barrera perimetral sin tocar la red (Fast-Reject).
-    await breaker.check_state()
+    # Intento 3: Llamadas ulteriores rebotan en la barrera perimetral mediante Fast-Reject levantando CircuitOpenError
+    with pytest.raises(CircuitOpenError):
+        await breaker.check_state()
     assert breaker.state == CircuitState.OPEN
     
     # Comprobación final: Bloqueo de red efectivo

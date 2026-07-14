@@ -1,55 +1,23 @@
 [
   {
     "chunk_index": 1,
-    "chunk_id": "chunk_0001_1_1_52840d10",
-    "chunk_fingerprint": "ea66c06c1e1c05fa9f1aa39d98dc5bc1",
+    "chunk_id": "chunk_0001_1_3_03235c5e",
+    "chunk_fingerprint": "13cee27a2bd93915479f049378cffdd3",
     "chunk_type": "translate",
     "source_sequence_range": [
       1,
-      1
+      3
     ],
-    "node_count": 1,
+    "node_count": 3,
     "context_id": "GLOBAL_ROOT",
     "context_depth": 1,
-    "target_payload": "Quarterly Review of Economics and Finance 88 (2023) 215–227",
-    "estimated_tokens": 11,
-    "payload_sha256": "52840d10e0b49e4131bb0c4ac0cb72fa695e455d2fed873cada8cf8899c58db4"
+    "target_payload": "Quarterly Review of Economics and Finance 88 (2023) 215–227\n\n<IMAGE_OMITTED>\n\nContents lists available at ScienceDirect",
+    "estimated_tokens": 18,
+    "payload_sha256": "03235c5ed8dba78f2cd85b9a9ed114ea00dcecc6e93abaad81e1670a590d54cf"
   },
   {
     "chunk_index": 2,
-    "chunk_id": "isolated_0002_2_054c469e",
-    "chunk_fingerprint": "3c46a0407be60a1f00731ab8e9575df2",
-    "chunk_type": "partial_translate",
-    "source_sequence_range": [
-      2,
-      2
-    ],
-    "node_count": 1,
-    "context_id": "GLOBAL_ROOT",
-    "context_depth": 1,
-    "target_payload": "<IMAGE_OMITTED>",
-    "estimated_tokens": 1,
-    "payload_sha256": "054c469e42351ab3fcc9ea4168ef9e21bab2c33e0c319123700070b6cb0155c3"
-  },
-  {
-    "chunk_index": 3,
-    "chunk_id": "chunk_0003_3_3_b0658ce9",
-    "chunk_fingerprint": "7866cc7fb5a03c016efd4d506a451850",
-    "chunk_type": "translate",
-    "source_sequence_range": [
-      3,
-      3
-    ],
-    "node_count": 1,
-    "context_id": "GLOBAL_ROOT",
-    "context_depth": 1,
-    "target_payload": "Contents lists available at ScienceDirect",
-    "estimated_tokens": 6,
-    "payload_sha256": "b0658ce9dccc0acba9a472c2bb992cc9ba72c28f2ffb7146782e56fa3025b55b"
-  },
-  {
-    "chunk_index": 4,
-    "chunk_id": "isolated_0004_4_01c07a3e",
+    "chunk_id": "isolated_0002_4_01c07a3e",
     "chunk_fingerprint": "6b5dfcf1f44c9d485dda1902ac33c0a9",
     "chunk_type": "preserve",
     "source_sequence_range": [
@@ -64,40 +32,24 @@
     "payload_sha256": "01c07a3e47594eb4100ef2efc1f9daedac777c8385e49e31a7723f9cc3e11ffb"
   },
   {
-    "chunk_index": 5,
-    "chunk_id": "chunk_0005_5_5_8554188d",
-    "chunk_fingerprint": "6dc47662e0ba8f7d65d0fbe93024dbad",
+    "chunk_index": 3,
+    "chunk_id": "chunk_0003_5_6_f73d8b36",
+    "chunk_fingerprint": "34ffb55da2652f213f67451b2712e727",
     "chunk_type": "translate",
     "source_sequence_range": [
       5,
-      5
-    ],
-    "node_count": 1,
-    "context_id": "GLOBAL_ROOT",
-    "context_depth": 1,
-    "target_payload": "journal homepage: www.elsevier.com/locate/qref",
-    "estimated_tokens": 3,
-    "payload_sha256": "8554188d4ea93d47b6f7c7c5b8c5aaf61fa1deece4f6a4f3ca98090df13ab799"
-  },
-  {
-    "chunk_index": 6,
-    "chunk_id": "isolated_0006_6_054c469e",
-    "chunk_fingerprint": "e397961a0aa9ade04eb98a3c9d8e9d24",
-    "chunk_type": "partial_translate",
-    "source_sequence_range": [
-      6,
       6
     ],
-    "node_count": 1,
+    "node_count": 2,
     "context_id": "GLOBAL_ROOT",
     "context_depth": 1,
-    "target_payload": "<IMAGE_OMITTED>",
-    "estimated_tokens": 1,
-    "payload_sha256": "054c469e42351ab3fcc9ea4168ef9e21bab2c33e0c319123700070b6cb0155c3"
+    "target_payload": "journal homepage: www.elsevier.com/locate/qref\n\n<IMAGE_OMITTED>",
+    "estimated_tokens": 4,
+    "payload_sha256": "f73d8b36537b54505c9ea9ef710a7db00eab7b20b2bd1c6499f410e483bb17eb"
   },
   {
-    "chunk_index": 7,
-    "chunk_id": "isolated_0007_7_a1b6eeb6",
+    "chunk_index": 4,
+    "chunk_id": "isolated_0004_7_a1b6eeb6",
     "chunk_fingerprint": "f16d5fae972052f1ca95a5440a2a3d9b",
     "chunk_type": "preserve",
     "source_sequence_range": [
@@ -112,40 +64,24 @@
     "payload_sha256": "a1b6eeb614b3cc0b6e389888092b5386f55121ee8c1dc00126e2196f8e2905b2"
   },
   {
-    "chunk_index": 8,
-    "chunk_id": "isolated_0008_8_054c469e",
-    "chunk_fingerprint": "5a49c77f149688ba8ae533a42ff81683",
-    "chunk_type": "partial_translate",
-    "source_sequence_range": [
-      8,
-      8
-    ],
-    "node_count": 1,
-    "context_id": "GLOBAL_ROOT",
-    "context_depth": 1,
-    "target_payload": "<IMAGE_OMITTED>",
-    "estimated_tokens": 1,
-    "payload_sha256": "054c469e42351ab3fcc9ea4168ef9e21bab2c33e0c319123700070b6cb0155c3"
-  },
-  {
-    "chunk_index": 9,
-    "chunk_id": "chunk_0009_9_14_966d11ef",
-    "chunk_fingerprint": "dab152e2c53e83fac204643b2f65aeba",
+    "chunk_index": 5,
+    "chunk_id": "chunk_0005_8_14_dee9beb7",
+    "chunk_fingerprint": "d5891b5f9c28ea96b8442340606ace07",
     "chunk_type": "translate",
     "source_sequence_range": [
-      9,
+      8,
       14
     ],
-    "node_count": 6,
+    "node_count": 7,
     "context_id": "GLOBAL_ROOT",
     "context_depth": 1,
-    "target_payload": "Thouraya Hadj Amor[a][,][e] , Ridha Nouira[b] , Christophe Rault[c][,][⁎][,][1] , Anamaria Diana Sova[d]\n\n> a _Business Administration departement, Shaqra University, Saudi Arabia_\n\n> b _ISFF and LAMIDED Sousse University, Tunisia_\n\n> c _LEO, Université d_ ′ _Orléans, Rue de Blois-B.P. 6739, 45067 Orléans Cedex 2, France_\n\n> d _Brunel University London, United Kingdom_\n\n> e _Economics departement- EAS,University of Monastir, Tunisia_",
-    "estimated_tokens": 76,
-    "payload_sha256": "966d11ef306f80d18661717cb814828a18238a5325422339e049a5f392ac4eb5"
+    "target_payload": "<IMAGE_OMITTED>\n\nThouraya Hadj Amor[a][,][e] , Ridha Nouira[b] , Christophe Rault[c][,][⁎][,][1] , Anamaria Diana Sova[d]\n\n> a _Business Administration departement, Shaqra University, Saudi Arabia_\n\n> b _ISFF and LAMIDED Sousse University, Tunisia_\n\n> c _LEO, Université d_ ′ _Orléans, Rue de Blois-B.P. 6739, 45067 Orléans Cedex 2, France_\n\n> d _Brunel University London, United Kingdom_\n\n> e _Economics departement- EAS,University of Monastir, Tunisia_",
+    "estimated_tokens": 77,
+    "payload_sha256": "dee9beb719f1827cf72efaaed92f7b84d3df872773201b49172014c5743daf1d"
   },
   {
-    "chunk_index": 10,
-    "chunk_id": "isolated_0010_15_00aa784c",
+    "chunk_index": 6,
+    "chunk_id": "isolated_0006_15_00aa784c",
     "chunk_fingerprint": "06f88820fba56060e96d6c7a3356104e",
     "chunk_type": "partial_translate",
     "source_sequence_range": [
@@ -160,8 +96,8 @@
     "payload_sha256": "00aa784c5910373a2bea30f64f54d99395582b850205c9d1b84c06470e29fdff"
   },
   {
-    "chunk_index": 11,
-    "chunk_id": "isolated_0011_16_c649e9a3",
+    "chunk_index": 7,
+    "chunk_id": "isolated_0007_16_c649e9a3",
     "chunk_fingerprint": "5be2255af8f999193952ecb81829e1b2",
     "chunk_type": "preserve",
     "source_sequence_range": [
@@ -176,8 +112,8 @@
     "payload_sha256": "c649e9a30654cf2224cc2ae5b1a47ba3eb483303a79e245b35ccdf2297b5d235"
   },
   {
-    "chunk_index": 12,
-    "chunk_id": "chunk_0012_17_36_4c3bb79f",
+    "chunk_index": 8,
+    "chunk_id": "chunk_0008_17_36_4c3bb79f",
     "chunk_fingerprint": "912c369453e191c0dcba84d25edb6252",
     "chunk_type": "translate",
     "source_sequence_range": [
@@ -192,147 +128,35 @@
     "payload_sha256": "4c3bb79ffb8a4eeda63aecc86188c9447d3e5271c5809a643abd55c2dbcfbf22"
   },
   {
-    "chunk_index": 13,
-    "chunk_id": "chunk_0013_37_43_fc9d46cc",
-    "chunk_fingerprint": "b5e18a38cd38279296ac9a0ac4a4aa0a",
+    "chunk_index": 9,
+    "chunk_id": "chunk_0009_37_50_90fb9c69",
+    "chunk_fingerprint": "85675aeb20ef5c4f528703ce81e06bad",
     "chunk_type": "translate",
     "source_sequence_range": [
       37,
-      43
+      50
     ],
-    "node_count": 7,
+    "node_count": 14,
     "context_id": "GLOBAL_ROOT",
     "context_depth": 1,
-    "target_payload": "Although some studies have shown the costs of exchange rate undervaluation on economic growth (Grekou, 2015, 2018a; Chen, 2017; Morvillier, 2020), many developing countries have relied on an undervalued real exchange rate to boost their exports (Levy-Yeyati & Sturzzenegger, 2007; Elbadawi et al., 2012; Rodrik, 2009; Korinek & Serven, 2010; Iyke & Odhiambo, 2015; Habib et al., 2017; Mazorodze & Tewari, 2018), but in the aftermath of the global financial crisis an intense debate has emerged on the associated merits of these export-led growth strategies. Since global economic prospects are weaker than in the past, there is a greater uncertainty about the capacity of advanced economies to continue to absorb developing countries’ exports. Additionally, if the real exchange rate is kept too low for too long, export-led growth strategies based on currency undervaluation are likely to result in costs for the aggregate economy. In this context, the relationship between real exchange misalignment (REM), i.e. the deviation between the Real Exchange Rate (RER) and its equilibrium level, and the real economy, has been the focus of recent macroeconomic policy discussions in Tunisia. There have been many debates among Tunisian economic analysts about the causes of the depreciation of the RER and the extent to which it reflects changes in Tunisia’s macroeconomic fundamentals, underlining the need to reassess the main determinants of the equilibrium RER, the degree of the distortion of Tunisia’s dinar and to what extent the misalignment of the Tunisian currency affects its growth performance.\n\nTheoretically, there is an ongoing debate on whether RER misalignments impede or facilitate economic growth. Related literature revolves around two main axes: through the Washington Consensus (WC), Williamson (1990) defends an RER close to its equilibrium level and consistent in the medium term with macroeconomic objectives that stimulate growth. On the contrary, the hypothesis of growth driven by exports highlights the asymmetric nature of the misalignments. Indeed, economic growth is hampered by overvaluations while being encouraged by currency undervaluation.\n\nCurrency undervaluation promotes growth through faster capital accumulation, technological change and information spillovers to other firms and industries in the economy. Indeed, recent empirical literature that incorporates non-linearities in the analysis of the RER–growth nexus suggests that overvaluations and undervaluations may affect differently on growth (Hadj Amor & Sarkar, 2009; Hadj Amor, 2009; Nouira & Sekkat, 2012; Schroder, 2013), while the level of the RER misalignment also matters (Aguirre & Calderon, 2005; Couharde & Sallenave, 2013; Tipoy et al., 2018).\n\nSome studies focused on Tunisia have discussed the questions of equilibrium RER and misalignment. Charfi (2008) estimated the equilibrium real exchange rate of the Dinar from 1983 to 2000, using quarterly data, based on the following fundamental variables: terms of trade; net capital inflows; and the differential of productivity. The results showed that the Tunisian dinar was overvalued before the 1986 devaluation and became close to its equilibrium value during the 90 s. At the beginning of this century (2000), the authorities permitted a larger fluctuation of the real effective exchange rate. Amaira (2021) studied the misalignment of the real effective exchange rate (REER) during the 1986–2015 period. The results showed that the equilibrium level of the long-run exchange rate depends on productivity, the terms of trade and government spending, and on misalignment being very low especially since the implementation of the structural adjustment plan. Derbali (2021) used the behavioral equilibrium exchange rate (BEER) approach to estimate the Tunisian equilibrium exchange rate using vector autoregressive models and vector error correction models for quarterly data over the 1990–2020 period. The results showed a low sensitivity of the RER to monetary and trade shocks and a convergence of the real exchange rate series of its trajectory to its long-term target value. Benzid (2021) assessed the misalignments in Tunisia’s real effective exchange rate with an emphasis on their persistence over the\n\n216\n\n_T.H. Amor, R. Nouira, C. Rault et al._\n\n_Quarterly Review of Economics and Finance 88 (2023) 215–227_",
-    "estimated_tokens": 842,
-    "payload_sha256": "fc9d46cc621e6620eeb578936d8d8742d60323710ebc092e4a265ea8801e9576"
+    "target_payload": "Although some studies have shown the costs of exchange rate undervaluation on economic growth (Grekou, 2015, 2018a; Chen, 2017; Morvillier, 2020), many developing countries have relied on an undervalued real exchange rate to boost their exports (Levy-Yeyati & Sturzzenegger, 2007; Elbadawi et al., 2012; Rodrik, 2009; Korinek & Serven, 2010; Iyke & Odhiambo, 2015; Habib et al., 2017; Mazorodze & Tewari, 2018), but in the aftermath of the global financial crisis an intense debate has emerged on the associated merits of these export-led growth strategies. Since global economic prospects are weaker than in the past, there is a greater uncertainty about the capacity of advanced economies to continue to absorb developing countries’ exports. Additionally, if the real exchange rate is kept too low for too long, export-led growth strategies based on currency undervaluation are likely to result in costs for the aggregate economy. In this context, the relationship between real exchange misalignment (REM), i.e. the deviation between the Real Exchange Rate (RER) and its equilibrium level, and the real economy, has been the focus of recent macroeconomic policy discussions in Tunisia. There have been many debates among Tunisian economic analysts about the causes of the depreciation of the RER and the extent to which it reflects changes in Tunisia’s macroeconomic fundamentals, underlining the need to reassess the main determinants of the equilibrium RER, the degree of the distortion of Tunisia’s dinar and to what extent the misalignment of the Tunisian currency affects its growth performance.\n\nTheoretically, there is an ongoing debate on whether RER misalignments impede or facilitate economic growth. Related literature revolves around two main axes: through the Washington Consensus (WC), Williamson (1990) defends an RER close to its equilibrium level and consistent in the medium term with macroeconomic objectives that stimulate growth. On the contrary, the hypothesis of growth driven by exports highlights the asymmetric nature of the misalignments. Indeed, economic growth is hampered by overvaluations while being encouraged by currency undervaluation.\n\nCurrency undervaluation promotes growth through faster capital accumulation, technological change and information spillovers to other firms and industries in the economy. Indeed, recent empirical literature that incorporates non-linearities in the analysis of the RER–growth nexus suggests that overvaluations and undervaluations may affect differently on growth (Hadj Amor & Sarkar, 2009; Hadj Amor, 2009; Nouira & Sekkat, 2012; Schroder, 2013), while the level of the RER misalignment also matters (Aguirre & Calderon, 2005; Couharde & Sallenave, 2013; Tipoy et al., 2018).\n\nSome studies focused on Tunisia have discussed the questions of equilibrium RER and misalignment. Charfi (2008) estimated the equilibrium real exchange rate of the Dinar from 1983 to 2000, using quarterly data, based on the following fundamental variables: terms of trade; net capital inflows; and the differential of productivity. The results showed that the Tunisian dinar was overvalued before the 1986 devaluation and became close to its equilibrium value during the 90 s. At the beginning of this century (2000), the authorities permitted a larger fluctuation of the real effective exchange rate. Amaira (2021) studied the misalignment of the real effective exchange rate (REER) during the 1986–2015 period. The results showed that the equilibrium level of the long-run exchange rate depends on productivity, the terms of trade and government spending, and on misalignment being very low especially since the implementation of the structural adjustment plan. Derbali (2021) used the behavioral equilibrium exchange rate (BEER) approach to estimate the Tunisian equilibrium exchange rate using vector autoregressive models and vector error correction models for quarterly data over the 1990–2020 period. The results showed a low sensitivity of the RER to monetary and trade shocks and a convergence of the real exchange rate series of its trajectory to its long-term target value. Benzid (2021) assessed the misalignments in Tunisia’s real effective exchange rate with an emphasis on their persistence over the\n\n216\n\n_T.H. Amor, R. Nouira, C. Rault et al._\n\n_Quarterly Review of Economics and Finance 88 (2023) 215–227_\n\n<IMAGE_OMITTED>\n\n**Fig. 1.** RE Misalignment of Tunisia. Source: Author's Calculation. (RER in blue and ERER in green, left axis; Mis in red, right axis).\n\nAppendix.[4] It turns out that except for terms of trade ( _ToT_ ), all other variables of the model are found to be non-stationary in levels. In addition, the null hypotheses of a unit root for all series in first differences is rejected. This implies that all variables are I(1) except for terms of trade, which is stationary in level, I(0). To check whether ADF-GLS test results are robust, we performed the unit root test with structural breaks of Zivot and Andrews (1992). The results reported in Table A.4 in the Appendix confirm the results of the ADF-GLS test. Pesaran and Smith (1995), and Pesaran and Shin (1999) show that the ARDL approach can be used for long-run analysis, and that the ARDL methodology is valid even if variables are I(0) or I(1). We thus apply an autoregressive distributed lag (ARDL) model or bound testing approach (Pesaran et al., 2001) to estimate the equilibrium real exchange rate in Tunisia. According to Pesaran et al. (2001) this approach is more adequate when the number of time observations is small. Before performing the estimation of the ARDL model, it is essential to write Eq. (1) as a conditional ARDL model, as follows:\n\n<IMAGE_OMITTED>\n\nAll variables are expressed in log, is the first difference operator. The long-run relationship between the RER and its determinants can be identified based on the Wald test (F-statistic). This statistic determines joint significance of lagged level variables under the null hypothesis. If the coefficients are jointly not all equal to zero, then it implies the existence of cointegration, i.e. a long-run relationship between the RER and its determinants.[5] Once a cointegration\n\n> 4 The efficient unit-root test suggested by Kwiatkovski–Phillips–Schmidt–Shin (1992), extended by Carrion-i-Silvestre and Sanso (2006), has also been implemented, leading to similar results.\n\n> 5 Notice, however, that rejecting the null ( 1 = 2 = 3 = 4 = 5 = 6 = 0) does not necessarily imply that all coefficients _i_ 0, _for i_ = 1, …,6. For instance, in Table 1, the coefficient of unemployment is equal to zero, which explains why this variable is not included in equation (3). Besides, a closer investigation also reveals that unemployment does not have an influence on RER in the short run, see equation (4).",
+    "estimated_tokens": 1363,
+    "payload_sha256": "90fb9c69a76d87903307b06e3a67698fd762dc14bc2fb893ab138f1d6e51c3e2"
   },
   {
-    "chunk_index": 14,
-    "chunk_id": "isolated_0014_44_054c469e",
-    "chunk_fingerprint": "d931f4a3bb0a61e56ccd53d38f079da9",
-    "chunk_type": "partial_translate",
-    "source_sequence_range": [
-      44,
-      44
-    ],
-    "node_count": 1,
-    "context_id": "GLOBAL_ROOT",
-    "context_depth": 1,
-    "target_payload": "<IMAGE_OMITTED>",
-    "estimated_tokens": 1,
-    "payload_sha256": "054c469e42351ab3fcc9ea4168ef9e21bab2c33e0c319123700070b6cb0155c3"
-  },
-  {
-    "chunk_index": 15,
-    "chunk_id": "chunk_0015_45_46_b6f480fa",
-    "chunk_fingerprint": "bc7127145742d33351dce1de930afdc0",
+    "chunk_index": 10,
+    "chunk_id": "chunk_0010_51_58_0a2d71bf",
+    "chunk_fingerprint": "235ac2d5b4f5722c9f4d109447bad78b",
     "chunk_type": "translate",
     "source_sequence_range": [
-      45,
-      46
-    ],
-    "node_count": 2,
-    "context_id": "GLOBAL_ROOT",
-    "context_depth": 1,
-    "target_payload": "**Fig. 1.** RE Misalignment of Tunisia. Source: Author's Calculation. (RER in blue and ERER in green, left axis; Mis in red, right axis).\n\nAppendix.[4] It turns out that except for terms of trade ( _ToT_ ), all other variables of the model are found to be non-stationary in levels. In addition, the null hypotheses of a unit root for all series in first differences is rejected. This implies that all variables are I(1) except for terms of trade, which is stationary in level, I(0). To check whether ADF-GLS test results are robust, we performed the unit root test with structural breaks of Zivot and Andrews (1992). The results reported in Table A.4 in the Appendix confirm the results of the ADF-GLS test. Pesaran and Smith (1995), and Pesaran and Shin (1999) show that the ARDL approach can be used for long-run analysis, and that the ARDL methodology is valid even if variables are I(0) or I(1). We thus apply an autoregressive distributed lag (ARDL) model or bound testing approach (Pesaran et al., 2001) to estimate the equilibrium real exchange rate in Tunisia. According to Pesaran et al. (2001) this approach is more adequate when the number of time observations is small. Before performing the estimation of the ARDL model, it is essential to write Eq. (1) as a conditional ARDL model, as follows:",
-    "estimated_tokens": 289,
-    "payload_sha256": "b6f480fabeb86a55326e20dd25bdc71baa3213e61c4fc66ad80ff1215acd603a"
-  },
-  {
-    "chunk_index": 16,
-    "chunk_id": "isolated_0016_47_054c469e",
-    "chunk_fingerprint": "0ef5d27375024491db9af904012dd9e1",
-    "chunk_type": "partial_translate",
-    "source_sequence_range": [
-      47,
-      47
-    ],
-    "node_count": 1,
-    "context_id": "GLOBAL_ROOT",
-    "context_depth": 1,
-    "target_payload": "<IMAGE_OMITTED>",
-    "estimated_tokens": 1,
-    "payload_sha256": "054c469e42351ab3fcc9ea4168ef9e21bab2c33e0c319123700070b6cb0155c3"
-  },
-  {
-    "chunk_index": 17,
-    "chunk_id": "chunk_0017_48_51_d2e9a1a2",
-    "chunk_fingerprint": "ad50bc1d21485c9d228597def19562e0",
-    "chunk_type": "translate",
-    "source_sequence_range": [
-      48,
-      51
-    ],
-    "node_count": 4,
-    "context_id": "GLOBAL_ROOT",
-    "context_depth": 1,
-    "target_payload": "All variables are expressed in log, is the first difference operator. The long-run relationship between the RER and its determinants can be identified based on the Wald test (F-statistic). This statistic determines joint significance of lagged level variables under the null hypothesis. If the coefficients are jointly not all equal to zero, then it implies the existence of cointegration, i.e. a long-run relationship between the RER and its determinants.[5] Once a cointegration\n\n> 4 The efficient unit-root test suggested by Kwiatkovski–Phillips–Schmidt–Shin (1992), extended by Carrion-i-Silvestre and Sanso (2006), has also been implemented, leading to similar results.\n\n> 5 Notice, however, that rejecting the null ( 1 = 2 = 3 = 4 = 5 = 6 = 0) does not necessarily imply that all coefficients _i_ 0, _for i_ = 1, …,6. For instance, in Table 1, the coefficient of unemployment is equal to zero, which explains why this variable is not included in equation (3). Besides, a closer investigation also reveals that unemployment does not have an influence on RER in the short run, see equation (4).\n\nrelationship has been established, we proceed to the estimation of the long-run and short-run parameters of the model. Specifically, we estimate the long-run coefficients using Eq. (3), as given below:",
-    "estimated_tokens": 269,
-    "payload_sha256": "d2e9a1a24375a41516e0534b3cbc2b98aa428cc8193889580d1ae838f0e01fa1"
-  },
-  {
-    "chunk_index": 18,
-    "chunk_id": "isolated_0018_52_054c469e",
-    "chunk_fingerprint": "13b43896313605611c8f51af26aaea75",
-    "chunk_type": "partial_translate",
-    "source_sequence_range": [
-      52,
-      52
-    ],
-    "node_count": 1,
-    "context_id": "GLOBAL_ROOT",
-    "context_depth": 1,
-    "target_payload": "<IMAGE_OMITTED>",
-    "estimated_tokens": 1,
-    "payload_sha256": "054c469e42351ab3fcc9ea4168ef9e21bab2c33e0c319123700070b6cb0155c3"
-  },
-  {
-    "chunk_index": 19,
-    "chunk_id": "chunk_0019_53_53_4464a831",
-    "chunk_fingerprint": "a8a5a1f2d1dba5c895b40215ed6d0d28",
-    "chunk_type": "translate",
-    "source_sequence_range": [
-      53,
-      53
-    ],
-    "node_count": 1,
-    "context_id": "GLOBAL_ROOT",
-    "context_depth": 1,
-    "target_payload": "The short-run dynamic coefficients may be obtained by estimating the corresponding vector error correction (VEC) model as given below – Eq. (4):",
-    "estimated_tokens": 28,
-    "payload_sha256": "4464a831a8b8adb6fcff57c025729e38fad679334e7cbad7441b2977267704de"
-  },
-  {
-    "chunk_index": 20,
-    "chunk_id": "isolated_0020_54_054c469e",
-    "chunk_fingerprint": "7f699a989d391972a4797e070d27da97",
-    "chunk_type": "partial_translate",
-    "source_sequence_range": [
-      54,
-      54
-    ],
-    "node_count": 1,
-    "context_id": "GLOBAL_ROOT",
-    "context_depth": 1,
-    "target_payload": "<IMAGE_OMITTED>",
-    "estimated_tokens": 1,
-    "payload_sha256": "054c469e42351ab3fcc9ea4168ef9e21bab2c33e0c319123700070b6cb0155c3"
-  },
-  {
-    "chunk_index": 21,
-    "chunk_id": "chunk_0021_55_58_80ce4c1d",
-    "chunk_fingerprint": "f2fba8f62367d79ba9f4f973abb07604",
-    "chunk_type": "translate",
-    "source_sequence_range": [
-      55,
+      51,
       58
     ],
-    "node_count": 4,
+    "node_count": 8,
     "context_id": "GLOBAL_ROOT",
     "context_depth": 1,
-    "target_payload": "where _ECMt_ 1[is the error correction term lagged one period esti-] mated from Eq. (4). is the coefficient for the speed of adjustment of the model to the equilibrium situation, which is expected to have a negative sign.\n\nThe estimated ARDL bounds show that the F-statistic of the Wald test, 4.82, is significant at the 1% level. Indeed, comparing the F- statistics against the critical values extracted from Pesaran et al. (2001), the F-statistic is higher than the upper bound critical value of 4.68 at the 1% significance level. This implies that the null hypothesis (Ho: 1 = 2 = 3 = 4 = 5 = 6 = 0) of no long-run relationship can be rejected by data. There is thus evidence for cointegration between RER and its determinants. Next, we estimate the long-run coefficients of the equilibrium real exchange rate model. To do so, we estimate ARDL models (Eq. 2). The specification of our ARDL model is determined by the Akaike information criterion (AIC). The results in Table 1 show that the coefficients for the variables _Gov_ , _Balassa, TOT_ and _Def_ are statistically significant and have the expected signs. The estimated coefficient for the speed of adjustment ( ) is negative and is statistically significant at the 5% level.\n\nThe empirical results show a positive and significant impact of the terms of trade, government expenditure and the Balassa–Samuelson effect, and a negative and significant effect of the trade deficit. For the terms of trade an improvement of 10% leads to an ERER appreciation of 2.4%. This implies that the income effect outweighs the substitution effect. BalSam is a variable that aims to\n\n220",
-    "estimated_tokens": 355,
-    "payload_sha256": "80ce4c1d35cdfba95c43094cd11f7c27eb34e725fa1d856e30f78129d41ba128"
+    "target_payload": "relationship has been established, we proceed to the estimation of the long-run and short-run parameters of the model. Specifically, we estimate the long-run coefficients using Eq. (3), as given below:\n\n<IMAGE_OMITTED>\n\nThe short-run dynamic coefficients may be obtained by estimating the corresponding vector error correction (VEC) model as given below – Eq. (4):\n\n<IMAGE_OMITTED>\n\nwhere _ECMt_ 1[is the error correction term lagged one period esti-] mated from Eq. (4). is the coefficient for the speed of adjustment of the model to the equilibrium situation, which is expected to have a negative sign.\n\nThe estimated ARDL bounds show that the F-statistic of the Wald test, 4.82, is significant at the 1% level. Indeed, comparing the F- statistics against the critical values extracted from Pesaran et al. (2001), the F-statistic is higher than the upper bound critical value of 4.68 at the 1% significance level. This implies that the null hypothesis (Ho: 1 = 2 = 3 = 4 = 5 = 6 = 0) of no long-run relationship can be rejected by data. There is thus evidence for cointegration between RER and its determinants. Next, we estimate the long-run coefficients of the equilibrium real exchange rate model. To do so, we estimate ARDL models (Eq. 2). The specification of our ARDL model is determined by the Akaike information criterion (AIC). The results in Table 1 show that the coefficients for the variables _Gov_ , _Balassa, TOT_ and _Def_ are statistically significant and have the expected signs. The estimated coefficient for the speed of adjustment ( ) is negative and is statistically significant at the 5% level.\n\nThe empirical results show a positive and significant impact of the terms of trade, government expenditure and the Balassa–Samuelson effect, and a negative and significant effect of the trade deficit. For the terms of trade an improvement of 10% leads to an ERER appreciation of 2.4%. This implies that the income effect outweighs the substitution effect. BalSam is a variable that aims to\n\n220",
+    "estimated_tokens": 424,
+    "payload_sha256": "0a2d71bf215db8301971951dc58d1fa74b45b6bb3d88b1b926a6182e4e7724e8"
   }
 ]

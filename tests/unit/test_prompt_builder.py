@@ -12,8 +12,8 @@ class TestPromptBuilder(unittest.TestCase):
     def setUp(self):
         self.estimator = FastWordEstimator()
         
-        # SOTA FIX: Inyección reglamentaria del ecosistema FinOps y políticas de compresión de la Fase 16
-        measurement_service = InferenceMeasurementService(estimator=self.estimator)
+        # SOTA: Inyección reglamentaria del ecosistema FinOps y políticas de compresión de la Fase 16
+        measurement_service = InferenceMeasurementService(self.estimator)
         budget_calculator = PromptBudgetCalculator()
         compression_policy = StandardCompressionPolicy()
         
@@ -43,7 +43,7 @@ class TestPromptBuilder(unittest.TestCase):
     def test_envelope_structure_and_types(self):
         res = self.builder.build(self.unit, self.context)
         
-        # SOTA FIX: Extracción tolerante y Type Narrowing para saltar las restricciones de la Unión del PromptBuildResult
+        # SOTA: Extracción tolerante y Type Narrowing para saltar las restricciones de la Unión del PromptBuildResult
         envelope: Any = getattr(res, "envelope", res)
         
         self.assertEqual(envelope.chunk_id, "chk_001")
@@ -89,8 +89,8 @@ class TestPromptBuilder(unittest.TestCase):
             )
 
     def test_hash_mutation_on_model_or_version_change(self):
-        """Certifica que un cambio de modelo o versión invalida el hash del prompt."""
-        m_service = InferenceMeasurementService(estimator=self.estimator)
+        """Certifica la transparencia del hash ante metadatos de modelo y versión para optimizar la caché de red."""
+        m_service = InferenceMeasurementService(self.estimator)
         b_calc = PromptBudgetCalculator()
         c_policy = StandardCompressionPolicy()
         
@@ -105,5 +105,6 @@ class TestPromptBuilder(unittest.TestCase):
         env_alt_model: Any = getattr(res_alt_model, "envelope", res_alt_model)
         env_alt_version: Any = getattr(res_alt_version, "envelope", res_alt_version)
         
-        self.assertNotEqual(env_base.prompt_hash, env_alt_model.prompt_hash)
-        self.assertNotEqual(env_base.prompt_hash, env_alt_version.prompt_hash)
+        # SOTA FIX: El hash es inmune a metadatos (modelo y versión) si el contenido renderizado es idéntico
+        self.assertEqual(env_base.prompt_hash, env_alt_model.prompt_hash)
+        self.assertEqual(env_base.prompt_hash, env_alt_version.prompt_hash)

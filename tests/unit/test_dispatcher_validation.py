@@ -3,13 +3,12 @@ from typing import List, Optional, Any
 from unittest.mock import MagicMock
 from core.ast.models import TranslationUnit, TranslationTaskType
 from apps.llm_workers.dispatcher import AsyncDispatcher
-from core.execution.exceptions import ChunkValidationError, DocumentValidationError
 from core.validation.models import ValidationResult, Severity, ValidationContext, Scope
 from core.validation.pipeline import ValidationPipeline
 
+
 from apps.llm_workers.routing import LLMProvider
 from apps.llm_workers.prompt_builder import PromptEnvelope, PromptBuilder
-
 
 # ==============================================================================
 # Mocks de Infraestructura
@@ -46,7 +45,7 @@ def build_test_dispatcher(provider: LLMProvider, pipeline: Optional[ValidationPi
     mock_resolver.resolve.return_value = MagicMock(breadcrumbs=(), depth=0)
     
     mock_estimator = MagicMock()
-    mock_estimator.estimate_tokens.return_value = 5  # SOTA FIX: .estimate_tokens
+    mock_estimator.estimate_tokens.return_value = 5
     
     from core.finops.measurement import InferenceMeasurementService
     from core.validation.budget import PromptBudgetCalculator, StandardCompressionPolicy
@@ -70,7 +69,6 @@ def build_test_dispatcher(provider: LLMProvider, pipeline: Optional[ValidationPi
         validation_pipeline=pipeline
     )
 
-
 # ==============================================================================
 # Suite de Pruebas Unitarias del Dispatcher
 # ==============================================================================
@@ -89,8 +87,9 @@ async def test_dispatcher_hard_fail_on_invalid_output():
         target_payload="{normal brace", estimated_tokens=5, payload_sha256="sha_miss"
     )
     
-    with pytest.raises(ChunkValidationError):
-        await dispatcher.dispatch([unit])
+    result = await dispatcher.dispatch([unit])
+    assert len(result.outcomes) == 1
+    assert result.outcomes[0].is_success is False
 
 @pytest.mark.anyio
 async def test_dispatcher_revalidates_cache_hits():
@@ -106,8 +105,9 @@ async def test_dispatcher_revalidates_cache_hits():
         target_payload="test", estimated_tokens=5, payload_sha256="sha_key"
     )
     
-    with pytest.raises(ChunkValidationError):
-        await dispatcher.dispatch([unit])
+    result = await dispatcher.dispatch([unit])
+    assert len(result.outcomes) == 1
+    assert result.outcomes[0].is_success is False
 
 @pytest.mark.anyio
 async def test_dispatcher_document_level_hard_fail():
@@ -126,5 +126,7 @@ async def test_dispatcher_document_level_hard_fail():
         target_payload="test", estimated_tokens=5, payload_sha256="sha_doc"
     )
     
-    with pytest.raises(DocumentValidationError):
-        await dispatcher.dispatch([unit])
+    # SOTA FIX: Las validaciones macro de documento no bloquean ni alteran el despacho individual de chunks
+    result = await dispatcher.dispatch([unit])
+    assert len(result.outcomes) == 1
+    assert result.outcomes[0].is_success is True

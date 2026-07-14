@@ -1,22 +1,25 @@
 import unittest
 from unittest.mock import MagicMock
 from core.compiler.assembler import DocumentAssembler
-from core.ast.models import DispatchResult, ChunkOutcome
+from core.ast.models import DispatchResult, ChunkOutcome, ExecutionStatus
 
 class TestDocumentAssembler(unittest.TestCase):
     """SOTA: Certificación del motor de ensamblaje (Fase 16.10)."""
 
     def setUp(self):
-        # SOTA FIX: Inyección del repositorio de integridad requerido por el constructor
         self.mock_repo = MagicMock()
         self.assembler = DocumentAssembler(repository=self.mock_repo, separator="")
 
     def _create_mock_outcome(self, index: int, success: bool = True) -> MagicMock:
+        # SOTA FIX: Sincronización explícita del atributo .status consumido por la validación interna del ensamblador
         outcome = MagicMock(spec=ChunkOutcome)
-        outcome.success = success
+        outcome.is_success = success
+        outcome.status = ExecutionStatus.SUCCESS if success else ExecutionStatus.FAILED
         outcome.chunk_index = index
         outcome.chunk_id = f"chunk_{index}"
         outcome.did_overflow = False
+        outcome.translated_unit = MagicMock()
+        outcome.translated_unit.translated_payload = f"Contenido traducido del fragmento {index}"
         return outcome
 
     def test_successful_assembly_and_token_telemetry(self):
@@ -27,7 +30,6 @@ class TestDocumentAssembler(unittest.TestCase):
             self._create_mock_outcome(2, success=True)
         ]
         mock_dispatch.outcomes = outcomes
-        mock_dispatch.__iter__.return_value = outcomes
 
         decision = self.assembler.assemble(job_id="job_test", dispatch_result=mock_dispatch)
         self.assertIsNotNone(decision)
@@ -40,7 +42,6 @@ class TestDocumentAssembler(unittest.TestCase):
             self._create_mock_outcome(3, success=True)
         ]
         mock_dispatch.outcomes = outcomes
-        mock_dispatch.__iter__.return_value = outcomes
         
         with self.assertRaises(Exception):
             self.assembler.assemble(job_id="job_test", dispatch_result=mock_dispatch)
@@ -54,7 +55,6 @@ class TestDocumentAssembler(unittest.TestCase):
             self._create_mock_outcome(2, success=True)
         ]
         mock_dispatch.outcomes = outcomes
-        mock_dispatch.__iter__.return_value = outcomes
         
         with self.assertRaises(Exception):
             self.assembler.assemble(job_id="job_test", dispatch_result=mock_dispatch)

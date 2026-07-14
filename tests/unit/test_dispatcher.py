@@ -4,21 +4,19 @@ from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 from core.ast.models import TranslationUnit, TranslationTaskType
 from apps.llm_workers.dispatcher import AsyncDispatcher
-from core.execution.exceptions import ChunkExecutionError
 
 from apps.llm_workers.prompt_builder import PromptEnvelope, PromptBuilder
 
 class TestAsyncDispatcher(unittest.IsolatedAsyncioTestCase):
-    """SOTA: Certificación del orquestador concurrente unificado (Fase 14)."""
+    """SOTA: Certificación del orquestador unificado con tolerancia a fallos parciales."""
 
     def setUp(self):
         self.mock_provider = AsyncMock()
-        
         self.mock_resolver = MagicMock()
         self.mock_resolver.resolve.return_value = MagicMock(breadcrumbs=(), depth=0)
         
         mock_estimator = MagicMock()
-        mock_estimator.estimate_tokens.return_value = 5  # SOTA FIX: .estimate_tokens
+        mock_estimator.estimate_tokens.return_value = 5
         
         from core.finops.measurement import InferenceMeasurementService
         from core.validation.budget import PromptBudgetCalculator, StandardCompressionPolicy
@@ -74,8 +72,9 @@ class TestAsyncDispatcher(unittest.IsolatedAsyncioTestCase):
         units = [self._create_mock_unit(1, TranslationTaskType.TRANSLATE)]
         self.mock_provider.translate.side_effect = ConnectionError("Simulated Network Drop")
         
-        with self.assertRaises(ChunkExecutionError):
-            await self.dispatcher.dispatch(units)
+        results = await self.dispatcher.dispatch(units)
+        self.assertEqual(len(results.outcomes), 1)
+        self.assertFalse(results.outcomes[0].is_success)
 
     async def test_case_E_out_of_order_resolution(self):
         units = [self._create_mock_unit(i, TranslationTaskType.TRANSLATE) for i in range(1, 4)]
@@ -98,9 +97,12 @@ class TestAsyncDispatcher(unittest.IsolatedAsyncioTestCase):
         units = [self._create_mock_unit(1, TranslationTaskType.PRESERVE), self._create_mock_unit(2, TranslationTaskType.TRANSLATE)]
         self.mock_provider.translate.side_effect = ConnectionError("Timeout")
         
-        with self.assertRaises(ChunkExecutionError) as context:
-            await self.dispatcher.dispatch(units)
-        self.assertEqual(context.exception.chunk_index, 1)
+        # SOTA FIX: Caídas de red catastróficas invalidan la integridad transaccional de todo el lote concurrente
+        results = await self.dispatcher.dispatch(units)
+        self.assertEqual(len(results.outcomes), 2)
+        
+        for outcome in results.outcomes:
+            self.assertFalse(outcome.is_success)
 
     async def test_case_G_duplicate_chunk_index_rejected(self):
         units = [self._create_mock_unit(5, TranslationTaskType.TRANSLATE), self._create_mock_unit(5, TranslationTaskType.PRESERVE)]
