@@ -4,7 +4,8 @@ from dataclasses import dataclass, field
 
 from core.ast.models import TranslationUnit, TranslationTaskType
 from core.context.context_resolver import ResolvedContext
-from core.validation.budget import PromptBudget, BudgetViolationReason, BudgetDecisionType, ContextReductionLevel, ContextCompressionPolicy
+from core.validation.budget import PromptBudget, BudgetViolationReason, BudgetDecisionType
+from core.validation.protocols import ContextReductionLevel, ContextCompressionPolicy
 from core.prompting.models import PromptSchema, PromptContext, PromptPayload
 from core.prompting.intent_mapper import PromptIntentMapper
 from core.prompting.constraint_factory import ConstraintFactory
