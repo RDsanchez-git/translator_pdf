@@ -1,6 +1,6 @@
 from typing import Protocol
 from dataclasses import dataclass
-from core.validation.estimators import TokenEstimatorProtocol
+from core.validation.protocols import TokenEstimatorProtocol
 
 @dataclass(frozen=True, slots=True)
 class InferenceMeasurement:

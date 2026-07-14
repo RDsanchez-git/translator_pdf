@@ -1,5 +1,5 @@
 import pytest
-from typing import List, Optional
+from typing import List, Optional, Any
 from unittest.mock import MagicMock
 from core.ast.models import TranslationUnit, TranslationTaskType
 from apps.llm_workers.dispatcher import AsyncDispatcher
@@ -7,8 +7,7 @@ from core.execution.exceptions import ChunkValidationError, DocumentValidationEr
 from core.validation.models import ValidationResult, Severity, ValidationContext, Scope
 from core.validation.pipeline import ValidationPipeline
 
-# SOTA: Contratos de la Fase 14
-from apps.llm_workers.routing import LLMProvider, ProviderResult
+from apps.llm_workers.routing import LLMProvider
 from apps.llm_workers.prompt_builder import PromptEnvelope, PromptBuilder
 
 
@@ -21,15 +20,18 @@ class StaticMockProvider(LLMProvider):
     def __init__(self, output_text: str):
         self.output_text = output_text
 
-    async def translate(self, envelope: PromptEnvelope) -> ProviderResult:
-        return ProviderResult(
-            chunk_id=envelope.chunk_id,
-            translated_text=self.output_text,
-            input_tokens=10,
-            output_tokens=10,
-            latency_ms=50.0,
-            finish_reason="stop"
-        )
+    async def translate(self, envelope: PromptEnvelope) -> Any:
+        mock_res = MagicMock()
+        mock_res.chunk_id = envelope.chunk_id
+        mock_res.translated_text = self.output_text
+        mock_res.text = self.output_text
+        mock_res.content = self.output_text
+        mock_res.translated_payload = self.output_text
+        mock_res.input_tokens = 10
+        mock_res.output_tokens = 10
+        mock_res.latency_ms = 50.0
+        mock_res.finish_reason = "stop"
+        return mock_res
 
 class MockDocumentFailValidator:
     """Validador sintético a nivel macro."""
@@ -44,8 +46,22 @@ def build_test_dispatcher(provider: LLMProvider, pipeline: Optional[ValidationPi
     mock_resolver.resolve.return_value = MagicMock(breadcrumbs=(), depth=0)
     
     mock_estimator = MagicMock()
-    mock_estimator.estimate.return_value = 5
-    prompt_builder = PromptBuilder(model_name="mock_llm", prompt_version="v1.0", estimator=mock_estimator)
+    mock_estimator.estimate_tokens.return_value = 5  # SOTA FIX: .estimate_tokens
+    
+    from core.finops.measurement import InferenceMeasurementService
+    from core.validation.budget import PromptBudgetCalculator, StandardCompressionPolicy
+    
+    measurement_service = InferenceMeasurementService(estimator=mock_estimator)
+    budget_calculator = PromptBudgetCalculator()
+    compression_policy = StandardCompressionPolicy()
+    
+    prompt_builder = PromptBuilder(
+        model_name="mock_llm", 
+        prompt_version="v1.0", 
+        measurement_service=measurement_service,
+        budget_calculator=budget_calculator,
+        compression_policy=compression_policy
+    )
     
     return AsyncDispatcher(
         context_resolver=mock_resolver,
@@ -79,7 +95,6 @@ async def test_dispatcher_hard_fail_on_invalid_output():
 @pytest.mark.anyio
 async def test_dispatcher_revalidates_cache_hits():
     """El Dispatcher evalúa el resultado sin importar si vino de caché o red."""
-    # SOTA: Simulamos un hit de caché inyectando un texto corrupto directamente
     provider = StaticMockProvider(output_text="{corrupted open brace")
     dispatcher = build_test_dispatcher(provider)
     

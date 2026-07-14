@@ -25,8 +25,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger("BenchmarkDriver")
 
-async def main():
-    logger.info("Iniciando Laboratorio de Evaluación SOTA (Fase 15.4 / 15.5)...")
+async def main() -> None:
+    logger.info("Iniciando Laboratorio de Evaluación SOTA (Fase 16.10)...")
     
     # 1. Inicializar Telemetría de Producción (Fase 15.5)
     gateway = SQLiteTelemetryGateway()
@@ -57,7 +57,6 @@ async def main():
         from core.ast.models import TranslationUnit, TranslationTaskType
         from core.ast.parser import parse_pdf 
         import hashlib
-        from pathlib import Path
 
         pdf_target_path = Path.cwd() / "[Amoretal_2023]_3hojas.pdf"
         
@@ -75,7 +74,8 @@ async def main():
         total_estimated_tokens = 0
         
         for idx, node in enumerate(ast_nodes):
-            safe_content = node.content or ""
+            # SOTA FIX: Reemplazar node.content por node.text_content
+            safe_content = node.text_content or ""
             
             if not safe_content.strip():
                 continue
@@ -87,7 +87,7 @@ async def main():
             task_type = TranslationTaskType.TRANSLATE
             complexity = DocumentComplexity.STANDARD_PROSE
             
-            node_type_val = node.type.value if hasattr(node.type, "value") else str(node.type)
+            node_type_val = node.node_type.value if hasattr(node.node_type, "value") else str(node.node_type)
             if "EQUATION" in node_type_val or "TABLE" in node_type_val:
                 task_type = TranslationTaskType.PARTIAL
                 complexity = DocumentComplexity.MIXED_HYBRID
@@ -170,6 +170,7 @@ async def main():
             evt_type = TelemetryEventType.CONTEXT_OVERFLOW if record.did_overflow else (
                 TelemetryEventType.TRANSLATION_SUCCESS if record.success else TelemetryEventType.TRANSLATION_FAILURE)
             
+            # SOTA FIX: Saneamiento del bug de asignación de chunk_id
             gateway.emit(ProductionTelemetryEvent(
                 execution_id=exec_id,
                 chunk_id=record.chunk_id,
@@ -197,7 +198,6 @@ async def main():
         logger.info(f"Degradación de Throughput (Health): {health_report.throughput_degradation_ratio * 100:.2f}%")
         logger.info(f"Violaciones SLO Críticas: {len(health_report.slo_violations)}")
         
-        # SOTA FIX: Intercepción de SLA para retener forensia en infraestructuras Free Tier
         try:
             HealthGateEvaluator.enforce(health_report)
             logger.info("Laboratorio finalizado exitosamente. Health Gate: PASSED.")
@@ -212,8 +212,6 @@ async def main():
 
 if __name__ == "__main__":
     from dotenv import load_dotenv
-    import os
-    import sys
     load_dotenv()
     
     if not os.getenv("GROQ_API_KEY"):

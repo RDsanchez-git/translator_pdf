@@ -73,34 +73,51 @@ class TranslationPipeline:
         placeholder_fixer = StructuralAssetPlaceholder()
         processed_nodes = []
         for node in nodes:
-            text = node.content or ""
+            # SOTA FIX: Uso de la fachada polimórfica de extracción de texto plano
+            text = node.text_content or ""
             text_stripped = text.strip()
 
             if not text_stripped:
-                if node.content != "":
-                    node = node.model_copy(update={"content": ""})
+                if node.text_content != "":
+                    from core.ast.models import ParagraphPayload
+                    node = node.model_copy(update={"payload": ParagraphPayload(content="")})
                 processed_nodes.append(node)
                 continue
 
-            if node.type == ContentNodeType.LIST_ITEM:
+            # SOTA FIX: Mapeo de LIST_ITEM obsoleto hacia ContentNodeType.LIST de la Fase 16
+            if node.node_type == ContentNodeType.LIST:
                 if self._exotic_bullets.match(text):
                     text = self._exotic_bullets.sub("- ", text, count=1)
-                    node = node.model_copy(update={"content": text})
+                    from core.ast.models import ListPayload
+                    node = node.model_copy(update={"payload": ListPayload(content=text)})
 
-            if node.type in {ContentNodeType.TABLE, ContentNodeType.FIGURE, ContentNodeType.IMAGE}:
+            # SOTA FIX: Especialización granular de tablas e imágenes (FIGURE mutó a IMAGE)
+            if node.node_type in {ContentNodeType.TABLE_SIMPLE, ContentNodeType.TABLE_COMPLEX, ContentNodeType.IMAGE}:
                 new_cp = dict(node.control_plane)
                 new_cp["preserved_content"] = text
                 new_cp["preserve_original"] = True
-                new_cp["asset_type"] = node.type.value.upper()
+                new_cp["asset_type"] = node.node_type.value.upper()
                 
                 result = placeholder_fixer.normalize(
                     text=text, 
                     node_id=node.node_id, 
-                    node_type=node.type.value
+                    node_type=node.node_type.value
                 )
                 
+                # SOTA FIX: Instanciación inmutable de sub-payloads respetando el esquema de ImagePayload (alt_text)
+                from core.ast.models import TablePayload, ImagePayload
+                if node.node_type in (ContentNodeType.TABLE_SIMPLE, ContentNodeType.TABLE_COMPLEX):
+                    new_payload = TablePayload(content=result.text)
+                elif node.node_type == ContentNodeType.IMAGE:
+                    new_payload = ImagePayload(
+                        alt_text=result.text, 
+                        asset_path=getattr(node.payload, "asset_path", "")
+                    )
+                else:
+                    new_payload = node.payload
+                
                 node = node.model_copy(update={
-                    "content": result.text,
+                    "payload": new_payload,
                     "control_plane": new_cp
                 })
             processed_nodes.append(node)
@@ -145,7 +162,7 @@ class TranslationPipeline:
             
             active_registry = job.pipeline_metadata["context_store"]["mappings"]
             for node in nodes:
-                if node.type != ContentNodeType.HEADING:
+                if node.node_type != ContentNodeType.HEADING:
                     ctx_id = node.control_plane.get("context_id")
                     if ctx_id and ctx_id not in active_registry:
                         raise ValueError(f"STATE_CORRUPTION: Node {node.node_id} references a missing context token {ctx_id} post-hydration.")

@@ -5,7 +5,12 @@ import logging
 from queue import Full
 from threading import Lock
 from typing import List, Optional, Any, Dict
-from core.ast.models import ASTNode
+
+from core.ast.models import (
+    ASTNode, HeadingPayload, ParagraphPayload, MathPayload, 
+    CodePayload, TablePayload, ListPayload
+)
+from core.ast.enums import ContentNodeType
 from core.normalization.base import NormalizationReport, NormalizerTrace, NormalizationEvent, WarningEntry
 from core.normalization.registry import NormalizationPolicyRegistry, NormalizationPolicy
 
@@ -36,11 +41,10 @@ class NormalizationPipeline:
         return hashlib.sha256(json_payload.encode("utf-8")).hexdigest()
 
     def process_node(self, node: ASTNode) -> NormalizationReport:
-        # SOTA: Clave canónica semántica basada en el string estable de Pydantic/Enum (.value)
-        canonical_key = node.type.value if hasattr(node.type, "value") else str(node.type)
+        canonical_key = node.node_type.value if hasattr(node.node_type, "value") else str(node.node_type)
         policy = self._registry.get_policy_for_type(canonical_key)
         
-        current_text = node.content or ""
+        current_text = node.text_content or ""
         current_hash = self._compute_deterministic_hash(current_text, policy)
         
         stored_hash = node.control_plane.get("normalization_hash")
@@ -83,7 +87,24 @@ class NormalizationPipeline:
         new_cp["normalization_timestamp"] = time.time()
 
         if has_mutations:
-            updated_node = node.model_copy(update={"content": working_text, "control_plane": new_cp})
+            if node.node_type == ContentNodeType.HEADING:
+                from core.ast.enums import HeadingLevel
+                old_level = node.payload.heading_level if isinstance(node.payload, HeadingPayload) else HeadingLevel.UNKNOWN
+                new_payload = HeadingPayload(content=working_text, heading_level=old_level)
+            elif node.node_type in (ContentNodeType.PARAGRAPH, ContentNodeType.CAPTION):
+                new_payload = ParagraphPayload(content=working_text)
+            elif node.node_type in (ContentNodeType.DISPLAY_EQUATION, ContentNodeType.INLINE_EQUATION):
+                new_payload = MathPayload(content=working_text)
+            elif node.node_type == ContentNodeType.CODE:
+                new_payload = CodePayload(content=working_text)
+            elif node.node_type in (ContentNodeType.TABLE_SIMPLE, ContentNodeType.TABLE_COMPLEX):
+                new_payload = TablePayload(content=working_text)
+            elif node.node_type == ContentNodeType.LIST:
+                new_payload = ListPayload(content=working_text)
+            else:
+                new_payload = ParagraphPayload(content=working_text)
+
+            updated_node = node.model_copy(update={"payload": new_payload, "control_plane": new_cp})
         else:
             updated_node = node.model_copy(update={"control_plane": new_cp})
 

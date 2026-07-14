@@ -1,5 +1,6 @@
 import pytest
-from core.ast.models import ASTNode, ContentNodeType
+from core.ast.models import ASTNode, ParagraphPayload, ListPayload
+from core.ast.enums import ContentNodeType
 from core.normalization.validators.ast_integrity import ASTIntegrityValidator
 
 @pytest.fixture
@@ -14,15 +15,15 @@ def test_empty_ast_triggers_warning_only(validator):
 
 def test_duplicate_node_id_collision(validator):
     nodes = [
-        ASTNode(node_id="duplicated_id", type=ContentNodeType.PARAGRAPH, content="Prosa 1"),
-        ASTNode(node_id="duplicated_id", type=ContentNodeType.PARAGRAPH, content="Prosa 2")
+        ASTNode(node_id="duplicated_id", node_type=ContentNodeType.PARAGRAPH, payload=ParagraphPayload(content="Prosa 1")),
+        ASTNode(node_id="duplicated_id", node_type=ContentNodeType.PARAGRAPH, payload=ParagraphPayload(content="Prosa 2"))
     ]
     warnings = validator.validate_ast(nodes)
     assert any(w.severity == "SEVERE" and "DUPLICATE_NODE_ID" in w.message for w in warnings)
 
 def test_malformed_placeholder_syntax(validator):
     nodes = [
-        ASTNode(node_id="node_1", type=ContentNodeType.PARAGRAPH, content="[[ASSET:TABLE:id_123")
+        ASTNode(node_id="node_1", node_type=ContentNodeType.PARAGRAPH, payload=ParagraphPayload(content="[[ASSET:TABLE:id_123"))
     ]
     warnings = validator.validate_ast(nodes)
     assert any(w.severity == "SEVERE" and "MALFORMED_ASSET_PLACEHOLDER" in w.message for w in warnings)
@@ -30,7 +31,7 @@ def test_malformed_placeholder_syntax(validator):
 def test_orphan_list_item_emits_info_only(validator):
     """Garantiza que los ítems de lista aislados se marquen como telemetría INFO sin generar ruido."""
     nodes = [
-        ASTNode(node_id="list_item_1", type=ContentNodeType.LIST_ITEM, content="• Item aislado por el OCR.")
+        ASTNode(node_id="list_item_1", node_type=ContentNodeType.LIST, payload=ListPayload(content="• Item aislado por el OCR."))
     ]
     warnings = validator.validate_ast(nodes)
     assert any(w.severity == "INFO" and "ORPHAN_LIST_ITEM_LINT" in w.message for w in warnings)

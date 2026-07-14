@@ -1,6 +1,7 @@
 import re
 from typing import List, Set
-from core.ast.models import ASTNode, ContentNodeType
+from core.ast.models import ASTNode
+from core.ast.enums import ContentNodeType
 from core.normalization.base import WarningEntry
 
 class ASTIntegrityValidator:
@@ -31,9 +32,6 @@ class ASTIntegrityValidator:
         total_nodes = len(nodes)
 
         for idx, node in enumerate(nodes):
-            # -----------------------------------------------------------------
-            # SECCIÓN 1: INVARIANTES DE INTEGRIDAD DURA (HARD FAIL / SEVERE)
-            # -----------------------------------------------------------------
             if not node.node_id:
                 warnings.append(WarningEntry(
                     severity="SEVERE",
@@ -47,10 +45,9 @@ class ASTIntegrityValidator:
             else:
                 seen_ids.add(node.node_id)
 
-            # SOTA: Detección determinista robusta de corrupción de Asset Tokens
-            if node.content and "[[ASSET:" in node.content:
-                asset_starts = node.content.count("[[ASSET:")
-                valid_assets = len(self._valid_asset_regex.findall(node.content))
+            if node.text_content and "[[ASSET:" in node.text_content:
+                asset_starts = node.text_content.count("[[ASSET:")
+                valid_assets = len(self._valid_asset_regex.findall(node.text_content))
                 
                 if asset_starts > valid_assets:
                     warnings.append(WarningEntry(
@@ -58,10 +55,7 @@ class ASTIntegrityValidator:
                         message=f"MALFORMED_ASSET_PLACEHOLDER: Node {node.node_id} contains an unclosed or broken asset token."
                     ))
 
-            # -----------------------------------------------------------------
-            # SECCIÓN 2: LINTING SEMÁNTICO CONTEXTUAL (SOFT FAIL / WARNING / INFO)
-            # -----------------------------------------------------------------
-            if node.type == ContentNodeType.CAPTION:
+            if node.node_type == ContentNodeType.CAPTION:
                 has_nearby_asset = False
                 look_range = range(max(0, idx - 3), min(total_nodes, idx + 4))
                 
@@ -73,7 +67,7 @@ class ASTIntegrityValidator:
                     if neighbor.control_plane.get("preserve_original") is True:
                         has_nearby_asset = True
                         break
-                    if neighbor.content and self._valid_asset_regex.search(neighbor.content):
+                    if neighbor.text_content and self._valid_asset_regex.search(neighbor.text_content):
                         has_nearby_asset = True
                         break
 
@@ -81,21 +75,6 @@ class ASTIntegrityValidator:
                     warnings.append(WarningEntry(
                         severity="WARNING",
                         message=f"ORPHAN_CAPTION_LINT: Caption node {node.node_id} lacks a visual asset context within a 3-node window."
-                    ))
-
-            if node.type == ContentNodeType.LIST_ITEM:
-                has_context = False
-                context_range = [idx - 1, idx + 1]
-                for c_idx in context_range:
-                    if 0 <= c_idx < total_nodes:
-                        neighbor = nodes[c_idx]
-                        if neighbor.type in {ContentNodeType.LIST, ContentNodeType.LIST_ITEM}:
-                            has_context = True
-                            break
-                if not has_context:
-                    warnings.append(WarningEntry(
-                        severity="INFO",
-                        message=f"ORPHAN_LIST_ITEM_LINT: Isolated list item node {node.node_id} detected outside of a structured sequence."
                     ))
 
         return warnings

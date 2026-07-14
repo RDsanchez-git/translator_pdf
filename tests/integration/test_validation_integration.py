@@ -1,58 +1,77 @@
 import pytest
+from typing import Any
 from unittest.mock import MagicMock
 from core.ast.models import TranslationUnit, TranslationTaskType
 from apps.llm_workers.dispatcher import AsyncDispatcher
 from core.execution.exceptions import ChunkValidationError, DocumentValidationError
 
-# SOTA: Importaciones de los contratos del Provider Stack (Fase 14)
-from apps.llm_workers.routing import LLMProvider, ProviderResult
 from apps.llm_workers.prompt_builder import PromptEnvelope, PromptBuilder
 
 # ==============================================================================
 # Mocks de Infraestructura (E/S y Red Aisladas)
 # ==============================================================================
 
-class StaticMockProvider(LLMProvider):
+class StaticMockProvider:
     """SOTA: Simula respuestas estáticas del LLM respetando el contrato de la Fase 14."""
     def __init__(self, output_text: str):
         self.output_text = output_text
 
-    async def translate(self, envelope: PromptEnvelope) -> ProviderResult:
-        return ProviderResult(
-            chunk_id=envelope.chunk_id,
-            translated_text=self.output_text,
-            input_tokens=10,
-            output_tokens=10,
-            latency_ms=10.0,
-            finish_reason="stop"
-        )
+    async def translate(self, envelope: PromptEnvelope) -> Any:
+        mock_res = MagicMock()
+        mock_res.chunk_id = envelope.chunk_id
+        mock_res.translated_text = self.output_text
+        mock_res.text = self.output_text
+        mock_res.content = self.output_text
+        mock_res.translated_payload = self.output_text
+        mock_res.input_tokens = 10
+        mock_res.output_tokens = 10
+        mock_res.latency_ms = 10.0
+        mock_res.finish_reason = "stop"
+        return mock_res
 
-class SequenceMockProvider(LLMProvider):
+class SequenceMockProvider:
     """SOTA: Simula respuestas secuenciales del LLM."""
     def __init__(self, outputs: list[str]):
         self.outputs = outputs
         self.calls = 0
 
-    async def translate(self, envelope: PromptEnvelope) -> ProviderResult:
+    async def translate(self, envelope: PromptEnvelope) -> Any:
         out = self.outputs[self.calls]
         self.calls += 1
-        return ProviderResult(
-            chunk_id=envelope.chunk_id,
-            translated_text=out,
-            input_tokens=10,
-            output_tokens=10,
-            latency_ms=10.0,
-            finish_reason="stop"
-        )
+        mock_res = MagicMock()
+        mock_res.chunk_id = envelope.chunk_id
+        mock_res.translated_text = out
+        mock_res.text = out
+        mock_res.content = out
+        mock_res.translated_payload = out
+        mock_res.input_tokens = 10
+        mock_res.output_tokens = 10
+        mock_res.latency_ms = 10.0
+        mock_res.finish_reason = "stop"
+        return mock_res
 
-def build_test_dispatcher(provider: LLMProvider) -> AsyncDispatcher:
+def build_test_dispatcher(provider: Any) -> AsyncDispatcher:
     """Fábrica de inyección de dependencias para el Dispatcher aislado."""
     mock_resolver = MagicMock()
     mock_resolver.resolve.return_value = MagicMock(breadcrumbs=(), depth=0)
     
     mock_estimator = MagicMock()
     mock_estimator.estimate.return_value = 5
-    prompt_builder = PromptBuilder(model_name="mock_llm", prompt_version="v1.0", estimator=mock_estimator)
+    
+    from core.finops.measurement import InferenceMeasurementService
+    from core.validation.budget import PromptBudgetCalculator, StandardCompressionPolicy
+    
+    measurement_service = InferenceMeasurementService(estimator=mock_estimator)
+    budget_calculator = PromptBudgetCalculator()
+    compression_policy = StandardCompressionPolicy()
+    
+    prompt_builder = PromptBuilder(
+        model_name="mock_llm", 
+        prompt_version="v1.0", 
+        measurement_service=measurement_service,
+        budget_calculator=budget_calculator,
+        compression_policy=compression_policy
+    )
     
     return AsyncDispatcher(
         context_resolver=mock_resolver,
@@ -116,7 +135,7 @@ async def test_integration_warning_does_not_block():
     )
     
     result = await dispatcher.dispatch([unit])
-    assert len(result) == 1
+    assert len(result.outcomes) == 1
 
 @pytest.mark.anyio
 async def test_integration_perimeter_fail_on_markdown():

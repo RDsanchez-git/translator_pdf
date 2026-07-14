@@ -15,12 +15,12 @@ from core.ast.models import ExecutionStatus, FailureReason, FastWordEstimator
 from core.context.context_resolver import ResolvedContext
 
 from apps.llm_workers.adapters import GroqProvider
-from apps.llm_workers.resilient_provider import ResilientProvider
-from core.resilience.circuit_breaker import CircuitBreakerRegistry
 from apps.llm_workers.rate_limiter import RateLimitedProvider, QuotaManager
 from apps.llm_workers.prompt_builder import PromptBuilder
 from apps.llm_workers.dispatcher import AsyncDispatcher
-from core.validation.budget import PromptBudgetCalculator
+from core.validation.budget import PromptBudgetCalculator, StandardCompressionPolicy
+from core.finops.measurement import InferenceMeasurementService
+from core.prompting.dialects.openai_compatible import OpenAICompatibleDialect
 from core.metrics.pricing import PricingEngine
 from core.benchmark.quality import FormalLatexSyntaxParser, FormalMarkdownTableParser
 
@@ -60,19 +60,24 @@ class GroqBenchmarkRunner(BenchmarkRunnerProtocol):
         limit_to_use = 8192 if self.mode == BenchmarkMode.CAPABILITY else 2097152
 
         estimator = FastWordEstimator()
+        measurement_service = InferenceMeasurementService(estimator=estimator)
+        
         budget_calculator = PromptBudgetCalculator(
-            estimator=estimator,
             primary_window_limit=limit_to_use,
             fallback_window_limit=limit_to_use,
             min_output_reserve=512,
             max_output_reserve=4096
         )
         
+        # SOTA FIX: Alineación con la política de compresión canónica de la Fase 16
+        compression_policy = StandardCompressionPolicy()
+        
         prompt_builder = PromptBuilder(
             model_name=self.descriptor.model, 
             prompt_version="v1.0", 
+            measurement_service=measurement_service,
             budget_calculator=budget_calculator,
-            estimator=estimator
+            compression_policy=compression_policy
         )
 
         rpm_limit = int(os.getenv("GROQ_RPM_LIMIT", "30"))    
@@ -80,11 +85,10 @@ class GroqBenchmarkRunner(BenchmarkRunnerProtocol):
         
         self.quota_snapshot = QuotaSnapshot(rpm_limit=rpm_limit, tpm_limit=tpm_limit, concurrency=self.concurrency)
         
-        groq_provider = GroqProvider(api_key=api_key)
-        breaker = CircuitBreakerRegistry.get_breaker("groq", threshold=5)
-        resilient = ResilientProvider(underlying=groq_provider, breaker=breaker)
+        dialect = OpenAICompatibleDialect()
+        groq_provider = GroqProvider(api_key=api_key, dialect=dialect)
         quota_mgr = QuotaManager(rpm_limit=rpm_limit, tpm_limit=tpm_limit)
-        rate_provider = RateLimitedProvider(underlying=resilient, quota_manager=quota_mgr)
+        rate_provider = RateLimitedProvider(underlying=groq_provider, quota_manager=quota_mgr)
         
         self._dispatcher = AsyncDispatcher(
             context_resolver=DummyContextResolver(),
@@ -129,7 +133,6 @@ class GroqBenchmarkRunner(BenchmarkRunnerProtocol):
             model_used = outcome.translated_unit.model_name if outcome.translated_unit else self.descriptor.model
             cost = 0.0 if is_local_rejection else PricingEngine.calculate_cost(model_used, in_tokens, out_tokens)
 
-            # SOTA FIX: Extracción alineada estrictamente al contrato TranslatedUnit
             text_payload = ""
             if outcome.translated_unit and getattr(outcome.translated_unit, 'translated_payload', None):
                 text_payload = outcome.translated_unit.translated_payload

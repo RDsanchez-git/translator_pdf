@@ -5,10 +5,12 @@ import time
 import uuid
 import random
 import logging
+import threading
+from concurrent.futures import ThreadPoolExecutor
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from core.metrics.metrics import Metrics
 
+from core.metrics.metrics import Metrics
 from infra.db.fsm_repository import FSMRepository
 from core.execution.exceptions import PipelineIntegrityError, OptimisticLockError
 from core.execution.state import (
@@ -22,21 +24,17 @@ from core.utils.telemetry import (
     setup_distributed_logger, 
     ctx_execution_id, ctx_worker_id, ctx_task_id, ctx_node_id
 )
-
 from core.execution.exceptions import CircuitTripError, CircuitOpenError
-
 from infra.db.connection import get_connection
 from core.normalization.normalizer import TextNormalizer
 from core.execution.ports import EventLifecycle
 from core.ast.registry import ASTRegistry
-import typing
-from concurrent.futures import ThreadPoolExecutor
-import threading
 from core.normalization.latex_sanitizer import InlineMathProtector
-from core.validation.budget import PromptBudgetCalculator
-
-
-
+from core.validation.budget import PromptBudgetCalculator, StandardCompressionPolicy
+from core.finops.measurement import InferenceMeasurementService
+from core.prompting.dialects.openai_compatible import OpenAICompatibleDialect
+from core.ast.enums import ContentNodeType
+from apps.llm_workers.prompt_builder import PromptBuilder
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +43,6 @@ QUEUE_DB_PATH = "infra/db/queue.db"
 EVENT_DB_PATH = "infra/db/event.db"
 MAT_DB_PATH = "infra/db/materialized.db"
 
-# Throttler global para no saturar las cuotas RPM/TPM de Gemini en ejecuciones paralelas
 GLOBAL_LLM_SEMAPHORE = threading.Semaphore(int(os.getenv("MAX_GLOBAL_LLM_CONCURRENCY", "4")))
 
 def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_traduccion.pdf") -> dict:
@@ -56,10 +53,10 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
     queue_conn = get_connection(QUEUE_DB_PATH, timeout=30)
     evt_conn = get_connection(EVENT_DB_PATH, timeout=30)
     mat_conn = get_connection(MAT_DB_PATH, timeout=30)
-
+    
     for conn in (fsm_conn, queue_conn, evt_conn, mat_conn):
         conn.execute("PRAGMA busy_timeout=30000")
-
+        
     mat_repo = MaterializedPlaneRepository(mat_conn)
     fsm_repo = FSMRepository(fsm_conn)
     task_repo = ControlPlaneRepository(queue_conn)
@@ -69,60 +66,61 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
     # SOTA: Instanciación Singleton del Bridge para aislamiento Thread-Safe
     from apps.llm_workers.sync_bridge import SyncProviderBridge
     from apps.llm_workers.adapters import GroqProvider
-    from apps.llm_workers.resilient_provider import ResilientProvider
-    from core.resilience.circuit_breaker import CircuitBreakerRegistry
     from apps.llm_workers.rate_limiter import RateLimitedProvider, QuotaManager
-    from apps.llm_workers.prompt_builder import PromptBuilder
     from core.ast.models import FastWordEstimator
-
+    
     api_key = os.getenv("GROQ_API_KEY")
     if not api_key:
         raise RuntimeError("GROQ_API_KEY no configurada. Imposible operar motor LLM.")
-
-    estimator = FastWordEstimator()
     
-    # SOTA FIX: Inyección del Motor de Presupuesto en el plano del Daemon (Fase 15.2)
+    estimator = FastWordEstimator()
+    measurement_service = InferenceMeasurementService(estimator=estimator)
+    
+    # SOTA FIX: Adecuación a firmas FinOps y políticas de compresión canónicas de la Fase 16
     budget_calculator = PromptBudgetCalculator(
-        estimator=estimator,
         primary_window_limit=8192,
         fallback_window_limit=1048576,
         min_output_reserve=256,
         max_output_reserve=4096
     )
     
+    compression_policy = StandardCompressionPolicy()
+    
     builder = PromptBuilder(
         model_name="llama3-70b-8192", 
         prompt_version="v1.0", 
+        measurement_service=measurement_service,
         budget_calculator=budget_calculator,
-        estimator=estimator
+        compression_policy=compression_policy
     )
     
-    # SOTA FIX: Extracción de cuotas operativas (Fase 15.3)
     rpm_limit = int(os.getenv("GROQ_RPM_LIMIT", "30"))
     tpm_limit = int(os.getenv("GROQ_TPM_LIMIT", "6000"))
     
-    groq_provider = GroqProvider(api_key=api_key)
-    breaker = CircuitBreakerRegistry.get_breaker("groq")
-    resilient = ResilientProvider(groq_provider, breaker)
+    dialect = OpenAICompatibleDialect()
+    groq_provider = GroqProvider(api_key=api_key, dialect=dialect)
     quota = QuotaManager(rpm_limit=rpm_limit, tpm_limit=tpm_limit)
-    rate_provider = RateLimitedProvider(resilient, quota)
+    rate_provider = RateLimitedProvider(underlying=groq_provider, quota_manager=quota)
     
     processor = SyncProviderBridge(async_provider=rate_provider, prompt_builder=builder)
     owner_id = f"orchestrator_{uuid.uuid4().hex[:8]}"
-
     cache_key = (document_id, ast_hash)
     
     if os.getenv("IS_BENCHMARK") == "1" or document_id.startswith("doc_"):
         cursor = queue_conn.execute("SELECT node_id FROM chunk_tasks WHERE document_id = ?", (document_id,))
         ordered_node_ids = [row[0] for row in cursor.fetchall()]
         
-        from core.ast.models import ContentNodeType
-        class FakeASTNode:
-            def __init__(self):
-                self.content = "SOTA synthetic content benchmarking"
-                self.type = ContentNodeType.PARAGRAPH
-                
-        doc_nodes = typing.cast(typing.Any, {nid: FakeASTNode() for nid in ordered_node_ids})
+        from core.ast.models import ASTNode, ParagraphPayload
+        
+        # SOTA FIX: Instanciación real y tipada del ASTNode para evitar evasiones de Type Checking
+        doc_nodes = {
+            nid: ASTNode(
+                node_id=nid,
+                node_type=ContentNodeType.PARAGRAPH,
+                payload=ParagraphPayload(content="SOTA synthetic content benchmarking")
+            )
+            for nid in ordered_node_ids
+        }
     else:
         if cache_key not in ast_registry._cache:
             ast_registry._load_document(document_id, ast_hash)
@@ -130,18 +128,16 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
         if not doc_nodes:
             raise PipelineIntegrityError(f"Error crítico: El AST cacheado por el OCR Router no existe en disco para {document_id[:8]}")
         ordered_node_ids = list(doc_nodes.keys())
-
+        
     retry_attempt = 0 
     current_state = None
-
+    
     while True:
         try:
             doc_status = fsm_repo.get_status(document_id, ast_hash)
-
             if doc_status is None:
                 logger.warning(f"FSM missing document {document_id[:8]} (no row returned)")
                 break
-
             try:
                 current_state = DocumentState(doc_status.current_state)
             except ValueError as e:
@@ -150,19 +146,17 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
                     extra={"extra_data": {"value": doc_status.current_state, "error": str(e)}}
                 )
                 raise PipelineIntegrityError(f"Estado FSM inválido para {document_id[:8]}")
-
+            
             current_version = doc_status.state_version
-
             if current_state in TERMINAL_STATES:
                 logger.info("PIPELINE_TERMINATED", extra={"extra_data": {"final_state": current_state.value}})
                 break
-
+                
             if current_state == DocumentState.PROCESSING:
                 ast_index = doc_nodes
                 max_threads = int(os.getenv("MAX_CONCURRENT_CHUNKS", "4"))
                 
                 def chunk_worker_thread():
-                    # Thread-Local Connections para blindar el aislamiento físico de SQLite
                     th_queue_conn = get_connection(QUEUE_DB_PATH, timeout=30)
                     th_evt_conn = get_connection(EVENT_DB_PATH, timeout=30)
                     th_mat_conn = get_connection(MAT_DB_PATH, timeout=30)
@@ -174,7 +168,7 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
                     th_event_repo = EventPlaneRepository(th_evt_conn)
                     th_mat_repo = MaterializedPlaneRepository(th_mat_conn)
                     
-                    local_processor = processor  # SOTA: Referencia compartida Thread-Safe
+                    local_processor = processor  
                     
                     try:
                         while True:
@@ -193,29 +187,41 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
                             try:
                                 target_node = ast_index[node_id]
                                 
-                                # SOTA: Centralizamos la lógica de ruteo consultando la política oficial
-                                from apps.llm_workers.router_translation import TranslationRouter
-                                policy = TranslationRouter.get_strategy(target_node.type)   
+                                # SOTA FIX: Enrutamiento directo y desacoplado basado en la taxonomía pura del AST V2
+                                if target_node.node_type in (ContentNodeType.DISPLAY_EQUATION, ContentNodeType.INLINE_EQUATION, ContentNodeType.CODE, ContentNodeType.IMAGE):
+                                    policy = "PRESERVE"
+                                else:
+                                    policy = "TRANSLATE"
                                 
                                 if policy in ("PRESERVE", "IGNORE"):
-                                    # Bypass nativo sin enmascaramiento de LaTeX
                                     raw_response = local_processor.execute(target_node)
                                 else:
-                                    # TRANSLATE: Solo el texto narrativo entra al flujo LLM y se enmascara
-                                    original_content = target_node.content or ""
+                                    # SOTA FIX: Abstracción polimórfica para extracción e instanciación inmutable de sub-payloads
+                                    # SOTA FIX: Abstracción polimórfica para extracción e instanciación inmutable de sub-payloads
+                                    original_content = target_node.text_content or ""
                                     masked_content, math_map = InlineMathProtector.mask(original_content)
                                     
-                                    target_node.content = masked_content
+                                    from core.ast.models import ParagraphPayload, HeadingPayload, TablePayload, ListPayload
+                                    if target_node.node_type == ContentNodeType.HEADING:
+                                        from core.ast.enums import HeadingLevel
+                                        # SOTA FIX: Type Narrowing estructural mediante isinstance para satisfacer la unión en Pyright Strict
+                                        old_level = target_node.payload.heading_level if isinstance(target_node.payload, HeadingPayload) else HeadingLevel.UNKNOWN
+                                        masked_payload = HeadingPayload(content=masked_content, heading_level=old_level)
+                                    elif target_node.node_type == ContentNodeType.LIST:
+                                        masked_payload = ListPayload(content=masked_content)
+                                    elif target_node.node_type in (ContentNodeType.TABLE_SIMPLE, ContentNodeType.TABLE_COMPLEX):
+                                        masked_payload = TablePayload(content=masked_content)
+                                    else:
+                                        masked_payload = ParagraphPayload(content=masked_content)
+                                        
+                                    exec_node = target_node.model_copy(update={"payload": masked_payload})
                                     
                                     with GLOBAL_LLM_SEMAPHORE:
-                                        raw_response = local_processor.execute(target_node)
+                                        raw_response = local_processor.execute(exec_node)
                                         
-                                    # Restauración limpia y única (se eliminó la duplicación del código viejo)
-                                    target_node.content = original_content
                                     raw_response = InlineMathProtector.restore(raw_response, math_map)
                                 
-                                # SOTA FIX: Protección contra Optional[str]
-                                content_to_hash = target_node.content or ""
+                                content_to_hash = target_node.text_content or ""
                                 
                                 th_event_repo.append_wal(
                                     task.execution_id, document_id, node_id, 
@@ -223,8 +229,7 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
                                     raw_response, processor.prompt_v, processor.model_v, 
                                     processor.projection_v, EventLifecycle.GENERATED
                                 )
-
-                                # SOTA FIX: Normalizamos únicamente lo traducido. Fin de la comparación errónea estática.
+                                
                                 normalized = TextNormalizer.normalize(raw_response) if policy == "TRANSLATE" else raw_response
                                 normalized_hash = hashlib.sha256(normalized.encode('utf-8')).hexdigest()
                                 
@@ -261,18 +266,15 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
                                 c.close()
                             except Exception:
                                 pass
-
-                # Orquestación y sincronización de barrera local
+                                
                 with ThreadPoolExecutor(max_workers=max_threads) as executor:
                     futures = [executor.submit(chunk_worker_thread) for _ in range(max_threads)]
                     for future in futures:
-                        future.result() # Propaga crashes graves del pool al hilo principal
+                        future.result() 
                 
                 doc_status = fsm_repo.get_status(document_id, ast_hash)
                 current_version = doc_status.state_version if doc_status else current_version
                 
-                # --- FASE 2: DETECTOR DE BARRERA DE VENENO CONDICIONAL ---
-                # --- FASE 2: DETECTOR DE BARRERA DE VENENO CONDICIONAL ---
                 cursor = queue_conn.execute(
                     """SELECT 
                         SUM(CASE WHEN task_state = 'FAILED' THEN 1 ELSE 0 END),
@@ -283,7 +285,6 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
                 row = cursor.fetchone()
                 failed_chunks = row[0] or 0
                 active_chunks = row[1] or 0
-
                 if failed_chunks > 0 and active_chunks == 0:
                     logger.critical(f"Poison Pill confirmada: {failed_chunks} fallidos, {active_chunks} activos. Promoviendo a FAILED_FATAL.")
                     fsm_repo.transition_to(
@@ -291,7 +292,6 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
                         current_version, owner_id, is_terminal=True, failure_reason=f"Colapso de pipeline por {failed_chunks} tareas muertas."
                     )
                     break
-
                 valid_chunks_data = mat_repo.get_assemblable_chunks(
                     document_id, ast_hash, ordered_node_ids, required_projection_v=1
                 )
@@ -319,7 +319,7 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
                             is_terminal=True
                         )
                         fsm_conn.commit()
-                        current_state = DocumentState.COMPLETED  # SOTA: Sincronización local pre-salida
+                        current_state = DocumentState.COMPLETED  
                         break
                         
                     doc_status = fsm_repo.get_status(document_id, ast_hash)
@@ -328,8 +328,8 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
                     
                     cmd = MarkAssemblyReadyCommand(document_id, ast_hash, owner_id, doc_status.state_version)
                     cmd_handler.handle(cmd)
-                    current_state = DocumentState.READY_FOR_ASSEMBLY  # SOTA: Sincronización local pre-salida
-                    break # MOTO DE DESACOPLAMIENTO: Finaliza la ejecución local del llm_worker
+                    current_state = DocumentState.READY_FOR_ASSEMBLY  
+                    break 
                 else:
                     sleep_sec = min(30.0, 2.0 * (1.5 ** retry_attempt)) + random.uniform(0.1, 1.0)
                     missing_count = len(set_expected - set_returned)
@@ -348,13 +348,12 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
                         fsm_repo.transition_to(
                             document_id, ast_hash, DocumentState.FAILED_RETRYABLE.value, 
                             target_recovery, doc_status.state_version, owner_id,
-                            suspended_state=None # Limpieza del slot post-recuperación
+                            suspended_state=None 
                         )
                     except OptimisticLockError:
                         logger.warning("Conflicto CAS en auto-recuperación local. Delegando control.")
                         break
                 continue
-
             elif current_state == DocumentState.STALLED:
                 logger.warning(f"Documento {document_id[:8]} se encuentra en STALLED (requiere atencion). Liberando orquestador.")
                 time.sleep(2.0)
@@ -372,11 +371,8 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
             logger.error(f"Falla catastrofica en setup de run_pipeline: {str(e)}")
             break
 
-    # Bloque terminal de run_pipeline con recolección de conexiones determinista
     total_time = time.time() - pipeline_start
     final_state_val = current_state.value if current_state else "UNKNOWN"
-
-    # SOTA: Destrucción explícita del hilo daemon y Event Loop
     processor.shutdown()
     
     for conn in (fsm_conn, queue_conn, evt_conn, mat_conn):
@@ -425,19 +421,15 @@ if __name__ == "__main__":
     
         except Exception as err:
             import traceback
-
             logger.exception(
                 f"Fallo crítico en el bucle principal del Runtime Orchestrator Daemon: {err}"
             )
-
             print("\n========== FULL TRACEBACK ==========\n", flush=True)
             traceback.print_exc()
             print("\n====================================\n", flush=True)
-
             if queue_conn:
                 try:
                     queue_conn.close()
                 except Exception:
                     pass
-
             time.sleep(max_sleep)

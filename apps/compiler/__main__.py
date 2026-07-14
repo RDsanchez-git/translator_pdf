@@ -3,7 +3,7 @@ import time
 import uuid
 import random
 import logging
-from typing import List, Tuple
+from typing import List
 
 from core.utils.telemetry import setup_distributed_logger
 from core.execution.exceptions import OptimisticLockError
@@ -13,7 +13,8 @@ from infra.db.control_repo import ControlPlaneRepository
 from infra.db.materialized_repo import MaterializedPlaneRepository
 from infra.db.fsm_repository import FSMRepository
 from core.ast.registry import ASTRegistry
-from core.ast.models import NodeType, ContentNodeType
+from core.ast.enums import ContentNodeType
+from core.compiler.rendering.models import RenderUnit  # SOTA FIX: Importación del DTO de maquetación
 
 from apps.compiler.tex_builder import TexBuilder
 from apps.compiler.docker_runner import DockerRunner
@@ -49,7 +50,6 @@ class AssemblerWorkerDaemon:
         self.node_id = f"assembler_{uuid.uuid4().hex[:8]}"
         self.worker_type = "ASSEMBLER"
         
-        # Adaptive Sleep SOTA (El compilador hace menos polling, podemos relajar el sleep)
         self.base_sleep = 2.0
         self.max_sleep = 8.0
 
@@ -59,7 +59,6 @@ class AssemblerWorkerDaemon:
         
         while True:
             try:
-                # 1. Polling limpio a través de la API del repositorio encapsulado
                 next_doc = self.fsm.find_next_ready_for_assembly()
                 
                 if not next_doc:
@@ -74,7 +73,6 @@ class AssemblerWorkerDaemon:
                 try:
                     self._process_assembly_task(doc_id, ast_hash)
                 except OptimisticLockError:
-                    # Mitigación nativa TOCTOU: Otro assembler ganó el lease de forma concurrente
                     logger.warning(f"TOCTOU Evitado: El documento {doc_id[:8]} ya fue tomado por otro nodo.")
                     continue
                 
@@ -112,19 +110,16 @@ class AssemblerWorkerDaemon:
         
         current_version = None
         try:
-            # 1. Obtener estado actual de la FSM
             status = self.fsm.get_status(doc_id, ast_hash)
             if not status:
                 raise ValueError("No se encontró el estado del documento en la FSM.")
 
             current_version = status.state_version
             
-            # Transición Start Assembly gobernada por CAS puro
             if status.current_state == DocumentState.READY_FOR_ASSEMBLY.value:
                 cmd_start = StartAssemblyCommand(doc_id, ast_hash, self.node_id, current_version)
                 current_version = self.cmd_handler.handle(cmd_start)
             
-            # 2. Recuperar la estructura original del AST
             cache_key = (doc_id, ast_hash)
             if cache_key not in self.ast_registry._cache:
                 self.ast_registry._load_document(doc_id, ast_hash)
@@ -133,10 +128,8 @@ class AssemblerWorkerDaemon:
             if not doc_nodes:
                 raise ValueError("Los datos estructurales del AST no se encuentran disponibles (Cache Miss).")
 
-            # Sprint 10A.1 SOTA: Ordenamiento explícito gobernado por el sequence_id del esquema de datos
             ordered_node_ids = sorted(doc_nodes.keys(), key=lambda x: doc_nodes[x].sequence_id)
 
-            # 3. Recolección segura desde la proyección materializada
             projection_records = self.materialized.get_assemblable_chunks(
                 document_id=doc_id,
                 ast_hash=ast_hash,
@@ -146,26 +139,26 @@ class AssemblerWorkerDaemon:
             
             text_map = {record.node_id: record.normalized_response for record in projection_records}
 
-            # Sprint 10A.4: Assembler tipado. Mantiene el contrato polimórfico pasando (node_id, text, type)
-            valid_chunks: List[Tuple[str, str, NodeType]] = []
+            # SOTA FIX: Mapear la recolección directamente hacia la clase de datos RenderUnit requerida por TexBuilder
+            valid_chunks: List[RenderUnit] = []
             for n_id in ordered_node_ids:
                 original_node = doc_nodes.get(n_id)
-                node_type = original_node.type if original_node else ContentNodeType.PARAGRAPH
+                node_type = original_node.node_type if original_node else ContentNodeType.PARAGRAPH
                 
                 if n_id in text_map:
-                    valid_chunks.append((n_id, text_map[n_id], node_type))
+                    valid_chunks.append(RenderUnit(node_id=n_id, node_type=node_type, content=text_map[n_id]))
                 else:
-                    if original_node and original_node.content:
-                        valid_chunks.append((n_id, original_node.content, node_type))
+                    if original_node and original_node.text_content:
+                        valid_chunks.append(RenderUnit(node_id=n_id, node_type=node_type, content=original_node.text_content))
 
             if not valid_chunks:
                 raise ValueError("No se encontraron fragmentos válidos para proceder con el ensamblado.")
 
-            # 4. Compilación (Gobernada y protegida por el lease de la FSM documental)
             output_filename = f"translated_{doc_id}.pdf"
+            
+            # SOTA FIX: El método build consume la lista de RenderUnits pura sin inyección lateral de contexto
             tex_content = self.tex_builder.build(valid_chunks)
             
-            # CAS Duro: Validar versión antes de marcar disponibilidad de compilación
             status = self.fsm.get_status(doc_id, ast_hash)
             if not status: 
                 raise ValueError("FSM desincronizada antes de empaquetar TeX.")
@@ -173,7 +166,6 @@ class AssemblerWorkerDaemon:
             cmd_ready = MarkCompilationReadyCommand(doc_id, ast_hash, self.node_id, status.state_version)
             current_version = self.cmd_handler.handle(cmd_ready)
             
-            # CAS Duro: Validar versión antes de iniciar el binario del compilador
             status = self.fsm.get_status(doc_id, ast_hash)
             if not status: 
                 raise ValueError("FSM desincronizada antes de compilar PDF.")
@@ -185,12 +177,10 @@ class AssemblerWorkerDaemon:
 
             logger.info(f"Compilación exitosa: {final_pdf_path}", extra={"extra_data": {"latency": time.perf_counter() - start_assembly}})
             
-            # CAS Duro: Hot-fetch final pre-cierre de ciclo de vida
             status = self.fsm.get_status(doc_id, ast_hash)
             if not status: 
                 raise ValueError("FSM desincronizada en fase final de guardado.")
 
-            # 5. Transicionar FSM a COMPLETED (CQRS Command puro)
             cmd_complete = CompleteDocumentCommand(doc_id, ast_hash, self.node_id, status.state_version)
             self.cmd_handler.handle(cmd_complete)
             
@@ -200,7 +190,6 @@ class AssemblerWorkerDaemon:
             raise err
             
         finally:
-            # El fencing documental ahora es administrado por CAS; sin operaciones pendientes en cleanup
             pass
 
 if __name__ == "__main__":
@@ -221,7 +210,22 @@ if __name__ == "__main__":
     cmd_handler = DocumentCommandHandler(fsm_repo, task_repo=control_repo)
     ast_registry = ASTRegistry() 
     
-    tex_builder = TexBuilder()
+    # SOTA FIX: Construcción explícita del grafo de dependencias de renderizado basado en el plano real
+    from core.compiler.rendering.models import RenderingConfiguration
+    from core.compiler.rendering.implementations import DynamicDocumentStructure, PassthroughRenderStrategy
+    from core.compiler.rendering.context import RenderContext
+
+    # Fase 16: Inicialización explícita con fallback estándar para prosa de una sola columna
+    config = RenderingConfiguration(is_multi_column=False)
+    render_context = RenderContext(
+        structure=DynamicDocumentStructure(config=config),
+        strategies={},
+        fallback_strategy=PassthroughRenderStrategy()
+    )
+    
+    tex_builder = TexBuilder(context=render_context)
+    
+    tex_builder = TexBuilder(context=render_context)
     runner = DockerRunner()
     
     daemon = AssemblerWorkerDaemon(

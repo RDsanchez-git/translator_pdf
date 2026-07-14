@@ -2,7 +2,7 @@ import os
 import json
 import logging
 import unittest
-from core.ast.models import ASTNode, ContentNodeType, StructuralNodeType, FastWordEstimator
+from core.ast.models import ASTNode, FastWordEstimator
 from core.ast.hashing import build_semantic_chunks_as_units
 
 logger = logging.getLogger(__name__)
@@ -20,20 +20,38 @@ class TestChunkerSnapshot(unittest.TestCase):
         if not os.path.exists(self.ast_cache_path):
             self.skipTest("Caché del AST no disponible. Se requiere ejecutar el pipeline base primero.")
 
+        from core.ast.builder import PayloadRegistry
+        from core.ast.enums import ContentNodeType
+
         with open(self.ast_cache_path, "r", encoding="utf-8") as f:
             raw_data = json.load(f)
-            real_ast = [
-                ASTNode(
+            real_ast = []
+            for d in raw_data:
+                type_str = d["type"].upper() if hasattr(d["type"], "upper") else str(d["type"])
+                if "EQUATION" in type_str or "MATH" in type_str:
+                    ntype = ContentNodeType.INLINE_EQUATION
+                elif "TABLE" in type_str:
+                    ntype = ContentNodeType.TABLE_SIMPLE
+                elif "HEADING" in type_str or "SECTION" in type_str:
+                    ntype = ContentNodeType.HEADING
+                elif "LIST" in type_str:
+                    ntype = ContentNodeType.LIST
+                else:
+                    try:
+                        ntype = ContentNodeType(type_str)
+                    except ValueError:
+                        ntype = ContentNodeType.PARAGRAPH
+
+                payload = PayloadRegistry.create(ntype, d["content"])
+                
+                node = ASTNode(
                     node_id=d["node_id"],
                     sequence_id=d["sequence_id"],
-                    type=StructuralNodeType(d["type"]) if d["type"] in [e.value for e in StructuralNodeType] else ContentNodeType(d["type"]),
-                    content=d["content"],
-                    metadata=d.get("metadata", {}),
-                    # SOTA Fase 13: Inyección defensiva del plano de control para el Grouper topológico
+                    node_type=ntype,
+                    payload=payload,
                     control_plane=d.get("control_plane", {"context_id": "GLOBAL_ROOT", "structural_path": ["ROOT"]})
                 )
-                for d in raw_data
-            ]
+                real_ast.append(node)
 
         # Desempaquetado de la tupla SOTA
         production_units, _ = build_semantic_chunks_as_units(real_ast, self.estimator)

@@ -1,6 +1,7 @@
 import hashlib
 from typing import List, Dict, Tuple, Any
-from core.ast.models import ASTNode, ContentNodeType
+from core.ast.models import ASTNode
+from core.ast.enums import ContentNodeType, HeadingLevel
 from core.normalization.base import WarningEntry
 
 class HierarchicalContextEnricher:
@@ -16,7 +17,7 @@ class HierarchicalContextEnricher:
     def _validate_registry(self, nodes: List[ASTNode], mappings: Dict[str, Any]) -> None:
         """Garantiza la consistencia interna y previene punteros huérfanos antes del Chunking."""
         for node in nodes:
-            if node.type != ContentNodeType.HEADING:
+            if node.node_type != ContentNodeType.HEADING:
                 ctx_id = node.control_plane.get("context_id")
                 if ctx_id and ctx_id not in mappings:
                     raise ValueError(f"CONTEXT_REGISTRY_CORRUPTION: Node {node.node_id} points to missing context {ctx_id}")
@@ -34,9 +35,18 @@ class HierarchicalContextEnricher:
         last_context_id = None
 
         for node in nodes:
-            if node.type == ContentNodeType.HEADING:
-                level = node.metadata.get("heading_level", 1)
-                title = (node.content or "Untitled").lstrip("#").strip()
+            if node.node_type == ContentNodeType.HEADING:
+                h_level_attr = getattr(node.payload, "heading_level", HeadingLevel.UNKNOWN)
+                if h_level_attr == HeadingLevel.H1:
+                    level = 1
+                elif h_level_attr == HeadingLevel.H2:
+                    level = 2
+                elif h_level_attr == HeadingLevel.H3:
+                    level = 3
+                else:
+                    level = 1
+
+                title = (node.text_content or "Untitled").lstrip("#").strip()
                 structural_index += 1
 
                 if last_level > 0 and (level - last_level) > 1:
@@ -48,7 +58,6 @@ class HierarchicalContextEnricher:
                 last_level = level
                 hierarchy_stack = [h for h in hierarchy_stack if h["level"] < level]
                 
-                # SOTA: Indexación posicional del layout para separar homónimos sin depender de la cadena del parser
                 hierarchy_stack.append({
                     "level": level, 
                     "title": title, 
@@ -67,7 +76,6 @@ class HierarchicalContextEnricher:
                 breadcrumbs = [self._root_context]
                 stack_fingerprint = b"ROOT"
 
-            # BLAKE2b de 6 bytes (12 caracteres hex): Alta velocidad y colisión estadística nula
             context_hash = hashlib.blake2b(stack_fingerprint, digest_size=6).hexdigest().upper()
             context_id = f"CTX_{context_hash}"
 

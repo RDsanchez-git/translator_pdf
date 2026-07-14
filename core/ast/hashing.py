@@ -3,12 +3,13 @@ import hashlib
 import logging
 import re
 from dataclasses import dataclass, field
-from typing import List, Tuple
+from typing import List, Tuple, Set, Optional
 
 from core.ast.models import (
-    ASTNode, ContentNodeType, StructuralNodeType, TokenEstimator, 
-    TranslationUnit, TranslationTaskType, OverflowPolicy, ChunkingReport
+    ASTNode, TokenEstimator, TranslationUnit, 
+    TranslationTaskType, OverflowPolicy, ChunkingReport
 )
+from core.ast.enums import ContentNodeType  # SOTA FIX: Importación desde el módulo de enums real
 from core.ast.grouper import SemanticGroup, ContextAwareSemanticGrouper
 
 logger = logging.getLogger(__name__)
@@ -20,7 +21,8 @@ def compute_ast_hash(ast: List[ASTNode]) -> str:
         return {
             "node_id": n.node_id,
             "type": type_str,
-            "content": n.content,
+            # SOTA FIX: Uso de la fachada polimórfica inmutable para evitar colisiones con ImagePayload
+            "content": n.text_content,
             "latex": getattr(n, "latex", None),
             "children": [serialize_node(c) for c in getattr(n, "children", [])] if getattr(n, "children", None) else []
         }
@@ -41,30 +43,29 @@ class ChunkPolicy:
     max_tokens: int = 1500
     prompt_overhead_tokens: int = 100        
     overflow_policy: OverflowPolicy = OverflowPolicy.BY_SENTENCE
-    structural_boundaries: set = field(default_factory=set)
-    protected_content_types: set = field(default_factory=set)
+    structural_boundaries: Set[ContentNodeType] = field(default_factory=set)
+    protected_content_types: Set[ContentNodeType] = field(default_factory=set)
 
 class TokenBudgetChunker:
     """SOTA: Chunker de tiempo lineal O(N) que respeta fronteras de subgrafos semánticos."""
     
-    def __init__(self, estimator: TokenEstimator, policy: ChunkPolicy | None = None):
+    def __init__(self, estimator: TokenEstimator, policy: Optional[ChunkPolicy] = None):
         self.estimator = estimator
         self.policy = policy if policy else ChunkPolicy()
         self.report = ChunkingReport()
         
+        # SOTA FIX: Mapeo de fronteras jerárquicas al nuevo modelo de representación plana (Fase 16.6)
         self.boundaries = self.policy.structural_boundaries if self.policy.structural_boundaries else {
-            StructuralNodeType.DOCUMENT, StructuralNodeType.PART,
-            StructuralNodeType.CHAPTER, StructuralNodeType.SECTION,
-            StructuralNodeType.SUBSECTION
+            ContentNodeType.HEADING
         }
         
+        # SOTA FIX: Alineación con los tipos semánticos puros del AST V2
         self.protected_types = self.policy.protected_content_types if self.policy.protected_content_types else {
-            ContentNodeType.EQUATION, ContentNodeType.INLINE_EQUATION,
-            ContentNodeType.CODE_BLOCK, ContentNodeType.ALGORITHM,
-            ContentNodeType.CITATION, ContentNodeType.REFERENCE_ENTRY, ContentNodeType.BIBLIOGRAPHY
+            ContentNodeType.DISPLAY_EQUATION, ContentNodeType.INLINE_EQUATION,
+            ContentNodeType.CODE
         }
         
-        self.partial_types = {ContentNodeType.TABLE, ContentNodeType.FIGURE, ContentNodeType.IMAGE}
+        self.partial_types = {ContentNodeType.TABLE_SIMPLE, ContentNodeType.TABLE_COMPLEX, ContentNodeType.IMAGE}
 
     def _split_by_sentence(self, text: str) -> List[str]:
         """Partición heurística ligera sin depender de NLP pesados (spaCy)."""
@@ -73,7 +74,7 @@ class TokenBudgetChunker:
 
     def chunk_group(self, group: SemanticGroup, start_index: int) -> List[TranslationUnit]:
         units = []
-        current_nodes = []
+        current_nodes: List[ASTNode] = []
         current_tokens = 0
         chunk_index = start_index
         available_payload_tokens = self.policy.max_tokens - self.policy.prompt_overhead_tokens
@@ -83,11 +84,10 @@ class TokenBudgetChunker:
             if not current_nodes:
                 return
             
-            payload_text = "\n\n".join([n.content or "" for n in current_nodes])
+            payload_text = "\n\n".join([n.text_content or "" for n in current_nodes])
             first_seq = current_nodes[0].sequence_id
             last_seq = current_nodes[-1].sequence_id
             
-            # Criptografía determinista SOTA
             full_hash = hashlib.sha256(payload_text.encode("utf-8")).hexdigest()
             short_hash = full_hash[:8]
             det_chunk_id = f"chunk_{chunk_index:04d}_{first_seq}_{last_seq}_{short_hash}"
@@ -115,11 +115,10 @@ class TokenBudgetChunker:
             current_tokens = 0
 
         for node in group.nodes:
-            content = node.content or ""
+            content = node.text_content or ""
             if not content:
                 continue
 
-            # Bypass Lógico: Entidades estructurales y matemáticas se aíslan intactas
             if node.node_type in self.protected_types or node.node_type in self.boundaries or node.node_type in self.partial_types:
                 flush_translate_chunk()
                 
@@ -147,7 +146,6 @@ class TokenBudgetChunker:
                 chunk_index += 1
                 continue
 
-            # Lógica Transaccional de Tokens
             node_tokens = self.estimator.estimate(content)
             
             # --- OVERFLOW POLICY ---
@@ -162,25 +160,43 @@ class TokenBudgetChunker:
                         if current_tokens + s_tokens > available_payload_tokens and current_nodes:
                             flush_translate_chunk()
                         
-                        # Sub-nodo fantasma que hereda el sequence_id físico
+                        # SOTA FIX: Mapeo explícito y tipado de payloads para satisfacer a Pyright Strict Mode
+                        from core.ast.models import (
+                            HeadingPayload, ParagraphPayload, MathPayload, 
+                            CodePayload, TablePayload, ListPayload, ASTPayload
+                        )
+                        
+                        if node.node_type == ContentNodeType.HEADING:
+                            new_payload: ASTPayload = HeadingPayload(content=sentence)
+                        elif node.node_type in (ContentNodeType.PARAGRAPH, ContentNodeType.CAPTION):
+                            new_payload = ParagraphPayload(content=sentence)
+                        elif node.node_type in (ContentNodeType.DISPLAY_EQUATION, ContentNodeType.INLINE_EQUATION):
+                            new_payload = MathPayload(content=sentence)
+                        elif node.node_type == ContentNodeType.CODE:
+                            new_payload = CodePayload(content=sentence)
+                        elif node.node_type in (ContentNodeType.TABLE_SIMPLE, ContentNodeType.TABLE_COMPLEX):
+                            new_payload = TablePayload(content=sentence)
+                        elif node.node_type == ContentNodeType.LIST:
+                            new_payload = ListPayload(content=sentence)
+                        else:
+                            new_payload = ParagraphPayload(content=sentence)
+
                         sub_node = ASTNode(
                             node_id=f"{node.node_id}_sub_{len(current_nodes)}",
                             sequence_id=node.sequence_id,
                             node_type=node.node_type,
-                            content=sentence,
+                            payload=new_payload,
                             metadata=node.metadata,
                             control_plane=node.control_plane
                         )
                         current_nodes.append(sub_node)
                         current_tokens += s_tokens
                 else:
-                    # Fallback de truncamiento duro o inyección forzada
                     current_nodes.append(node)
                     current_tokens += node_tokens
                     flush_translate_chunk()
                 continue
 
-            # --- NORMAL APPEND ---
             if current_tokens + node_tokens > available_payload_tokens and current_nodes:
                 flush_translate_chunk()
 
@@ -192,10 +208,7 @@ class TokenBudgetChunker:
 
 def build_semantic_chunks_as_units(ast: List[ASTNode], estimator: TokenEstimator) -> Tuple[List[TranslationUnit], ChunkingReport]:
     """Punto de entrada SOTA para la generación de unidades empaquetadas de la Fase 13.00."""
-    # 1. Partición por fronteras topológicas lógicas
     semantic_groups = ContextAwareSemanticGrouper.group(ast)
-    
-    # 2. Partición por presupuestos de tokens
     chunker = TokenBudgetChunker(estimator, ChunkPolicy())
     chunker.report.total_groups = len(semantic_groups)
     

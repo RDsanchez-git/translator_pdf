@@ -1,6 +1,7 @@
 import re
-from typing import List, Optional
-from core.ast.models import ASTNode, ContentNodeType
+from typing import List, Optional, Set
+from core.ast.models import ASTNode
+from core.ast.enums import ContentNodeType  # SOTA FIX: Importación unificada desde enums
 
 class SemanticNodeClassifier:
     """
@@ -9,7 +10,7 @@ class SemanticNodeClassifier:
     ponderado con indexación algebraica y aísla funciones matemáticas estándar.
     """
     
-    EXPLICIT_MATH_ENVS = {
+    EXPLICIT_MATH_ENVS: Set[str] = {
         "equation", "equation*", "align", "align*", "gather", "gather*", 
         "matrix", "pmatrix", "bmatrix", "Bmatrix", "Vmatrix", "vmatrix", 
         "array", "cases", "cases*", "split", "multline", "multline*", 
@@ -17,14 +18,13 @@ class SemanticNodeClassifier:
         "alignedat", "alignedat*"
     }
 
-    def __init__(self, minimum_score: int = 6):
+    def __init__(self, minimum_score: int = 6) -> None:
         self._minimum_score = minimum_score
         self._version = "12.00.5"
         
-        self._TARGET_NODE_TYPES = {
-            ContentNodeType.PARAGRAPH,
-            ContentNodeType.UNKNOWN,
-            ContentNodeType.MACRO_CHUNK
+        # SOTA FIX: Remoción de UNKNOWN y MACRO_CHUNK eliminados del dominio
+        self._TARGET_NODE_TYPES: Set[ContentNodeType] = {
+            ContentNodeType.PARAGRAPH
         }
 
         self._balanced_environment = re.compile(r'\\begin\{([a-zA-Z*]+)\}.*?\\end\{\1\}', re.DOTALL)
@@ -48,52 +48,61 @@ class SemanticNodeClassifier:
 
     def _infer_heading(self, node: ASTNode, text_stripped: str) -> Optional[ASTNode]:
         """Inferencia estructural SOTA integrada en la fase de clasificación."""
-        if node.type == ContentNodeType.HEADING or text_stripped.startswith("#"):
-            level = 1
+        if node.node_type == ContentNodeType.HEADING or text_stripped.startswith("#"):
+            count = 0
             if text_stripped.startswith("#"):
-                count = 0
                 for char in text_stripped:
                     if char == "#":
                         count += 1
                     else:
                         break
-                level = min(count, 6)
             
-            new_metadata = dict(node.metadata) if node.metadata else {}
-            new_metadata["heading_level"] = level
+            from core.ast.enums import HeadingLevel
+            from core.ast.models import HeadingPayload
             
+            if count == 1:
+                level = HeadingLevel.H1
+            elif count == 2:
+                level = HeadingLevel.H2
+            elif count == 3:
+                level = HeadingLevel.H3
+            else:
+                level = HeadingLevel.UNKNOWN
+            
+            clean_content = text_stripped.lstrip("#").strip() if count > 0 else text_stripped
+            
+            # SOTA FIX: Sustitución de "type" string literal por la propiedad inmutable node_type e instanciación DTO
             return node.model_copy(update={
-                "type": ContentNodeType.HEADING,
-                "metadata": new_metadata
+                "node_type": ContentNodeType.HEADING,
+                "payload": HeadingPayload(content=clean_content, heading_level=level)
             })
         return None
 
     def classify_node(self, node: ASTNode) -> ASTNode:
-        text = node.content or ""
+        # SOTA FIX: Uso de la fachada polimórfica inmutable contra regresiones de ImagePayload
+        text = node.text_content or ""
         text_stripped = text.strip()
         
-        # 1. EARLY GATE: Centralización de la clasificación jerárquica
         heading_node = self._infer_heading(node, text_stripped)
         if heading_node:
             return heading_node
 
-        # Filtro de exclusión para procesamiento heurístico ordinario
-        if node.type not in self._TARGET_NODE_TYPES or not text_stripped:
+        if node.node_type not in self._TARGET_NODE_TYPES or not text_stripped:
             return node
 
-        # ESTRATEGIA NIVEL A: Evaluación Estructural Balanceada Inmediata
         env_match = self._balanced_environment.search(text_stripped)
         if env_match and env_match.group(1) in self.EXPLICIT_MATH_ENVS:
-            return self._mutate_node_type(node, ContentNodeType.EQUATION, "explicit_latex_structure", 999)
+            return self._mutate_node_type(node, ContentNodeType.DISPLAY_EQUATION, "explicit_latex_structure", 999)
 
         if (
             self._display_math_balanced.search(text_stripped) or
-            self._display_bracket_math.search(text_stripped) or
-            self._inline_paren_math.search(text_stripped)
+            self._display_bracket_math.search(text_stripped)
         ):
-            return self._mutate_node_type(node, ContentNodeType.EQUATION, "explicit_latex_structure", 999)
+            return self._mutate_node_type(node, ContentNodeType.DISPLAY_EQUATION, "explicit_latex_structure", 999)
 
-        # ESTRATEGIA NIVEL B: Scoring Ponderado con Aislamiento de Ruido
+        if self._inline_paren_math.search(text_stripped):
+            return self._mutate_node_type(node, ContentNodeType.INLINE_EQUATION, "explicit_latex_structure", 999)
+
         greek_count = len(self._greek_and_advanced_unicode.findall(text_stripped))
         operator_count = len(self._math_operators.findall(text_stripped))
         latex_cmd_count = len(self._latex_commands.findall(text_stripped))
@@ -127,19 +136,24 @@ class SemanticNodeClassifier:
         )
 
         if strong_signal and calculated_score >= self._minimum_score:
-            return self._mutate_node_type(node, ContentNodeType.EQUATION, "weighted_heuristic_score", calculated_score)
+            target_type = ContentNodeType.DISPLAY_EQUATION if "$$" in text_stripped else ContentNodeType.INLINE_EQUATION
+            return self._mutate_node_type(node, target_type, "weighted_heuristic_score", calculated_score)
 
         return node
 
     def _mutate_node_type(self, node: ASTNode, new_type: ContentNodeType, reason: str, score: int) -> ASTNode:
         new_cp = dict(node.control_plane)
-        new_cp["classifier_reclassified_from"] = node.type.value if hasattr(node.type, "value") else str(node.type)
+        new_cp["classifier_reclassified_from"] = node.node_type.value if hasattr(node.node_type, "value") else str(node.node_type)
         new_cp["classifier_reason"] = reason
         new_cp["classifier_score"] = score
         new_cp["classifier_version"] = self._version
         
+        # SOTA FIX: Instanciación explícita del DTO MathPayload exigido por ASTPayload en Pydantic
+        from core.ast.models import MathPayload
+        
         return node.model_copy(update={
-            "type": new_type,
+            "node_type": new_type,
+            "payload": MathPayload(content=node.text_content),
             "control_plane": new_cp
         })
 

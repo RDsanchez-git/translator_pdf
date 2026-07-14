@@ -1,5 +1,7 @@
 import pytest
-from core.ast.models import ASTNode, ContentNodeType
+from core.ast.models import ASTNode, ParagraphPayload, HeadingPayload
+from core.ast.enums import ContentNodeType
+from core.ast.builder import FlatASTBuilder
 from core.normalization.enrichers.context_enricher import HierarchicalContextEnricher
 
 @pytest.fixture
@@ -10,12 +12,28 @@ def test_homonym_section_isolation(enricher):
     """SOTA TEST: Comprueba que dos secciones con textos idénticos generen contextos únicos."""
     nodes = [
         # Capítulo 1
-        ASTNode(node_id="heading_ch1_method", type=ContentNodeType.HEADING, content="# Methodology", metadata={"heading_level": 1}),
-        ASTNode(node_id="p1", type=ContentNodeType.PARAGRAPH, content="Text under chapter 1 methodology."),
+        ASTNode(
+            node_id="heading_ch1_method", 
+            node_type=ContentNodeType.HEADING, 
+            payload=HeadingPayload(content="# Methodology", heading_level=FlatASTBuilder._map_native_level(1))
+        ),
+        ASTNode(
+            node_id="p1", 
+            node_type=ContentNodeType.PARAGRAPH, 
+            payload=ParagraphPayload(content="Text under chapter 1 methodology.")
+        ),
         
         # Capítulo 2
-        ASTNode(node_id="heading_ch2_method", type=ContentNodeType.HEADING, content="# Methodology", metadata={"heading_level": 1}),
-        ASTNode(node_id="p2", type=ContentNodeType.PARAGRAPH, content="Text under chapter 2 methodology.")
+        ASTNode(
+            node_id="heading_ch2_method", 
+            node_type=ContentNodeType.HEADING, 
+            payload=HeadingPayload(content="# Methodology", heading_level=FlatASTBuilder._map_native_level(1))
+        ),
+        ASTNode(
+            node_id="p2", 
+            node_type=ContentNodeType.PARAGRAPH, 
+            payload=ParagraphPayload(content="Text under chapter 2 methodology.")
+        )
     ]
     
     enriched, registry, _, _ = enricher.enrich_document(nodes)
@@ -34,7 +52,11 @@ def test_homonym_section_isolation(enricher):
 def test_no_context_document_warning(enricher):
     """Verifica la emisión de alertas globales de telemetría INFO cuando el documento carece de títulos."""
     nodes = [
-        ASTNode(node_id="p1", type=ContentNodeType.PARAGRAPH, content="Flat text document without layout hierarchy.")
+        ASTNode(
+            node_id="p1", 
+            node_type=ContentNodeType.PARAGRAPH, 
+            payload=ParagraphPayload(content="Flat text document without layout hierarchy.")
+        )
     ]
     _, _, warnings, _ = enricher.enrich_document(nodes)
     assert any(w.severity == "INFO" and "NO_CONTEXT_DOCUMENT" in w.message for w in warnings)

@@ -33,7 +33,8 @@ class FormalMarkdownTableParser:
         md = MarkdownIt("gfm-like")
         tokens = md.parse(text)
         
-        # Verificación de integridad estructural del AST Markdown
+        # SOTA FIX: Reversión manual contra el Blast Radius del Migration Engine.
+        # Los tokens de la librería externa 'markdown_it' exponen '.type', no '.node_type'.
         open_tables = sum(1 for t in tokens if t.type == "table_open")
         close_tables = sum(1 for t in tokens if t.type == "table_close")
         

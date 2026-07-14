@@ -3,6 +3,7 @@ import sys
 import asyncio
 import argparse
 from pathlib import Path
+from typing import Iterable, Dict
 
 from rich.console import Console
 from rich.status import Status
@@ -17,17 +18,15 @@ from core.ast.hashing import build_semantic_chunks_as_units
 from core.ast.models import FastWordEstimator
 from infra.db.connection import get_connection
 
-# SOTA: Importaciones de Fase 14 (ADR 007)
 from apps.llm_workers.adapters import GroqProvider
-from apps.llm_workers.resilient_provider import ResilientProvider
-from core.resilience.circuit_breaker import CircuitBreakerRegistry
 from apps.llm_workers.rate_limiter import RateLimitedProvider, QuotaManager
 from apps.llm_workers.cache_provider import CachedLLMProvider
 from apps.llm_workers.prompt_builder import PromptBuilder
 from apps.llm_workers.dispatcher import AsyncDispatcher
-from typing import Iterable, Dict
 from core.context.context_resolver import ResolvedContext
-from core.validation.budget import PromptBudgetCalculator
+from core.validation.budget import PromptBudgetCalculator, StandardCompressionPolicy
+from core.finops.measurement import InferenceMeasurementService
+from core.prompting.dialects.openai_compatible import OpenAICompatibleDialect
 
 console = Console()
 
@@ -45,8 +44,7 @@ class ChunkerProtocolAdapter:
 
 class DummyContextResolver:
     """
-    TODO_PHASE15: Implementación temporal para aislar la Fase 14.
-    Deuda Técnica Aceptada: Satisface ContextResolverProtocol emitiendo nulos estructurados rígidos.
+    TEMPORAL: Satisface ContextResolverProtocol emitiendo nulos estructurados rígidos.
     """
     def resolve(self, context_id: str) -> ResolvedContext:
         return ResolvedContext(
@@ -77,43 +75,41 @@ async def handle_translate_async(args):
 
     job_id = args.job_id or f"job_{Path(source_path).stem}"
 
-    # SOTA Fail-Fast: Validación estricta de credenciales
     api_key = os.getenv("GROQ_API_KEY")
     if not api_key:
         raise RuntimeError("GROQ_API_KEY no configurada. Abortando inicialización de pipeline.")
 
-    # SOTA FIX: Instanciación e Inyección del Motor de Presupuesto (Fase 15.2)
-    estimator = FastWordEstimator() # Nota: Migrar a ExactBPEEstimator cuando esté disponible en el entorno
+    estimator = FastWordEstimator()
+    measurement_service = InferenceMeasurementService(estimator=estimator)
+    
     budget_calculator = PromptBudgetCalculator(
-        estimator=estimator,
         primary_window_limit=8192,
         fallback_window_limit=1048576,
         min_output_reserve=256,
         max_output_reserve=4096
     )
     
+    compression_policy = StandardCompressionPolicy()
+    
     prompt_builder = PromptBuilder(
         model_name="llama3-70b-8192", 
         prompt_version="v1.0", 
+        measurement_service=measurement_service,
         budget_calculator=budget_calculator,
-        estimator=estimator
+        compression_policy=compression_policy
     )
     
-    # SOTA FIX: Extracción de cuotas operativas (Fase 15.3)
     rpm_limit = int(os.getenv("GROQ_RPM_LIMIT", "30"))
     tpm_limit = int(os.getenv("GROQ_TPM_LIMIT", "6000"))
     
-    groq_provider = GroqProvider(api_key=api_key)
-    breaker = CircuitBreakerRegistry.get_breaker("groq", threshold=5)
-    resilient_provider = ResilientProvider(underlying=groq_provider, breaker=breaker)
+    dialect = OpenAICompatibleDialect()
+    groq_provider = GroqProvider(api_key=api_key, dialect=dialect)
     quota_manager = QuotaManager(rpm_limit=rpm_limit, tpm_limit=tpm_limit)
-    rate_provider = RateLimitedProvider(underlying=resilient_provider, quota_manager=quota_manager)
+    rate_provider = RateLimitedProvider(underlying=groq_provider, quota_manager=quota_manager)
     cached_provider = CachedLLMProvider(underlying=rate_provider, db_path="infra/db/materialized.db")
     
     await cached_provider.initialize()
 
-    # SOTA FIX: Ley de Little heurística (L = λW). Evita thread starvation.
-    # Asume ~1.5s de latencia de red. Ajusta el factor multiplicador según la ráfaga deseada.
     optimal_concurrency = max(1, min(int((rpm_limit / 60.0) * 1.5) * 2, 50))
 
     try:
@@ -121,7 +117,7 @@ async def handle_translate_async(args):
             context_resolver=DummyContextResolver(),
             prompt_builder=prompt_builder,
             provider_stack=cached_provider,
-            concurrency=optimal_concurrency # Reemplaza el 10 hardcodeado
+            concurrency=optimal_concurrency
         )
         
         chunker_adapter = ChunkerProtocolAdapter(estimator=estimator)
@@ -129,7 +125,7 @@ async def handle_translate_async(args):
         job = TranslationJob(job_id=job_id, source_path=source_path)
 
         console.print(Panel(
-            f"[bold green]SOTA Pipeline Runtime Inicializado (Fase 15.4)[/]\n"
+            f"[bold green]SOTA Pipeline Runtime Inicializado (Fase 16.10)[/]\n"
             f"[bold white]Job ID:[/] {job_id}\n"
             f"[bold white]Archivo:[/] {source_path}",
             title="[bold blue]TPS Control Plane[/]"
@@ -160,22 +156,11 @@ async def handle_translate_async(args):
 
             result = await pipeline.execute(job)
 
-            # ──► INYECCIÓN TEMPORAL DE SEGURIDAD PARA FASE 8 ◄── BORRAR LUEGO
-            console.print("[bold yellow]\n[GUARDRAIL] Deteniendo ejecución antes del despacho a Groq. Archivos AST y Debug MD preservados.[/]")
-            sys.exit(0)
-            ### aquí BORRAR
-
-        
         console.print("\n[bold green]✓ Ejecución de Pipeline Completada Exitosamente.[/]\n")
         
-        # SOTA: Consumo de métricas operacionales de Fase 15.4
         table = Table(title="Reporte FinOps y Telemetría Operacional")
         table.add_column("Métrica de Control", justify="left", style="cyan")
         table.add_column("Valor Registrado", justify="right", style="magenta")
-        table.add_row("Total Chunks Procesados", str(result.document.total_chunks))
-        # Cálculo on-the-fly para la vista
-
-        # SOTA FIX: Consumo directo de DTO inmutable. Cero cálculos en presentación.
         table.add_row("Total Chunks Procesados", str(result.document.total_chunks))
         table.add_row("Tasa de Éxito (Dispatch)", f"{result.summary.dispatch_success_rate * 100:.2f}%")
         table.add_row("Fallos de Ejecución", str(result.summary.total_failed_chunks))
@@ -194,7 +179,6 @@ async def handle_translate_async(args):
             
         console.print(table)
 
-        # Desglose de cardinalidad de fallos si existieron
         if result.assembly_report.failure_reasons:
             fail_table = Table(title="Taxonomía Analítica de Fallos")
             fail_table.add_column("Razón de Fallo", style="red")
