@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from pydantic import BaseModel, ConfigDict
 
 class RawDocumentEntryDTO(BaseModel):
@@ -6,6 +6,8 @@ class RawDocumentEntryDTO(BaseModel):
     sha256: str
     traits: List[str]
     page_count: int
+    ground_truth_version: Optional[str] = None
+    ground_truth_sha256: Optional[str] = None
     model_config = ConfigDict(frozen=True)
 
 class RawCorpusManifestDTO(BaseModel):

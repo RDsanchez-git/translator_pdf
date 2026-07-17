@@ -1,44 +1,19 @@
-import hashlib
-from typing import Dict, List
+from typing import List, Dict
 from core.benchmark.corpus.dtos import RawCorpusManifestDTO, RawDocumentEntryDTO
 from core.benchmark.corpus.models import CorpusVersion, CorpusDocumentMetadata, DocumentFingerprint
 from core.benchmark.corpus.enums import ExtractionChallengeTrait
+from core.benchmark.corpus.services import ManifestFingerprintCalculator
 
-
-class ManifestFingerprintCalculator:
-    """Servicio de dominio encargado del cálculo determinista de la firma global del manifiesto."""
-
-    @staticmethod
-    def compute_hash(version: CorpusVersion, documents: List[CorpusDocumentMetadata]) -> str:
-        """Genera un hash SHA-256 molecular basado en la versión del corpus y sus documentos indexados."""
-        hasher = hashlib.sha256()
-        hasher.update(version.value.encode("utf-8"))
-        
-        # Ordenamiento alfabético estricto de identificadores para asegurar determinismo absoluto
-        sorted_documents = sorted(documents, key=lambda doc: doc.document_id)
-        
-        for doc in sorted_documents:
-            # Ordenamiento alfabético estricto de los rasgos (traits) de cada documento
-            sorted_traits = sorted([trait.value for trait in doc.traits])
-            traits_str = ",".join(sorted_traits)
-            
-            # Composición estricta del payload por documento
-            document_payload = f"{doc.document_id}:{doc.fingerprint.sha256}:{traits_str}:{doc.page_count}"
-            hasher.update(document_payload.encode("utf-8"))
-            
-        return hasher.hexdigest()
-
-
-class ManifestLineageSealer:
-    """Servicio de Dominio del Corpus. Gobierna la política de sellado y actualización de firmas globales."""
+class ManifestGroundTruthUpdater:
+    """Domain Service encargado de la política de actualización de linaje y recálculo de firmas globales."""
     
     @staticmethod
-    def seal_manifest_with_ground_truth(
+    def apply_lineage_sealing(
         current_manifest: RawCorpusManifestDTO,
         detected_hashes: Dict[str, str],
         target_version: str
     ) -> RawCorpusManifestDTO:
-        """Aplica las firmas del Ground Truth sobre el catálogo y regenera la huella inmutable del manifiesto."""
+        """Aplica las firmas detectadas sobre el manifiesto y genera la nueva huella criptográfica canónica."""
         updated_documents: List[RawDocumentEntryDTO] = []
         domain_documents_for_rehash: List[CorpusDocumentMetadata] = []
 
@@ -47,7 +22,7 @@ class ManifestLineageSealer:
             gt_version = doc_entry.ground_truth_version
             gt_hash = doc_entry.ground_truth_sha256
 
-            # Aplicación de la regla de negocio: si existe una muestra curada en disco, se asimila el linaje
+            # Aplicación de la política analítica de linaje
             if doc_id in detected_hashes:
                 gt_version = target_version
                 gt_hash = detected_hashes[doc_id]
@@ -72,7 +47,7 @@ class ManifestLineageSealer:
                 )
             )
 
-        # Invocación local y directa al calculador de huella digital
+        # Delegación del cálculo de la huella digital global del agregado
         new_manifest_hash = ManifestFingerprintCalculator.compute_hash(
             version=CorpusVersion(value=current_manifest.corpus_version),
             documents=domain_documents_for_rehash
