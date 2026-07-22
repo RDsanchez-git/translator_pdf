@@ -16,3 +16,10 @@ Las ecuaciones científicas constituyen el eje crítico de estrés del pipeline 
 ## 3. Geometría Absoluta de Bounding Boxes
 * Las coordenadas espaciales del objeto `BoundingBox` (`x`, `y`, `w`, `h`) deben representar los límites físicos reales del elemento sobre el lienzo del PDF.
 * No se deben aplicar márgenes de tolerancia ni umbrales de expansión en esta capa. Las cajas de colisión se registran de forma pura.
+
+## 4. Elementos Visuales No Traducibles (Anclas Estructurales)
+El alcance del Ground Truth está limitado a evaluar la calidad del contenido que será procesado por el pipeline de traducción. Las entidades visuales que se reutilizan desde el PDF original no forman parte del objeto de evaluación semántica interna, sino que actúan como delimitadores del orden de lectura.
+* **Nodos Opacos (Hojas):** `ContentNodeType.TABLE` y `ContentNodeType.IMAGE` se modelan de forma estricta como nodos atómicos sin hijos.
+* **Prohibición de Sub-estructuras:** No se modelan filas, columnas, celdas, ni se transcribe el texto interno de una tabla. No se modelan regiones internas ni marcadores de las imágenes. El payload topológico puede retener únicamente metadatos espaciales (`bbox`, `page`).
+* **Propósito Evaluativo:** El motor topológico penalizará únicamente la omisión del nodo o su alteración secuencial en el orden de lectura.
+* **Tratamiento de Epígrafes (Captions):** Los textos descriptivos asociados (ej. "Table 5. Results.") constituyen contenido estructural primario para la traducción. Deben extraerse como nodos independientes `ContentNodeType.PARAGRAPH` y ubicarse secuencialmente adyacentes al ancla, preservando el flujo natural.

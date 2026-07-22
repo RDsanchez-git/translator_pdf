@@ -1,0 +1,3724 @@
+[
+  {
+    "node_id": "value='p1_b1'",
+    "sequence_id": 1,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 222.8028106689453,
+          "y0": 63.146976470947266,
+          "x1": 374.8856506347656,
+          "y1": 71.1468734741211,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "1",
+      "confidence": 1.0,
+      "layout_reading_order": 0,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Contents lists available at ScienceDirect"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b2'",
+    "sequence_id": 2,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 155.6226043701172,
+          "y0": 87.8825912475586,
+          "x1": 442.1004333496094,
+          "y1": 101.8825912475586,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "2",
+      "confidence": 1.0,
+      "layout_reading_order": 1,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Quarterly Review of Economics and Finance"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b3'",
+    "sequence_id": 3,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 196.66793823242188,
+          "y0": 119.10302734375,
+          "x1": 401.0004577636719,
+          "y1": 127.1029281616211,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "3",
+      "confidence": 1.0,
+      "layout_reading_order": 2,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "journal homepage: www.elsevier.com/locate/qref"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b5'",
+    "sequence_id": 4,
+    "node_type": "heading",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.62361145019531,
+          "y0": 166.62730407714844,
+          "x1": 493.0065002441406,
+          "y1": 197.4181365966797,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "5",
+      "confidence": 1.0,
+      "layout_reading_order": 3,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Real exchange rate misalignments and economic growth in Tunisia: New evidence from a threshold analysis of asymmetric adjustments☆"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b6'",
+    "sequence_id": 5,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.62358093261719,
+          "y0": 208.433349609375,
+          "x1": 455.0980529785156,
+          "y1": 221.8088836669922,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "6",
+      "confidence": 1.0,
+      "layout_reading_order": 4,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Thouraya Hadj Amor a,e, Ridha Nouira b, Christophe Rault c,⁎,1, Anamaria Diana Sova d"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b7'",
+    "sequence_id": 6,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.62362289428711,
+          "y0": 229.9273223876953,
+          "x1": 271.42205810546875,
+          "y1": 271.88909912109375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "7",
+      "confidence": 1.0,
+      "layout_reading_order": 5,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "a Business Administration departement, Shaqra University, Saudi Arabia b ISFF and LAMIDED Sousse University, Tunisia c LEO, Université d′Orléans, Rue de Blois-B.P. 6739, 45067 Orléans Cedex 2, France d Brunel University London, United Kingdom e Economics departement- EAS,University of Monastir, Tunisia"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b8'",
+    "sequence_id": 7,
+    "node_type": "heading",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.62361145019531,
+          "y0": 304.3133850097656,
+          "x1": 124.70850372314453,
+          "y1": 313.3133850097656,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "8",
+      "confidence": 1.0,
+      "layout_reading_order": 6,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "a r t i c l e i n f o"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b9'",
+    "sequence_id": 8,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.62361526489258,
+          "y0": 324.96051025390625,
+          "x1": 163.2428741455078,
+          "y1": 365.7726745605469,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "9",
+      "confidence": 1.0,
+      "layout_reading_order": 7,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Article history: Received 18 February 2021 Received in revised form 22 January 2023 Accepted 26 January 2023 Available online 27 January 2023"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b10'",
+    "sequence_id": 9,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.62361526489258,
+          "y0": 377.96722412109375,
+          "x1": 87.68921661376953,
+          "y1": 427.3970031738281,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "10",
+      "confidence": 1.0,
+      "layout_reading_order": 8,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "JEL Classification: F31 F43 F41 C10 O55"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b11'",
+    "sequence_id": 10,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.62361526489258,
+          "y0": 439.5921936035156,
+          "x1": 125.61216735839844,
+          "y1": 497.5819396972656,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "11",
+      "confidence": 1.0,
+      "layout_reading_order": 9,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Keywords: Growth Exchange rate misalignments Non-linearities NARDL Thresholds Tunisia"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b12'",
+    "sequence_id": 11,
+    "node_type": "heading",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 203.1866912841797,
+          "y0": 304.3133850097656,
+          "x1": 265.7637023925781,
+          "y1": 313.3133850097656,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "12",
+      "confidence": 1.0,
+      "layout_reading_order": 10,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "a b s t r a c t"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b13'",
+    "sequence_id": 12,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 203.18687438964844,
+          "y0": 325.29205322265625,
+          "x1": 560.5178833007812,
+          "y1": 457.3292541503906,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "13",
+      "confidence": 1.0,
+      "layout_reading_order": 11,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "In this paper, we focus on both the impact of real exchange rate (RER) misalignments on economic growth and the assessment of misalignments’ thresholds in the case of Tunisia. Our contribution to the literature is threefold. First, we reassess the main factors driving the equilibrium RER using a dynamic model approach. Second, we investigate the possible asymmetric effects of real misalignment on economic growth in Tunisia using the non-linear autoregressive distributed lag (NARDL) estimator developed by Shin et al. (2014) which takes into account the nonlinearity in the relationship between exchange rate misalignments and economic growth. Third, using a threshold model inspired by Hansen (2000), we identify the level of misalignments of the Tunisian dinar that can enhance (or hamper) economic growth. Our main findings are the following: i) the Tunisian dinar has experienced periods of overvaluation and undervaluation during the 2001–2016 period; ii) there is a negative impact of real overvaluation of the dinar on Tunisia’s growth performance, while an undervaluation has no significant impact; iii) there exists a threshold for the effects of RER misalignment on growth. Specifically, real undervaluation promotes growth until an estimated threshold of 10.02% deviation from the equilibrium RER has been reached, while an overvaluation can boost growth until a 9.02% threshold is reached. These findings have important implications from a policymaker’s perspective."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b14'",
+    "sequence_id": 13,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 225.466552734375,
+          "y0": 459.7102966308594,
+          "x1": 560.4630737304688,
+          "y1": 466.9102783203125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "14",
+      "confidence": 1.0,
+      "layout_reading_order": 12,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "© 2023 Board of Trustees of the University of Illinois. Published by Elsevier Inc. All rights reserved."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b15'",
+    "sequence_id": 14,
+    "node_type": "heading",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.62362289428711,
+          "y0": 528.982666015625,
+          "x1": 96.9452896118164,
+          "y1": 536.9826049804688,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "15",
+      "confidence": 1.0,
+      "layout_reading_order": 13,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "1. Introduction"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b16'",
+    "sequence_id": 15,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.62362289428711,
+          "y0": 549.9584350585938,
+          "x1": 290.6563415527344,
+          "y1": 610.4561157226562,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "16",
+      "confidence": 1.0,
+      "layout_reading_order": 14,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "After 2010, the Tunisian economic convergence process experi­ enced a remarkable slowdown. Indeed, this period was marked by an instability of the social climate and a considerable deterioration of security. The increase in demand, which exerted pressure on prices, was explained mainly by the increase in private consumption sup­ ported by the exaggerated creation of jobs in the public sector and"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b17'",
+    "sequence_id": 16,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 306.6505432128906,
+          "y0": 528.982666015625,
+          "x1": 560.72021484375,
+          "y1": 547.470458984375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "17",
+      "confidence": 1.0,
+      "layout_reading_order": 15,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "thus the increase in the wage bill. On the contrary, the private sector has been marked by a deterioration of its economic activity."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b18'",
+    "sequence_id": 17,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 306.6505432128906,
+          "y0": 549.9584350585938,
+          "x1": 560.7433471679688,
+          "y1": 662.9530029296875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "18",
+      "confidence": 1.0,
+      "layout_reading_order": 16,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Social unrest as well as the deterioration of security, also in­ tensified by the Libyan crisis, affected external payments. Against this background, the current account deficit increased considerably, going on average from 3.1% of GDP between 2006 and 2010–9.1% of GDP between 2013 and 2017. The trade deficit deteriorated from 13.2% of GDP in 2010–16% of GDP in 2017. This mainly was down to security problems in 2011, the slowdown in the productive activity of the extractive industries, in particular the industrial phosphate sector in Gafsa, and the uncontrolled imports of consumer goods. In addition, the decline in investments in oil and gas exploration has increased the energy balance deficit in recent years."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b19'",
+    "sequence_id": 18,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 306.6505432128906,
+          "y0": 665.4417724609375,
+          "x1": 560.6489868164062,
+          "y1": 704.962890625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "19",
+      "confidence": 1.0,
+      "layout_reading_order": 17,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Tunisia entered the COVID-19 pandemic crisis with a slow rate of economic growth and rising debt levels and it has been strongly affected by the crisis due to its heavy dependence on Europe. The depth of the pandemic’s impact on the Tunisian economy became"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b20'",
+    "sequence_id": 19,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 202.90367126464844,
+          "y0": 36.619407653808594,
+          "x1": 392.4722900390625,
+          "y1": 43.019405364990234,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "20",
+      "confidence": 1.0,
+      "layout_reading_order": 18,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Quarterly Review of Economics and Finance 88 (2023) 215–227"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b21'",
+    "sequence_id": 20,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.62560272216797,
+          "y0": 721.8046264648438,
+          "x1": 369.7568359375,
+          "y1": 736.76123046875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "21",
+      "confidence": 1.0,
+      "layout_reading_order": 19,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "https://doi.org/10.1016/j.qref.2023.01.007 1062-9769/© 2023 Board of Trustees of the University of Illinois. Published by Elsevier Inc. All rights reserved."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b22'",
+    "sequence_id": 21,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.62432098388672,
+          "y0": 648.5994262695312,
+          "x1": 288.70977783203125,
+          "y1": 664.6001586914062,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "22",
+      "confidence": 1.0,
+      "layout_reading_order": 20,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "☆We are grateful to two anonymous referees for very useful suggestions on pre­ vious versions of the paper."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b24'",
+    "sequence_id": 22,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 500.4288024902344,
+          "y0": 175.57423400878906,
+          "x1": 525.3399047851562,
+          "y1": 197.72369384765625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "24",
+      "confidence": 1.0,
+      "layout_reading_order": 21,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "]]]] ]]]]]]"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b25'",
+    "sequence_id": 23,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 42.29292678833008,
+          "y0": 665.7772827148438,
+          "x1": 115.00287628173828,
+          "y1": 673.1614990234375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "25",
+      "confidence": 1.0,
+      "layout_reading_order": 22,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "⁎ Corresponding author."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b26'",
+    "sequence_id": 24,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.62432098388672,
+          "y0": 675.37841796875,
+          "x1": 259.1955261230469,
+          "y1": 699.0130004882812,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "26",
+      "confidence": 1.0,
+      "layout_reading_order": 23,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "E-mail addresses: t.amor@su.edu.sa, hathouraya@yahoo.fr (T.H. Amor), nouira.ridha75@gmail.com (R. Nouira), chrault@hotmail.com (C. Rault), AnamariaDiana.Sova@brunel.ac.uk (A.D. Sova)."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b27'",
+    "sequence_id": 25,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 41.83928680419922,
+          "y0": 700.0233764648438,
+          "x1": 141.193603515625,
+          "y1": 707.5742797851562,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "27",
+      "confidence": 1.0,
+      "layout_reading_order": 24,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "1 Website: http://chrault3.free.fr."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p2_b0'",
+    "sequence_id": 26,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.62354278564453,
+          "y0": 55.199798583984375,
+          "x1": 290.73712158203125,
+          "y1": 136.7300262451172,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "0",
+      "confidence": 1.0,
+      "layout_reading_order": 25,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "more apparent at the end of 2020. Indeed, real GDP contracted by 8.8% in 2020 due to the general decline in economic activity, char­ acterized by a decrease of production in the main sectors, in the service sector (including tourism), investment and exports. Unemployment increased from 15% prior to the pandemic to 17.8% by the end of the first quarter of 2021. The current account stabilized at a deficit of 8.1% of GDP in 2020. Total exports in 2020 declined 11.7% compared to 2019 (World Bank, 2019, 2021)."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p2_b1'",
+    "sequence_id": 27,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.62354278564453,
+          "y0": 139.21798706054688,
+          "x1": 290.7227783203125,
+          "y1": 283.7337951660156,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "1",
+      "confidence": 1.0,
+      "layout_reading_order": 26,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "In this context, the macroeconomic balance and the external competitiveness of any country remain dependent on an adjustment of the real value of the exchange rate and its equilibrium value, a necessity which is explained by the harmful consequences of the recurrent and persistent misalignments, which can lead to structural imbalances in the labor market and the market for tradable and non- tradable goods (Elfathaoui, 2019). Indeed, the evolution of the in­ ternational financial integration process has engendered a growing disconnection between RER variability and growth (Hadj Amor, 2009; Béreau et al., 2012) A large volume of literature has high­ lighted the importance of closely observing the exchange rate for countries in transition such as Tunisia, and that it may also be used as a regulatory measure to mitigate, if not eliminate, the adverse effects of an overvalued exchange rate (Derbali, 2021)."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p2_b2'",
+    "sequence_id": 28,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.62354278564453,
+          "y0": 286.22174072265625,
+          "x1": 290.7147521972656,
+          "y1": 399.21630859375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "2",
+      "confidence": 1.0,
+      "layout_reading_order": 27,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "In the Tunisian context, the question of the misalignment of the real exchange rate, defined as the deviation of the real effective exchange rate from its equilibrium level, and its impact on economic growth has been the subject of debate for some time for many reasons, a debate that has been accentuated after the adoption of a more flexible exchange regime. Indeed, since 1990, the Central Bank of Tunisia (CBT) has opted for a flexible exchange rate policy ac­ companied by more economic liberalization in Tunisia, aimed at giving exchange rate policy a more active role. The objective was to improve the competitiveness of the national economy while stabi­ lizing the Tunisian dinar (Balazs et al., 2014)."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p2_b3'",
+    "sequence_id": 29,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.62362289428711,
+          "y0": 401.705078125,
+          "x1": 290.6539611816406,
+          "y1": 462.20196533203125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "3",
+      "confidence": 1.0,
+      "layout_reading_order": 28,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "The last deterioration in Tunisian economic conditions, as noted above, may point toward a possible RER distortion. Given the ser­ iousness of the consequences of a potential misalignment of the economy, the Tunisian monetary authorities must prioritize and analyze the question of the misalignment of the Tunisian RER and its effects on economic growth."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p2_b4'",
+    "sequence_id": 30,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.62354278564453,
+          "y0": 464.6907043457031,
+          "x1": 290.7123718261719,
+          "y1": 619.6943969726562,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "4",
+      "confidence": 1.0,
+      "layout_reading_order": 29,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Tunisia, as a small open economy, has been committed since 2011 to a New Operational Framework, based on monetary autonomy and the transition from crawling peg to crawling band. Furthermore, in recent years, the dinar, the national currency of Tunisia, has recorded a strong depreciation of its value vis-à-vis other foreign currencies. More recently, especially after the Jasmine Revolution of 2011, the Tunisian dinar broke its historic record and has depreciated against the euro and the US dollar. While the depreciation of the dinar, in a partial equilibrium model of the trade balance, can increase net exports with some partner countries, under the assumption that there is room for the export sector to grow (Bahmani-Oskooee et al., 2017, 2019), its benefits might not outweigh the negative impact of an undervaluation on the real economy, given that the value of the currency is lower than it should be in equilibrium or severely de­ preciated."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p2_b5'",
+    "sequence_id": 31,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.62354278564453,
+          "y0": 622.2390747070312,
+          "x1": 290.7187805175781,
+          "y1": 745.72265625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "5",
+      "confidence": 1.0,
+      "layout_reading_order": 30,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Since October 2017, and to fight against the decline in foreign currency assets, economic actors importing non-essential consumer goods have no right to use bank loans for these operations. Tunisia’s external debt increased considerably to reach 70% of GDP at the end of 2016. Such external debt was expected to bear various shocks, except for the significant depreciation of the real exchange rate (IMF, 2017). In November 2017, foreign exchange reserves were at the level of covering 90 days of imports of goods and services. The Tunisian public debt, 70% of which is external, has risen from 72% of GDP in 2019–87% of GDP in 2020, which is well above the emerging market debt burden benchmark of 70% of GDP (Central Bank of Tunisia (CBT) and National Institute of Statistics (NIS), 2020)."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p2_b6'",
+    "sequence_id": 32,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 306.6505432128906,
+          "y0": 55.199798583984375,
+          "x1": 560.7426147460938,
+          "y1": 315.19818115234375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "6",
+      "confidence": 1.0,
+      "layout_reading_order": 31,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Although some studies have shown the costs of exchange rate undervaluation on economic growth (Grekou, 2015, 2018a; Chen, 2017; Morvillier, 2020), many developing countries have relied on an undervalued real exchange rate to boost their exports (Levy-Yeyati & Sturzzenegger, 2007; Elbadawi et al., 2012; Rodrik, 2009; Korinek & Serven, 2010; Iyke & Odhiambo, 2015; Habib et al., 2017; Mazorodze & Tewari, 2018), but in the aftermath of the global financial crisis an intense debate has emerged on the associated merits of these ex­ port-led growth strategies. Since global economic prospects are weaker than in the past, there is a greater uncertainty about the capacity of advanced economies to continue to absorb developing countries’ exports. Additionally, if the real exchange rate is kept too low for too long, export-led growth strategies based on currency undervaluation are likely to result in costs for the aggregate economy. In this context, the relationship between real exchange misalignment (REM), i.e. the deviation between the Real Exchange Rate (RER) and its equilibrium level, and the real economy, has been the focus of recent macroeconomic policy discussions in Tunisia. There have been many debates among Tunisian economic analysts about the causes of the depreciation of the RER and the extent to which it reflects changes in Tunisia’s macroeconomic fundamentals, underlining the need to reassess the main determinants of the equilibrium RER, the degree of the distortion of Tunisia’s dinar and to what extent the misalignment of the Tunisian currency affects its growth performance."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p2_b7'",
+    "sequence_id": 33,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 306.6505432128906,
+          "y0": 317.6861572265625,
+          "x1": 560.7409057617188,
+          "y1": 409.7049865722656,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "7",
+      "confidence": 1.0,
+      "layout_reading_order": 32,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Theoretically, there is an ongoing debate on whether RER mis­ alignments impede or facilitate economic growth. Related literature revolves around two main axes: through the Washington Consensus (WC), Williamson (1990) defends an RER close to its equilibrium level and consistent in the medium term with macroeconomic ob­ jectives that stimulate growth. On the contrary, the hypothesis of growth driven by exports highlights the asymmetric nature of the misalignments. Indeed, economic growth is hampered by over­ valuations while being encouraged by currency undervaluation."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p2_b8'",
+    "sequence_id": 34,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 306.6505432128906,
+          "y0": 412.1929626464844,
+          "x1": 560.7426147460938,
+          "y1": 504.2118225097656,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "8",
+      "confidence": 1.0,
+      "layout_reading_order": 33,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Currency undervaluation promotes growth through faster capital accumulation, technological change and information spillovers to other firms and industries in the economy. Indeed, recent empirical literature that incorporates non-linearities in the analysis of the RER–growth nexus suggests that overvaluations and under­ valuations may affect differently on growth (Hadj Amor & Sarkar, 2009; Hadj Amor, 2009; Nouira & Sekkat, 2012; Schroder, 2013), while the level of the RER misalignment also matters (Aguirre & Calderon, 2005; Couharde & Sallenave, 2013; Tipoy et al., 2018)."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p2_b9'",
+    "sequence_id": 35,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 306.6505432128906,
+          "y0": 506.6997985839844,
+          "x1": 560.7426147460938,
+          "y1": 745.72265625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "9",
+      "confidence": 1.0,
+      "layout_reading_order": 34,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Some studies focused on Tunisia have discussed the questions of equilibrium RER and misalignment. Charfi (2008) estimated the equilibrium real exchange rate of the Dinar from 1983 to 2000, using quarterly data, based on the following fundamental variables: terms of trade; net capital inflows; and the differential of productivity. The results showed that the Tunisian dinar was overvalued before the 1986 devaluation and became close to its equilibrium value during the 90 s. At the beginning of this century (2000), the authorities permitted a larger fluctuation of the real effective exchange rate. Amaira (2021) studied the misalignment of the real effective ex­ change rate (REER) during the 1986–2015 period. The results showed that the equilibrium level of the long-run exchange rate depends on productivity, the terms of trade and government spending, and on misalignment being very low especially since the implementation of the structural adjustment plan. Derbali (2021) used the behavioral equilibrium exchange rate (BEER) approach to estimate the Tunisian equilibrium exchange rate using vector autoregressive models and vector error correction models for quarterly data over the 1990–2020 period. The results showed a low sensitivity of the RER to monetary and trade shocks and a convergence of the real exchange rate series of its trajectory to its long-term target value. Benzid (2021) assessed the misalignments in Tunisia’s real effective ex­ change rate with an emphasis on their persistence over the"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p2_b10'",
+    "sequence_id": 36,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.62361526489258,
+          "y0": 36.619407653808594,
+          "x1": 558.61376953125,
+          "y1": 43.019405364990234,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "10",
+      "confidence": 1.0,
+      "layout_reading_order": 35,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "T.H. Amor, R. Nouira, C. Rault et al. Quarterly Review of Economics and Finance 88 (2023) 215–227"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p2_b11'",
+    "sequence_id": 37,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 292.419189453125,
+          "y0": 758.0283203125,
+          "x1": 302.87103271484375,
+          "y1": 764.4283447265625,
+          "is_normalized": false
+        },
+        {
+          "x0": 36.62362289428711,
+          "y0": 288.0948181152344,
+          "x1": 290.7267150878906,
+          "y1": 467.6458740234375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2,
+        3
+      ],
+      "provider_native_id": "11",
+      "confidence": 1.0,
+      "layout_reading_order": 36,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "216 Appendix.4 It turns out that except for terms of trade (ToT), all other variables of the model are found to be non-stationary in levels. In addition, the null hypotheses of a unit root for all series in first differences is rejected. This implies that all variables are I(1) except for terms of trade, which is stationary in level, I(0). To check whether ADF-GLS test results are robust, we performed the unit root test with structural breaks of Zivot and Andrews (1992). The results reported in Table A.4 in the Appendix confirm the results of the ADF-GLS test. Pesaran and Smith (1995), and Pesaran and Shin (1999) show that the ARDL approach can be used for long-run analysis, and that the ARDL methodology is valid even if variables are I(0) or I(1). We thus apply an autoregressive distributed lag (ARDL) model or bound testing approach (Pesaran et al., 2001) to estimate the equilibrium real exchange rate in Tunisia. According to Pesaran et al. (2001) this approach is more adequate when the number of time observations is small. Before performing the estimation of the ARDL model, it is essential to write Eq. (1) as a conditional ARDL model, as follows:"
+    },
+    "control_plane": {
+      "merge_count": 2
+    },
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b1'",
+    "sequence_id": 38,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 62.429100036621094,
+          "y0": 482.0977783203125,
+          "x1": 201.62120056152344,
+          "y1": 491.2248840332031,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "1",
+      "confidence": 1.0,
+      "layout_reading_order": 38,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "µ = + + +"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b2'",
+    "sequence_id": 39,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 69.38752746582031,
+          "y0": 507.41961669921875,
+          "x1": 75.00420379638672,
+          "y1": 516.5466918945312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "2",
+      "confidence": 1.0,
+      "layout_reading_order": 39,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "+"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b3'",
+    "sequence_id": 40,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 69.38752746582031,
+          "y0": 532.749267578125,
+          "x1": 199.46034240722656,
+          "y1": 541.8763427734375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "3",
+      "confidence": 1.0,
+      "layout_reading_order": 40,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "+ + +"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b4'",
+    "sequence_id": 41,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 69.38752746582031,
+          "y0": 553.3905639648438,
+          "x1": 280.71490478515625,
+          "y1": 562.5176391601562,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "4",
+      "confidence": 1.0,
+      "layout_reading_order": 41,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "+ + + + + +"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b5'",
+    "sequence_id": 42,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 87.75171661376953,
+          "y0": 492.2320251464844,
+          "x1": 210.2560577392578,
+          "y1": 498.6209716796875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "5",
+      "confidence": 1.0,
+      "layout_reading_order": 42,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "= = ="
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b6'",
+    "sequence_id": 43,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 79.58804321289062,
+          "y0": 517.5530395507812,
+          "x1": 83.51971435546875,
+          "y1": 523.9420166015625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "6",
+      "confidence": 1.0,
+      "layout_reading_order": 43,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "="
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b7'",
+    "sequence_id": 44,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 79.58804321289062,
+          "y0": 542.8795776367188,
+          "x1": 135.36863708496094,
+          "y1": 549.2685546875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "7",
+      "confidence": 1.0,
+      "layout_reading_order": 44,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "= ="
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b8'",
+    "sequence_id": 45,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 42.146663665771484,
+          "y0": 482.0977783203125,
+          "x1": 245.76670837402344,
+          "y1": 491.27166748046875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "8",
+      "confidence": 1.0,
+      "layout_reading_order": 45,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "lRER lRER lToT lGov"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b9'",
+    "sequence_id": 46,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 103.46983337402344,
+          "y0": 507.41961669921875,
+          "x1": 259.55877685546875,
+          "y1": 516.593505859375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "9",
+      "confidence": 1.0,
+      "layout_reading_order": 46,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "lDef eestimteeqelong runandshort run"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b10'",
+    "sequence_id": 47,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 103.59465026855469,
+          "y0": 532.749267578125,
+          "x1": 225.5466766357422,
+          "y1": 541.9231567382812,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "10",
+      "confidence": 1.0,
+      "layout_reading_order": 47,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "lU lBalSam llRER"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b11'",
+    "sequence_id": 48,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 84.38873291015625,
+          "y0": 553.3905639648438,
+          "x1": 264.4265441894531,
+          "y1": 562.564453125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "11",
+      "confidence": 1.0,
+      "layout_reading_order": 48,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "lToT lGov lDef lU lBalSam"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b12'",
+    "sequence_id": 49,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 125.55427551269531,
+          "y0": 507.41961669921875,
+          "x1": 128.4406280517578,
+          "y1": 516.6637573242188,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "12",
+      "confidence": 1.0,
+      "layout_reading_order": 49,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "("
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b13'",
+    "sequence_id": 50,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 57.625282287597656,
+          "y0": 485.6300964355469,
+          "x1": 87.39130401611328,
+          "y1": 498.65374755859375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "13",
+      "confidence": 1.0,
+      "layout_reading_order": 50,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "t i"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b14'",
+    "sequence_id": 51,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 88.82746887207031,
+          "y0": 473.98797607421875,
+          "x1": 91.86359405517578,
+          "y1": 480.4096984863281,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "14",
+      "confidence": 1.0,
+      "layout_reading_order": 51,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "p"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b15'",
+    "sequence_id": 52,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 103.23268127441406,
+          "y0": 485.6300964355469,
+          "x1": 147.87899780273438,
+          "y1": 498.65374755859375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "15",
+      "confidence": 1.0,
+      "layout_reading_order": 52,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "i t i i"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b16'",
+    "sequence_id": 53,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 149.67555236816406,
+          "y0": 473.98797607421875,
+          "x1": 152.711669921875,
+          "y1": 480.4096984863281,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "16",
+      "confidence": 1.0,
+      "layout_reading_order": 53,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "p"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b17'",
+    "sequence_id": 54,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 164.56130981445312,
+          "y0": 485.6300964355469,
+          "x1": 205.9639892578125,
+          "y1": 498.65374755859375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "17",
+      "confidence": 1.0,
+      "layout_reading_order": 54,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "i t i i"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b18'",
+    "sequence_id": 55,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 207.64585876464844,
+          "y0": 473.98797607421875,
+          "x1": 210.68197631835938,
+          "y1": 480.4096984863281,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "18",
+      "confidence": 1.0,
+      "layout_reading_order": 55,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "p"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b19'",
+    "sequence_id": 56,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 222.52613830566406,
+          "y0": 485.6300964355469,
+          "x1": 253.0129852294922,
+          "y1": 492.05181884765625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "19",
+      "confidence": 1.0,
+      "layout_reading_order": 56,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "i t i"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b20'",
+    "sequence_id": 57,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 77.78602600097656,
+          "y0": 517.5530395507812,
+          "x1": 79.34777069091797,
+          "y1": 523.9747924804688,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "20",
+      "confidence": 1.0,
+      "layout_reading_order": 57,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "i"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b21'",
+    "sequence_id": 58,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 81.02964782714844,
+          "y0": 499.1943359375,
+          "x1": 84.0657730102539,
+          "y1": 505.6160583496094,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "21",
+      "confidence": 1.0,
+      "layout_reading_order": 58,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "p"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b22'",
+    "sequence_id": 59,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 95.66966247558594,
+          "y0": 510.8364562988281,
+          "x1": 124.35448455810547,
+          "y1": 518.21923828125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "22",
+      "confidence": 1.0,
+      "layout_reading_order": 59,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "i t i"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b23'",
+    "sequence_id": 60,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 77.78602600097656,
+          "y0": 542.8795776367188,
+          "x1": 79.34777069091797,
+          "y1": 549.3013305664062,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "23",
+      "confidence": 1.0,
+      "layout_reading_order": 60,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "i"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b24'",
+    "sequence_id": 61,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 81.02964782714844,
+          "y0": 524.515380859375,
+          "x1": 84.0657730102539,
+          "y1": 530.9371337890625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "24",
+      "confidence": 1.0,
+      "layout_reading_order": 61,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "p"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b25'",
+    "sequence_id": 62,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 95.78980255126953,
+          "y0": 536.157470703125,
+          "x1": 131.1967010498047,
+          "y1": 549.3013305664062,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "25",
+      "confidence": 1.0,
+      "layout_reading_order": 62,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "i t i i"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b26'",
+    "sequence_id": 63,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 132.87310791015625,
+          "y0": 524.515380859375,
+          "x1": 135.9092254638672,
+          "y1": 530.9371337890625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "26",
+      "confidence": 1.0,
+      "layout_reading_order": 63,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "p"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b27'",
+    "sequence_id": 64,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 147.75885009765625,
+          "y0": 536.157470703125,
+          "x1": 227.46258544921875,
+          "y1": 542.5792236328125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "27",
+      "confidence": 1.0,
+      "layout_reading_order": 64,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "i t i t"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b28'",
+    "sequence_id": 65,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 97.59181213378906,
+          "y0": 556.9188842773438,
+          "x1": 285.4219970703125,
+          "y1": 564.1815795898438,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "28",
+      "confidence": 1.0,
+      "layout_reading_order": 65,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "t t t t t t"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b29'",
+    "sequence_id": 66,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 91.95095825195312,
+          "y0": 485.6300964355469,
+          "x1": 222.56982421875,
+          "y1": 498.702880859375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "29",
+      "confidence": 1.0,
+      "layout_reading_order": 66,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "1 1 0 2 0 3"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b30'",
+    "sequence_id": 67,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 83.90741729736328,
+          "y0": 510.8364562988281,
+          "x1": 95.59322357177734,
+          "y1": 524.02392578125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "30",
+      "confidence": 1.0,
+      "layout_reading_order": 67,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0 4"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b31'",
+    "sequence_id": 68,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 83.90741729736328,
+          "y0": 536.157470703125,
+          "x1": 235.1675567626953,
+          "y1": 549.3504638671875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "31",
+      "confidence": 1.0,
+      "layout_reading_order": 68,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0 5 0 6 1 1"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b32'",
+    "sequence_id": 69,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 80.66925048828125,
+          "y0": 556.9188842773438,
+          "x1": 273.8126220703125,
+          "y1": 564.230712890625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "32",
+      "confidence": 1.0,
+      "layout_reading_order": 69,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "2 1 3 1 4 1 5 1 6 1"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b33'",
+    "sequence_id": 70,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 278.07891845703125,
+          "y0": 567.9309692382812,
+          "x1": 290.62274169921875,
+          "y1": 575.930908203125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "33",
+      "confidence": 1.0,
+      "layout_reading_order": 70,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "(2)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b34'",
+    "sequence_id": 71,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.624820709228516,
+          "y0": 583.9747924804688,
+          "x1": 290.7210998535156,
+          "y1": 655.0171508789062,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "34",
+      "confidence": 1.0,
+      "layout_reading_order": 71,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "All variables are expressed in log, is the first difference operator. The long-run relationship between the RER and its determinants can be identified based on the Wald test (F-statistic). This statistic determines joint significance of lagged level variables under the null hypothesis. If the coefficients are jointly not all equal to zero, then it implies the existence of cointegration, i.e. a long-run relationship between the RER and its determinants.5 Once a cointegration"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b35'",
+    "sequence_id": 72,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 306.6513671875,
+          "y0": 291.61126708984375,
+          "x1": 560.7313842773438,
+          "y1": 320.64453125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "35",
+      "confidence": 1.0,
+      "layout_reading_order": 72,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "relationship has been established, we proceed to the estimation of the long-run and short-run parameters of the model. Specifically, we estimate the long-run coefficients using Eq. (3), as given below:"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b36'",
+    "sequence_id": 73,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 327.42327880859375,
+          "y0": 329.9258117675781,
+          "x1": 473.4151306152344,
+          "y1": 339.3017272949219,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "36",
+      "confidence": 1.0,
+      "layout_reading_order": 73,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "µ = + + + +"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b37'",
+    "sequence_id": 74,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 335.46893310546875,
+          "y0": 344.2060546875,
+          "x1": 395.6270751953125,
+          "y1": 353.58197021484375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "37",
+      "confidence": 1.0,
+      "layout_reading_order": 74,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "+ +"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b38'",
+    "sequence_id": 75,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 306.6520080566406,
+          "y0": 329.9258117675781,
+          "x1": 496.6946716308594,
+          "y1": 339.34979248046875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "38",
+      "confidence": 1.0,
+      "layout_reading_order": 75,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "lRER lRER lToT lGov lDef"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b39'",
+    "sequence_id": 76,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 350.5906066894531,
+          "y0": 344.2060546875,
+          "x1": 378.8786315917969,
+          "y1": 353.6300354003906,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "39",
+      "confidence": 1.0,
+      "layout_reading_order": 76,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "lBalSam"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b40'",
+    "sequence_id": 77,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 322.50177001953125,
+          "y0": 333.5125427246094,
+          "x1": 497.9661560058594,
+          "y1": 340.9547119140625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "40",
+      "confidence": 1.0,
+      "layout_reading_order": 77,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "t t t t t"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b41'",
+    "sequence_id": 78,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 378.68316650390625,
+          "y0": 347.8020324707031,
+          "x1": 400.4765930175781,
+          "y1": 354.40234375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "41",
+      "confidence": 1.0,
+      "layout_reading_order": 78,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "t t"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b42'",
+    "sequence_id": 79,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 353.9543762207031,
+          "y0": 333.5125427246094,
+          "x1": 505.8293151855469,
+          "y1": 341.12310791015625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "42",
+      "confidence": 1.0,
+      "layout_reading_order": 79,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "1 1 2 1 3 1 4 1"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b43'",
+    "sequence_id": 80,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 346.7478942871094,
+          "y0": 346.601806640625,
+          "x1": 560.650634765625,
+          "y1": 355.41259765625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "43",
+      "confidence": 1.0,
+      "layout_reading_order": 80,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "5 1 (3)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b44'",
+    "sequence_id": 81,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 306.6529541015625,
+          "y0": 364.0623779296875,
+          "x1": 560.6529541015625,
+          "y1": 393.0956115722656,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "44",
+      "confidence": 1.0,
+      "layout_reading_order": 81,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "The short-run dynamic coefficients may be obtained by esti­ mating the corresponding vector error correction (VEC) model as given below – Eq. (4):"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b45'",
+    "sequence_id": 82,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 333.1731262207031,
+          "y0": 407.13739013671875,
+          "x1": 475.9834289550781,
+          "y1": 416.50909423828125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "45",
+      "confidence": 1.0,
+      "layout_reading_order": 82,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "µ = + + +"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b46'",
+    "sequence_id": 83,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 340.25396728515625,
+          "y0": 433.0577392578125,
+          "x1": 346.02117919921875,
+          "y1": 442.429443359375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "46",
+      "confidence": 1.0,
+      "layout_reading_order": 83,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "+"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b47'",
+    "sequence_id": 84,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 340.25396728515625,
+          "y0": 459.0982666015625,
+          "x1": 459.1784362792969,
+          "y1": 468.469970703125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "47",
+      "confidence": 1.0,
+      "layout_reading_order": 84,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "+ + +"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b48'",
+    "sequence_id": 85,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 359.09429931640625,
+          "y0": 417.5653381347656,
+          "x1": 484.8088073730469,
+          "y1": 424.1290283203125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "48",
+      "confidence": 1.0,
+      "layout_reading_order": 85,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "= = ="
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b49'",
+    "sequence_id": 86,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 350.8139343261719,
+          "y0": 443.4835205078125,
+          "x1": 354.8531494140625,
+          "y1": 450.0472106933594,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "49",
+      "confidence": 1.0,
+      "layout_reading_order": 86,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "="
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b50'",
+    "sequence_id": 87,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 350.8139343261719,
+          "y0": 469.525146484375,
+          "x1": 354.8531494140625,
+          "y1": 476.0888366699219,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "50",
+      "confidence": 1.0,
+      "layout_reading_order": 87,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "="
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b51'",
+    "sequence_id": 88,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 312.2910461425781,
+          "y0": 407.13739013671875,
+          "x1": 521.2639770507812,
+          "y1": 416.5571594238281,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "51",
+      "confidence": 1.0,
+      "layout_reading_order": 88,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "lRER lRER lToT lGov"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b52'",
+    "sequence_id": 89,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 375.2897033691406,
+          "y0": 433.0577392578125,
+          "x1": 535.441650390625,
+          "y1": 442.4775085449219,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "52",
+      "confidence": 1.0,
+      "layout_reading_order": 89,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "lDef eestimteeqelong runandshort run"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b53'",
+    "sequence_id": 90,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 375.40985107421875,
+          "y0": 459.0982666015625,
+          "x1": 443.14239501953125,
+          "y1": 468.5180358886719,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "53",
+      "confidence": 1.0,
+      "layout_reading_order": 90,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "lBalSam ECM"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b54'",
+    "sequence_id": 91,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 397.8538818359375,
+          "y0": 433.0577392578125,
+          "x1": 400.8175964355469,
+          "y1": 442.5495910644531,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "54",
+      "confidence": 1.0,
+      "layout_reading_order": 91,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "("
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b55'",
+    "sequence_id": 92,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 328.2505187988281,
+          "y0": 410.72113037109375,
+          "x1": 358.7745056152344,
+          "y1": 424.1626892089844,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "55",
+      "confidence": 1.0,
+      "layout_reading_order": 92,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "t i"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b56'",
+    "sequence_id": 93,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 360.2892150878906,
+          "y0": 398.7213439941406,
+          "x1": 363.40838623046875,
+          "y1": 405.3186950683594,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "56",
+      "confidence": 1.0,
+      "layout_reading_order": 93,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "p"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b57'",
+    "sequence_id": 94,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 374.93133544921875,
+          "y0": 410.72113037109375,
+          "x1": 420.8155212402344,
+          "y1": 424.1626892089844,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "57",
+      "confidence": 1.0,
+      "layout_reading_order": 94,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "i t i i"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b58'",
+    "sequence_id": 95,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 422.5714416503906,
+          "y0": 398.7213439941406,
+          "x1": 425.69061279296875,
+          "y1": 405.3186950683594,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "58",
+      "confidence": 1.0,
+      "layout_reading_order": 95,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "p"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b59'",
+    "sequence_id": 96,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 437.8138122558594,
+          "y0": 410.72113037109375,
+          "x1": 480.3376159667969,
+          "y1": 424.1626892089844,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "59",
+      "confidence": 1.0,
+      "layout_reading_order": 96,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "i t i i"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b60'",
+    "sequence_id": 97,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 482.09356689453125,
+          "y0": 398.7213439941406,
+          "x1": 485.2127380371094,
+          "y1": 405.3186950683594,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "60",
+      "confidence": 1.0,
+      "layout_reading_order": 97,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "p"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b61'",
+    "sequence_id": 98,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 497.3302917480469,
+          "y0": 410.72113037109375,
+          "x1": 528.5723266601562,
+          "y1": 417.3184814453125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "61",
+      "confidence": 1.0,
+      "layout_reading_order": 98,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "i t i"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b62'",
+    "sequence_id": 99,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 348.88970947265625,
+          "y0": 443.4835205078125,
+          "x1": 350.4941711425781,
+          "y1": 450.08087158203125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "62",
+      "confidence": 1.0,
+      "layout_reading_order": 99,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "i"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b63'",
+    "sequence_id": 100,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 352.2500915527344,
+          "y0": 424.6451416015625,
+          "x1": 355.3692626953125,
+          "y1": 431.24249267578125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "63",
+      "confidence": 1.0,
+      "layout_reading_order": 100,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "p"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b64'",
+    "sequence_id": 101,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 367.1334228515625,
+          "y0": 436.64495849609375,
+          "x1": 396.6925048828125,
+          "y1": 444.20159912109375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "64",
+      "confidence": 1.0,
+      "layout_reading_order": 101,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "i t i"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b65'",
+    "sequence_id": 102,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 348.88970947265625,
+          "y0": 469.525146484375,
+          "x1": 350.4941711425781,
+          "y1": 476.12249755859375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "65",
+      "confidence": 1.0,
+      "layout_reading_order": 102,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "i"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b66'",
+    "sequence_id": 103,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 352.2500915527344,
+          "y0": 450.68115234375,
+          "x1": 355.3692626953125,
+          "y1": 457.27850341796875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "66",
+      "confidence": 1.0,
+      "layout_reading_order": 103,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "p"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b67'",
+    "sequence_id": 104,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 367.251220703125,
+          "y0": 462.68096923828125,
+          "x1": 464.0349426269531,
+          "y1": 469.2783203125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "67",
+      "confidence": 1.0,
+      "layout_reading_order": 104,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "i t i t t"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b68'",
+    "sequence_id": 105,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 363.41400146484375,
+          "y0": 410.72113037109375,
+          "x1": 497.3415222167969,
+          "y1": 424.21319580078125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "68",
+      "confidence": 1.0,
+      "layout_reading_order": 105,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "1 1 0 2 0 3"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b69'",
+    "sequence_id": 106,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 355.1336364746094,
+          "y0": 436.64495849609375,
+          "x1": 367.1390380859375,
+          "y1": 450.1313781738281,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "69",
+      "confidence": 1.0,
+      "layout_reading_order": 106,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0 4"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b70'",
+    "sequence_id": 107,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 355.1336364746094,
+          "y0": 462.68096923828125,
+          "x1": 452.4615173339844,
+          "y1": 476.1730041503906,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "70",
+      "confidence": 1.0,
+      "layout_reading_order": 107,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0 5 1"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b71'",
+    "sequence_id": 108,
+    "node_type": "display_equation",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 548.1067504882812,
+          "y0": 468.26507568359375,
+          "x1": 560.650634765625,
+          "y1": 476.2649841308594,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "71",
+      "confidence": 1.0,
+      "layout_reading_order": 108,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "(4)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b72'",
+    "sequence_id": 109,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 306.65216064453125,
+          "y0": 484.34228515625,
+          "x1": 560.6553344726562,
+          "y1": 525.2467651367188,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "72",
+      "confidence": 1.0,
+      "layout_reading_order": 109,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "where ECMt 1is the error correction term lagged one period esti­ mated from Eq. (4). is the coefficient for the speed of adjustment of the model to the equilibrium situation, which is expected to have a negative sign."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b73'",
+    "sequence_id": 110,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 306.65216064453125,
+          "y0": 527.7346801757812,
+          "x1": 560.723388671875,
+          "y1": 682.739990234375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "73",
+      "confidence": 1.0,
+      "layout_reading_order": 110,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "The estimated ARDL bounds show that the F-statistic of the Wald test, 4.82, is significant at the 1% level. Indeed, comparing the F- statistics against the critical values extracted from Pesaran et al. (2001), the F-statistic is higher than the upper bound critical value of 4.68 at the 1% significance level. This implies that the null hypothesis (Ho: = = = = = = 0 1 2 3 4 5 6 ) of no long-run relationship can be rejected by data. There is thus evidence for cointegration between RER and its determinants. Next, we estimate the long-run coeffi­ cients of the equilibrium real exchange rate model. To do so, we estimate ARDL models (Eq. 2). The specification of our ARDL model is determined by the Akaike information criterion (AIC). The results in Table 1 show that the coefficients for the variables Gov, Balassa, TOT and Def are statistically significant and have the expected signs. The estimated coefficient for the speed of adjustment ( ) is negative and is statistically significant at the 5% level."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b74'",
+    "sequence_id": 111,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 306.6529541015625,
+          "y0": 685.2279052734375,
+          "x1": 560.7442016601562,
+          "y1": 745.7252807617188,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "74",
+      "confidence": 1.0,
+      "layout_reading_order": 111,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "The empirical results show a positive and significant impact of the terms of trade, government expenditure and the Balassa–Samuelson effect, and a negative and significant effect of the trade deficit. For the terms of trade an improvement of 10% leads to an ERER appreciation of 2.4%. This implies that the income effect outweighs the substitution effect. BalSam is a variable that aims to"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b76'",
+    "sequence_id": 112,
+    "node_type": "caption",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.62361526489258,
+          "y0": 263.2216491699219,
+          "x1": 316.089599609375,
+          "y1": 278.23858642578125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "76",
+      "confidence": 1.0,
+      "layout_reading_order": 112,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Fig. 1. RE Misalignment of Tunisia. Source: Author's Calculation. (RER in blue and ERER in green, left axis; Mis in red, right axis)."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b77'",
+    "sequence_id": 113,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.62419128417969,
+          "y0": 677.62890625,
+          "x1": 290.3155212402344,
+          "y1": 702.3582763671875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "77",
+      "confidence": 1.0,
+      "layout_reading_order": 113,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "4 The efficient unit-root test suggested by Kwiatkovski–Phillips–Schmidt–Shin (1992), extended by Carrion-i-Silvestre and Sanso (2006), has also been implemented, leading to similar results."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b78'",
+    "sequence_id": 114,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.62508773803711,
+          "y0": 703.4247436523438,
+          "x1": 290.3097839355469,
+          "y1": 745.3877563476562,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "78",
+      "confidence": 1.0,
+      "layout_reading_order": 114,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "5 Notice, however, that rejecting the null ( = = = = = = 0 1 2 3 4 5 6 ) does not necessarily imply that all coefficients = … for i 0, 1, ,6 i . For instance, in Table 1, the coefficient of unemployment is equal to zero, which explains why this variable is not included in equation (3). Besides, a closer investigation also reveals that unemploy­ ment does not have an influence on RER in the short run, see equation (4)."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b79'",
+    "sequence_id": 115,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.62508773803711,
+          "y0": 36.632164001464844,
+          "x1": 558.6156616210938,
+          "y1": 43.032161712646484,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "79",
+      "confidence": 1.0,
+      "layout_reading_order": 115,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "T.H. Amor, R. Nouira, C. Rault et al. Quarterly Review of Economics and Finance 88 (2023) 215–227"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b80'",
+    "sequence_id": 116,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 292.0806579589844,
+          "y0": 758.0366821289062,
+          "x1": 303.1846618652344,
+          "y1": 764.4367065429688,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "80",
+      "confidence": 1.0,
+      "layout_reading_order": 116,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "220"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  }
+]

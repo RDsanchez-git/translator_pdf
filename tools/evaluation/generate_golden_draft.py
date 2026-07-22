@@ -14,7 +14,7 @@ from infra.adapters.pdf_parser import PdfParserAdapter
 from core.extraction.ocr_providers.pymupdf_provider import PyMuPDFProvider
 from core.ast.builder import FlatASTBuilder
 from core.ast.models import ASTNode
-from core.layout.models import LayoutBlockCollection
+from core.layout.models import LayoutBlockCollection, LayoutBlockDraft
 from core.layout.builder import DocumentLayout
 
 logging.basicConfig(
@@ -24,14 +24,27 @@ logging.basicConfig(
 logger = logging.getLogger("generate_golden_draft")
 
 
+
 def _pipeline_layout_to_ast(document_layout: DocumentLayout) -> list[ASTNode]:
-    """Clon exacto de la lógica de aplanamiento presente en pipeline_factory.py"""
-    flat_blocks = []
+    draft_blocks: list[LayoutBlockDraft] = []
+    
     for page in document_layout.pages:
-        flat_blocks.extend(page.blocks)
-        
-    collection = LayoutBlockCollection(blocks=flat_blocks) 
-    return FlatASTBuilder.build(collection)
+        for block in page.blocks:
+            # Transformación explícita de LayoutBlock (Dominio) -> LayoutBlockDraft (DTO Layout)
+            draft = LayoutBlockDraft(
+                block_id=block.block_id,
+                logical_type=block.logical_type.value if hasattr(block.logical_type, "value") else str(block.logical_type),
+                content=block.content.cleaned,
+                bbox=block.bbox,
+                confidence=block.metadata.confidence.ocr if block.metadata and block.metadata.confidence else 1.0,
+                provider_native_id=str(block.metadata.provider.native_block_index) if block.metadata and block.metadata.provider else None,
+                column_index=block.metadata.spatial.column_index if block.metadata and block.metadata.spatial else 0,
+                page_index=page.page_number
+            )
+            draft_blocks.append(draft)
+            
+    collection = LayoutBlockCollection(blocks=draft_blocks)
+    return FlatASTBuilder().build(collection)
 
 
 def main() -> None:

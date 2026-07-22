@@ -1,0 +1,56 @@
+{
+  "corpus_version": "v1.0",
+  "manifest_hash": "c64a74d7f483d9cebda323f5791b31afb450c139e5ac6d96e4c1786b227d37ea",
+  "documents": [
+    {
+      "document_id": "doc_01_single",
+      "sha256": "2a1bab7fb7093146f62c6155c802abe6a56addab8937d45c8145560391c9fcd3",
+      "traits": [
+        "native_pdf"
+      ],
+      "page_count": 3,
+      "ground_truth_version": null,
+      "ground_truth_sha256": null
+    },
+    {
+      "document_id": "doc_02_double",
+      "sha256": "84891f98114b90a7b8b80eee46d5de9990707046b8cea29affb3536da51a3123",
+      "traits": [
+        "native_pdf"
+      ],
+      "page_count": 3,
+      "ground_truth_version": null,
+      "ground_truth_sha256": null
+    },
+    {
+      "document_id": "doc_03_math",
+      "sha256": "21b9283a83f92983ebeb688d76a0d8c0de5068dc703129db42e7e2a2ea2a19fe",
+      "traits": [
+        "native_pdf"
+      ],
+      "page_count": 3,
+      "ground_truth_version": null,
+      "ground_truth_sha256": null
+    },
+    {
+      "document_id": "doc_04_table",
+      "sha256": "de56cd0420852abdf1c13e4a4853e5977a6ecf8021811bb5cb70d75ccfa925ab",
+      "traits": [
+        "native_pdf"
+      ],
+      "page_count": 3,
+      "ground_truth_version": null,
+      "ground_truth_sha256": null
+    },
+    {
+      "document_id": "doc_05_graph",
+      "sha256": "274ce908d472a06b6211e667861d5cf7bde2749d1412415447c7e1d3ce6df789",
+      "traits": [
+        "native_pdf"
+      ],
+      "page_count": 3,
+      "ground_truth_version": null,
+      "ground_truth_sha256": null
+    }
+  ]
+}

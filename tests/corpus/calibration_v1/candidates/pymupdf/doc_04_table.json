@@ -1,0 +1,2102 @@
+[
+  {
+    "node_id": "value='p1_b0'",
+    "sequence_id": 1,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 78.39900207519531,
+          "y0": 81.61929321289062,
+          "x1": 520.1808471679688,
+          "y1": 92.52828979492188,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "0",
+      "confidence": 1.0,
+      "layout_reading_order": 0,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Figure 8: Expected Returns and Characteristic/Macroeconomic Variable Interactions (NN3)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b1'",
+    "sequence_id": 2,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 81.36405944824219,
+          "y0": 208.86032104492188,
+          "x1": 293.8712158203125,
+          "y1": 233.3526153564453,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "1",
+      "confidence": 1.0,
+      "layout_reading_order": 1,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "mvel1 -1 -0.8 -0.6 -0.4 -0.2 0 0.2 0.4 0.6 0.8 1 -0.5"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b2'",
+    "sequence_id": 3,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 90.72966003417969,
+          "y0": 151.22219848632812,
+          "x1": 94.29082489013672,
+          "y1": 160.81597900390625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "2",
+      "confidence": 1.0,
+      "layout_reading_order": 2,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b3'",
+    "sequence_id": 4,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 83.93408203125,
+          "y0": 93.58409118652344,
+          "x1": 92.83699035644531,
+          "y1": 103.17787170410156,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "3",
+      "confidence": 1.0,
+      "layout_reading_order": 3,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0.5"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b4'",
+    "sequence_id": 5,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 229.56832885742188,
+          "y0": 101.9603042602539,
+          "x1": 276.2211608886719,
+          "y1": 140.73391723632812,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "4",
+      "confidence": 1.0,
+      "layout_reading_order": 4,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "bm=Quantile 10% bm=Quantile 30% bm=Quantile 50% bm=Quantile 70% bm=Quantile 90%"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b5'",
+    "sequence_id": 6,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 307.1580810546875,
+          "y0": 208.86032104492188,
+          "x1": 519.6652221679688,
+          "y1": 233.3526153564453,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "5",
+      "confidence": 1.0,
+      "layout_reading_order": 5,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "mvel1 -1 -0.8 -0.6 -0.4 -0.2 0 0.2 0.4 0.6 0.8 1 -0.5"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b6'",
+    "sequence_id": 7,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 316.523681640625,
+          "y0": 151.22219848632812,
+          "x1": 320.0848388671875,
+          "y1": 160.81597900390625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "6",
+      "confidence": 1.0,
+      "layout_reading_order": 6,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b7'",
+    "sequence_id": 8,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 309.72808837890625,
+          "y0": 93.58409118652344,
+          "x1": 318.6309814453125,
+          "y1": 103.17787170410156,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "7",
+      "confidence": 1.0,
+      "layout_reading_order": 7,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0.5"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b8'",
+    "sequence_id": 9,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 454.03387451171875,
+          "y0": 101.9603042602539,
+          "x1": 501.7439880371094,
+          "y1": 140.73391723632812,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "8",
+      "confidence": 1.0,
+      "layout_reading_order": 8,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "ntis=Quantile 10% ntis=Quantile 30% ntis=Quantile 50% ntis=Quantile 70% ntis=Quantile 90%"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b9'",
+    "sequence_id": 10,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 81.36405944824219,
+          "y0": 352.13031005859375,
+          "x1": 293.8712158203125,
+          "y1": 376.6225891113281,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "9",
+      "confidence": 1.0,
+      "layout_reading_order": 9,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "retvol -1 -0.8 -0.6 -0.4 -0.2 0 0.2 0.4 0.6 0.8 1 -0.5"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b10'",
+    "sequence_id": 11,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 90.72966003417969,
+          "y0": 294.4921875,
+          "x1": 94.29082489013672,
+          "y1": 304.0859680175781,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "10",
+      "confidence": 1.0,
+      "layout_reading_order": 10,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b11'",
+    "sequence_id": 12,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 83.93408203125,
+          "y0": 236.8540802001953,
+          "x1": 92.83699035644531,
+          "y1": 246.44786071777344,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "11",
+      "confidence": 1.0,
+      "layout_reading_order": 11,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0.5"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b12'",
+    "sequence_id": 13,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 229.56832885742188,
+          "y0": 245.23028564453125,
+          "x1": 276.2211608886719,
+          "y1": 284.00390625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "12",
+      "confidence": 1.0,
+      "layout_reading_order": 12,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "bm=Quantile 10% bm=Quantile 30% bm=Quantile 50% bm=Quantile 70% bm=Quantile 90%"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b13'",
+    "sequence_id": 14,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 307.1591796875,
+          "y0": 352.86700439453125,
+          "x1": 519.82080078125,
+          "y1": 377.6851806640625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "13",
+      "confidence": 1.0,
+      "layout_reading_order": 13,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "retvol -1 -0.8 -0.6 -0.4 -0.2 0 0.2 0.4 0.6 0.8 1 -0.5"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b14'",
+    "sequence_id": 15,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 316.6494140625,
+          "y0": 297.8031921386719,
+          "x1": 320.2579650878906,
+          "y1": 307.5246276855469,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "14",
+      "confidence": 1.0,
+      "layout_reading_order": 14,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b15'",
+    "sequence_id": 16,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 309.7633972167969,
+          "y0": 242.73939514160156,
+          "x1": 318.7847900390625,
+          "y1": 252.46083068847656,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "15",
+      "confidence": 1.0,
+      "layout_reading_order": 15,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0.5"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b16'",
+    "sequence_id": 17,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 453.31634521484375,
+          "y0": 251.22705078125,
+          "x1": 501.66131591796875,
+          "y1": 290.5166015625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "16",
+      "confidence": 1.0,
+      "layout_reading_order": 16,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "ntis=Quantile 10% ntis=Quantile 30% ntis=Quantile 50% ntis=Quantile 70% ntis=Quantile 90%"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b17'",
+    "sequence_id": 18,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 63.49599838256836,
+          "y0": 393.0768127441406,
+          "x1": 538.7299194335938,
+          "y1": 413.0018310546875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "17",
+      "confidence": 1.0,
+      "layout_reading_order": 17,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Note: Sensitivity of expected monthly percentage returns (vertical axis) to interactions eﬀects for mvel1 and retvol with bm and ntis in model NN3 (holding all other covariates ﬁxed at their median values)."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b18'",
+    "sequence_id": 19,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 63.49599838256836,
+          "y0": 435.643310546875,
+          "x1": 538.7138671875,
+          "y1": 446.55230712890625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "18",
+      "confidence": 1.0,
+      "layout_reading_order": 18,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "asset level, into broader investment contexts. Last but not least, the portfolio results are one step"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b19'",
+    "sequence_id": 20,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 63.49599838256836,
+          "y0": 452.07830810546875,
+          "x1": 538.7683715820312,
+          "y1": 462.9873046875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "19",
+      "confidence": 1.0,
+      "layout_reading_order": 19,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "further “out-of-sample” in that the optimization routine does not directly account for the predictive"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b20'",
+    "sequence_id": 21,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 63.49599838256836,
+          "y0": 468.5133056640625,
+          "x1": 205.18203735351562,
+          "y1": 479.42230224609375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "20",
+      "confidence": 1.0,
+      "layout_reading_order": 20,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "performance of the portfolios."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b21'",
+    "sequence_id": 22,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 80.43299865722656,
+          "y0": 484.94830322265625,
+          "x1": 538.7310180664062,
+          "y1": 495.8572998046875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "21",
+      "confidence": 1.0,
+      "layout_reading_order": 21,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Our assessment of forecast performance up to this point has been entirely statistical, relying on"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b22'",
+    "sequence_id": 23,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 63.49599838256836,
+          "y0": 499.7221984863281,
+          "x1": 538.76171875,
+          "y1": 512.2922973632812,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "22",
+      "confidence": 1.0,
+      "layout_reading_order": 22,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "comparisons of predictive R2. The ﬁnal advantage of analyzing predictability at the portfolio level"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b23'",
+    "sequence_id": 24,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 63.49598693847656,
+          "y0": 517.8192749023438,
+          "x1": 538.75341796875,
+          "y1": 528.7283325195312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "23",
+      "confidence": 1.0,
+      "layout_reading_order": 23,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "is that we can assess the economic contribution of each method via its contribution to risk-adjusted"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b24'",
+    "sequence_id": 25,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 63.49598693847656,
+          "y0": 534.2542724609375,
+          "x1": 203.0766143798828,
+          "y1": 545.163330078125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "24",
+      "confidence": 1.0,
+      "layout_reading_order": 24,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "portfolio return performance."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b25'",
+    "sequence_id": 26,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 63.49598693847656,
+          "y0": 565.9542846679688,
+          "x1": 229.28009033203125,
+          "y1": 576.8633422851562,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "25",
+      "confidence": 1.0,
+      "layout_reading_order": 25,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "3.4.1 Pre-speciﬁed Portfolios"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b26'",
+    "sequence_id": 27,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 63.49598693847656,
+          "y0": 589.435302734375,
+          "x1": 538.7903442382812,
+          "y1": 600.3443603515625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "26",
+      "confidence": 1.0,
+      "layout_reading_order": 26,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "We build bottom-up forecasts by aggregating individual stock return predictions into portfolios."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b27'",
+    "sequence_id": 28,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 63.49598693847656,
+          "y0": 602.8591918945312,
+          "x1": 538.70361328125,
+          "y1": 619.3932495117188,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "27",
+      "confidence": 1.0,
+      "layout_reading_order": 27,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Given the weight of stock i in portfolio p (denoted wp i,t) and given a model-based out-of-sample"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b28'",
+    "sequence_id": 29,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 63.4959716796875,
+          "y0": 622.3052978515625,
+          "x1": 447.77471923828125,
+          "y1": 641.0582275390625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "28",
+      "confidence": 1.0,
+      "layout_reading_order": 28,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "forecast for stock i (denoted bri,t+1), we construct the portfolio return forecast as"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b29'",
+    "sequence_id": 30,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 246.636962890625,
+          "y0": 654.92919921875,
+          "x1": 277.45318603515625,
+          "y1": 676.6921997070312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "29",
+      "confidence": 1.0,
+      "layout_reading_order": 29,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "brp t+1 ="
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b30'",
+    "sequence_id": 31,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 280.4809875488281,
+          "y0": 646.6002197265625,
+          "x1": 296.23358154296875,
+          "y1": 666.3292236328125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "30",
+      "confidence": 1.0,
+      "layout_reading_order": 30,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "n X"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b31'",
+    "sequence_id": 32,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 281.50799560546875,
+          "y0": 654.92919921875,
+          "x1": 355.5587158203125,
+          "y1": 681.293212890625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "31",
+      "confidence": 1.0,
+      "layout_reading_order": 31,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "i=1 wp i,t × bri,t+1."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b32'",
+    "sequence_id": 33,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 63.496002197265625,
+          "y0": 693.9822387695312,
+          "x1": 496.4743347167969,
+          "y1": 704.8912963867188,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "32",
+      "confidence": 1.0,
+      "layout_reading_order": 32,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "This bottom-up approach works for any target portfolio whose weights are known a priori."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b33'",
+    "sequence_id": 34,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 80.43299865722656,
+          "y0": 710.4182739257812,
+          "x1": 538.7310180664062,
+          "y1": 721.3273315429688,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "33",
+      "confidence": 1.0,
+      "layout_reading_order": 33,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "We form bottom-up forecasts for 30 of the most well known portfolios in the empirical ﬁnance"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b34'",
+    "sequence_id": 35,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 295.6419982910156,
+          "y0": 748.563232421875,
+          "x1": 306.5509948730469,
+          "y1": 759.4722900390625,
+          "is_normalized": false
+        },
+        {
+          "x0": 151.78900146484375,
+          "y0": 80.87025451660156,
+          "x1": 446.2670593261719,
+          "y1": 93.44131469726562,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1,
+        2
+      ],
+      "provider_native_id": "34",
+      "confidence": 1.0,
+      "layout_reading_order": 34,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "37 Table 5: Monthly Portfolio-level Out-of-Sample Predictive R2"
+    },
+    "control_plane": {
+      "merge_count": 2
+    },
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p2_b1'",
+    "sequence_id": 36,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 156.7801055908203,
+          "y0": 105.88023376464844,
+          "x1": 530.4763793945312,
+          "y1": 125.53622436523438,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "1",
+      "confidence": 1.0,
+      "layout_reading_order": 36,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "OLS-3 PLS PCR ENet GLM RF GBRT NN1 NN2 NN3 NN4 NN5 +H +H +H +H"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p2_b2'",
+    "sequence_id": 37,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 68.9034652709961,
+          "y0": 132.90538024902344,
+          "x1": 529.53466796875,
+          "y1": 206.61654663085938,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "2",
+      "confidence": 1.0,
+      "layout_reading_order": 37,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Panel A: Common Factor Portfolios S&P 500 -0.22 -0.86 -1.55 0.75 0.71 1.37 1.40 1.08 1.13 1.80 1.63 1.17 SMB 0.81 2.09 0.39 1.72 2.36 0.57 0.35 1.40 1.16 1.31 1.20 1.27 HML 0.66 0.50 1.21 0.46 0.84 0.98 0.21 1.22 1.31 1.06 1.25 1.24 RMW -2.35 1.19 0.41 -1.07 -0.06 -0.54 -0.92 0.68 0.47 0.84 0.53 0.54 CMA 0.80 -0.44 0.03 -1.07 1.24 -0.11 -1.04 1.88 1.60 1.06 1.84 1.31 UMD -0.90 -1.09 -0.47 0.47 -0.37 1.37 -0.25 -0.56 -0.26 0.19 0.27 0.35"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p2_b3'",
+    "sequence_id": 38,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 68.90347290039062,
+          "y0": 219.39268493652344,
+          "x1": 529.531005859375,
+          "y1": 293.1038513183594,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "3",
+      "confidence": 1.0,
+      "layout_reading_order": 38,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Panel B: Sub-components of Factor Portfolios Big Value 0.10 0.00 -0.33 0.25 0.59 1.31 1.06 0.85 0.87 1.46 1.21 0.99 Big Growth -0.33 -1.26 -1.62 0.70 0.51 1.32 1.19 1.00 1.10 1.50 1.24 1.11 Big Neutral -0.17 -1.09 -1.51 0.80 0.36 1.31 1.28 1.43 1.24 1.70 1.81 1.40 Small Value 0.30 1.66 1.05 0.64 0.85 1.24 0.52 1.59 1.37 1.54 1.40 1.30 Small Growth -0.16 0.14 -0.18 -0.33 -0.12 0.71 1.24 0.05 0.42 0.48 0.41 0.50 Small Neutral -0.27 0.60 0.19 0.21 0.28 0.88 0.36 0.58 0.62 0.70 0.58 0.68"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p2_b4'",
+    "sequence_id": 39,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 68.90347290039062,
+          "y0": 305.8810119628906,
+          "x1": 529.5310668945312,
+          "y1": 368.7802734375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "4",
+      "confidence": 1.0,
+      "layout_reading_order": 39,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Big Conservative -0.57 -0.10 -1.06 1.02 0.46 1.11 0.55 1.15 1.13 1.59 1.37 1.07 Big Aggressive 0.20 -0.80 -1.15 0.30 0.67 1.75 2.00 1.33 1.51 1.78 1.55 1.42 Big Neutral -0.29 -1.75 -1.96 0.83 0.48 1.13 0.77 0.85 0.85 1.51 1.45 1.16 Small Conservative -0.05 1.17 0.71 -0.02 0.34 0.96 0.56 0.82 0.87 0.96 0.90 0.83 Small Aggressive -0.10 0.51 0.01 -0.09 0.14 1.00 1.46 0.34 0.64 0.75 0.62 0.71 Small Neutral -0.30 0.45 0.12 0.42 0.35 0.76 -0.01 0.70 0.69 0.83 0.66 0.72"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p2_b5'",
+    "sequence_id": 40,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 68.90347290039062,
+          "y0": 381.5574035644531,
+          "x1": 529.5399169921875,
+          "y1": 444.4566955566406,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "5",
+      "confidence": 1.0,
+      "layout_reading_order": 40,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Big Robust -1.02 -1.08 -2.06 0.55 0.35 1.10 0.33 0.74 0.79 1.28 1.03 0.74 Big Weak -0.12 1.42 1.07 0.89 1.10 1.33 1.77 1.79 1.79 2.05 1.66 1.60 Big Neutral 0.86 -1.22 -1.26 0.41 0.13 1.10 0.91 0.84 0.94 1.19 1.15 0.99 Small Robust -0.71 0.35 -0.38 -0.04 -0.42 0.70 0.19 0.24 0.50 0.63 0.53 0.55 Small Weak 0.05 1.06 0.59 -0.13 0.44 1.05 1.42 0.71 0.92 0.99 0.90 0.89 Small Neutral -0.51 0.07 -0.47 -0.33 -0.32 0.60 -0.08 0.10 0.25 0.38 0.32 0.41"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p2_b6'",
+    "sequence_id": 41,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 68.90347290039062,
+          "y0": 457.23382568359375,
+          "x1": 529.5309448242188,
+          "y1": 520.1341552734375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "6",
+      "confidence": 1.0,
+      "layout_reading_order": 41,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Big Up 0.20 -0.25 -1.24 0.66 1.17 1.18 0.90 0.80 0.76 1.13 1.12 0.93 Big Down -1.54 -1.63 -1.55 0.44 -0.33 1.14 0.71 0.36 0.70 1.07 0.90 0.84 Big Medium -0.04 -1.51 -1.94 0.81 -0.08 1.57 1.80 1.29 1.32 1.71 1.55 1.23 Small Up 0.07 0.78 0.56 -0.07 0.25 0.62 -0.03 0.06 0.07 0.21 0.19 0.25 Small Down -0.21 0.15 -0.20 0.15 -0.01 1.51 1.38 0.74 0.82 1.02 0.91 0.96 Small Medium 0.07 0.82 0.20 0.59 0.37 1.22 1.06 1.09 1.09 1.18 1.00 1.03"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p2_b7'",
+    "sequence_id": 42,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 63.49599838256836,
+          "y0": 537.4580078125,
+          "x1": 538.7657470703125,
+          "y1": 602.1448364257812,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "7",
+      "confidence": 1.0,
+      "layout_reading_order": 42,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Note: In this table, we report the out-of-sample predictive R2s for 30 portfolios using OLS with size, book-to-market, and momentum, OLS-3, PLS, PCR, elastic net (ENet), generalized linear model with group lasso (GLM), random forest (RF), gradient boosted regression trees (GBRT), and ﬁve architectures of neural networks (NN1,...,NN5), respectively. “+H” indicates the use of Huber loss instead of the l2 loss. The six portfolios in Panel A are the S&P 500 index and the Fama-French SMB, HML, CMA, RMW, and UMD factors. The 24 portfolios in Panel B are 3 × 2 size double-sorted portfolios used in the construction of the Fama-French value, investment, proﬁtability, and momentum factors."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p2_b8'",
+    "sequence_id": 43,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 63.496002197265625,
+          "y0": 624.2872924804688,
+          "x1": 538.7686157226562,
+          "y1": 635.1963500976562,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "8",
+      "confidence": 1.0,
+      "layout_reading_order": 43,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "literature, including the S&P 500, the Fama-French size, value, proﬁtability, investment, and momen-"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p2_b9'",
+    "sequence_id": 44,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 63.496002197265625,
+          "y0": 640.7222900390625,
+          "x1": 538.7575073242188,
+          "y1": 651.63134765625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "9",
+      "confidence": 1.0,
+      "layout_reading_order": 44,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "tum factor portfolios (SMB, HML, RMW, CMA, and UMD, respectively), and sub-components of"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p2_b10'",
+    "sequence_id": 45,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 63.496002197265625,
+          "y0": 657.1582641601562,
+          "x1": 538.7466430664062,
+          "y1": 668.0673217773438,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "10",
+      "confidence": 1.0,
+      "layout_reading_order": 45,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "these Fama-French portfolios, including six size and value portfolios, six size and investment portfo-"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p2_b11'",
+    "sequence_id": 46,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 63.496002197265625,
+          "y0": 673.59326171875,
+          "x1": 538.7575073242188,
+          "y1": 684.5023193359375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "11",
+      "confidence": 1.0,
+      "layout_reading_order": 46,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "lios, six size and proﬁtability portfolios, and six size and momentum portfolios. The sub-component"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p2_b12'",
+    "sequence_id": 47,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 63.496002197265625,
+          "y0": 690.0282592773438,
+          "x1": 538.7794189453125,
+          "y1": 700.9373168945312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "12",
+      "confidence": 1.0,
+      "layout_reading_order": 47,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "portfolios are long-only and therefore have substantial overlap with the market index, while SMB,"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p2_b13'",
+    "sequence_id": 48,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 63.496002197265625,
+          "y0": 706.4632568359375,
+          "x1": 538.74658203125,
+          "y1": 717.372314453125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "13",
+      "confidence": 1.0,
+      "layout_reading_order": 48,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "HML, RMW, CMA, and UMD are zero-net-investment long-short portfolios that are in large part"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p2_b14'",
+    "sequence_id": 49,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 295.6419982910156,
+          "y0": 748.5632934570312,
+          "x1": 306.5509948730469,
+          "y1": 759.4723510742188,
+          "is_normalized": false
+        },
+        {
+          "x0": 192.58900451660156,
+          "y0": 81.01327514648438,
+          "x1": 405.9909362792969,
+          "y1": 91.92227172851562,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2,
+        3
+      ],
+      "provider_native_id": "14",
+      "confidence": 1.0,
+      "layout_reading_order": 49,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "38 Table 6: Market Timing Sharpe Ratio Gains"
+    },
+    "control_plane": {
+      "merge_count": 2
+    },
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b1'",
+    "sequence_id": 50,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 156.19590759277344,
+          "y0": 104.35604858398438,
+          "x1": 529.9715576171875,
+          "y1": 123.90662384033203,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "1",
+      "confidence": 1.0,
+      "layout_reading_order": 51,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "OLS-3 PLS PCR ENet GLM RF GBRT NN1 NN2 NN3 NN4 NN5 +H +H +H +H"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b2'",
+    "sequence_id": 51,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 68.87892150878906,
+          "y0": 131.20675659179688,
+          "x1": 530.5560913085938,
+          "y1": 204.4600372314453,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "2",
+      "confidence": 1.0,
+      "layout_reading_order": 52,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Panel A: Common Factor Portfolios S&P 500 0.07 0.05 -0.06 0.12 0.19 0.18 0.19 0.22 0.20 0.26 0.22 0.19 SMB 0.06 0.17 0.09 0.24 0.26 0.00 -0.07 0.21 0.18 0.15 0.09 0.11 HML 0.00 0.01 0.04 -0.03 -0.02 0.04 0.02 0.04 0.06 0.04 0.02 0.01 RMW 0.00 -0.01 -0.06 -0.19 -0.13 -0.11 -0.01 -0.03 -0.09 0.01 0.01 -0.07 CMA 0.02 0.02 0 -0.09 -0.05 0.08 -0.01 0.00 0.01 0.05 0.04 0.06 UMD 0.01 -0.06 -0.02 -0.02 -0.07 -0.04 -0.07 -0.04 -0.08 -0.04 -0.10 -0.01"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b3'",
+    "sequence_id": 52,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 68.87892150878906,
+          "y0": 217.15426635742188,
+          "x1": 529.0316162109375,
+          "y1": 290.38726806640625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "3",
+      "confidence": 1.0,
+      "layout_reading_order": 53,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Panel B: Sub-components of Factor Portfolios Big Value -0.01 0.06 -0.03 0.09 0.06 0.09 0.08 0.11 0.11 0.13 0.10 0.11 Big Growth 0.08 -0.01 -0.08 0.10 0.17 0.20 0.21 0.22 0.20 0.26 0.22 0.21 Big Neutral 0.06 0.03 -0.06 0.11 0.16 0.13 0.17 0.23 0.21 0.23 0.23 0.21 Small Value -0.04 0.15 0.09 0.01 0.08 0.07 0.08 0.11 0.11 0.10 0.11 0.13 Small Growth 0.00 0.03 -0.06 -0.03 -0.05 0.04 0.05 0.02 0.03 0.03 0.02 0.02 Small Neutral 0.02 0.09 0.05 0.03 0.04 0.11 0.11 0.09 0.08 0.10 0.09 0.11"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b4'",
+    "sequence_id": 53,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 68.87892150878906,
+          "y0": 303.0805358886719,
+          "x1": 529.0316162109375,
+          "y1": 365.5726318359375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "4",
+      "confidence": 1.0,
+      "layout_reading_order": 54,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Big Conservative 0.08 0.02 -0.04 0.08 0.15 0.09 0.13 0.17 0.14 0.19 0.16 0.14 Big Aggressive 0.08 -0.01 -0.11 0.01 0.13 0.22 0.18 0.21 0.19 0.23 0.20 0.20 Big Neutral 0.04 -0.01 -0.08 0.09 0.11 0.09 0.11 0.13 0.12 0.18 0.18 0.16 Small Conservative 0.04 0.17 0.12 0.02 0.05 0.17 0.15 0.11 0.11 0.14 0.13 0.15 Small Aggressive 0.01 0.05 -0.06 -0.05 -0.03 0.08 0.06 0.02 0.05 0.06 0.04 0.05 Small Neutral 0.01 0.06 0.03 0.01 0.04 0.08 0.09 0.07 0.06 0.08 0.07 0.09"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b5'",
+    "sequence_id": 54,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 68.87892150878906,
+          "y0": 378.26690673828125,
+          "x1": 529.031494140625,
+          "y1": 440.7580261230469,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "5",
+      "confidence": 1.0,
+      "layout_reading_order": 55,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Big Robust 0.10 0.07 -0.07 0.11 0.18 0.17 0.18 0.18 0.16 0.22 0.19 0.16 Big Weak 0.05 0.12 0.05 0.09 0.12 0.21 0.17 0.22 0.20 0.21 0.18 0.19 Big Neutral 0.09 0.00 -0.04 0.09 0.20 0.19 0.17 0.22 0.21 0.24 0.21 0.20 Small Robust 0.09 0.04 -0.03 0.00 0.00 0.10 0.07 0.04 0.05 0.08 0.08 0.08 Small Weak -0.03 0.09 0.00 -0.03 -0.02 0.07 0.07 0.06 0.06 0.06 0.05 0.06 Small Neutral 0.04 0.04 -0.03 0.00 0.01 0.11 0.09 0.04 0.04 0.07 0.07 0.08"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b6'",
+    "sequence_id": 55,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 68.87891387939453,
+          "y0": 453.4523010253906,
+          "x1": 529.031494140625,
+          "y1": 515.9434204101562,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "6",
+      "confidence": 1.0,
+      "layout_reading_order": 56,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Big Up 0.10 0.05 -0.06 0.10 0.21 0.16 0.14 0.17 0.14 0.17 0.18 0.17 Big Down -0.02 0.09 -0.08 -0.02 0.02 0.08 0.10 0.10 0.07 0.12 0.11 0.09 Big Medium -0.01 0.04 -0.06 0.14 0.09 0.17 0.20 0.22 0.21 0.25 0.22 0.19 Small Up 0.08 0.13 0.10 0.05 0.07 0.16 0.12 0.07 0.06 0.08 0.07 0.10 Small Down -0.14 0.04 -0.05 -0.09 -0.05 0.06 0.04 0.01 0.01 0.02 0.01 0.01 Small Medium 0.05 0.11 0.07 0.08 0.09 0.13 0.15 0.13 0.12 0.14 0.13 0.15"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b7'",
+    "sequence_id": 56,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 63.495941162109375,
+          "y0": 532.2035522460938,
+          "x1": 538.706298828125,
+          "y1": 553.56982421875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "7",
+      "confidence": 1.0,
+      "layout_reading_order": 57,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Note: Improvement in annualized Sharpe ratio (SR∗−SR). We compute the SR∗by weighting the portfolios based on a market timing strategy Campbell and Thompson (2007). Cases with Sharpe ratio deterioration are omitted."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b8'",
+    "sequence_id": 57,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 63.49592590332031,
+          "y0": 576.2113037109375,
+          "x1": 538.7027587890625,
+          "y1": 587.120361328125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "8",
+      "confidence": 1.0,
+      "layout_reading_order": 58,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "purged of market exposure. In all cases, we create the portfolios ourselves using CRSP market eq-"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b9'",
+    "sequence_id": 58,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 63.49592590332031,
+          "y0": 592.646240234375,
+          "x1": 538.7901611328125,
+          "y1": 603.5552978515625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "9",
+      "confidence": 1.0,
+      "layout_reading_order": 59,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "uity value weights. Our portfolio construction diﬀers slightly from the actual S&P 500 index and"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b10'",
+    "sequence_id": 59,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 63.49592590332031,
+          "y0": 609.081298828125,
+          "x1": 538.7280883789062,
+          "y1": 619.9903564453125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "10",
+      "confidence": 1.0,
+      "layout_reading_order": 60,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "the characteristic-based Fama-French portfolios (Fama and French, 1993, 2015), but has the virtue"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b11'",
+    "sequence_id": 60,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 63.4959716796875,
+          "y0": 623.8541870117188,
+          "x1": 373.5970764160156,
+          "y1": 636.42529296875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "11",
+      "confidence": 1.0,
+      "layout_reading_order": 61,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "that we can exactly track the ex ante portfolio weights of each.38"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b12'",
+    "sequence_id": 61,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 80.43295288085938,
+          "y0": 637.9922485351562,
+          "x1": 538.7102661132812,
+          "y1": 652.8603515625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "12",
+      "confidence": 1.0,
+      "layout_reading_order": 62,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Table 5 reports the monthly out-of-sample R2 over our 30-year testing sample. Regularized linear"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b13'",
+    "sequence_id": 62,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 63.495941162109375,
+          "y0": 658.38623046875,
+          "x1": 538.7466430664062,
+          "y1": 669.2952880859375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "13",
+      "confidence": 1.0,
+      "layout_reading_order": 63,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "methods fail to outperform naive constant forecasts of the S&P 500. In contrast, all nonlinear models"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b14'",
+    "sequence_id": 63,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 63.495941162109375,
+          "y0": 670.86328125,
+          "x1": 538.6961669921875,
+          "y1": 685.7313232421875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "14",
+      "confidence": 1.0,
+      "layout_reading_order": 64,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "have substantial positive predictive performance. The one month out-of-sample R2 is 0.71% for the"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b15'",
+    "sequence_id": 64,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 63.496002197265625,
+          "y0": 694.6220092773438,
+          "x1": 538.7479248046875,
+          "y1": 726.9788208007812,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "15",
+      "confidence": 1.0,
+      "layout_reading_order": 65,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "38Our replication of S&P500 returns has a correlation with the actual index of more than 0.99. For the other portfolios (SMB, HML, RMW, CMA, UMD), the return correlations between our replication and the version from Ken French’s website are 0.99, 0.97, 0.95, 0.99, 0.96, respectively."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b16'",
+    "sequence_id": 65,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 295.6419982910156,
+          "y0": 748.5632934570312,
+          "x1": 306.5509948730469,
+          "y1": 759.4723510742188,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "16",
+      "confidence": 1.0,
+      "layout_reading_order": 66,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "39"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  }
+]
