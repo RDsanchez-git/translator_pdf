@@ -140,7 +140,7 @@ class LayoutBlock(BaseModel):
     block_id: BlockId
     logical_type: LayoutBlockType
     content: RawContent
-    bbox: BoundingBox
+    bbox: Optional[BoundingBox] = None
     metadata: LayoutMetadata
     relationships: BlockRelationships
     versioning: DomainVersion
