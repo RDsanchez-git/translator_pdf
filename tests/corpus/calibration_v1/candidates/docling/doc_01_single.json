@@ -1,0 +1,1058 @@
+[
+  {
+    "node_id": "value='docling_p1_b1'",
+    "sequence_id": 1,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 209.651,
+          "y0": 673.4803336,
+          "x1": 402.35330144000017,
+          "y1": 673.4903336,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 0,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Minimum Viable Scale"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b2'",
+    "sequence_id": 2,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 181.286,
+          "y0": 650.4671328000001,
+          "x1": 430.71690176000016,
+          "y1": 650.4771328,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 1,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Extinction and Escape under Increasing Returns"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b3'",
+    "sequence_id": 3,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 214.958,
+          "y0": 620.1561328,
+          "x1": 275.26959296,
+          "y1": 620.1661328,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 2,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Javier Milei Demian Reidel July 2026"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b4'",
+    "sequence_id": 4,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 267.20200000000006,
+          "y0": 578.2381328,
+          "x1": 344.42780992,
+          "y1": 578.2481328,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 3,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Working Paper"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b5'",
+    "sequence_id": 5,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 284.2370000000001,
+          "y0": 536.6908574,
+          "x1": 328.07244,
+          "y1": 536.7008574,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 4,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Abstract"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b6'",
+    "sequence_id": 6,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 102.514,
+          "y0": 518.4092314000001,
+          "x1": 511.119348,
+          "y1": 518.4192314000001,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 5,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Aggregate increasing returns with bounded labor make absolute scale economically meaningful. This paper separates three notions of minimum viable scale: a physical floor, the least labor capacity at which capital can be maintained against depreciation; a marginal-return floor, the least capacity at which the return required by discounting and depreciation is attainable, necessary but not sufficient for an interior stationary allocation; and a global, value-based notion - above what capital does the planner select a high-scale path rather than middle behavior or exit? For the certified CES gross-complements family the static theory is exact: the sustainable set is an interval whose endpoints are geometric-mean conjugates about labor capacity, κ ¯ K sus = ¯ L 2 , and a productivity wedge moves both endpoints with elasticity √ ( m +1) / ( m -1), m = 2 A ¯ L/δ -1, which diverges at the physical floor. Wedges can collapse the economy: any productivity wedge condemns a band of previously viable capital stocks to certain extinction, the band widens with that elasticity, and beyond an explicit critical wedge, arbitrarily small near constant returns, no initial condition survives. Global selection is proved by a Bellman-barrier method: a first-passage argument reduces unrestricted selection to four finite families of inequalities, verified in exact rational arithmetic with directed rounding. The certificates prove high selection on [ . 098935 , 50] at demonstration primitives and on [ . 016 , 450] within a factor eight of the extinction threshold - at annual discounting and depreciation, for every productivity in a certified interval. The certified economies are stylized proof-of-concept environments rather than calibrations; the archive records the finite objects from which every certified inequality is deterministically regenerated and checked."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b7'",
+    "sequence_id": 7,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 75.274,
+          "y0": 269.50746090000007,
+          "x1": 536.4181110308002,
+          "y1": 269.51746090000006,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 6,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Keywords. Minimum viable scale; increasing returns; comparative statics; Bellman barriers; high selection; finite certificates; computer-assisted proofs; closed-form scale boundaries. JEL codes. C61, C62, C63, D24, E13, O41."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b8'",
+    "sequence_id": 8,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 75.60000000000002,
+          "y0": 210.22380079999994,
+          "x1": 188.62653670000003,
+          "y1": 210.23380079999993,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 7,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "1 Introduction"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b9'",
+    "sequence_id": 9,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 75.207,
+          "y0": 183.57536989999994,
+          "x1": 538.5370079262003,
+          "y1": 183.58536989999993,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 8,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Constant-returns growth models remove absolute scale. If labor, capital, and production can be scaled together, a small economy is a scaled-down large economy. Aggregate increasing returns with bounded labor destroy that invariance. Some capital stocks cannot maintain themselves. Some labor capacities can maintain capital physically but cannot generate the marginal return required by the Euler equation. Some economies can reach high scale, but only if residual middle paths and downward exits are globally dominated."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b10'",
+    "sequence_id": 10,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 75.6,
+          "y0": 102.28036989999998,
+          "x1": 536.7093962575108,
+          "y1": 102.29036989999999,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 9,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "This is a certified-theory paper, not a calibrated macro paper. It distinguishes three notions of minimum viable scale. The first is physical: the least labor capacity at which some capital stock can be maintained against depreciation. The second is marginal: the least capacity at which the return required by the Euler equation is attainable. The third is global: the set of initial capital stocks from which a high-scale path is value selected over middle stagnation or downward exit. The first two objects are static and admit closed-form characterizations in a CES gross-complements family; the third is a nonconcave dynamic selection problem, which we solve by constructing Bellman barriers that reduce unrestricted path comparisons to finite, verifier-checkable inequalities. The certified economies are proof-of-concept environments, showing that global selection can be proved without local Euler conditions or value-function approximation. We solve a planner problem because the object of interest is global selection under aggregate increasing returns; decentralization with external increasing returns is left for future work (Section 9)."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p2_b11'",
+    "sequence_id": 11,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 75.6,
+          "y0": 577.4653698999999,
+          "x1": 536.4276462722006,
+          "y1": 577.4753698999999,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 10,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "This paper studies these distinctions in a deterministic one-sector planner problem. The starting point is a minimum-viable-scale diagnosis. Under homogeneous increasing returns,"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p2_b12'",
+    "sequence_id": 12,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 227.477,
+          "y0": 543.0085783,
+          "x1": 384.52254798,
+          "y1": 543.0185783,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 11,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": ""
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p2_b13'",
+    "sequence_id": 13,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 75.60000000000002,
+          "y0": 517.2393698999999,
+          "x1": 332.0358500599997,
+          "y1": 517.2493698999999,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 12,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "two primitive thresholds matter. The physical floor is"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p2_b14'",
+    "sequence_id": 14,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 225.032,
+          "y0": 496.32939889999994,
+          "x1": 537.6767459600002,
+          "y1": 496.33939889999994,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 13,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": ""
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p2_b15'",
+    "sequence_id": 15,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 75.6,
+          "y0": 458.0423699,
+          "x1": 536.4170531048002,
+          "y1": 458.0523699,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 14,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "the least labor capacity at which capital can be maintained against depreciation. The Euler floor is"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p2_b16'",
+    "sequence_id": 16,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 170.097,
+          "y0": 437.1333989,
+          "x1": 537.6767459600002,
+          "y1": 437.14339889999997,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 15,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": ""
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p2_b17'",
+    "sequence_id": 17,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 75.6,
+          "y0": 398.9673699,
+          "x1": 536.7035806162994,
+          "y1": 398.9773699,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 16,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "the least labor capacity at which the marginal return required by discounting and depreciation is attainable - necessary for an interior stationary allocation, though not sufficient. These floors are distinct objects: the average-product peak governs maintenance, the marginal-product peak governs Euler feasibility, and the two peaks occur at different capital-labor ratios. Neither floor determines global selection."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p2_b18'",
+    "sequence_id": 18,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 75.207,
+          "y0": 331.22136989999996,
+          "x1": 538.2452415373797,
+          "y1": 331.23136989999995,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 17,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "The floors give a transparent theory of wedge amplification. If a policy wedge lowers usable productivity by a factor 1 -τ A , both floors scale as (1 -τ A ) -1 / ( θ -1) . Near constant returns the exponent is large: with θ = 1 . 05, a one-percent productivity wedge raises both floors by 22 . 3 percent, and a five-percent wedge by 179 percent. With θ = 2, the certified economy below, the elasticity is exactly one. We are explicit about this: the amplification channel is a near-constantreturns phenomenon, while the certified economy illustrates a second, distinct channel - proximity to a global selection threshold - which operates at any degree of increasing returns. Section 4 develops both channels and states precisely what a wedge-induced departure from the certified region does and does not imply. It also contains the model's collapse theorem (Proposition 4.1): every productivity wedge condemns a band of previously viable capital stocks to extinction, and a wedge beyond an explicit critical size, which vanishes near constant returns, collapses the economy from every initial condition."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p2_b19'",
+    "sequence_id": 19,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 75.6,
+          "y0": 168.63136989999998,
+          "x1": 536.4281917272002,
+          "y1": 168.64136989999997,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 18,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "For the certified family the static scale theory turns out to be exact (Section 3). The sustainable set is [ κ, ¯ K sus ] with"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p2_b20'",
+    "sequence_id": 20,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 133.844,
+          "y0": 134.69936989999997,
+          "x1": 478.15609797999997,
+          "y1": 134.70936989999996,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 19,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": ""
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p2_b21'",
+    "sequence_id": 21,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 75.6,
+          "y0": 99.42336990000001,
+          "x1": 538.5391512368495,
+          "y1": 99.43336990000002,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 20,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "nonempty exactly when labor capacity clears the physical floor. Its boundaries obey κ ¯ K sus = ¯ L 2 : extinction threshold and sustainability ceiling are reflections of one another about labor capacity."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b22'",
+    "sequence_id": 22,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 74.324,
+          "y0": 714.594504,
+          "x1": 536.6722819999999,
+          "y1": 714.604504,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 21,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "A productivity wedge moves both with elasticity E = √ ( m +1) / ( m -1), and E diverges as capacity falls toward the floor. The value of the extinction region sits between explicit logarithmic bounds. Stationary policies in closed form come within 0 . 024 of the certified high values, and the steady state and the golden-rule point are roots of a one-parameter family of quartics in K/L (Proposition 3.3). All of this falls out of the quadratic the certificate evaluates. What resists closed form is the pair of families at the heart of the selection proof, the middle barrier and the exit ledgers; Section 9 quantifies why. The certificate itself is built twice: at the demonstration primitives β = δ = . 7, and again at annual discounting and depreciation, β = . 96 and δ = . 08 (Section 7.4)."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b23'",
+    "sequence_id": 23,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 75.6,
+          "y0": 591.0143699,
+          "x1": 536.41775062759,
+          "y1": 591.0243699,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 22,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "The main contribution is global and methodological. We prove high selection using Bellman barriers. A Bellman barrier is a bounded function B satisfying"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b24'",
+    "sequence_id": 24,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 232.87199999999999,
+          "y0": 555.3885783,
+          "x1": 379.12854899,
+          "y1": 555.3985782999999,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 23,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": ""
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b25'",
+    "sequence_id": 25,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 75.6,
+          "y0": 528.4493699,
+          "x1": 537.6868485042003,
+          "y1": 528.4593699,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 24,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "on a restricted transition class; telescoping then bounds the value of every path in the class. A first-passage splice argument (Theorem 5.2) reduces the unrestricted selection problem to four ingredients: (i) a barrier B M dominating paths that stay forever in the middle region; (ii) an upper-continuation barrier U dominating the unrestricted value after any downward exit; (iii) explicit high-admissible policies whose values exceed both B M and every exit payoff; and (iv) forward-closure bounds ruling out upward escapes. Every path is then either dominated where it stays, or spliced at its first downward exit onto an explicit high policy that does strictly better."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b26'",
+    "sequence_id": 26,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 75.207,
+          "y0": 433.6043699,
+          "x1": 536.7302970022004,
+          "y1": 433.6143699,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 25,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "The second methodological contribution is verification. Each of the four ingredients is a finite family of inequalities between explicitly recorded numbers, reduced from the continuum by an endpoint-ledger theorem for piecewise log-affine barriers (Theorem 6.1) and a monotone corner bound for the labor-reduced reward (Lemma 6.1). Every ledger entry is evaluated in exact rational arithmetic; logarithms are bounded by directed rounding with an explicit one-unit-in-the-last-place guard; reward suprema over labor are bounded by a monotone subdivision branch-and-bound that requires no root isolation. The result is a certificate in the sense of the computer-assisted-proof literature: a finite object whose validity can be re-checked line by line, independently of how it was found. Construction of the certificate (value iteration, policy search) is untrusted and plays no role in the proof."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b27'",
+    "sequence_id": 27,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 92.53699999999999,
+          "y0": 298.1123699,
+          "x1": 491.3071504899996,
+          "y1": 298.12236989999997,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 26,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "The certified theorem is for the CES gross-complements family (Arrow et al., 1961)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b28'",
+    "sequence_id": 28,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 245.161,
+          "y0": 276.26939889999994,
+          "x1": 537.6767459600002,
+          "y1": 276.27939889999993,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 27,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": ""
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b29'",
+    "sequence_id": 29,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 203.07699999999994,
+          "y0": 226.48336990000007,
+          "x1": 408.92354797999985,
+          "y1": 226.49336990000006,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 28,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": ""
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b30'",
+    "sequence_id": 30,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 75.59999999999985,
+          "y0": 203.70036989999994,
+          "x1": 337.36858032999976,
+          "y1": 203.71036989999993,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 29,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "For every productivity A ∈ A = [9 . 916 , 10 . 04] we prove"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b31'",
+    "sequence_id": 31,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 209.04999999999984,
+          "y0": 181.62357829999996,
+          "x1": 537.67674596,
+          "y1": 181.63357829999995,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 30,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": ""
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b32'",
+    "sequence_id": 32,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 75.207,
+          "y0": 156.57057830000008,
+          "x1": 537.9293589688001,
+          "y1": 156.58057830000007,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 31,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "where V ∗ A is the unrestricted value and V H A is the value over paths that reach and remain in H = [2 , 50], and we prove that every optimal path from [ . 098935 , 50] is of that form. The same primitives imply extinction below κ = 0 . 018156974557 . . . , the smaller root of an explicit quadratic, and an upper sustainability bound at the larger root: capital above 42 . 66 cannot be maintained even at full labor capacity, so the upper part of H is transient. The model therefore delivers a scale taxonomy with one unclassified band ( κ, . 1), which we take up in Section 9."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b33'",
+    "sequence_id": 33,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 75.20699999999994,
+          "y0": 237.2743699,
+          "x1": 173.78926396999987,
+          "y1": 237.2843699,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 32,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "with fixed primitives"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  }
+]

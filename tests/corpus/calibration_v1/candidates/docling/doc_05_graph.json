@@ -1,0 +1,748 @@
+[
+  {
+    "node_id": "value='docling_p1_b1'",
+    "sequence_id": 1,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.0,
+          "y0": 737.2600000000001,
+          "x1": 243.1,
+          "y1": 737.2700000000001,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 0,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "wisdom  in  Latin  America  is  that  anti-inflation programs using the exchange rate as a nominal anchor  (exchange-rate-based  stabilization,  or ERBS, programs) have been able to reduce the inflation rate without causing the initial output losses associated with programs that use some monetary  aggregate as a  nominal  anchor (money-based stabilization programs). 4"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b2'",
+    "sequence_id": 2,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.00000000000003,
+          "y0": 641.2600000000001,
+          "x1": 246.24000000000004,
+          "y1": 641.2700000000001,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 1,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Of course,  a  theory  for  stabilization  programs  is  not  the  same  as  a  theory  for  the business cycle. But there should be some consistency  among  them.  For  example,  a  finding that nominal shocks do not have important real effects during Latin American stabilization programs  would  make  it  harder  to  maintain  the monetarist  view  that  such  factors  may  have been important at any other point of the business cycle. And this is precisely what we find problematic:  a  reexamination  of  the  evidence on ERBS programs shows that it is far from clear that  the  adoption  of  the  exchange  rate  as  a nominal  anchor  has  been  responsible,  as  the literature  claims,  for  the  economic  fluctuations observed during those programs."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b3'",
+    "sequence_id": 3,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 35.99999999999997,
+          "y0": 449.26000000000005,
+          "x1": 243.0799999999999,
+          "y1": 449.27000000000004,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 2,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Figure 1 illustrates the consumption growth rates for the ten ERBS programs studied by Végh (1992). The vertical line indicates the year  or  quarter  in  which  the  ERBS  program started. 5 Casual inspection of the plots suggests that only in the first four cases did consumption experience  the  upward  jump  that  theory  predicts should occur upon announcement of ERBS programs. 6 However, this theoretical prediction did not materialize in the remaining six cases. In particular, in none of these six did consumption grow faster than in the immediately preceding period.  Instead,  in  four  of  the  six  cases,  consumption growth was basically the same immediately before and immediately after the announcement of the corresponding ERBS program.  In  two  of  the  four,  the  so-called  consumption  boom  preceded  the  announcement. In  the  other  two,  there  was  no  consumption boom  whatsoever:  consumption  continued falling at approximately the same rate as before the ERBS programs began. Furthermore, in the last two cases, the ERBS program was followed instead by a consumption bust."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b4'",
+    "sequence_id": 4,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.000000000000014,
+          "y0": 161.26,
+          "x1": 243.05999999999992,
+          "y1": 161.26999999999998,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 3,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Therefore,  the  timing,  intensity,  or  direction of consumption growth for the countries in Végh's study, after most ERBS programs began, appears to differ from that implied by the ERBS theory."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b5'",
+    "sequence_id": 5,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.00000000000003,
+          "y0": 101.25999999999999,
+          "x1": 243.10999999999999,
+          "y1": 101.27,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 4,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "In this sense, at least four of the plots in Figure 1 (Chile, February 1978; Argentina, December 1978; Argentina, June 1985; and Israel, July 1985) could be interpreted using the non- monetarist  approach:  the  dynamics  of  output immediately after the announcement of an ERBS program were mere continuations of upswings or downturns that had begun earlier. In these four cases, forces other than the adoption of a fixed or pegged exchange rate were already driving the  business  cycle  when  the  ERBS  programs began.  But  such  conclusions  from  the  casual reading of two-dimensional plots would be premature. 7 We  are  more  persuaded,  instead,  by the  more  thorough  empirical  effort  of  Rebelo and Végh (1995), who conclude that monetaristinspired  theoretical  models  of  ERBS  programs are  quantitatively  incapable  of  replicating  any significant fraction of the economic fluctuations associated with such programs."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b6'",
+    "sequence_id": 6,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 260.99999999999994,
+          "y0": 545.2600000000001,
+          "x1": 468.10000000000053,
+          "y1": 545.2700000000001,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 5,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "The  evidence  on  ERBS  programs,  both from casual plot readings and from the work of Rebelo and Végh, poses a serious challenge to monetarist theories of Latin American business cycles: if nominal exchange rate shocks in Latin America  seem  to  have  failed  to  produce  the noticeable and consistent effects on consumption and other real variables predicted by monetarist-inspired theories precisely  when  they were given the best shot at it, how could they have significant real effects at other times? 8"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b7'",
+    "sequence_id": 7,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 261.0,
+          "y0": 413.26,
+          "x1": 468.1600000000011,
+          "y1": 413.27,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 6,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "A natural next step in the research agenda is  to  pay  more  attention  to  real  shocks  as  a potentially  important  source  of  the  economic fluctuations  observed  in  Latin  American  countries,  including  fluctuations  observed  during inflation  stabilization  programs. 9 In  principle, there is no reason the assessment of the quantitative importance of such shocks in Latin America  could  not  be  accomplished  with  the same kind of dynamic stochastic general equilibrium  models  the  RBC  tradition  has  used  to that effect for the United States and other developed countries."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b8'",
+    "sequence_id": 8,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 261.0,
+          "y0": 257.26,
+          "x1": 468.0400000000002,
+          "y1": 257.27,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 7,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "But such a research program must start by describing the data with a systematic, atheoretical  methodology. 10 The  remaining  sections  of this article make a modest attempt in that direction by describing the business-cycle regularities of Argentina without imposing theoretical priors to the data. 11"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b9'",
+    "sequence_id": 9,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 261.0,
+          "y0": 162.77199999999993,
+          "x1": 447.835,
+          "y1": 162.78199999999993,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 8,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Business-cycle regularities for Argentina"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b10'",
+    "sequence_id": 10,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 261.0,
+          "y0": 150.05999999999995,
+          "x1": 468.0600000000007,
+          "y1": 150.06999999999994,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 9,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Some  caveats  about  the  data. National account data in Latin America are not as reliable as their U.S. and OECD counterparts. 12 In fact, because  of  frequent  methodological  changes and corrections of previous errors, the reported series may  change  substantially  from  one national  account  estimate  to  the  next.  This  is indeed  the  case  for  Argentina.  For  example, volatility  of  consumption  relative  to  output  is substantially lower in the national accounts estimate at 1986 prices (released at the end of 1996) than in the previous estimates at 1970 prices."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p2_b11'",
+    "sequence_id": 11,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 107.61920166015625,
+          "y0": 769.2356395721436,
+          "x1": 573.0513916015625,
+          "y1": 769.2456395721435,
+          "is_normalized": false
+        },
+        {
+          "x0": 35.99999999999997,
+          "y0": 689.2600000000001,
+          "x1": 246.27999999999992,
+          "y1": 689.2700000000001,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2,
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 10,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": " The  example  above  emphasizes  that  in dealing with countries such as Argentina, researchers  should  heed  the  usual  warning  to appropriately  weigh  the  quality  of  the  data before  taking  for  puzzles  anomalies  that  in reality may be mere statistical artifacts. For that reason, we report the business-cycle regularities obtained from using two different estimates of GDP and  its  components.  The  comparison  of the  results  from  each  data  set  will  eventually give  some  idea  of  the  confidence  one  should place on the business-cycle regularities of Argentina reported here or elsewhere (for examples, see Kaufman and Sturzenegger 1996 and Carrera, Féliz, and Panigo 1996)."
+    },
+    "control_plane": {
+      "merge_count": 2
+    },
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b13'",
+    "sequence_id": 12,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.00000000000003,
+          "y0": 509.26000000000005,
+          "x1": 243.07999999999993,
+          "y1": 509.27000000000004,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 12,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "One estimate (the 'old' estimate), in constant  prices  of  1970,  covers  the  1970:1- 90:4 period and was prepared by the Central Bank of Argentina.  We  obtained  this  estimate  from  the FIEL (Fundación de Investigaciones Económicas Latinoamericanas)  data  bank.  The  other  estimate (the 'new' estimate), in constant prices of 1986, covers the 1980:1-95:4 period. The figures for  this  estimate  were  taken  from  the  publication Oferta  y  Demanda  Globales,  1980 -1995 , prepared by the Dirección Nacional de Cuentas Nacionales.  Notice  that  these  two  estimates overlap only during the 1980:1- 90:4 period. 13"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b14'",
+    "sequence_id": 13,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.0,
+          "y0": 354.06,
+          "x1": 243.09,
+          "y1": 354.07,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 13,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Methodology. We  characterize  the  business-cycle regularities of Argentina using Kydland and Prescott (1990) as a guide. Their procedure  is  inspired  by  Lucas  (1977),  who defines the business-cycle component of a variable  as  its  deviation  from  trend.  Kydland  and Prescott  define  the  trend  of  a  variable  as  that which  results from applying  the  HodrickPrescott filter (HP  filter) to the raw  data. Informally,  this  filter  produces  trends  that  are 'close  to  the  one  that  students  of  business cycles and growth would draw through a time plot' (Kydland and Prescott 1990). 14 Application of  the  HP  filter  to  Argentinean  GDP,  for  example, produces the trend represented by the smoother curves in Figure 2. 15,16"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b15'",
+    "sequence_id": 14,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.0,
+          "y0": 161.26,
+          "x1": 243.04999999999995,
+          "y1": 161.26999999999998,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 14,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Except for net exports, all variables in the tables  of  this  article  are  expressed  in  natural logarithms, as is standard in the business-cycle literature. 17 Since it  is  not  possible  to  compute the logarithm of negative values, variables that can take on such negative values, such as net exports,  were  expressed  instead  as  ratios  to GDP. All the variables were seasonally adjusted using the X-11 procedure."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b16'",
+    "sequence_id": 15,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 259.4954528808594,
+          "y0": 711.9918518066406,
+          "x1": 468.58941650390625,
+          "y1": 712.0018518066406,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 15,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": ""
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b17'",
+    "sequence_id": 16,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 261.08,
+          "y0": 738.002,
+          "x1": 411.6919999999999,
+          "y1": 738.012,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 16,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Figure 2 Real GDP, Old and New Estimates"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b18'",
+    "sequence_id": 17,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 261.08,
+          "y0": 549.006,
+          "x1": 458.44500000000016,
+          "y1": 549.016,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 17,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "For visual effect, the old estimates have been rescaled so that their level is the same as for the new estimates in 1980:1."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b19'",
+    "sequence_id": 18,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 261.08,
+          "y0": 528.006,
+          "x1": 464.367,
+          "y1": 528.016,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 18,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "SOURCES: Dirección Nacional de Cuentas Nacionales for new estimates; FIEL for old ones; authors' calculations for trends."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b20'",
+    "sequence_id": 19,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 260.9999999999999,
+          "y0": 485.26,
+          "x1": 468.0600000000002,
+          "y1": 485.27,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 19,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "The tables report statistics that measure (1) the  direction  of  the  movements  of  a  variable compared with that of real GDP ( procyclical , in the same direction; countercyclical , in the opposite direction; acyclical , when there is no clear pattern);  (2)  the  degree  to  which  the  variable follows the movements of real GDP (contemporaneous correlation); (3) the amplitude of fluctuations (volatility or relative volatility); and (4) the  phase  shift-that  is,  whether  a  variable changes before or after real GDP does (leads or lags the cycle, respectively.)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b21'",
+    "sequence_id": 20,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 260.9999999999999,
+          "y0": 341.31,
+          "x1": 468.0400000000004,
+          "y1": 341.32,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 20,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "The statistics volatility corresponds to the standard deviation of the percentage by which the  cyclical  component  of  a  variable  deviates from trend. The statistics relative volatility is the ratio between the volatility of the variable of reference and the volatility of real GDP."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b22'",
+    "sequence_id": 21,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 260.69606,
+          "y0": 258.77199999999993,
+          "x1": 371.938656,
+          "y1": 258.7819999999999,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 21,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Real facts for Argentina"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b23'",
+    "sequence_id": 22,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 260.9999999999999,
+          "y0": 246.05999999999995,
+          "x1": 471.21000000000004,
+          "y1": 246.06999999999994,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 22,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Output  and  its  components:  GDP. Table  1 reports  statistics  for  real  GDP  and  its  major components.  The  first  striking  feature  of  the table is the high volatility of real  GDP. According  to  the  new  national  account  estimates, the percentage standard deviation from trend  of  Argentina's  real  GDP  is  roughly  2.5 times larger than for the United States. Real GDP volatility is also high in the old national account estimates,  but  within  the  range  observed  in European  countries such as Greece (2.85), Portugal (3.05), and Luxembourg (3.2). 18,19"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b24'",
+    "sequence_id": 23,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 261.0,
+          "y0": 102.05999999999995,
+          "x1": 468.08000000000055,
+          "y1": 102.06999999999995,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 23,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Total consumption. An important caveat in interpreting the consumption evidence is that in Argentina's  national  account,  consumption  is computed as a residual, which casts consider-"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  }
+]

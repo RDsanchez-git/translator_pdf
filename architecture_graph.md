@@ -3,8 +3,35 @@
 ```mermaid
 graph TD
 
-    subgraph apps_api_server_py ["?? apps/api/server.py"]
+    subgraph generate_workspace_py ["?? generate_workspace.py"]
+        generate_workspace_py_generate_tree["[FUNC] generate_tree()"]:::funcStyle
+    call_dir_path_iterdir["--> dir_path.iterdir()"]:::callStyle
+    call_e_is_file["--> e.is_file()"]:::callStyle
+    call_elements_append["--> elements.append()"]:::callStyle
+    call_sorted["--> sorted()"]:::callStyle
+    call_x_is_file["--> x.is_file()"]:::callStyle
+    call_enumerate["--> enumerate()"]:::callStyle
+    call_len["--> len()"]:::callStyle
+    call_element_is_dir["--> element.is_dir()"]:::callStyle
+    call_generate_tree["--> generate_tree()"]:::callStyle
+        generate_workspace_py_extract_architecture_skeleton["[FUNC] extract_architecture_skeleton()"]:::funcStyle
+    call_open["--> open()"]:::callStyle
+    call_f_read["--> f.read()"]:::callStyle
+    call_ast_parse["--> ast.parse()"]:::callStyle
+    call_ast_get_docstring["--> ast.get_docstring()"]:::callStyle
+    call___strip["--> *.strip()"]:::callStyle
+    call_module_doc_replace["--> module_doc.replace()"]:::callStyle
+    call_output_append["--> output.append()"]:::callStyle
+    call_isinstance["--> isinstance()"]:::callStyle
+    call_ast_unparse["--> ast.unparse()"]:::callStyle
+    call___join["--> *.join()"]:::callStyle
+    call_class_doc_replace["--> class_doc.replace()"]:::callStyle
+    call_output_extend["--> output.extend()"]:::callStyle
+    call___startswith["--> *.startswith()"]:::callStyle
+    call_str["--> str()"]:::callStyle
     end
+
+    subgraph apps_api_server_py ["?? apps/api/server.py"]
 
     subgraph apps_api___init___py ["?? apps/api/__init__.py"]
 
@@ -70,7 +97,6 @@ graph TD
     call_Table["--> Table()"]:::callStyle
     call_table_add_column["--> table.add_column()"]:::callStyle
     call_table_add_row["--> table.add_row()"]:::callStyle
-    call_str["--> str()"]:::callStyle
         apps_cli_main_py_parse_arguments["[FUNC] parse_arguments()"]:::funcStyle
     call_argparse_ArgumentParser["--> argparse.ArgumentParser()"]:::callStyle
     call_parser_add_subparsers["--> parser.add_subparsers()"]:::callStyle
@@ -94,8 +120,6 @@ graph TD
     call___replace["--> *.replace()"]:::callStyle
     call_tex_content_replace["--> tex_content.replace()"]:::callStyle
     call_tempfile_TemporaryDirectory["--> tempfile.TemporaryDirectory()"]:::callStyle
-    call___join["--> *.join()"]:::callStyle
-    call_open["--> open()"]:::callStyle
     call_f_write["--> f.write()"]:::callStyle
     call_subprocess_run["--> subprocess.run()"]:::callStyle
     call_Exception["--> Exception()"]:::callStyle
@@ -115,17 +139,14 @@ graph TD
     call_LogParser__extract_context["--> LogParser._extract_context()"]:::callStyle
         apps_compiler_log_parser_py_LogParser__extract_context["_extract_context()"]:::funcStyle
     call_log_split["--> log.split()"]:::callStyle
-    call_enumerate["--> enumerate()"]:::callStyle
     call_max["--> max()"]:::callStyle
     call_min["--> min()"]:::callStyle
-    call_len["--> len()"]:::callStyle
 
     subgraph apps_compiler_tex_builder_py ["?? apps/compiler/tex_builder.py"]
         apps_compiler_tex_builder_py_TexBuilder["[CLASS] TexBuilder"]:::classStyle
         apps_compiler_tex_builder_py_TexBuilder___init__["__init__()"]:::funcStyle
         apps_compiler_tex_builder_py_TexBuilder_build["build()"]:::funcStyle
     call_list["--> list()"]:::callStyle
-    call___strip["--> *.strip()"]:::callStyle
     call_ValueError["--> ValueError()"]:::callStyle
     call___lower["--> *.lower()"]:::callStyle
     call_getattr["--> getattr()"]:::callStyle
@@ -157,7 +178,6 @@ graph TD
     call_StartAssemblyCommand["--> StartAssemblyCommand()"]:::callStyle
     call____load_document["--> *._load_document()"]:::callStyle
     call___get["--> *.get()"]:::callStyle
-    call_sorted["--> sorted()"]:::callStyle
     call_doc_nodes_keys["--> doc_nodes.keys()"]:::callStyle
     call___get_assemblable_chunks["--> *.get_assemblable_chunks()"]:::callStyle
     call_doc_nodes_get["--> doc_nodes.get()"]:::callStyle
@@ -406,7 +426,6 @@ graph TD
     call___glob["--> *.glob()"]:::callStyle
     call_self__process_document["--> self._process_document()"]:::callStyle
         apps_ocr_router___main___py_OCRRouterDaemon__process_document["_process_document()"]:::funcStyle
-    call_f_read["--> f.read()"]:::callStyle
     call___is_document_already_processed["--> *.is_document_already_processed()"]:::callStyle
     call_shutil_move["--> shutil.move()"]:::callStyle
     call_parse_pdf["--> parse_pdf()"]:::callStyle
@@ -418,7 +437,6 @@ graph TD
     call___enqueue_tasks["--> *.enqueue_tasks()"]:::callStyle
     call_StartProcessingCommand["--> StartProcessingCommand()"]:::callStyle
     call_round["--> round()"]:::callStyle
-    call_isinstance["--> isinstance()"]:::callStyle
     call_pdf_path_exists["--> pdf_path.exists()"]:::callStyle
     call_traceback_format_exc["--> traceback.format_exc()"]:::callStyle
     call_json_dump["--> json.dump()"]:::callStyle
@@ -426,6 +444,74 @@ graph TD
     subgraph apps_ocr_workers_router_py ["?? apps/ocr_workers/router.py"]
 
     subgraph apps_ocr_workers___init___py ["?? apps/ocr_workers/__init__.py"]
+
+    subgraph core_ast_builder_py ["?? core/ast/builder.py"]
+        core_ast_builder_py_PayloadRegistry["[CLASS] PayloadRegistry"]:::classStyle
+        core_ast_builder_py_PayloadRegistry_create["create()"]:::funcStyle
+    call_factory_method["--> factory_method()"]:::callStyle
+        core_ast_builder_py_FlatASTBuilder["[CLASS] FlatASTBuilder"]:::classStyle
+        core_ast_builder_py_FlatASTBuilder_build["build()"]:::funcStyle
+    call_cls__map_physical_to_logical["--> cls._map_physical_to_logical()"]:::callStyle
+    call_CrossPageNormalizer_execute["--> CrossPageNormalizer.execute()"]:::callStyle
+    call_cls__apply_topology_and_policies["--> cls._apply_topology_and_policies()"]:::callStyle
+        core_ast_builder_py_FlatASTBuilder__map_physical_to_logical["_map_physical_to_logical()"]:::funcStyle
+    call___upper["--> *.upper()"]:::callStyle
+    call_NodeMetadata["--> NodeMetadata()"]:::callStyle
+    call_PayloadRegistry_create["--> PayloadRegistry.create()"]:::callStyle
+    call_cls__map_native_level["--> cls._map_native_level()"]:::callStyle
+    call_ASTNode["--> ASTNode()"]:::callStyle
+        core_ast_builder_py_FlatASTBuilder__map_native_level["_map_native_level()"]:::funcStyle
+    call_mapping_get["--> mapping.get()"]:::callStyle
+        core_ast_builder_py_FlatASTBuilder__apply_topology_and_policies["_apply_topology_and_policies()"]:::funcStyle
+    call_resolve_strategy["--> resolve_strategy()"]:::callStyle
+    call_hasattr["--> hasattr()"]:::callStyle
+    call_level_mapping_get["--> level_mapping.get()"]:::callStyle
+    call_heading_stack_pop["--> heading_stack.pop()"]:::callStyle
+    call_heading_stack_append["--> heading_stack.append()"]:::callStyle
+    call_final_nodes_append["--> final_nodes.append()"]:::callStyle
+    call_node_model_copy["--> node.model_copy()"]:::callStyle
+
+    subgraph core_ast_cross_page_py ["?? core/ast/cross_page.py"]
+        core_ast_cross_page_py_AbbreviationPolicy["[CLASS] AbbreviationPolicy"]:::classStyle
+        core_ast_cross_page_py_AbbreviationPolicy_is_abbreviation["is_abbreviation()"]:::funcStyle
+    call___split["--> *.split()"]:::callStyle
+    call_text_strip["--> text.strip()"]:::callStyle
+    call___rstrip["--> *.rstrip()"]:::callStyle
+        core_ast_cross_page_py_BoundaryDetector["[CLASS] BoundaryDetector"]:::classStyle
+        core_ast_cross_page_py_BoundaryDetector_is_cross_page_boundary["is_cross_page_boundary()"]:::funcStyle
+        core_ast_cross_page_py_HyphenResolver["[CLASS] HyphenResolver"]:::classStyle
+        core_ast_cross_page_py_HyphenResolver_resolve["resolve()"]:::funcStyle
+    call_text_left_rstrip["--> text_left.rstrip()"]:::callStyle
+    call_text_right_lstrip["--> text_right.lstrip()"]:::callStyle
+    call_text_left_endswith["--> text_left.endswith()"]:::callStyle
+    call___islower["--> *.islower()"]:::callStyle
+        core_ast_cross_page_py_MetadataMerger["[CLASS] MetadataMerger"]:::classStyle
+        core_ast_cross_page_py_MetadataMerger_merge["merge()"]:::funcStyle
+    call_set["--> set()"]:::callStyle
+        core_ast_cross_page_py_MergePolicy["[CLASS] MergePolicy"]:::classStyle
+        core_ast_cross_page_py_MergePolicy_should_merge["should_merge()"]:::funcStyle
+    call_BoundaryDetector_is_cross_page_boundary["--> BoundaryDetector.is_cross_page_boundary()"]:::callStyle
+    call_AbbreviationPolicy_is_abbreviation["--> AbbreviationPolicy.is_abbreviation()"]:::callStyle
+    call___search["--> *.search()"]:::callStyle
+        core_ast_cross_page_py_CrossPageNormalizer["[CLASS] CrossPageNormalizer"]:::classStyle
+        core_ast_cross_page_py_CrossPageNormalizer_execute["execute()"]:::funcStyle
+    call_iter["--> iter()"]:::callStyle
+    call_MergePolicy_should_merge["--> MergePolicy.should_merge()"]:::callStyle
+    call_cls__execute_fusion["--> cls._execute_fusion()"]:::callStyle
+    call_consolidated_append["--> consolidated.append()"]:::callStyle
+        core_ast_cross_page_py_CrossPageNormalizer__execute_fusion["_execute_fusion()"]:::funcStyle
+    call_HyphenResolver_resolve["--> HyphenResolver.resolve()"]:::callStyle
+    call_MetadataMerger_merge["--> MetadataMerger.merge()"]:::callStyle
+    call___copy["--> *.copy()"]:::callStyle
+    call_new_control_plane_get["--> new_control_plane.get()"]:::callStyle
+    call___with_content["--> *.with_content()"]:::callStyle
+    call_n1_model_copy["--> n1.model_copy()"]:::callStyle
+
+    subgraph core_ast_enums_py ["?? core/ast/enums.py"]
+        core_ast_enums_py_ContentNodeType["[CLASS] ContentNodeType"]:::classStyle
+        core_ast_enums_py_TranslationStrategy["[CLASS] TranslationStrategy"]:::classStyle
+        core_ast_enums_py_HeadingLevel["[CLASS] HeadingLevel"]:::classStyle
+        core_ast_enums_py_SemanticOrigin["[CLASS] SemanticOrigin"]:::classStyle
 
     subgraph core_ast_grouper_py ["?? core/ast/grouper.py"]
         core_ast_grouper_py_SemanticGroup["[CLASS] SemanticGroup"]:::classStyle
@@ -440,7 +526,6 @@ graph TD
     subgraph core_ast_hashing_py ["?? core/ast/hashing.py"]
         core_ast_hashing_py_compute_ast_hash["[FUNC] compute_ast_hash()"]:::funcStyle
         core_ast_hashing_py_serialize_node["[FUNC] serialize_node()"]:::funcStyle
-    call_hasattr["--> hasattr()"]:::callStyle
     call_serialize_node["--> serialize_node()"]:::callStyle
     call_json_dumps["--> json.dumps()"]:::callStyle
     call_raw_encode["--> raw.encode()"]:::callStyle
@@ -461,7 +546,6 @@ graph TD
     call_flush_translate_chunk["--> flush_translate_chunk()"]:::callStyle
     call___estimate["--> *.estimate()"]:::callStyle
     call_self__split_by_sentence["--> self._split_by_sentence()"]:::callStyle
-    call_ASTNode["--> ASTNode()"]:::callStyle
         core_ast_hashing_py_build_semantic_chunks_as_units["[FUNC] build_semantic_chunks_as_units()"]:::funcStyle
     call_ContextAwareSemanticGrouper_group["--> ContextAwareSemanticGrouper.group()"]:::callStyle
     call_TokenBudgetChunker["--> TokenBudgetChunker()"]:::callStyle
@@ -470,12 +554,36 @@ graph TD
     call_sum["--> sum()"]:::callStyle
 
     subgraph core_ast_models_py ["?? core/ast/models.py"]
-        core_ast_models_py_StructuralNodeType["[CLASS] StructuralNodeType"]:::classStyle
-        core_ast_models_py_ContentNodeType["[CLASS] ContentNodeType"]:::classStyle
+        core_ast_models_py_NodeMetadata["[CLASS] NodeMetadata"]:::classStyle
+        core_ast_models_py_HeadingPayload["[CLASS] HeadingPayload"]:::classStyle
+        core_ast_models_py_HeadingPayload_with_content["with_content()"]:::funcStyle
+    call_self_model_copy["--> self.model_copy()"]:::callStyle
+        core_ast_models_py_ParagraphPayload["[CLASS] ParagraphPayload"]:::classStyle
+        core_ast_models_py_ParagraphPayload_with_content["with_content()"]:::funcStyle
+        core_ast_models_py_MathPayload["[CLASS] MathPayload"]:::classStyle
+        core_ast_models_py_MathPayload_with_content["with_content()"]:::funcStyle
+        core_ast_models_py_CodePayload["[CLASS] CodePayload"]:::classStyle
+        core_ast_models_py_CodePayload_with_content["with_content()"]:::funcStyle
+        core_ast_models_py_TablePayload["[CLASS] TablePayload"]:::classStyle
+        core_ast_models_py_TablePayload_with_content["with_content()"]:::funcStyle
+        core_ast_models_py_ImagePayload["[CLASS] ImagePayload"]:::classStyle
+        core_ast_models_py_ListPayload["[CLASS] ListPayload"]:::classStyle
+        core_ast_models_py_ListPayload_with_content["with_content()"]:::funcStyle
+        core_ast_models_py_ASTNode["[CLASS] ASTNode"]:::classStyle
+        core_ast_models_py_ASTNode_spawn_fragment["spawn_fragment()"]:::funcStyle
+        core_ast_models_py_ASTNode_has_valid_sequence["has_valid_sequence()"]:::funcStyle
+        core_ast_models_py_ASTNode__discriminate_payload["_discriminate_payload()"]:::funcStyle
+    call_values_get["--> values.get()"]:::callStyle
+    call_HeadingPayload["--> HeadingPayload()"]:::callStyle
+    call_ImagePayload["--> ImagePayload()"]:::callStyle
+    call_type_mapping_get["--> type_mapping.get()"]:::callStyle
+    call_target_model["--> target_model()"]:::callStyle
+    call_model_validator["--> model_validator()"]:::callStyle
+        core_ast_models_py_ASTNode_text_content["text_content()"]:::funcStyle
+        core_ast_models_py_ASTNode_with_strategy["with_strategy()"]:::funcStyle
+        core_ast_models_py_ASTNode_with_sequence_id["with_sequence_id()"]:::funcStyle
         core_ast_models_py_TranslationTaskType["[CLASS] TranslationTaskType"]:::classStyle
         core_ast_models_py_OverflowPolicy["[CLASS] OverflowPolicy"]:::classStyle
-        core_ast_models_py_ASTNode["[CLASS] ASTNode"]:::classStyle
-        core_ast_models_py_ASTNode_has_valid_sequence["has_valid_sequence()"]:::funcStyle
         core_ast_models_py_TokenEstimator["[CLASS] TokenEstimator"]:::classStyle
         core_ast_models_py_TokenEstimator_estimate["estimate()"]:::funcStyle
         core_ast_models_py_FastWordEstimator["[CLASS] FastWordEstimator"]:::classStyle
@@ -544,7 +652,6 @@ graph TD
     call_re_match["--> re.match()"]:::callStyle
     call_block_strip["--> block.strip()"]:::callStyle
     call_any["--> any()"]:::callStyle
-    call___startswith["--> *.startswith()"]:::callStyle
     call_block_lower["--> block.lower()"]:::callStyle
     call_re_finditer["--> re.finditer()"]:::callStyle
     call_match_start["--> match.start()"]:::callStyle
@@ -591,8 +698,10 @@ graph TD
     call_flush_block["--> flush_block()"]:::callStyle
     call___match["--> *.match()"]:::callStyle
     call_current_block_append["--> current_block.append()"]:::callStyle
-    call___search["--> *.search()"]:::callStyle
     call_b_strip["--> b.strip()"]:::callStyle
+
+    subgraph core_ast_strategy_py ["?? core/ast/strategy.py"]
+        core_ast_strategy_py_resolve_strategy["[FUNC] resolve_strategy()"]:::funcStyle
 
     subgraph core_ast_validator_py ["?? core/ast/validator.py"]
         core_ast_validator_py_ASTValidationError["[CLASS] ASTValidationError"]:::classStyle
@@ -603,7 +712,6 @@ graph TD
         core_ast_validator_py_ASTValidator["[CLASS] ASTValidator"]:::classStyle
         core_ast_validator_py_ASTValidator_validate["validate()"]:::funcStyle
     call_ASTValidationError["--> ASTValidationError()"]:::callStyle
-    call_set["--> set()"]:::callStyle
     call_seen_ids_add["--> seen_ids.add()"]:::callStyle
     call_LATEX_MATH_OPEN_search["--> LATEX_MATH_OPEN.search()"]:::callStyle
     call_LATEX_MATH_CLOSE_search["--> LATEX_MATH_CLOSE.search()"]:::callStyle
@@ -612,7 +720,6 @@ graph TD
 
     subgraph core_benchmark_aggregation_py ["?? core/benchmark/aggregation.py"]
         core_benchmark_aggregation_py_calculate_decoupled_overall_score["[FUNC] calculate_decoupled_overall_score()"]:::funcStyle
-    call___upper["--> *.upper()"]:::callStyle
 
     subgraph core_benchmark_judge_models_py ["?? core/benchmark/judge_models.py"]
         core_benchmark_judge_models_py_DefectCategory["[CLASS] DefectCategory"]:::classStyle
@@ -743,6 +850,50 @@ graph TD
         core_benchmark_runners_groq_runner_py_GroqBenchmarkRunner["[CLASS] GroqBenchmarkRunner"]:::classStyle
         core_benchmark_runners_groq_runner_py_GroqBenchmarkRunner___init__["__init__()"]:::funcStyle
 
+    subgraph core_chunking_chunker_py ["?? core/chunking/chunker.py"]
+        core_chunking_chunker_py_ChunkerConfig["[CLASS] ChunkerConfig"]:::classStyle
+        core_chunking_chunker_py_PolicyDrivenStreamingChunker["[CLASS] PolicyDrivenStreamingChunker"]:::classStyle
+        core_chunking_chunker_py_PolicyDrivenStreamingChunker___init__["__init__()"]:::funcStyle
+    call_ChunkerConfig["--> ChunkerConfig()"]:::callStyle
+        core_chunking_chunker_py_PolicyDrivenStreamingChunker_chunk["chunk()"]:::funcStyle
+    call___is_atomic["--> *.is_atomic()"]:::callStyle
+    call_AtomicNodeTooLargeException["--> AtomicNodeTooLargeException()"]:::callStyle
+    call___can_group["--> *.can_group()"]:::callStyle
+    call_self__build_chunk["--> self._build_chunk()"]:::callStyle
+    call_current_nodes_clear["--> current_nodes.clear()"]:::callStyle
+        core_chunking_chunker_py_PolicyDrivenStreamingChunker__build_chunk["_build_chunk()"]:::funcStyle
+    call_ChunkConstructionException["--> ChunkConstructionException()"]:::callStyle
+    call_TranslationChunk["--> TranslationChunk()"]:::callStyle
+    call_ChunkMetadata["--> ChunkMetadata()"]:::callStyle
+
+    subgraph core_chunking_exceptions_py ["?? core/chunking/exceptions.py"]
+        core_chunking_exceptions_py_ChunkingException["[CLASS] ChunkingException"]:::classStyle
+        core_chunking_exceptions_py_AtomicNodeTooLargeException["[CLASS] AtomicNodeTooLargeException"]:::classStyle
+        core_chunking_exceptions_py_ChunkConstructionException["[CLASS] ChunkConstructionException"]:::classStyle
+
+    subgraph core_chunking_models_py ["?? core/chunking/models.py"]
+        core_chunking_models_py_BoundaryDecision["[CLASS] BoundaryDecision"]:::classStyle
+        core_chunking_models_py_ChunkMetadata["[CLASS] ChunkMetadata"]:::classStyle
+        core_chunking_models_py_TranslationChunk["[CLASS] TranslationChunk"]:::classStyle
+
+    subgraph core_chunking_policies_py ["?? core/chunking/policies.py"]
+        core_chunking_policies_py_StructuralNodeAtomicityPolicy["[CLASS] StructuralNodeAtomicityPolicy"]:::classStyle
+        core_chunking_policies_py_StructuralNodeAtomicityPolicy_is_atomic["is_atomic()"]:::funcStyle
+        core_chunking_policies_py_StructuralChunkBoundaryPolicy["[CLASS] StructuralChunkBoundaryPolicy"]:::classStyle
+        core_chunking_policies_py_StructuralChunkBoundaryPolicy_can_group["can_group()"]:::funcStyle
+
+    subgraph core_chunking_protocols_py ["?? core/chunking/protocols.py"]
+        core_chunking_protocols_py_TokenEstimator["[CLASS] TokenEstimator"]:::classStyle
+        core_chunking_protocols_py_TokenEstimator_estimate["estimate()"]:::funcStyle
+        core_chunking_protocols_py_NodeAtomicityPolicy["[CLASS] NodeAtomicityPolicy"]:::classStyle
+        core_chunking_protocols_py_NodeAtomicityPolicy_is_atomic["is_atomic()"]:::funcStyle
+        core_chunking_protocols_py_ChunkBoundaryPolicy["[CLASS] ChunkBoundaryPolicy"]:::classStyle
+        core_chunking_protocols_py_ChunkBoundaryPolicy_can_group["can_group()"]:::funcStyle
+        core_chunking_protocols_py_ASTChunker["[CLASS] ASTChunker"]:::classStyle
+        core_chunking_protocols_py_ASTChunker_chunk["chunk()"]:::funcStyle
+
+    subgraph core_chunking___init___py ["?? core/chunking/__init__.py"]
+
     subgraph core_compiler_assembler_py ["?? core/compiler/assembler.py"]
         core_compiler_assembler_py_RepositoryUnavailableError["[CLASS] RepositoryUnavailableError"]:::classStyle
         core_compiler_assembler_py_PayloadNotFoundError["[CLASS] PayloadNotFoundError"]:::classStyle
@@ -784,6 +935,35 @@ graph TD
     call_dict_fromkeys["--> dict.fromkeys()"]:::callStyle
     call_missing_append["--> missing.append()"]:::callStyle
 
+    subgraph core_domain_document_py ["?? core/domain/document.py"]
+        core_domain_document_py_LayoutBlockType["[CLASS] LayoutBlockType"]:::classStyle
+        core_domain_document_py_DocumentType["[CLASS] DocumentType"]:::classStyle
+        core_domain_document_py_PageOrientation["[CLASS] PageOrientation"]:::classStyle
+        core_domain_document_py_OriginType["[CLASS] OriginType"]:::classStyle
+        core_domain_document_py_BlockId["[CLASS] BlockId"]:::classStyle
+        core_domain_document_py_RawContent["[CLASS] RawContent"]:::classStyle
+        core_domain_document_py_BoundingBox["[CLASS] BoundingBox"]:::classStyle
+        core_domain_document_py_BoundingBox_validate_bounds["validate_bounds()"]:::funcStyle
+        core_domain_document_py_BoundingBox_center_x["center_x()"]:::funcStyle
+        core_domain_document_py_BoundingBox_width["width()"]:::funcStyle
+        core_domain_document_py_BoundingBox_height["height()"]:::funcStyle
+        core_domain_document_py_TypographyMetadata["[CLASS] TypographyMetadata"]:::classStyle
+        core_domain_document_py_SpatialMetadata["[CLASS] SpatialMetadata"]:::classStyle
+        core_domain_document_py_ConfidenceMetadata["[CLASS] ConfidenceMetadata"]:::classStyle
+        core_domain_document_py_ProviderMetadata["[CLASS] ProviderMetadata"]:::classStyle
+        core_domain_document_py_LayoutMetadata["[CLASS] LayoutMetadata"]:::classStyle
+        core_domain_document_py_BlockRelationships["[CLASS] BlockRelationships"]:::classStyle
+        core_domain_document_py_DomainVersion["[CLASS] DomainVersion"]:::classStyle
+        core_domain_document_py_LayoutBlock["[CLASS] LayoutBlock"]:::classStyle
+        core_domain_document_py_LayoutBlock_is_structural["is_structural()"]:::funcStyle
+        core_domain_document_py_PageDimensions["[CLASS] PageDimensions"]:::classStyle
+        core_domain_document_py_LayoutPage["[CLASS] LayoutPage"]:::classStyle
+        core_domain_document_py_DocumentProfile["[CLASS] DocumentProfile"]:::classStyle
+        core_domain_document_py_DocumentLayout["[CLASS] DocumentLayout"]:::classStyle
+        core_domain_document_py_DocumentLayout__block_index["_block_index()"]:::funcStyle
+        core_domain_document_py_DocumentLayout_get_block["get_block()"]:::funcStyle
+        core_domain_document_py_DocumentLayout_get_page["get_page()"]:::funcStyle
+
     subgraph core_execution_constants_py ["?? core/execution/constants.py"]
 
     subgraph core_execution_event_log_py ["?? core/execution/event_log.py"]
@@ -814,13 +994,19 @@ graph TD
     call_____str__["--> *.__str__()"]:::callStyle
         core_execution_exceptions_py_PermanentQuotaRejection["[CLASS] PermanentQuotaRejection"]:::classStyle
         core_execution_exceptions_py_QuotaTimeoutError["[CLASS] QuotaTimeoutError"]:::classStyle
+        core_execution_exceptions_py_DomainException["[CLASS] DomainException"]:::classStyle
+        core_execution_exceptions_py_ExtractionError["[CLASS] ExtractionError"]:::classStyle
+        core_execution_exceptions_py_ExtractionError___init__["__init__()"]:::funcStyle
+        core_execution_exceptions_py_ProviderFailure["[CLASS] ProviderFailure"]:::classStyle
+        core_execution_exceptions_py_LayoutRecoveryError["[CLASS] LayoutRecoveryError"]:::classStyle
+        core_execution_exceptions_py_ASTMappingError["[CLASS] ASTMappingError"]:::classStyle
+        core_execution_exceptions_py_ASTMappingError___init__["__init__()"]:::funcStyle
 
     subgraph core_execution_handlers_py ["?? core/execution/handlers.py"]
         core_execution_handlers_py_DocumentCommandHandler["[CLASS] DocumentCommandHandler"]:::classStyle
         core_execution_handlers_py_DocumentCommandHandler___init__["__init__()"]:::funcStyle
         core_execution_handlers_py_DocumentCommandHandler__get_target_state["_get_target_state()"]:::funcStyle
     call_DocumentState["--> DocumentState()"]:::callStyle
-    call_mapping_get["--> mapping.get()"]:::callStyle
     call_type["--> type()"]:::callStyle
     call_TypeError["--> TypeError()"]:::callStyle
         core_execution_handlers_py_DocumentCommandHandler_handle["handle()"]:::funcStyle
@@ -902,6 +1088,27 @@ graph TD
         core_execution_state_mapping_py_RecoveredJobSnapshot["[CLASS] RecoveredJobSnapshot"]:::classStyle
 
     subgraph core_execution___init___py ["?? core/execution/__init__.py"]
+
+    subgraph core_extraction_provider_py ["?? core/extraction/provider.py"]
+        core_extraction_provider_py_ExtractionCapabilities["[CLASS] ExtractionCapabilities"]:::classStyle
+        core_extraction_provider_py_ExtractionProvider["[CLASS] ExtractionProvider"]:::classStyle
+        core_extraction_provider_py_ExtractionProvider_capabilities["capabilities()"]:::funcStyle
+        core_extraction_provider_py_ExtractionProvider_extract["extract()"]:::funcStyle
+
+    subgraph core_extraction_ocr_providers_pymupdf_provider_py ["?? core/extraction/ocr_providers/pymupdf_provider.py"]
+        core_extraction_ocr_providers_pymupdf_provider_py_PyMuPDFProvider["[CLASS] PyMuPDFProvider"]:::classStyle
+        core_extraction_ocr_providers_pymupdf_provider_py_PyMuPDFProvider___init__["__init__()"]:::funcStyle
+    call_ExtractionCapabilities["--> ExtractionCapabilities()"]:::callStyle
+        core_extraction_ocr_providers_pymupdf_provider_py_PyMuPDFProvider_capabilities["capabilities()"]:::funcStyle
+        core_extraction_ocr_providers_pymupdf_provider_py_PyMuPDFProvider_extract["extract()"]:::funcStyle
+    call_DocumentProfile["--> DocumentProfile()"]:::callStyle
+    call_DocumentLayout["--> DocumentLayout()"]:::callStyle
+
+    subgraph core_extraction_ocr_providers_tesseract_provider_py ["?? core/extraction/ocr_providers/tesseract_provider.py"]
+        core_extraction_ocr_providers_tesseract_provider_py_TesseractProvider["[CLASS] TesseractProvider"]:::classStyle
+        core_extraction_ocr_providers_tesseract_provider_py_TesseractProvider___init__["__init__()"]:::funcStyle
+        core_extraction_ocr_providers_tesseract_provider_py_TesseractProvider_capabilities["capabilities()"]:::funcStyle
+        core_extraction_ocr_providers_tesseract_provider_py_TesseractProvider_extract["extract()"]:::funcStyle
 
     subgraph core_healing_base_py ["?? core/healing/base.py"]
         core_healing_base_py_BaseHealingStrategy["[CLASS] BaseHealingStrategy"]:::classStyle
@@ -991,6 +1198,136 @@ graph TD
     call_original_rstrip["--> original.rstrip()"]:::callStyle
     call_base_text_endswith["--> base_text.endswith()"]:::callStyle
 
+    subgraph core_layout_base_py ["?? core/layout/base.py"]
+        core_layout_base_py_ProviderDescriptor["[CLASS] ProviderDescriptor"]:::classStyle
+        core_layout_base_py_MergePolicy["[CLASS] MergePolicy"]:::classStyle
+        core_layout_base_py_ReadingOrderPolicy["[CLASS] ReadingOrderPolicy"]:::classStyle
+        core_layout_base_py_PipelineConfig["[CLASS] PipelineConfig"]:::classStyle
+        core_layout_base_py_PipelineContext["[CLASS] PipelineContext"]:::classStyle
+        core_layout_base_py_LayoutStage["[CLASS] LayoutStage"]:::classStyle
+        core_layout_base_py_LayoutStage___init__["__init__()"]:::funcStyle
+        core_layout_base_py_LayoutStage_stage_name["stage_name()"]:::funcStyle
+        core_layout_base_py_LayoutStage_supports_parallel_execution["supports_parallel_execution()"]:::funcStyle
+        core_layout_base_py_LayoutStage_process["process()"]:::funcStyle
+    call_self__execute["--> self._execute()"]:::callStyle
+    call_StageExecutionRecord["--> StageExecutionRecord()"]:::callStyle
+    call___record_execution["--> *.record_execution()"]:::callStyle
+        core_layout_base_py_LayoutStage__execute["_execute()"]:::funcStyle
+
+    subgraph core_layout_builder_py ["?? core/layout/builder.py"]
+        core_layout_builder_py_DocumentLayoutBuilder["[CLASS] DocumentLayoutBuilder"]:::classStyle
+        core_layout_builder_py_DocumentLayoutBuilder___init__["__init__()"]:::funcStyle
+    call_self__validate_pipeline_composition["--> self._validate_pipeline_composition()"]:::callStyle
+        core_layout_builder_py_DocumentLayoutBuilder__validate_pipeline_composition["_validate_pipeline_composition()"]:::funcStyle
+    call_PipelineIntegrityError["--> PipelineIntegrityError()"]:::callStyle
+    call_issubclass["--> issubclass()"]:::callStyle
+        core_layout_builder_py_DocumentLayoutBuilder_build["build()"]:::funcStyle
+    call_PageDimensions["--> PageDimensions()"]:::callStyle
+    call_page_data_get["--> page_data.get()"]:::callStyle
+    call_PipelineContext["--> PipelineContext()"]:::callStyle
+    call_stage_process["--> stage.process()"]:::callStyle
+    call_processed_pages_append["--> processed_pages.append()"]:::callStyle
+    call_LayoutPage["--> LayoutPage()"]:::callStyle
+
+    subgraph core_layout_classifier_py ["?? core/layout/classifier.py"]
+        core_layout_classifier_py_LogicalClassifier["[CLASS] LogicalClassifier"]:::classStyle
+        core_layout_classifier_py_LogicalClassifier_stage_name["stage_name()"]:::funcStyle
+        core_layout_classifier_py_LogicalClassifier_supports_parallel_execution["supports_parallel_execution()"]:::funcStyle
+        core_layout_classifier_py_LogicalClassifier__execute["_execute()"]:::funcStyle
+    call_self__resolve_from_provider["--> self._resolve_from_provider()"]:::callStyle
+    call_self__infer_from_content["--> self._infer_from_content()"]:::callStyle
+    call_classified_blocks_append["--> classified_blocks.append()"]:::callStyle
+    call_block_model_copy["--> block.model_copy()"]:::callStyle
+    call_LayoutBlockCollection["--> LayoutBlockCollection()"]:::callStyle
+        core_layout_classifier_py_LogicalClassifier__resolve_from_provider["_resolve_from_provider()"]:::funcStyle
+    call_provider_id_upper["--> provider_id.upper()"]:::callStyle
+        core_layout_classifier_py_LogicalClassifier__infer_from_content["_infer_from_content()"]:::funcStyle
+    call_content_strip["--> content.strip()"]:::callStyle
+    call_cleaned_isupper["--> cleaned.isupper()"]:::callStyle
+    call_cleaned_endswith["--> cleaned.endswith()"]:::callStyle
+    call_pattern_search["--> pattern.search()"]:::callStyle
+
+    subgraph core_layout_detector_py ["?? core/layout/detector.py"]
+        core_layout_detector_py_SpatialAnalyzer["[CLASS] SpatialAnalyzer"]:::classStyle
+        core_layout_detector_py_SpatialAnalyzer_stage_name["stage_name()"]:::funcStyle
+        core_layout_detector_py_SpatialAnalyzer_supports_parallel_execution["supports_parallel_execution()"]:::funcStyle
+        core_layout_detector_py_SpatialAnalyzer__execute["_execute()"]:::funcStyle
+    call_self__detect_gutters["--> self._detect_gutters()"]:::callStyle
+    call_analyzed_blocks_append["--> analyzed_blocks.append()"]:::callStyle
+        core_layout_detector_py_SpatialAnalyzer__detect_gutters["_detect_gutters()"]:::funcStyle
+    call_valley_bins_append["--> valley_bins.append()"]:::callStyle
+    call_gutters_x_append["--> gutters_x.append()"]:::callStyle
+    call_self__filter_spurious_gutters["--> self._filter_spurious_gutters()"]:::callStyle
+        core_layout_detector_py_SpatialAnalyzer__filter_spurious_gutters["_filter_spurious_gutters()"]:::funcStyle
+    call_gutters_sort["--> gutters.sort()"]:::callStyle
+    call_filtered_append["--> filtered.append()"]:::callStyle
+
+    subgraph core_layout_identity_py ["?? core/layout/identity.py"]
+        core_layout_identity_py_BlockIdentityGenerator["[CLASS] BlockIdentityGenerator"]:::classStyle
+        core_layout_identity_py_BlockIdentityGenerator_stage_name["stage_name()"]:::funcStyle
+        core_layout_identity_py_BlockIdentityGenerator_supports_parallel_execution["supports_parallel_execution()"]:::funcStyle
+        core_layout_identity_py_BlockIdentityGenerator__execute["_execute()"]:::funcStyle
+    call_self__build_seed["--> self._build_seed()"]:::callStyle
+    call_seed_string_encode["--> seed_string.encode()"]:::callStyle
+    call_identified_list_append["--> identified_list.append()"]:::callStyle
+    call_BlockId["--> BlockId()"]:::callStyle
+        core_layout_identity_py_BlockIdentityGenerator__build_seed["_build_seed()"]:::funcStyle
+
+    subgraph core_layout_merger_py ["?? core/layout/merger.py"]
+        core_layout_merger_py_SpatialMerger["[CLASS] SpatialMerger"]:::classStyle
+        core_layout_merger_py_SpatialMerger_stage_name["stage_name()"]:::funcStyle
+        core_layout_merger_py_SpatialMerger_supports_parallel_execution["supports_parallel_execution()"]:::funcStyle
+        core_layout_merger_py_SpatialMerger__execute["_execute()"]:::funcStyle
+    call_self__evaluate_merge_affinity["--> self._evaluate_merge_affinity()"]:::callStyle
+    call_self__get_strategy_threshold["--> self._get_strategy_threshold()"]:::callStyle
+    call_self__fuse_blocks["--> self._fuse_blocks()"]:::callStyle
+    call_current_model_copy["--> current.model_copy()"]:::callStyle
+    call_merged_blocks_append["--> merged_blocks.append()"]:::callStyle
+        core_layout_merger_py_SpatialMerger__evaluate_merge_affinity["_evaluate_merge_affinity()"]:::funcStyle
+        core_layout_merger_py_SpatialMerger__get_strategy_threshold["_get_strategy_threshold()"]:::funcStyle
+    call_strategy_upper["--> strategy.upper()"]:::callStyle
+        core_layout_merger_py_SpatialMerger__fuse_blocks["_fuse_blocks()"]:::funcStyle
+    call_BoundingBox["--> BoundingBox()"]:::callStyle
+    call_b1_model_copy["--> b1.model_copy()"]:::callStyle
+
+    subgraph core_layout_models_py ["?? core/layout/models.py"]
+        core_layout_models_py_LayoutBlockDraft["[CLASS] LayoutBlockDraft"]:::classStyle
+        core_layout_models_py_LayoutBlockCollection["[CLASS] LayoutBlockCollection"]:::classStyle
+
+    subgraph core_layout_normalizer_py ["?? core/layout/normalizer.py"]
+        core_layout_normalizer_py_CoordinateNormalizer["[CLASS] CoordinateNormalizer"]:::classStyle
+        core_layout_normalizer_py_CoordinateNormalizer_stage_name["stage_name()"]:::funcStyle
+        core_layout_normalizer_py_CoordinateNormalizer_supports_parallel_execution["supports_parallel_execution()"]:::funcStyle
+        core_layout_normalizer_py_CoordinateNormalizer__execute["_execute()"]:::funcStyle
+    call_LayoutRecoveryError["--> LayoutRecoveryError()"]:::callStyle
+    call_self__scale_and_clamp["--> self._scale_and_clamp()"]:::callStyle
+    call_normalized_list_append["--> normalized_list.append()"]:::callStyle
+        core_layout_normalizer_py_CoordinateNormalizer__scale_and_clamp["_scale_and_clamp()"]:::funcStyle
+
+    subgraph core_layout_reading_order_py ["?? core/layout/reading_order.py"]
+        core_layout_reading_order_py_ReadingOrderResolver["[CLASS] ReadingOrderResolver"]:::classStyle
+        core_layout_reading_order_py_ReadingOrderResolver_stage_name["stage_name()"]:::funcStyle
+        core_layout_reading_order_py_ReadingOrderResolver_supports_parallel_execution["supports_parallel_execution()"]:::funcStyle
+        core_layout_reading_order_py_ReadingOrderResolver__execute["_execute()"]:::funcStyle
+    call_defaultdict["--> defaultdict()"]:::callStyle
+    call_self__eval_precedence["--> self._eval_precedence()"]:::callStyle
+    call___add["--> *.add()"]:::callStyle
+    call_active_set_append["--> active_set.append()"]:::callStyle
+    call_adjacency_graph_values["--> adjacency_graph.values()"]:::callStyle
+    call_self__validate_dag_integrity["--> self._validate_dag_integrity()"]:::callStyle
+    call_in_degree_items["--> in_degree.items()"]:::callStyle
+    call_heapq_heappush["--> heapq.heappush()"]:::callStyle
+    call_heapq_heappop["--> heapq.heappop()"]:::callStyle
+    call_sorted_ids_append["--> sorted_ids.append()"]:::callStyle
+    call_in_degree_keys["--> in_degree.keys()"]:::callStyle
+    call_self__emit_cycle_telemetry["--> self._emit_cycle_telemetry()"]:::callStyle
+    call_final_blocks_append["--> final_blocks.append()"]:::callStyle
+        core_layout_reading_order_py_ReadingOrderResolver__validate_dag_integrity["_validate_dag_integrity()"]:::funcStyle
+    call_graph_items["--> graph.items()"]:::callStyle
+    call_edges_remove["--> edges.remove()"]:::callStyle
+        core_layout_reading_order_py_ReadingOrderResolver__emit_cycle_telemetry["_emit_cycle_telemetry()"]:::funcStyle
+        core_layout_reading_order_py_ReadingOrderResolver__eval_precedence["_eval_precedence()"]:::funcStyle
+
     subgraph core_metrics_exporters_py ["?? core/metrics/exporters.py"]
         core_metrics_exporters_py_MetricsExporter["[CLASS] MetricsExporter"]:::classStyle
         core_metrics_exporters_py_MetricsExporter_export["export()"]:::funcStyle
@@ -1009,7 +1346,6 @@ graph TD
     subgraph core_metrics_metrics_py ["?? core/metrics/metrics.py"]
         core_metrics_metrics_py_Metrics["[CLASS] Metrics"]:::classStyle
         core_metrics_metrics_py_Metrics___init__["__init__()"]:::funcStyle
-    call_defaultdict["--> defaultdict()"]:::callStyle
         core_metrics_metrics_py_Metrics_inc["inc()"]:::funcStyle
         core_metrics_metrics_py_Metrics_observe["observe()"]:::funcStyle
         core_metrics_metrics_py_Metrics_summary["summary()"]:::funcStyle
@@ -1061,9 +1397,7 @@ graph TD
         core_normalization_classifier_py_SemanticNodeClassifier___init__["__init__()"]:::funcStyle
         core_normalization_classifier_py_SemanticNodeClassifier__infer_heading["_infer_heading()"]:::funcStyle
     call_text_stripped_startswith["--> text_stripped.startswith()"]:::callStyle
-    call_node_model_copy["--> node.model_copy()"]:::callStyle
         core_normalization_classifier_py_SemanticNodeClassifier_classify_node["classify_node()"]:::funcStyle
-    call_text_strip["--> text.strip()"]:::callStyle
     call_self__infer_heading["--> self._infer_heading()"]:::callStyle
     call_env_match_group["--> env_match.group()"]:::callStyle
     call_self__mutate_node_type["--> self._mutate_node_type()"]:::callStyle
@@ -1083,7 +1417,6 @@ graph TD
     call___sub["--> *.sub()"]:::callStyle
         core_normalization_latex_sanitizer_py_InlineMathProtector_restore["restore()"]:::funcStyle
     call_mapping_items["--> mapping.items()"]:::callStyle
-    call___split["--> *.split()"]:::callStyle
     call_token_strip["--> token.strip()"]:::callStyle
     call_safe_token_pattern_sub["--> safe_token_pattern.sub()"]:::callStyle
 
@@ -1262,6 +1595,10 @@ graph TD
         core_pipeline_orchestrator_py_TranslationPipeline["[CLASS] TranslationPipeline"]:::classStyle
         core_pipeline_orchestrator_py_TranslationPipeline___init__["__init__()"]:::funcStyle
 
+    subgraph core_pipeline_protocols_py ["?? core/pipeline/protocols.py"]
+        core_pipeline_protocols_py_PassthroughSink["[CLASS] PassthroughSink"]:::classStyle
+        core_pipeline_protocols_py_PassthroughSink_sink["sink()"]:::funcStyle
+
     subgraph core_pipeline_state_store_py ["?? core/pipeline/state_store.py"]
         core_pipeline_state_store_py_StateStoreProtocol["[CLASS] StateStoreProtocol"]:::classStyle
         core_pipeline_state_store_py_StateStoreProtocol_save["save()"]:::funcStyle
@@ -1274,6 +1611,16 @@ graph TD
         core_pipeline_state_store_py_FSMStateStore_save["save()"]:::funcStyle
     call_cmd_class["--> cmd_class()"]:::callStyle
 
+    subgraph core_pipeline_workflow_py ["?? core/pipeline/workflow.py"]
+        core_pipeline_workflow_py_RoutingEvents["[CLASS] RoutingEvents"]:::classStyle
+        core_pipeline_workflow_py_RoutingMetrics["[CLASS] RoutingMetrics"]:::classStyle
+        core_pipeline_workflow_py_RoutingWorkflow["[CLASS] RoutingWorkflow"]:::classStyle
+        core_pipeline_workflow_py_RoutingWorkflow___init__["__init__()"]:::funcStyle
+        core_pipeline_workflow_py_RoutingWorkflow_stream_translate_channel["stream_translate_channel()"]:::funcStyle
+    call_RoutingMetrics["--> RoutingMetrics()"]:::callStyle
+    call___route["--> *.route()"]:::callStyle
+    call___sink["--> *.sink()"]:::callStyle
+
     subgraph core_pipeline___init___py ["?? core/pipeline/__init__.py"]
 
     subgraph core_resilience_circuit_breaker_py ["?? core/resilience/circuit_breaker.py"]
@@ -1285,6 +1632,95 @@ graph TD
         core_resilience_circuit_breaker_py_CircuitBreakerRegistry["[CLASS] CircuitBreakerRegistry"]:::classStyle
         core_resilience_circuit_breaker_py_CircuitBreakerRegistry_get_breaker["get_breaker()"]:::funcStyle
     call_GlobalCircuitBreaker["--> GlobalCircuitBreaker()"]:::callStyle
+
+    subgraph core_routing_models_py ["?? core/routing/models.py"]
+        core_routing_models_py_RouteChannel["[CLASS] RouteChannel"]:::classStyle
+
+    subgraph core_routing_protocols_py ["?? core/routing/protocols.py"]
+        core_routing_protocols_py_NodeRouter["[CLASS] NodeRouter"]:::classStyle
+        core_routing_protocols_py_NodeRouter_route["route()"]:::funcStyle
+
+    subgraph core_routing_router_py ["?? core/routing/router.py"]
+        core_routing_router_py_StrategyRouter["[CLASS] StrategyRouter"]:::classStyle
+        core_routing_router_py_StrategyRouter_route["route()"]:::funcStyle
+
+    subgraph core_segmenter_normalizer_py ["?? core/segmenter/normalizer.py"]
+        core_segmenter_normalizer_py_ASTSequenceNormalizer["[CLASS] ASTSequenceNormalizer"]:::classStyle
+        core_segmenter_normalizer_py_ASTSequenceNormalizer_normalize["normalize()"]:::funcStyle
+    call_node_with_sequence_id["--> node.with_sequence_id()"]:::callStyle
+
+    subgraph core_segmenter_policies_py ["?? core/segmenter/policies.py"]
+        core_segmenter_policies_py_BoundaryCandidate["[CLASS] BoundaryCandidate"]:::classStyle
+        core_segmenter_policies_py_ScientificLexicon["[CLASS] ScientificLexicon"]:::classStyle
+        core_segmenter_policies_py_ScientificBoundaryPolicy["[CLASS] ScientificBoundaryPolicy"]:::classStyle
+        core_segmenter_policies_py_ScientificBoundaryPolicy__rule_is_decimal_or_version["_rule_is_decimal_or_version()"]:::funcStyle
+    call___isdigit["--> *.isdigit()"]:::callStyle
+        core_segmenter_policies_py_ScientificBoundaryPolicy__rule_is_protected_lexicon["_rule_is_protected_lexicon()"]:::funcStyle
+    call___isalpha["--> *.isalpha()"]:::callStyle
+        core_segmenter_policies_py_ScientificBoundaryPolicy__rule_invalid_continuation["_rule_invalid_continuation()"]:::funcStyle
+    call___isspace["--> *.isspace()"]:::callStyle
+    call_char_isupper["--> char.isupper()"]:::callStyle
+    call_char_isdigit["--> char.isdigit()"]:::callStyle
+        core_segmenter_policies_py_ScientificBoundaryPolicy_find_boundaries["find_boundaries()"]:::funcStyle
+    call_BoundaryCandidate["--> BoundaryCandidate()"]:::callStyle
+    call_rule["--> rule()"]:::callStyle
+    call_boundaries_append["--> boundaries.append()"]:::callStyle
+
+    subgraph core_segmenter_protocols_py ["?? core/segmenter/protocols.py"]
+        core_segmenter_protocols_py_SegmentContext["[CLASS] SegmentContext"]:::classStyle
+        core_segmenter_protocols_py_BoundaryPolicy["[CLASS] BoundaryPolicy"]:::classStyle
+        core_segmenter_protocols_py_BoundaryPolicy_find_boundaries["find_boundaries()"]:::funcStyle
+        core_segmenter_protocols_py_NodeSegmenter["[CLASS] NodeSegmenter"]:::classStyle
+        core_segmenter_protocols_py_NodeSegmenter_segment["segment()"]:::funcStyle
+        core_segmenter_protocols_py_TextPayload["[CLASS] TextPayload"]:::classStyle
+        core_segmenter_protocols_py_TextPayload_content["content()"]:::funcStyle
+        core_segmenter_protocols_py_TextPayload_with_content["with_content()"]:::funcStyle
+        core_segmenter_protocols_py_NodeIdentityGenerator["[CLASS] NodeIdentityGenerator"]:::classStyle
+        core_segmenter_protocols_py_NodeIdentityGenerator_generate["generate()"]:::funcStyle
+        core_segmenter_protocols_py_NodeRouter["[CLASS] NodeRouter"]:::classStyle
+        core_segmenter_protocols_py_NodeRouter_route["route()"]:::funcStyle
+
+    subgraph core_segmenter_segmenters_py ["?? core/segmenter/segmenters.py"]
+        core_segmenter_segmenters_py_AtomicSegmenter["[CLASS] AtomicSegmenter"]:::classStyle
+        core_segmenter_segmenters_py_AtomicSegmenter_segment["segment()"]:::funcStyle
+        core_segmenter_segmenters_py_ParagraphSegmenter["[CLASS] ParagraphSegmenter"]:::classStyle
+        core_segmenter_segmenters_py_ParagraphSegmenter___init__["__init__()"]:::funcStyle
+        core_segmenter_segmenters_py_ParagraphSegmenter_segment["segment()"]:::funcStyle
+    call___find_boundaries["--> *.find_boundaries()"]:::callStyle
+    call_payload_with_content["--> payload.with_content()"]:::callStyle
+    call_node_spawn_fragment["--> node.spawn_fragment()"]:::callStyle
+    call___generate["--> *.generate()"]:::callStyle
+        core_segmenter_segmenters_py_SegmentDispatcher["[CLASS] SegmentDispatcher"]:::classStyle
+        core_segmenter_segmenters_py_SegmentDispatcher___init__["__init__()"]:::funcStyle
+    call_MappingProxyType["--> MappingProxyType()"]:::callStyle
+        core_segmenter_segmenters_py_SegmentDispatcher_dispatch["dispatch()"]:::funcStyle
+
+    subgraph core_segmenter_service_py ["?? core/segmenter/service.py"]
+        core_segmenter_service_py_UUIDIdentityGenerator["[CLASS] UUIDIdentityGenerator"]:::classStyle
+        core_segmenter_service_py_UUIDIdentityGenerator_generate["generate()"]:::funcStyle
+        core_segmenter_service_py_SegmenterService["[CLASS] SegmenterService"]:::classStyle
+        core_segmenter_service_py_SegmenterService___init__["__init__()"]:::funcStyle
+        core_segmenter_service_py_SegmenterService_process_document["process_document()"]:::funcStyle
+    call___dispatch["--> *.dispatch()"]:::callStyle
+    call_segmented_stream_extend["--> segmented_stream.extend()"]:::callStyle
+    call_segmented_stream_append["--> segmented_stream.append()"]:::callStyle
+    call___normalize["--> *.normalize()"]:::callStyle
+        core_segmenter_service_py_SegmenterBootstrap["[CLASS] SegmenterBootstrap"]:::classStyle
+        core_segmenter_service_py_SegmenterBootstrap_create["create()"]:::funcStyle
+    call_UUIDIdentityGenerator["--> UUIDIdentityGenerator()"]:::callStyle
+    call_ScientificBoundaryPolicy["--> ScientificBoundaryPolicy()"]:::callStyle
+    call_AtomicSegmenter["--> AtomicSegmenter()"]:::callStyle
+    call_ParagraphSegmenter["--> ParagraphSegmenter()"]:::callStyle
+    call_SegmentDispatcher["--> SegmentDispatcher()"]:::callStyle
+    call_ASTSequenceNormalizer["--> ASTSequenceNormalizer()"]:::callStyle
+    call_SegmenterService["--> SegmenterService()"]:::callStyle
+
+    subgraph core_segmenter___init___py ["?? core/segmenter/__init__.py"]
+
+    subgraph core_telemetry_adapters_py ["?? core/telemetry/adapters.py"]
+        core_telemetry_adapters_py_NullTelemetryAdapter["[CLASS] NullTelemetryAdapter"]:::classStyle
+        core_telemetry_adapters_py_NullTelemetryAdapter_record_metric["record_metric()"]:::funcStyle
+        core_telemetry_adapters_py_NullTelemetryAdapter_record_event["record_event()"]:::funcStyle
 
     subgraph core_telemetry_analyzer_py ["?? core/telemetry/analyzer.py"]
         core_telemetry_analyzer_py_TelemetryAnalyzer["[CLASS] TelemetryAnalyzer"]:::classStyle
@@ -1323,6 +1759,13 @@ graph TD
         core_telemetry_models_py_SLOConfig["[CLASS] SLOConfig"]:::classStyle
         core_telemetry_models_py_SLOViolation["[CLASS] SLOViolation"]:::classStyle
         core_telemetry_models_py_ProductionHealthReport["[CLASS] ProductionHealthReport"]:::classStyle
+
+    subgraph core_telemetry_ports_py ["?? core/telemetry/ports.py"]
+        core_telemetry_ports_py_StageExecutionRecord["[CLASS] StageExecutionRecord"]:::classStyle
+        core_telemetry_ports_py_TelemetryPort["[CLASS] TelemetryPort"]:::classStyle
+        core_telemetry_ports_py_TelemetryPort_record_execution["record_execution()"]:::funcStyle
+        core_telemetry_ports_py_NullTelemetryAdapter["[CLASS] NullTelemetryAdapter"]:::classStyle
+        core_telemetry_ports_py_NullTelemetryAdapter_record_execution["record_execution()"]:::funcStyle
 
     subgraph core_utils_config_py ["?? core/utils/config.py"]
 
@@ -1502,11 +1945,62 @@ graph TD
 
     subgraph core_validation___init___py ["?? core/validation/__init__.py"]
 
+    subgraph core_validation_ast_engine_py ["?? core/validation/ast/engine.py"]
+        core_validation_ast_engine_py_PolymorphicValidationEngine["[CLASS] PolymorphicValidationEngine"]:::classStyle
+        core_validation_ast_engine_py_PolymorphicValidationEngine___init__["__init__()"]:::funcStyle
+        core_validation_ast_engine_py_PolymorphicValidationEngine_validate_stream["validate_stream()"]:::funcStyle
+    call_validator_can_validate["--> validator.can_validate()"]:::callStyle
+
+    subgraph core_validation_ast_extractors_py ["?? core/validation/ast/extractors.py"]
+        core_validation_ast_extractors_py_StronglyTypedTextExtractor["[CLASS] StronglyTypedTextExtractor"]:::classStyle
+        core_validation_ast_extractors_py_StronglyTypedTextExtractor_extract["extract()"]:::funcStyle
+
+    subgraph core_validation_ast_factory_py ["?? core/validation/ast/factory.py"]
+        core_validation_ast_factory_py_build_default_validation_engine["[FUNC] build_default_validation_engine()"]:::funcStyle
+    call_StronglyTypedTextExtractor["--> StronglyTypedTextExtractor()"]:::callStyle
+    call_StructuralEquationValidator["--> StructuralEquationValidator()"]:::callStyle
+    call_PassthroughIntegrityValidator["--> PassthroughIntegrityValidator()"]:::callStyle
+    call_PolymorphicValidationEngine["--> PolymorphicValidationEngine()"]:::callStyle
+
+    subgraph core_validation_ast_models_py ["?? core/validation/ast/models.py"]
+        core_validation_ast_models_py_ValidationSeverity["[CLASS] ValidationSeverity"]:::classStyle
+        core_validation_ast_models_py_ValidationResult["[CLASS] ValidationResult"]:::classStyle
+
+    subgraph core_validation_ast_protocols_py ["?? core/validation/ast/protocols.py"]
+        core_validation_ast_protocols_py_NodeTextExtractor["[CLASS] NodeTextExtractor"]:::classStyle
+        core_validation_ast_protocols_py_NodeTextExtractor_extract["extract()"]:::funcStyle
+        core_validation_ast_protocols_py_NodeValidator["[CLASS] NodeValidator"]:::classStyle
+        core_validation_ast_protocols_py_NodeValidator_name["name()"]:::funcStyle
+        core_validation_ast_protocols_py_NodeValidator_can_validate["can_validate()"]:::funcStyle
+        core_validation_ast_protocols_py_NodeValidator_validate["validate()"]:::funcStyle
+        core_validation_ast_protocols_py_ValidationEngine["[CLASS] ValidationEngine"]:::classStyle
+        core_validation_ast_protocols_py_ValidationEngine_validate_stream["validate_stream()"]:::funcStyle
+
+    subgraph core_validation_ast___init___py ["?? core/validation/ast/__init__.py"]
+
+    subgraph core_validation_ast_validators_strategy_py ["?? core/validation/ast/validators/strategy.py"]
+        core_validation_ast_validators_strategy_py_PassthroughIntegrityValidator["[CLASS] PassthroughIntegrityValidator"]:::classStyle
+        core_validation_ast_validators_strategy_py_PassthroughIntegrityValidator___init__["__init__()"]:::funcStyle
+        core_validation_ast_validators_strategy_py_PassthroughIntegrityValidator_name["name()"]:::funcStyle
+        core_validation_ast_validators_strategy_py_PassthroughIntegrityValidator_can_validate["can_validate()"]:::funcStyle
+        core_validation_ast_validators_strategy_py_PassthroughIntegrityValidator_validate["validate()"]:::funcStyle
+
+    subgraph core_validation_ast_validators_structural_py ["?? core/validation/ast/validators/structural.py"]
+        core_validation_ast_validators_structural_py_StructuralEquationValidator["[CLASS] StructuralEquationValidator"]:::classStyle
+        core_validation_ast_validators_structural_py_StructuralEquationValidator___init__["__init__()"]:::funcStyle
+        core_validation_ast_validators_structural_py_StructuralEquationValidator_name["name()"]:::funcStyle
+        core_validation_ast_validators_structural_py_StructuralEquationValidator_can_validate["can_validate()"]:::funcStyle
+        core_validation_ast_validators_structural_py_StructuralEquationValidator_validate["validate()"]:::funcStyle
+    call___extract["--> *.extract()"]:::callStyle
+
+    subgraph core_validation_ast_validators___init___py ["?? core/validation/ast/validators/__init__.py"]
+
     subgraph infra_adapters_pdf_parser_py ["?? infra/adapters/pdf_parser.py"]
         infra_adapters_pdf_parser_py_PdfParserAdapter["[CLASS] PdfParserAdapter"]:::classStyle
         infra_adapters_pdf_parser_py_PdfParserAdapter___init__["__init__()"]:::funcStyle
         infra_adapters_pdf_parser_py_PdfParserAdapter_parse["parse()"]:::funcStyle
-    call_self__parser_callable["--> self._parser_callable()"]:::callStyle
+    call_self__layout_to_ast_mapper["--> self._layout_to_ast_mapper()"]:::callStyle
+    call_ASTMappingError["--> ASTMappingError()"]:::callStyle
 
     subgraph infra_adapters___init___py ["?? infra/adapters/__init__.py"]
 
@@ -1652,6 +2146,29 @@ graph TD
     call_c_close["--> c.close()"]:::callStyle
 
     subgraph runtime___init___py ["?? runtime/__init__.py"]
+    generate_workspace_py_generate_tree --> call_dir_path_iterdir
+    generate_workspace_py_generate_tree --> call_e_is_file
+    generate_workspace_py_generate_tree --> call_elements_append
+    generate_workspace_py_generate_tree --> call_sorted
+    generate_workspace_py_generate_tree --> call_x_is_file
+    generate_workspace_py_generate_tree --> call_enumerate
+    generate_workspace_py_generate_tree --> call_len
+    generate_workspace_py_generate_tree --> call_element_is_dir
+    generate_workspace_py_generate_tree --> call_generate_tree
+    generate_workspace_py_extract_architecture_skeleton --> call_open
+    generate_workspace_py_extract_architecture_skeleton --> call_f_read
+    generate_workspace_py_extract_architecture_skeleton --> call_ast_parse
+    generate_workspace_py_extract_architecture_skeleton --> call_ast_get_docstring
+    generate_workspace_py_extract_architecture_skeleton --> call___strip
+    generate_workspace_py_extract_architecture_skeleton --> call_module_doc_replace
+    generate_workspace_py_extract_architecture_skeleton --> call_output_append
+    generate_workspace_py_extract_architecture_skeleton --> call_isinstance
+    generate_workspace_py_extract_architecture_skeleton --> call_ast_unparse
+    generate_workspace_py_extract_architecture_skeleton --> call___join
+    generate_workspace_py_extract_architecture_skeleton --> call_class_doc_replace
+    generate_workspace_py_extract_architecture_skeleton --> call_output_extend
+    generate_workspace_py_extract_architecture_skeleton --> call___startswith
+    generate_workspace_py_extract_architecture_skeleton --> call_str
     apps_bootstrap_pipeline_factory_py__build_default_validation_pipeline --> call_LegacyValidatorAdapter
     apps_bootstrap_pipeline_factory_py__build_default_validation_pipeline --> call_ValidationPipeline
     apps_bootstrap_pipeline_factory_py__build_default_validation_pipeline --> call_pipeline_add_chunk_validator
@@ -2094,6 +2611,72 @@ graph TD
     apps_ocr_router___main___py_OCRRouterDaemon__process_document --> call_time_time
     apps_ocr_router___main___py_OCRRouterDaemon__process_document --> call_traceback_format_exc
     apps_ocr_router___main___py_OCRRouterDaemon__process_document --> call_json_dump
+        core_ast_builder_py_PayloadRegistry --- core_ast_builder_py_PayloadRegistry_create
+    core_ast_builder_py_PayloadRegistry_create --> call___get
+    core_ast_builder_py_PayloadRegistry_create --> call_ValueError
+    core_ast_builder_py_PayloadRegistry_create --> call_factory_method
+        core_ast_builder_py_FlatASTBuilder --- core_ast_builder_py_FlatASTBuilder_build
+    core_ast_builder_py_FlatASTBuilder_build --> call_cls__map_physical_to_logical
+    core_ast_builder_py_FlatASTBuilder_build --> call_enumerate
+    core_ast_builder_py_FlatASTBuilder_build --> call_CrossPageNormalizer_execute
+    core_ast_builder_py_FlatASTBuilder_build --> call_cls__apply_topology_and_policies
+        core_ast_builder_py_FlatASTBuilder --- core_ast_builder_py_FlatASTBuilder__map_physical_to_logical
+    core_ast_builder_py_FlatASTBuilder__map_physical_to_logical --> call___upper
+    core_ast_builder_py_FlatASTBuilder__map_physical_to_logical --> call_str
+    core_ast_builder_py_FlatASTBuilder__map_physical_to_logical --> call___get
+    core_ast_builder_py_FlatASTBuilder__map_physical_to_logical --> call_logger_warning
+    core_ast_builder_py_FlatASTBuilder__map_physical_to_logical --> call_NodeMetadata
+    core_ast_builder_py_FlatASTBuilder__map_physical_to_logical --> call_getattr
+    core_ast_builder_py_FlatASTBuilder__map_physical_to_logical --> call_PayloadRegistry_create
+    core_ast_builder_py_FlatASTBuilder__map_physical_to_logical --> call_cls__map_native_level
+    core_ast_builder_py_FlatASTBuilder__map_physical_to_logical --> call_ASTNode
+        core_ast_builder_py_FlatASTBuilder --- core_ast_builder_py_FlatASTBuilder__map_native_level
+    core_ast_builder_py_FlatASTBuilder__map_native_level --> call_mapping_get
+        core_ast_builder_py_FlatASTBuilder --- core_ast_builder_py_FlatASTBuilder__apply_topology_and_policies
+    core_ast_builder_py_FlatASTBuilder__apply_topology_and_policies --> call_enumerate
+    core_ast_builder_py_FlatASTBuilder__apply_topology_and_policies --> call_resolve_strategy
+    core_ast_builder_py_FlatASTBuilder__apply_topology_and_policies --> call_hasattr
+    core_ast_builder_py_FlatASTBuilder__apply_topology_and_policies --> call_level_mapping_get
+    core_ast_builder_py_FlatASTBuilder__apply_topology_and_policies --> call_heading_stack_pop
+    core_ast_builder_py_FlatASTBuilder__apply_topology_and_policies --> call_heading_stack_append
+    core_ast_builder_py_FlatASTBuilder__apply_topology_and_policies --> call_len
+    core_ast_builder_py_FlatASTBuilder__apply_topology_and_policies --> call_final_nodes_append
+    core_ast_builder_py_FlatASTBuilder__apply_topology_and_policies --> call_node_model_copy
+        core_ast_cross_page_py_AbbreviationPolicy --- core_ast_cross_page_py_AbbreviationPolicy_is_abbreviation
+    core_ast_cross_page_py_AbbreviationPolicy_is_abbreviation --> call___split
+    core_ast_cross_page_py_AbbreviationPolicy_is_abbreviation --> call_text_strip
+    core_ast_cross_page_py_AbbreviationPolicy_is_abbreviation --> call___rstrip
+    core_ast_cross_page_py_AbbreviationPolicy_is_abbreviation --> call___lower
+        core_ast_cross_page_py_BoundaryDetector --- core_ast_cross_page_py_BoundaryDetector_is_cross_page_boundary
+        core_ast_cross_page_py_HyphenResolver --- core_ast_cross_page_py_HyphenResolver_resolve
+    core_ast_cross_page_py_HyphenResolver_resolve --> call_text_left_rstrip
+    core_ast_cross_page_py_HyphenResolver_resolve --> call_text_right_lstrip
+    core_ast_cross_page_py_HyphenResolver_resolve --> call_text_left_endswith
+    core_ast_cross_page_py_HyphenResolver_resolve --> call___islower
+        core_ast_cross_page_py_MetadataMerger --- core_ast_cross_page_py_MetadataMerger_merge
+    core_ast_cross_page_py_MetadataMerger_merge --> call_min
+    core_ast_cross_page_py_MetadataMerger_merge --> call_NodeMetadata
+    core_ast_cross_page_py_MetadataMerger_merge --> call_sorted
+    core_ast_cross_page_py_MetadataMerger_merge --> call_list
+    core_ast_cross_page_py_MetadataMerger_merge --> call_set
+        core_ast_cross_page_py_MergePolicy --- core_ast_cross_page_py_MergePolicy_should_merge
+    core_ast_cross_page_py_MergePolicy_should_merge --> call_BoundaryDetector_is_cross_page_boundary
+    core_ast_cross_page_py_MergePolicy_should_merge --> call_AbbreviationPolicy_is_abbreviation
+    core_ast_cross_page_py_MergePolicy_should_merge --> call___search
+        core_ast_cross_page_py_CrossPageNormalizer --- core_ast_cross_page_py_CrossPageNormalizer_execute
+    core_ast_cross_page_py_CrossPageNormalizer_execute --> call_len
+    core_ast_cross_page_py_CrossPageNormalizer_execute --> call_iter
+    core_ast_cross_page_py_CrossPageNormalizer_execute --> call_next
+    core_ast_cross_page_py_CrossPageNormalizer_execute --> call_MergePolicy_should_merge
+    core_ast_cross_page_py_CrossPageNormalizer_execute --> call_cls__execute_fusion
+    core_ast_cross_page_py_CrossPageNormalizer_execute --> call_consolidated_append
+        core_ast_cross_page_py_CrossPageNormalizer --- core_ast_cross_page_py_CrossPageNormalizer__execute_fusion
+    core_ast_cross_page_py_CrossPageNormalizer__execute_fusion --> call_HyphenResolver_resolve
+    core_ast_cross_page_py_CrossPageNormalizer__execute_fusion --> call_MetadataMerger_merge
+    core_ast_cross_page_py_CrossPageNormalizer__execute_fusion --> call___copy
+    core_ast_cross_page_py_CrossPageNormalizer__execute_fusion --> call_new_control_plane_get
+    core_ast_cross_page_py_CrossPageNormalizer__execute_fusion --> call___with_content
+    core_ast_cross_page_py_CrossPageNormalizer__execute_fusion --> call_n1_model_copy
         core_ast_grouper_py_ContextAwareSemanticGrouper --- core_ast_grouper_py_ContextAwareSemanticGrouper_group
     core_ast_grouper_py_ContextAwareSemanticGrouper_group --> call_tuple
     core_ast_grouper_py_ContextAwareSemanticGrouper_group --> call_first_node_cp_get
@@ -2150,7 +2733,35 @@ graph TD
     core_ast_hashing_py_build_semantic_chunks_as_units --> call_all_units_extend
     core_ast_hashing_py_build_semantic_chunks_as_units --> call_int
     core_ast_hashing_py_build_semantic_chunks_as_units --> call_sum
+        core_ast_models_py_HeadingPayload --- core_ast_models_py_HeadingPayload_with_content
+    core_ast_models_py_HeadingPayload_with_content --> call_self_model_copy
+        core_ast_models_py_ParagraphPayload --- core_ast_models_py_ParagraphPayload_with_content
+    core_ast_models_py_ParagraphPayload_with_content --> call_self_model_copy
+        core_ast_models_py_MathPayload --- core_ast_models_py_MathPayload_with_content
+    core_ast_models_py_MathPayload_with_content --> call_self_model_copy
+        core_ast_models_py_CodePayload --- core_ast_models_py_CodePayload_with_content
+    core_ast_models_py_CodePayload_with_content --> call_self_model_copy
+        core_ast_models_py_TablePayload --- core_ast_models_py_TablePayload_with_content
+    core_ast_models_py_TablePayload_with_content --> call_self_model_copy
+        core_ast_models_py_ListPayload --- core_ast_models_py_ListPayload_with_content
+    core_ast_models_py_ListPayload_with_content --> call_self_model_copy
+        core_ast_models_py_ASTNode --- core_ast_models_py_ASTNode_spawn_fragment
+    core_ast_models_py_ASTNode_spawn_fragment --> call_self_model_copy
         core_ast_models_py_ASTNode --- core_ast_models_py_ASTNode_has_valid_sequence
+        core_ast_models_py_ASTNode --- core_ast_models_py_ASTNode__discriminate_payload
+    core_ast_models_py_ASTNode__discriminate_payload --> call_isinstance
+    core_ast_models_py_ASTNode__discriminate_payload --> call_values_get
+    core_ast_models_py_ASTNode__discriminate_payload --> call_HeadingPayload
+    core_ast_models_py_ASTNode__discriminate_payload --> call_ImagePayload
+    core_ast_models_py_ASTNode__discriminate_payload --> call_type_mapping_get
+    core_ast_models_py_ASTNode__discriminate_payload --> call_target_model
+    core_ast_models_py_ASTNode__discriminate_payload --> call_model_validator
+        core_ast_models_py_ASTNode --- core_ast_models_py_ASTNode_text_content
+    core_ast_models_py_ASTNode_text_content --> call_getattr
+        core_ast_models_py_ASTNode --- core_ast_models_py_ASTNode_with_strategy
+    core_ast_models_py_ASTNode_with_strategy --> call_self_model_copy
+        core_ast_models_py_ASTNode --- core_ast_models_py_ASTNode_with_sequence_id
+    core_ast_models_py_ASTNode_with_sequence_id --> call_self_model_copy
         core_ast_models_py_TokenEstimator --- core_ast_models_py_TokenEstimator_estimate
         core_ast_models_py_FastWordEstimator --- core_ast_models_py_FastWordEstimator_estimate
     core_ast_models_py_FastWordEstimator_estimate --> call_int
@@ -2298,6 +2909,7 @@ graph TD
     core_ast_segmenter_py_MarkdownSegmenter_segment --> call_logger_error
     core_ast_segmenter_py_MarkdownSegmenter_segment --> call___search
     core_ast_segmenter_py_MarkdownSegmenter_segment --> call_b_strip
+    core_ast_strategy_py_resolve_strategy --> call_logger_warning
         core_ast_validator_py_ASTHealthReport --- core_ast_validator_py_ASTHealthReport___init__
         core_ast_validator_py_ASTHealthReport --- core_ast_validator_py_ASTHealthReport_from_ast
     core_ast_validator_py_ASTHealthReport_from_ast --> call_len
@@ -2435,6 +3047,36 @@ graph TD
         core_benchmark_runners_groq_runner_py_DummyContextResolver --- core_benchmark_runners_groq_runner_py_DummyContextResolver_resolve
     core_benchmark_runners_groq_runner_py_DummyContextResolver_resolve --> call_ResolvedContext
         core_benchmark_runners_groq_runner_py_GroqBenchmarkRunner --- core_benchmark_runners_groq_runner_py_GroqBenchmarkRunner___init__
+        core_chunking_chunker_py_PolicyDrivenStreamingChunker --- core_chunking_chunker_py_PolicyDrivenStreamingChunker___init__
+    core_chunking_chunker_py_PolicyDrivenStreamingChunker___init__ --> call_ChunkerConfig
+        core_chunking_chunker_py_PolicyDrivenStreamingChunker --- core_chunking_chunker_py_PolicyDrivenStreamingChunker_chunk
+    core_chunking_chunker_py_PolicyDrivenStreamingChunker_chunk --> call_ValueError
+    core_chunking_chunker_py_PolicyDrivenStreamingChunker_chunk --> call___estimate
+    core_chunking_chunker_py_PolicyDrivenStreamingChunker_chunk --> call___is_atomic
+    core_chunking_chunker_py_PolicyDrivenStreamingChunker_chunk --> call_AtomicNodeTooLargeException
+    core_chunking_chunker_py_PolicyDrivenStreamingChunker_chunk --> call___can_group
+    core_chunking_chunker_py_PolicyDrivenStreamingChunker_chunk --> call_tuple
+    core_chunking_chunker_py_PolicyDrivenStreamingChunker_chunk --> call_self__build_chunk
+    core_chunking_chunker_py_PolicyDrivenStreamingChunker_chunk --> call_current_nodes_clear
+    core_chunking_chunker_py_PolicyDrivenStreamingChunker_chunk --> call_current_nodes_append
+    core_chunking_chunker_py_PolicyDrivenStreamingChunker_chunk --> call_logger_info
+        core_chunking_chunker_py_PolicyDrivenStreamingChunker --- core_chunking_chunker_py_PolicyDrivenStreamingChunker__build_chunk
+    core_chunking_chunker_py_PolicyDrivenStreamingChunker__build_chunk --> call_ChunkConstructionException
+    core_chunking_chunker_py_PolicyDrivenStreamingChunker__build_chunk --> call___hexdigest
+    core_chunking_chunker_py_PolicyDrivenStreamingChunker__build_chunk --> call_hashlib_sha256
+    core_chunking_chunker_py_PolicyDrivenStreamingChunker__build_chunk --> call___encode
+    core_chunking_chunker_py_PolicyDrivenStreamingChunker__build_chunk --> call___join
+    core_chunking_chunker_py_PolicyDrivenStreamingChunker__build_chunk --> call_str
+    core_chunking_chunker_py_PolicyDrivenStreamingChunker__build_chunk --> call_TranslationChunk
+    core_chunking_chunker_py_PolicyDrivenStreamingChunker__build_chunk --> call_tuple
+    core_chunking_chunker_py_PolicyDrivenStreamingChunker__build_chunk --> call_ChunkMetadata
+    core_chunking_chunker_py_PolicyDrivenStreamingChunker__build_chunk --> call_len
+        core_chunking_policies_py_StructuralNodeAtomicityPolicy --- core_chunking_policies_py_StructuralNodeAtomicityPolicy_is_atomic
+        core_chunking_policies_py_StructuralChunkBoundaryPolicy --- core_chunking_policies_py_StructuralChunkBoundaryPolicy_can_group
+        core_chunking_protocols_py_TokenEstimator --- core_chunking_protocols_py_TokenEstimator_estimate
+        core_chunking_protocols_py_NodeAtomicityPolicy --- core_chunking_protocols_py_NodeAtomicityPolicy_is_atomic
+        core_chunking_protocols_py_ChunkBoundaryPolicy --- core_chunking_protocols_py_ChunkBoundaryPolicy_can_group
+        core_chunking_protocols_py_ASTChunker --- core_chunking_protocols_py_ASTChunker_chunk
         core_compiler_assembler_py_IntegrityCheckedDocumentRepository --- core_compiler_assembler_py_IntegrityCheckedDocumentRepository_get_verified_payload
         core_compiler_assembler_py_DocumentAssemblyDecision --- core_compiler_assembler_py_DocumentAssemblyDecision_is_accepted
         core_compiler_assembler_py_DocumentAssembler --- core_compiler_assembler_py_DocumentAssembler___init__
@@ -2486,6 +3128,20 @@ graph TD
     core_context_context_resolver_py_InMemoryContextResolver_resolve_many --> call_ResolvedContext
     core_context_context_resolver_py_InMemoryContextResolver_resolve_many --> call_tuple
     core_context_context_resolver_py_InMemoryContextResolver_resolve_many --> call_KeyError
+        core_domain_document_py_BoundingBox --- core_domain_document_py_BoundingBox_validate_bounds
+    core_domain_document_py_BoundingBox_validate_bounds --> call_ValueError
+    core_domain_document_py_BoundingBox_validate_bounds --> call_model_validator
+        core_domain_document_py_BoundingBox --- core_domain_document_py_BoundingBox_center_x
+        core_domain_document_py_BoundingBox --- core_domain_document_py_BoundingBox_width
+    core_domain_document_py_BoundingBox_width --> call_max
+        core_domain_document_py_BoundingBox --- core_domain_document_py_BoundingBox_height
+    core_domain_document_py_BoundingBox_height --> call_max
+        core_domain_document_py_LayoutBlock --- core_domain_document_py_LayoutBlock_is_structural
+        core_domain_document_py_DocumentLayout --- core_domain_document_py_DocumentLayout__block_index
+        core_domain_document_py_DocumentLayout --- core_domain_document_py_DocumentLayout_get_block
+    core_domain_document_py_DocumentLayout_get_block --> call___get
+        core_domain_document_py_DocumentLayout --- core_domain_document_py_DocumentLayout_get_page
+    core_domain_document_py_DocumentLayout_get_page --> call_len
         core_execution_exceptions_py_IncompleteDocumentError --- core_execution_exceptions_py_IncompleteDocumentError___init__
     core_execution_exceptions_py_IncompleteDocumentError___init__ --> call_____init__
     core_execution_exceptions_py_IncompleteDocumentError___init__ --> call_super
@@ -2509,6 +3165,12 @@ graph TD
         core_execution_exceptions_py_ContextOverflowError --- core_execution_exceptions_py_ContextOverflowError___str__
     core_execution_exceptions_py_ContextOverflowError___str__ --> call_____str__
     core_execution_exceptions_py_ContextOverflowError___str__ --> call_super
+        core_execution_exceptions_py_ExtractionError --- core_execution_exceptions_py_ExtractionError___init__
+    core_execution_exceptions_py_ExtractionError___init__ --> call_____init__
+    core_execution_exceptions_py_ExtractionError___init__ --> call_super
+        core_execution_exceptions_py_ASTMappingError --- core_execution_exceptions_py_ASTMappingError___init__
+    core_execution_exceptions_py_ASTMappingError___init__ --> call_____init__
+    core_execution_exceptions_py_ASTMappingError___init__ --> call_super
         core_execution_handlers_py_DocumentCommandHandler --- core_execution_handlers_py_DocumentCommandHandler___init__
         core_execution_handlers_py_DocumentCommandHandler --- core_execution_handlers_py_DocumentCommandHandler__get_target_state
     core_execution_handlers_py_DocumentCommandHandler__get_target_state --> call_isinstance
@@ -2576,6 +3238,20 @@ graph TD
     core_execution_state_py_FSMValidator_validate --> call_LEGAL_TRANSITIONS_get
     core_execution_state_py_FSMValidator_validate --> call_set
     core_execution_state_py_FSMValidator_validate --> call_IllegalStateTransitionError
+        core_extraction_provider_py_ExtractionProvider --- core_extraction_provider_py_ExtractionProvider_capabilities
+        core_extraction_provider_py_ExtractionProvider --- core_extraction_provider_py_ExtractionProvider_extract
+        core_extraction_ocr_providers_pymupdf_provider_py_PyMuPDFProvider --- core_extraction_ocr_providers_pymupdf_provider_py_PyMuPDFProvider___init__
+    core_extraction_ocr_providers_pymupdf_provider_py_PyMuPDFProvider___init__ --> call_ExtractionCapabilities
+        core_extraction_ocr_providers_pymupdf_provider_py_PyMuPDFProvider --- core_extraction_ocr_providers_pymupdf_provider_py_PyMuPDFProvider_capabilities
+        core_extraction_ocr_providers_pymupdf_provider_py_PyMuPDFProvider --- core_extraction_ocr_providers_pymupdf_provider_py_PyMuPDFProvider_extract
+    core_extraction_ocr_providers_pymupdf_provider_py_PyMuPDFProvider_extract --> call_DocumentProfile
+    core_extraction_ocr_providers_pymupdf_provider_py_PyMuPDFProvider_extract --> call_DocumentLayout
+        core_extraction_ocr_providers_tesseract_provider_py_TesseractProvider --- core_extraction_ocr_providers_tesseract_provider_py_TesseractProvider___init__
+    core_extraction_ocr_providers_tesseract_provider_py_TesseractProvider___init__ --> call_ExtractionCapabilities
+        core_extraction_ocr_providers_tesseract_provider_py_TesseractProvider --- core_extraction_ocr_providers_tesseract_provider_py_TesseractProvider_capabilities
+        core_extraction_ocr_providers_tesseract_provider_py_TesseractProvider --- core_extraction_ocr_providers_tesseract_provider_py_TesseractProvider_extract
+    core_extraction_ocr_providers_tesseract_provider_py_TesseractProvider_extract --> call_DocumentProfile
+    core_extraction_ocr_providers_tesseract_provider_py_TesseractProvider_extract --> call_DocumentLayout
         core_healing_base_py_BaseHealingStrategy --- core_healing_base_py_BaseHealingStrategy_invariant_family
         core_healing_base_py_BaseHealingStrategy --- core_healing_base_py_BaseHealingStrategy_priority
         core_healing_base_py_BaseHealingStrategy --- core_healing_base_py_BaseHealingStrategy_heal
@@ -2657,6 +3333,167 @@ graph TD
     core_healing_strategies_structural_py_EOFMathClosureStrategy_heal --> call_HealingResult
     core_healing_strategies_structural_py_EOFMathClosureStrategy_heal --> call_original_rstrip
     core_healing_strategies_structural_py_EOFMathClosureStrategy_heal --> call_base_text_endswith
+        core_layout_base_py_LayoutStage --- core_layout_base_py_LayoutStage___init__
+        core_layout_base_py_LayoutStage --- core_layout_base_py_LayoutStage_stage_name
+        core_layout_base_py_LayoutStage --- core_layout_base_py_LayoutStage_supports_parallel_execution
+        core_layout_base_py_LayoutStage --- core_layout_base_py_LayoutStage_process
+    core_layout_base_py_LayoutStage_process --> call_time_perf_counter
+    core_layout_base_py_LayoutStage_process --> call_self__execute
+    core_layout_base_py_LayoutStage_process --> call_str
+    core_layout_base_py_LayoutStage_process --> call_type
+    core_layout_base_py_LayoutStage_process --> call_StageExecutionRecord
+    core_layout_base_py_LayoutStage_process --> call___record_execution
+    core_layout_base_py_LayoutStage_process --> call_logger_error
+        core_layout_base_py_LayoutStage --- core_layout_base_py_LayoutStage__execute
+        core_layout_builder_py_DocumentLayoutBuilder --- core_layout_builder_py_DocumentLayoutBuilder___init__
+    core_layout_builder_py_DocumentLayoutBuilder___init__ --> call_self__validate_pipeline_composition
+        core_layout_builder_py_DocumentLayoutBuilder --- core_layout_builder_py_DocumentLayoutBuilder__validate_pipeline_composition
+    core_layout_builder_py_DocumentLayoutBuilder__validate_pipeline_composition --> call_PipelineIntegrityError
+    core_layout_builder_py_DocumentLayoutBuilder__validate_pipeline_composition --> call_range
+    core_layout_builder_py_DocumentLayoutBuilder__validate_pipeline_composition --> call_len
+    core_layout_builder_py_DocumentLayoutBuilder__validate_pipeline_composition --> call_issubclass
+        core_layout_builder_py_DocumentLayoutBuilder --- core_layout_builder_py_DocumentLayoutBuilder_build
+    core_layout_builder_py_DocumentLayoutBuilder_build --> call_PageDimensions
+    core_layout_builder_py_DocumentLayoutBuilder_build --> call_page_data_get
+    core_layout_builder_py_DocumentLayoutBuilder_build --> call_enumerate
+    core_layout_builder_py_DocumentLayoutBuilder_build --> call_PipelineContext
+    core_layout_builder_py_DocumentLayoutBuilder_build --> call_stage_process
+    core_layout_builder_py_DocumentLayoutBuilder_build --> call_processed_pages_append
+    core_layout_builder_py_DocumentLayoutBuilder_build --> call_LayoutPage
+    core_layout_builder_py_DocumentLayoutBuilder_build --> call_DocumentLayout
+    core_layout_builder_py_DocumentLayoutBuilder_build --> call_len
+    core_layout_builder_py_DocumentLayoutBuilder_build --> call_DocumentProfile
+        core_layout_classifier_py_LogicalClassifier --- core_layout_classifier_py_LogicalClassifier_stage_name
+        core_layout_classifier_py_LogicalClassifier --- core_layout_classifier_py_LogicalClassifier_supports_parallel_execution
+        core_layout_classifier_py_LogicalClassifier --- core_layout_classifier_py_LogicalClassifier__execute
+    core_layout_classifier_py_LogicalClassifier__execute --> call_self__resolve_from_provider
+    core_layout_classifier_py_LogicalClassifier__execute --> call_self__infer_from_content
+    core_layout_classifier_py_LogicalClassifier__execute --> call_classified_blocks_append
+    core_layout_classifier_py_LogicalClassifier__execute --> call_block_model_copy
+    core_layout_classifier_py_LogicalClassifier__execute --> call_LayoutBlockCollection
+        core_layout_classifier_py_LogicalClassifier --- core_layout_classifier_py_LogicalClassifier__resolve_from_provider
+    core_layout_classifier_py_LogicalClassifier__resolve_from_provider --> call_provider_id_upper
+        core_layout_classifier_py_LogicalClassifier --- core_layout_classifier_py_LogicalClassifier__infer_from_content
+    core_layout_classifier_py_LogicalClassifier__infer_from_content --> call_content_strip
+    core_layout_classifier_py_LogicalClassifier__infer_from_content --> call_len
+    core_layout_classifier_py_LogicalClassifier__infer_from_content --> call_cleaned_isupper
+    core_layout_classifier_py_LogicalClassifier__infer_from_content --> call_cleaned_endswith
+    core_layout_classifier_py_LogicalClassifier__infer_from_content --> call_pattern_search
+        core_layout_detector_py_SpatialAnalyzer --- core_layout_detector_py_SpatialAnalyzer_stage_name
+        core_layout_detector_py_SpatialAnalyzer --- core_layout_detector_py_SpatialAnalyzer_supports_parallel_execution
+        core_layout_detector_py_SpatialAnalyzer --- core_layout_detector_py_SpatialAnalyzer__execute
+    core_layout_detector_py_SpatialAnalyzer__execute --> call_max
+    core_layout_detector_py_SpatialAnalyzer__execute --> call_min
+    core_layout_detector_py_SpatialAnalyzer__execute --> call_int
+    core_layout_detector_py_SpatialAnalyzer__execute --> call_len
+    core_layout_detector_py_SpatialAnalyzer__execute --> call___get
+    core_layout_detector_py_SpatialAnalyzer__execute --> call_range
+    core_layout_detector_py_SpatialAnalyzer__execute --> call_sum
+    core_layout_detector_py_SpatialAnalyzer__execute --> call_self__detect_gutters
+    core_layout_detector_py_SpatialAnalyzer__execute --> call_str
+    core_layout_detector_py_SpatialAnalyzer__execute --> call_round
+    core_layout_detector_py_SpatialAnalyzer__execute --> call_analyzed_blocks_append
+    core_layout_detector_py_SpatialAnalyzer__execute --> call_block_model_copy
+    core_layout_detector_py_SpatialAnalyzer__execute --> call_LayoutBlockCollection
+        core_layout_detector_py_SpatialAnalyzer --- core_layout_detector_py_SpatialAnalyzer__detect_gutters
+    core_layout_detector_py_SpatialAnalyzer__detect_gutters --> call_int
+    core_layout_detector_py_SpatialAnalyzer__detect_gutters --> call_min
+    core_layout_detector_py_SpatialAnalyzer__detect_gutters --> call_range
+    core_layout_detector_py_SpatialAnalyzer__detect_gutters --> call_valley_bins_append
+    core_layout_detector_py_SpatialAnalyzer__detect_gutters --> call_len
+    core_layout_detector_py_SpatialAnalyzer__detect_gutters --> call_gutters_x_append
+    core_layout_detector_py_SpatialAnalyzer__detect_gutters --> call_self__filter_spurious_gutters
+        core_layout_detector_py_SpatialAnalyzer --- core_layout_detector_py_SpatialAnalyzer__filter_spurious_gutters
+    core_layout_detector_py_SpatialAnalyzer__filter_spurious_gutters --> call_len
+    core_layout_detector_py_SpatialAnalyzer__filter_spurious_gutters --> call_sorted
+    core_layout_detector_py_SpatialAnalyzer__filter_spurious_gutters --> call_gutters_sort
+    core_layout_detector_py_SpatialAnalyzer__filter_spurious_gutters --> call_filtered_append
+        core_layout_identity_py_BlockIdentityGenerator --- core_layout_identity_py_BlockIdentityGenerator_stage_name
+        core_layout_identity_py_BlockIdentityGenerator --- core_layout_identity_py_BlockIdentityGenerator_supports_parallel_execution
+        core_layout_identity_py_BlockIdentityGenerator --- core_layout_identity_py_BlockIdentityGenerator__execute
+    core_layout_identity_py_BlockIdentityGenerator__execute --> call_enumerate
+    core_layout_identity_py_BlockIdentityGenerator__execute --> call_self__build_seed
+    core_layout_identity_py_BlockIdentityGenerator__execute --> call___hexdigest
+    core_layout_identity_py_BlockIdentityGenerator__execute --> call_hashlib_sha256
+    core_layout_identity_py_BlockIdentityGenerator__execute --> call_seed_string_encode
+    core_layout_identity_py_BlockIdentityGenerator__execute --> call_identified_list_append
+    core_layout_identity_py_BlockIdentityGenerator__execute --> call_block_model_copy
+    core_layout_identity_py_BlockIdentityGenerator__execute --> call_BlockId
+    core_layout_identity_py_BlockIdentityGenerator__execute --> call_LayoutBlockCollection
+        core_layout_identity_py_BlockIdentityGenerator --- core_layout_identity_py_BlockIdentityGenerator__build_seed
+    core_layout_identity_py_BlockIdentityGenerator__build_seed --> call_round
+        core_layout_merger_py_SpatialMerger --- core_layout_merger_py_SpatialMerger_stage_name
+        core_layout_merger_py_SpatialMerger --- core_layout_merger_py_SpatialMerger_supports_parallel_execution
+        core_layout_merger_py_SpatialMerger --- core_layout_merger_py_SpatialMerger__execute
+    core_layout_merger_py_SpatialMerger__execute --> call_len
+    core_layout_merger_py_SpatialMerger__execute --> call_sorted
+    core_layout_merger_py_SpatialMerger__execute --> call_self__evaluate_merge_affinity
+    core_layout_merger_py_SpatialMerger__execute --> call_self__get_strategy_threshold
+    core_layout_merger_py_SpatialMerger__execute --> call_self__fuse_blocks
+    core_layout_merger_py_SpatialMerger__execute --> call_current_model_copy
+    core_layout_merger_py_SpatialMerger__execute --> call_merged_blocks_append
+    core_layout_merger_py_SpatialMerger__execute --> call_LayoutBlockCollection
+        core_layout_merger_py_SpatialMerger --- core_layout_merger_py_SpatialMerger__evaluate_merge_affinity
+    core_layout_merger_py_SpatialMerger__evaluate_merge_affinity --> call___get
+    core_layout_merger_py_SpatialMerger__evaluate_merge_affinity --> call_max
+    core_layout_merger_py_SpatialMerger__evaluate_merge_affinity --> call_min
+    core_layout_merger_py_SpatialMerger__evaluate_merge_affinity --> call_abs
+        core_layout_merger_py_SpatialMerger --- core_layout_merger_py_SpatialMerger__get_strategy_threshold
+    core_layout_merger_py_SpatialMerger__get_strategy_threshold --> call_mapping_get
+    core_layout_merger_py_SpatialMerger__get_strategy_threshold --> call_strategy_upper
+        core_layout_merger_py_SpatialMerger --- core_layout_merger_py_SpatialMerger__fuse_blocks
+    core_layout_merger_py_SpatialMerger__fuse_blocks --> call_BoundingBox
+    core_layout_merger_py_SpatialMerger__fuse_blocks --> call_min
+    core_layout_merger_py_SpatialMerger__fuse_blocks --> call_max
+    core_layout_merger_py_SpatialMerger__fuse_blocks --> call___get
+    core_layout_merger_py_SpatialMerger__fuse_blocks --> call_b1_model_copy
+        core_layout_normalizer_py_CoordinateNormalizer --- core_layout_normalizer_py_CoordinateNormalizer_stage_name
+        core_layout_normalizer_py_CoordinateNormalizer --- core_layout_normalizer_py_CoordinateNormalizer_supports_parallel_execution
+        core_layout_normalizer_py_CoordinateNormalizer --- core_layout_normalizer_py_CoordinateNormalizer__execute
+    core_layout_normalizer_py_CoordinateNormalizer__execute --> call_LayoutRecoveryError
+    core_layout_normalizer_py_CoordinateNormalizer__execute --> call_self__scale_and_clamp
+    core_layout_normalizer_py_CoordinateNormalizer__execute --> call_BoundingBox
+    core_layout_normalizer_py_CoordinateNormalizer__execute --> call_normalized_list_append
+    core_layout_normalizer_py_CoordinateNormalizer__execute --> call_block_model_copy
+    core_layout_normalizer_py_CoordinateNormalizer__execute --> call_LayoutBlockCollection
+        core_layout_normalizer_py_CoordinateNormalizer --- core_layout_normalizer_py_CoordinateNormalizer__scale_and_clamp
+    core_layout_normalizer_py_CoordinateNormalizer__scale_and_clamp --> call_max
+    core_layout_normalizer_py_CoordinateNormalizer__scale_and_clamp --> call_min
+    core_layout_normalizer_py_CoordinateNormalizer__scale_and_clamp --> call_float
+        core_layout_reading_order_py_ReadingOrderResolver --- core_layout_reading_order_py_ReadingOrderResolver_stage_name
+        core_layout_reading_order_py_ReadingOrderResolver --- core_layout_reading_order_py_ReadingOrderResolver_supports_parallel_execution
+        core_layout_reading_order_py_ReadingOrderResolver --- core_layout_reading_order_py_ReadingOrderResolver__execute
+    core_layout_reading_order_py_ReadingOrderResolver__execute --> call_len
+    core_layout_reading_order_py_ReadingOrderResolver__execute --> call_defaultdict
+    core_layout_reading_order_py_ReadingOrderResolver__execute --> call_sorted
+    core_layout_reading_order_py_ReadingOrderResolver__execute --> call_self__eval_precedence
+    core_layout_reading_order_py_ReadingOrderResolver__execute --> call___add
+    core_layout_reading_order_py_ReadingOrderResolver__execute --> call_active_set_append
+    core_layout_reading_order_py_ReadingOrderResolver__execute --> call_adjacency_graph_values
+    core_layout_reading_order_py_ReadingOrderResolver__execute --> call_self__validate_dag_integrity
+    core_layout_reading_order_py_ReadingOrderResolver__execute --> call_in_degree_items
+    core_layout_reading_order_py_ReadingOrderResolver__execute --> call_heapq_heappush
+    core_layout_reading_order_py_ReadingOrderResolver__execute --> call_heapq_heappop
+    core_layout_reading_order_py_ReadingOrderResolver__execute --> call_sorted_ids_append
+    core_layout_reading_order_py_ReadingOrderResolver__execute --> call_set
+    core_layout_reading_order_py_ReadingOrderResolver__execute --> call_in_degree_keys
+    core_layout_reading_order_py_ReadingOrderResolver__execute --> call_self__emit_cycle_telemetry
+    core_layout_reading_order_py_ReadingOrderResolver__execute --> call___get
+    core_layout_reading_order_py_ReadingOrderResolver__execute --> call_enumerate
+    core_layout_reading_order_py_ReadingOrderResolver__execute --> call_final_blocks_append
+    core_layout_reading_order_py_ReadingOrderResolver__execute --> call_block_model_copy
+    core_layout_reading_order_py_ReadingOrderResolver__execute --> call_LayoutBlockCollection
+        core_layout_reading_order_py_ReadingOrderResolver --- core_layout_reading_order_py_ReadingOrderResolver__validate_dag_integrity
+    core_layout_reading_order_py_ReadingOrderResolver__validate_dag_integrity --> call_graph_items
+    core_layout_reading_order_py_ReadingOrderResolver__validate_dag_integrity --> call_edges_remove
+    core_layout_reading_order_py_ReadingOrderResolver__validate_dag_integrity --> call_max
+        core_layout_reading_order_py_ReadingOrderResolver --- core_layout_reading_order_py_ReadingOrderResolver__emit_cycle_telemetry
+    core_layout_reading_order_py_ReadingOrderResolver__emit_cycle_telemetry --> call_logger_warning
+    core_layout_reading_order_py_ReadingOrderResolver__emit_cycle_telemetry --> call_StageExecutionRecord
+    core_layout_reading_order_py_ReadingOrderResolver__emit_cycle_telemetry --> call___record_execution
+    core_layout_reading_order_py_ReadingOrderResolver__emit_cycle_telemetry --> call_logger_error
+    core_layout_reading_order_py_ReadingOrderResolver__emit_cycle_telemetry --> call_str
+        core_layout_reading_order_py_ReadingOrderResolver --- core_layout_reading_order_py_ReadingOrderResolver__eval_precedence
         core_metrics_exporters_py_MetricsExporter --- core_metrics_exporters_py_MetricsExporter_export
         core_metrics_exporters_py_ConsoleMetricsExporter --- core_metrics_exporters_py_ConsoleMetricsExporter_export
     core_metrics_exporters_py_ConsoleMetricsExporter_export --> call_print
@@ -3002,6 +3839,7 @@ graph TD
         core_pipeline_orchestrator_py_DocumentRepositoryProtocol --- core_pipeline_orchestrator_py_DocumentRepositoryProtocol_save_batch
         core_pipeline_orchestrator_py_TranslationPipeline --- core_pipeline_orchestrator_py_TranslationPipeline___init__
     core_pipeline_orchestrator_py_TranslationPipeline___init__ --> call_re_compile
+        core_pipeline_protocols_py_PassthroughSink --- core_pipeline_protocols_py_PassthroughSink_sink
         core_pipeline_state_store_py_StateStoreProtocol --- core_pipeline_state_store_py_StateStoreProtocol_save
         core_pipeline_state_store_py_StateStoreProtocol --- core_pipeline_state_store_py_StateStoreProtocol_load
         core_pipeline_state_store_py_FSMStateStore --- core_pipeline_state_store_py_FSMStateStore___init__
@@ -3019,6 +3857,12 @@ graph TD
     core_pipeline_state_store_py_FSMStateStore_save --> call_MarkCompilationReadyCommand
     core_pipeline_state_store_py_FSMStateStore_save --> call_StartCompilationCommand
     core_pipeline_state_store_py_FSMStateStore_save --> call_cmd_class
+        core_pipeline_workflow_py_RoutingWorkflow --- core_pipeline_workflow_py_RoutingWorkflow___init__
+        core_pipeline_workflow_py_RoutingWorkflow --- core_pipeline_workflow_py_RoutingWorkflow_stream_translate_channel
+    core_pipeline_workflow_py_RoutingWorkflow_stream_translate_channel --> call_RoutingMetrics
+    core_pipeline_workflow_py_RoutingWorkflow_stream_translate_channel --> call___route
+    core_pipeline_workflow_py_RoutingWorkflow_stream_translate_channel --> call___sink
+    core_pipeline_workflow_py_RoutingWorkflow_stream_translate_channel --> call_logger_info
         core_resilience_circuit_breaker_py_GlobalCircuitBreaker --- core_resilience_circuit_breaker_py_GlobalCircuitBreaker___init__
     core_resilience_circuit_breaker_py_GlobalCircuitBreaker___init__ --> call_deque
     core_resilience_circuit_breaker_py_GlobalCircuitBreaker___init__ --> call_asyncio_Lock
@@ -3026,6 +3870,74 @@ graph TD
     core_resilience_circuit_breaker_py_GlobalCircuitBreaker__prune_window --> call___popleft
         core_resilience_circuit_breaker_py_CircuitBreakerRegistry --- core_resilience_circuit_breaker_py_CircuitBreakerRegistry_get_breaker
     core_resilience_circuit_breaker_py_CircuitBreakerRegistry_get_breaker --> call_GlobalCircuitBreaker
+        core_routing_protocols_py_NodeRouter --- core_routing_protocols_py_NodeRouter_route
+        core_routing_router_py_StrategyRouter --- core_routing_router_py_StrategyRouter_route
+    core_routing_router_py_StrategyRouter_route --> call___get
+        core_segmenter_normalizer_py_ASTSequenceNormalizer --- core_segmenter_normalizer_py_ASTSequenceNormalizer_normalize
+    core_segmenter_normalizer_py_ASTSequenceNormalizer_normalize --> call_node_with_sequence_id
+    core_segmenter_normalizer_py_ASTSequenceNormalizer_normalize --> call_enumerate
+        core_segmenter_policies_py_ScientificBoundaryPolicy --- core_segmenter_policies_py_ScientificBoundaryPolicy__rule_is_decimal_or_version
+    core_segmenter_policies_py_ScientificBoundaryPolicy__rule_is_decimal_or_version --> call___isdigit
+        core_segmenter_policies_py_ScientificBoundaryPolicy --- core_segmenter_policies_py_ScientificBoundaryPolicy__rule_is_protected_lexicon
+    core_segmenter_policies_py_ScientificBoundaryPolicy__rule_is_protected_lexicon --> call___isalpha
+    core_segmenter_policies_py_ScientificBoundaryPolicy__rule_is_protected_lexicon --> call___lower
+        core_segmenter_policies_py_ScientificBoundaryPolicy --- core_segmenter_policies_py_ScientificBoundaryPolicy__rule_invalid_continuation
+    core_segmenter_policies_py_ScientificBoundaryPolicy__rule_invalid_continuation --> call___isspace
+    core_segmenter_policies_py_ScientificBoundaryPolicy__rule_invalid_continuation --> call_char_isupper
+    core_segmenter_policies_py_ScientificBoundaryPolicy__rule_invalid_continuation --> call_char_isdigit
+        core_segmenter_policies_py_ScientificBoundaryPolicy --- core_segmenter_policies_py_ScientificBoundaryPolicy_find_boundaries
+    core_segmenter_policies_py_ScientificBoundaryPolicy_find_boundaries --> call_len
+    core_segmenter_policies_py_ScientificBoundaryPolicy_find_boundaries --> call___finditer
+    core_segmenter_policies_py_ScientificBoundaryPolicy_find_boundaries --> call_BoundaryCandidate
+    core_segmenter_policies_py_ScientificBoundaryPolicy_find_boundaries --> call_match_start
+    core_segmenter_policies_py_ScientificBoundaryPolicy_find_boundaries --> call_match_end
+    core_segmenter_policies_py_ScientificBoundaryPolicy_find_boundaries --> call_any
+    core_segmenter_policies_py_ScientificBoundaryPolicy_find_boundaries --> call_rule
+    core_segmenter_policies_py_ScientificBoundaryPolicy_find_boundaries --> call_boundaries_append
+    core_segmenter_policies_py_ScientificBoundaryPolicy_find_boundaries --> call_tuple
+        core_segmenter_protocols_py_BoundaryPolicy --- core_segmenter_protocols_py_BoundaryPolicy_find_boundaries
+        core_segmenter_protocols_py_NodeSegmenter --- core_segmenter_protocols_py_NodeSegmenter_segment
+        core_segmenter_protocols_py_TextPayload --- core_segmenter_protocols_py_TextPayload_content
+        core_segmenter_protocols_py_TextPayload --- core_segmenter_protocols_py_TextPayload_with_content
+        core_segmenter_protocols_py_NodeIdentityGenerator --- core_segmenter_protocols_py_NodeIdentityGenerator_generate
+        core_segmenter_protocols_py_NodeRouter --- core_segmenter_protocols_py_NodeRouter_route
+        core_segmenter_segmenters_py_AtomicSegmenter --- core_segmenter_segmenters_py_AtomicSegmenter_segment
+        core_segmenter_segmenters_py_ParagraphSegmenter --- core_segmenter_segmenters_py_ParagraphSegmenter___init__
+        core_segmenter_segmenters_py_ParagraphSegmenter --- core_segmenter_segmenters_py_ParagraphSegmenter_segment
+    core_segmenter_segmenters_py_ParagraphSegmenter_segment --> call_cast
+    core_segmenter_segmenters_py_ParagraphSegmenter_segment --> call___find_boundaries
+    core_segmenter_segmenters_py_ParagraphSegmenter_segment --> call_len
+    core_segmenter_segmenters_py_ParagraphSegmenter_segment --> call___strip
+    core_segmenter_segmenters_py_ParagraphSegmenter_segment --> call_payload_with_content
+    core_segmenter_segmenters_py_ParagraphSegmenter_segment --> call_node_spawn_fragment
+    core_segmenter_segmenters_py_ParagraphSegmenter_segment --> call___generate
+    core_segmenter_segmenters_py_ParagraphSegmenter_segment --> call_logger_debug
+        core_segmenter_segmenters_py_SegmentDispatcher --- core_segmenter_segmenters_py_SegmentDispatcher___init__
+    core_segmenter_segmenters_py_SegmentDispatcher___init__ --> call_MappingProxyType
+        core_segmenter_segmenters_py_SegmentDispatcher --- core_segmenter_segmenters_py_SegmentDispatcher_dispatch
+    core_segmenter_segmenters_py_SegmentDispatcher_dispatch --> call___get
+        core_segmenter_service_py_UUIDIdentityGenerator --- core_segmenter_service_py_UUIDIdentityGenerator_generate
+    core_segmenter_service_py_UUIDIdentityGenerator_generate --> call_uuid_uuid4
+        core_segmenter_service_py_SegmenterService --- core_segmenter_service_py_SegmenterService___init__
+        core_segmenter_service_py_SegmenterService --- core_segmenter_service_py_SegmenterService_process_document
+    core_segmenter_service_py_SegmenterService_process_document --> call___dispatch
+    core_segmenter_service_py_SegmenterService_process_document --> call_segmented_stream_extend
+    core_segmenter_service_py_SegmenterService_process_document --> call_segmenter_segment
+    core_segmenter_service_py_SegmenterService_process_document --> call_logger_error
+    core_segmenter_service_py_SegmenterService_process_document --> call_segmented_stream_append
+    core_segmenter_service_py_SegmenterService_process_document --> call___normalize
+    core_segmenter_service_py_SegmenterService_process_document --> call_logger_info
+    core_segmenter_service_py_SegmenterService_process_document --> call_len
+        core_segmenter_service_py_SegmenterBootstrap --- core_segmenter_service_py_SegmenterBootstrap_create
+    core_segmenter_service_py_SegmenterBootstrap_create --> call_UUIDIdentityGenerator
+    core_segmenter_service_py_SegmenterBootstrap_create --> call_ScientificBoundaryPolicy
+    core_segmenter_service_py_SegmenterBootstrap_create --> call_AtomicSegmenter
+    core_segmenter_service_py_SegmenterBootstrap_create --> call_ParagraphSegmenter
+    core_segmenter_service_py_SegmenterBootstrap_create --> call_SegmentDispatcher
+    core_segmenter_service_py_SegmenterBootstrap_create --> call_ASTSequenceNormalizer
+    core_segmenter_service_py_SegmenterBootstrap_create --> call_SegmenterService
+        core_telemetry_adapters_py_NullTelemetryAdapter --- core_telemetry_adapters_py_NullTelemetryAdapter_record_metric
+        core_telemetry_adapters_py_NullTelemetryAdapter --- core_telemetry_adapters_py_NullTelemetryAdapter_record_event
         core_telemetry_analyzer_py_TelemetryAnalyzer --- core_telemetry_analyzer_py_TelemetryAnalyzer___init__
     core_telemetry_analyzer_py_TelemetryAnalyzer___init__ --> call_SLOConfig
         core_telemetry_analyzer_py_TelemetryAnalyzer --- core_telemetry_analyzer_py_TelemetryAnalyzer__query_scalar
@@ -3072,6 +3984,8 @@ graph TD
         core_telemetry_gateway_py_SQLiteTelemetryGateway --- core_telemetry_gateway_py_SQLiteTelemetryGateway__write_batch
     core_telemetry_gateway_py_SQLiteTelemetryGateway__write_batch --> call_sqlite3_connect
     core_telemetry_gateway_py_SQLiteTelemetryGateway__write_batch --> call_conn_executemany
+        core_telemetry_ports_py_TelemetryPort --- core_telemetry_ports_py_TelemetryPort_record_execution
+        core_telemetry_ports_py_NullTelemetryAdapter --- core_telemetry_ports_py_NullTelemetryAdapter_record_execution
     core_utils_fs_py_ensure_parent_dir --> call___mkdir
     core_utils_fs_py_ensure_parent_dir --> call_Path
         core_utils_logger_py_JsonFormatter --- core_utils_logger_py_JsonFormatter_format
@@ -3248,10 +4162,43 @@ graph TD
     core_validation_volumetric_py_VolumetricValidator_validate --> call___strip
     core_validation_volumetric_py_VolumetricValidator_validate --> call_results_append
     core_validation_volumetric_py_VolumetricValidator_validate --> call_ValidationResult
+        core_validation_ast_engine_py_PolymorphicValidationEngine --- core_validation_ast_engine_py_PolymorphicValidationEngine___init__
+    core_validation_ast_engine_py_PolymorphicValidationEngine___init__ --> call_tuple
+        core_validation_ast_engine_py_PolymorphicValidationEngine --- core_validation_ast_engine_py_PolymorphicValidationEngine_validate_stream
+    core_validation_ast_engine_py_PolymorphicValidationEngine_validate_stream --> call_validator_can_validate
+    core_validation_ast_engine_py_PolymorphicValidationEngine_validate_stream --> call_validator_validate
+        core_validation_ast_extractors_py_StronglyTypedTextExtractor --- core_validation_ast_extractors_py_StronglyTypedTextExtractor_extract
+    core_validation_ast_extractors_py_StronglyTypedTextExtractor_extract --> call_isinstance
+    core_validation_ast_extractors_py_StronglyTypedTextExtractor_extract --> call_str
+    core_validation_ast_factory_py_build_default_validation_engine --> call_StronglyTypedTextExtractor
+    core_validation_ast_factory_py_build_default_validation_engine --> call_StructuralEquationValidator
+    core_validation_ast_factory_py_build_default_validation_engine --> call_PassthroughIntegrityValidator
+    core_validation_ast_factory_py_build_default_validation_engine --> call_PolymorphicValidationEngine
+        core_validation_ast_protocols_py_NodeTextExtractor --- core_validation_ast_protocols_py_NodeTextExtractor_extract
+        core_validation_ast_protocols_py_NodeValidator --- core_validation_ast_protocols_py_NodeValidator_name
+        core_validation_ast_protocols_py_NodeValidator --- core_validation_ast_protocols_py_NodeValidator_can_validate
+        core_validation_ast_protocols_py_NodeValidator --- core_validation_ast_protocols_py_NodeValidator_validate
+        core_validation_ast_protocols_py_ValidationEngine --- core_validation_ast_protocols_py_ValidationEngine_validate_stream
+        core_validation_ast_validators_strategy_py_PassthroughIntegrityValidator --- core_validation_ast_validators_strategy_py_PassthroughIntegrityValidator___init__
+        core_validation_ast_validators_strategy_py_PassthroughIntegrityValidator --- core_validation_ast_validators_strategy_py_PassthroughIntegrityValidator_name
+        core_validation_ast_validators_strategy_py_PassthroughIntegrityValidator --- core_validation_ast_validators_strategy_py_PassthroughIntegrityValidator_can_validate
+        core_validation_ast_validators_strategy_py_PassthroughIntegrityValidator --- core_validation_ast_validators_strategy_py_PassthroughIntegrityValidator_validate
+    core_validation_ast_validators_strategy_py_PassthroughIntegrityValidator_validate --> call_ValidationResult
+    core_validation_ast_validators_strategy_py_PassthroughIntegrityValidator_validate --> call_str
+        core_validation_ast_validators_structural_py_StructuralEquationValidator --- core_validation_ast_validators_structural_py_StructuralEquationValidator___init__
+        core_validation_ast_validators_structural_py_StructuralEquationValidator --- core_validation_ast_validators_structural_py_StructuralEquationValidator_name
+        core_validation_ast_validators_structural_py_StructuralEquationValidator --- core_validation_ast_validators_structural_py_StructuralEquationValidator_can_validate
+        core_validation_ast_validators_structural_py_StructuralEquationValidator --- core_validation_ast_validators_structural_py_StructuralEquationValidator_validate
+    core_validation_ast_validators_structural_py_StructuralEquationValidator_validate --> call___extract
+    core_validation_ast_validators_structural_py_StructuralEquationValidator_validate --> call_ValidationResult
+    core_validation_ast_validators_structural_py_StructuralEquationValidator_validate --> call_str
         infra_adapters_pdf_parser_py_PdfParserAdapter --- infra_adapters_pdf_parser_py_PdfParserAdapter___init__
         infra_adapters_pdf_parser_py_PdfParserAdapter --- infra_adapters_pdf_parser_py_PdfParserAdapter_parse
-    infra_adapters_pdf_parser_py_PdfParserAdapter_parse --> call_self__parser_callable
-    infra_adapters_pdf_parser_py_PdfParserAdapter_parse --> call_RuntimeError
+    infra_adapters_pdf_parser_py_PdfParserAdapter_parse --> call___extract
+    infra_adapters_pdf_parser_py_PdfParserAdapter_parse --> call_LayoutRecoveryError
+    infra_adapters_pdf_parser_py_PdfParserAdapter_parse --> call_self__layout_to_ast_mapper
+    infra_adapters_pdf_parser_py_PdfParserAdapter_parse --> call_ASTMappingError
+    infra_adapters_pdf_parser_py_PdfParserAdapter_parse --> call_str
     infra_db_bootstrap_py_bootstrap_all_databases --> call_logger_info
     infra_db_bootstrap_py_bootstrap_all_databases --> call_BASE_DIR_mkdir
     infra_db_bootstrap_py_bootstrap_all_databases --> call_DB_CONFIGS_items

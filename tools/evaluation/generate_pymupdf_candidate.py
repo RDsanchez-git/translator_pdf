@@ -24,6 +24,8 @@ def main() -> None:
         draft_blocks: list[LayoutBlockDraft] = []
         for page in layout.pages:
             for block in page.blocks:
+                assert block.bbox is not None, f"El bloque {block.block_id} requiere BoundingBox espacial."
+                
                 draft = LayoutBlockDraft(
                     block_id=block.block_id,
                     logical_type=block.logical_type.value if hasattr(block.logical_type, "value") else str(block.logical_type),

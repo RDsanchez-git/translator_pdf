@@ -1,0 +1,578 @@
+[
+  {
+    "node_id": "value='docling_p1_b1'",
+    "sequence_id": 1,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 79.34471130371094,
+          "y0": 746.4256134033203,
+          "x1": 520.0908203125,
+          "y1": 746.4356134033203,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 0,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": ""
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b2'",
+    "sequence_id": 2,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 78.399,
+          "y0": 759.1958616484375,
+          "x1": 520.1535332270005,
+          "y1": 759.2058616484375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 1,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Figure 8: Expected Returns and Characteristic/Macroeconomic Variable Interactions (NN3)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b3'",
+    "sequence_id": 3,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 63.496,
+          "y0": 447.9297926484375,
+          "x1": 538.6716298300001,
+          "y1": 447.9397926484375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 2,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Note: Sensitivity of expected monthly percentage returns (vertical axis) to interactions effects for mvel1 and retvol with bm and ntis in model NN3 (holding all other covariates fixed at their median values)."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b4'",
+    "sequence_id": 4,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 63.496,
+          "y0": 405.1718616484375,
+          "x1": 538.6953236090002,
+          "y1": 405.1818616484375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 3,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "asset level, into broader investment contexts. Last but not least, the portfolio results are one step further 'out-of-sample' in that the optimization routine does not directly account for the predictive performance of the portfolios."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b5'",
+    "sequence_id": 5,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 63.49599999999998,
+          "y0": 355.8668616484375,
+          "x1": 538.6970720100007,
+          "y1": 355.8768616484375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 4,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Our assessment of forecast performance up to this point has been entirely statistical, relying on comparisons of predictive R 2 . The final advantage of analyzing predictability at the portfolio level is that we can assess the economic contribution of each method via its contribution to risk-adjusted portfolio return performance."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b6'",
+    "sequence_id": 6,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 63.49599999999998,
+          "y0": 274.89358864843757,
+          "x1": 229.29756012700005,
+          "y1": 274.90358864843756,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 5,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "3.4.1 Pre-specified Portfolios"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b7'",
+    "sequence_id": 7,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 63.495999999999924,
+          "y0": 251.37986164843755,
+          "x1": 538.6959855180002,
+          "y1": 251.38986164843755,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 6,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "We build bottom-up forecasts by aggregating individual stock return predictions into portfolios. Given the weight of stock i in portfolio p (denoted w p i,t ) and given a model-based out-of-sample forecast for stock i (denoted ̂ r i,t +1 ), we construct the portfolio return forecast as"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b8'",
+    "sequence_id": 8,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 246.63699999999994,
+          "y0": 194.5045246484375,
+          "x1": 355.5565201999999,
+          "y1": 194.5145246484375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 7,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": ""
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b9'",
+    "sequence_id": 9,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 63.495999999999924,
+          "y0": 146.83286164843753,
+          "x1": 496.4066723810002,
+          "y1": 146.84286164843752,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 8,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "This bottom-up approach works for any target portfolio whose weights are known a priori."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b10'",
+    "sequence_id": 10,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 80.43299999999992,
+          "y0": 130.3968616484375,
+          "x1": 538.6884429910001,
+          "y1": 130.40686164843748,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 9,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "We form bottom-up forecasts for 30 of the most well known portfolios in the empirical finance Note: In this table, we report the out-of-sample predictive R 2 s for 30 portfolios using OLS with size, book-to-market, and momentum, OLS-3, PLS, PCR, elastic net (ENet), generalized linear model with group lasso (GLM), random forest (RF), gradient boosted regression trees (GBRT), and five architectures of neural networks (NN1,...,NN5), respectively. '+H' indicates the use of Huber loss instead of the l 2 loss. The six portfolios in Panel A are the S&P 500 index and the Fama-French SMB, HML, CMA, RMW, and UMD factors. The 24 portfolios in Panel B are 3 × 2 size double-sorted portfolios used in the construction of the Fama-French value, investment, profitability, and momentum factors."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p2_b11'",
+    "sequence_id": 11,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 67.51469421386719,
+          "y0": 741.2226257324219,
+          "x1": 536.310791015625,
+          "y1": 741.2326257324219,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 10,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": ""
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p2_b12'",
+    "sequence_id": 12,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 151.789,
+          "y0": 760.2345246484374,
+          "x1": 446.26946100000004,
+          "y1": 760.2445246484374,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 11,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Table 5: Monthly Portfolio-level Out-of-Sample Predictive R 2"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p2_b13'",
+    "sequence_id": 13,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 63.49600000000004,
+          "y0": 216.52786164843758,
+          "x1": 538.6975054090005,
+          "y1": 216.53786164843757,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 12,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "literature, including the S&P 500, the Fama-French size, value, profitability, investment, and momentum factor portfolios (SMB, HML, RMW, CMA, and UMD, respectively), and sub-components of these Fama-French portfolios, including six size and value portfolios, six size and investment portfolios, six size and profitability portfolios, and six size and momentum portfolios. The sub-component portfolios are long-only and therefore have substantial overlap with the market index, while SMB, HML, RMW, CMA, and UMD are zero-net-investment long-short portfolios that are in large part Note: Improvement in annualized Sharpe ratio ( SR ∗ -SR ). We compute the SR ∗ by weighting the portfolios based on a market timing strategy Campbell and Thompson (2007). Cases with Sharpe ratio deterioration are omitted."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b14'",
+    "sequence_id": 14,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 67.32489013671875,
+          "y0": 743.2640838623047,
+          "x1": 536.5441284179688,
+          "y1": 743.2740838623047,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 13,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": ""
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b15'",
+    "sequence_id": 15,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 192.589,
+          "y0": 759.8018616484375,
+          "x1": 405.96036734500024,
+          "y1": 759.8118616484375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 14,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Table 6: Market Timing Sharpe Ratio Gains"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b16'",
+    "sequence_id": 16,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 63.49599999999998,
+          "y0": 264.6038616484375,
+          "x1": 538.7053028270001,
+          "y1": 264.6138616484375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 15,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "purged of market exposure. In all cases, we create the portfolios ourselves using CRSP market equity value weights. Our portfolio construction differs slightly from the actual S&P 500 index and the characteristic-based Fama-French portfolios (Fama and French, 1993, 2015), but has the virtue that we can exactly track the ex ante portfolio weights of each. 38"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b17'",
+    "sequence_id": 17,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 63.49600000000004,
+          "y0": 200.81552464843753,
+          "x1": 538.6970912000005,
+          "y1": 200.82552464843752,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 16,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Table 5 reports the monthly out-of-sample R 2 over our 30-year testing sample. Regularized linear methods fail to outperform naive constant forecasts of the S&P 500. In contrast, all nonlinear models have substantial positive predictive performance. The one month out-of-sample R 2 is 0.71% for the"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b18'",
+    "sequence_id": 18,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 63.495999999999995,
+          "y0": 146.67898864843755,
+          "x1": 538.6794108600006,
+          "y1": 146.68898864843754,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 17,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "38 Our replication of S&P500 returns has a correlation with the actual index of more than 0.99. For the other portfolios (SMB, HML, RMW, CMA, UMD), the return correlations between our replication and the version from Ken French's website are 0.99, 0.97, 0.95, 0.99, 0.96, respectively."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  }
+]

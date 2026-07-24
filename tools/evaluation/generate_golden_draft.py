@@ -30,6 +30,9 @@ def _pipeline_layout_to_ast(document_layout: DocumentLayout) -> list[ASTNode]:
     
     for page in document_layout.pages:
         for block in page.blocks:
+            # Type Guard para Pyright (reduce BoundingBox | None -> BoundingBox)
+            assert block.bbox is not None, f"El bloque {block.block_id} no contiene BoundingBox."
+
             # Transformación explícita de LayoutBlock (Dominio) -> LayoutBlockDraft (DTO Layout)
             draft = LayoutBlockDraft(
                 block_id=block.block_id,

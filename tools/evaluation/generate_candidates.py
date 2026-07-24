@@ -11,9 +11,11 @@ from core.shared.crypto import compute_sha256
 from core.utils.fs import ensure_parent_dir
 from infra.serialization.ast_json import serialize_ast_json
 from tools.evaluation.services.candidate_generator import CandidateGenerationService
+from core.extraction.ocr_providers.docling_provider import DoclingProvider
 
 _AVAILABLE_PROVIDERS: Dict[str, Type[ExtractionProvider]] = {
     "pymupdf": PyMuPDFProvider,
+    "docling": DoclingProvider,
 }
 
 

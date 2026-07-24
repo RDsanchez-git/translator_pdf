@@ -1,0 +1,1954 @@
+[
+  {
+    "node_id": "value='docling_p1_b1'",
+    "sequence_id": 1,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.146881103515625,
+          "y0": 732.8911170959473,
+          "x1": 96.5655517578125,
+          "y1": 732.9011170959473,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 0,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": ""
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b2'",
+    "sequence_id": 2,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 222.80281493,
+          "y0": 730.5540567295312,
+          "x1": 374.88571386999996,
+          "y1": 730.5640567295312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 1,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Contents lists available at ScienceDirect"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b3'",
+    "sequence_id": 3,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 155.6226,
+          "y0": 705.0623887695313,
+          "x1": 442.1003999999999,
+          "y1": 705.0723887695312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 2,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Quarterly Review of Economics and Finance"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b4'",
+    "sequence_id": 4,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 196.66794162,
+          "y0": 674.5979561895313,
+          "x1": 401.0005874299996,
+          "y1": 674.6079561895313,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 3,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "journal homepage: www.elsevier.com/locate/qref"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b5'",
+    "sequence_id": 5,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.62361,
+          "y0": 626.3446387695312,
+          "x1": 493.00649999999996,
+          "y1": 626.3546387695312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 4,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Real exchange rate misalignments and economic growth in Tunisia: New evidence from a threshold analysis of asymmetric adjustments ☆"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b6'",
+    "sequence_id": 6,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 141.43331909179688,
+          "y0": 584.4303741455078,
+          "x1": 152.5706024169922,
+          "y1": 584.4403741455078,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 5,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": ""
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b7'",
+    "sequence_id": 7,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.623580976,
+          "y0": 584.6458870095312,
+          "x1": 455.09806584,
+          "y1": 584.6558870095312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 6,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Thouraya Hadj Amor  a,e ,  Ridha Nouira b ,  Christophe Rault c, ⁎ ,1 ,  Anamaria Diana Sova d"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b8'",
+    "sequence_id": 8,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.623620992,
+          "y0": 563.5432665695313,
+          "x1": 241.68832000000003,
+          "y1": 563.5532665695313,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 7,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "a Business Administration departement, Shaqra University, Saudi Arabia"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b9'",
+    "sequence_id": 9,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.623620992,
+          "y0": 554.9257445695312,
+          "x1": 170.44671999999997,
+          "y1": 554.9357445695312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 8,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "b ISFF and LAMIDED Sousse University, Tunisia"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b10'",
+    "sequence_id": 10,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.623620992,
+          "y0": 546.3124886695313,
+          "x1": 271.42208000000005,
+          "y1": 546.3224886695313,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 9,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "c LEO, Université d ′ Orléans, Rue de Blois-B.P. 6739, 45067 Orléans Cedex 2, France"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b11'",
+    "sequence_id": 11,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.623620992,
+          "y0": 537.6907005695313,
+          "x1": 164.45311999999998,
+          "y1": 537.7007005695313,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 10,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "d Brunel University London, United Kingdom"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b12'",
+    "sequence_id": 12,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.623620992,
+          "y0": 529.1329039695312,
+          "x1": 213.87328,
+          "y1": 529.1429039695312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 11,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "e Economics departement- EAS,University of Monastir, Tunisia"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b13'",
+    "sequence_id": 13,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.62361,
+          "y0": 488.90158876953126,
+          "x1": 124.70849999999997,
+          "y1": 488.91158876953125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 12,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "a r t i c l e  i n f o"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b14'",
+    "sequence_id": 14,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.623616,
+          "y0": 468.3948687695313,
+          "x1": 163.24288,
+          "y1": 468.4048687695313,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 13,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Article history: Received 18 February 2021 Received in revised form 22 January 2023 Accepted 26 January 2023 Available online 27 January 2023"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b15'",
+    "sequence_id": 15,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.623616,
+          "y0": 415.38814876953126,
+          "x1": 87.68921599999999,
+          "y1": 415.39814876953125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 14,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "JEL Classification:"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b16'",
+    "sequence_id": 16,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.623616,
+          "y0": 406.7705487695312,
+          "x1": 48.618496,
+          "y1": 406.7805487695312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 15,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "F31"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b17'",
+    "sequence_id": 17,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.623616,
+          "y0": 398.2099087695313,
+          "x1": 48.89241599999999,
+          "y1": 398.2199087695313,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 16,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "F43"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b18'",
+    "sequence_id": 18,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.623616,
+          "y0": 389.59294876953123,
+          "x1": 48.562176,
+          "y1": 389.6029487695312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 17,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "F41"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b19'",
+    "sequence_id": 19,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.623616,
+          "y0": 380.97534876953125,
+          "x1": 49.115776000000004,
+          "y1": 380.98534876953124,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 18,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "C10"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b20'",
+    "sequence_id": 20,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.623616,
+          "y0": 372.35838876953125,
+          "x1": 48.61721599999999,
+          "y1": 372.36838876953124,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 19,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "O55"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b21'",
+    "sequence_id": 21,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.623616,
+          "y0": 353.76318876953127,
+          "x1": 125.61216000000002,
+          "y1": 353.77318876953126,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 20,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Keywords: Growth Exchange rate misalignments Non-linearities NARDL Thresholds Tunisia"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b22'",
+    "sequence_id": 22,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.623622199,
+          "y0": 264.2862851495313,
+          "x1": 96.945268169,
+          "y1": 264.2962851495313,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 21,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "1.  Introduction"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b23'",
+    "sequence_id": 23,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.623622199,
+          "y0": 243.31054734953125,
+          "x1": 290.65636675,
+          "y1": 243.32054734953124,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 22,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "After  2010,  the  Tunisian  economic  convergence  process  experienced a remarkable slowdown. Indeed, this period was marked by an instability of  the social climate and a considerable deterioration of security. The increase in demand, which exerted pressure on prices, was explained mainly by the increase in private consumption supported by the exaggerated creation of jobs in the public sector and"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b24'",
+    "sequence_id": 24,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.624320000000004,
+          "y0": 144.72615143953124,
+          "x1": 288.70976,
+          "y1": 144.73615143953123,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 23,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "☆ We are grateful to two anonymous referees for very useful suggestions on previous versions of the paper."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b25'",
+    "sequence_id": 25,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 42.29292687900001,
+          "y0": 127.54827317953118,
+          "x1": 115.00288000000002,
+          "y1": 127.55827317953118,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 24,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "⁎ Corresponding author."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b26'",
+    "sequence_id": 26,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.624320000000004,
+          "y0": 117.97694876953119,
+          "x1": 259.19552000000004,
+          "y1": 117.9869487695312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 25,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "E-mail addresses: t.amor@su.edu.sa, hathouraya@yahoo.fr (T.H. Amor), nouira.ridha75@gmail.com (R. Nouira), chrault@hotmail.com (C. Rault),"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b27'",
+    "sequence_id": 27,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.624320000000004,
+          "y0": 100.7423887695312,
+          "x1": 174.36672000000002,
+          "y1": 100.75238876953121,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 26,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "AnamariaDiana.Sova@brunel.ac.uk (A.D. Sova)."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b28'",
+    "sequence_id": 28,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 41.839288329999995,
+          "y0": 93.4472028295312,
+          "x1": 141.1936,
+          "y1": 93.4572028295312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 27,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "1 Website: http://chrault3.free.fr."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b29'",
+    "sequence_id": 29,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 203.1867,
+          "y0": 488.90158876953126,
+          "x1": 265.7636999999999,
+          "y1": 488.91158876953125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 28,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "a b s t r a c t"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b30'",
+    "sequence_id": 30,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 203.18688,
+          "y0": 468.02014876953115,
+          "x1": 560.5178400000001,
+          "y1": 468.03014876953114,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 29,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "In this paper, we focus on both the impact of real exchange rate (RER) misalignments on economic growth and the assessment of misalignments' thresholds in the case of Tunisia. Our contribution to the literature is threefold. First, we reassess the main factors driving the equilibrium RER using a dynamic model approach. Second, we investigate the possible asymmetric effects of real misalignment on economic growth in Tunisia using the non-linear autoregressive distributed lag (NARDL) estimator developed by Shin et al. (2014) which takes into account the nonlinearity in the relationship between exchange rate misalignments and economic growth. Third, using a threshold model inspired by Hansen (2000), we identify the level of misalignments of the Tunisian dinar that can enhance (or hamper) economic growth. Our main findings are the following: i) the  Tunisian  dinar  has  experienced  periods  of  overvaluation  and  undervaluation  during  the  2001-2016 period; ii) there is a negative impact of real overvaluation of the dinar on Tunisia's growth performance, while  an  undervaluation  has  no  significant  impact;  iii)  there  exists  a  threshold  for  the  effects  of  RER misalignment on growth. Specifically, real undervaluation promotes growth until an estimated threshold of 10.02% deviation from the equilibrium RER has been reached, while an overvaluation can boost growth until a 9.02% threshold is reached. These findings have important implications from a policymaker's perspective. © 2023 Board of Trustees of the University of Illinois. Published by Elsevier Inc. All rights reserved."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b31'",
+    "sequence_id": 31,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 306.65056682,
+          "y0": 264.2862851495313,
+          "x1": 560.7201909099998,
+          "y1": 264.2962851495313,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 30,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "thus the increase in the wage bill. On the contrary, the private sector has been marked by a deterioration of its economic activity."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b32'",
+    "sequence_id": 32,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 306.65056682,
+          "y0": 243.31054734953125,
+          "x1": 560.7433906199999,
+          "y1": 243.32054734953124,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 31,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Social  unrest  as  well  as  the  deterioration  of  security,  also  intensified  by  the  Libyan  crisis,  affected  external  payments.  Against this background, the current account deficit increased considerably, going on average from 3.1% of GDP between 2006 and 2010-9.1% of GDP  between  2013  and  2017.  The  trade  deficit  deteriorated  from 13.2% of GDP in 2010-16% of GDP in 2017. This mainly was down to security problems in 2011, the slowdown in the productive activity of  the  extractive  industries,  in  particular  the  industrial  phosphate sector in Gafsa, and the uncontrolled imports of consumer goods. In addition, the decline in investments in oil and gas exploration has increased the energy balance deficit in recent years."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b33'",
+    "sequence_id": 33,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 306.65056682,
+          "y0": 127.82719090953128,
+          "x1": 560.6489917999999,
+          "y1": 127.83719090953129,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 32,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Tunisia entered the COVID-19 pandemic crisis with a slow rate of economic  growth  and  rising  debt  levels  and  it  has  been  strongly affected by the crisis  due  to  its  heavy  dependence  on  Europe. The depth of  the  pandemic's  impact on  the  Tunisian economy became"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b34'",
+    "sequence_id": 34,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 500.82373046875,
+          "y0": 738.5987586975098,
+          "x1": 558.3138427734375,
+          "y1": 738.6087586975098,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 33,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": ""
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b35'",
+    "sequence_id": 35,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 500.6945495605469,
+          "y0": 627.8368377685547,
+          "x1": 530.0021362304688,
+          "y1": 627.8468377685547,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 34,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": ""
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b36'",
+    "sequence_id": 36,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 500.4288,
+          "y0": 604.2041887695312,
+          "x1": 518.4108,
+          "y1": 604.2141887695312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 35,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "]]]]]]"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p2_b37'",
+    "sequence_id": 37,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.6235422,
+          "y0": 738.0691627895312,
+          "x1": 290.7371657400001,
+          "y1": 738.0791627895312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 36,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "more apparent at the end of 2020. Indeed, real GDP contracted by 8.8% in 2020 due to the general decline in economic activity, characterized  by  a  decrease  of  production  in  the  main  sectors,  in  the service sector (including tourism), investment and exports. Unemployment increased from 15% prior to the pandemic to 17.8% by the end of the first quarter of 2021. The current account stabilized at  a  deficit  of  8.1%  of  GDP  in  2020.  Total  exports  in  2020  declined 11.7% compared to 2019 (World Bank, 2019, 2021)."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p2_b38'",
+    "sequence_id": 38,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.6235422,
+          "y0": 654.0510130295313,
+          "x1": 290.72276592000014,
+          "y1": 654.0610130295313,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 37,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "In  this  context,  the  macroeconomic  balance  and  the  external competitiveness of any country remain dependent on an adjustment of  the  real  value  of  the  exchange  rate  and  its  equilibrium value,  a necessity  which  is  explained  by  the  harmful  consequences  of  the recurrent and persistent misalignments, which can lead to structural imbalances in the labor market and the market for tradable and nontradable  goods  (Elfathaoui,  2019).  Indeed,  the  evolution  of  the  international financial integration process has engendered a growing disconnection  between  RER  variability  and  growth  (Hadj  Amor, 2009;  Béreau  et  al.,  2012)  A  large  volume  of  literature  has  highlighted  the  importance  of  closely  observing  the  exchange  rate  for countries in transition such as Tunisia, and that it may also be used as  a  regulatory  measure  to  mitigate,  if  not  eliminate,  the  adverse effects of an overvalued exchange rate (Derbali, 2021)."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p2_b39'",
+    "sequence_id": 39,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.6235422,
+          "y0": 507.04725059953125,
+          "x1": 290.71476602,
+          "y1": 507.05725059953124,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 38,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "In the Tunisian context, the question of the misalignment of the real  exchange  rate,  defined  as  the  deviation  of  the  real  effective exchange rate from its equilibrium level, and its impact on economic growth  has  been  the  subject  of  debate  for  some  time  for  many reasons, a debate that has been accentuated after the adoption of a more flexible exchange regime. Indeed, since 1990, the Central Bank of  Tunisia  (CBT)  has  opted  for  a  flexible  exchange  rate  policy  accompanied  by  more  economic  liberalization  in  Tunisia,  aimed  at giving exchange rate policy a more active role. The objective was to improve the competitiveness of the national economy while stabilizing the Tunisian dinar (Balazs et al., 2014)."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p2_b40'",
+    "sequence_id": 40,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.623622199,
+          "y0": 391.5638941595313,
+          "x1": 290.65396678,
+          "y1": 391.5738941595313,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 39,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "The last deterioration in Tunisian economic conditions, as noted above,  may point  toward a  possible  RER  distortion.  Given  the  seriousness  of  the  consequences  of  a  potential  misalignment  of  the economy,  the  Tunisian  monetary  authorities  must  prioritize  and analyze the question of the misalignment of the Tunisian RER and its effects on economic growth."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p2_b41'",
+    "sequence_id": 41,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.6235422,
+          "y0": 328.57828148953126,
+          "x1": 290.71236605000007,
+          "y1": 328.58828148953125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 40,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Tunisia, as a small open economy, has been committed since 2011 to a New Operational Framework, based on monetary autonomy and the transition from crawling peg to crawling band. Furthermore, in recent years, the dinar, the national currency of Tunisia, has recorded a strong depreciation of its value vis-à-vis other foreign currencies. More recently, especially after  the  Jasmine  Revolution of  2011,  the Tunisian dinar broke its historic record and has depreciated against the euro and the US dollar. While the depreciation of the dinar, in a partial  equilibrium  model  of  the  trade  balance,  can  increase  net exports  with  some  partner  countries,  under  the  assumption  that there is room for the export sector to grow (Bahmani-Oskooee et al., 2017, 2019), its benefits might not outweigh the negative impact of an undervaluation on the real economy, given that the value of the currency is  lower  than  it  should  be  in  equilibrium  or  severely  depreciated."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p2_b42'",
+    "sequence_id": 42,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.6235422,
+          "y0": 171.02985086953117,
+          "x1": 290.71876597,
+          "y1": 171.03985086953116,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 41,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Since  October  2017,  and  to  fight  against  the  decline  in  foreign currency assets, economic actors importing non-essential consumer goods have no right to use bank loans for these operations. Tunisia's external debt increased considerably to reach 70% of GDP at the end of  2016.  Such  external  debt  was  expected  to  bear  various  shocks, except for the significant depreciation of the real exchange rate (IMF, 2017). In November 2017, foreign exchange reserves were at the level of covering 90 days of imports of goods and services. The Tunisian public debt, 70% of which is external, has risen from 72% of GDP in 2019-87% of GDP in 2020, which is well above the emerging market debt burden benchmark of 70% of GDP (Central Bank of Tunisia (CBT) and National Institute of Statistics (NIS), 2020)."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p2_b43'",
+    "sequence_id": 43,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 306.65056682,
+          "y0": 738.0691627895312,
+          "x1": 560.74259063,
+          "y1": 738.0791627895312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 42,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Although  some  studies  have  shown  the  costs  of  exchange  rate undervaluation  on  economic  growth  (Grekou,  2015,  2018a;  Chen, 2017; Morvillier, 2020), many developing countries have relied on an undervalued real exchange rate to boost their exports (Levy-Yeyati & Sturzzenegger, 2007; Elbadawi et al., 2012; Rodrik, 2009; Korinek & Serven, 2010; Iyke & Odhiambo, 2015; Habib et al., 2017; Mazorodze & Tewari, 2018), but in the aftermath of the global financial crisis an intense  debate  has  emerged on  the  associated  merits  of  these  export-led  growth  strategies.  Since  global  economic  prospects  are weaker  than  in  the  past,  there  is  a  greater  uncertainty  about  the capacity  of  advanced  economies  to  continue  to  absorb  developing countries' exports. Additionally, if the real exchange rate is kept too low  for  too  long,  export-led  growth  strategies  based  on  currency undervaluation  are  likely to result in costs for  the  aggregate economy.  In  this  context,  the  relationship  between  real  exchange misalignment (REM), i.e. the deviation between the Real Exchange Rate (RER) and its equilibrium level, and the real economy, has been the  focus  of  recent  macroeconomic  policy  discussions  in  Tunisia. There have been many debates among Tunisian economic analysts about the causes of  the  depreciation of  the  RER  and  the  extent  to which it reflects changes in Tunisia's macroeconomic fundamentals, underlining  the  need  to  reassess  the  main  determinants  of  the equilibrium RER, the degree of the distortion of Tunisia's dinar and to what extent the misalignment of the Tunisian currency affects its growth performance."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p2_b44'",
+    "sequence_id": 44,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 306.65056682,
+          "y0": 475.5828439095312,
+          "x1": 560.7409906499997,
+          "y1": 475.5928439095312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 43,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Theoretically,  there  is  an  ongoing  debate  on whether  RER  misalignments impede or facilitate economic growth. Related literature revolves around two main axes: through the Washington Consensus (WC),  Williamson  (1990) defends  an  RER  close  to  its  equilibrium level and consistent in the medium term with macroeconomic objectives  that  stimulate  growth.  On  the  contrary,  the  hypothesis  of growth driven by exports highlights the asymmetric nature of the misalignments.  Indeed,  economic  growth  is  hampered  by  overvaluations while being encouraged by currency undervaluation."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p2_b45'",
+    "sequence_id": 45,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 306.65056682,
+          "y0": 381.07602525953126,
+          "x1": 560.74259063,
+          "y1": 381.08602525953125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 44,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Currency undervaluation promotes growth through faster capital accumulation,  technological  change  and  information  spillovers  to other firms and industries in the economy. Indeed, recent empirical literature  that  incorporates  non-linearities  in  the  analysis  of  the RER-growth nexus suggests that overvaluations and undervaluations  may  affect  differently  on  growth  (Hadj  Amor  &  Sarkar, 2009;  Hadj  Amor,  2009;  Nouira  &  Sekkat,  2012;  Schroder,  2013), while  the  level  of  the  RER  misalignment  also  matters  (Aguirre  & Calderon, 2005; Couharde & Sallenave, 2013; Tipoy et al., 2018)."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p2_b46'",
+    "sequence_id": 46,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 306.65056682,
+          "y0": 286.56920660953125,
+          "x1": 560.74259063,
+          "y1": 286.57920660953124,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 45,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Some studies focused on Tunisia have discussed the questions of equilibrium  RER  and  misalignment.  Charfi  (2008) estimated  the equilibrium real exchange rate of the Dinar from 1983 to 2000, using quarterly data, based on the following fundamental variables: terms of trade; net capital inflows; and the differential of productivity. The results  showed  that  the  Tunisian  dinar  was  overvalued  before  the 1986 devaluation and became close to its equilibrium value during the  90  s.  At  the  beginning  of  this  century  (2000),  the  authorities permitted  a  larger  fluctuation  of  the  real  effective  exchange  rate. Amaira  (2021) studied  the  misalignment  of  the  real  effective  exchange rate (REER) during the 1986-2015 period. The results showed that the equilibrium level of the long-run exchange rate depends on productivity, the terms of trade and government spending, and on misalignment being very low especially since the implementation of the structural adjustment plan. Derbali (2021) used the behavioral equilibrium exchange rate (BEER) approach to estimate the Tunisian equilibrium  exchange rate  using  vector  autoregressive  models  and vector error correction models for quarterly data over the 1990-2020 period. The results showed a low sensitivity of the RER to monetary and trade shocks and a convergence of the real exchange rate  series  of  its  trajectory  to  its  long-term  target  value.  Benzid (2021) assessed  the  misalignments  in  Tunisia's  real  effective  exchange  rate with an emphasis  on  their persistence over the Source: Author's Calculation. (RER in blue and ERER in green, left axis; Mis in red, right axis)."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b47'",
+    "sequence_id": 47,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.623616,
+          "y0": 530.1337487695312,
+          "x1": 56.115456,
+          "y1": 530.1437487695312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 46,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Fig. 1."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b48'",
+    "sequence_id": 48,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 136.74594116210938,
+          "y0": 741.0689888000488,
+          "x1": 457.8892517089844,
+          "y1": 741.0789888000488,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 47,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": ""
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b49'",
+    "sequence_id": 49,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 57.712896,
+          "y0": 530.1337487695312,
+          "x1": 142.61311999999998,
+          "y1": 530.1437487695312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 48,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "RE Misalignment of Tunisia."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b50'",
+    "sequence_id": 50,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.623622199,
+          "y0": 503.21361601953123,
+          "x1": 290.72676587000007,
+          "y1": 503.2236160195312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 49,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Appendix. 4 It turns out that except for terms of trade ( ToT ), all other variables of  the  model  are found to be  non-stationary in levels. In addition,  the  null  hypotheses  of  a  unit  root  for  all  series  in  first differences is rejected. This implies that all variables are I(1) except for terms of trade, which is stationary in level, I(0). To check whether ADF-GLS test results are robust, we performed the unit root test with structural breaks of Zivot and Andrews (1992). The results reported in Table A.4 in the Appendix confirm the results of the ADF-GLS test. Pesaran and Smith (1995), and Pesaran and Shin (1999) show that the ARDL approach can be used for long-run analysis, and that the ARDL methodology is valid even if variables are I(0) or I(1). We thus apply  an  autoregressive  distributed  lag  (ARDL)  model  or  bound testing approach (Pesaran et al., 2001) to estimate the equilibrium real exchange rate in Tunisia. According to Pesaran et al. (2001) this approach is more adequate when the number of time observations is small.  Before  performing  the  estimation  of  the  ARDL  model,  it  is essential to write Eq. (1) as a conditional ARDL model, as follows:"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b51'",
+    "sequence_id": 51,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 42.146662688,
+          "y0": 318.4024685951312,
+          "x1": 290.62276717000003,
+          "y1": 318.4124685951312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 50,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": ""
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b52'",
+    "sequence_id": 52,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 49.154665559,
+          "y0": 209.29417255953126,
+          "x1": 288.63239204999996,
+          "y1": 209.30417255953125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 51,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "All variables are expressed in log, is the first difference operator."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b53'",
+    "sequence_id": 53,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.624822183999996,
+          "y0": 198.8063036595313,
+          "x1": 290.72116594,
+          "y1": 198.8163036595313,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 52,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "The long-run relationship between the RER and its determinants can be identified based on the Wald test (F-statistic). This statistic determines joint significance of lagged level variables under the null hypothesis. If the coefficients are jointly not all equal to zero, then it implies  the  existence  of  cointegration,  i.e.  a  long-run  relationship between  the  RER  and  its  determinants. 5 Once  a  cointegration relationship has been established, we proceed to the estimation of the long-run and short-run parameters of the model. Specifically, we estimate the long-run coefficients using Eq. (3), as given below:"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b54'",
+    "sequence_id": 54,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.624192,
+          "y0": 115.8416681695312,
+          "x1": 290.31551999999994,
+          "y1": 115.85166816953121,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 53,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "4 The  efficient  unit-root  test  suggested  by  Kwiatkovski-Phillips-Schmidt-Shin (1992), extended by Carrion-i-Silvestre and Sanso (2006), has also been implemented, leading to similar results."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b55'",
+    "sequence_id": 55,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 36.625088,
+          "y0": 90.04584129953128,
+          "x1": 290.30976000000004,
+          "y1": 90.05584129953128,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 54,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "5 Notice, however, that rejecting the null ( = = = = = = 0 1 2 3 4 5 6 )  does not necessarily imply that all coefficients = … for i 0, 1, , 6 i . For instance, in Table 1, the coefficient of unemployment is equal to zero, which explains why this variable is not included in equation (3). Besides, a closer investigation also reveals that unemployment does not have an influence on RER in the short run, see equation (4)."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b56'",
+    "sequence_id": 56,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 306.652,
+          "y0": 461.8519248485312,
+          "x1": 560.6505917799999,
+          "y1": 461.8619248485312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 55,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": ""
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b57'",
+    "sequence_id": 57,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 306.65296679,
+          "y0": 429.20662361953123,
+          "x1": 560.6529917499998,
+          "y1": 429.2166236195312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 56,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "The  short-run  dynamic  coefficients  may  be  obtained  by  estimating  the  corresponding  vector  error  correction  (VEC)  model  as given below - Eq. (4):"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b58'",
+    "sequence_id": 58,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 312.29104,
+          "y0": 393.6332387695312,
+          "x1": 560.6505917799999,
+          "y1": 393.6432387695312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 57,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": ""
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b59'",
+    "sequence_id": 59,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 306.65216680000003,
+          "y0": 307.5433444295312,
+          "x1": 560.65539172,
+          "y1": 307.5533444295312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 58,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "where ECMt 1 is  the  error  correction  term  lagged  one  period  estimated from Eq. (4). is the coefficient for the speed of adjustment of the model to the equilibrium situation, which is expected to have a negative sign."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b60'",
+    "sequence_id": 60,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 306.65216680000003,
+          "y0": 265.53426954953125,
+          "x1": 560.7233908699998,
+          "y1": 265.54426954953124,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 59,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "The estimated ARDL bounds show that the F-statistic of the Wald test,  4.82,  is  significant  at  the  1%  level.  Indeed,  comparing  the  Fstatistics  against  the  critical  values  extracted  from  Pesaran  et  al. (2001), the F-statistic is higher than the upper bound critical value of 4.68 at the 1% significance level. This implies that the null hypothesis (Ho: = = = = = = 0 1 2 3 4 5 6 )  of  no  long-run  relationship  can be rejected by data. There is thus evidence for cointegration between RER  and  its  determinants.  Next,  we  estimate  the  long-run  coefficients  of  the  equilibrium  real  exchange  rate  model.  To  do  so,  we estimate ARDL models (Eq. 2). The specification of our ARDL model is determined by the Akaike information criterion (AIC). The results in Table 1 show that the coefficients for the variables Gov , Balassa, TOT and Def are statistically significant and have the expected signs. The estimated coefficient for the speed of adjustment 2 0is negative and is statistically significant at the 5% level."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b61'",
+    "sequence_id": 61,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 306.65296679,
+          "y0": 108.04103823953119,
+          "x1": 560.7441906099999,
+          "y1": 108.0510382395312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 60,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "The empirical results show a positive and significant impact of the terms of trade, government expenditure and the Balassa-Samuelson effect, and a negative and significant effect of the trade deficit. For the terms of trade an improvement of 10% leads to an  ERER  appreciation  of  2.4%.  This  implies  that  the  income  effect outweighs the substitution effect. BalSam is a variable that aims to"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  }
+]

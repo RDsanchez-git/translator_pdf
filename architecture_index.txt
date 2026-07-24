@@ -85,6 +85,8 @@
 [CLASS] BypassProvider
 [CLASS] GroqProvider
     └─ __init__()
+[CLASS] GeminiProvider
+    └─ __init__()
 
 === apps\llm_workers\cache_provider.py ===
 [CLASS] CachedLLMProvider
@@ -97,11 +99,19 @@
 
 === apps\llm_workers\prompt_builder.py ===
 [CLASS] PromptEnvelope
+[CLASS] BuildSuccess
+[CLASS] BuildFailure
 [CLASS] PromptBuilder
     └─ __init__()
+    └─ _build_system()
     └─ build()
 
 === apps\llm_workers\rate_limiter.py ===
+[CLASS] QuotaRejectionReason
+[CLASS] QuotaReservation
+    └─ create_granted()
+    └─ create_rejected()
+[CLASS] QuotaManagerProtocol
 [CLASS] ClockProtocol
     └─ now()
 [CLASS] SystemClock
@@ -163,6 +173,36 @@
 
 === apps\ocr_workers\__init__.py ===
 
+=== core\ast\builder.py ===
+[CLASS] PayloadRegistry
+    └─ create()
+[CLASS] FlatASTBuilder
+    └─ build()
+    └─ _map_physical_to_logical()
+    └─ _map_native_level()
+    └─ _apply_topology_and_policies()
+
+=== core\ast\cross_page.py ===
+[CLASS] AbbreviationPolicy
+    └─ is_abbreviation()
+[CLASS] BoundaryDetector
+    └─ is_cross_page_boundary()
+[CLASS] HyphenResolver
+    └─ resolve()
+[CLASS] MetadataMerger
+    └─ merge()
+[CLASS] MergePolicy
+    └─ should_merge()
+[CLASS] CrossPageNormalizer
+    └─ execute()
+    └─ _execute_fusion()
+
+=== core\ast\enums.py ===
+[CLASS] ContentNodeType
+[CLASS] TranslationStrategy
+[CLASS] HeadingLevel
+[CLASS] SemanticOrigin
+
 === core\ast\grouper.py ===
 [CLASS] SemanticGroup
 [CLASS] ContextAwareSemanticGrouper
@@ -178,20 +218,52 @@
 [FUNC] build_semantic_chunks_as_units()
 
 === core\ast\models.py ===
-[CLASS] StructuralNodeType
-[CLASS] ContentNodeType
-[CLASS] TranslationTaskType
-[CLASS] OverflowPolicy
+[CLASS] NodeMetadata
+[CLASS] HeadingPayload
+    └─ with_content()
+[CLASS] ParagraphPayload
+    └─ with_content()
+[CLASS] MathPayload
+    └─ with_content()
+[CLASS] CodePayload
+    └─ with_content()
+[CLASS] TablePayload
+    └─ with_content()
+[CLASS] ImagePayload
+[CLASS] ListPayload
+    └─ with_content()
 [CLASS] ASTNode
     └─ has_valid_sequence()
+    └─ _discriminate_payload()
+    └─ text_content()
+    └─ with_strategy()
+[CLASS] TranslationTaskType
+[CLASS] OverflowPolicy
 [CLASS] TokenEstimator
     └─ estimate()
 [CLASS] FastWordEstimator
     └─ estimate()
+    └─ estimate_tokens()
 [CLASS] TranslationUnit
 [CLASS] ChunkingReport
 [CLASS] TranslatedUnit
 [CLASS] ReconstructedDocument
+[CLASS] ExecutionStatus
+[CLASS] FailureReason
+[CLASS] ChunkOutcome
+    └─ __post_init__()
+    └─ is_success()
+[CLASS] DispatchResult
+    └─ total_processed()
+    └─ total_failed()
+    └─ success_rate()
+    └─ failed_by_reason()
+[CLASS] OriginalChunk
+[CLASS] DispatchAnalytics
+    └─ calculate_success_rate()
+    └─ aggregate_failures()
+[CLASS] ExecutionRoute
+[CLASS] ExecutionStage
 
 === core\ast\parser.py ===
 [FUNC] sanitize_marker_html()
@@ -217,6 +289,9 @@
     └─ __init__()
     └─ segment()
 
+=== core\ast\strategy.py ===
+[FUNC] resolve_strategy()
+
 === core\ast\validator.py ===
 [CLASS] ASTValidationError
 [CLASS] ASTHealthReport
@@ -228,11 +303,120 @@
 
 === core\ast\__init__.py ===
 
+=== core\benchmark\aggregation.py ===
+[FUNC] calculate_decoupled_overall_score()
+
+=== core\benchmark\judge_models.py ===
+[CLASS] DefectCategory
+[CLASS] ChunkEvaluationScore
+    └─ overall_score()
+
+=== core\benchmark\judge_prompts.py ===
+[FUNC] build_judge_prompt()
+
+=== core\benchmark\models.py ===
+[CLASS] ProviderDescriptor
+[CLASS] HardwareTelemetry
+[CLASS] BenchmarkMetadata
+[CLASS] DocumentComplexity
+[CLASS] BenchmarkMode
+[CLASS] QuotaSnapshot
+[CLASS] QualityPolicy
+[CLASS] StructuralQualityMetrics
+[CLASS] TranslatedArtifact
+[CLASS] ChunkBenchmarkRecord
+    └─ tps_formula()
+[CLASS] BenchmarkDocument
+[CLASS] BenchmarkDataset
+[CLASS] LatencyMetrics
+[CLASS] StatisticalMoments
+[CLASS] ProviderBenchmarkMetrics
+    └─ total_tokens()
+    └─ reliability_score()
+    └─ input_tps()
+    └─ output_tps()
+    └─ total_tps()
+    └─ cost_per_1m_tokens_usd()
+    └─ cost_per_1k_tokens_usd()
+[CLASS] MetricAggregator
+    └─ _percentile()
+    └─ aggregate()
+[CLASS] BenchmarkRunReport
+    └─ total_tps_delta_percentage()
+    └─ cost_delta_percentage()
+[CLASS] PreparedBenchmarkDataset
+
+=== core\benchmark\orchestrator.py ===
+[CLASS] DatasetIntegrityValidator
+    └─ verify()
+[CLASS] SequentialBenchmarkOrchestrator
+    └─ __init__()
+
+=== core\benchmark\persistence.py ===
+[CLASS] BenchmarkPersistenceGateway
+    └─ __init__()
+    └─ save_raw_records_checkpoint()
+    └─ save_final_report()
+
+=== core\benchmark\ports.py ===
+[CLASS] RunnerExecutionResult
+[CLASS] BenchmarkRunnerProtocol
+
+=== core\benchmark\quality.py ===
+[CLASS] FormalLatexSyntaxParser
+    └─ validate_syntax()
+[CLASS] FormalMarkdownTableParser
+    └─ validate_syntax()
+[CLASS] StructuralQualityEvaluator
+    └─ evaluate()
+
+=== core\benchmark\reporter.py ===
+[CLASS] ScientificSignificanceReport
+[CLASS] StatisticalComparator
+    └─ _interpret_cliffs_delta()
+    └─ _bootstrap_estimator_ci()
+    └─ compare_series()
+    └─ _apply_holm_bonferroni()
+    └─ run_stratified_analysis()
+
+=== core\benchmark\semantic_judge.py ===
+[CLASS] SemanticJudge
+    └─ __init__()
+
+=== core\benchmark\__init__.py ===
+
+=== core\benchmark\__main__.py ===
+
+=== core\benchmark\runners\gemini_runner.py ===
+[CLASS] DummyContextResolver
+    └─ resolve_many()
+    └─ resolve()
+[CLASS] GeminiBenchmarkRunner
+    └─ __init__()
+
+=== core\benchmark\runners\groq_runner.py ===
+[CLASS] DummyContextResolver
+    └─ resolve_many()
+    └─ resolve()
+[CLASS] GroqBenchmarkRunner
+    └─ __init__()
+
 === core\compiler\assembler.py ===
+[CLASS] RepositoryUnavailableError
+[CLASS] PayloadNotFoundError
+[CLASS] HashMismatchError
+[CLASS] IntegrityCheckedDocumentRepository
+    └─ get_verified_payload()
+[CLASS] AssemblyStatus
+[CLASS] AssemblyPolicy
+[CLASS] AssemblyReport
+[CLASS] DocumentAssemblyDecision
+    └─ is_accepted()
 [CLASS] DocumentAssembler
     └─ __init__()
     └─ _validate_sequence()
     └─ assemble()
+    └─ _build_rejection()
 
 === core\context\context_resolver.py ===
 [CLASS] ResolvedContext
@@ -246,6 +430,35 @@
     └─ __init__()
     └─ resolve()
     └─ resolve_many()
+
+=== core\domain\document.py ===
+[CLASS] LayoutBlockType
+[CLASS] DocumentType
+[CLASS] PageOrientation
+[CLASS] OriginType
+[CLASS] BlockId
+[CLASS] RawContent
+[CLASS] BoundingBox
+    └─ validate_bounds()
+    └─ center_x()
+    └─ width()
+    └─ height()
+[CLASS] TypographyMetadata
+[CLASS] SpatialMetadata
+[CLASS] ConfidenceMetadata
+[CLASS] ProviderMetadata
+[CLASS] LayoutMetadata
+[CLASS] BlockRelationships
+[CLASS] DomainVersion
+[CLASS] LayoutBlock
+    └─ is_structural()
+[CLASS] PageDimensions
+[CLASS] LayoutPage
+[CLASS] DocumentProfile
+[CLASS] DocumentLayout
+    └─ _block_index()
+    └─ get_block()
+    └─ get_page()
 
 === core\execution\constants.py ===
 
@@ -267,6 +480,19 @@
 [CLASS] ChunkValidationError
     └─ __init__()
 [CLASS] DocumentValidationError
+    └─ __init__()
+[CLASS] TranslationDomainError
+[CLASS] ContextOverflowError
+    └─ __init__()
+    └─ __str__()
+[CLASS] PermanentQuotaRejection
+[CLASS] QuotaTimeoutError
+[CLASS] DomainException
+[CLASS] ExtractionError
+    └─ __init__()
+[CLASS] ProviderFailure
+[CLASS] LayoutRecoveryError
+[CLASS] ASTMappingError
     └─ __init__()
 
 === core\execution\handlers.py ===
@@ -341,6 +567,24 @@
 
 === core\execution\__init__.py ===
 
+=== core\extraction\provider.py ===
+[CLASS] ExtractionCapabilities
+[CLASS] ExtractionProvider
+    └─ capabilities()
+    └─ extract()
+
+=== core\extraction\ocr_providers\pymupdf_provider.py ===
+[CLASS] PyMuPDFProvider
+    └─ __init__()
+    └─ capabilities()
+    └─ extract()
+
+=== core\extraction\ocr_providers\tesseract_provider.py ===
+[CLASS] TesseractProvider
+    └─ __init__()
+    └─ capabilities()
+    └─ extract()
+
 === core\healing\base.py ===
 [CLASS] BaseHealingStrategy
     └─ invariant_family()
@@ -403,6 +647,77 @@
     └─ priority()
     └─ heal()
 
+=== core\layout\base.py ===
+[CLASS] ProviderDescriptor
+[CLASS] MergePolicy
+[CLASS] ReadingOrderPolicy
+[CLASS] PipelineConfig
+[CLASS] PipelineContext
+[CLASS] LayoutStage
+    └─ __init__()
+    └─ stage_name()
+    └─ supports_parallel_execution()
+    └─ process()
+    └─ _execute()
+
+=== core\layout\builder.py ===
+[CLASS] DocumentLayoutBuilder
+    └─ __init__()
+    └─ _validate_pipeline_composition()
+    └─ build()
+
+=== core\layout\classifier.py ===
+[CLASS] LogicalClassifier
+    └─ stage_name()
+    └─ supports_parallel_execution()
+    └─ _execute()
+    └─ _resolve_from_provider()
+    └─ _infer_from_content()
+
+=== core\layout\detector.py ===
+[CLASS] SpatialAnalyzer
+    └─ stage_name()
+    └─ supports_parallel_execution()
+    └─ _execute()
+    └─ _detect_gutters()
+    └─ _filter_spurious_gutters()
+
+=== core\layout\identity.py ===
+[CLASS] BlockIdentityGenerator
+    └─ stage_name()
+    └─ supports_parallel_execution()
+    └─ _execute()
+    └─ _build_seed()
+
+=== core\layout\merger.py ===
+[CLASS] SpatialMerger
+    └─ stage_name()
+    └─ supports_parallel_execution()
+    └─ _execute()
+    └─ _evaluate_merge_affinity()
+    └─ _get_strategy_threshold()
+    └─ _fuse_blocks()
+
+=== core\layout\models.py ===
+[CLASS] LayoutBlockDraft
+[CLASS] LayoutBlockCollection
+
+=== core\layout\normalizer.py ===
+[CLASS] CoordinateNormalizer
+    └─ stage_name()
+    └─ supports_parallel_execution()
+    └─ _execute()
+    └─ _scale_and_clamp()
+
+=== core\layout\reading_order.py ===
+[CLASS] ReadingOrderResolver
+    └─ stage_name()
+    └─ supports_parallel_execution()
+    └─ _execute()
+    └─ _validate_dag_integrity()
+    └─ _emit_cycle_telemetry()
+    └─ _eval_precedence()
+
 === core\metrics\exporters.py ===
 [CLASS] MetricsExporter
     └─ export()
@@ -429,6 +744,7 @@
 === core\metrics\summary.py ===
 [CLASS] TranslationAuditSummary
 [CLASS] SummaryBuilder
+    └─ _percentile()
     └─ build()
 
 === core\normalization\base.py ===
@@ -562,6 +878,8 @@
     └─ assemble()
 [CLASS] AuditBuilderProtocol
     └─ build()
+[CLASS] DocumentRepositoryProtocol
+    └─ save_batch()
 [CLASS] TranslationPipeline
     └─ __init__()
 
@@ -583,6 +901,46 @@
     └─ _prune_window()
 [CLASS] CircuitBreakerRegistry
     └─ get_breaker()
+
+=== core\telemetry\adapters.py ===
+[CLASS] NullTelemetryAdapter
+    └─ record_metric()
+    └─ record_event()
+
+=== core\telemetry\analyzer.py ===
+[CLASS] TelemetryAnalyzer
+    └─ __init__()
+    └─ _query_scalar()
+    └─ _query_list()
+    └─ generate_report()
+
+=== core\telemetry\gates.py ===
+[CLASS] SystemHealthState
+[CLASS] HealthGateEvaluator
+    └─ evaluate()
+    └─ enforce()
+
+=== core\telemetry\gateway.py ===
+[CLASS] SQLiteTelemetryGateway
+    └─ __init__()
+    └─ _init_db()
+    └─ emit()
+    └─ _write_batch()
+
+=== core\telemetry\models.py ===
+[CLASS] TelemetryEventType
+[CLASS] ProviderSelectionReason
+[CLASS] ProductionTelemetryEvent
+[CLASS] SLOConfig
+[CLASS] SLOViolation
+[CLASS] ProductionHealthReport
+
+=== core\telemetry\ports.py ===
+[CLASS] StageExecutionRecord
+[CLASS] TelemetryPort
+    └─ record_execution()
+[CLASS] NullTelemetryAdapter
+    └─ record_execution()
 
 === core\utils\config.py ===
 
@@ -610,7 +968,30 @@
 [CLASS] Validator
     └─ validate()
 
+=== core\validation\budget.py ===
+[CLASS] TokenEstimatorProtocol
+    └─ estimate_tokens()
+[CLASS] BudgetViolationReason
+[CLASS] BudgetDecisionType
+[CLASS] ContextReductionLevel
+[CLASS] ContextCompressionPolicy
+    └─ get_levels()
+[CLASS] StandardCompressionPolicy
+    └─ get_levels()
+[CLASS] PromptBudget
+    └─ total_estimated()
+    └─ utilization_ratio()
+[CLASS] BudgetDecision
+[CLASS] PromptBudgetCalculator
+    └─ __init__()
+    └─ calculate()
+
 === core\validation\error_taxonomy.py ===
+
+=== core\validation\estimators.py ===
+[CLASS] ExactBPEEstimator
+    └─ __init__()
+    └─ estimate_tokens()
 
 === core\validation\interfaces.py ===
 [CLASS] BaseValidator
@@ -719,6 +1100,13 @@
     └─ mark_zombie_recovered()
     └─ enqueue_assembler_task()
     └─ find_documents_with_pending_chunks()
+
+=== infra\db\document_repository.py ===
+[CLASS] SQLiteDocumentRepository
+    └─ __init__()
+    └─ _ensure_schema()
+    └─ save_batch()
+    └─ get_verified_payload()
 
 === infra\db\event_repo.py ===
 [CLASS] EventPlaneRepository
@@ -1179,6 +1567,74 @@
 [FUNC] test_pipeline_preserves_registration_order()
 
 === tests\unit\__init__.py ===
+
+=== tools\benchmark_archive\analyze_results.py ===
+[FUNC] generate_pareto()
+
+=== tools\benchmark_archive\audit_db.py ===
+[FUNC] find_real_db()
+[FUNC] main()
+
+=== tools\benchmark_archive\audit_distribution.py ===
+[FUNC] run_distribution_audit()
+
+=== tools\benchmark_archive\audit_evaluations.py ===
+[FUNC] get_chunk_category()
+[FUNC] run_audit()
+
+=== tools\benchmark_archive\audit_isolated.py ===
+[FUNC] run_isolated_audit()
+
+=== tools\benchmark_archive\autopsia.py ===
+[FUNC] find_real_db()
+[FUNC] main()
+
+=== tools\benchmark_archive\check_duplicates.py ===
+[FUNC] main()
+
+=== tools\benchmark_archive\check_scores.py ===
+
+=== tools\benchmark_archive\cognitive_outlier_audit.py ===
+[FUNC] main()
+
+=== tools\benchmark_archive\deep_audit.py ===
+[FUNC] find_real_db()
+[FUNC] main()
+
+=== tools\benchmark_archive\extract_candidates.py ===
+[FUNC] extract_pdf_blocks()
+
+=== tools\benchmark_archive\extract_stratified_audit.py ===
+[FUNC] extract_stratified_dataset()
+
+=== tools\benchmark_archive\extract_v15_6_reasoning.py ===
+[FUNC] get_audit_reasoning()
+
+=== tools\benchmark_archive\fase_15_4_F0.py ===
+[FUNC] generate_sha256()
+[FUNC] init_eval_db()
+
+=== tools\benchmark_archive\find_missing_chunk.py ===
+
+=== tools\benchmark_archive\find_residual_cruza.py ===
+
+=== tools\benchmark_archive\generate_certification_matrix.py ===
+[FUNC] calculate_metrics()
+[FUNC] main()
+
+=== tools\benchmark_archive\inspect_schema.py ===
+[FUNC] audit_sqlite_schema()
+
+=== tools\benchmark_archive\run_fase_7_experiments.py ===
+[FUNC] run_experiment_analysis()
+[FUNC] main()
+
+=== tools\benchmark_archive\run_interactive_audit.py ===
+[FUNC] interactive_audit()
+
+=== tools\benchmark_archive\run_regression_v15_6.py ===
+[FUNC] generate_sha256()
+[FUNC] init_eval_db()
 
 === tools\load_test\db_injector_variable.py ===
 [FUNC] run_db_injection()

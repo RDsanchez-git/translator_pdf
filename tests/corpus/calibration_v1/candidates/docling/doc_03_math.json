@@ -1,0 +1,1398 @@
+[
+  {
+    "node_id": "value='docling_p1_b1'",
+    "sequence_id": 1,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 38.88,
+          "y0": 548.2394,
+          "x1": 62.606399999999994,
+          "y1": 548.2494,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 0,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "where"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b2'",
+    "sequence_id": 2,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 182.16,
+          "y0": 638.1509500000001,
+          "x1": 358.1159010560001,
+          "y1": 638.1609500000001,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 1,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": ""
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b3'",
+    "sequence_id": 3,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 39.12,
+          "y0": 603.1994000000001,
+          "x1": 461.69470749799996,
+          "y1": 603.2094000000001,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 2,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "By  solving  this  quadratic  equation for m{z; c)  we  obtain, by (1.8),  the  following  expression for vik, c):"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b4'",
+    "sequence_id": 4,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 201.609375,
+          "y0": 568.258066813151,
+          "x1": 333.09375,
+          "y1": 568.268066813151,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 3,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": ""
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b5'",
+    "sequence_id": 5,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 148.08,
+          "y0": 524.2328694661459,
+          "x1": 402.853515625,
+          "y1": 524.2428694661459,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 4,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": ""
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b6'",
+    "sequence_id": 6,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 230.462890625,
+          "y0": 436.55242919921875,
+          "x1": 319.580078125,
+          "y1": 436.56242919921874,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 5,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": ""
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b7'",
+    "sequence_id": 7,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 41.52,
+          "y0": 403.75939999999997,
+          "x1": 492.7620912020006,
+          "y1": 403.76939999999996,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 6,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "From  these  formulas  we  see that in this  case  the  spectrum  occupies  the  entire  axis, as was  to  be  expected  from  the  unboundedness  of τ·"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b8'",
+    "sequence_id": 8,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 42.48,
+          "y0": 371.5994,
+          "x1": 496.63263999999964,
+          "y1": 371.6094,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 7,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "We  note in conclusion  that it is,  as a rule,  impossible  to  find m(z;  c), and  even  more so to find v (Xi c), in explicit  form,  since  (1.14)  is, generally  speaking,  not  explicitly solvable  for m (z;  c).  In this  sense  the  above  examples  are  exceptional. Nevertheless,  it is frequently possible  to  obtain a qualitative  picture  of the spectrum:  the  number  and arrangement  of its connected  components, and  also the  behavior  of Αλί  c) near  the  boundary  of the  spectrum. We have  in mind  the following:  on  the intervals complementary  to the  spectrum  on  the  real  axis  the  function m (x  + iO; c) exists  and is continuous,  real  and  montonically  increasing. Hence, the  inverse  function  exists  on  these intervals-also real  and  monotonically  increasing. Furthermore, its range  of values  is clearly  just  the  complement  of the  spectrum. By  denoting  this  inverse  function  by x{m;  c) and  using  (1.14)  we obtain"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b9'",
+    "sequence_id": 9,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 199.783203125,
+          "y0": 236.40425618489581,
+          "x1": 491.93989999999997,
+          "y1": 236.4142561848958,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 8,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": ""
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b10'",
+    "sequence_id": 10,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 44.64,
+          "y0": 187.2794,
+          "x1": 483.5036799999996,
+          "y1": 187.2894,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 9,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "where *'(«)  is the  function  inverse  to «'(*).  Thus  we have  the  following  rule for determining  the spectrum:  it is necessary  to  locate  the  intervals where  the  function  on  the  right-hand  side  o f  (1.15) is  monotonically  increasing  and  then  to determine  the set  of its values  on  these  intervals. The spectrum  is the  complement of this  set."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b11'",
+    "sequence_id": 11,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 46.32,
+          "y0": 123.67939999999999,
+          "x1": 480.9814699999998,
+          "y1": 123.68939999999999,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 10,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Therefore if a is the  endpoint of one of the  intervals  on which  the  right-hand  side  of (1.15) is monotonically  increasing,  then"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b12'",
+    "sequence_id": 12,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 211.470703125,
+          "y0": 93.59981282552087,
+          "x1": 494.1465,
+          "y1": 93.60981282552088,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 11,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": ""
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p1_b13'",
+    "sequence_id": 13,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 47.28,
+          "y0": 50.95939999999996,
+          "x1": 495.9100400000001,
+          "y1": 50.96939999999996,
+          "is_normalized": false
+        },
+        {
+          "x0": 203.67020670572916,
+          "y0": 592.2641194661459,
+          "x1": 413.138501616,
+          "y1": 592.2741194661459,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1,
+        2
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 12,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "is  the  endpoint of one of the  connected  components of the  spectrum.  Suppose that in the  neighborhood From  the  strong  law  of  large  numbers  we  find  that  as  re  - > o o we  almost  certainly  have η~ 1 Σ η _ τι -* /ι y A \\x\\da(x), whence,  by  the  preceding  inequality,  Glivenko's  theore summability  of τ(ζ), we  conclude  that,  as η - »  °o,  almost  certainly "
+    },
+    "control_plane": {
+      "merge_count": 2
+    },
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p2_b15'",
+    "sequence_id": 14,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 67.92,
+          "y0": 544.0743,
+          "x1": 513.7359899999998,
+          "y1": 544.0843,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 14,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "for  any A  > 0. But  this  means  that  _F« \\τ(ξ,  T n )  -  τ(ξ)\\<1ξ almost  certainly  tends  to zero  for η - >  < χ > . Similarly,  we  find  that /}_  ' \\τ(ξ,  T n )  -  τ(φ\\άξ almost  certainly  tends  to  zero  as η -* °°.  Q.E.D."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p2_b16'",
+    "sequence_id": 15,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 89.04,
+          "y0": 514.0743,
+          "x1": 514.3429399050002,
+          "y1": 514.0843,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 15,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Remark.  This  lemma  is  required  below  only  for  the  case  where  the  random quantity τ is  bounded."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p2_b17'",
+    "sequence_id": 16,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 215.76,
+          "y0": 494.15430000000003,
+          "x1": 375.8033440999998,
+          "y1": 494.1643,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 16,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "§  3.  Deduction of  the  basic  equation"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p2_b18'",
+    "sequence_id": 17,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 68.64,
+          "y0": 478.07430000000005,
+          "x1": 515.5168546240006,
+          "y1": 478.08430000000004,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 17,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "We shall  prove  Theorem  1 by  first  assuming  the  random quantities rj are  bounded, i.e.  there  is  a number Τ > 0  so  that  any  realization  of  the r; satisfies"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p2_b19'",
+    "sequence_id": 18,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 273.86370849609375,
+          "y0": 444.8367106119792,
+          "x1": 517.1525683793599,
+          "y1": 444.8467106119792,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 18,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": ""
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p2_b20'",
+    "sequence_id": 19,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 68.64,
+          "y0": 420.2343,
+          "x1": 501.18897270300016,
+          "y1": 420.2443,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 19,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "This  restriction  will  be  lifted  by  going  to a  limit. But  in  the  next  two  sections  (3-0)  is  assumed  to hold."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p2_b21'",
+    "sequence_id": 20,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 69.12,
+          "y0": 389.9943,
+          "x1": 514.1942580000004,
+          "y1": 390.0043,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 20,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Suppose  that T n ,  Q n is  a  realization  of τ and q entering  in  (1.1).  In this  realization  we  number the pairs r;,  <7 (Ι) in  order  of  increasing r;:"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p2_b22'",
+    "sequence_id": 21,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 191.28,
+          "y0": 346.79095,
+          "x1": 283.87755327600007,
+          "y1": 346.80095,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 21,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": ""
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p2_b23'",
+    "sequence_id": 22,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 68.88,
+          "y0": 320.8743,
+          "x1": 372.42666906200003,
+          "y1": 320.8843,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 22,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "and  construct  a  chain  of  operators B N (i) (i  = I,  2,  · · · , n) by  setting"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p2_b24'",
+    "sequence_id": 23,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 224.64,
+          "y0": 301.53877,
+          "x1": 517.1716140000002,
+          "y1": 301.54877,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 23,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": ""
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p2_b25'",
+    "sequence_id": 24,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 69.12,
+          "y0": 262.3143,
+          "x1": 515.2288319999997,
+          "y1": 262.3243,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 24,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "so  that B N (o)= Aft, and  the Β Ν (n) are  the  operators  (1.1)  that  interest  us. Denote the  resolvents  of the  operators B N U) by R z {i). For  each  realization T n , Q n we  form  the  function u (ζ,  ξ;  Ν,  Τ η , Q n ) defined  for  all  nonreal ζ  and  real ξ£ [θ,  l]  by"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p2_b26'",
+    "sequence_id": 25,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 138.48,
+          "y0": 209.72714999999994,
+          "x1": 519.7227376302084,
+          "y1": 209.73714999999993,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 25,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": ""
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p2_b27'",
+    "sequence_id": 26,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 69.36,
+          "y0": 152.87429999999995,
+          "x1": 516.06045987,
+          "y1": 152.88429999999994,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 26,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Note that u{z, 0;  A', T n , Q n ) and u (z, 1; N,  T n , Q n ) ate the  Stieltjes transforms  of the normalized spectral  functions  of  the  operators A^ and B N (n):"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p2_b28'",
+    "sequence_id": 27,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 189.36,
+          "y0": 127.93175999999994,
+          "x1": 513.927495384,
+          "y1": 127.94175999999995,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 27,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": ""
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p2_b29'",
+    "sequence_id": 28,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 186.72,
+          "y0": 90.5,
+          "x1": 519.3590494791666,
+          "y1": 90.51,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 28,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": ""
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p2_b30'",
+    "sequence_id": 29,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 69.84,
+          "y0": 50.394300000000044,
+          "x1": 502.5121855040003,
+          "y1": 50.40430000000004,
+          "is_normalized": false
+        },
+        {
+          "x0": 242.64,
+          "y0": 608.9946,
+          "x1": 290.68084716796875,
+          "y1": 609.0046,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2,
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 29,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "For  the  remaining  values  of ζ € [θ,  l]  the  function u(z, ξ;  Ν,  Τ η , Q n ) is  the  Stieltjes transform  of relative  to  which ι/(λ)  is  found  by  the inversion formula "
+    },
+    "control_plane": {
+      "merge_count": 2
+    },
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b32'",
+    "sequence_id": 30,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 40.56,
+          "y0": 566.816,
+          "x1": 496.12026319999995,
+          "y1": 566.826,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 31,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Theorem 3. If as  Ν - - » o o f A e normalized  spectral function  of  V^ tends  to  a function v Q (\\) at all  of  its  points of  continuity  and conditions I and III of § 1  are satisfied, then  the  sequence of normalized  spectral functions of  the  operators U N (n)  converges  in  probability  as  Ν - » « > ίο  a function v(\\; c)  at  all  of  its  points of  continuity. The  function n(z;  c)  corresponding to v(\\; c)  by (5.6) is the  solution to  the  equation"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b33'",
+    "sequence_id": 31,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 98.4,
+          "y0": 484.788818359375,
+          "x1": 453.6383056640625,
+          "y1": 484.798818359375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 32,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": ""
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b34'",
+    "sequence_id": 32,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 41.04,
+          "y0": 438.3892,
+          "x1": 479.0468258719998,
+          "y1": 438.3992,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 33,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "evaluated  at  t = 1. This  equation  has  a unique  solution (in the  class of  functions with  positive real part  for \\z\\ < l), given implicitly by  the formula"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b35'",
+    "sequence_id": 33,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 134.69680786132812,
+          "y0": 410.152,
+          "x1": 384.5659553599999,
+          "y1": 410.162,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 34,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": ""
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b36'",
+    "sequence_id": 34,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 368.4,
+          "y0": 337.5892,
+          "x1": 454.02230362399996,
+          "y1": 337.5992,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 35,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Received  4 NOV 66"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b37'",
+    "sequence_id": 35,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 231.84,
+          "y0": 309.536,
+          "x1": 303.5782600000001,
+          "y1": 309.546,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 36,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "BIBIJOGRAPHY"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b38'",
+    "sequence_id": 36,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 42.24,
+          "y0": 293.42920000000004,
+          "x1": 470.6885796440001,
+          "y1": 293.4392,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 37,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "[ l ] F. J.  Dyson, The dynamics  of  a disordered  linear  chain, Physical Rev. (2) 92  (1953), 13311338. MR 15, 492."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b39'",
+    "sequence_id": 37,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 42.24,
+          "y0": 263.456,
+          "x1": 488.4978408159996,
+          "y1": 263.466,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 38,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "I. M. Lifsic, On degenerate  regular  perturbations. II: Quasicontinuous and continuous spectrum, Z. Eksper. Teoret.  Fiz.  17 (1947),  1076-1089· (Russian) MR 9, 358."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b40'",
+    "sequence_id": 38,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 42.48,
+          "y0": 232.2292,
+          "x1": 486.3026228159998,
+          "y1": 232.23919999999998,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 39,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": ", Energy  spectrum  structure  and quantum states of  disordered  condensed  systems, Uspehi Fiz.  Nauk  83 (1964),  617-663 = Soviet Physics Uspekhi  7 (1965),  549-573· MR 31 #5597-"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b41'",
+    "sequence_id": 39,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 42.48,
+          "y0": 201.53600000000006,
+          "x1": 478.2603408160001,
+          "y1": 201.54600000000005,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 40,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "E.  P.  Wigner, On the  distribution of  the  roots of  certain  symmetric  matrices, Ann. of Math. (2) 67  (1958),  325-327. MR 20 #2029·"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b42'",
+    "sequence_id": 40,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 42.72,
+          "y0": 170.78919999999994,
+          "x1": 480.24968251999974,
+          "y1": 170.79919999999993,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 41,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "V.  V.  Gnedenko, Course  in the  theory  of  probability, GITTL,  Moscow, 1950; 4th ed.,  \"Nauka\". Moscow,  1965; English transl.,  Chelsea,  New York,  4th ed.,  1967. MR 13, 565."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b43'",
+    "sequence_id": 41,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 42.72,
+          "y0": 140.81600000000003,
+          "x1": 485.31181026799993,
+          "y1": 140.82600000000002,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 42,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "[6  ]  A.  D. Myskis, The uniqueness of  the  solution of  Cauchy's  problem, Uspehi  Mat. Nauk  3 (1948), no.  2(24),  3-46. (Russian) MR 10, 302-"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b44'",
+    "sequence_id": 42,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 337.44,
+          "y0": 100.4692,
+          "x1": 400.63937701200007,
+          "y1": 100.4792,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 43,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Translated  by:"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='docling_p3_b45'",
+    "sequence_id": 43,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 337.44,
+          "y0": 84.86919999999998,
+          "x1": 396.59272080799985,
+          "y1": 84.87919999999998,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": null,
+      "confidence": 1.0,
+      "layout_reading_order": 44,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "M. L.  Glasser"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  }
+]
