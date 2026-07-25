@@ -1,7 +1,16 @@
+"""
+tools/evaluation/run_benchmark.py
+
+Fachada CLI unificada para la ejecución del Benchmark Topológico de Extracción.
+Conecta la infraestructura de persistencia (BenchmarkPersistenceGateway) y emite
+reportes formateados en Markdown y JSON (ADR 0017).
+"""
+
 import argparse
 import sys
 from pathlib import Path
 
+from core.benchmark.persistence import BenchmarkPersistenceGateway
 from tools.evaluation.application.benchmark_service import TopologyBenchmarkService
 from tools.evaluation.infrastructure.corpus_repository import (
     LocalFileSystemCorpusRepository,
@@ -10,7 +19,10 @@ from tools.evaluation.infrastructure.formatters import (
     JsonReportFormatter,
     MarkdownReportFormatter,
 )
-from tools.evaluation.topology.metrics import default_metrics
+from tools.evaluation.topology.metrics import (
+    MetricRegistry,
+    UnknownMetricProfileError,
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -21,13 +33,19 @@ def parse_args() -> argparse.Namespace:
         "--provider",
         type=str,
         required=True,
-        help="Nombre del proveedor a evaluar (ej. pymupdf).",
+        help="Nombre del proveedor a evaluar (ej. pymupdf, docling).",
     )
     parser.add_argument(
         "--corpus",
         type=str,
         default="calibration_v1",
         help="Nombre del corpus de evaluación (default: calibration_v1).",
+    )
+    parser.add_argument(
+        "--profile",
+        type=str,
+        default="default",
+        help="Perfil de métricas a resolver desde MetricRegistry (default: default).",
     )
     parser.add_argument(
         "--output-dir",
@@ -42,8 +60,15 @@ def main() -> None:
     args = parse_args()
 
     repo = LocalFileSystemCorpusRepository()
-    # FIX: Inyección explícita del contrato de métricas activas
-    service = TopologyBenchmarkService(metrics=default_metrics())
+    persistence = BenchmarkPersistenceGateway(output_dir=str(args.output_dir))
+
+    try:
+        metrics = MetricRegistry.resolve(args.profile)
+    except UnknownMetricProfileError as err:
+        print(f"❌ Error de Configuración: {err}", file=sys.stderr)
+        sys.exit(1)
+
+    service = TopologyBenchmarkService(metrics=metrics)
 
     try:
         corpus_docs = repo.load_corpus_documents(
@@ -51,15 +76,16 @@ def main() -> None:
             corpus_name=args.corpus,
         )
     except FileNotFoundError as err:
-        print(f"❌ Error de Infraestructura: {err}")
+        print(f"❌ Error de Infraestructura: {err}", file=sys.stderr)
         sys.exit(1)
 
     if not corpus_docs:
-        print("❌ Error: No se encontraron pares válidos para evaluar.")
+        print("❌ Error: No se encontraron pares válidos para evaluar.", file=sys.stderr)
         sys.exit(1)
 
     print(
-        f"🚀 Ejecutando Benchmark Topológico para `{args.provider}` sobre `{args.corpus}` ({len(corpus_docs)} docs)..."
+        f"🚀 Ejecutando Benchmark Topológico para `{args.provider}` sobre `{args.corpus}` "
+        f"({len(corpus_docs)} docs, perfil: '{args.profile}')..."
     )
 
     report = service.evaluate_corpus(
@@ -75,12 +101,12 @@ def main() -> None:
 
     print("\n" + md_output)
 
-    args.output_dir.mkdir(parents=True, exist_ok=True)
-    md_file = args.output_dir / f"{args.provider}_{args.corpus}_report.md"
-    json_file = args.output_dir / f"{args.provider}_{args.corpus}_report.json"
-
-    md_file.write_text(md_output, encoding="utf-8")
-    json_file.write_text(json_output, encoding="utf-8")
+    md_file = persistence.save_artifact(
+        f"{args.provider}_{args.corpus}_report.md", md_output
+    )
+    json_file = persistence.save_artifact(
+        f"{args.provider}_{args.corpus}_report.json", json_output
+    )
 
     print(f"✅ Reporte Markdown guardado en: {md_file}")
     print(f"✅ Reporte JSON guardado en:     {json_file}")

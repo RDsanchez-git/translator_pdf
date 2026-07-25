@@ -1,3 +1,10 @@
+"""
+tools/evaluation/generate_candidates.py
+
+Generador Canónico de Candidatos AST para Benchmarking Topológico (Fase 17.4).
+Actúa como fachada CLI para orquestar la extracción y validación de invariantes por proveedor.
+"""
+
 import argparse
 import dataclasses
 import json
@@ -5,13 +12,13 @@ import sys
 from pathlib import Path
 from typing import Dict, Type
 
+from core.extraction.ocr_providers.docling_provider import DoclingProvider
 from core.extraction.ocr_providers.pymupdf_provider import PyMuPDFProvider
 from core.extraction.provider import ExtractionProvider
 from core.shared.crypto import compute_sha256
 from core.utils.fs import ensure_parent_dir
 from infra.serialization.ast_json import serialize_ast_json
 from tools.evaluation.services.candidate_generator import CandidateGenerationService
-from core.extraction.ocr_providers.docling_provider import DoclingProvider
 
 _AVAILABLE_PROVIDERS: Dict[str, Type[ExtractionProvider]] = {
     "pymupdf": PyMuPDFProvider,
@@ -21,7 +28,7 @@ _AVAILABLE_PROVIDERS: Dict[str, Type[ExtractionProvider]] = {
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Generador Canónico de Candidatos AST para Benchmarking Topológico (Fase 17.3)"
+        description="Generador Canónico de Candidatos AST para Benchmarking Topológico (Fase 17.4)"
     )
     parser.add_argument(
         "--provider",

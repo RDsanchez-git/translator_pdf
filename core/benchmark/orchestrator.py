@@ -3,7 +3,9 @@ import time
 import asyncio
 import hashlib
 import logging
-import numpy as np  # SOTA FIX: Requerido para cálculo de percentiles en colas pesadas
+from typing import List, Tuple, Optional
+import numpy as np
+
 from core.benchmark.models import (
     PreparedBenchmarkDataset, 
     BenchmarkDocument,
@@ -14,17 +16,26 @@ from core.benchmark.models import (
     QualityPolicy,
     BenchmarkMode,   
     QuotaSnapshot,
-    StatisticalMoments  # SOTA FIX: Importación requerida
+    StatisticalMoments,
+    HardwareTelemetry,
+    MetricResult,
 )
-from core.benchmark.ports import BenchmarkRunnerProtocol
+from core.benchmark.ports import (
+    BenchmarkRunnerProtocol,
+    BenchmarkCandidateProvider,
+    BenchmarkEvaluatorProtocol,
+    GroundTruthProviderProtocol,
+    BenchmarkArtifact,
+)
 from core.benchmark.persistence import BenchmarkPersistenceGateway
-from core.benchmark.quality import StructuralQualityEvaluator  # SOTA FIX: Importación de taxonomía estructural
-from core.benchmark.reporter import StatisticalComparator      # SOTA FIX: Motor de remuestreo Bootstrap
+from core.benchmark.quality import StructuralQualityEvaluator
+from core.benchmark.reporter import StatisticalComparator
 
 logger = logging.getLogger(__name__)
 
+
 class DatasetIntegrityValidator:
-    """SOTA: Validador de consistencia genética del set de datos."""
+    """Validador de consistencia del set de datos."""
     
     @staticmethod
     def verify(document: BenchmarkDocument) -> bool:
@@ -39,19 +50,25 @@ class DatasetIntegrityValidator:
                 
         computed_hash = sha256.hexdigest()
         if computed_hash != document.file_sha256:
-            logger.error(f"Corrupción detectada en {document.id}. Esperado: {document.file_sha256}, Obtenido: {computed_hash}")
+            logger.error(
+                f"Corrupción detectada en {document.id}. Esperado: {document.file_sha256}, Obtenido: {computed_hash}"
+            )
             return False
             
         return True
 
+
 class SequentialBenchmarkOrchestrator:
-    """SOTA: Driver de aislamiento físico. Pura orquestación, cero persistencia."""
+    """
+    Driver de aislamiento físico y orquestación polimórfica de benchmark.
+    Soporta evaluaciones individuales de candidatos (parsers) y experimentos A/B (LLMs).
+    """
     
     def __init__(
         self, 
-        baseline_runner: BenchmarkRunnerProtocol, 
-        challenger_runner: BenchmarkRunnerProtocol,
-        persistence: BenchmarkPersistenceGateway,
+        baseline_runner: Optional[BenchmarkRunnerProtocol] = None, 
+        challenger_runner: Optional[BenchmarkRunnerProtocol] = None,
+        persistence: Optional[BenchmarkPersistenceGateway] = None,
         cooldown_seconds: float = 10.0,
         git_commit_sha: str = "unknown"
     ):
@@ -61,6 +78,34 @@ class SequentialBenchmarkOrchestrator:
         self.cooldown_seconds = cooldown_seconds
         self.git_commit_sha = git_commit_sha
 
+    def evaluate_candidate(
+        self,
+        document_id: str,
+        provider: BenchmarkCandidateProvider,
+        ground_truth_provider: GroundTruthProviderProtocol,
+        evaluators: List[BenchmarkEvaluatorProtocol]
+    ) -> Tuple[float, Optional[BenchmarkArtifact], List[MetricResult]]:
+        """
+        Coordina la evaluación de un candidato individual (ej. parser/extractor)
+        recorriendo la lista de evaluadores inyectados.
+        """
+        logger.info(f"Evaluando documento '{document_id}' con proveedor '{provider.provider_name}'...")
+        
+        start_time = time.monotonic()
+        candidate_artifact = provider.provide(document_id)
+        execution_time = time.monotonic() - start_time
+
+        ground_truth = ground_truth_provider.get_ground_truth(document_id)
+
+        metric_results: List[MetricResult] = []
+        for evaluator in evaluators:
+            result = evaluator.evaluate(candidate_artifact, ground_truth)
+            metric_results.append(result)
+
+        artifact_out = candidate_artifact if isinstance(candidate_artifact, BenchmarkArtifact) else None
+        
+        return execution_time, artifact_out, metric_results
+
     async def run_experiment(
         self, 
         dataset: PreparedBenchmarkDataset, 
@@ -68,7 +113,9 @@ class SequentialBenchmarkOrchestrator:
         challenger_desc: ProviderDescriptor,
         quality_policy: QualityPolicy 
     ) -> BenchmarkRunReport:
-        
+        if not self._baseline or not self._challenger:
+            raise RuntimeError("run_experiment requiere que baseline_runner y challenger_runner estén configurados.")
+
         # 1. Validación Pre-vuelo
         for doc in dataset.manifest.documents:  
             if not DatasetIntegrityValidator.verify(doc):
@@ -85,7 +132,10 @@ class SequentialBenchmarkOrchestrator:
         baseline_makespan = time.monotonic() - b_start
         await self._baseline.teardown()
         
-        self._persistence.save_raw_records_checkpoint(dataset.manifest.dataset_id, baseline_name, baseline_res.raw_records)
+        if self._persistence:
+            self._persistence.save_raw_records_checkpoint(
+                dataset.manifest.dataset_id, baseline_name, baseline_res.raw_records
+            )
 
         # 3. Cooldown
         logger.info(f"Cooldown de {self.cooldown_seconds}s...")
@@ -99,10 +149,12 @@ class SequentialBenchmarkOrchestrator:
         challenger_makespan = time.monotonic() - c_start
         await self._challenger.teardown()
         
-        self._persistence.save_raw_records_checkpoint(dataset.manifest.dataset_id, challenger_name, challenger_res.raw_records)
+        if self._persistence:
+            self._persistence.save_raw_records_checkpoint(
+                dataset.manifest.dataset_id, challenger_name, challenger_res.raw_records
+            )
 
-        # 5. Agregación y Ensamblaje SOTA
-        # Evaluador estructural con parsers formales acoplado a la respuesta inmutable
+        # 5. Agregación y Ensamblaje
         baseline_quality = StructuralQualityEvaluator.evaluate(dataset, baseline_res)
         challenger_quality = StructuralQualityEvaluator.evaluate(dataset, challenger_res)
         
@@ -114,7 +166,6 @@ class SequentialBenchmarkOrchestrator:
         b_lats = [r.latency_ms for r in baseline_res.raw_records if r.success]
         c_lats = [r.latency_ms for r in challenger_res.raw_records if r.success]
 
-        # SOTA FIX: Uso del motor Bootstrap centralizado para cálculo de IC robustos
         b_moments = StatisticalMoments(
             median_ci_95=StatisticalComparator._bootstrap_estimator_ci(b_lats, np.median),
             p95_ci_95=StatisticalComparator._bootstrap_estimator_ci(b_lats, lambda x: np.percentile(x, 95))
@@ -122,6 +173,13 @@ class SequentialBenchmarkOrchestrator:
         c_moments = StatisticalMoments(
             median_ci_95=StatisticalComparator._bootstrap_estimator_ci(c_lats, np.median),
             p95_ci_95=StatisticalComparator._bootstrap_estimator_ci(c_lats, lambda x: np.percentile(x, 95))
+        )
+
+        b_hardware = baseline_res.hardware_telemetry or HardwareTelemetry(
+            cpu_peak_percent=0.0, rss_peak_mb=0.0, rss_avg_mb=0.0, sampling_interval_ms=0
+        )
+        c_hardware = challenger_res.hardware_telemetry or HardwareTelemetry(
+            cpu_peak_percent=0.0, rss_peak_mb=0.0, rss_avg_mb=0.0, sampling_interval_ms=0
         )
 
         report = BenchmarkRunReport(
@@ -141,8 +199,8 @@ class SequentialBenchmarkOrchestrator:
                 quality_assessment=baseline_quality,           
                 benchmark_mode=b_mode,                       
                 quota_snapshot=b_quota,                      
-                hardware_telemetry=baseline_res.hardware_telemetry,
-                latency_moments=b_moments  # SOTA FIX: Inyección del DTO de colas
+                hardware_telemetry=b_hardware,
+                latency_moments=b_moments
             ),
             challenger_metrics=MetricAggregator.aggregate(
                 descriptor=challenger_desc, 
@@ -152,12 +210,14 @@ class SequentialBenchmarkOrchestrator:
                 quality_assessment=challenger_quality,         
                 benchmark_mode=c_mode,                       
                 quota_snapshot=c_quota,                      
-                hardware_telemetry=challenger_res.hardware_telemetry,
-                latency_moments=c_moments  # SOTA FIX: Inyección del DTO de colas
+                hardware_telemetry=c_hardware,
+                latency_moments=c_moments
             ),
             raw_baseline_records=baseline_res.raw_records,
             raw_challenger_records=challenger_res.raw_records
         )
 
-        self._persistence.save_final_report(report)
+        if self._persistence:
+            self._persistence.save_final_report(report)
+
         return report

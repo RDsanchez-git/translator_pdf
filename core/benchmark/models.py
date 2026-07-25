@@ -1,8 +1,10 @@
 import math
 from enum import Enum
-from dataclasses import dataclass
-from typing import List, Dict, Tuple
+from dataclasses import dataclass, field
+from typing import Any, Dict, List, Mapping, Optional, Tuple
 from core.ast.models import TranslationUnit, FailureReason
+from core.benchmark.types import BenchmarkArtifact, ProviderKind
+
 
 # =====================================================================
 # SOTA: METADATOS Y DESCRIPTORES (Trazabilidad)
@@ -10,17 +12,20 @@ from core.ast.models import TranslationUnit, FailureReason
 
 @dataclass(frozen=True, slots=True)
 class ProviderDescriptor:
-    """SOTA: Identificación robusta a prueba de typos."""
+    """SOTA: Identificación y capacidades de un proveedor de benchmark."""
+
     provider: str
-    model: str
-    version: str
+    model: str = ""
+    version: str = ""
+    provider_type: ProviderKind = ProviderKind.LLM_INFERENCE
+    capabilities: Mapping[str, Any] = field(default_factory=dict)
 
 @dataclass(frozen=True, slots=True)
 class HardwareTelemetry:
     cpu_peak_percent: float
     rss_peak_mb: float
     rss_avg_mb: float
-    sampling_interval_ms: int  # SOTA FIX: Reproducibilidad del muestreo del OS
+    sampling_interval_ms: int
 
 @dataclass(frozen=True, slots=True)
 class BenchmarkMetadata:
@@ -28,7 +33,7 @@ class BenchmarkMetadata:
     benchmark_version: str
     run_timestamp: float
     git_commit_sha: str
-    chunking_strategy: str  # SOTA FIX: Documentación de asimetría
+    chunking_strategy: str
     percentile_method: str = "nearest_rank"
 
 class DocumentComplexity(str, Enum):
@@ -39,8 +44,8 @@ class DocumentComplexity(str, Enum):
 
 class BenchmarkMode(str, Enum):
     """SOTA: Metodología experimental explícita."""
-    CAPABILITY = "capability"  # Cada proveedor usa sus límites físicos reales
-    EQUALIZED = "equalized"    # Se fuerza el mismo cuello de botella
+    CAPABILITY = "capability"
+    EQUALIZED = "equalized"    
 
 @dataclass(frozen=True, slots=True)
 class QuotaSnapshot:
@@ -51,7 +56,7 @@ class QuotaSnapshot:
 
 @dataclass(frozen=True, slots=True)
 class QualityPolicy:
-    """SOTA: Política de umbrales requeridos (Mantenida por compatibilidad de orquestación)."""
+    """SOTA: Política de umbrales requeridos."""
     structural_weight: float
     semantic_weight: float
 
@@ -60,12 +65,19 @@ class StructuralQualityMetrics:
     """SOTA FIX: Mide estructura y sintaxis, no semántica."""
     operational_reliability: float   
     token_structure_proxy: float     
-    latex_syntax_score: float        # Calculado vía AST parser formal (pylatexenc)
-    markdown_syntax_score: float     # Calculado vía GFM-compliant parser (markdown-it)
+    latex_syntax_score: float        
+    markdown_syntax_score: float     
 
 # =====================================================================
-# SOTA: REGISTROS CRUDOS Y FORENSES
+# SOTA: REGISTROS CRUDOS Y ARTEFACTOS
 # =====================================================================
+
+@dataclass(frozen=True, slots=True)
+class MetricResult:
+    """Contenedor agnóstico e inmutable del resultado de evaluación de una métrica."""
+    metric_name: str
+    value: float
+    details: Mapping[str, Any] = field(default_factory=dict)
 
 @dataclass(frozen=True, slots=True)
 class TranslatedArtifact:
@@ -100,13 +112,32 @@ class ChunkBenchmarkRecord:
     billing_model_used: str    
     tps_instantaneous: float   
     
-    # SOTA FIX: Acoplamiento corregido y trazabilidad atómica
     artifact_metadata: TranslatedArtifact | None
 
     @property
     def tps_formula(self) -> str:
         return "(input_tokens + output_tokens) / (latency_ms / 1000.0)"
-    
+
+@dataclass(frozen=True, slots=True)
+class RunnerExecutionResult:
+    """SOTA: Retorno crudo de infraestructura de una corrida de runner (sin métricas)."""
+
+    provider_id: str
+    raw_records: List[ChunkBenchmarkRecord]
+    document_completion_seconds: float
+    hardware_telemetry: Optional[HardwareTelemetry] = None
+    artifact: Optional[BenchmarkArtifact] = None
+
+@dataclass(frozen=True, slots=True)
+class BenchmarkExecution:
+    """SOTA: Unidad atómica de ejecución procesada por el orquestador."""
+    provider: ProviderDescriptor
+    document_id: str
+    execution_time_seconds: float
+    hardware_telemetry: Optional[HardwareTelemetry] = None
+    artifact: Optional[BenchmarkArtifact] = None
+    metrics: List[MetricResult] = field(default_factory=list)
+
 @dataclass(frozen=True, slots=True)
 class BenchmarkDocument:
     id: str
@@ -124,7 +155,7 @@ class BenchmarkDataset:
     documents: List[BenchmarkDocument]
 
 # =====================================================================
-# SOTA: MÉTRICAS AGREGADAS
+# SOTA: MÉTRICAS AGREGADAS LLM (Preservadas intactas)
 # =====================================================================
 
 @dataclass(frozen=True, slots=True)
@@ -136,7 +167,6 @@ class LatencyMetrics:
 
 @dataclass(frozen=True, slots=True)
 class StatisticalMoments:
-    """SOTA FIX: Métricas de dispersión avanzadas para análisis de colas."""
     median_ci_95: Tuple[float, float]
     p95_ci_95: Tuple[float, float]
 
@@ -155,14 +185,14 @@ class ProviderBenchmarkMetrics:
     document_completion_seconds: float      
     
     latency: LatencyMetrics
-    latency_moments: StatisticalMoments  # SOTA FIX: Bootstrap robusto inyectado
+    latency_moments: StatisticalMoments
     
     total_cost_usd: float
     total_documents: int
     p95_cost_per_chunk_usd: float
     p99_cost_per_chunk_usd: float
     
-    quality: StructuralQualityMetrics  # SOTA FIX: Referencia a la nueva taxonomía
+    quality: StructuralQualityMetrics
 
     context_overflow_ratio: float
     provider_switch_ratio: float
@@ -231,7 +261,7 @@ class MetricAggregator:
         benchmark_mode: BenchmarkMode,          
         quota_snapshot: QuotaSnapshot,          
         hardware_telemetry: HardwareTelemetry,
-        latency_moments: StatisticalMoments     # SOTA FIX: Se inyectan los momentos pre-calculados
+        latency_moments: StatisticalMoments
     ) -> ProviderBenchmarkMetrics:
         
         total_chunks = len(records)
@@ -290,7 +320,7 @@ class MetricAggregator:
         )
 
 # =====================================================================
-# SOTA: REPORTING
+# SOTA: REPORTING (Preservado para refactor en Hito 3/4)
 # =====================================================================
 
 @dataclass(frozen=True, slots=True)
@@ -318,7 +348,6 @@ class BenchmarkRunReport:
 
 @dataclass(frozen=True, slots=True)
 class PreparedBenchmarkDataset:
-    """SOTA: Fixture inmutable pre-computado. Aísla el benchmark de la latencia I/O."""
     manifest: BenchmarkDataset
     prepared_units: List[TranslationUnit]
-    unit_complexity_map: Dict[str, DocumentComplexity] # O(1) lookup para el ChunkBenchmarkRecord
+    unit_complexity_map: Dict[str, DocumentComplexity]
