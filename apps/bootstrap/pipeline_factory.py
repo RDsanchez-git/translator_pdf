@@ -15,6 +15,7 @@ from core.compiler.assembler import DocumentAssembler, AssemblyPolicy
 from infra.db.document_repository import SQLiteDocumentRepository
 
 # Importaciones SOTA para el adaptador hexagonal
+from core.benchmark.types import ProviderKind
 from core.extraction.ocr_providers.pymupdf_provider import PyMuPDFProvider
 from core.ast.builder import FlatASTBuilder
 
@@ -42,6 +43,10 @@ from infra.adapters.ast_profiling import NodeGeometryAdapter, NodeSemanticAdapte
 
 from core.layout.builder import DocumentLayout
 from core.layout.models import LayoutBlockCollection
+
+# Configuración del proveedor por defecto mediante tipado estricto
+DEFAULT_EXTRACTION_PROVIDER: ProviderKind = ProviderKind.OCR_PARSER
+
 
 def _build_default_validation_pipeline() -> ValidationPipeline:
     """Aislamiento explícito de la composición del pipeline de análisis sintáctico."""
@@ -83,15 +88,11 @@ def build_pipeline(
     
     def _adapter_mapper(document_layout: DocumentLayout) -> list[ASTNode]:
         """SOTA FIX: Extrae y aplana los bloques del Aggregate jerárquico."""
-        # Aplanar todos los bloques de todas las páginas físicas
         flat_blocks = []
         for page in document_layout.pages:
             flat_blocks.extend(page.blocks)
             
-        # Empaquetar en el DTO que la firma de FlatASTBuilder exige estrictamente.
-        # (Si LayoutBlockCollection se instancia pasando un argumento posicional, usa LayoutBlockCollection(flat_blocks))
         collection = LayoutBlockCollection(blocks=flat_blocks) 
-        
         return mapper.build(collection)
 
     parser = PdfParserAdapter(
@@ -99,20 +100,16 @@ def build_pipeline(
         layout_to_ast_mapper=_adapter_mapper
     )
     
-    # -----------------------------------------------------------------
-    # SOTA Fase 15.4: Setup del Repositorio de Hidratación y Políticas
-    # -----------------------------------------------------------------
     doc_conn = get_connection("infra/db/documents.db", timeout=30)
     document_repository = SQLiteDocumentRepository(doc_conn)
     
     assembly_policy = AssemblyPolicy(
-        tolerance_ratio=0.05, # Tolerancia del 5% de fallos a nivel documento
-        allow_fallback=True,  # Activa la mitigación (Graceful Degradation)
+        tolerance_ratio=0.05,
+        allow_fallback=True,
         degradable_failures=frozenset([
             FailureReason.CONTEXT_OVERFLOW,
             FailureReason.PROVIDER_FAILURE,
             FailureReason.RETRY_EXHAUSTED
-            # NOTA: VALIDATION_FAILURE intencionalmente excluido. (Hard Fail)
         ])
     )
     
@@ -121,11 +118,8 @@ def build_pipeline(
         separator="\n\n", 
         policy=assembly_policy
     )
-    # -----------------------------------------------------------------
 
     audit_builder = audit_override or SummaryBuilder()
-    
-    # Construcción desacoplada aislada de los entornos del Dispatcher
     validation_pipeline = _build_default_validation_pipeline()
 
     policy = HealingPolicy()
@@ -138,7 +132,6 @@ def build_pipeline(
 
     healing_pipeline = HealingPipeline(validation_pipeline, strategies)
     
-    # Inyección explícita por propiedades sin verificación de atributos en runtime
     dispatcher.validation_pipeline = validation_pipeline
     dispatcher.healing_pipeline = healing_pipeline
     
@@ -160,15 +153,14 @@ def build_pipeline(
         document_repository=document_repository
     )
 
+
 def build_document_profiler() -> HeuristicDocumentProfiler:
     """Ensambla el servicio de perfilado inyectando configuración de infraestructura."""
-    # Configuración paramétrica
     max_sampling_pages = int(os.getenv("PROFILER_MAX_SAMPLING_PAGES", "5"))
 
     geom_adapter = NodeGeometryAdapter()
     semantic_adapter = NodeSemanticAdapter()
 
-    # Inyección
     sampler = FirstPagesSamplingPolicy(geom_extractor=geom_adapter, max_pages=max_sampling_pages)
     layout_detector = HeuristicLayoutDetector(geom_extractor=geom_adapter)
     type_detector = HeuristicTypeDetector(semantic_adapter=semantic_adapter)
