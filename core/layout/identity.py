@@ -3,7 +3,9 @@ from typing import Type, Any
 from core.layout.base import LayoutStage, PipelineContext
 from core.layout.models import LayoutBlockCollection
 from core.domain.document import BlockId, BoundingBox
-
+"""
+Origen de los node_id
+"""
 
 class BlockIdentityGenerator(LayoutStage[LayoutBlockCollection, LayoutBlockCollection]):
     INPUT_TYPE: Type[Any] = LayoutBlockCollection

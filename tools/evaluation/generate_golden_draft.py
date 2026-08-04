@@ -10,45 +10,13 @@ from infra.fs.ground_truth_store import LocalFileSystemGroundTruthDraftWriter
 from infra.benchmarks.adapters.ground_truth_parser_adapter import BenchmarkParserBridge
 
 # Imports exactos del Pipeline Oficial de Producción
-from infra.adapters.pdf_parser import PdfParserAdapter
-from core.extraction.ocr_providers.pymupdf_provider import PyMuPDFProvider
-from core.ast.builder import FlatASTBuilder
-from core.ast.models import ASTNode
-from core.layout.models import LayoutBlockCollection, LayoutBlockDraft
-from core.layout.builder import DocumentLayout
+from apps.bootstrap.pipeline_factory import build_extraction_pipeline
 
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
 )
 logger = logging.getLogger("generate_golden_draft")
-
-
-
-def _pipeline_layout_to_ast(document_layout: DocumentLayout) -> list[ASTNode]:
-    draft_blocks: list[LayoutBlockDraft] = []
-    
-    for page in document_layout.pages:
-        for block in page.blocks:
-            # Type Guard para Pyright (reduce BoundingBox | None -> BoundingBox)
-            assert block.bbox is not None, f"El bloque {block.block_id} no contiene BoundingBox."
-
-            # Transformación explícita de LayoutBlock (Dominio) -> LayoutBlockDraft (DTO Layout)
-            draft = LayoutBlockDraft(
-                block_id=block.block_id,
-                logical_type=block.logical_type.value if hasattr(block.logical_type, "value") else str(block.logical_type),
-                content=block.content.cleaned,
-                bbox=block.bbox,
-                confidence=block.metadata.confidence.ocr if block.metadata and block.metadata.confidence else 1.0,
-                provider_native_id=str(block.metadata.provider.native_block_index) if block.metadata and block.metadata.provider else None,
-                column_index=block.metadata.spatial.column_index if block.metadata and block.metadata.spatial else 0,
-                page_index=page.page_number
-            )
-            draft_blocks.append(draft)
-            
-    collection = LayoutBlockCollection(blocks=draft_blocks)
-    return FlatASTBuilder().build(collection)
-
 
 def main() -> None:
     """Imperative Shell. Composes production components and triggers the drafting pipeline."""
@@ -58,14 +26,13 @@ def main() -> None:
     corpus_loader: CorpusManifestLoaderPort = LocalFileSystemCorpusLoader(base_path)
     writer_adapter = LocalFileSystemGroundTruthDraftWriter(base_path)
 
-    # 1. Instanciación exacta de la infraestructura de extracción de producción
-    concrete_provider = PyMuPDFProvider()  
-    
-    # 2. Composición del parser delegando al aplanador y al ASTBuilder real
-    production_parser = PdfParserAdapter(
-        provider=concrete_provider,
-        layout_to_ast_mapper=_pipeline_layout_to_ast
-    )
+    # NADR-10 §5.3 R9: Reutilizar la Composition Root
+    production_parser = build_extraction_pipeline()
+
+    extractor_adapter = BenchmarkParserBridge(
+        pdf_directory=pdf_directory,
+        pipeline_parser=production_parser
+    )       
     
     # 3. Inyección en el puente del benchmark
     extractor_adapter = BenchmarkParserBridge(

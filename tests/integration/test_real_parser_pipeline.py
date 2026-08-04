@@ -1,7 +1,6 @@
 import unittest
 import os
-from unittest.mock import MagicMock
-from infra.adapters.pdf_parser import PdfParserAdapter
+from apps.bootstrap.pipeline_factory import build_extraction_pipeline
 from core.ast.models import ASTNode
 
 class TestRealParserIsolation(unittest.TestCase):
@@ -11,7 +10,7 @@ class TestRealParserIsolation(unittest.TestCase):
         self.pdf_real_path = "tests/fixtures/sample_3_pages.pdf"
         
         # SOTA FIX: Firma del adaptador acoplada a la inversión de control real de la Fase 16
-        self.adapter = PdfParserAdapter(provider=MagicMock(), layout_to_ast_mapper=MagicMock())
+        self.adapter = build_extraction_pipeline()
         
         if not os.path.exists(self.pdf_real_path):
             os.makedirs(os.path.dirname(self.pdf_real_path), exist_ok=True)

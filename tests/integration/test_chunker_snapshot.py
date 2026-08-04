@@ -3,7 +3,8 @@ import json
 import logging
 import unittest
 from core.ast.models import ASTNode, FastWordEstimator
-from core.ast.hashing import build_semantic_chunks_as_units
+from core.chunking.semantic_chunking import build_semantic_chunks_as_units
+from apps.bootstrap.pipeline_factory import build_extraction_pipeline
 
 logger = logging.getLogger(__name__)
 
@@ -11,6 +12,7 @@ class TestChunkerSnapshot(unittest.TestCase):
     """Suite de Integración para detectar mutaciones colaterales en el empaquetado de producción."""
 
     def setUp(self):
+        self.adapter = build_extraction_pipeline()
         self.estimator = FastWordEstimator()
         self.ast_cache_path = "tests/fixtures/sample_3_pages.pdf.ast.json"
         self.snapshot_path = "tests/fixtures/sample_chunks.json"

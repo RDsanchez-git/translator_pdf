@@ -55,7 +55,7 @@ async def main() -> None:
         
         from core.benchmark.models import BenchmarkDataset, BenchmarkDocument, DocumentComplexity, PreparedBenchmarkDataset, QualityPolicy
         from core.ast.models import TranslationUnit, TranslationTaskType
-        from core.ast.parser import parse_pdf 
+        from apps.bootstrap.pipeline_factory import build_extraction_pipeline
         import hashlib
 
         pdf_target_path = Path.cwd() / "[Amoretal_2023]_3hojas.pdf"
@@ -64,7 +64,10 @@ async def main() -> None:
             raise FileNotFoundError(f"Documento físico no encontrado: {pdf_target_path}")
 
         logger.info(f"Ejecutando parser sobre {pdf_target_path.name}...")
-        ast_nodes = parse_pdf(str(pdf_target_path))
+        # NADR-10 §5.3 R9, R10: El benchmark es un consumidor del Composition Root.
+        # No es otro pipeline. No reconstruye la extracción.
+        production_parser = build_extraction_pipeline()
+        ast_nodes = production_parser.parse(str(pdf_target_path))
         
         if not ast_nodes:
             raise RuntimeError("El parser devolvió un AST vacío.")

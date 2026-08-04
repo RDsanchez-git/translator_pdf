@@ -17,6 +17,15 @@ dependencies = [
     "pydantic>=2.0.0",
 ]
 
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4",
+    "pytest-asyncio>=0.21",
+    "pyright>=1.1",
+    "import-linter>=1.9",
+    "coverage>=7.3",
+]
+
 [project.scripts]
 translator-pdf = "apps.cli.main:main"
 
@@ -24,3 +33,80 @@ translator-pdf = "apps.cli.main:main"
 where = ["."]
 include = ["apps*", "core*", "infra*", "runtime*"]
 namespaces = true
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PYTEST CONFIGURATION
+# ─────────────────────────────────────────────────────────────────────────────
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "-ra",
+]
+markers = [
+    "regression: Regression gate tests (golden corpus, snapshots) — NADR-10",
+    "integration: Integration tests requiring real PDFs",
+    "unit: Pure unit tests with no I/O",
+    "smoke: Smoke tests for CI fast-path",
+]
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PYRIGHT (Static Type Checking)
+# ─────────────────────────────────────────────────────────────────────────────
+
+[tool.pyright]
+include = ["core", "apps", "infra", "runtime"]
+exclude = ["tests", "tools", "graveyard", "experiments"]
+typeCheckingMode = "strict"
+reportMissingImports = true
+reportMissingTypeStubs = false
+pythonVersion = "3.11"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# IMPORT-LINTER (Hexagonal Boundary Contracts)
+#
+# NOTA NADR-10 §5.3 R10: Los contratos que prohíben fitz/pymupdf NO se activan
+# hasta que core/ast/parser.py (legacy) sea eliminado en Gate 2, Task 2.2.3.
+# Activarlos ahora rompería el CI contra código legacy aún existente.
+# ─────────────────────────────────────────────────────────────────────────────
+
+[tool.importlinter]
+root_packages = ["core", "apps", "infra", "runtime"]
+
+# Activo desde Wave 1.1: frontera Domain → Infrastructure
+[[tool.importlinter.contracts]]
+name = "Domain must not import from Infrastructure"
+type = "forbidden"
+source_modules = ["core"]
+forbidden_modules = ["infra", "apps"]
+
+# Activo desde Wave 1.1: frontera Infrastructure → Application
+[[tool.importlinter.contracts]]
+name = "Infrastructure must not import from Application layer"
+type = "forbidden"
+source_modules = ["infra"]
+forbidden_modules = ["apps"]
+
+# PENDIENTE (Gate 2 — Task 2.2.3): Descomentar tras eliminar core/ast/parser.py
+# [[tool.importlinter.contracts]]
+# name = "Domain must not import concrete OCR libraries"
+# type = "forbidden"
+# source_modules = ["core"]
+# forbidden_modules = ["fitz", "pymupdf", "pymupdf4llm", "tesseract", "docling"]
+
+# ─────────────────────────────────────────────────────────────────────────────
+# COVERAGE
+# ─────────────────────────────────────────────────────────────────────────────
+
+[tool.coverage.run]
+source = ["core", "infra", "runtime"]
+omit = ["tests/*", "tools/*", "graveyard/*"]
+
+[tool.coverage.report]
+fail_under = 80
+show_missing = true

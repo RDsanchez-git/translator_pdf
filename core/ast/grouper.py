@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List
+from typing import List, Sequence
 from core.ast.models import ASTNode
 
 @dataclass
@@ -10,7 +10,7 @@ class SemanticGroup:
 
 class ContextAwareSemanticGrouper:
     @staticmethod
-    def group(ast: List[ASTNode]) -> List[SemanticGroup]:
+    def group(ast: Sequence[ASTNode]) -> List[SemanticGroup]:
         if not ast:
             return []
             
@@ -24,7 +24,6 @@ class ContextAwareSemanticGrouper:
         for node in ast:
             node_path = tuple(node.control_plane.get("structural_path", ()))
             
-            # La fuente de verdad topológica es la ruta, no el hash
             if node_path != current_path:
                 groups.append(SemanticGroup(
                     structural_path=current_path, 

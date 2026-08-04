@@ -2,9 +2,9 @@ import unittest
 import os
 import json
 from typing import List, Dict, Any
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 from core.ast.models import ASTNode
-from infra.adapters.pdf_parser import PdfParserAdapter
+from apps.bootstrap.pipeline_factory import build_extraction_pipeline
 
 class TestGoldenParser(unittest.TestCase):
     """SOTA: Suite de regresión estructural basada en huellas digitales topológicas (Fase 11B.1B)."""
@@ -14,7 +14,7 @@ class TestGoldenParser(unittest.TestCase):
         self.fingerprint_path = "tests/golden/sample_3_pages.fingerprint.json"
         
         # SOTA FIX: Firma del adaptador acoplada a la inversión de control real
-        self.adapter = PdfParserAdapter(provider=MagicMock(), layout_to_ast_mapper=MagicMock())
+        self.adapter = build_extraction_pipeline()
 
         if not os.path.exists(self.pdf_real_path):
             os.makedirs(os.path.dirname(self.pdf_real_path), exist_ok=True)

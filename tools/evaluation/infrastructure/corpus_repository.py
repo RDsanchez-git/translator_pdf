@@ -1,7 +1,7 @@
-import json
 from pathlib import Path
 
-from tools.evaluation.infrastructure.ast_deserializer import ASTJsonDeserializer
+# NADR-01 §5.1 R1: Usar el módulo canónico de serialización
+from infra.serialization.ast_json import deserialize_ast_json
 from tools.evaluation.topology.models import BenchmarkDocument
 
 
@@ -35,12 +35,14 @@ class LocalFileSystemCorpusRepository:
                 continue
 
             with open(cand_path, "r", encoding="utf-8") as f:
-                cand_json = json.load(f)
+                cand_json_content = f.read()
             with open(gt_path, "r", encoding="utf-8") as f:
-                gt_json = json.load(f)
+                gt_json_content = f.read()
 
-            cand_nodes = ASTJsonDeserializer.deserialize_nodes(cand_json)
-            gt_nodes = ASTJsonDeserializer.deserialize_nodes(gt_json)
+            # FIX: deserialize_ast_json retorna List[ASTNode],
+            # BenchmarkDocument espera Tuple[ASTNode, ...]
+            cand_nodes = tuple(deserialize_ast_json(cand_json_content))
+            gt_nodes = tuple(deserialize_ast_json(gt_json_content))
 
             corpus_documents.append(
                 BenchmarkDocument(

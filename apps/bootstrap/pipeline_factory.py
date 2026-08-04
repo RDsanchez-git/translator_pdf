@@ -17,6 +17,7 @@ from infra.db.document_repository import SQLiteDocumentRepository
 # Importaciones SOTA para el adaptador hexagonal
 from core.benchmark.types import ProviderKind
 from core.extraction.ocr_providers.pymupdf_provider import PyMuPDFProvider
+from core.extraction.provider import ExtractionProvider
 from core.ast.builder import FlatASTBuilder
 
 # Infraestructura de validación y curación nativa
@@ -80,25 +81,11 @@ def build_pipeline(
     state_store_override: Optional[StateStoreProtocol] = None
 ) -> TranslationPipeline:
     """Composition Root encargado del wiring explícito mediante asignación de inyección directa."""
-    bootstrap_normalization_layer()
-    
-    # SOTA FIX: Encapsulamiento estricto mediante función interna tipada
-    provider = PyMuPDFProvider()
-    mapper = FlatASTBuilder()
-    
-    def _adapter_mapper(document_layout: DocumentLayout) -> list[ASTNode]:
-        """SOTA FIX: Extrae y aplana los bloques del Aggregate jerárquico."""
-        flat_blocks = []
-        for page in document_layout.pages:
-            flat_blocks.extend(page.blocks)
-            
-        collection = LayoutBlockCollection(blocks=flat_blocks) 
-        return mapper.build(collection)
 
-    parser = PdfParserAdapter(
-        provider=provider, 
-        layout_to_ast_mapper=_adapter_mapper
-    )
+    bootstrap_normalization_layer()
+
+    # NADR-11: Reutilizar la factoría de extracción en lugar de reconstruir
+    parser: PdfParserAdapter = build_extraction_pipeline()
     
     doc_conn = get_connection("infra/db/documents.db", timeout=30)
     document_repository = SQLiteDocumentRepository(doc_conn)
@@ -169,4 +156,47 @@ def build_document_profiler() -> HeuristicDocumentProfiler:
         layout_detector=layout_detector,
         type_detector=type_detector,
         sampler=sampler
+    )
+
+def build_default_extraction_provider() -> ExtractionProvider:
+    """
+    Punto único de resolución del proveedor de extracción por defecto.
+    
+    Si el proveedor por defecto cambia (PyMuPDF → Docling → etc.),
+    este es el ÚNICO lugar que se modifica. Todos los consumidores
+    (pipeline de producción, tests, benchmark, golden draft) heredan
+    el cambio automáticamente.
+    
+    NADR-02 §5.2 R4: La selección del proveedor de extracción MUST estar
+    gobernada por una política explícita del sistema.
+    """
+    return PyMuPDFProvider()
+
+
+def build_extraction_pipeline() -> PdfParserAdapter:
+    """
+    Factoría única del pipeline de extracción de producción.
+    
+    NADR-11 §5.1 R1: La Composition Root es el único punto de construcción.
+    NADR-10 §5.3 R9: El benchmark y los tests MUST usar exactamente los mismos
+    patrones de extracción cableados aquí.
+    
+    Todo consumidor que necesite extraer AST de un PDF (tests de regresión,
+    benchmark, golden draft) MUST invocar esta función. Nunca reconstruir
+    el pipeline manualmente.
+    """
+    provider = build_default_extraction_provider()
+    mapper = FlatASTBuilder()
+    
+    def _adapter_mapper(document_layout: DocumentLayout) -> list[ASTNode]:
+        """Extrae y aplana los bloques del Aggregate jerárquico."""
+        flat_blocks = []
+        for page in document_layout.pages:
+            flat_blocks.extend(page.blocks)
+        collection = LayoutBlockCollection(blocks=flat_blocks)
+        return mapper.build(collection)
+
+    return PdfParserAdapter(
+        provider=provider,
+        layout_to_ast_mapper=_adapter_mapper
     )

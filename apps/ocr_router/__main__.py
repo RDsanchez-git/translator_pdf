@@ -15,9 +15,10 @@ from infra.db.control_repo import ControlPlaneRepository
 from core.execution.handlers import DocumentCommandHandler
 from core.execution.state import StartParsingCommand, StartProcessingCommand, DocumentState
 from core.ast.registry import ASTRegistry
+from core.ast.hashing import compute_ast_hash
 
 from core.ast.parser import parse_pdf
-from core.ast.hashing import compute_ast_hash, build_semantic_chunks_as_units
+from core.chunking.semantic_chunking import build_semantic_chunks_as_units
 from core.ast.models import FastWordEstimator
 from core.document_profile.models import ProfileInput
 from core.document_profile.profiler import HeuristicDocumentProfiler

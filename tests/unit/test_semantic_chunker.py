@@ -2,7 +2,7 @@ import logging
 import unittest
 from core.ast.models import ASTNode, ParagraphPayload, HeadingPayload, TablePayload, FastWordEstimator, TranslationTaskType
 from core.ast.enums import ContentNodeType, HeadingLevel
-from core.ast.hashing import build_semantic_chunks_as_units, ChunkPolicy
+from core.chunking.semantic_chunking import build_semantic_chunks_as_units, ChunkPolicy
 
 logger = logging.getLogger(__name__)
 

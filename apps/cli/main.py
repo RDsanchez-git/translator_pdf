@@ -14,7 +14,7 @@ sys.path.append(str(Path(__file__).resolve().parents[2]))
 
 from apps.bootstrap.pipeline_factory import build_pipeline
 from core.pipeline.job import TranslationJob, PipelineStep
-from core.ast.hashing import build_semantic_chunks_as_units
+from core.chunking.semantic_chunking import build_semantic_chunks_as_units
 from core.ast.models import FastWordEstimator
 from infra.db.connection import get_connection
 

@@ -1,3 +1,11 @@
+"""
+CQRS Reconciliation Daemon.
+
+NADR-10 §5.2 R8: El mecanismo de reconciliación MUST estar activo en producción.
+NADR-10 §5.2 R11: La activación MUST estar gobernada por configuración externa.
+NADR-10 §5.2 R12: MUST NOT existir banderas de código que desactiven la reconciliación.
+"""
+
 import time
 import logging
 import random
@@ -9,23 +17,26 @@ from infra.db.system_repo import SystemPlaneRepository
 from core.execution.handlers import ReconciliationCommandHandler
 from core.execution.state import RecoverZombieTaskCommand
 from core.metrics.metrics import Metrics
+from runtime.settings import RuntimeSettings
 
 logger = logging.getLogger(__name__)
 
-# SOTA: Guardián de aislamiento para infraestructura latente no validada en staging
-EXPERIMENTAL_ENABLED = False
 
 class CQRSReconciliationDaemon:
-    """SOTA: Daemon asíncrono para sanación de proyecciones y liberación de leases huérfanos."""
+    """Daemon asíncrono para sanación de proyecciones y liberación de leases huérfanos."""
     
-    def __init__(self):
+    def __init__(self, settings: RuntimeSettings):
         self.identity = "global_reconciler"
         self.metrics = Metrics()
+        self._settings = settings
 
     def run_reconciliation_cycle(self) -> None:
         """Sana inconsistencias de sub-tareas individuales en el Control Plane."""
-        if not EXPERIMENTAL_ENABLED:
-            logger.info("CQRS_RECONCILER_BYPASS: El componente se encuentra en estado EXPERIMENTAL (Desactivado).")
+        # NADR-10 §5.2 R11: La activación se gobierna por configuración inyectada
+        if not self._settings.reconciliation_enabled:
+            logger.info(
+                "Reconciliación CQRS desactivada por configuración externa."
+            )
             return
 
         with get_connection("infra/db/queue.db") as q_conn, \
@@ -76,13 +87,19 @@ class CQRSReconciliationDaemon:
                     except Exception as e:
                         logger.error(f"Falla al reconciliar tarea {task_id[:8]}: {str(e)}")
 
+
 if __name__ == "__main__":
+    import os
     from core.utils.telemetry import setup_distributed_logger
     setup_distributed_logger()
     
-    reconciler = CQRSReconciliationDaemon()
-    logger.info("Daemon de Reconciliación CQRS MVP inicializado.")
+    # La lectura de env se hace en el borde (imperative shell), no en el daemon
+    enabled = os.environ.get("PHASE17BIS_RECONCILIATION_ENABLED", "true").lower() in ("true", "1", "yes")
+    settings = RuntimeSettings(reconciliation_enabled=enabled)
+    
+    reconciler = CQRSReconciliationDaemon(settings=settings)
+    logger.info("Daemon de Reconciliación CQRS inicializado.")
     
     while True:
         reconciler.run_reconciliation_cycle()
-        time.sleep(45 + random.uniform(0.0, 5.0))
+        time.sleep(settings.sweep_interval_seconds + random.uniform(0.0, settings.sweep_jitter_seconds))
