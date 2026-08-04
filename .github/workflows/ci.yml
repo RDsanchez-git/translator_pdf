@@ -25,10 +25,13 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: "pip"
+          cache-dependency-path: pyproject.toml # <-- Le decimos que lea de aquí
 
       - name: Install dependencies
         run: |
-          pip install -e ".[dev]"
+          python -m pip install --upgrade pip setuptools wheel
+          pip install .[dev]
+          pip list # <-- Nos imprimirá la lista de lo que instaló para poder auditarlo
 
       - name: Type check (pyright strict)
         run: pyright core/ apps/ infra/ runtime/
@@ -51,10 +54,13 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: "pip"
+          cache-dependency-path: pyproject.toml # <-- Le decimos que lea de aquí
 
       - name: Install dependencies
         run: |
-          pip install -e ".[dev]"
+          python -m pip install --upgrade pip setuptools wheel
+          pip install .[dev]
+          pip list # <-- Nos imprimirá la lista de lo que instaló para poder auditarlo
 
       - name: Run regression gates (pytest marker)
         run: |
