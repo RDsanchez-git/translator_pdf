@@ -15,6 +15,25 @@ classifiers = [
 dependencies = [
     "rich>=13.0.0",
     "pydantic>=2.0.0",
+    "fastapi",
+    "docker",
+    "requests",
+    "groq",
+    "google-generativeai",
+    "aiosqlite",
+    "pymupdf",
+    "pymupdf4llm",
+    "pytesseract",
+    "pillow",
+    "python-dotenv",
+    "numpy",
+    "scipy",
+    "pylatexenc",
+    "psutil",
+    "docling",
+    "beautifulsoup4",
+    "tiktoken",
+    "tenacity",
 ]
 
 [project.optional-dependencies]

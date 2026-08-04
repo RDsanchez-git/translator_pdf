@@ -1,8 +1,0 @@
-requests
-pydantic
-tenacity
-rich
-PyMuPDF
-pymupdf4llm
-pytesseract
-Pillow
