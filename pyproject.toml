@@ -33,7 +33,10 @@ dependencies = [
     "docling",
     "beautifulsoup4",
     "tiktoken",
-    "tenacity",
+    "apted",
+    "libcst",
+    "markdown-it-py",
+    "tenacity"
 ]
 
 [project.optional-dependencies]
