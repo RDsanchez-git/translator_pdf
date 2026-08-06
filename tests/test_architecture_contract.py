@@ -40,28 +40,12 @@ def _is_ast_node_call(node) -> bool:
 def test_ast_node_instantiation_contract():
     """
     NADR-01 §5.1 R3, R4: Detectar instanciación no tipada de ASTNode desde dicts.
-
-    Este contract test escanea todos los archivos Python del proyecto (excluyendo
-    tests) y falla si encuentra patrones del tipo:
-    - ASTNode(**some_dict)
-    - ASTNode(**data)
-    - ASTNode(**kwargs)
-    - models.ASTNode(**kwargs)
-    - ast_models.ASTNode(**kwargs)
-
-    La instanciación de ASTNode DEBE realizarse mediante:
-    - PayloadRegistry.create() + ASTNode(node_id=..., payload=...)
-    - infra.serialization.ast_json.deserialize_ast_json()
-
-    NOTA: tools/ está INCLUIDO en el escaneo (no se excluye).
     """
     import ast as ast_module
     from pathlib import Path
 
     project_root = Path(__file__).parent.parent
 
-    # Directorios a escanear (excluir SOLO tests)
-    # tools/ se INCLUYE porque también debe cumplir el contrato
     scan_dirs = [
         project_root / "core",
         project_root / "infra",
@@ -70,6 +54,14 @@ def test_ast_node_instantiation_contract():
         project_root / "tools",
     ]
 
+    # Archivos excluidos del escaneo (deuda técnica programada para eliminación)
+    excluded_files = {
+        # DF-09: core/ast/parser.py es el parser legacy regex programado para
+        # eliminación en Gate 2, Wave 2.2 (Task 2.2.3). Se excluye temporalmente
+        # del contract test para no bloquear la Wave 2.1.
+        #"core/ast/parser.py", fue eliminado en Wave 2.2.3
+    }
+
     violations = []
 
     for scan_dir in scan_dirs:
@@ -77,27 +69,27 @@ def test_ast_node_instantiation_contract():
             continue
 
         for py_file in scan_dir.rglob("*.py"):
+            rel_path = str(py_file.relative_to(project_root)).replace("\\", "/")
+            if rel_path in excluded_files:
+                continue
+
             try:
                 with open(py_file, "r", encoding="utf-8") as f:
                     source = f.read()
 
                 tree = ast_module.parse(source, filename=str(py_file))
 
-                # Buscar llamadas a ASTNode con **kwargs
                 for node in ast_module.walk(tree):
                     if isinstance(node, ast_module.Call):
-                        # Verificar si es una llamada a ASTNode (Name o Attribute)
                         if _is_ast_node_call(node):
-                            # Buscar argumentos con **kwargs (keyword con arg=None)
                             for keyword in node.keywords:
-                                if keyword.arg is None:  # Esto indica **kwargs
+                                if keyword.arg is None:
                                     violations.append(
                                         f"{py_file.relative_to(project_root)}: Línea {node.lineno} - "
                                         f"ASTNode(**kwargs) detectado. Usar PayloadRegistry.create() o deserialize_ast_json()."
                                     )
 
             except (SyntaxError, UnicodeDecodeError):
-                # Ignorar archivos con errores de sintaxis o encoding
                 continue
 
     if violations:

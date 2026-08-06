@@ -4,15 +4,23 @@ from core.pipeline.orchestrator import ParserProtocol
 from core.domain.document import DocumentLayout
 from core.execution.exceptions import LayoutRecoveryError, ASTMappingError
 from core.extraction.provider import ExtractionProvider
+from core.extraction.provider import ExtractionCapabilities
 
 class PdfParserAdapter(ParserProtocol):
-    def __init__(
-        self, 
-        provider: ExtractionProvider, 
-        layout_to_ast_mapper: Callable[[DocumentLayout], List[ASTNode]]
-    ):
+    def __init__(self, provider: ExtractionProvider, layout_to_ast_mapper: Callable[[DocumentLayout], List[ASTNode]]):
         self._provider = provider
         self._layout_to_ast_mapper = layout_to_ast_mapper
+
+    @property
+    def capabilities(self) -> ExtractionCapabilities:
+        """
+        Contrato observable del pipeline de extracción.
+        
+        Los tests verifican este contrato, no la implementación del proveedor.
+        Si el proveedor cambia (ej: tras el benchmark de Fase 17), este contrato
+        se actualiza automáticamente sin modificar los tests.
+        """
+        return self._provider.capabilities
 
     def parse(self, file_path: str) -> List[ASTNode]:
         document_layout = self._provider.extract(file_path)

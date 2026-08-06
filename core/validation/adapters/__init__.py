@@ -1,0 +1,1 @@
+# core/validation/adapters/__init__.py

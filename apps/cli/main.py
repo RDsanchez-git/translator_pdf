@@ -22,7 +22,6 @@ from apps.llm_workers.adapters import GroqProvider
 from apps.llm_workers.rate_limiter import RateLimitedProvider, QuotaManager
 from apps.llm_workers.cache_provider import CachedLLMProvider
 from apps.llm_workers.prompt_builder import PromptBuilder
-from apps.llm_workers.dispatcher import AsyncDispatcher
 from core.context.context_resolver import ResolvedContext
 from core.validation.budget import PromptBudgetCalculator, StandardCompressionPolicy
 from core.finops.measurement import InferenceMeasurementService
@@ -113,15 +112,14 @@ async def handle_translate_async(args):
     optimal_concurrency = max(1, min(int((rpm_limit / 60.0) * 1.5) * 2, 50))
 
     try:
-        dispatcher = AsyncDispatcher(
+        chunker_adapter = ChunkerProtocolAdapter(estimator=estimator)
+        pipeline = build_pipeline(
+            chunker=chunker_adapter,
             context_resolver=DummyContextResolver(),
             prompt_builder=prompt_builder,
             provider_stack=cached_provider,
-            concurrency=optimal_concurrency
+            concurrency=optimal_concurrency,
         )
-        
-        chunker_adapter = ChunkerProtocolAdapter(estimator=estimator)
-        pipeline = build_pipeline(chunker=chunker_adapter, dispatcher=dispatcher)
         job = TranslationJob(job_id=job_id, source_path=source_path)
 
         console.print(Panel(

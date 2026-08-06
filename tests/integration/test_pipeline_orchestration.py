@@ -8,7 +8,7 @@ from core.ast.models import ASTNode, TranslationUnit, TranslatedUnit, Translatio
 from core.ast.enums import ContentNodeType
 from core.ast.builder import PayloadRegistry
 from core.pipeline.job import TranslationJob, JobStatus, PipelineStep
-from apps.bootstrap.pipeline_factory import build_pipeline
+from core.pipeline.orchestrator import TranslationPipeline
 from infra.db.fsm_repository import FSMRepository
 from core.execution.handlers import DocumentCommandHandler
 from core.pipeline.state_store import FSMStateStore
@@ -86,13 +86,40 @@ class TestPipelineOrchestration(unittest.IsolatedAsyncioTestCase):
         handler = DocumentCommandHandler(repo)
         mock_store = FSMStateStore(repo, handler)
 
-        self.pipeline = build_pipeline(
+        # Construir TranslationPipeline directamente
+        from apps.bootstrap.pipeline_factory import build_extraction_pipeline
+        from core.metrics.summary import SummaryBuilder
+        from core.compiler.assembler import DocumentAssembler, AssemblyPolicy
+        from core.ast.models import FailureReason
+        from infra.db.document_repository import SQLiteDocumentRepository
+        from infra.db.connection import get_connection
+
+        parser = build_extraction_pipeline()
+        doc_conn = get_connection("infra/db/documents.db", timeout=30)
+        document_repository = SQLiteDocumentRepository(doc_conn)
+        assembly_policy = AssemblyPolicy(
+            tolerance_ratio=0.05, allow_fallback=True,
+            degradable_failures=frozenset([
+                FailureReason.CONTEXT_OVERFLOW, FailureReason.PROVIDER_FAILURE,
+                FailureReason.RETRY_EXHAUSTED
+            ])
+        )
+        assembler = DocumentAssembler(
+            repository=document_repository, separator="\n\n", policy=assembly_policy
+        )
+
+        self.pipeline = TranslationPipeline(
+            parser=parser,
             chunker=FakeChunker(),
             dispatcher=FakeDispatcher(),
-            state_store_override=mock_store
+            assembler=assembler,
+            audit_builder=SummaryBuilder(),
+            state_store=mock_store,
+            document_repository=document_repository,
         )
 
         if not os.path.exists(self.pdf_real_path):
+            # ... sin cambios
             os.makedirs(os.path.dirname(self.pdf_real_path), exist_ok=True)
             with open(self.pdf_real_path, "w") as f:
                 f.write("dummy pdf binary")

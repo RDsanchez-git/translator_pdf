@@ -24,6 +24,14 @@ from core.prompting.dialects.openai_compatible import OpenAICompatibleDialect
 from core.metrics.pricing import PricingEngine
 from core.benchmark.quality import FormalLatexSyntaxParser, FormalMarkdownTableParser
 
+from core.validation.factory import build_validation_pipeline
+from core.healing.pipeline import HealingPipeline
+from core.healing.strategies.markdown_leakage import MarkdownLeakageHealingStrategy
+from core.healing.strategies.meta_text_leakage import MetaTextLeakageHealingStrategy
+from core.healing.strategies.structural import EOFBraceClosureStrategy, EOFMathClosureStrategy
+from core.healing.config import HealingPolicy
+
+
 logger = logging.getLogger(__name__)
 
 class DummyContextResolver:
@@ -90,11 +98,24 @@ class GroqBenchmarkRunner(BenchmarkRunnerProtocol):
         quota_mgr = QuotaManager(rpm_limit=rpm_limit, tpm_limit=tpm_limit)
         rate_provider = RateLimitedProvider(underlying=groq_provider, quota_manager=quota_mgr)
         
+                # Construir pipelines de validación y curación
+        validation_pipeline = build_validation_pipeline()
+        policy = HealingPolicy()
+        strategies = [
+            MarkdownLeakageHealingStrategy(),
+            MetaTextLeakageHealingStrategy(),
+            EOFBraceClosureStrategy(policy=policy),
+            EOFMathClosureStrategy(policy=policy),
+        ]
+        healing_pipeline = HealingPipeline(validation_pipeline, strategies)
+
         self._dispatcher = AsyncDispatcher(
             context_resolver=DummyContextResolver(),
             prompt_builder=prompt_builder,
             provider_stack=rate_provider,
-            concurrency=self.concurrency
+            validation_pipeline=validation_pipeline,
+            healing_pipeline=healing_pipeline,
+            concurrency=self.concurrency,
         )
         
         self.warmup_time_seconds = time.monotonic() - start_time

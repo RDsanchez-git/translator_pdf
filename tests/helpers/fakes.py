@@ -1,5 +1,8 @@
 from typing import List
-from core.ast.models import ASTNode, TranslationUnit, TranslatedUnit, TranslationTaskType
+from core.ast.models import (
+    ASTNode, TranslationUnit, TranslatedUnit, TranslationTaskType,
+    DispatchResult, ChunkOutcome, ExecutionStatus
+)
 
 class FakeChunker:
     """Implementación de control estricta para cumplir con ChunkerProtocol."""
@@ -8,12 +11,12 @@ class FakeChunker:
             TranslationUnit(
                 chunk_index=1,
                 chunk_id="chk_mock_001",
-                chunk_fingerprint="mock_fingerprint_001",  # SOTA: Propiedad añadida en Fase 13
-                chunk_type=TranslationTaskType.TRANSLATE,  # SOTA: Uso estricto del Enum
+                chunk_fingerprint="mock_fingerprint_001",
+                chunk_type=TranslationTaskType.TRANSLATE,
                 source_sequence_range=(1, max(1, len(nodes))),
                 node_count=len(nodes),
-                context_id="CTX_GLOBAL_MOCK",              # SOTA: Reemplaza a reference_context
-                context_depth=1,                           # SOTA: Propiedad añadida en Fase 13
+                context_id="CTX_GLOBAL_MOCK",
+                context_depth=1,
                 target_payload="Payload extraído del AST real",
                 estimated_tokens=150,
                 payload_sha256="e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
@@ -21,14 +24,14 @@ class FakeChunker:
         ]
 
 class FakeDispatcher:
-    """Implementación asíncrona de control homologada para el PricingEngine."""
-    async def dispatch(self, units: List[TranslationUnit]) -> List[TranslatedUnit]:
-        return [
-            TranslatedUnit(
+    """Implementación asíncrona de control homologada para DispatcherProtocol."""
+    async def dispatch(self, units: List[TranslationUnit]) -> DispatchResult:
+        outcomes = []
+        for u in units:
+            translated_unit = TranslatedUnit(
                 chunk_index=u.chunk_index,
                 chunk_id=u.chunk_id,
-                # Extracción segura del valor primitivo del Enum para serialización mock
-                chunk_type=u.chunk_type.value if hasattr(u.chunk_type, "value") else u.chunk_type, 
+                chunk_type=u.chunk_type.value if hasattr(u.chunk_type, "value") else u.chunk_type,
                 source_sequence_range=u.source_sequence_range,
                 translated_payload="Texto traducido simulado",
                 payload_sha256=u.payload_sha256,
@@ -37,5 +40,17 @@ class FakeDispatcher:
                 input_tokens=120,
                 output_tokens=140,
                 latency_ms=45.2
-            ) for u in units
-        ]
+            )
+            outcomes.append(
+                ChunkOutcome(
+                    chunk_index=u.chunk_index,
+                    chunk_id=u.chunk_id,
+                    status=ExecutionStatus.SUCCESS,
+                    original_payload_sha256=u.payload_sha256,
+                    translated_unit=translated_unit,
+                    failure_reason=None,
+                    error_message=None,
+                    telemetry={}
+                )
+            )
+        return DispatchResult(outcomes=outcomes)

@@ -1,41 +1,36 @@
-import fitz
+# core/ast/router.py
+"""
+NADR-02 §5.1 R1: Enrutador de dominio agnóstico a infraestructura.
+
+TRANSICIONAL: Este módulo preserva la API pública existente mientras
+los consumidores migran al puerto PdfTypeDetectorPort directamente.
+Retirar en Gate 3 cuando no existan consumidores (DF-10).
+"""
+
 import logging
+from core.ast.ports import PdfTypeDetectorPort
 
 logger = logging.getLogger(__name__)
 
+
 class PDFRouter:
-    """Enrutador de ingesta determinista basado en densidad de caracteres por página."""
+    """
+    Enrutador de ingesta determinista.
     
-    @staticmethod
-    def detect_pdf_type(pdf_path: str) -> tuple[str, list[int]]:
-        doc = fitz.open(pdf_path)
-        total_pages = len(doc)
-        
-        if total_pages == 0:
-            raise ValueError("PDF vacío o corrupto.")
-            
-        digital_pages = 0
-        empty_pages: list[int] = []
-        
-        for page_num in range(total_pages):
-            page = doc[page_num]
-            # SOTA: Garantía estricta de tipo en tiempo de análisis estático
-            raw_text = page.get_text("text")
-            text_str = raw_text if isinstance(raw_text, str) else ""
-            
-            if len(text_str.strip()) > 300:
-                digital_pages += 1
-            else:
-                empty_pages.append(page_num)
-                
-        doc.close()
-        
-        ratio = digital_pages / total_pages
-        logger.info(f"Análisis del Router: {digital_pages}/{total_pages} páginas digitales (Ratio: {ratio:.2f})")
-        
-        if ratio > 0.8:
-            return "DIGITAL", empty_pages
-        elif ratio > 0.2:
-            return "HYBRID", empty_pages
-        else:
-            return "SCANNED", empty_pages
+    NADR-02 §5.1 R1: No importa fitz directamente.
+    Delega la detección a un adaptador inyectado por constructor.
+    
+    NOTA TRANSICIONAL: Esta clase preserva compatibilidad con consumidores
+    existentes. Una vez que todos migren al puerto directamente, se elimina.
+    Ver DF-10 en el Deferred Findings Register.
+    """
+    
+    def __init__(self, detector: PdfTypeDetectorPort):
+        self._detector = detector
+    
+    def detect_pdf_type(self, pdf_path: str) -> tuple[str, list[int]]:
+        """
+        Detecta el tipo de PDF delegando al adaptador inyectado.
+        Retorna (tipo, páginas_vacías) donde tipo es DIGITAL/HYBRID/SCANNED.
+        """
+        return self._detector.detect(pdf_path)

@@ -62,11 +62,28 @@ def build_test_dispatcher(provider: LLMProvider, pipeline: Optional[ValidationPi
         compression_policy=compression_policy
     )
     
+    # Si no se provee pipeline, construir uno con validadores reales
+    if pipeline is None:
+        from core.validation.adapters.structural_bridge import StructuralValidationBridge
+        from core.validation.preservation import PreservationValidator
+        from core.validation.perimeter import PerimeterValidator
+        pipeline = ValidationPipeline()
+        structural_bridge = StructuralValidationBridge()
+        pipeline.add_chunk_validator(structural_bridge)
+        pipeline.add_chunk_validator(PreservationValidator())
+        pipeline.add_chunk_validator(PerimeterValidator())
+        pipeline.add_document_validator(structural_bridge)
+        pipeline.add_document_validator(PreservationValidator())
+    
+    from core.healing.pipeline import HealingPipeline
+    healing_pipeline = HealingPipeline(pipeline, strategies=[])
+    
     return AsyncDispatcher(
         context_resolver=mock_resolver,
         prompt_builder=prompt_builder,
         provider_stack=provider,
-        validation_pipeline=pipeline
+        validation_pipeline=pipeline,
+        healing_pipeline=healing_pipeline,
     )
 
 # ==============================================================================

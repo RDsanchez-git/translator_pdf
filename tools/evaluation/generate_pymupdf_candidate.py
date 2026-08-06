@@ -3,13 +3,14 @@ from core.extraction.ocr_providers.pymupdf_provider import PyMuPDFProvider
 from core.layout.models import LayoutBlockDraft, LayoutBlockCollection
 from core.ast.builder import FlatASTBuilder
 from infra.serialization.ast_json import write_ast_json_atomic
+from core.layout.classification import HeuristicLayoutClassifier
 
 def main() -> None:
     pdf_dir = Path("tests/corpus/calibration_v1/pdf")
     out_dir = Path("tests/corpus/calibration_v1/candidates/pymupdf")
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    provider = PyMuPDFProvider()
+    provider = PyMuPDFProvider(classifier=HeuristicLayoutClassifier())
     builder = FlatASTBuilder()
 
     pdf_files = list(pdf_dir.glob("*.pdf"))

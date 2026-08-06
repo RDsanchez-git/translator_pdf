@@ -107,12 +107,17 @@ type = "forbidden"
 source_modules = ["core"]
 forbidden_modules = ["infra", "apps"]
 ignore_imports = [
+    # DEUDA TÉCNICA PRE-EXISTENTE (Gate 3-4): DF-06
     "core.benchmark.__main__ -> apps.bootstrap.pipeline_factory",
     "core.compiler.service -> apps.compiler.tex_builder",
     "core.execution.handlers -> infra.db.fsm_repository",
-    "core.pipeline.state_store -> infra.db.fsm_repository"
+    "core.pipeline.state_store -> infra.db.fsm_repository",
+    # TRANSICIONAL (Gate 2): core/extraction/ocr_providers aún vive en core.
+    # Se eliminará cuando los providers migren a infra/ (DF-11).
+    "core.extraction.ocr_providers.pymupdf_provider -> core.extraction.provider",
+    "core.extraction.ocr_providers.docling_provider -> core.extraction.provider",
+    "core.extraction.ocr_providers.tesseract_provider -> core.extraction.provider",
 ]
-#PENDIENTE (GATE 1 - Tasks): Eliminar ignore imports cuando solucionemos que se cumpla la regla de imports.
 
 # Activo desde Wave 1.1: frontera Infrastructure → Application
 [[tool.importlinter.contracts]]
@@ -121,12 +126,26 @@ type = "forbidden"
 source_modules = ["infra"]
 forbidden_modules = ["apps"]
 
-# PENDIENTE (Gate 2 — Task 2.2.3): Descomentar tras eliminar core/ast/parser.py
-# [[tool.importlinter.contracts]]
-# name = "Domain must not import concrete OCR libraries"
-# type = "forbidden"
-# source_modules = ["core"]
-# forbidden_modules = ["fitz", "pymupdf", "pymupdf4llm", "tesseract", "docling"]
+# NUEVO (Gate 2 — Task 2.2.3): Protección del dominio contra implementaciones OCR
+[[tool.importlinter.contracts]]
+name = "Domain modules must not import concrete OCR provider implementations"
+type = "forbidden"
+source_modules = ["core"]
+forbidden_modules = [
+    "core.extraction.ocr_providers",
+    "fitz",
+    "pymupdf",
+    "pymupdf4llm",
+    "pytesseract",
+    "docling",
+    "PIL",
+]
+ignore_imports = [
+    # Los providers mismos necesitan importar su paquete base (transicional hasta DF-11)
+    "core.extraction.ocr_providers.pymupdf_provider -> core.extraction.ocr_providers",
+    "core.extraction.ocr_providers.docling_provider -> core.extraction.ocr_providers",
+    "core.extraction.ocr_providers.tesseract_provider -> core.extraction.ocr_providers",
+]
 
 # ─────────────────────────────────────────────────────────────────────────────
 # COVERAGE

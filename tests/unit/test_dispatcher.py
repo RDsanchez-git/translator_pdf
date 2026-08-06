@@ -33,10 +33,17 @@ class TestAsyncDispatcher(unittest.IsolatedAsyncioTestCase):
             compression_policy=compression_policy
         )
         
+        from core.validation.pipeline import ValidationPipeline
+        from core.healing.pipeline import HealingPipeline
+        validation_pipeline = ValidationPipeline()
+        healing_pipeline = HealingPipeline(validation_pipeline, strategies=[])
+        
         self.dispatcher = AsyncDispatcher(
             context_resolver=self.mock_resolver,
             prompt_builder=self.prompt_builder,
-            provider_stack=self.mock_provider
+            provider_stack=self.mock_provider,
+            validation_pipeline=validation_pipeline,
+            healing_pipeline=healing_pipeline,
         )
 
     def _create_mock_unit(self, chunk_index: int, chunk_type: TranslationTaskType) -> TranslationUnit:

@@ -4,7 +4,6 @@ from typing import List, Any
 from unittest.mock import MagicMock, patch
 from core.ast.models import ASTNode, TranslationUnit, FastWordEstimator, TranslationTaskType
 from core.pipeline.job import TranslationJob, JobStatus
-from apps.bootstrap.pipeline_factory import build_pipeline
 
 from apps.llm_workers.prompt_builder import PromptBuilder
 from apps.llm_workers.rate_limiter import RateLimitedProvider, QuotaManager
@@ -75,15 +74,58 @@ class TestRealE2EFinOps(unittest.IsolatedAsyncioTestCase):
         mock_resolver = MagicMock()
         mock_resolver.resolve.return_value = MagicMock(breadcrumbs=(), depth=0)
         
+        # Agregar pipelines antes de construir AsyncDispatcher
+        from core.validation.pipeline import ValidationPipeline
+        from core.healing.pipeline import HealingPipeline
+        validation_pipeline = ValidationPipeline()
+        healing_pipeline = HealingPipeline(validation_pipeline, strategies=[])
+        
         self.dispatcher = AsyncDispatcher(
             context_resolver=mock_resolver,
             prompt_builder=self.prompt_builder,
-            provider_stack=rate_provider
+            provider_stack=rate_provider,
+            validation_pipeline=validation_pipeline,
+            healing_pipeline=healing_pipeline,
         )
         
-        self.pipeline = build_pipeline(
+        # Construir TranslationPipeline directamente
+        from apps.bootstrap.pipeline_factory import build_extraction_pipeline
+        from core.pipeline.orchestrator import TranslationPipeline
+        from core.metrics.summary import SummaryBuilder
+        from core.compiler.assembler import DocumentAssembler, AssemblyPolicy
+        from core.ast.models import FailureReason
+        from infra.db.document_repository import SQLiteDocumentRepository
+        from infra.db.connection import get_connection
+        from infra.db.fsm_repository import FSMRepository
+        from core.execution.handlers import DocumentCommandHandler
+        from core.pipeline.state_store import FSMStateStore
+        import sqlite3
+
+        parser = build_extraction_pipeline()
+        doc_conn = get_connection("infra/db/documents.db", timeout=30)
+        document_repository = SQLiteDocumentRepository(doc_conn)
+        assembly_policy = AssemblyPolicy(
+            tolerance_ratio=0.05, allow_fallback=True,
+            degradable_failures=frozenset([
+                FailureReason.CONTEXT_OVERFLOW, FailureReason.PROVIDER_FAILURE,
+                FailureReason.RETRY_EXHAUSTED
+            ])
+        )
+        assembler = DocumentAssembler(
+            repository=document_repository, separator="\n\n", policy=assembly_policy
+        )
+        fsm_db_conn = sqlite3.connect(":memory:")
+        fsm_repo = FSMRepository(fsm_db_conn)
+        state_store = FSMStateStore(fsm_repo, DocumentCommandHandler(fsm_repo))
+
+        self.pipeline = TranslationPipeline(
+            parser=parser,
             chunker=FinOpsControlledChunker(),
-            dispatcher=self.dispatcher 
+            dispatcher=self.dispatcher,
+            assembler=assembler,
+            audit_builder=SummaryBuilder(),
+            state_store=state_store,
+            document_repository=document_repository,
         )
         
         fsm_db = self.pipeline.state_store.fsm_repo.db  # type: ignore

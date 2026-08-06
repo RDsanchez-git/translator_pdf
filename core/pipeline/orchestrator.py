@@ -12,6 +12,11 @@ from core.normalization.validators.ast_integrity import ASTIntegrityValidator
 from core.normalization.enrichers.context_enricher import HierarchicalContextEnricher
 from core.ast.hashing import compute_ast_hash
 from core.compiler.assembler import DocumentAssemblyDecision, AssemblyReport
+from core.validation.ast.models import ValidationSeverity
+from typing import Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from core.validation.ast.protocols import ValidationEngine
 
 @dataclass(frozen=True)
 class PipelineResult:
@@ -48,7 +53,8 @@ class TranslationPipeline:
         assembler: AssemblerProtocol,
         audit_builder: AuditBuilderProtocol,
         state_store: StateStoreProtocol,
-        document_repository: DocumentRepositoryProtocol
+        document_repository: DocumentRepositoryProtocol,
+        pre_llm_validator: Optional["ValidationEngine"] = None,  # NUEVO
     ):
         self.parser = parser
         self.chunker = chunker
@@ -57,6 +63,7 @@ class TranslationPipeline:
         self.audit_builder = audit_builder
         self.state_store = state_store
         self.document_repository = document_repository
+        self._pre_llm_validator = pre_llm_validator  # NUEVO
         
         self._exotic_bullets = re.compile(r'^\s*([•▪‣◦■♦○]|[-‑‒–—-]>\s*)\s*')
 
@@ -131,6 +138,16 @@ class TranslationPipeline:
         if any(w.severity == "SEVERE" for w in structural_warnings):
             critical_errors = "; ".join([w.message for w in structural_warnings if w.severity == "SEVERE"])
             raise ValueError(f"AST_INTEGRITY_VIOLATION: Pipeline halted due to topological corruption: {critical_errors}")
+
+        # NADR-04 §5.1 R1: Validación pre-LLM del AST
+        # DF-05: Conceptualmente pertenece al flujo de construcción del AST.
+        # El bloque de validación pre-LLM queda:
+        if self._pre_llm_validator:
+            pre_llm_results = list(self._pre_llm_validator.validate_stream(nodes))
+            hard_failures = [r for r in pre_llm_results if r.severity == ValidationSeverity.HARD_FAIL]
+            if hard_failures:
+                error_msgs = "; ".join([r.message for r in hard_failures])
+                raise ValueError(f"PRE_LLM_VALIDATION_FAILED: {error_msgs}")
 
         context_enricher = HierarchicalContextEnricher()
         nodes, structured_registry, enricher_warnings, enricher_metrics = context_enricher.enrich_document(nodes)

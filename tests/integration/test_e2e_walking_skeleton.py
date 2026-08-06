@@ -64,10 +64,17 @@ class TestTrueWalkingSkeletonE2E(unittest.IsolatedAsyncioTestCase):
         mock_resolver = MagicMock()
         mock_resolver.resolve.return_value = MagicMock(breadcrumbs=(), depth=0)
         
+        from core.validation.pipeline import ValidationPipeline
+        from core.healing.pipeline import HealingPipeline
+        validation_pipeline = ValidationPipeline()
+        healing_pipeline = HealingPipeline(validation_pipeline, strategies=[])
+        
         self.dispatcher = AsyncDispatcher(
             context_resolver=mock_resolver,
             prompt_builder=self.prompt_builder,
-            provider_stack=self.cache_provider
+            provider_stack=self.cache_provider,
+            validation_pipeline=validation_pipeline,
+            healing_pipeline=healing_pipeline,
         )
         
         from core.validation.pipeline import ValidationPipeline

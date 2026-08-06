@@ -59,11 +59,22 @@ class TestTranslationLayerIntegration(unittest.IsolatedAsyncioTestCase):
         mock_resolver = MagicMock()
         mock_resolver.resolve.return_value = MagicMock(breadcrumbs=(), depth=0)
         
+        # NADR-11 §5.1 R2: Inyección por constructor, sin mutación post-constructor
+        from core.validation.pipeline import ValidationPipeline
+        from core.healing.pipeline import HealingPipeline
+        validation_pipeline = ValidationPipeline()
+        healing_pipeline = HealingPipeline(validation_pipeline, strategies=[])
+        
         self.dispatcher = AsyncDispatcher(
             context_resolver=mock_resolver,
             prompt_builder=self.prompt_builder,
-            provider_stack=self.cache_provider
+            provider_stack=self.cache_provider,
+            validation_pipeline=validation_pipeline,
+            healing_pipeline=healing_pipeline,
         )
+        
+        # ELIMINAR esta línea:
+        # self.dispatcher.validation_pipeline = ValidationPipeline()
         
         from core.validation.pipeline import ValidationPipeline
         self.dispatcher.validation_pipeline = ValidationPipeline()

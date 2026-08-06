@@ -25,7 +25,8 @@ from core.domain.document import (
     OriginType,
 )
 from core.extraction.provider import ExtractionProvider, ExtractionCapabilities
-
+from core.layout.classification import LayoutClassifier, BlockClassificationSignals, PageClassificationContext
+import statistics
 
 @dataclass(frozen=True, slots=True)
 class _PhysicalBlock:
@@ -37,20 +38,20 @@ class _PhysicalBlock:
     rotation: float
 
 
-class PyMuPDFProvider(ExtractionProvider):
-    """
-    Capa de Reconstrucción Física (Physical Reconstruction Layer).
-    
-    Responsabilidad única: Materializar la representación física del documento 
-    respetando las invariantes del Aggregate Root, de forma totalmente agnóstica a la semántica.
-    """
 
-    def __init__(self, write_images: bool = True) -> None:
+
+class PyMuPDFProvider(ExtractionProvider):
+    def __init__(
+        self,
+        classifier: LayoutClassifier,
+        write_images: bool = True,
+    ) -> None:
+        self._classifier = classifier
         self._write_images = write_images
         self._capabilities = ExtractionCapabilities(
             has_bbox=True,
             has_tables=False,
-            has_images=self._write_images,
+            has_images=False,
             has_font_info=True,
             has_vector_text=True,
             supports_math=False,
@@ -66,30 +67,32 @@ class PyMuPDFProvider(ExtractionProvider):
         pages: List[LayoutPage] = []
 
         with fitz.open(pdf_path) as doc:
-            for page_idx in range(len(doc)):
+            total_pages = len(doc)
+            for page_idx in range(total_pages):
                 page = doc[page_idx]
-                layout_page = self._build_page(page, page_number=page_idx + 1)
+                layout_page = self._build_page(
+                    page,
+                    page_number=page_idx + 1,
+                    total_pages=total_pages,
+                )
                 pages.append(layout_page)
 
-        # Profile con valores base del dominio; la clasificación pertenece a DocumentProfiler
         profile = DocumentProfile()
 
         return DocumentLayout(
             source_path=pdf_path,
-            total_pages=len(pages),  # Si len(pages) == 0, el Aggregate Root elevará la infracción ge=1
+            total_pages=len(pages),
             profile=profile,
             pages=pages,
         )
-
     # =========================================================================
     # Métodos Privados de Extracción Física
     # =========================================================================
 
-    def _build_page(self, page: fitz.Page, page_number: int) -> LayoutPage:
+    def _build_page(self, page: fitz.Page, page_number: int, total_pages: int) -> LayoutPage:
         rect = page.rect
         rotation = float(page.rotation % 360)
-        
-        # Orientación considerando el Viewport rotado
+
         if rotation in (90.0, 270.0):
             width, height = float(rect.height), float(rect.width)
         else:
@@ -104,32 +107,56 @@ class PyMuPDFProvider(ExtractionProvider):
             width=width, height=height, orientation=orientation
         )
 
-        # Hacemos el cast explícito a dict[str, Any] para satisfacer a Pyright/Pylance
         page_dict = cast(dict[str, Any], page.get_text("dict"))
         raw_blocks = page_dict.get("blocks", [])
 
-        blocks: List[LayoutBlock] = []
-        valid_counter = 0
-
+        # Fase 1: Extraer todos los bloques físicos
+        physical_blocks: list[_PhysicalBlock] = []
         for raw_b in raw_blocks:
-            # Tipo 0 indica bloque de texto vectorial en PyMuPDF
             if raw_b.get("type") != 0:
                 continue
-
-            physical_block = self._extract_physical_block(
-                raw_block=raw_b, 
-                default_idx=valid_counter, 
-                rotation=rotation
+            phys = self._extract_physical_block(
+                raw_block=raw_b,
+                default_idx=len(physical_blocks),
+                rotation=rotation,
             )
-            block = self._map_to_layout_block(
-                phys_block=physical_block,
+            physical_blocks.append(phys)
+
+        # Fase 2: Calcular contexto estadístico de la página
+        page_context = self._build_page_context(
+            physical_blocks, page_number, total_pages, height, width
+        )
+
+        # Fase 3: Clasificar y construir LayoutBlocks
+        blocks: List[LayoutBlock] = []
+        for idx, phys in enumerate(physical_blocks):
+            typography = self._extract_dominant_typography(phys.lines)
+            bbox = self._build_bbox(phys.bbox)
+
+            signals = BlockClassificationSignals(
+                text=phys.raw_text,
+                font_name=typography.font_name,
+                font_size=typography.font_size,
+                is_bold=typography.is_bold,
+                is_italic=typography.is_italic,
+                bbox=bbox,
+                reading_order=idx,
+            )
+
+            # Clasificar ANTES de construir el Aggregate
+            logical_type = self._classifier.classify(signals, page_context)
+
+            block = self._build_layout_block(
+                phys_block=phys,
+                typography=typography,
+                logical_type=logical_type,
+                bbox=bbox,
                 page_number=page_number,
-                reading_order=valid_counter,
+                reading_order=idx,
             )
 
             if block is not None:
                 blocks.append(block)
-                valid_counter += 1
 
         return LayoutPage(
             page_number=page_number,
@@ -160,9 +187,12 @@ class PyMuPDFProvider(ExtractionProvider):
             rotation=rotation,
         )
 
-    def _map_to_layout_block(
+    def _build_layout_block(
         self,
         phys_block: _PhysicalBlock,
+        typography: TypographyMetadata,
+        logical_type: LayoutBlockType,
+        bbox: BoundingBox,
         page_number: int,
         reading_order: int,
     ) -> Optional[LayoutBlock]:
@@ -171,12 +201,9 @@ class PyMuPDFProvider(ExtractionProvider):
         if not content.cleaned:
             return None
 
-        bbox = self._build_bbox(phys_block.bbox)
-        typography = self._extract_dominant_typography(phys_block.lines)
-
         spatial = SpatialMetadata(
             reading_order=reading_order,
-            column_index=0,  # Alineado a la definición del dominio (0 = Única/Izquierda)
+            column_index=0,
             rotation=phys_block.rotation,
         )
         confidence = ConfidenceMetadata(
@@ -199,9 +226,10 @@ class PyMuPDFProvider(ExtractionProvider):
         relationships = BlockRelationships()
         versioning = DomainVersion(version=1, origin=OriginType.EXTRACTOR)
 
+        # El Aggregate nace consistente: logical_type ya está resuelto
         return LayoutBlock(
             block_id=block_id,
-            logical_type=LayoutBlockType.UNKNOWN,
+            logical_type=logical_type,
             content=content,
             bbox=bbox,
             metadata=metadata,
@@ -267,3 +295,39 @@ class PyMuPDFProvider(ExtractionProvider):
             )
 
         return BoundingBox(x0=x0, y0=y0, x1=x1, y1=y1, is_normalized=False)
+
+    def _build_page_context(
+        self,
+        physical_blocks: list[_PhysicalBlock],
+        page_number: int,
+        total_pages: int,
+        page_height: float,
+        page_width: float,
+    ) -> PageClassificationContext:
+        """Calcula estadísticas tipográficas de la página para clasificación relativa."""
+        font_sizes: list[float] = []
+
+        for phys in physical_blocks:
+            typo = self._extract_dominant_typography(phys.lines)
+            if typo.font_size is not None and typo.font_size > 0:
+                # Ponderar por cantidad de caracteres visibles
+                visible_chars = len(re.sub(r"\s", "", phys.raw_text))
+                font_sizes.extend([typo.font_size] * max(1, visible_chars))
+
+        if font_sizes:
+            median_size = float(statistics.median(font_sizes))
+            # Dominant = moda (tamaño más frecuente)
+            dominant_size = float(statistics.mode(font_sizes))
+        else:
+            median_size = 12.0
+            dominant_size = 12.0
+
+        return PageClassificationContext(
+            median_font_size=median_size,
+            dominant_font_size=dominant_size,
+            page_number=page_number,
+            total_pages=total_pages,
+            block_count=len(physical_blocks),
+            page_height=page_height,
+            page_width=page_width,
+        )

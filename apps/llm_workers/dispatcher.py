@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import itertools
-from typing import List, Optional, Dict, Any, Tuple
+from typing import List, Dict, Any, Tuple
 from dataclasses import replace
 
 from core.ast.models import TranslationUnit, TranslatedUnit, ChunkOutcome, ExecutionStatus, FailureReason, DispatchResult
@@ -13,12 +13,6 @@ from core.execution.exceptions import CircuitOpenError, PermanentQuotaRejection,
 from core.context.context_resolver import ContextResolverProtocol, ResolvedContext
 from core.validation.models import ValidationContext, Scope, Severity
 from core.validation.pipeline import ValidationPipeline
-from core.validation.legacy_adapter import LegacyValidatorAdapter
-from core.validation.structural_validator import StructuralValidator
-from core.validation.preservation import PreservationValidator
-from core.validation.perimeter import PerimeterValidator
-from core.validation.semantic import SemanticValidator
-from core.validation.volumetric import VolumetricValidator
 from core.healing.models import HealingContext, HealingOutcome
 from core.healing.pipeline import HealingPipeline
 from core.validation.budget import BudgetViolationReason
@@ -39,45 +33,26 @@ BUDGET_TO_EXECUTION_FAILURE_MAP = {
 }
 
 class AsyncDispatcher:
+    """
+    NADR-11 §5.1: Todas las dependencias se inyectan por constructor.
+    NADR-04 §5.1: ValidationPipeline y HealingPipeline son obligatorios.
+    No existe _default_pipeline(). No existe fallback.
+    """
     def __init__(
         self, 
         context_resolver: ContextResolverProtocol,
         prompt_builder: PromptBuilder,
         provider_stack: LLMProvider, 
+        validation_pipeline: ValidationPipeline,
+        healing_pipeline: HealingPipeline,
         concurrency: int = 20,
-        validation_pipeline: Optional[ValidationPipeline] = None,
-        healing_pipeline: Optional[HealingPipeline] = None
     ):
         self.context_resolver = context_resolver
         self.prompt_builder = prompt_builder
         self._provider = provider_stack
         self._concurrency = concurrency
-        self.validation_pipeline = validation_pipeline or self._default_pipeline()
+        self.validation_pipeline = validation_pipeline
         self.healing_pipeline = healing_pipeline
-
-    @staticmethod
-    def _default_pipeline() -> ValidationPipeline:
-        severity_map = {
-            "RESIDUAL_HTML": Severity.HARD_FAIL,
-            "UNBALANCED_BRACES_EARLY": Severity.HARD_FAIL,
-            "UNBALANCED_BRACES_OPEN": Severity.HARD_FAIL,
-            "UNBALANCED_BRACKETS_EARLY": Severity.HARD_FAIL,
-            "UNBALANCED_BRACKETS_OPEN": Severity.HARD_FAIL,
-            "UNBALANCED_DISPLAY_MATH": Severity.HARD_FAIL,
-            "UNBALANCED_INLINE_MATH": Severity.HARD_FAIL,
-            "ENV_MISMATCH": Severity.HARD_FAIL,
-            "ENV_UNCLOSED": Severity.HARD_FAIL,
-        }
-        adapter = LegacyValidatorAdapter(StructuralValidator, severity_map)
-        pipeline = ValidationPipeline()
-        pipeline.add_chunk_validator(adapter)
-        pipeline.add_document_validator(adapter)
-        pipeline.add_chunk_validator(PreservationValidator())
-        pipeline.add_chunk_validator(PerimeterValidator())
-        pipeline.add_chunk_validator(SemanticValidator())
-        pipeline.add_chunk_validator(VolumetricValidator())
-        pipeline.add_document_validator(PreservationValidator())
-        return pipeline
 
     async def _process_validation_and_healing(self, unit: TranslationUnit, provider_result: InferenceResult, envelope: PromptEnvelope) -> TranslatedUnit:
         chunk_type_str = getattr(unit.chunk_type, 'value', unit.chunk_type)

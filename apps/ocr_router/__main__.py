@@ -17,7 +17,7 @@ from core.execution.state import StartParsingCommand, StartProcessingCommand, Do
 from core.ast.registry import ASTRegistry
 from core.ast.hashing import compute_ast_hash
 
-from core.ast.parser import parse_pdf
+from core.pipeline.orchestrator import ParserProtocol
 from core.chunking.semantic_chunking import build_semantic_chunks_as_units
 from core.ast.models import FastWordEstimator
 from core.document_profile.models import ProfileInput
@@ -36,7 +36,7 @@ class OCRRouterDaemon:
     def __init__(self, fsm_repo: FSMRepository, task_repo: ControlPlaneRepository, 
                  cmd_handler: DocumentCommandHandler, ast_registry: ASTRegistry, 
                  document_profiler: 'HeuristicDocumentProfiler',
-                 profile_store: ProfileStore, # <--- Puerto abstracto inyectado
+                 profile_store: ProfileStore, parser: ParserProtocol,  # NUEVO: inyectado por constructor
                  workspace_dir: str = "."):
         self.fsm = fsm_repo
         self.task_repo = task_repo
@@ -44,6 +44,7 @@ class OCRRouterDaemon:
         self.ast_registry = ast_registry
         self.document_profiler = document_profiler # <--- Asignación
         self.profile_store = profile_store
+        self.parser = parser  # NUEVO
         self.owner_id = f"router_{uuid.uuid4().hex[:8]}"
         
         self.inbox_dir = Path(workspace_dir) / "data" / "inbox"
@@ -94,7 +95,7 @@ class OCRRouterDaemon:
             logger.error(f"Error consultando cortocircuito en FSM: {db_err}. Continuando por vía lenta de seguridad.")
 
         try:
-            raw_ast = parse_pdf(str(pdf_path))
+            raw_ast = self.parser.parse(str(pdf_path))
             
             # SOTA Hito 3B: Inferencia y persistencia asíncrona temporal
             profile_input = ProfileInput(nodes=raw_ast)
@@ -215,6 +216,10 @@ if __name__ == "__main__":
     
     # SOTA: Ensamblaje del profiler desde el Composition Root oficial
     profiler = build_document_profiler()
+
+    # NADR-11 §5.1 R1: El Composition Root construye el parser
+    from apps.bootstrap.pipeline_factory import build_extraction_pipeline
+    parser = build_extraction_pipeline()
     
     daemon = OCRRouterDaemon(
         fsm_repo=fsm_repo, 
@@ -222,6 +227,7 @@ if __name__ == "__main__":
         cmd_handler=cmd_handler, 
         ast_registry=ast_registry,
         document_profiler=profiler,
-        profile_store=profile_store
+        profile_store=profile_store,
+        parser=parser, 
     )
     daemon.run()

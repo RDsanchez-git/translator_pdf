@@ -71,10 +71,33 @@ def build_test_dispatcher(provider: Any) -> AsyncDispatcher:
         compression_policy=compression_policy
     )
     
+    # Construir ValidationPipeline con validadores reales
+    from core.validation.pipeline import ValidationPipeline
+    from core.validation.adapters.structural_bridge import StructuralValidationBridge
+    from core.validation.preservation import PreservationValidator
+    from core.validation.perimeter import PerimeterValidator
+    from core.validation.semantic import SemanticValidator
+    from core.validation.volumetric import VolumetricValidator
+    from core.healing.pipeline import HealingPipeline
+    
+    validation_pipeline = ValidationPipeline()
+    structural_bridge = StructuralValidationBridge()
+    validation_pipeline.add_chunk_validator(structural_bridge)
+    validation_pipeline.add_chunk_validator(PreservationValidator())
+    validation_pipeline.add_chunk_validator(PerimeterValidator())
+    validation_pipeline.add_chunk_validator(SemanticValidator())
+    validation_pipeline.add_chunk_validator(VolumetricValidator())
+    validation_pipeline.add_document_validator(structural_bridge)
+    validation_pipeline.add_document_validator(PreservationValidator())
+    
+    healing_pipeline = HealingPipeline(validation_pipeline, strategies=[])
+    
     return AsyncDispatcher(
         context_resolver=mock_resolver,
         prompt_builder=prompt_builder,
-        provider_stack=provider
+        provider_stack=provider,
+        validation_pipeline=validation_pipeline,
+        healing_pipeline=healing_pipeline,
     )
 
 # ==============================================================================

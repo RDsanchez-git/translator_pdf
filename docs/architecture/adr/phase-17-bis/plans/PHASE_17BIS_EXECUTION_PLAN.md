@@ -53,24 +53,24 @@ El inventario autoritativo de reglas es el **corpus de NADRs FROZEN**. Este docu
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **1.1.1** | Definir configuración declarativa de CI Platform con Required Status Checks | NADR-10 §5.2 R6 | Low | — | TODO |
-| **1.1.2** | Refactorizar `test_golden_parser.py`: eliminar tautologías, forzar matching Read-Only contra oráculo | NADR-10 §5.1 R2, R3; §5.2 R5 | High | 1.1.1 | TODO |
-| **1.1.3** | Implementar mecanismo explícito de actualización de baseline; forzar `FileNotFoundError` en baselines ausentes | NADR-10 §5.1 R1, R4 | Medium | 1.1.2 | TODO |
-| **1.1.4** | Forzar comparación completa de campos DTO en snapshot tests | NADR-10 §5.2 R13 | Medium | 1.1.2 | TODO |
-| **1.1.5** | Eliminar sustitución artificial de componentes en integration tests | NADR-10 §5.2 R14 | High | 1.1.2 | TODO |
-| **1.1.6** | Activar configuración declarativa de tooling (pyproject.toml) | NADR-10 §5.2 R7 | Low | 1.1.1 | TODO |
-| **1.1.7** | Activar Daemon de Reconciliación CQRS vía configuración externa | NADR-10 §5.2 R8, R11, R12 | High | 1.1.1 | TODO |
-| **1.1.8** | Alinear Benchmark con pipeline de producción (preparación) | NADR-10 §5.3 R9, R10 | Critical | 1.1.1 | TODO |
+| **1.1.1** | Definir configuración declarativa de CI Platform con Required Status Checks | NADR-10 §5.2 R6 | Low | — | DONE |
+| **1.1.2** | Refactorizar `test_golden_parser.py`: eliminar tautologías, forzar matching Read-Only contra oráculo | NADR-10 §5.1 R2, R3; §5.2 R5 | High | 1.1.1 | DONE |
+| **1.1.3** | Implementar mecanismo explícito de actualización de baseline; forzar `FileNotFoundError` en baselines ausentes | NADR-10 §5.1 R1, R4 | Medium | 1.1.2 | DONE |
+| **1.1.4** | Forzar comparación completa de campos DTO en snapshot tests | NADR-10 §5.2 R13 | Medium | 1.1.2 | DONE |
+| **1.1.5** | Eliminar sustitución artificial de componentes en integration tests | NADR-10 §5.2 R14 | High | 1.1.2 | DONE |
+| **1.1.6** | Activar configuración declarativa de tooling (pyproject.toml) | NADR-10 §5.2 R7 | Low | 1.1.1 | DONE |
+| **1.1.7** | Activar Daemon de Reconciliación CQRS vía configuración externa | NADR-10 §5.2 R8, R11, R12 | High | 1.1.1 | DONE |
+| **1.1.8** | Alinear Benchmark con pipeline de producción (preparación) | NADR-10 §5.3 R9, R10 | Critical | 1.1.1 | DONE |
 
 ### 2.2 Wave 1.2 — Canonical AST & Deterministic Identity (NADR-01, NADR-03)
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **1.2.1** | Eliminar `ast_deserializer.py`; rutear todas las cargas a `infra/serialization/ast_json.py` | NADR-01 §5.1 R1, R2 | Critical | 1.1.1 | TODO |
-| **1.2.2** | Añadir regla de linter estático bloqueando instanciación directa de `ASTNode(**kwargs)` desde dicts no tipados | NADR-01 §5.1 R3, R4 | Low | 1.1.1 | TODO |
-| **1.2.3** | Extraer lógica de chunking de `hashing.py` a `core/chunking/chunker.py` | NADR-03 §5.2 R1, R2, R3 | High | 1.2.1 | TODO |
-| **1.2.4** | Refactorizar pre-imagen de `compute_ast_hash()` para excluir explícitamente `node_id` y metadata efímera | NADR-03 §5.1 R1, R2, R3 | Critical | 1.2.3 | TODO |
-| **1.2.5** | Separar chunking de semantic hashing en responsabilidad modular | NADR-03 §5.2 R4, R5 | Medium | 1.2.3 | TODO |
+| **1.2.1** | Eliminar `ast_deserializer.py`; rutear todas las cargas a `infra/serialization/ast_json.py` | NADR-01 §5.1 R1, R2 | Critical | 1.1.1 | DONE |
+| **1.2.2** | Añadir regla de linter estático bloqueando instanciación directa de `ASTNode(**kwargs)` desde dicts no tipados | NADR-01 §5.1 R3, R4 | Low | 1.1.1 | DONE |
+| **1.2.3** | Extraer lógica de chunking de `hashing.py` a `core/chunking/chunker.py` | NADR-03 §5.2 R1, R2, R3 | High | 1.2.1 | DONE |
+| **1.2.4** | Refactorizar pre-imagen de `compute_ast_hash()` para excluir explícitamente `node_id` y metadata efímera | NADR-03 §5.1 R1, R2, R3 | Critical | 1.2.3 | DONE |
+| **1.2.5** | Separar chunking de semantic hashing en responsabilidad modular | NADR-03 §5.2 R4, R5 | Medium | 1.2.3 | DONE |
 
 ### 2.3 Gate 1 Exit Criteria
 
@@ -92,11 +92,11 @@ Todas las reglas de NADR-01, NADR-03 y NADR-10 referenciadas en este Gate deben 
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **2.1.1** | Limpiar `pipeline_factory.py`: eliminar mutaciones post-constructor DI; forzar inyección solo por constructor | NADR-11 §5.1 R1, R2, R3 | High | Gate 1 | TODO |
-| **2.1.2** | Inyectar `DocumentLayoutValidator` y `PolymorphicValidationEngine` vía constructores | NADR-04 §5.1 R1, R2; §5.2 R1 | High | 2.1.1 | TODO |
-| **2.1.3** | Eliminar `LegacyValidatorAdapter` y remover lógica legacy de fases 11/12 | NADR-04 §5.2 R2, R3, R4 | Medium | 2.1.2 | TODO |
-| **2.1.4** | Configurar contrato `import-linter` prohibiendo fugas `core/` → `infra/` | NADR-11 §5.2 R1, R2 | Low | Gate 1 | TODO |
-| **2.1.5** | Formalizar contrato explícito `DispatcherProtocol` | NADR-11 §5.3 R1, R2 | Medium | 2.1.1 | TODO |
+| **2.1.1** | Limpiar `pipeline_factory.py`: eliminar mutaciones post-constructor DI; forzar inyección solo por constructor | NADR-11 §5.1 R1, R2, R3 | High | Gate 1 | DONE |
+| **2.1.2** | Inyectar `DocumentLayoutValidator` y `PolymorphicValidationEngine` vía constructores | NADR-04 §5.1 R1, R2; §5.2 R1 | High | 2.1.1 | DONE |
+| **2.1.3** | Eliminar `LegacyValidatorAdapter` y remover lógica legacy de fases 11/12 | NADR-04 §5.2 R2, R3, R4 | Medium | 2.1.2 | DONE |
+| **2.1.4** | Configurar contrato `import-linter` prohibiendo fugas `core/` → `infra/` | NADR-11 §5.2 R1, R2 | Low | Gate 1 | DONE |
+| **2.1.5** | Formalizar contrato explícito `DispatcherProtocol` | NADR-11 §5.3 R1, R2 | Medium | 2.1.1 | DONE |
 
 ### 3.2 Wave 2.2 — Ingestion Purity (NADR-02, NADR-10)
 
@@ -188,6 +188,15 @@ Todas las reglas de NADR-06 y NADR-09 referenciadas en este Gate deben alcanzar 
 
 ---
 
+### 5.4 GATE COMPLETION LOG
+
+| Gate | Fecha de cierre | Reglas cubiertas | Observaciones |
+|------|----------------|-----------------|---------------|
+| Gate 1 | 2026-08-04 | 26/26 | pyright 0 errors. Imports migrados. AST hashing semántico confirmado. |
+| Gate 2 | 2026-08-05 | 20/20 | fitz eliminado del dominio. Parser legacy eliminado. Composition Root consolidado. DF-11 registrado como Architecture Freeze Blocker. |
+| Gate 3 | — | 0/27 | — |
+| Gate 4 | — | 0/24 | — |
+
 ## 6. DEPLOYMENT & MIGRATION RUNBOOK
 
 Tareas operativas de release (no desarrollo). Vinculadas a reglas específicas.
@@ -220,13 +229,13 @@ Los contadores se **derivan computacionalmente** del Traceability Appendix (§9)
 
 | Gate | Rules Pending (derived) | Rules In Progress | Rules DONE | Gate Status |
 |---|---|---|---|---|
-| Gate 1 | count(§9 Gate 1 where Derived Status = PENDING) | count(... = IN PROGRESS) | count(... = DONE) | 🔴 Not Started |
-| Gate 2 | count(§9 Gate 2 where Derived Status = PENDING) | count(... = IN PROGRESS) | count(... = DONE) | 🔴 Not Started |
-| Gate 3 | count(§9 Gate 3 where Derived Status = PENDING) | count(... = IN PROGRESS) | count(... = DONE) | 🔴 Not Started |
-| Gate 4 | count(§9 Gate 4 where Derived Status = PENDING) | count(... = IN PROGRESS) | count(... = DONE) | 🔴 Not Started |
-| **TOTAL** | **sum of all gates** | — | — | 🔴 Not Started |
+| Gate 1 | 0 | 0 | 26 | ✅ COMPLETED |
+| Gate 2 | 0 | 0 | 20 | ✅ COMPLETED |
+| Gate 3 | 27 | 0 | 🟡 In Progress |
+| Gate 4 | 24 | 0 | 0 | 🔴 Not Started |
+| **TOTAL** | **58** | 0 | 0 | 46 | 🟡 In Progress |
 
-**Nota operativa:** Cada vez que una tarea pase a `DONE`, el `Derived Status` de sus reglas en §9 se actualiza y los contadores de este dashboard se recalculan automáticamente. El estado de una regla es siempre derivado del estado de la tarea que la implementa (§1.3).
+**Nota operativa:** Cada vez que una tarea pase a `DONE`, el `Derived Status` de sus reglas en §9 se actualiza y los contadores de este dashboard se recalculan manualmente. El estado de una regla es siempre derivado del estado de la tarea que la implementa (§1.3).
 
 ---
 
@@ -240,57 +249,57 @@ Los contadores se **derivan computacionalmente** del Traceability Appendix (§9)
 
 | Rule | Derived Status | Evidence |
 |---|---|---|
-| NADR-10 §5.2 R6 | PENDING | — |
-| NADR-10 §5.1 R2 | PENDING | — |
-| NADR-10 §5.1 R3 | PENDING | — |
-| NADR-10 §5.2 R5 | PENDING | — |
-| NADR-10 §5.1 R1 | PENDING | — |
-| NADR-10 §5.1 R4 | PENDING | — |
-| NADR-10 §5.2 R13 | PENDING | — |
-| NADR-10 §5.2 R14 | PENDING | — |
-| NADR-10 §5.2 R7 | PENDING | — |
-| NADR-10 §5.2 R8 | PENDING | — |
-| NADR-10 §5.2 R11 | PENDING | — |
-| NADR-10 §5.2 R12 | PENDING | — |
-| NADR-10 §5.3 R9 | PENDING | — |
-| NADR-10 §5.3 R10 | PENDING | — |
-| NADR-01 §5.1 R1 | PENDING | — |
-| NADR-01 §5.1 R2 | PENDING | — |
-| NADR-01 §5.1 R3 | PENDING | — |
-| NADR-01 §5.1 R4 | PENDING | — |
-| NADR-03 §5.2 R1 | PENDING | — |
-| NADR-03 §5.2 R2 | PENDING | — |
-| NADR-03 §5.2 R3 | PENDING | — |
-| NADR-03 §5.1 R1 | PENDING | — |
-| NADR-03 §5.1 R2 | PENDING | — |
-| NADR-03 §5.1 R3 | PENDING | — |
-| NADR-03 §5.2 R4 | PENDING | — |
-| NADR-03 §5.2 R5 | PENDING | — |
+| NADR-10 §5.2 R6 | DONE | Wave 1.1 |
+| NADR-10 §5.1 R2 | DONE | Wave 1.1 |
+| NADR-10 §5.1 R3 | DONE | Wave 1.1 |
+| NADR-10 §5.2 R5 | DONE | Wave 1.1 |
+| NADR-10 §5.1 R1 | DONE | Wave 1.1 |
+| NADR-10 §5.1 R4 | DONE | Wave 1.1 |
+| NADR-10 §5.2 R13 | DONE | Wave 1.1 |
+| NADR-10 §5.2 R14 | DONE | Wave 1.1 |
+| NADR-10 §5.2 R7 | DONE | Wave 1.1 |
+| NADR-10 §5.2 R8 | DONE | Wave 1.1 |
+| NADR-10 §5.2 R11 | DONE | Wave 1.1 |
+| NADR-10 §5.2 R12 | DONE | Wave 1.1 |
+| NADR-10 §5.3 R9 | DONE | Wave 1.1 |
+| NADR-10 §5.3 R10 | DONE | Wave 1.1 |
+| NADR-01 §5.1 R1 | DONE | Wave 1.2 |
+| NADR-01 §5.1 R2 | DONE | Wave 1.2 |
+| NADR-01 §5.1 R3 | DONE | Wave 1.2 |
+| NADR-01 §5.1 R4 | DONE | Wave 1.2 |
+| NADR-03 §5.2 R1 | DONE | Wave 1.2 |
+| NADR-03 §5.2 R2 | DONE | Wave 1.2 |
+| NADR-03 §5.2 R3 | DONE | Wave 1.2 |
+| NADR-03 §5.1 R1 | DONE | Wave 1.2 |
+| NADR-03 §5.1 R2 | DONE | Wave 1.2 |
+| NADR-03 §5.1 R3 | DONE | Wave 1.2 |
+| NADR-03 §5.2 R4 | DONE | Wave 1.2 |
+| NADR-03 §5.2 R5 | DONE | Wave 1.2 |
 
 ### 9.2 Gate 2 — Rules Audit Board
 
 | Rule | Derived Status | Evidence |
 |---|---|---|
-| NADR-11 §5.1 R1 | PENDING | — |
-| NADR-11 §5.1 R2 | PENDING | — |
-| NADR-11 §5.1 R3 | PENDING | — |
-| NADR-04 §5.1 R1 | PENDING | — |
-| NADR-04 §5.1 R2 | PENDING | — |
-| NADR-04 §5.2 R1 | PENDING | — |
-| NADR-04 §5.2 R2 | PENDING | — |
-| NADR-04 §5.2 R3 | PENDING | — |
-| NADR-04 §5.2 R4 | PENDING | — |
-| NADR-11 §5.2 R1 | PENDING | — |
-| NADR-11 §5.2 R2 | PENDING | — |
-| NADR-11 §5.3 R1 | PENDING | — |
-| NADR-11 §5.3 R2 | PENDING | — |
-| NADR-02 §5.1 R1 | PENDING | — |
-| NADR-02 §5.1 R2 | PENDING | — |
-| NADR-02 §5.1 R3 | PENDING | — |
-| NADR-02 §5.2 R1 | PENDING | — |
-| NADR-02 §5.2 R2 | PENDING | — |
-| NADR-02 §5.3 R1 | PENDING | — |
-| NADR-10 §5.3 R10 (completa) | PENDING | — |
+| NADR-11 §5.1 R1 | DONE | Wave 2.1 |
+| NADR-11 §5.1 R2 | DONE | Wave 2.1 |
+| NADR-11 §5.1 R3 | DONE | Wave 2.1 |
+| NADR-04 §5.1 R1 | DONE | Wave 2.1 |
+| NADR-04 §5.1 R2 | DONE | Wave 2.1 |
+| NADR-04 §5.2 R1 | DONE | Wave 2.1 |
+| NADR-04 §5.2 R2 | DONE | Wave 2.1 |
+| NADR-04 §5.2 R3 | DONE | Wave 2.1 |
+| NADR-04 §5.2 R4 | DONE | Wave 2.1 |
+| NADR-11 §5.2 R1 | DONE | Wave 2.1 |
+| NADR-11 §5.2 R2 | DONE | Wave 2.1 |
+| NADR-11 §5.3 R1 | DONE | Wave 2.1 |
+| NADR-11 §5.3 R2 | DONE | Wave 2.1 |
+| NADR-02 §5.1 R1 | DONE | Wave 2.2 |
+| NADR-02 §5.1 R2 | DONE | Wave 2.2 |
+| NADR-02 §5.1 R3 | DONE | Wave 2.2 |
+| NADR-02 §5.2 R1 | DONE | Wave 2.2 |
+| NADR-02 §5.2 R2 | DONE | Wave 2.2 |
+| NADR-02 §5.3 R1 | DONE | Wave 2.2 |
+| NADR-10 §5.3 R10 (completa) | DONE | Wave 2.2 |
 
 ### 9.3 Gate 3 — Rules Audit Board
 
@@ -362,3 +371,26 @@ Los contadores se **derivan computacionalmente** del Traceability Appendix (§9)
 ---
 
 **Nota de Gobernanza:** Este documento es la única fuente de verdad para la trazabilidad temporal entre reglas normativas (NADRs FROZEN) e implementación. Los NADRs permanecen inmutables; cualquier cambio en la secuencia operativa se refleja únicamente aquí. El inventario autoritativo de reglas es el corpus de NADRs FROZEN, no este documento. El estado de cada regla es derivado del estado de la tarea que la implementa.
+
+
+## 11. DEFERRED FINDINGS REGISTER
+
+Hallazgos identificados durante la implementación que no bloquean
+el Gate actual pero requieren atención en Gates futuros.
+
+| # | Hallazgo | Origen | Gate destino | Prioridad |
+|---|----------|--------|--------------|-----------|
+| DF-01 | `core/benchmark/__main__.py` computa su propio SHA-256 por nodo en lugar de usar `compute_ast_hash()`. Identidad criptográfica desconectada del hash canónico. | Wave 1.2 | Gate 4 (Task 4.2.x) | Medium |
+| DF-02 | Patrón `hasattr(n.node_type, "value")` persiste en múltiples archivos. Código defensivo innecesario si `ContentNodeType` está tipado definitivamente. | Wave 1.2 | Gate 2 | Low |
+| DF-03 | `tools/benchmark_archive/` contiene scripts con hashing propio (`generate_sha256`). Declarado OUT OF SCOPE. | Wave 1.2 | N/A (archivado) | None |
+| DF-04 | `SemanticChunkBoundaryPolicy.can_group()` siempre retorna `ALLOW`. Falta implementar reglas de HARD_BREAK cuando el AST incorpore semántica de contexto cruzado. | Pre-existente | Gate 3+ | Low |
+| DF-07 | El constructor de AsyncDispatcher acumula 6 dependencias (context_resolver, prompt_builder, provider_stack, validation_pipeline, healing_pipeline, concurrency). A futuro, introducir DispatcherFactory en apps/bootstrap/ siguiendo el mismo patrón que build_validation_pipeline() y build_extraction_pipeline(). | Wave 2.1 | Gate 3+ (cuando el constructor siga creciendo) | Low |
+| DF-10 | `core/ast/router.py` (PDFRouter) es un wrapper transicional. Una vez que todos los consumidores migren a PdfTypeDetectorPort directamente, eliminar la clase. | Wave 2.2 | Gate 3 | Low |
+| DF-11 | `core/extraction/ocr_providers/` | contiene implementaciones concretas dentro del dominio. Migrar a `infra/extraction/providers/` para eliminar la contaminación del dominio.
+| DF-12 | `LayoutBlockCollection` y `LayoutBlockDraft` pertenecen al legacy `DocumentLayoutBuilder` (zombi 100% según Hito 0.4.5). `FlatASTBuilder` debe refactorizarse para consumir `list[LayoutBlock]` directamente, eliminando la traducción intermedia. | Wave 2.2 | Gate 3 | Medium |
+| DF-13 | El contrato de `TestRealPaperIntegration` asume capacidades estructurales (ecuaciones, tablas, imágenes) superiores a las declaradas por `PyMuPDFProvider`(supports_math=False, has_tables=False, has_images=False). Antes del freeze de Fase 17-BIS deberá decidirse si el benchmark evalúa un contrato común mínimo o capacidades específicas por provider (ADR de benchmark). | Wave 2.2 | Gate 3 (Fase 17-BIS benchmark) | Medium |.
+| DF-14 | `core/layout/classifier.py` (LogicalClassifier) es un stage zombi del `DocumentLayoutBuilderlegacy`. Auditar sus heurísticas (_resolve_from_provider, _infer_from_content): migrar las útiles a `HeuristicLayoutClassifier` y eliminar el stage completo junto con `DocumentLayoutBuilder`. | Wave 2.2 | Gate 3 | 	
+Low |
+| DF-15 | `PyMuPDFProvider` no detecta tablas (`has_tables=False`), ecuaciones (`supports_math=False`) ni imágenes (filtradas por `type != 0`). `HeuristicLayoutClassifier` opera exclusivamente sobre texto vectorial con metadata tipográfica. Para recall estructural completo, evaluar Docling o Nougat en Fase 17-BIS | Wave 2.2 | Gate 3 (Fase 17-BIS benchmark) | Medium |
+| DF-16 | Existen dos taxonomías que deben mantenerse sincronizadas: `LayoutBlockType` (dominio del provider) y `ContentNodeType` (AST). Cada nuevo tipo requiere actualización manual de `FlatASTBuilder._TYPE_MAPPING`. Considerar unificar ambas taxonomías o establecer una correspondencia declarativa centralizada para evitar errores [AST-004] futuros. | Wave 2.2 | Fase 17-BIS | Medium |
+| DF-17 | `PyMuPDFProvider` posee capacidad nativa de extracción de imágenes (bloques `type==1` en PyMuPDF), pero la implementación actual filtra exclusivamente bloques de texto vectorial (`type==0`). El contrato observable declara has_images=False hasta que se incorpore el flujo de extracción, persistencia y mapeo de bloques de imagen al dominio. | Wave 2.2 | Gate 3 (Fase 17-BIS benchmark) | Medium |

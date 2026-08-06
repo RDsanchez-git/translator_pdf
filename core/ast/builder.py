@@ -50,18 +50,37 @@ class FlatASTBuilder:
     Opera estrictamente como una tubería funcional (Pipeline)."""
 
     _TYPE_MAPPING: Final[Dict[str, ContentNodeType]] = {
+        # LayoutBlockType enum values (dominio del provider)
         "TITLE": ContentNodeType.HEADING,
-        "HEADING": ContentNodeType.HEADING,
+        "AUTHOR": ContentNodeType.PARAGRAPH,
+        "ABSTRACT": ContentNodeType.PARAGRAPH,
+        "SECTION": ContentNodeType.HEADING,
+        "SUBSECTION": ContentNodeType.HEADING,
         "PARAGRAPH": ContentNodeType.PARAGRAPH,
+        "DISPLAY_EQUATION": ContentNodeType.DISPLAY_EQUATION,
+        "INLINE_EQUATION": ContentNodeType.INLINE_EQUATION,
+        "TABLE_SIMPLE": ContentNodeType.TABLE_SIMPLE,
+        "TABLE_COMPLEX": ContentNodeType.TABLE_COMPLEX,
+        "IMAGE": ContentNodeType.IMAGE,
+        "CAPTION": ContentNodeType.CAPTION,
+        "LIST_ITEM": ContentNodeType.LIST,
+        "CODE_BLOCK": ContentNodeType.CODE,
+        "FOOTNOTE": ContentNodeType.PARAGRAPH,
+        "REFERENCE_ENTRY": ContentNodeType.PARAGRAPH,
+        "HEADER": ContentNodeType.HEADING,
+        "PAGE_NUMBER": ContentNodeType.PARAGRAPH,
+        "UNKNOWN": ContentNodeType.PARAGRAPH,
+        
+        # Legacy keys (compatibilidad retroactiva)
+        "HEADING": ContentNodeType.HEADING,
         "TEXT": ContentNodeType.PARAGRAPH,
         "TABLE": ContentNodeType.TABLE_SIMPLE,
-        "IMAGE": ContentNodeType.IMAGE,
         "FIGURE": ContentNodeType.IMAGE,
         "EQUATION": ContentNodeType.DISPLAY_EQUATION,
         "MATH": ContentNodeType.DISPLAY_EQUATION,
         "LIST": ContentNodeType.LIST,
         "CODE": ContentNodeType.CODE,
-        "COMPOSITE": ContentNodeType.COMPOSITE_BLOCK
+        "COMPOSITE": ContentNodeType.COMPOSITE_BLOCK,
     }
 
     @classmethod
