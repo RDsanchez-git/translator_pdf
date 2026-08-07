@@ -204,6 +204,8 @@ if __name__ == "__main__":
     from apps.llm_workers.cache_provider import CachedLLMProvider
     from apps.llm_workers.prompt_builder import PromptBuilder
     from core.ast.models import FastWordEstimator
+    from core.resilience.circuit_breaker import GlobalCircuitBreaker
+    from apps.llm_workers.circuit_breaker_provider import CircuitBreakerProvider
 
     QUEUE_DB_PATH = os.getenv("QUEUE_DB_PATH", "infra/db/queue.db")
     EVENT_DB_PATH = os.getenv("EVENT_DB_PATH", "infra/db/event.db")
@@ -259,7 +261,11 @@ if __name__ == "__main__":
     
     asyncio.run(cached_provider.initialize())
     
-    processor = SyncProviderBridge(async_provider=cached_provider, prompt_builder=builder)
+    # Stack order: CircuitBreaker → Cache → RateLimiter → Provider
+    breaker = GlobalCircuitBreaker()
+    provider_stack = CircuitBreakerProvider(underlying=cached_provider, breaker=breaker)
+    
+    processor = SyncProviderBridge(async_provider=provider_stack, prompt_builder=builder)
 
     daemon = LLMWorkerDaemon(
         control_repo=control_repo,

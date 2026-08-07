@@ -128,21 +128,23 @@ Todas las reglas de NADR-02, NADR-04 y NADR-11 referenciadas en este Gate deben 
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **3.1.1** | Eliminar `DummyContextResolver` e inyectar resolver real en orquestación CLI | NADR-05 §5.1 R1, R2, R3 | Medium | Gate 2 | TODO |
-| **3.1.2** | Implementar invalidación de caché de contexto jerárquico | NADR-05 §5.2 R1, R2 | High | 3.1.1 | TODO |
-| **3.1.3** | Eliminar slicing de array (`hard_fails[0]`) en `AsyncDispatcher` para permitir iteración multi-fallo | NADR-07 §5.2 R1, R2 | Medium | Gate 2 | TODO |
-| **3.1.4** | Añadir detección de colisión de mutaciones dentro de `HealingPipeline` para seguridad de rollback atómico | NADR-07 §5.1 R1, R2, R3 | High | 3.1.3 | TODO |
-| **3.1.5** | Forzar idempotencia de healing entre iteraciones consecutivas | NADR-07 §5.3 R1, R2 | Medium | 3.1.4 | TODO |
+| **3.1.1** | Eliminar `DummyContextResolver` e inyectar resolver real en orquestación CLI | NADR-05 §5.1 R1, R2, R3 | Medium | Gate 2 | DONE |
+| **3.1.2** | Implementar invalidación de caché de contexto jerárquico | NADR-05 §5.2 R1, R2 | High | 3.1.1 | DONE |
+| **3.1.3** | Eliminar slicing de array (`hard_fails[0]`) en `AsyncDispatcher` para permitir iteración multi-fallo | NADR-07 §5.2 R1, R2 | Medium | Gate 2 | DONE |
+| **3.1.4** | Añadir detección de colisión de mutaciones dentro de `HealingPipeline` para seguridad de rollback atómico | NADR-07 §5.1 R1, R2, R3 | High | 3.1.3 | DONE |
+| **3.1.5** | Forzar idempotencia de healing entre iteraciones consecutivas | NADR-07 §5.3 R1, R2 | Medium | 3.1.4 | DONE |
 
 ### 4.2 Wave 3.2 — Distributed Execution & CQRS Lineage (NADR-08)
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **3.2.1** | Definir Protocol abstracto `RateLimitStore` en `core/ports/` | NADR-08 §5.1 R1, R2, R3 | Low | Gate 2 | TODO |
-| **3.2.2** | Implementar adaptador distribuido para `TokenBucket` y `GlobalCircuitBreaker` | NADR-08 §5.1 R4; §5.2 R1, R2, R3 | Critical | 3.2.1 | TODO |
-| **3.2.3** | Eliminar `"unknown_ast_hash"` del Reconciler; inyectar hash criptográfico de linaje real en `RematerializeTaskCommand` | NADR-08 §5.3 R1, R2, R3 | High | Gate 1 | TODO |
-| **3.2.4** | Activar reconciliación CQRS vía configuración externa | NADR-08 §5.4 R1, R2, R3 | Medium | 3.2.3 | TODO |
-| **3.2.5** | Componer RateLimitStore y CircuitBreaker en el stack de proveedores | NADR-08 §5.5 R1, R2 | Medium | 3.2.2 | TODO |
+| **3.2.1** | Definir Protocol abstracto `RateLimitStore` en `core/resilience/rate_limit_store.py` | NADR-08 §5.1 R1, R2, R3 | Low | Gate 2 | DONE |
+| **3.2.2** | Implementar adaptador distribuido para `TokenBucket` y `GlobalCircuitBreaker` | NADR-08 §5.1 R4; §5.2 R1, R2, R3 | Critical | 3.2.1 | PARTIAL — CircuitBreaker DONE; TokenBucket adapter BLOCKED (GF-01) |
+| **3.2.3** | Eliminar `"unknown_ast_hash"` del Reconciler; inyectar hash criptográfico de linaje real en `RematerializeTaskCommand` | NADR-08 §5.3 R1, R2, R3 | High | Gate 1 | DONE |
+| **3.2.4** | Activar reconciliación CQRS vía configuración externa | NADR-08 §5.4 R1, R2, R3 | Medium | 3.2.3 | DONE |
+| **3.2.5** | Componer RateLimitStore y CircuitBreaker en el stack de proveedores | NADR-08 §5.5 R1, R2 | Medium | 3.2.2 | DONE |
+
+> **Nota de gobernanza (Task 3.2.2):** El adaptador distribuido de `TokenBucket` queda bloqueado por GF-01 (conflicto normativo entre Execution Plan y ADR Maestro §4). El puerto `RateLimitStore` fue definido (Task 3.2.1) y la arquitectura está preparada para la implementación del backend, pero esta se difiere a Gate 4. La parte de `GlobalCircuitBreaker` sí fue completada vía `CircuitBreakerProvider`.
 
 ### 4.3 Gate 3 Exit Criteria
 
@@ -194,8 +196,28 @@ Todas las reglas de NADR-06 y NADR-09 referenciadas en este Gate deben alcanzar 
 |------|----------------|-----------------|---------------|
 | Gate 1 | 2026-08-04 | 26/26 | pyright 0 errors. Imports migrados. AST hashing semántico confirmado. |
 | Gate 2 | 2026-08-05 | 20/20 | fitz eliminado del dominio. Parser legacy eliminado. Composition Root consolidado. DF-11 registrado como Architecture Freeze Blocker. |
-| Gate 3 | — | 0/27 | — |
+| Gate 3 | 2026-08-07 | 25/27 | Wave 3.1 completada (Context Resolution + Healing transaccional). Wave 3.2 completada con excepción de NADR-08 §5.1 R3-R4 diferidos por GF-01. `RateLimitStore` protocol definido. `CircuitBreakerProvider` integrado. `ast_hash` propagado en CQRS lineage. `resilient_provider.py` eliminado (DF-23). Gate Exit Review ejecutado: 12 DFs reclasificados a Gate 4, 1 resuelto (DF-23), 1 nuevo registrado (DF-28). |
 | Gate 4 | — | 0/24 | — |
+
+### 5.5 Gate Exit Review
+
+Antes de declarar el Gate como COMPLETED, se revisarán todos los
+Deferred Findings cuyo Gate destino sea el Gate actual.
+
+**Estados posibles (Gate Exit Review §5.5):**
+
+| Estado | Significado |
+|--------|-------------|
+| **RESUELTO** | El hallazgo fue implementado y cerrado |
+| **RECLASIFICADO** | Cambia de Gate destino o prioridad con justificación |
+| **CONVERTIDO EN GF** | Pasa a Governance Finding |
+| **CLOSED (NAR)** | No Action Required |
+
+**Regla:** Ningún Deferred Finding podrá permanecer asignado a un Gate ya cerrado.
+
+**Nota sobre Governance Findings:** Los GFs se revisan cuando se llega al 
+hito de gobernanza donde pueden resolverse, que puede coincidir o no con 
+un Gate técnico.
 
 ## 6. DEPLOYMENT & MIGRATION RUNBOOK
 
@@ -205,7 +227,7 @@ Tareas operativas de release (no desarrollo). Vinculadas a reglas específicas.
 |---|---|---|---|---|
 | **MIG-01** | Corpus Resealing: ejecutar `tools/reseal_corpus.py` para regenerar baselines `.fingerprint.json` y `.ast.json` con el nuevo hash determinista | Local, CI | NADR-03 §5.1 R1, R2 | E-0.1-003 |
 | **MIG-02** | Truncar caché materializada: `DELETE FROM materialized_cache` para purgar claves legacy inyectadas por `DummyContextResolver` | Staging, Prod | NADR-05 §5.1 R1, R2 | P4-05 |
-| **MIG-03** | Desplegar KV Store distribuido: aprovisionar Redis (o backend equivalente) para `RateLimitStore` | Staging, Prod | NADR-08 §5.1 R4; §5.2 R1 | P4-03 |
+| ~~**MIG-03**~~ | ~~Desplegar KV Store distribuido: aprovisionar Redis (o backend equivalente) para `RateLimitStore`~~ | — | — | **ELIMINADO — contradice ADR Maestro §4 y GF-01.** La implementación del backend de `RateLimitStore` se difiere a Gate 4 donde se resolverá el conflicto normativo. El ROADMAP prohíbe explícitamente Redis. |
 
 ---
 
@@ -227,13 +249,15 @@ La Fase 17-BIS se considera oficialmente completada cuando:
 
 Los contadores se **derivan computacionalmente** del Traceability Appendix (§9), no se hardcodean:
 
-| Gate | Rules Pending (derived) | Rules In Progress | Rules DONE | Gate Status |
+| Gate | Rules DONE | Rules DEFERRED | Rules PENDING | Gate Status |
 |---|---|---|---|---|
-| Gate 1 | 0 | 0 | 26 | ✅ COMPLETED |
-| Gate 2 | 0 | 0 | 20 | ✅ COMPLETED |
-| Gate 3 | 27 | 0 | 🟡 In Progress |
-| Gate 4 | 24 | 0 | 0 | 🔴 Not Started |
-| **TOTAL** | **58** | 0 | 0 | 46 | 🟡 In Progress |
+| Gate 1 | 26 | 0 | 0 | ✅ COMPLETED |
+| Gate 2 | 20 | 0 | 0 | ✅ COMPLETED |
+| Gate 3 | 25 | 2 (GF-01) | 0 | ✅ COMPLETED |
+| Gate 4 | 0 | 0 | 24 | 🔴 Not Started |
+| **TOTAL** | **71** | **2** | **24** | 🟡 In Progress |
+
+**Nota operativa:** Las 2 reglas DEFERRED de Gate 3 (NADR-08 §5.1 R3, R4) están explícitamente diferidas por GF-01 (conflicto normativo). Se resolverán en Gate 4. No constituyen un fallo del Gate; son una decisión de gobernanza documentada.
 
 **Nota operativa:** Cada vez que una tarea pase a `DONE`, el `Derived Status` de sus reglas en §9 se actualiza y los contadores de este dashboard se recalculan manualmente. El estado de una regla es siempre derivado del estado de la tarea que la implementa (§1.3).
 
@@ -305,33 +329,33 @@ Los contadores se **derivan computacionalmente** del Traceability Appendix (§9)
 
 | Rule | Derived Status | Evidence |
 |---|---|---|
-| NADR-05 §5.1 R1 | PENDING | — |
-| NADR-05 §5.1 R2 | PENDING | — |
-| NADR-05 §5.1 R3 | PENDING | — |
-| NADR-05 §5.2 R1 | PENDING | — |
-| NADR-05 §5.2 R2 | PENDING | — |
-| NADR-07 §5.2 R1 | PENDING | — |
-| NADR-07 §5.2 R2 | PENDING | — |
-| NADR-07 §5.1 R1 | PENDING | — |
-| NADR-07 §5.1 R2 | PENDING | — |
-| NADR-07 §5.1 R3 | PENDING | — |
-| NADR-07 §5.3 R1 | PENDING | — |
-| NADR-07 §5.3 R2 | PENDING | — |
-| NADR-08 §5.1 R1 | PENDING | — |
-| NADR-08 §5.1 R2 | PENDING | — |
-| NADR-08 §5.1 R3 | PENDING | — |
-| NADR-08 §5.1 R4 | PENDING | — |
-| NADR-08 §5.2 R1 | PENDING | — |
-| NADR-08 §5.2 R2 | PENDING | — |
-| NADR-08 §5.2 R3 | PENDING | — |
-| NADR-08 §5.3 R1 | PENDING | — |
-| NADR-08 §5.3 R2 | PENDING | — |
-| NADR-08 §5.3 R3 | PENDING | — |
-| NADR-08 §5.4 R1 | PENDING | — |
-| NADR-08 §5.4 R2 | PENDING | — |
-| NADR-08 §5.4 R3 | PENDING | — |
-| NADR-08 §5.5 R1 | PENDING | — |
-| NADR-08 §5.5 R2 | PENDING | — |
+| NADR-05 §5.1 R1 | DONE | Wave 3.1 — `DynamicContextResolver` + `ContextRegistry` + `_build_context_stack()` |
+| NADR-05 §5.1 R2 | DONE | Wave 3.1 — `DummyContextResolver` eliminado de `apps/cli/main.py` |
+| NADR-05 §5.1 R3 | DONE | Wave 3.1 — Fail-fast en `DynamicContextResolver`. Sin fallback. Sin contexto vacío silencioso |
+| NADR-05 §5.2 R1 | DONE | Wave 3.1 — `prompt_hash` incorpora contexto real. Invalidación automática |
+| NADR-05 §5.2 R2 | DONE | Wave 3.1 — Claves de materialización vinculadas a identidad contextual via `prompt_hash` |
+| NADR-07 §5.2 R1 | DONE | Wave 3.1 — `heal_all_and_revalidate()` recibe colección completa de fallos |
+| NADR-07 §5.2 R2 | DONE | Wave 3.1 — Estrategias aplicadas secuencialmente por prioridad |
+| NADR-07 §5.1 R1 | DONE | Wave 3.1 — `_plan_healing()` con deduplicación por `strategy_id` |
+| NADR-07 §5.1 R2 | DONE | Wave 3.1 — `_apply_mutations()` secuencial por prioridad |
+| NADR-07 §5.1 R3 | DONE | Wave 3.1 — Sin descarte de fallos. Colección completa procesada |
+| NADR-07 §5.3 R1 | DONE | Wave 3.1 — Revalidación única dentro del ciclo transaccional (`_validate_result()`) |
+| NADR-07 §5.3 R2 | DONE | Wave 3.1 — Sin revalidación redundante en el dispatcher. `HealingFailedException` como resultado suficiente |
+| NADR-08 §5.1 R1 | DONE | Wave 3.2 — `RateLimitStore` protocol creado en `core/resilience/rate_limit_store.py` |
+| NADR-08 §5.1 R2 | DONE | Wave 3.2 — Protocol define operaciones `load()` y `save()` (contrato de persistencia) |
+| NADR-08 §5.1 R3 | DEFERRED (GF-01) | Wave 3.2 — Puerto definido, pero `TokenBucket` aún usa memoria local. Implementación del backend diferida a Gate 4 por conflicto normativo (ADR Maestro §4 prohíbe infraestructura distribuida). |
+| NADR-08 §5.1 R4 | DEFERRED (GF-01) | Wave 3.2 — Puerto permite selección de backend desde Composition Root, pero ningún backend está cableado aún. Diferido a Gate 4. |
+| NADR-08 §5.2 R1 | DONE | Wave 3.2 — `CircuitBreakerProvider` integrado en stack de `apps/cli/main.py` y `apps/llm_workers/__main__.py` |
+| NADR-08 §5.2 R2 | DONE | Wave 3.2 — `GlobalCircuitBreaker` con `failure_threshold`, `window_sec`, `recovery_timeout` configurables |
+| NADR-08 §5.2 R3 | DONE | Wave 3.2 — Stack CB → Cache → RL → Provider. Ninguna ruta elude el CircuitBreaker |
+| NADR-08 §5.3 R1 | DONE | Wave 3.2 — `ast_hash` agregado a `RematerializeTaskCommand` en `core/execution/state.py` |
+| NADR-08 §5.3 R2 | DONE | Wave 3.2 — `"unknown_ast_hash"` eliminado de `core/execution/handlers.py`. Reemplazado por `cmd.ast_hash` |
+| NADR-08 §5.3 R3 | DONE | Wave 3.2 — Propagación de `ast_hash` desde `ReconcilerDaemon._sweep_tasks()`. Proyecciones recuperables por el ensamblador |
+| NADR-08 §5.4 R1 | DONE | Wave 3.2 — Reconciliación CQRS activa en producción (verificado) |
+| NADR-08 §5.4 R2 | DONE | Wave 3.2 — Gobernada por `RuntimeSettings.reconciliation_enabled` (configuración externa) |
+| NADR-08 §5.4 R3 | DONE | Wave 3.2 — Sin banderas hardcodeadas. `__main__` lee de `os.environ` en el borde |
+| NADR-08 §5.5 R1 | DONE | Wave 3.2 — CircuitBreaker y RateLimiter operan de forma compuesta en el stack |
+| NADR-08 §5.5 R2 | DONE | Wave 3.2 — CB antes de RL en el stack. Circuito abierto previene consumo de cuota |
 
 ### 9.4 Gate 4 — Rules Audit Board
 
@@ -378,19 +402,67 @@ Los contadores se **derivan computacionalmente** del Traceability Appendix (§9)
 Hallazgos identificados durante la implementación que no bloquean
 el Gate actual pero requieren atención en Gates futuros.
 
-| # | Hallazgo | Origen | Gate destino | Prioridad |
-|---|----------|--------|--------------|-----------|
-| DF-01 | `core/benchmark/__main__.py` computa su propio SHA-256 por nodo en lugar de usar `compute_ast_hash()`. Identidad criptográfica desconectada del hash canónico. | Wave 1.2 | Gate 4 (Task 4.2.x) | Medium |
-| DF-02 | Patrón `hasattr(n.node_type, "value")` persiste en múltiples archivos. Código defensivo innecesario si `ContentNodeType` está tipado definitivamente. | Wave 1.2 | Gate 2 | Low |
-| DF-03 | `tools/benchmark_archive/` contiene scripts con hashing propio (`generate_sha256`). Declarado OUT OF SCOPE. | Wave 1.2 | N/A (archivado) | None |
-| DF-04 | `SemanticChunkBoundaryPolicy.can_group()` siempre retorna `ALLOW`. Falta implementar reglas de HARD_BREAK cuando el AST incorpore semántica de contexto cruzado. | Pre-existente | Gate 3+ | Low |
-| DF-07 | El constructor de AsyncDispatcher acumula 6 dependencias (context_resolver, prompt_builder, provider_stack, validation_pipeline, healing_pipeline, concurrency). A futuro, introducir DispatcherFactory en apps/bootstrap/ siguiendo el mismo patrón que build_validation_pipeline() y build_extraction_pipeline(). | Wave 2.1 | Gate 3+ (cuando el constructor siga creciendo) | Low |
-| DF-10 | `core/ast/router.py` (PDFRouter) es un wrapper transicional. Una vez que todos los consumidores migren a PdfTypeDetectorPort directamente, eliminar la clase. | Wave 2.2 | Gate 3 | Low |
-| DF-11 | `core/extraction/ocr_providers/` | contiene implementaciones concretas dentro del dominio. Migrar a `infra/extraction/providers/` para eliminar la contaminación del dominio.
-| DF-12 | `LayoutBlockCollection` y `LayoutBlockDraft` pertenecen al legacy `DocumentLayoutBuilder` (zombi 100% según Hito 0.4.5). `FlatASTBuilder` debe refactorizarse para consumir `list[LayoutBlock]` directamente, eliminando la traducción intermedia. | Wave 2.2 | Gate 3 | Medium |
-| DF-13 | El contrato de `TestRealPaperIntegration` asume capacidades estructurales (ecuaciones, tablas, imágenes) superiores a las declaradas por `PyMuPDFProvider`(supports_math=False, has_tables=False, has_images=False). Antes del freeze de Fase 17-BIS deberá decidirse si el benchmark evalúa un contrato común mínimo o capacidades específicas por provider (ADR de benchmark). | Wave 2.2 | Gate 3 (Fase 17-BIS benchmark) | Medium |.
-| DF-14 | `core/layout/classifier.py` (LogicalClassifier) es un stage zombi del `DocumentLayoutBuilderlegacy`. Auditar sus heurísticas (_resolve_from_provider, _infer_from_content): migrar las útiles a `HeuristicLayoutClassifier` y eliminar el stage completo junto con `DocumentLayoutBuilder`. | Wave 2.2 | Gate 3 | 	
-Low |
-| DF-15 | `PyMuPDFProvider` no detecta tablas (`has_tables=False`), ecuaciones (`supports_math=False`) ni imágenes (filtradas por `type != 0`). `HeuristicLayoutClassifier` opera exclusivamente sobre texto vectorial con metadata tipográfica. Para recall estructural completo, evaluar Docling o Nougat en Fase 17-BIS | Wave 2.2 | Gate 3 (Fase 17-BIS benchmark) | Medium |
-| DF-16 | Existen dos taxonomías que deben mantenerse sincronizadas: `LayoutBlockType` (dominio del provider) y `ContentNodeType` (AST). Cada nuevo tipo requiere actualización manual de `FlatASTBuilder._TYPE_MAPPING`. Considerar unificar ambas taxonomías o establecer una correspondencia declarativa centralizada para evitar errores [AST-004] futuros. | Wave 2.2 | Fase 17-BIS | Medium |
-| DF-17 | `PyMuPDFProvider` posee capacidad nativa de extracción de imágenes (bloques `type==1` en PyMuPDF), pero la implementación actual filtra exclusivamente bloques de texto vectorial (`type==0`). El contrato observable declara has_images=False hasta que se incorpore el flujo de extracción, persistencia y mapeo de bloques de imagen al dominio. | Wave 2.2 | Gate 3 (Fase 17-BIS benchmark) | Medium |
+---
+
+| # | Hallazgo | Origen | Gate destino | Prioridad | Estado | Motivo | Gate nuevo |
+|---|----------|--------|--------------|-----------|--------|--------|------------|
+| DF-01 | `core/benchmark/__main__.py` computa su propio SHA-256 por nodo en lugar de usar `compute_ast_hash()`. Identidad criptográfica desconectada del hash canónico. | Wave 1.2 | Gate 4 (Task 4.2.x) | Medium | PENDING | Se revisará en Gate 4 Exit Review | Gate 4 |
+| DF-02 | Patrón `hasattr(n.node_type, "value")` persiste en múltiples archivos. Código defensivo innecesario si `ContentNodeType` está tipado definitivamente. | Wave 1.2 | Gate 2 | Low | RECLASIFICADO | Revisión tardía: Gate 2 se cerró sin ejecutar Gate Exit Review. Patrón defensivo persiste. No es prioridad de Gate 3. | Gate 4 |
+| DF-03 | `tools/benchmark_archive/` contiene scripts con hashing propio (`generate_sha256`). | Wave 1.2 | N/A | None | CLOSED (NAR) | Declarado OUT OF SCOPE. Archivado. | — |
+| DF-04 | `SemanticChunkBoundaryPolicy.can_group()` siempre retorna `ALLOW`. Falta implementar reglas de HARD_BREAK cuando el AST incorpore semántica de contexto cruzado. | Pre-existente | Gate 3+ | Low | RECLASIFICADO | Renombrado a `StructuralChunkBoundaryPolicy`. Verificar si HARD_BREAK sigue sin implementar. Requiere semántica de contexto cruzado. | Gate 4 |
+| DF-07 | El constructor de AsyncDispatcher acumula 6 dependencias. A futuro, introducir DispatcherFactory en `apps/bootstrap/`. | Wave 2.1 | Gate 3+ | Low | RECLASIFICADO | `DispatcherFactory` no existe en `apps/bootstrap/`. Mejora de mantenibilidad, no bloquea Gate 3. | Gate 4 |
+| DF-10 | `core/ast/router.py` (PDFRouter) es un wrapper transicional. Eliminar una vez que todos los consumidores migren a `PdfTypeDetectorPort`. | Wave 2.2 | Gate 3 | Low | RECLASIFICADO | `core/ast/router.py` con `PDFRouter` sigue en PROJECT_TREE. Requiere migrar consumidores. | Gate 4 |
+| DF-11 | `core/extraction/ocr_providers/` contiene implementaciones concretas dentro del dominio. Migrar a `infra/extraction/providers/`. | Wave 2.2 | Gate 2 | High | RECLASIFICADO | Revisión tardía: era "Architecture Freeze Blocker" de Gate 2. Providers siguen en `core/`. Migración requiere refactor de frontera hexagonal. | Gate 4 |
+| DF-12 | `LayoutBlockCollection` y `LayoutBlockDraft` pertenecen al legacy `DocumentLayoutBuilder` (zombi). `FlatASTBuilder` debe consumir `list[LayoutBlock]` directamente. | Wave 2.2 | Gate 3 | Medium | RECLASIFICADO | `LayoutBlockDraft` y `LayoutBlockCollection` siguen en `core/layout/models.py`. Refactor grande de `FlatASTBuilder`. | Gate 4 |
+| DF-13 | El contrato de `TestRealPaperIntegration` asume capacidades estructurales superiores a las declaradas por `PyMuPDFProvider`. Decidir si el benchmark evalúa contrato común mínimo o capacidades específicas por provider. | Wave 2.2 | Gate 3 | Medium | RECLASIFICADO | Test actualizado para consultar `parser.capabilities` (Wave 2.2). Decisión de benchmark pendiente. | Gate 4 |
+| DF-14 | `core/layout/classifier.py` (LogicalClassifier) es un stage zombi. Auditar heurísticas y migrar las útiles a `HeuristicLayoutClassifier`. | Wave 2.2 | Gate 3 | Low | RECLASIFICADO | `LogicalClassifier` sigue en PROJECT_TREE. `HeuristicLayoutClassifier` creado, pero zombi no eliminado. Requiere auditoría. | Gate 4 |
+| DF-15 | `PyMuPDFProvider` no detecta tablas, ecuaciones ni imágenes. Para recall estructural completo, evaluar Docling o Nougat. | Wave 2.2 | Gate 3 | Medium | RECLASIFICADO | Limitación conocida. Requiere evaluación de Docling/Nougat (Fase 17-BIS benchmark). | Gate 4 |
+| DF-16 | Dos taxonomías a sincronizar: `LayoutBlockType` y `ContentNodeType`. Considerar unificar o establecer correspondencia declarativa centralizada. | Wave 2.2 | Fase 17-BIS | Medium | RECLASIFICADO | Sin correspondencia declarativa centralizada. Mejora de mantenibilidad. | Gate 4 |
+| DF-17 | `PyMuPDFProvider` posee capacidad nativa de extracción de imágenes (`type==1`), pero filtra exclusivamente texto vectorial (`type==0`). | Wave 2.2 | Gate 3 | Medium | RECLASIFICADO | Flujo de extracción de imágenes no implementado. Feature nueva. | Gate 4 |
+| DF-18 | Introducir `ExecutionContext` como objeto de transporte unificado del plano de ejecución. | Wave 3.1 | Gate 4 | Medium | PENDING | Se revisará en Gate 4 Exit Review | Gate 4 |
+| DF-19 | Separar `build_pipeline()` en sub-fábricas para evitar God Factory. | Wave 3.1 | Gate 4 | Low | PENDING | Se revisará en Gate 4 Exit Review | Gate 4 |
+| DF-20 | El dispatcher no debería resolver contexto. Debería recibir `ResolvedContext` ya resuelto. | Wave 3.1 | Gate 4 | Medium | PENDING | Se revisará en Gate 4 Exit Review | Gate 4 |
+| DF-21 | `ContextRegistry`, `RateLimitRegistry`, `MaterializationRegistry` y `TelemetryRegistry` comparten el mismo patrón. Evaluar infraestructura común. | Wave 3.1 | Gate 4 | Low | PENDING | Se revisará en Gate 4 Exit Review | Gate 4 |
+| DF-22 | `RuntimeContextMappingProvider` podría exponer `get(context_id)` directamente en lugar de mappings. | Wave 3.1 | Gate 4 | Low | PENDING | Se revisará en Gate 4 Exit Review | Gate 4 |
+| DF-23 | `apps/llm_workers/resilient_provider.py` es byte-identical a `cache_provider.py` (clase `CachedLLMProvider` duplicada). | Wave 3.2 | Gate 3 | Low | RESUELTO | Archivo eliminado en Wave 3.2. Confirmado: no aparece en PROJECT_TREE actualizado. | — |
+| DF-24 | `GlobalCircuitBreaker` usa `deque()` en memoria local. Para multi-proceso real requeriría `CircuitBreakerStore`. | Wave 3.2 | Gate 4 | Low | PENDING | Se revisará en Gate 4 Exit Review | Gate 4 |
+| DF-25 | `ReconcilerDaemon` y `CQRSReconciliationDaemon` son complementarios pero comparten responsabilidad de sweep. | Wave 3.2 | Gate 4 | Low | PENDING | Se revisará en Gate 4 Exit Review | Gate 4 |
+| DF-26 | `apps/cli/main.py` y `apps/llm_workers/__main__.py` construyen el provider stack de forma duplicada. Extraer a `_build_provider_stack()`. | Wave 3.2 | Gate 4 | Low | PENDING | Se revisará en Gate 4 Exit Review | Gate 4 |
+| DF-27 | Backend persistente para cuotas multi-proceso (SQLite WAL). | Wave 3.2 | Gate 4 | Medium | PENDING | Se revisará en Gate 4 Exit Review | Gate 4 |
+| DF-28 | `core/benchmark/runners/groq_runner.py` y `gemini_runner.py` contienen `DummyContextResolver`. Viola NADR-05 §5.1 R2. Alinear runners con pipeline de producción. | Gate 3 (auditoría) | Gate 4 | Medium | RECLASIFICADO | Hallazgo nuevo de Gate 3. DummyContextResolver en runners de benchmark. Alineación pendiente. | Gate 4 |
+| GF-01 | Execution Plan Task 3.2.2 requiere "adaptador distribuido", pero ADR Maestro §4 prohíbe infraestructura distribuida durante Production Alignment. Implementation intentionally deferred due to governance conflict. | Wave 3.2 | Gate 4 | High | PENDING | Governance Finding. Se revisará en Gate 4 cuando se resuelva el conflicto normativo. | Gate 4 |
+
+---
+
+### 11.1 Gate 3 Exit Review (2026-08-07)
+
+**Árbol de decisión aplicado (§5.5):**
+1. ¿Sigue siendo válido el hallazgo? → NO: CLOSED (NAR) / SÍ: continuar
+2. ¿Puede resolverse dentro del Gate actual? → SÍ: RESOLVED / NO: continuar
+3. ¿Es un problema técnico? → SÍ: RECLASIFICADO / NO: continuar
+4. ¿Es un conflicto normativo? → SÍ: CONVERTIDO EN GF
+
+| DF | ¿Válido? | ¿Resoluble en Gate 3? | ¿Técnico? | Decisión | Motivo |
+|----|----------|----------------------|-----------|----------|--------|
+| DF-02 | ✅ Sí | ❌ No | ✅ Sí | RECLASIFICADO → Gate 4 | Revisión tardía: Gate 2 cerrado sin Gate Exit Review. |
+| DF-04 | ⚠️ Parcial | ❌ No | ✅ Sí | RECLASIFICADO → Gate 4 | Renombrado a `StructuralChunkBoundaryPolicy`. Requiere semántica de contexto cruzado. |
+| DF-07 | ✅ Sí | ❌ No | ✅ Sí | RECLASIFICADO → Gate 4 | `DispatcherFactory` no existe. Mejora de mantenibilidad. |
+| DF-10 | ✅ Sí | ❌ No | ✅ Sí | RECLASIFICADO → Gate 4 | `PDFRouter` sigue en tree. Requiere migrar consumidores. |
+| DF-11 | ✅ Sí | ❌ No | ✅ Sí | RECLASIFICADO → Gate 4 | Revisión tardía: era blocker de Gate 2. Migración hexagonal. |
+| DF-12 | ✅ Sí | ❌ No | ✅ Sí | RECLASIFICADO → Gate 4 | Refactor grande de `FlatASTBuilder`. |
+| DF-13 | ⚠️ Parcial | ❌ No | ✅ Sí | RECLASIFICADO → Gate 4 | Test actualizado. Decisión de benchmark pendiente. |
+| DF-14 | ✅ Sí | ❌ No | ✅ Sí | RECLASIFICADO → Gate 4 | Zombi `LogicalClassifier` no eliminado. Requiere auditoría. |
+| DF-15 | ✅ Sí | ❌ No | ✅ Sí | RECLASIFICADO → Gate 4 | Limitación conocida. Requiere nuevo provider. |
+| DF-16 | ✅ Sí | ❌ No | ✅ Sí | RECLASIFICADO → Gate 4 | Unificación de taxonomías. |
+| DF-17 | ✅ Sí | ❌ No | ✅ Sí | RECLASIFICADO → Gate 4 | Flujo de imágenes no implementado. Feature nueva. |
+| DF-23 | ❌ No | — | — | RESOLVED | Archivo eliminado en Wave 3.2. Confirmado en PROJECT_TREE. |
+| DF-28 | ✅ Sí (nuevo) | ❌ No | ✅ Sí | RECLASIFICADO → Gate 4 | Hallazgo nuevo. `DummyContextResolver` en runners de benchmark. |
+
+**Resumen:**
+- RESOLVED: 1 (DF-23)
+- RECLASIFICADO → Gate 4: 12 (DF-02, 04, 07, 10, 11, 12, 13, 14, 15, 16, 17, 28)
+- CLOSED (NAR): 0
+- CONVERTIDO EN GF: 0
+- Nuevos hallazgos registrados: 1 (DF-28)
+- Revisiones tardías documentadas: 2 (DF-02, DF-11)
+

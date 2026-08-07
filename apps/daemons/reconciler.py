@@ -133,7 +133,7 @@ class ReconcilerDaemon:
 
         # PAGINACIÓN SOTA: Limit 100 para no ahogar SQLite
         cursor = self.task_repo.conn.execute("""
-            SELECT task_id, document_id, node_id, updated_at
+            SELECT task_id, document_id, node_id, updated_at, ast_hash
             FROM chunk_tasks
             WHERE task_state = 'PROCESSING'
               AND lease_expires_at < ?
@@ -148,7 +148,7 @@ class ReconcilerDaemon:
             if not self.is_leader:
                 return 
             
-            task_id, doc_id, node_id, updated_at = row
+            task_id, doc_id, node_id, updated_at, ast_hash = row
             
             # SOTA: Clave de Idempotencia Determinística
             # Si el Handler ya la procesó, la ignorará
@@ -166,6 +166,7 @@ class ReconcilerDaemon:
                     reconciler_epoch=self.current_epoch,
                     task_id=task_id,
                     document_id=doc_id,
+                    ast_hash=ast_hash,           # NUEVO: NADR-08 §5.3 R8
                     node_id=node_id,
                     content_hash=latest_event.content_hash
                 )

@@ -49,12 +49,14 @@ from apps.bootstrap.provider_factory import ExtractionProviderFactory
 
 # Dispatcher (NADR-11: construcción interna)
 from apps.llm_workers.dispatcher import AsyncDispatcher
-from core.context.context_resolver import ContextResolverProtocol
 from apps.llm_workers.prompt_builder import PromptBuilder
 from apps.llm_workers.routing import LLMProvider
 
 from core.layout.models import LayoutBlockDraft
 from core.domain.document import LayoutBlock, BoundingBox
+
+from core.context.context_registry import ContextRegistry
+from core.context.dynamic_resolver import DynamicContextResolver
 
 
 
@@ -77,30 +79,19 @@ def _build_healing_pipeline(validation_pipeline: ValidationPipeline) -> HealingP
 # En build_pipeline(), actualizar la llamada:
 def build_pipeline(
     chunker: ChunkerProtocol,
-    context_resolver: ContextResolverProtocol,
     prompt_builder: PromptBuilder,
     provider_stack: LLMProvider,
     concurrency: int = 20,
-    extraction_config: ExtractionConfiguration | None = None,  # NUEVO
+    extraction_config: ExtractionConfiguration | None = None,
     audit_override: Optional[AuditBuilderProtocol] = None,
     state_store_override: Optional[StateStoreProtocol] = None,
 ) -> TranslationPipeline:
     """
     Composition Root único del pipeline de traducción.
 
-    NADR-11 §5.1 R1: ÚNICO punto de construcción del grafo de objetos.
-    NADR-11 §5.1 R2: Cero mutaciones post-constructor.
-
-    Construye internamente:
-    1. ValidationPipeline (vía core.validation.factory)
-    2. HealingPipeline (sobre la misma instancia de ValidationPipeline)
-    3. AsyncDispatcher (con validation y healing por constructor)
-    4. Parser (vía build_extraction_pipeline)
-    5. Assembler
-    6. AuditBuilder
-    7. StateStore
-    8. Pre-LLM ValidationEngine
-    9. TranslationPipeline
+    NADR-05 §5.1 R1-R2: El resolver de contexto se construye aquí
+    con un provider real. No se inyecta DummyContextResolver.
+    NADR-11 §5.1 R1-R2: Cero mutaciones post-constructor.
     """
     bootstrap_normalization_layer()
 
@@ -108,7 +99,10 @@ def build_pipeline(
     validation_pipeline = build_validation_pipeline()
     healing_pipeline = _build_healing_pipeline(validation_pipeline)
 
-    # 2. Dispatcher completo
+    # 2. Context stack (NADR-05 §5.1 R1)
+    context_registry, context_resolver = _build_context_stack()
+
+    # 3. Dispatcher completo
     dispatcher = AsyncDispatcher(
         context_resolver=context_resolver,
         prompt_builder=prompt_builder,
@@ -118,36 +112,36 @@ def build_pipeline(
         concurrency=concurrency,
     )
 
-    # 3. Parser (NADR-02 §5.2 R1: config inyectada, no leída del entorno)
+    # 4. Parser
     if extraction_config is None:
         extraction_config = ExtractionConfiguration(provider_id=ExtractionProviderId.PYMUPDF)
     parser: PdfParserAdapter = build_extraction_pipeline(extraction_config)
 
-    # 4. Repositorio de documentos
+    # 5. Repositorio de documentos
     doc_conn = get_connection("infra/db/documents.db", timeout=30)
     document_repository = SQLiteDocumentRepository(doc_conn)
 
-    # 5. Assembler
+    # 6. Assembler
     assembly_policy = AssemblyPolicy(
         tolerance_ratio=0.05,
         allow_fallback=True,
         degradable_failures=frozenset([
             FailureReason.CONTEXT_OVERFLOW,
             FailureReason.PROVIDER_FAILURE,
-            FailureReason.RETRY_EXHAUSTED
-        ])
+            FailureReason.RETRY_EXHAUSTED,
+        ]),
     )
 
     assembler = DocumentAssembler(
         repository=document_repository,
         separator="\n\n",
-        policy=assembly_policy
+        policy=assembly_policy,
     )
 
-    # 6. Audit builder
+    # 7. Audit builder
     audit_builder = audit_override or SummaryBuilder()
 
-    # 7. State store
+    # 8. State store
     if state_store_override:
         state_store = state_store_override
     else:
@@ -156,10 +150,10 @@ def build_pipeline(
         command_handler = DocumentCommandHandler(fsm_repo)
         state_store = FSMStateStore(fsm_repo, command_handler)
 
-    # 8. Pre-LLM validator (NADR-04 §5.1 R1)
+    # 9. Pre-LLM validator
     pre_llm_engine = build_default_validation_engine()
 
-    # 9. TranslationPipeline
+    # 10. TranslationPipeline
     return TranslationPipeline(
         parser=parser,
         chunker=chunker,
@@ -169,6 +163,7 @@ def build_pipeline(
         state_store=state_store,
         document_repository=document_repository,
         pre_llm_validator=pre_llm_engine,
+        context_registry=context_registry,
     )
 
 
@@ -242,3 +237,18 @@ def build_extraction_pipeline(config: ExtractionConfiguration | None = None) -> 
         provider=provider,
         layout_to_ast_mapper=_adapter_mapper
     )
+
+def _build_context_stack() -> tuple[ContextRegistry, DynamicContextResolver]:
+    """
+    Construye el subsistema de resolución de contexto.
+
+    NADR-05 §5.1 R1: El contexto debe ser una capacidad real.
+    NADR-11 §5.1 R1: El Composition Root es el único punto de construcción.
+
+    Retorna:
+        - ContextRegistry: dueño único de los mappings (se actualiza en execute())
+        - DynamicContextResolver: resolver que consulta el registry dinámicamente
+    """
+    registry = ContextRegistry()
+    resolver = DynamicContextResolver(registry=registry)
+    return registry, resolver

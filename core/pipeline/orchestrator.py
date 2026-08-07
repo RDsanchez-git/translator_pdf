@@ -13,6 +13,7 @@ from core.normalization.enrichers.context_enricher import HierarchicalContextEnr
 from core.ast.hashing import compute_ast_hash
 from core.compiler.assembler import DocumentAssemblyDecision, AssemblyReport
 from core.validation.ast.models import ValidationSeverity
+from core.context.context_registry import ContextRegistry
 from typing import Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -54,7 +55,8 @@ class TranslationPipeline:
         audit_builder: AuditBuilderProtocol,
         state_store: StateStoreProtocol,
         document_repository: DocumentRepositoryProtocol,
-        pre_llm_validator: Optional["ValidationEngine"] = None,  # NUEVO
+        pre_llm_validator: Optional["ValidationEngine"] = None,
+        context_registry: Optional["ContextRegistry"] = None,
     ):
         self.parser = parser
         self.chunker = chunker
@@ -63,8 +65,9 @@ class TranslationPipeline:
         self.audit_builder = audit_builder
         self.state_store = state_store
         self.document_repository = document_repository
-        self._pre_llm_validator = pre_llm_validator  # NUEVO
-        
+        self._pre_llm_validator = pre_llm_validator
+        self._context_registry = context_registry
+
         self._exotic_bullets = re.compile(r'^\s*([•▪‣◦■♦○]|[-‑‒–—-]>\s*)\s*')
 
     async def execute(self, job: TranslationJob) -> PipelineResult:
@@ -152,7 +155,14 @@ class TranslationPipeline:
         context_enricher = HierarchicalContextEnricher()
         nodes, structured_registry, enricher_warnings, enricher_metrics = context_enricher.enrich_document(nodes)
 
+        # NADR-05 §5.1 R1: Actualizar el ContextRegistry con los mappings
+        # del enriquecedor. El DynamicContextResolver del dispatcher consultará
+        # estos mappings dinámicamente en dispatch().
+        if self._context_registry is not None:
+            self._context_registry.update(structured_registry["mappings"])
+
         job.document_id = job.job_id
+        # ... resto sin cambios
         job.ast_hash = current_ast_hash
         job.pipeline_metadata["context_store"] = structured_registry
 

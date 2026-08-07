@@ -3,7 +3,6 @@ import sys
 import asyncio
 import argparse
 from pathlib import Path
-from typing import Iterable, Dict
 
 from rich.console import Console
 from rich.status import Status
@@ -22,10 +21,12 @@ from apps.llm_workers.adapters import GroqProvider
 from apps.llm_workers.rate_limiter import RateLimitedProvider, QuotaManager
 from apps.llm_workers.cache_provider import CachedLLMProvider
 from apps.llm_workers.prompt_builder import PromptBuilder
-from core.context.context_resolver import ResolvedContext
 from core.validation.budget import PromptBudgetCalculator, StandardCompressionPolicy
 from core.finops.measurement import InferenceMeasurementService
 from core.prompting.dialects.openai_compatible import OpenAICompatibleDialect
+
+from core.resilience.circuit_breaker import GlobalCircuitBreaker
+from apps.llm_workers.circuit_breaker_provider import CircuitBreakerProvider
 
 console = Console()
 
@@ -39,20 +40,6 @@ class ChunkerProtocolAdapter:
         units, report = build_semantic_chunks_as_units(nodes, self._estimator)
         self.last_report = report
         return units
-
-
-class DummyContextResolver:
-    """
-    TEMPORAL: Satisface ContextResolverProtocol emitiendo nulos estructurados rígidos.
-    """
-    def resolve(self, context_id: str) -> ResolvedContext:
-        return ResolvedContext(
-            context_id=context_id,
-            breadcrumbs=()
-        )
-
-    def resolve_many(self, context_ids: Iterable[str]) -> Dict[str, ResolvedContext]:
-        return {}
 
 # =====================================================================
 # MANEJADORES OPERACIONALES (HANDLERS)
@@ -109,15 +96,18 @@ async def handle_translate_async(args):
     
     await cached_provider.initialize()
 
+    # Stack order: CircuitBreaker → Cache → RateLimiter → Provider
+    breaker = GlobalCircuitBreaker()
+    provider_stack = CircuitBreakerProvider(underlying=cached_provider, breaker=breaker)
+
     optimal_concurrency = max(1, min(int((rpm_limit / 60.0) * 1.5) * 2, 50))
 
     try:
         chunker_adapter = ChunkerProtocolAdapter(estimator=estimator)
         pipeline = build_pipeline(
             chunker=chunker_adapter,
-            context_resolver=DummyContextResolver(),
             prompt_builder=prompt_builder,
-            provider_stack=cached_provider,
+            provider_stack=provider_stack,
             concurrency=optimal_concurrency,
         )
         job = TranslationJob(job_id=job_id, source_path=source_path)

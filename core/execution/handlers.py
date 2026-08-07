@@ -145,9 +145,10 @@ class ReconciliationCommandHandler:
             normalized = TextNormalizer.normalize(raw_response)
             normalized_hash = hashlib.sha256(normalized.encode('utf-8')).hexdigest()
 
-            # SOTA: Mantenemos "unknown_ast_hash" hasta que se inyecte por esquema o lectura
+            # NADR-08 §5.3 R8-R10: Usar ast_hash real del comando.
+            # Elimina el bypass "unknown_ast_hash" que corrompía el Query Model.
             self.mat.upsert_projection(
-                cmd.document_id, "unknown_ast_hash", cmd.node_id, latest_event.content_hash, 
+                cmd.document_id, cmd.ast_hash, cmd.node_id, latest_event.content_hash,
                 normalized, normalized_hash, latest_event.projection_version
             )
 

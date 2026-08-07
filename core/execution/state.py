@@ -136,5 +136,6 @@ class RecoverZombieTaskCommand(ReconcilerCommand):
 class RematerializeTaskCommand(ReconcilerCommand):
     task_id: str
     document_id: str
+    ast_hash: str          # NUEVO: NADR-08 §5.3 R8 (identidad documental completa)
     node_id: str
     content_hash: str

@@ -59,3 +59,46 @@ class HealingContext:
                 f"Contrato violado: El contexto de curación exige un fallo crítico (HARD_FAIL). "
                 f"Recibido: '{self.validation_result.severity}' para el invariante '{self.validation_result.invariant_id}'."
             )
+
+
+class HealingFailedException(Exception):
+    """
+    Excepción enriquecida lanzada cuando el healing no puede resolver
+    la colección completa de fallos.
+
+    NADR-07 §5.1 R1: El sistema de curación procesa la colección completa.
+    NADR-07 §5.2 R5: Rollback atómico si la revalidación falla.
+
+    Contiene toda la información necesaria para telemetría y debugging,
+    incluyendo identificadores de trazabilidad del documento.
+    """
+
+    def __init__(
+        self,
+        failures: list,
+        attempted_strategies: list[str],
+        rollback_reason: str,
+        original_text: str,
+        mutated_text: str,
+        document_id: str = "",
+        chunk_id: str = "",
+        context_id: str = "",
+    ) -> None:
+        self.failures = failures
+        self.attempted_strategies = attempted_strategies
+        self.rollback_reason = rollback_reason
+        self.original_text = original_text
+        self.mutated_text = mutated_text
+        self.document_id = document_id
+        self.chunk_id = chunk_id
+        self.context_id = context_id
+
+        failed_invariants = [getattr(f, 'invariant_id', 'UNKNOWN') for f in failures]
+        message = (
+            f"Healing failed for chunk '{chunk_id}' (doc: '{document_id}', ctx: '{context_id}') "
+            f"after {len(attempted_strategies)} strategies "
+            f"[{', '.join(attempted_strategies)}]. "
+            f"Reason: {rollback_reason}. "
+            f"Unresolved invariants: {failed_invariants}"
+        )
+        super().__init__(message)

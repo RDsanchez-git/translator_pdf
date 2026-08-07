@@ -13,9 +13,10 @@ from core.execution.exceptions import CircuitOpenError, PermanentQuotaRejection,
 from core.context.context_resolver import ContextResolverProtocol, ResolvedContext
 from core.validation.models import ValidationContext, Scope, Severity
 from core.validation.pipeline import ValidationPipeline
-from core.healing.models import HealingContext, HealingOutcome
+from core.healing.models import HealingOutcome
 from core.healing.pipeline import HealingPipeline
 from core.validation.budget import BudgetViolationReason
+from core.healing.models import HealingFailedException
 
 logger = logging.getLogger(__name__)
 
@@ -54,12 +55,12 @@ class AsyncDispatcher:
         self.validation_pipeline = validation_pipeline
         self.healing_pipeline = healing_pipeline
 
-    async def _process_validation_and_healing(self, unit: TranslationUnit, provider_result: InferenceResult, envelope: PromptEnvelope) -> TranslatedUnit:
+    async def _process_validation_and_healing(
+        self, unit: TranslationUnit, provider_result: InferenceResult, envelope: PromptEnvelope
+    ) -> TranslatedUnit:
         chunk_type_str = getattr(unit.chunk_type, 'value', unit.chunk_type)
-        
-        # SOTA FIX: Bloqueo de tipo estricto. Transforma InferenceResult.content a str.
         target_payload_text = str(provider_result.content)
-        
+
         translated = TranslatedUnit(
             chunk_index=unit.chunk_index,
             chunk_id=unit.chunk_id,
@@ -71,40 +72,60 @@ class AsyncDispatcher:
             prompt_version=envelope.prompt_version,
             input_tokens=int(provider_result.input_tokens),
             output_tokens=int(provider_result.output_tokens),
-            latency_ms=float(provider_result.latency_ms)
+            latency_ms=float(provider_result.latency_ms),
         )
         if not self.validation_pipeline:
             return translated
-            
+
         ctx = ValidationContext(
             source_text=unit.target_payload,
             target_text=translated.translated_payload,
             scope=Scope.CHUNK,
             chunk_index=unit.chunk_index,
             chunk_type=unit.chunk_type,
-            payload_sha256=unit.payload_sha256
+            payload_sha256=unit.payload_sha256,
         )
-        
+
         results = self.validation_pipeline.validate_chunk(ctx)
         hard_fails = [r for r in results if r.severity == Severity.HARD_FAIL]
-        
-        if hard_fails and self.healing_pipeline:
-            healing_ctx = HealingContext(validation_context=ctx, validation_result=hard_fails[0])
-            healing_result = self.healing_pipeline.heal_and_revalidate(healing_ctx)
-            
-            if healing_result.outcome == HealingOutcome.SUCCESS:
-                translated = replace(
-                    translated, 
-                    translated_payload=healing_result.final_text,
-                    model_name=f"healed:{translated.model_name}"
-                )
-                results = self.validation_pipeline.validate_chunk(replace(ctx, target_text=translated.translated_payload))
-                hard_fails = [r for r in results if r.severity == Severity.HARD_FAIL]
-                
-        if hard_fails:
-            res = hard_fails[0]
-            raise ValueError(f"[{res.invariant_id}] {res.message}")
-        return translated
+
+        if not hard_fails:
+            return translated
+
+        if not self.healing_pipeline:
+            raise HealingFailedException(
+                failures=hard_fails,
+                attempted_strategies=[],
+                rollback_reason="No healing pipeline configured",
+                original_text=target_payload_text,
+                mutated_text=target_payload_text,
+                chunk_id=unit.chunk_id,
+                context_id=unit.context_id or "",
+            )
+
+        # NADR-07 §5.1 R1-R3: Colección completa de fallos.
+        # NADR-07 §5.3 R7-R9: Revalidación única dentro del healing pipeline.
+        healing_result = self.healing_pipeline.heal_all_and_revalidate(ctx, hard_fails)
+
+        if healing_result.outcome == HealingOutcome.SUCCESS:
+            # AJUSTE OBLIGATORIO: Usar healed_text directamente.
+            # healed_text no es None cuando outcome == SUCCESS.
+            translated = replace(
+                translated,
+                translated_payload=healing_result.healed_text,
+                model_name=f"healed:{translated.model_name}",
+            )
+            return translated
+        else:
+            raise HealingFailedException(
+                failures=hard_fails,
+                attempted_strategies=healing_result.strategy_id.split("+") if healing_result.strategy_id != "NONE" else [],
+                rollback_reason=healing_result.message,
+                original_text=target_payload_text,
+                mutated_text=target_payload_text,
+                chunk_id=unit.chunk_id,
+                context_id=unit.context_id or "",
+            )
 
     # SOTA FIX: Tipado estructural de la Cola para eliminar los Unknowns de priority, seq_id, unit, y envelope.
     async def _worker(self, queue: 'asyncio.PriorityQueue[Tuple[int, int, TranslationUnit, PromptEnvelope]]', results: Dict[int, ChunkOutcome]) -> None:
@@ -152,6 +173,26 @@ class AsyncDispatcher:
                     original_payload_sha256=unit.payload_sha256, translated_unit=None,
                     failure_reason=FailureReason.QUOTA_REJECTION, error_message=str(e), telemetry=envelope.telemetry
                 )
+
+            except HealingFailedException as e:
+                results[unit.chunk_index] = ChunkOutcome(
+                    chunk_index=unit.chunk_index,
+                    chunk_id=unit.chunk_id,
+                    status=ExecutionStatus.FAILED,
+                    original_payload_sha256=unit.payload_sha256,
+                    translated_unit=None,
+                    failure_reason=FailureReason.VALIDATION_FAILURE,
+                    error_message=str(e),
+                    telemetry={
+                        **(envelope.telemetry or {}),
+                        "healing_attempted_strategies": e.attempted_strategies,
+                        "healing_rollback_reason": e.rollback_reason,
+                        "healing_unresolved_invariants": [
+                            getattr(f, 'invariant_id', 'UNKNOWN') for f in e.failures
+                        ],
+                    },
+                )
+
             except ValueError as e:
                 results[unit.chunk_index] = ChunkOutcome(
                     chunk_index=unit.chunk_index,
@@ -194,12 +235,13 @@ class AsyncDispatcher:
         outcomes_map: Dict[int, ChunkOutcome] = {} 
         
         for unit in units:
-            context = resolved_contexts.get(unit.context_id) or ResolvedContext(
-                context_id=unit.context_id,
-                breadcrumbs=()
-            )
-            
-            # SOTA FIX: Invocación estricta usando kwargs.
+            # NADR-05 §5.1 R3: Unidades sin context_id reciben contexto vacío explícito.
+            # Unidades con context_id acceden al resolver (fail-fast si no existe).
+            if unit.context_id is None or unit.context_id == "":
+                context = ResolvedContext(context_id="", breadcrumbs=())
+            else:
+                context = resolved_contexts[unit.context_id]
+
             build_result = self.prompt_builder.build(unit, resolved_context=context)
             
             # SOTA FIX: Discriminación Literal.
