@@ -67,13 +67,13 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
     from apps.llm_workers.sync_bridge import SyncProviderBridge
     from apps.llm_workers.adapters import GroqProvider
     from apps.llm_workers.rate_limiter import RateLimitedProvider, QuotaManager
-    from core.ast.models import FastWordEstimator
+    from core.validation.estimators import ExactBPEEstimator
     
     api_key = os.getenv("GROQ_API_KEY")
     if not api_key:
         raise RuntimeError("GROQ_API_KEY no configurada. Imposible operar motor LLM.")
     
-    estimator = FastWordEstimator()
+    estimator = ExactBPEEstimator()
     measurement_service = InferenceMeasurementService(estimator=estimator)
     
     # SOTA FIX: Adecuación a firmas FinOps y políticas de compresión canónicas de la Fase 16

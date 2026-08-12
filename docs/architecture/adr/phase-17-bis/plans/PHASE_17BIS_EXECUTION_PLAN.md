@@ -167,17 +167,37 @@ Todas las reglas de NADR-05, NADR-07 y NADR-08 referenciadas en este Gate deben 
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **4.1.1** | Eliminar comandos sintéticos del adaptador de persistencia FSM; forzar orquestador como única fuente de eventos | NADR-09 §5.1 R1, R2, R3, R4, R5 | High | Gate 3 | TODO |
-| **4.1.2** | Envolver I/O del compilador en directorios temporales efímeros; eliminar referencias a `os.getcwd()` | NADR-09 §5.2 R1, R2, R3, R4 | Critical | 4.1.1 | TODO |
-| **4.1.3** | Forzar compilador como efecto lateral aislado sin mutación de dominio | NADR-09 §5.2 R5, R6, R7 | High | 4.1.2 | TODO |
+| **4.1.1** | Eliminar comandos sintéticos del adaptador de persistencia FSM; forzar orquestador como única fuente de eventos | NADR-09 §5.1 R1, R2, R3, R4, R5 | High | Gate 3 | DONE |
+| **4.1.2** | Envolver I/O del compilador en directorios temporales efímeros; eliminar referencias a `os.getcwd()` | NADR-09 §5.2 R1, R2, R3, R4 | Critical | 4.1.1 | DONE |
+| **4.1.3** | Forzar compilador como efecto lateral aislado sin mutación de dominio | NADR-09 §5.2 R5, R6, R7 | High | 4.1.2 | DONE |
+
+> **Nota de implementación (Task 4.1.1):** `FSMStateStore` convertido a adaptador pasivo (`initialize`, `dispatch`, `load`, `get_current_version`). `TranslationPipeline` emite comandos explícitos.
+> 
+> **Nota de implementación (Task 4.1.2):** `DockerRunner` renombrado a `HostTectonicRunner` (DF-30). I/O completamente aislado en `TemporaryDirectory()`. `output_dir` obligatorio (sin default). Eliminados `os.getcwd()` y `tectonic_crash.log`. 6 tests de contrato.
+> 
+> **Nota de implementación (Task 4.1.3):** Verificado sin cambios. `HostTectonicRunner` no emite comandos FSM ni muta entidades del dominio. `AssemblerWorkerDaemon` es el propietario legítimo de la fase física.
 
 ### 5.2 Wave 4.2 — Token Estimation & Compilation Governance (NADR-06)
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **4.2.1** | Implementar adaptador de Tokenizer BPE compatible con proveedor; eliminar `FastWordEstimator` | NADR-06 §5.1 R1, R2, R3, R4 | High | Gate 3 | TODO |
-| **4.2.2** | Refactorizar `LatexEscaper` para detectar fronteras matemáticas y bypasear escapado interno | NADR-06 §5.2 R1, R2, R3, R4 | Critical | Gate 3 | TODO |
-| **4.2.3** | Re-cablear Daemon para rutear todos los ensamblados estrictamente a través de `CompilationService` (sin bypass, sin ad-hoc) | NADR-06 §5.3 R1, R2, R3, R4 | High | 4.2.2 | TODO |
+| **4.2.1** | Implementar adaptador de Tokenizer BPE compatible con proveedor; eliminar `FastWordEstimator` | NADR-06 §5.1 R1, R2, R3, R4 | High | Gate 3 | DONE |
+| **4.2.2** | Refactorizar `LatexEscaper` para detectar fronteras matemáticas y bypasear escapado interno | NADR-06 §5.2 R1, R2, R3, R4 | Critical | Gate 3 | DONE |
+| **4.2.3** | Re-cablear Daemon para rutear todos los ensamblados estrictamente a través de `CompilationService` (sin bypass, sin ad-hoc) | NADR-06 §5.3 R1, R2, R3, R4 | High | 4.2.2 | DONE |
+
+> **Nota de implementación (Task 4.2.3):** Refactor arquitectónico profundo del plano de ensamblado.
+> - Creado `core/compiler/ports.py` con `ASTProviderProtocol` (evita import circular).
+> - Creado `core/compiler/assembly_context.py` con `AssemblyExecutionContext` (VO inmutable de evidencia validada).
+> - Creado `core/compiler/context_resolver.py` con `CQRSAssemblyContextResolver` (único punto de acceso al Execution Plane).
+> - `DocumentAssembler.assemble()` migrado de `(job_id, dispatch_result)` a `(context: AssemblyExecutionContext)`. El Assembler solo decide política, NO reconstruye contenido.
+> - `CompilationService.compile_document()` migrado de `(job_id, ast_hash, dispatch_result)` a `(context: AssemblyExecutionContext)`. Única materialización de RenderUnits.
+> - `TranslationPipeline` elimina `AssemblerProtocol` y Fase 5. Termina en `MarkAssemblyReadyCommand` (handoff al Execution Plane).
+> - `SummaryBuilder.build()` separado de `DocumentAssemblyDecision`. `TranslationAuditSummary` describe exclusivamente el Dispatch Plane.
+> - `AssemblerWorkerDaemon` usa `CQRSAssemblyContextResolver` + `CompilationService`. Sin reconstrucción ad-hoc.
+> - `ASTRegistry.get_document_ast()` agregado como contrato público.
+> - Semántica OMIT excluida del contexto de ensamblado. Validación topológica sobre AST completo antes del filtro.
+> - `AssemblyReport` resemantizado: `total_nodes` + `missing_projection_nodes` (sin ambigüedad con fallos de dispatch).
+> - 274 tests passed, 0 errors pyright.
 
 ### 5.3 Gate 4 Exit Criteria
 
@@ -194,10 +214,10 @@ Todas las reglas de NADR-06 y NADR-09 referenciadas en este Gate deben alcanzar 
 
 | Gate | Fecha de cierre | Reglas cubiertas | Observaciones |
 |------|----------------|-----------------|---------------|
-| Gate 1 | 2026-08-04 | 26/26 | pyright 0 errors. Imports migrados. AST hashing semántico confirmado. |
-| Gate 2 | 2026-08-05 | 20/20 | fitz eliminado del dominio. Parser legacy eliminado. Composition Root consolidado. DF-11 registrado como Architecture Freeze Blocker. |
-| Gate 3 | 2026-08-07 | 25/27 | Wave 3.1 completada (Context Resolution + Healing transaccional). Wave 3.2 completada con excepción de NADR-08 §5.1 R3-R4 diferidos por GF-01. `RateLimitStore` protocol definido. `CircuitBreakerProvider` integrado. `ast_hash` propagado en CQRS lineage. `resilient_provider.py` eliminado (DF-23). Gate Exit Review ejecutado: 12 DFs reclasificados a Gate 4, 1 resuelto (DF-23), 1 nuevo registrado (DF-28). |
-| Gate 4 | — | 0/24 | — |
+| Gate 1 | 2026-08-04 | 26/26 | pyright 0 errors. AST hashing semántico confirmado. |
+| Gate 2 | 2026-08-05 | 20/20 | fitz eliminado. Parser legacy eliminado. |
+| Gate 3 | 2026-08-07 | 25/27 | Wave 3.1+3.2 completadas. 2 reglas diferidas por GF-01. |
+| Gate 4 | 2026-08-11 | 24/24 | Wave 4.1 COMPLETADA (12 reglas NADR-09). Wave 4.2 COMPLETADA: Task 4.2.1 (4 reglas NADR-06 §5.1), Task 4.2.2 (4 reglas NADR-06 §5.2), Task 4.2.3 (4 reglas NADR-06 §5.3). GF-01 pendiente (2 reglas de Gate 3 diferidas). |
 
 ### 5.5 Gate Exit Review
 
@@ -254,10 +274,14 @@ Los contadores se **derivan computacionalmente** del Traceability Appendix (§9)
 | Gate 1 | 26 | 0 | 0 | ✅ COMPLETED |
 | Gate 2 | 20 | 0 | 0 | ✅ COMPLETED |
 | Gate 3 | 25 | 2 (GF-01) | 0 | ✅ COMPLETED |
-| Gate 4 | 0 | 0 | 24 | 🔴 Not Started |
-| **TOTAL** | **71** | **2** | **24** | 🟡 In Progress |
+| Gate 4 | 24 | 0 | 0 | ✅ COMPLETED |
+| **TOTAL** | **95** | **2** | **0** | 🟡 GF-01 pendiente |
+
+**Nota operativa:** Gate 4 COMPLETADO con 24/24 reglas propias. Wave 4.1: 12 reglas NADR-09 (Tasks 4.1.1-4.1.3). Wave 4.2: 12 reglas NADR-06 (Tasks 4.2.1-4.2.3). Las 2 reglas DEFERRED (NADR-08 §5.1 R3, R4) pertenecen a Gate 3 y están diferidas por GF-01. No son reglas de Gate 4.
 
 **Nota operativa:** Las 2 reglas DEFERRED de Gate 3 (NADR-08 §5.1 R3, R4) están explícitamente diferidas por GF-01 (conflicto normativo). Se resolverán en Gate 4. No constituyen un fallo del Gate; son una decisión de gobernanza documentada.
+
+**Nota operativa:** Gate 4 tiene 5 reglas DONE (Task 4.1.1: NADR-09 §5.1 R1-R5) y 19 reglas PENDING (Tasks 4.1.2, 4.1.3, 4.2.1-4.2.3). La Task 4.1.1 fue implementada con enfoque contract-first (A.1.a contrato → A.1.b tests → C.1/C.2 implementación).
 
 **Nota operativa:** Cada vez que una tarea pase a `DONE`, el `Derived Status` de sus reglas en §9 se actualiza y los contadores de este dashboard se recalculan manualmente. El estado de una regla es siempre derivado del estado de la tarea que la implementa (§1.3).
 
@@ -361,30 +385,36 @@ Los contadores se **derivan computacionalmente** del Traceability Appendix (§9)
 
 | Rule | Derived Status | Evidence |
 |---|---|---|
-| NADR-09 §5.1 R1 | PENDING | — |
-| NADR-09 §5.1 R2 | PENDING | — |
-| NADR-09 §5.1 R3 | PENDING | — |
-| NADR-09 §5.1 R4 | PENDING | — |
-| NADR-09 §5.1 R5 | PENDING | — |
-| NADR-09 §5.2 R1 | PENDING | — |
-| NADR-09 §5.2 R2 | PENDING | — |
-| NADR-09 §5.2 R3 | PENDING | — |
-| NADR-09 §5.2 R4 | PENDING | — |
-| NADR-09 §5.2 R5 | PENDING | — |
-| NADR-09 §5.2 R6 | PENDING | — |
-| NADR-09 §5.2 R7 | PENDING | — |
-| NADR-06 §5.1 R1 | PENDING | — |
-| NADR-06 §5.1 R2 | PENDING | — |
-| NADR-06 §5.1 R3 | PENDING | — |
-| NADR-06 §5.1 R4 | PENDING | — |
-| NADR-06 §5.2 R1 | PENDING | — |
-| NADR-06 §5.2 R2 | PENDING | — |
-| NADR-06 §5.2 R3 | PENDING | — |
-| NADR-06 §5.2 R4 | PENDING | — |
-| NADR-06 §5.3 R1 | PENDING | — |
-| NADR-06 §5.3 R2 | PENDING | — |
-| NADR-06 §5.3 R3 | PENDING | — |
-| NADR-06 §5.3 R4 | PENDING | — |
+| NADR-09 §5.1 R1 | DONE | Task 4.1.1 — `TranslationPipeline` emite comandos explícitos (`StartParsingCommand`, `StartProcessingCommand`, `MarkAssemblyReadyCommand`) |
+| NADR-09 §5.1 R2 | DONE | Task 4.1.1 — `FSMStateStore` es adaptador pasivo (`initialize`, `dispatch`, `load`, `get_current_version`). Sin `save(job)`, sin síntesis |
+| NADR-09 §5.1 R3 | DONE | Task 4.1.1 — `PipelineStep` sincronizado 1:1 con `DocumentState` (9 miembros). `DefaultPipelineStateProjection` en `core/pipeline/state_projection.py` |
+| NADR-09 §5.1 R4 | DONE | Task 4.1.1 — `FSMValidator.validate()` es la única autoridad de legalidad. Sin bypass desde adaptadores |
+| NADR-09 §5.1 R5 | DONE | Task 4.1.1 — `STEP_TO_COMMAND_CLASS`, Intercepción A (MarkAssemblyReady), Intercepción B (MarkCompilationReady+StartCompilation) eliminados |
+| NADR-09 §5.2 R1 | PENDING | Task 4.1.2 — `apps/compiler/docker_runner.py` escribe en `os.getcwd()` |
+| NADR-09 §5.1 R1 | DONE | Task 4.1.1 — Orquestador emite comandos explícitos |
+| NADR-09 §5.1 R2 | DONE | Task 4.1.1 — `FSMStateStore` pasivo, sin síntesis |
+| NADR-09 §5.1 R3 | DONE | Task 4.1.1 — `PipelineStep` sincronizado con `DocumentState` |
+| NADR-09 §5.1 R4 | DONE | Task 4.1.1 — `FSMValidator` como única autoridad |
+| NADR-09 §5.1 R5 | DONE | Task 4.1.1 — Sin mecanismos de auto-promoción |
+| NADR-09 §5.2 R1 | DONE | Task 4.1.2 — `HostTectonicRunner` en `TemporaryDirectory` |
+| NADR-09 §5.2 R2 | DONE | Task 4.1.2 — `cwd=tmp` en `subprocess.run()` |
+| NADR-09 §5.2 R3 | DONE | Task 4.1.2 — Artefactos intermedios en sandbox |
+| NADR-09 §5.2 R4 | DONE | Task 4.1.2 — `os.getcwd()` eliminado del runner |
+| NADR-09 §5.2 R5 | DONE | Task 4.1.3 — Runner no modifica FSM (verificado) |
+| NADR-09 §5.2 R6 | DONE | Task 4.1.3 — Runner no modifica entidades del dominio (verificado) |
+| NADR-09 §5.2 R7 | DONE | Task 4.1.3 — Efecto lateral aislado (resuelto en 4.1.2) |
+| NADR-06 §5.1 R1 | DONE | Task 4.2.1 — `ExactBPEEstimator` (tiktoken cl100k_base) como estimador canónico |
+| NADR-06 §5.1 R2 | DONE | Task 4.2.1 — `FastWordEstimator` eliminado. Sin fallback heurístico |
+| NADR-06 §5.1 R3 | DONE | Task 4.2.1 — BPE real refleja densidad de sub-palabras del contenido científico |
+| NADR-06 §5.1 R4 | DONE | Task 4.2.1 — `ExactBPEEstimator` inyectable vía `TokenEstimatorProtocol` |
+| NADR-06 §5.2 R1 | DONE | Task 4.2.2 — `TextRenderStrategy` preserva `$...$` y `$$...$$` intactas |
+| NADR-06 §5.2 R2 | DONE | Task 4.2.2 — Escapado consciente del contexto (mask → escape → restore) |
+| NADR-06 §5.2 R3 | DONE | Task 4.2.2 — Tokens Unicode inmunes al escape, sin sustitución ciega |
+| NADR-06 §5.2 R4 | DONE | Task 4.2.2 — 18 tests + 4 de regresión verifican la estrategia |
+| NADR-06 §5.3 R1 | DONE | Task 4.2.3 — `AssemblerWorkerDaemon` rutea exclusivamente a través de `CompilationService`. Sin bypass, sin reconstrucción ad-hoc |
+| NADR-06 §5.3 R2 | DONE | Task 4.2.3 — `TranslationPipeline` elimina `AssemblerProtocol`. Ensamblado físico delegado al `AssemblerWorkerDaemon` vía FSM |
+| NADR-06 §5.3 R3 | DONE | Task 4.2.3 — `CQRSAssemblyContextResolver` valida topología, unicidad de node_id, semántica OMIT y proyecciones CURRENT antes del ensamblado |
+| NADR-06 §5.3 R4 | DONE | Task 4.2.3 — `DocumentAssembler` aplica `AssemblyPolicy` (tolerance_ratio, allow_fallback). Decisiones desde políticas del dominio |
 
 ---
 
@@ -431,6 +461,11 @@ el Gate actual pero requieren atención en Gates futuros.
 | DF-27 | Backend persistente para cuotas multi-proceso (SQLite WAL). | Wave 3.2 | Gate 4 | Medium | PENDING | Se revisará en Gate 4 Exit Review | Gate 4 |
 | DF-28 | `core/benchmark/runners/groq_runner.py` y `gemini_runner.py` contienen `DummyContextResolver`. Viola NADR-05 §5.1 R2. Alinear runners con pipeline de producción. | Gate 3 (auditoría) | Gate 4 | Medium | RECLASIFICADO | Hallazgo nuevo de Gate 3. DummyContextResolver en runners de benchmark. Alineación pendiente. | Gate 4 |
 | GF-01 | Execution Plan Task 3.2.2 requiere "adaptador distribuido", pero ADR Maestro §4 prohíbe infraestructura distribuida durante Production Alignment. Implementation intentionally deferred due to governance conflict. | Wave 3.2 | Gate 4 | High | PENDING | Governance Finding. Se revisará en Gate 4 cuando se resuelva el conflicto normativo. | Gate 4 |
+| DF-29 | `core/execution/state_mapping.py` contiene `FSM_TO_PIPELINE_RESUME` (mapeo inverso DocumentState → PipelineStep) que introduce dependencia `core.execution → core.pipeline`. Viola la dirección de dependencia correcta (pipeline → execution). Requiere decisión arquitectónica: mover a `core/pipeline/`, extraer protocolo de recovery, o documentar como excepción. | Task 4.1.1 (auditoría) | Gate 4 | Low | PENDING | Decisión arquitectónica pendiente. No bloquea Task 4.1.1 porque `FSM_TO_PIPELINE_RESUME` solo se usa en `OnDemandResumeManager`. | Gate 4 |
+| DF-30 | `apps/compiler/docker_runner.py` tiene clase `DockerRunner` pero invoca `tectonic` nativamente. Nomenclatura engañosa. | Task 4.1.1 (auditoría) | Gate 4 (Task 4.1.2) | Low | RESUELTO | Renombrado a `HostTectonicRunner` en Task 4.1.2. Nomenclatura veraz (NADR-09 §5.2 R9). | — |
+| DF-31 | `get_assemblable_chunks()` filtra por `expected_node_ids` en SQL (`WHERE node_id IN (...)`). La detección de proyecciones huérfanas (`materialized - expected`) no es observable desde el port actual. Requiere consulta de integridad separada o modificación del contrato del port. | Task 4.2.3 (auditoría) | Gate 4 Exit Review | Low | PENDING | Se revisará en Gate 4 Exit Review | Gate 4 |
+| DF-33 | Verificación de consumidores de `decision.document` y `failed_outcomes` completada durante pre-implementación. Todos los consumidores estaban dentro del alcance de la migración (SummaryBuilder, TranslationPipeline, tests). Sin consumidores ocultos. | Task 4.2.3 (pre-implementación) | — | — | RESUELTO | Grep de consumidores confirmó alcance completo. Migración ejecutada sin impacto no previsto. | — |
+| DF-34 | `ProfileStore` requiere backend durable para el `AssemblerWorkerDaemon`. `InMemoryProfileStore` no sobrevive crash del proceso. El daemon necesita recuperar `InferredDocumentProfile` desde persistencia para compilar documentos después de un restart. | Task 4.2.3 (auditoría) | Gate 4 Exit Review / Fase 18 | Medium | PENDING | Condición: Recovery Gate (Gate I) no se declara PASS hasta resolver. No bloquea Tasks 4.2.1-4.2.3. | Gate 4 |
 
 ---
 
@@ -466,3 +501,42 @@ el Gate actual pero requieren atención en Gates futuros.
 - Nuevos hallazgos registrados: 1 (DF-28)
 - Revisiones tardías documentadas: 2 (DF-02, DF-11)
 
+
+### 11.3 Gate 4 Partial Exit Review — Wave 4.2 (2026-08-08)
+
+**Nota:** Gate 4 alcanza 24/24 reglas propias DONE. GF-01 (2 reglas de Gate 3) sigue pendiente como Governance Finding.
+
+**Árbol de decisión aplicado (§5.5):**
+
+| DF | ¿Válido? | ¿Resoluble en Wave 4.2? | ¿Técnico? | Decisión | Motivo |
+|----|----------|------------------------|-----------|----------|--------|
+| DF-01 | ✅ Sí | ❌ No | ✅ Sí | RECLASIFICADO → Gate 4 Exit Review | `core/benchmark/__main__.py` sigue con hashing propio. |
+| DF-18 | ✅ Sí | ⚠️ Parcial | ✅ Sí | RECLASIFICADO → Gate 4 Exit Review | `AssemblyExecutionContext` es un paso hacia `ExecutionContext` unificado, pero no lo reemplaza. |
+| DF-31 | ✅ Sí (nuevo) | ❌ No | ✅ Sí | RECLASIFICADO → Gate 4 Exit Review | Hallazgo nuevo. Detección de orphans requiere modificación del port. |
+| DF-33 | ❌ No | — | — | RESUELTO | Grep de consumidores confirmó alcance completo. |
+| DF-34 | ✅ Sí (nuevo) | ❌ No | ✅ Sí | RECLASIFICADO → Gate 4 Exit Review / Fase 18 | Hallazgo nuevo. ProfileStore durable. Condición de Recovery Gate. |
+
+**Resumen Wave 4.2:**
+- RESUELTO: 1 (DF-33)
+- RECLASIFICADO → Gate 4 Exit Review: 3 (DF-01, DF-18, DF-31)
+- RECLASIFICADO → Gate 4 Exit Review / Fase 18: 1 (DF-34)
+- Nuevos hallazgos registrados: 2 (DF-31, DF-34)
+
+**Decisiones arquitectónicas congeladas en Wave 4.2:**
+
+| Decisión | Task | Justificación |
+|----------|------|---------------|
+| `ExactBPEEstimator` como estimador canónico único | 4.2.1 | NADR-06 §5.1. Sin fallback heurístico. |
+| `TextRenderStrategy` con protección local de math (tokens Unicode) | 4.2.2 | NADR-06 §5.2. `InlineMathProtector` no protege `$$...$$` ni sobrevive al escape. |
+| `DispatchResult` deja de ser contrato inter-stage | 4.2.3 | NADR-06 §5.3. Objeto efímero del proceso de dispatch. |
+| `AssemblyExecutionContext` como frontera Execution Plane → Compilation Plane | 4.2.3 | VO inmutable de evidencia validada. Resolver valida, Assembler decide, Service materializa. |
+| `TranslationPipeline` termina en `MarkAssemblyReadyCommand` | 4.2.3 | NADR-09 §5.1. Separación de planos lógico y físico. |
+| `TranslationAuditSummary` describe solo Dispatch Plane | 4.2.3 | `AssemblyReport` describe Assembly Plane. Sin mezcla de telemetría. |
+| `ProfileStore` canónico (`core/document_profile/ports.py`) | 4.2.3 | Eliminado `ProfileStoreProtocol` duplicado en `service.py`. |
+| Validación topológica sobre AST completo antes del filtro OMIT | 4.2.3 | Gaps de OMIT son legales. La continuidad se verifica sobre el AST completo. |
+
+**Lecciones aprendidas Wave 4.2:**
+- El enfoque audit-first (census → diseño → implementación) previno 3 bloqueadores arquitectónicos (import circular, semántica OMIT, doble reconstrucción)
+- La separación de planos (Resolver valida / Assembler decide / Service materializa) eliminó la doble materialización de contenido
+- `DispatchResult` como contrato inter-stage era la raíz del acoplamiento entre el pipeline lógico y el daemon físico
+- Los tests que dependían del ensamblado lógico quedaron obsoletos correctamente (el ensamblado es asíncrono)

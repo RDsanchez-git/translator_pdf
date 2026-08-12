@@ -19,8 +19,10 @@ class PipelineStep(Enum):
     PARSING = auto()
     CHUNKING = auto()
     DISPATCHING = auto()
+    READY_FOR_ASSEMBLY = auto()   # NUEVO — NADR-09 §5.1 R3
     ASSEMBLING = auto()
-    AUDITING = auto()
+    READY_FOR_COMPILATION = auto() # NUEVO — NADR-09 §5.1 R3
+    COMPILING = auto()             # NUEVO — NADR-09 §5.1 R3
     FINISHED = auto()
 
 @dataclass

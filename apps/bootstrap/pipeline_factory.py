@@ -16,8 +16,7 @@ from core.pipeline.orchestrator import TranslationPipeline, ChunkerProtocol, Aud
 from infra.adapters.pdf_parser import PdfParserAdapter
 from core.metrics.summary import SummaryBuilder
 
-from core.ast.models import FailureReason, ASTNode
-from core.compiler.assembler import DocumentAssembler, AssemblyPolicy
+from core.ast.models import ASTNode
 from infra.db.document_repository import SQLiteDocumentRepository
 
 from core.ast.builder import FlatASTBuilder
@@ -121,27 +120,10 @@ def build_pipeline(
     doc_conn = get_connection("infra/db/documents.db", timeout=30)
     document_repository = SQLiteDocumentRepository(doc_conn)
 
-    # 6. Assembler
-    assembly_policy = AssemblyPolicy(
-        tolerance_ratio=0.05,
-        allow_fallback=True,
-        degradable_failures=frozenset([
-            FailureReason.CONTEXT_OVERFLOW,
-            FailureReason.PROVIDER_FAILURE,
-            FailureReason.RETRY_EXHAUSTED,
-        ]),
-    )
-
-    assembler = DocumentAssembler(
-        repository=document_repository,
-        separator="\n\n",
-        policy=assembly_policy,
-    )
-
-    # 7. Audit builder
+    # 6. Audit builder
     audit_builder = audit_override or SummaryBuilder()
 
-    # 8. State store
+    # 7. State store
     if state_store_override:
         state_store = state_store_override
     else:
@@ -150,15 +132,14 @@ def build_pipeline(
         command_handler = DocumentCommandHandler(fsm_repo)
         state_store = FSMStateStore(fsm_repo, command_handler)
 
-    # 9. Pre-LLM validator
+    # 8. Pre-LLM validator
     pre_llm_engine = build_default_validation_engine()
 
-    # 10. TranslationPipeline
+    # 9. TranslationPipeline
     return TranslationPipeline(
         parser=parser,
         chunker=chunker,
         dispatcher=dispatcher,
-        assembler=assembler,
         audit_builder=audit_builder,
         state_store=state_store,
         document_repository=document_repository,

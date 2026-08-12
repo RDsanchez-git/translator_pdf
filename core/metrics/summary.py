@@ -1,10 +1,8 @@
 import math
 from dataclasses import dataclass
 from typing import List
-from core.ast.models import DispatchResult
-from core.compiler.assembler import DocumentAssemblyDecision
+from core.ast.models import DispatchResult, FailureReason, ExecutionStatus
 from core.metrics.pricing import PricingEngine
-from core.ast.models import FailureReason, ExecutionStatus
 
 @dataclass(frozen=True)
 class TranslationAuditSummary:
@@ -54,7 +52,13 @@ class SummaryBuilder:
         return s_data[max(0, k)]
 
     @staticmethod
-    def build(dispatch_result: DispatchResult, decision: DocumentAssemblyDecision) -> TranslationAuditSummary:
+    def build(dispatch_result: DispatchResult) -> TranslationAuditSummary:
+        """
+        Construye el resumen de auditoría exclusivamente desde DispatchResult.
+
+        NADR-06 §5.3: TranslationAuditSummary describe el Execution/Dispatch Plane.
+        AssemblyReport describe el Assembly Plane. No mezclar.
+        """
         network_hits = 0
         cache_hits = 0
         total_cost = 0.0
@@ -64,7 +68,7 @@ class SummaryBuilder:
         dispatch_total = len(dispatch_result.outcomes)
         overflow_count = 0
         switch_count = 0
-        
+
         utilization_ratios: List[float] = []
         quota_waits: List[float] = []
         quota_attempts: List[int] = []
@@ -87,17 +91,15 @@ class SummaryBuilder:
                     overflow_count += 1
                 elif outcome.failure_reason == FailureReason.CIRCUIT_OPEN:
                     circuit_trips += 1
-                # Captura segura para versiones anteriores a la re-tipificación (Fase 14 -> 15)
                 elif outcome.failure_reason in ("quota_rejection", "quota_timeout", FailureReason.QUOTA_REJECTION, FailureReason.QUOTA_TIMEOUT):
                     reservation_failures += 1
 
         overflow_ratio = (overflow_count / dispatch_total) if dispatch_total > 0 else 0.0
         switch_ratio = (switch_count / dispatch_total) if dispatch_total > 0 else 0.0
-        
+
         avg_utilization = (sum(utilization_ratios) / len(utilization_ratios)) if utilization_ratios else 0.0
         avg_attempts = (sum(quota_attempts) / len(quota_attempts)) if quota_attempts else 1.0
 
-        doc = decision.document
         successful_units = [out.translated_unit for out in dispatch_result.outcomes if out.is_success and out.translated_unit]
 
         for unit in successful_units:
@@ -114,21 +116,20 @@ class SummaryBuilder:
         llm_eligible_chunks = network_hits + cache_hits
         hit_ratio = (cache_hits / llm_eligible_chunks) if llm_eligible_chunks > 0 else 0.0
         network_ratio = (network_hits / llm_eligible_chunks) if llm_eligible_chunks > 0 else 0.0
-        
+
         estimated_cost_without_cache = total_cost + hypothetical_cache_cost
-        total_failed = len(decision.failed_outcomes)
-        doc_total = doc.total_chunks if doc else 0
-        success_rate = ((doc_total - total_failed) / doc_total) if doc_total > 0 else 0.0
+        total_failed = len([o for o in dispatch_result.outcomes if not o.is_success])
+        success_rate = ((dispatch_total - total_failed) / dispatch_total) if dispatch_total > 0 else 0.0
 
         return TranslationAuditSummary(
-            total_chunks=doc_total,
+            total_chunks=dispatch_total,
             translated_chunks_network=network_hits,
             translated_chunks_cache=cache_hits,
-            passthrough_chunks=doc.passthrough_chunks if doc else total_failed,
-            total_failed_chunks=total_failed,                  
+            passthrough_chunks=len([u for u in successful_units if u.chunk_type != "translate"]),
+            total_failed_chunks=total_failed,
             dispatch_success_rate=round(success_rate, 4),
-            total_input_tokens=doc.total_input_tokens if doc else 0,
-            total_output_tokens=doc.total_output_tokens if doc else 0,
+            total_input_tokens=sum(u.input_tokens for u in successful_units),
+            total_output_tokens=sum(u.output_tokens for u in successful_units),
             total_cost_usd=round(total_cost, 6),
             estimated_cost_without_cache_usd=round(estimated_cost_without_cache, 6),
             cost_saved_by_cache_usd=round(hypothetical_cache_cost, 6),

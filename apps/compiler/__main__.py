@@ -3,7 +3,6 @@ import time
 import uuid
 import random
 import logging
-from typing import List
 
 from core.utils.telemetry import setup_distributed_logger
 from core.execution.exceptions import OptimisticLockError
@@ -13,11 +12,8 @@ from infra.db.control_repo import ControlPlaneRepository
 from infra.db.materialized_repo import MaterializedPlaneRepository
 from infra.db.fsm_repository import FSMRepository
 from core.ast.registry import ASTRegistry
-from core.ast.enums import ContentNodeType
-from core.compiler.rendering.models import RenderUnit  # SOTA FIX: Importación del DTO de maquetación
-
-from apps.compiler.tex_builder import TexBuilder
-from apps.compiler.docker_runner import DockerRunner
+from apps.compiler.tectonic_runner import HostTectonicRunner
+from core.compiler.rendering.models import RenderGeometry, AssetReference
 
 
 from core.execution.handlers import DocumentCommandHandler
@@ -30,6 +26,14 @@ from core.execution.state import (
     FailDocumentCommand
 ) 
 
+from core.compiler.service import CompilationService
+from core.compiler.context_resolver import CQRSAssemblyContextResolver
+from core.compiler.assembler import DocumentAssembler, AssemblyPolicy
+from core.compiler.rendering.mapper import DefaultRenderUnitMapper
+from infra.db.profile_store import InMemoryProfileStore
+from infra.db.document_repository import SQLiteDocumentRepository
+
+
 setup_distributed_logger()
 logger = logging.getLogger("worker_assembler")
 
@@ -38,18 +42,19 @@ class AssemblerWorkerDaemon:
     SOTA: Orquestador físico del Worker Assembler (CPU/IO Bound).
     Espera la tarea trigger, recolecta las proyecciones y compila Tectonic.
     """
-    def __init__(self, control_repo, fsm_repo, cmd_handler, mat_repo, ast_registry, tex_builder, runner):
+    def __init__(self, control_repo, fsm_repo, cmd_handler, mat_repo, ast_registry,
+                 runner, compilation_service, context_resolver):
         self.control = control_repo
         self.fsm = fsm_repo
         self.cmd_handler = cmd_handler
         self.materialized = mat_repo
         self.ast_registry = ast_registry
-        self.tex_builder = tex_builder
         self.runner = runner
-        
+        self.compilation_service = compilation_service
+        self.context_resolver = context_resolver
+
         self.node_id = f"assembler_{uuid.uuid4().hex[:8]}"
         self.worker_type = "ASSEMBLER"
-        
         self.base_sleep = 2.0
         self.max_sleep = 8.0
 
@@ -102,12 +107,12 @@ class AssemblerWorkerDaemon:
 
     def _process_assembly_task(self, doc_id: str, ast_hash: str):
         """
-        SOTA: Procesamiento directo FSM-driven sin diccionarios intermedios de colas.
+        NADR-06 §5.3 R9-R12: Procesamiento gobernado por CompilationService.
+        El daemon orquesta FSM, no ensambla.
         """
         start_assembly = time.perf_counter()
-        
         logger.info("Iniciando compilación del documento...", extra={"extra_data": {"doc": doc_id}})
-        
+
         current_version = None
         try:
             status = self.fsm.get_status(doc_id, ast_hash)
@@ -115,75 +120,56 @@ class AssemblerWorkerDaemon:
                 raise ValueError("No se encontró el estado del documento en la FSM.")
 
             current_version = status.state_version
-            
+
             if status.current_state == DocumentState.READY_FOR_ASSEMBLY.value:
                 cmd_start = StartAssemblyCommand(doc_id, ast_hash, self.node_id, current_version)
                 current_version = self.cmd_handler.handle(cmd_start)
-            
-            cache_key = (doc_id, ast_hash)
-            if cache_key not in self.ast_registry._cache:
-                self.ast_registry._load_document(doc_id, ast_hash)
-                
-            doc_nodes = self.ast_registry._cache.get(cache_key, {})
-            if not doc_nodes:
-                raise ValueError("Los datos estructurales del AST no se encuentran disponibles (Cache Miss).")
 
-            ordered_node_ids = sorted(doc_nodes.keys(), key=lambda x: doc_nodes[x].sequence_id)
-
-            projection_records = self.materialized.get_assemblable_chunks(
+            # Resolver contexto desde Execution Plane
+            context = self.context_resolver.resolve(
                 document_id=doc_id,
                 ast_hash=ast_hash,
-                expected_node_ids=ordered_node_ids,
-                required_projection_v=1
+                projection_version=1
             )
-            
-            text_map = {record.node_id: record.normalized_response for record in projection_records}
 
-            # SOTA FIX: Mapear la recolección directamente hacia la clase de datos RenderUnit requerida por TexBuilder
-            valid_chunks: List[RenderUnit] = []
-            for n_id in ordered_node_ids:
-                original_node = doc_nodes.get(n_id)
-                node_type = original_node.node_type if original_node else ContentNodeType.PARAGRAPH
-                
-                if n_id in text_map:
-                    valid_chunks.append(RenderUnit(node_id=n_id, node_type=node_type, content=text_map[n_id]))
-                else:
-                    if original_node and original_node.text_content:
-                        valid_chunks.append(RenderUnit(node_id=n_id, node_type=node_type, content=original_node.text_content))
+            # Compilar vía servicio canónico
+            tex_content = self.compilation_service.compile_document(context)
 
-            if not valid_chunks:
-                raise ValueError("No se encontraron fragmentos válidos para proceder con el ensamblado.")
-
-            output_filename = f"translated_{doc_id}.pdf"
-            
-            # SOTA FIX: El método build consume la lista de RenderUnits pura sin inyección lateral de contexto
-            tex_content = self.tex_builder.build(valid_chunks)
-            
+            # Transiciones FSM y compilación física
             status = self.fsm.get_status(doc_id, ast_hash)
-            if not status: 
+            if not status:
                 raise ValueError("FSM desincronizada antes de empaquetar TeX.")
-            
+
             cmd_ready = MarkCompilationReadyCommand(doc_id, ast_hash, self.node_id, status.state_version)
             current_version = self.cmd_handler.handle(cmd_ready)
-            
+
             status = self.fsm.get_status(doc_id, ast_hash)
-            if not status: 
+            if not status:
                 raise ValueError("FSM desincronizada antes de compilar PDF.")
-            
+
             cmd_compile = StartCompilationCommand(doc_id, ast_hash, self.node_id, status.state_version)
             current_version = self.cmd_handler.handle(cmd_compile)
-            
-            final_pdf_path = self.runner.compile(tex_content, output_filename)
 
-            logger.info(f"Compilación exitosa: {final_pdf_path}", extra={"extra_data": {"latency": time.perf_counter() - start_assembly}})
-            
+            output_filename = f"translated_{doc_id}.pdf"
+            output_dir = os.getenv("COMPILER_OUTPUT_DIR", "output")
+            os.makedirs(output_dir, exist_ok=True)
+
+            final_pdf_path = self.runner.compile(
+                tex_content,
+                output_dir=output_dir,
+                output_filename=output_filename
+            )
+
+            logger.info(f"Compilación exitosa: {final_pdf_path}",
+                         extra={"extra_data": {"latency": time.perf_counter() - start_assembly}})
+
             status = self.fsm.get_status(doc_id, ast_hash)
-            if not status: 
+            if not status:
                 raise ValueError("FSM desincronizada en fase final de guardado.")
 
             cmd_complete = CompleteDocumentCommand(doc_id, ast_hash, self.node_id, status.state_version)
             self.cmd_handler.handle(cmd_complete)
-            
+
         except Exception as err:
             logger.error(f"Fallo crítico durante el ensamblado/compilación para {doc_id}: {err}")
             self._fail_document_safely(doc_id, ast_hash, current_version, str(err)[:250])
@@ -192,49 +178,116 @@ class AssemblerWorkerDaemon:
         finally:
             pass
 
+class RenderGeometryAdapter:
+    """Extrae RenderGeometry desde ASTNode.metadata.bboxes para el compiler."""
+    _FALLBACK_PAGE_WIDTH = 612.0
+    _FALLBACK_PAGE_HEIGHT = 792.0
+
+    def extract(self, node) -> RenderGeometry | None:
+        metadata = getattr(node, "metadata", None)
+        if not metadata:
+            return None
+        bboxes = getattr(metadata, "bboxes", None)
+        if not bboxes or len(bboxes) == 0:
+            return None
+        primary_bbox = bboxes[0]
+        x0 = getattr(primary_bbox, "x0", None)
+        y0 = getattr(primary_bbox, "y0", None)
+        x1 = getattr(primary_bbox, "x1", None)
+        y1 = getattr(primary_bbox, "y1", None)
+        if x0 is None or y0 is None or x1 is None or y1 is None:
+            return None
+        pages = getattr(metadata, "pages", None)
+        page_number = pages[0] if pages else 0
+        return RenderGeometry(
+            relative_x=x0 / self._FALLBACK_PAGE_WIDTH,
+            relative_y=y0 / self._FALLBACK_PAGE_HEIGHT,
+            relative_width=(x1 - x0) / self._FALLBACK_PAGE_WIDTH,
+            relative_height=(y1 - y0) / self._FALLBACK_PAGE_HEIGHT,
+            page_number=page_number,
+        )
+
+
+class RenderAssetAdapter:
+    """Extrae AssetReference desde ImagePayload para el compiler."""
+
+    def extract(self, node) -> AssetReference | None:
+        from core.ast.enums import ContentNodeType
+        if node.node_type != ContentNodeType.IMAGE:
+            return None
+        payload = node.payload
+        asset_path = getattr(payload, "asset_path", None)
+        if not asset_path:
+            return None
+        alt_text = getattr(payload, "alt_text", None)
+        return AssetReference(
+            path=asset_path,
+            alt_text=alt_text,
+            label=None,
+            mime_type="image/png",
+        )
+
 if __name__ == "__main__":
     FSM_DB_PATH = os.getenv("FSM_DB_PATH", "infra/db/fsm.db")
     QUEUE_DB_PATH = os.getenv("QUEUE_DB_PATH", "infra/db/queue.db")
     MAT_DB_PATH = os.getenv("MAT_DB_PATH", "infra/db/materialized.db")
-    
+
     fsm_conn = get_connection(FSM_DB_PATH)
     queue_conn = get_connection(QUEUE_DB_PATH)
     mat_conn = get_connection(MAT_DB_PATH)
-    
+
     for conn in (fsm_conn, queue_conn, mat_conn):
         conn.execute("PRAGMA busy_timeout=30000")
-    
+
     control_repo = ControlPlaneRepository(queue_conn)
     mat_repo = MaterializedPlaneRepository(mat_conn)
     fsm_repo = FSMRepository(fsm_conn)
     cmd_handler = DocumentCommandHandler(fsm_repo, task_repo=control_repo)
-    ast_registry = ASTRegistry() 
-    
-    # SOTA FIX: Construcción explícita del grafo de dependencias de renderizado basado en el plano real
-    from core.compiler.rendering.models import RenderingConfiguration
-    from core.compiler.rendering.implementations import DynamicDocumentStructure, PassthroughRenderStrategy
-    from core.compiler.rendering.context import RenderContext
+    ast_registry = ASTRegistry()
 
-    # Fase 16: Inicialización explícita con fallback estándar para prosa de una sola columna
-    config = RenderingConfiguration(is_multi_column=False)
-    render_context = RenderContext(
-        structure=DynamicDocumentStructure(config=config),
-        strategies={},
-        fallback_strategy=PassthroughRenderStrategy()
+    # NADR-06 §5.3: Composition root del worker de ensamblado
+    doc_conn = get_connection("infra/db/documents.db", timeout=30)
+    document_repository = SQLiteDocumentRepository(doc_conn)
+
+    assembly_policy = AssemblyPolicy(
+        tolerance_ratio=0.05,
+        allow_fallback=True,
+        degradable_failures=frozenset()
     )
-    
-    tex_builder = TexBuilder(context=render_context)
-    
-    tex_builder = TexBuilder(context=render_context)
-    runner = DockerRunner()
-    
+    assembler = DocumentAssembler(
+        repository=document_repository,
+        separator="\n\n",
+        policy=assembly_policy
+    )
+
+    geom_adapter = RenderGeometryAdapter()
+    asset_adapter = RenderAssetAdapter()
+    mapper = DefaultRenderUnitMapper(geom_adapter, asset_adapter)
+
+    profile_store = InMemoryProfileStore()
+
+    compilation_service = CompilationService(
+        assembler=assembler,
+        payload_repository=document_repository,
+        profile_store=profile_store,
+        mapper=mapper
+    )
+
+    context_resolver = CQRSAssemblyContextResolver(
+        ast_provider=ast_registry,
+        materialized_plane=mat_repo
+    )
+
+    runner = HostTectonicRunner()
+
     daemon = AssemblerWorkerDaemon(
         control_repo=control_repo,
         fsm_repo=fsm_repo,
         cmd_handler=cmd_handler,
         mat_repo=mat_repo,
         ast_registry=ast_registry,
-        tex_builder=tex_builder,
-        runner=runner
+        runner=runner,
+        compilation_service=compilation_service,
+        context_resolver=context_resolver
     )
     daemon.run()

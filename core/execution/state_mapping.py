@@ -15,7 +15,6 @@ PIPELINE_TO_FSM: dict[PipelineStep, DocumentState] = {
     PipelineStep.CHUNKING: DocumentState.PROCESSING,
     PipelineStep.DISPATCHING: DocumentState.PROCESSING,
     PipelineStep.ASSEMBLING: DocumentState.ASSEMBLING,
-    PipelineStep.AUDITING: DocumentState.ASSEMBLING,    # SOTA Fix: Protege barreras macro evitando KeyError
     PipelineStep.FINISHED: DocumentState.COMPLETED
 }
 

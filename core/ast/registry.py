@@ -1,7 +1,7 @@
 import os
 import json
 import logging
-from typing import Optional, Dict, Tuple
+from typing import Optional, Dict, Tuple, List
 
 from core.ast.models import ASTNode 
 
@@ -98,3 +98,17 @@ class ASTRegistry:
             raise e
             
         logger.info(f"AST persistido atómicamente en disco: {document_id[:12]}.ast.json")
+
+    # En core/ast/registry.py, agregar método:
+    def get_document_ast(self, document_id: str, ast_hash: str) -> List[ASTNode]:
+        """
+        Retorna todos los nodos del documento ordenados por sequence_id.
+
+        NADR-06 §5.3: Contrato público para CQRSAssemblyContextResolver.
+        """
+        cache_key = (document_id, ast_hash)
+        if cache_key not in self._cache:
+            self._load_document(document_id, ast_hash)
+        doc_cache = self._cache.get(cache_key, {})
+        nodes = list(doc_cache.values())
+        return sorted(nodes, key=lambda n: n.sequence_id)

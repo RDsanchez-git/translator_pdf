@@ -97,7 +97,7 @@ class TestRecoveryAndResumeEndToEnd(unittest.TestCase):
             mock_comp = MagicMock()
             pipeline = TranslationPipeline(
                 parser=mock_comp, chunker=mock_comp, dispatcher=mock_comp,
-                assembler=mock_comp, audit_builder=mock_comp, state_store=state_store,
+                audit_builder=mock_comp, state_store=state_store,
                 document_repository=MagicMock()
             )
             

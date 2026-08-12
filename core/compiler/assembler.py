@@ -1,12 +1,11 @@
 import time
 from enum import Enum
-from typing import List, Optional, Protocol, FrozenSet
-from collections import Counter
+from typing import Optional, Protocol, FrozenSet, Tuple
 from dataclasses import dataclass, field
-
 # SOTA FIX: Importación de DispatchResult agregada
-from core.ast.models import ReconstructedDocument, ChunkOutcome, ExecutionStatus, FailureReason, DispatchResult
+from core.ast.models import FailureReason, ASTNode
 from core.execution.exceptions import IncompleteDocumentError
+from core.compiler.assembly_context import AssemblyExecutionContext
 
 class RepositoryUnavailableError(Exception):
     """Excepción transitoria: Falla de red, timeout o inaccesibilidad del medio físico."""
@@ -37,19 +36,30 @@ class AssemblyPolicy:
 
 @dataclass(frozen=True, slots=True)
 class AssemblyReport:
-    """SOTA: DTO inmutable para telemetría persistente (Grafana/DataDog)."""
+    """
+    DTO inmutable para telemetría persistente del plano de ensamblado.
+
+    NADR-06 §5.3: Semántica explícita.
+    - total_nodes: total de nodos ensamblables (excluyendo OMIT)
+    - missing_projection_nodes: nodos sin proyección CURRENT (usaron fallback)
+    """
     timestamp: float
-    total_chunks: int
-    total_failed: int
+    total_nodes: int
+    missing_projection_nodes: int
     failure_reasons: dict
     degradation_applied: bool
-    assembler_version: str = "v15.4.0-SOTA"
+    assembler_version: str = "v16.0.0-SOTA"
 
 @dataclass(frozen=True, slots=True)
 class DocumentAssemblyDecision:
+    """
+    Decisión estructural del ensamblado.
+
+    NADR-06 §5.3: El Assembler decide política, NO reconstruye contenido.
+    La materialización de RenderUnits es responsabilidad de CompilationService.
+    """
     status: AssemblyStatus
-    document: Optional[ReconstructedDocument]
-    failed_outcomes: List[ChunkOutcome]
+    missing_node_ids: Tuple[str, ...]
     rejection_reason: Optional[str]
     audit_report: AssemblyReport
 
@@ -64,130 +74,89 @@ class DocumentAssembler:
         self.repository = repository
         self.separator = separator
         self.policy = policy or AssemblyPolicy()
-
-    def _validate_sequence(self, outcomes: List[ChunkOutcome]) -> None:
-        if not outcomes:
+    
+    def _validate_sequence(self, document_id: str, nodes: tuple[ASTNode, ...]) -> None:
+        """Valida que la secuencia de nodos sea contigua desde 1."""
+        if not nodes:
             return
-
-        indexes = [o.chunk_index for o in outcomes]
-        if len(set(indexes)) != len(indexes):
-            raise ValueError("Duplicate chunk_index detected in Outcomes")
-
-        expected_index = 1
-        for outcome in outcomes:
-            if outcome.chunk_index != expected_index:
+        expected_seq = 1
+        for node in nodes:
+            if node.sequence_id != expected_seq:
                 raise IncompleteDocumentError(
-                    document_id=outcome.chunk_id, 
-                    expected=expected_index, 
-                    actual=outcome.chunk_index
+                    document_id=document_id,
+                    expected=expected_seq,
+                    actual=node.sequence_id
                 )
-            expected_index += 1
+            expected_seq += 1
 
-    def assemble(self, job_id: str, dispatch_result: DispatchResult) -> DocumentAssemblyDecision:
-        outcomes = dispatch_result.outcomes
-        if not outcomes:
-            return self._build_rejection("Lista de outcomes vacía.", [])
+    def assemble(self, context: AssemblyExecutionContext) -> DocumentAssemblyDecision:
+        ast_nodes = context.ast_nodes
+        projections = context.projections
 
-        sorted_outcomes = sorted(outcomes, key=lambda x: x.chunk_index)
-        self._validate_sequence(sorted_outcomes)
+        if not ast_nodes:
+            return self._build_rejection("AST vacío.", (), 0)
 
-        total_chunks = len(sorted_outcomes)
-        failed_outcomes = [o for o in sorted_outcomes if not o.is_success]
-        failure_ratio = len(failed_outcomes) / total_chunks if total_chunks > 0 else 1.0
+        # Mapear proyecciones por node_id
+        projection_map = {p.node_id for p in projections}
+        total_nodes = len(ast_nodes)
+        missing_nodes = [n for n in ast_nodes if n.node_id not in projection_map]
+        missing_ratio = len(missing_nodes) / total_nodes if total_nodes > 0 else 1.0
+        missing_node_ids = tuple(n.node_id for n in missing_nodes)
 
-        if failure_ratio > self.policy.tolerance_ratio:
+        # Aplicar política de tolerancia
+        if missing_ratio > self.policy.tolerance_ratio:
             return self._build_rejection(
-                f"Failure ratio {failure_ratio:.2%} excede umbral de {self.policy.tolerance_ratio:.2%}",
-                failed_outcomes
+                f"Missing ratio {missing_ratio:.2%} excede umbral de {self.policy.tolerance_ratio:.2%}",
+                missing_node_ids,
+                total_nodes  # ← total_nodes real, no len(missing)
             )
 
-        if failed_outcomes and not self.policy.allow_fallback:
+        if missing_nodes and not self.policy.allow_fallback:
             return self._build_rejection(
-                f"Tolerancia admitida ({failure_ratio:.2%}), pero allow_fallback=False prohíbe ensamblado.",
-                failed_outcomes
+                f"Tolerancia admitida ({missing_ratio:.2%}), pero allow_fallback=False prohíbe ensamblado.",
+                missing_node_ids,
+                total_nodes  # ← total_nodes real
             )
 
-        for outcome in failed_outcomes:
-            if outcome.failure_reason not in self.policy.degradable_failures:
-                # SOTA FIX: Type-safe property access
-                reason_val = outcome.failure_reason.value if outcome.failure_reason else "UNKNOWN_ERROR"
-                return self._build_rejection(
-                    f"Fallo no degradable detectado: {reason_val} en chunk {outcome.chunk_id}",
-                    failed_outcomes
-                )
+        status = AssemblyStatus.DEGRADED if missing_nodes else AssemblyStatus.SUCCESS
 
-        content_parts = []
-        translated_count = 0
-        passthrough_count = 0
-        total_input = 0
-        total_output = 0
-
-        for outcome in sorted_outcomes:
-            if outcome.status == ExecutionStatus.SUCCESS and outcome.translated_unit:
-                unit = outcome.translated_unit
-                content_parts.append(unit.translated_payload)
-                if unit.chunk_type == "translate":
-                    translated_count += 1
-                else:
-                    passthrough_count += 1
-                total_input += unit.input_tokens
-                total_output += unit.output_tokens
-            else:
-                try:
-                    # SOTA FIX: Inyección limpia del job_id recibido por parámetro
-                    verified_payload = self.repository.get_verified_payload(
-                        job_id, 
-                        outcome.chunk_id, 
-                        outcome.original_payload_sha256
-                    )
-                    content_parts.append(verified_payload)
-                    passthrough_count += 1
-                except (PayloadNotFoundError, HashMismatchError) as e:
-                    return self._build_rejection(f"Falla de integridad referencial: {str(e)}", failed_outcomes)
-                except RepositoryUnavailableError:
-                    raise
-
-        content = self.separator.join(content_parts)
-
-        reconstructed = ReconstructedDocument(
-            content=content,
-            total_chunks=total_chunks,
-            translated_chunks=translated_count,
-            passthrough_chunks=passthrough_count,
-            total_input_tokens=total_input,
-            total_output_tokens=total_output
-        )
-
-        status = AssemblyStatus.DEGRADED if failed_outcomes else AssemblyStatus.SUCCESS
-        
         report = AssemblyReport(
             timestamp=time.time(),
-            total_chunks=total_chunks,
-            total_failed=len(failed_outcomes),
-            failure_reasons=dict(Counter(f.failure_reason.value for f in failed_outcomes if f.failure_reason)),
-            degradation_applied=bool(failed_outcomes)
+            total_nodes=total_nodes,
+            missing_projection_nodes=len(missing_nodes),
+            failure_reasons={"missing_projection": len(missing_nodes)} if missing_nodes else {},
+            degradation_applied=bool(missing_nodes)
         )
 
         return DocumentAssemblyDecision(
             status=status,
-            document=reconstructed,
-            failed_outcomes=failed_outcomes,
+            missing_node_ids=missing_node_ids,
             rejection_reason=None,
             audit_report=report
         )
 
-    def _build_rejection(self, reason: str, failed_outcomes: List[ChunkOutcome]) -> DocumentAssemblyDecision:
+    def _build_rejection(
+        self,
+        reason: str,
+        missing_node_ids: Tuple[str, ...],
+        total_nodes: int,
+    ) -> DocumentAssemblyDecision:
+        """
+        Construye una decisión de rechazo con telemetría correcta.
+
+        NADR-06 §5.3: total_nodes representa el total de nodos ensamblables,
+        NO la cantidad de nodos faltantes.
+        """
         report = AssemblyReport(
             timestamp=time.time(),
-            total_chunks=max(1, len(failed_outcomes)), 
-            total_failed=len(failed_outcomes),
-            failure_reasons=dict(Counter(f.failure_reason.value for f in failed_outcomes if f.failure_reason)),
+            total_nodes=total_nodes,
+            missing_projection_nodes=len(missing_node_ids),
+            failure_reasons={"missing_projection": len(missing_node_ids)} if missing_node_ids else {},
             degradation_applied=False
         )
         return DocumentAssemblyDecision(
             status=AssemblyStatus.REJECTED,
-            document=None,
-            failed_outcomes=failed_outcomes,
+            missing_node_ids=missing_node_ids,
             rejection_reason=reason,
             audit_report=report
         )
