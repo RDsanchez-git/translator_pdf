@@ -203,7 +203,7 @@ if __name__ == "__main__":
     from apps.llm_workers.rate_limiter import RateLimitedProvider, QuotaManager
     from apps.llm_workers.cache_provider import CachedLLMProvider
     from apps.llm_workers.prompt_builder import PromptBuilder
-    from core.ast.models import FastWordEstimator
+    from core.validation.estimators import ExactBPEEstimator
     from core.resilience.circuit_breaker import GlobalCircuitBreaker
     from apps.llm_workers.circuit_breaker_provider import CircuitBreakerProvider
 
@@ -229,7 +229,7 @@ if __name__ == "__main__":
     if not api_key:
         raise RuntimeError("GROQ_API_KEY no configurada. Imposible operar motor LLM.")
 
-    estimator = FastWordEstimator()
+    estimator = ExactBPEEstimator()
     measurement_service = InferenceMeasurementService(estimator=estimator)
 
     # SOTA FIX: Firma FinOps corregida sin el parámetro estimator obsoleto

@@ -4,12 +4,14 @@ import hashlib
 import unittest
 from typing import Any
 from unittest.mock import MagicMock, patch
-from core.ast.models import TranslationUnit, TranslationTaskType, FastWordEstimator
+from core.ast.models import TranslationUnit, TranslationTaskType
 from core.compiler.assembler import DocumentAssembler
 from apps.llm_workers.prompt_builder import PromptBuilder
 from apps.llm_workers.rate_limiter import RateLimitedProvider, QuotaManager
 from apps.llm_workers.cache_provider import CachedLLMProvider
 from apps.llm_workers.dispatcher import AsyncDispatcher
+from core.validation.estimators import ExactBPEEstimator
+
 
 class FakeLLMProvider:
     async def translate(self, envelope: Any) -> Any:
@@ -37,7 +39,7 @@ class TestTrueWalkingSkeletonE2E(unittest.IsolatedAsyncioTestCase):
             with open(self.ast_fixture_path, "w", encoding="utf-8") as f:
                 json.dump([{"node_id": "n1", "sequence_id": 1, "type": "paragraph", "content": "Hello"}], f)
 
-        estimator = FastWordEstimator()
+        estimator = ExactBPEEstimator()
         
         from core.finops.measurement import InferenceMeasurementService
         from core.validation.budget import PromptBudgetCalculator, StandardCompressionPolicy
@@ -150,10 +152,6 @@ class TestTrueWalkingSkeletonE2E(unittest.IsolatedAsyncioTestCase):
         mock_decision.translated_chunks = len(translation_units)
         mock_decision.passthrough_chunks = 0
 
-        with patch.object(self.assembler, 'assemble', return_value=mock_decision):
-            doc_1: Any = self.assembler.assemble(job_id="job_test", dispatch_result=translated_units_run_1)
-            self.assertEqual(doc_1.total_chunks, len(translation_units), "El ensamblador omitió elementos del pipeline.")
-
         # ==========================================
         # SEGUNDA CORRIDA (Cache Hit Reentrante)
         # ==========================================
@@ -180,7 +178,7 @@ class TestTrueWalkingSkeletonE2E(unittest.IsolatedAsyncioTestCase):
 
         from core.metrics.summary import SummaryBuilder
         with patch.object(SummaryBuilder, 'build', return_value=mock_summary):
-            summary = SummaryBuilder.build(translated_units_run_2, mock_decision)
+            summary = SummaryBuilder.build(translated_units_run_2)  # ← Solo 1 argumento
             self.assertEqual(summary.total_chunks, len(translation_units))
             self.assertGreater(summary.translated_chunks_cache, 0)
             self.assertGreaterEqual(summary.cache_hit_ratio, 0.0)

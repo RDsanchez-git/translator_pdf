@@ -11,7 +11,7 @@ from core.benchmark.models import (
     ProviderDescriptor, BenchmarkMode, QuotaSnapshot, HardwareTelemetry,
     TranslatedArtifact
 )
-from core.ast.models import ExecutionStatus, FailureReason, FastWordEstimator
+from core.ast.models import ExecutionStatus, FailureReason
 from core.context.context_resolver import ResolvedContext
 
 from apps.llm_workers.adapters import GroqProvider
@@ -24,6 +24,7 @@ from core.prompting.dialects.openai_compatible import OpenAICompatibleDialect
 from core.metrics.pricing import PricingEngine
 from core.benchmark.quality import FormalLatexSyntaxParser, FormalMarkdownTableParser
 
+from core.validation.estimators import ExactBPEEstimator
 from core.validation.factory import build_validation_pipeline
 from core.healing.pipeline import HealingPipeline
 from core.healing.strategies.markdown_leakage import MarkdownLeakageHealingStrategy
@@ -67,7 +68,7 @@ class GroqBenchmarkRunner(BenchmarkRunnerProtocol):
 
         limit_to_use = 8192 if self.mode == BenchmarkMode.CAPABILITY else 2097152
 
-        estimator = FastWordEstimator()
+        estimator = ExactBPEEstimator()
         measurement_service = InferenceMeasurementService(estimator=estimator)
         
         budget_calculator = PromptBudgetCalculator(

@@ -1,16 +1,17 @@
 import unittest
 from typing import Any
-from core.ast.models import TranslationUnit, TranslationTaskType, FastWordEstimator
+from core.ast.models import TranslationUnit, TranslationTaskType
 from core.context.context_resolver import ResolvedContext
 from apps.llm_workers.prompt_builder import PromptBuilder
 from core.finops.measurement import InferenceMeasurementService
 from core.validation.budget import PromptBudgetCalculator, StandardCompressionPolicy
+from core.validation.estimators import ExactBPEEstimator
 
 class TestPromptBuilder(unittest.TestCase):
     """Certificación rigurosa de la Fase 16.10."""
     
     def setUp(self):
-        self.estimator = FastWordEstimator()
+        self.estimator = ExactBPEEstimator()
         
         # SOTA: Inyección reglamentaria del ecosistema FinOps y políticas de compresión de la Fase 16
         measurement_service = InferenceMeasurementService(self.estimator)

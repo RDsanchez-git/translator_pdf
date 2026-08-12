@@ -19,7 +19,7 @@ from core.ast.hashing import compute_ast_hash
 
 from core.pipeline.orchestrator import ParserProtocol
 from core.chunking.semantic_chunking import build_semantic_chunks_as_units
-from core.ast.models import FastWordEstimator
+from core.validation.estimators import ExactBPEEstimator
 from core.document_profile.models import ProfileInput
 from core.document_profile.profiler import HeuristicDocumentProfiler
 from apps.bootstrap.pipeline_factory import build_document_profiler
@@ -116,7 +116,7 @@ class OCRRouterDaemon:
             ast_hash = compute_ast_hash(raw_ast)
             
             # Instanciación de la estrategia de empaquetado semántico por tokens
-            estimator = FastWordEstimator()
+            estimator = ExactBPEEstimator()
             
             # SOTA FIX: Desempaquetado estricto de la tupla (Unidades, Telemetría)
             translation_units, chunking_report = build_semantic_chunks_as_units(raw_ast, estimator)

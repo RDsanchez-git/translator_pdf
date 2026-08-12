@@ -1,7 +1,6 @@
 from enum import Enum
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 from typing import Dict, Any, Optional, Union, Tuple, List, cast
-from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from collections import Counter
 from core.domain.document import BoundingBox
@@ -177,19 +176,6 @@ class OverflowPolicy(str, Enum):
     BY_SENTENCE = "by_sentence"
     BY_PARAGRAPH = "by_paragraph"
     HARD_TRUNCATE = "hard_truncate"
-
-class TokenEstimator(ABC):
-    @abstractmethod
-    def estimate(self, text: str) -> int:
-        pass
-
-class FastWordEstimator(TokenEstimator):
-    def estimate(self, text: str) -> int:
-        if not text:
-            return 0
-        return int(len(text.split()) * 1.3)
-    def estimate_tokens(self, text: str) -> int:
-        return int(self.estimate(text))
 
 @dataclass(frozen=True)
 class TranslationUnit:

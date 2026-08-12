@@ -4,8 +4,6 @@ import asyncio
 from core.pipeline.job import TranslationJob
 from core.pipeline.orchestrator import TranslationPipeline
 from core.metrics.summary import SummaryBuilder
-from core.compiler.assembler import DocumentAssembler, AssemblyPolicy
-from core.ast.models import FailureReason
 from infra.db.connection import get_connection
 from infra.db.fsm_repository import FSMRepository
 from infra.db.document_repository import SQLiteDocumentRepository
@@ -24,18 +22,7 @@ async def capture_golden_snapshots():
     parser = build_extraction_pipeline()
     doc_conn = get_connection("infra/db/documents.db", timeout=30)
     document_repository = SQLiteDocumentRepository(doc_conn)
-    assembly_policy = AssemblyPolicy(
-        tolerance_ratio=0.05,
-        allow_fallback=True,
-        degradable_failures=frozenset([
-            FailureReason.CONTEXT_OVERFLOW,
-            FailureReason.PROVIDER_FAILURE,
-            FailureReason.RETRY_EXHAUSTED
-        ])
-    )
-    assembler = DocumentAssembler(
-        repository=document_repository, separator="\n\n", policy=assembly_policy
-    )
+    
     fsm_conn = get_connection("infra/db/fsm.db", timeout=30)
     fsm_repo = FSMRepository(fsm_conn)
     command_handler = DocumentCommandHandler(fsm_repo)
@@ -45,7 +32,6 @@ async def capture_golden_snapshots():
         parser=parser,
         chunker=FakeChunker(),
         dispatcher=FakeDispatcher(),
-        assembler=assembler,
         audit_builder=SummaryBuilder(),
         state_store=state_store,
         document_repository=document_repository,
@@ -53,6 +39,10 @@ async def capture_golden_snapshots():
 
     job = TranslationJob(job_id="job_bootstrap_capture", source_path=pdf_path)
     result = await pipeline.execute(job)
+    if result.document is None:
+        print("[Bootstrap] El pipeline lógico no ensambla. Use el AssemblerWorkerDaemon para capturar golden snapshots.")
+        return
+    
     content = result.document.content
 
     struct_path = os.path.join(golden_dir, "sample_3_pages.structure.json")

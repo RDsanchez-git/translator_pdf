@@ -2,7 +2,9 @@ import os
 import json
 import logging
 import unittest
-from core.ast.models import ASTNode, FastWordEstimator
+from core.ast.models import ASTNode
+from core.validation.estimators import ExactBPEEstimator
+
 from core.chunking.semantic_chunking import build_semantic_chunks_as_units
 from apps.bootstrap.pipeline_factory import build_extraction_pipeline
 
@@ -13,7 +15,7 @@ class TestChunkerSnapshot(unittest.TestCase):
 
     def setUp(self):
         self.adapter = build_extraction_pipeline()
-        self.estimator = FastWordEstimator()
+        self.estimator = ExactBPEEstimator()
         self.ast_cache_path = "tests/fixtures/sample_3_pages.pdf.ast.json"
         self.snapshot_path = "tests/fixtures/sample_chunks.json"
 

@@ -14,7 +14,7 @@ sys.path.append(str(Path(__file__).resolve().parents[2]))
 from apps.bootstrap.pipeline_factory import build_pipeline
 from core.pipeline.job import TranslationJob, PipelineStep
 from core.chunking.semantic_chunking import build_semantic_chunks_as_units
-from core.ast.models import FastWordEstimator
+from core.validation.estimators import ExactBPEEstimator
 from infra.db.connection import get_connection
 
 from apps.llm_workers.adapters import GroqProvider
@@ -27,12 +27,14 @@ from core.prompting.dialects.openai_compatible import OpenAICompatibleDialect
 
 from core.resilience.circuit_breaker import GlobalCircuitBreaker
 from apps.llm_workers.circuit_breaker_provider import CircuitBreakerProvider
+from core.validation.protocols import TokenEstimatorProtocol
+
 
 console = Console()
 
 class ChunkerProtocolAdapter:
     """SOTA Adapter Pattern: Cierra la brecha estructural para la Fase 13.00."""
-    def __init__(self, estimator: FastWordEstimator):
+    def __init__(self, estimator: TokenEstimatorProtocol):
         self._estimator = estimator
         self.last_report = None
 
@@ -65,7 +67,7 @@ async def handle_translate_async(args):
     if not api_key:
         raise RuntimeError("GROQ_API_KEY no configurada. Abortando inicialización de pipeline.")
 
-    estimator = FastWordEstimator()
+    estimator = ExactBPEEstimator()
     measurement_service = InferenceMeasurementService(estimator=estimator)
     
     budget_calculator = PromptBudgetCalculator(
@@ -133,7 +135,7 @@ async def handle_translate_async(args):
                     macro_status.update("[bold orange3]Segmentando AST y aplicando consistencia semántica...[/]")
                 elif job.current_step == PipelineStep.ASSEMBLING:
                     macro_status.update("[bold blue]Límites cruzados. Reconstruyendo estructura documental...[/]")
-                elif job.current_step == PipelineStep.AUDITING:
+                elif job.current_step == PipelineStep.FINISHED:
                     macro_status.update("[bold green]Procesando métricas FinOps de telemetría final...[/]")
 
             original_enter_step = job.enter_step
@@ -149,10 +151,10 @@ async def handle_translate_async(args):
         table = Table(title="Reporte FinOps y Telemetría Operacional")
         table.add_column("Métrica de Control", justify="left", style="cyan")
         table.add_column("Valor Registrado", justify="right", style="magenta")
-        table.add_row("Total Chunks Procesados", str(result.document.total_chunks))
+        table.add_row("Total Chunks Procesados", str(result.summary.total_chunks))
         table.add_row("Tasa de Éxito (Dispatch)", f"{result.summary.dispatch_success_rate * 100:.2f}%")
         table.add_row("Fallos de Ejecución", str(result.summary.total_failed_chunks))
-        table.add_row("Degradación Aplicada (Fallback)", "Sí" if result.assembly_report.degradation_applied else "No")
+        table.add_row("Degradación Aplicada (Fallback)", "N/A (ensamblado asíncrono)")
         table.add_row("Chunks Atajados por Caché", str(result.summary.translated_chunks_cache))
         table.add_row("Chunks Despachados a Red", str(result.summary.translated_chunks_network))
         table.add_row("Tokens de Entrada Consumidos", str(result.summary.total_input_tokens))
@@ -166,14 +168,6 @@ async def handle_translate_async(args):
             table.add_row("Eventos de Desbordamiento (Split)", str(chunker_adapter.last_report.overflow_events))
             
         console.print(table)
-
-        if result.assembly_report.failure_reasons:
-            fail_table = Table(title="Taxonomía Analítica de Fallos")
-            fail_table.add_column("Razón de Fallo", style="red")
-            fail_table.add_column("Frecuencia", justify="right", style="white")
-            for reason, count in result.assembly_report.failure_reasons.items():
-                fail_table.add_row(reason, str(count))
-            console.print(fail_table)
 
     except Exception as err:
         console.print(f"\n[bold red]✖ COLAPSO DEL RUNTIME:[/] {str(err)}")

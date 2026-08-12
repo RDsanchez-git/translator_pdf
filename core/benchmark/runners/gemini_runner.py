@@ -11,7 +11,7 @@ from core.benchmark.models import (
     ProviderDescriptor, BenchmarkMode, QuotaSnapshot, HardwareTelemetry,
     TranslatedArtifact
 )
-from core.ast.models import ExecutionStatus, FailureReason, FastWordEstimator
+from core.ast.models import ExecutionStatus, FailureReason
 from core.context.context_resolver import ResolvedContext
 
 from apps.llm_workers.adapters import GeminiProvider
@@ -29,6 +29,7 @@ from core.healing.strategies.markdown_leakage import MarkdownLeakageHealingStrat
 from core.healing.strategies.meta_text_leakage import MetaTextLeakageHealingStrategy
 from core.healing.strategies.structural import EOFBraceClosureStrategy, EOFMathClosureStrategy
 from core.healing.config import HealingPolicy
+from core.validation.estimators import ExactBPEEstimator
 
 
 logger = logging.getLogger(__name__)
@@ -67,7 +68,7 @@ class GeminiBenchmarkRunner(BenchmarkRunnerProtocol):
         # Gemini tiene ventana masiva nativa
         limit_to_use = 2097152
 
-        estimator = FastWordEstimator()
+        estimator = ExactBPEEstimator()
         measurement_service = InferenceMeasurementService(estimator=estimator)
         
         budget_calculator = PromptBudgetCalculator(

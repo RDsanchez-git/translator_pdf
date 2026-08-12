@@ -1,15 +1,11 @@
+# core/chunking/protocols.py
 from typing import Protocol
 from collections.abc import Iterator
 from core.ast.models import ASTNode
 from core.chunking.models import BoundaryDecision, TranslationChunk
 
-class TokenEstimator(Protocol):
-    """
-    Puerto de estimación de peso algorítmico.
-    Invariante: La implementación debe ser estrictamente pura, determinista y libre de I/O.
-    """
-    def estimate(self, node: ASTNode) -> int:
-        ...
+# ELIMINADO: class TokenEstimator (Protocol) con estimate(node: ASTNode)
+# Reemplazado por TokenEstimatorProtocol en core/validation/protocols.py
 
 class NodeAtomicityPolicy(Protocol):
     """Puerto de regla de negocio para dictaminar la indivisibilidad estructural de una entidad."""

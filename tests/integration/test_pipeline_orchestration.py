@@ -89,30 +89,17 @@ class TestPipelineOrchestration(unittest.IsolatedAsyncioTestCase):
         # Construir TranslationPipeline directamente
         from apps.bootstrap.pipeline_factory import build_extraction_pipeline
         from core.metrics.summary import SummaryBuilder
-        from core.compiler.assembler import DocumentAssembler, AssemblyPolicy
-        from core.ast.models import FailureReason
         from infra.db.document_repository import SQLiteDocumentRepository
         from infra.db.connection import get_connection
 
         parser = build_extraction_pipeline()
         doc_conn = get_connection("infra/db/documents.db", timeout=30)
         document_repository = SQLiteDocumentRepository(doc_conn)
-        assembly_policy = AssemblyPolicy(
-            tolerance_ratio=0.05, allow_fallback=True,
-            degradable_failures=frozenset([
-                FailureReason.CONTEXT_OVERFLOW, FailureReason.PROVIDER_FAILURE,
-                FailureReason.RETRY_EXHAUSTED
-            ])
-        )
-        assembler = DocumentAssembler(
-            repository=document_repository, separator="\n\n", policy=assembly_policy
-        )
 
         self.pipeline = TranslationPipeline(
             parser=parser,
             chunker=FakeChunker(),
             dispatcher=FakeDispatcher(),
-            assembler=assembler,
             audit_builder=SummaryBuilder(),
             state_store=mock_store,
             document_repository=document_repository,
@@ -140,9 +127,7 @@ class TestPipelineOrchestration(unittest.IsolatedAsyncioTestCase):
         # SOTA FIX: Isolem el test de la infraestructura local de PyMuPDF forzando un retorno controlado del AST V2
         with patch.object(self.pipeline.parser, 'parse', return_value=mock_nodes):
             result = await self.pipeline.execute(job)
-        
-        self.assertIsInstance(result.document.content, str)
-        self.assertGreater(len(result.document.content.strip()), 0)
+            
         self.assertEqual(job.status, JobStatus.COMPLETED)
         self.assertEqual(job.current_step, PipelineStep.FINISHED)
         self.assertIsNone(job.error_type)

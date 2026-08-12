@@ -1,8 +1,9 @@
 import logging
 import unittest
-from core.ast.models import ASTNode, ParagraphPayload, HeadingPayload, TablePayload, FastWordEstimator, TranslationTaskType
+from core.ast.models import ASTNode, ParagraphPayload, HeadingPayload, TablePayload, TranslationTaskType
 from core.ast.enums import ContentNodeType, HeadingLevel
 from core.chunking.semantic_chunking import build_semantic_chunks_as_units, ChunkPolicy
+from core.validation.estimators import ExactBPEEstimator
 
 logger = logging.getLogger(__name__)
 
@@ -10,7 +11,7 @@ class TestSemanticChunkerZeroLoss(unittest.TestCase):
     """Suite de certificación SOTA para el motor de empaquetado semántico (Fase 13)."""
 
     def setUp(self):
-        self.estimator = FastWordEstimator()
+        self.estimator = ExactBPEEstimator()
         self.policy = ChunkPolicy(
             max_tokens=300,
             prompt_overhead_tokens=20

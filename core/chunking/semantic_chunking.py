@@ -12,12 +12,14 @@ import re
 from dataclasses import dataclass, field
 from typing import List, Set, Optional, Tuple, Sequence
 
+# DESPUÉS:
 from core.ast.models import (
-    ASTNode, TokenEstimator, TranslationUnit,
+    ASTNode, TranslationUnit,
     TranslationTaskType, OverflowPolicy, ChunkingReport,
     HeadingPayload, ParagraphPayload, MathPayload,
     CodePayload, TablePayload, ListPayload, ASTPayload
 )
+from core.validation.protocols import TokenEstimatorProtocol  # NUEVO
 from core.ast.enums import ContentNodeType
 from core.ast.grouper import SemanticGroup, ContextAwareSemanticGrouper
 from core.shared.crypto import compute_sha256, compute_md5
@@ -36,7 +38,8 @@ class ChunkPolicy:
 class TokenBudgetChunker:
     """SOTA: Chunker de tiempo lineal O(N) que respeta fronteras de subgrafos semánticos."""
 
-    def __init__(self, estimator: TokenEstimator, policy: Optional[ChunkPolicy] = None):
+    def __init__(self, estimator: TokenEstimatorProtocol, policy: Optional[ChunkPolicy] = None):
+
         self.estimator = estimator
         self.policy = policy if policy else ChunkPolicy()
         self.report = ChunkingReport()
@@ -111,7 +114,7 @@ class TokenBudgetChunker:
                 flush_translate_chunk()
 
                 task_type = TranslationTaskType.PARTIAL if node.node_type in self.partial_types else TranslationTaskType.PRESERVE
-                node_tokens = self.estimator.estimate(content)
+                node_tokens = self.estimator.estimate_tokens(content)
                 # Punto único de entrada criptográfico (core.shared.crypto)
                 full_hash = compute_sha256(content.encode("utf-8"))
                 fingerprint = compute_md5(f"{node.sequence_id}-{node.sequence_id}".encode())
@@ -135,7 +138,7 @@ class TokenBudgetChunker:
                 chunk_index += 1
                 continue
 
-            node_tokens = self.estimator.estimate(content)
+            node_tokens = self.estimator.estimate_tokens(content)
 
             # --- OVERFLOW POLICY ---
             if node_tokens > available_payload_tokens:
@@ -145,7 +148,7 @@ class TokenBudgetChunker:
                 if self.policy.overflow_policy == OverflowPolicy.BY_SENTENCE:
                     sentences = self._split_by_sentence(content)
                     for sentence in sentences:
-                        s_tokens = self.estimator.estimate(sentence)
+                        s_tokens = self.estimator.estimate_tokens(sentence)
                         if current_tokens + s_tokens > available_payload_tokens and current_nodes:
                             flush_translate_chunk()
 
@@ -191,7 +194,7 @@ class TokenBudgetChunker:
         return units
 
 
-def build_semantic_chunks_as_units(ast: Sequence[ASTNode], estimator: TokenEstimator) -> Tuple[List[TranslationUnit], ChunkingReport]:
+def build_semantic_chunks_as_units(ast: Sequence[ASTNode], estimator: TokenEstimatorProtocol) -> Tuple[List[TranslationUnit], ChunkingReport]:
     """Punto de entrada SOTA para la generación de unidades empaquetadas de la Fase 13.00."""
     semantic_groups = ContextAwareSemanticGrouper.group(ast)
     chunker = TokenBudgetChunker(estimator, ChunkPolicy())

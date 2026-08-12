@@ -2,14 +2,15 @@ import os
 import unittest
 import uuid
 from typing import Any
-from unittest.mock import MagicMock, patch
-from core.ast.models import TranslationUnit, TranslationTaskType, FastWordEstimator
+from unittest.mock import MagicMock
+from core.ast.models import TranslationUnit, TranslationTaskType
 from core.compiler.assembler import DocumentAssembler
 
 from apps.llm_workers.prompt_builder import PromptBuilder
 from apps.llm_workers.rate_limiter import RateLimitedProvider, QuotaManager
 from apps.llm_workers.cache_provider import CachedLLMProvider
 from apps.llm_workers.dispatcher import AsyncDispatcher
+from core.validation.estimators import ExactBPEEstimator
 
 class FakeLLMProvider:
     async def translate(self, envelope: Any) -> Any:
@@ -32,7 +33,7 @@ class TestTranslationLayerIntegration(unittest.IsolatedAsyncioTestCase):
         self.test_id = uuid.uuid4().hex
         self.test_db_path = f"tests/fixtures/integration_cache_{self.test_id}.db"
         
-        estimator = FastWordEstimator()
+        estimator = ExactBPEEstimator()
         
         from core.finops.measurement import InferenceMeasurementService
         from core.validation.budget import PromptBudgetCalculator, StandardCompressionPolicy
@@ -122,13 +123,5 @@ class TestTranslationLayerIntegration(unittest.IsolatedAsyncioTestCase):
         mock_decision.total_output_tokens = 20
         mock_decision.total_chunks = 3
 
-        with patch.object(self.assembler, 'assemble', return_value=mock_decision):
-            doc: Any = self.assembler.assemble(job_id="job_test", dispatch_result=translated_units)
-
-            self.assertIn("A", doc.content)
-            self.assertIn("B", doc.content)
-            self.assertIn("C", doc.content)
-            
-            self.assertGreaterEqual(doc.total_input_tokens, 0) 
-            self.assertGreaterEqual(doc.total_output_tokens, 0)
-            self.assertEqual(doc.total_chunks, 3)
+        outcomes = getattr(translated_units, "outcomes", [])
+        self.assertEqual([u.chunk_index for u in outcomes], [1, 2, 3])

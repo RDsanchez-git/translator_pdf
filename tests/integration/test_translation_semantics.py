@@ -8,18 +8,19 @@ from typing import Any
 from unittest.mock import MagicMock, patch
 
 from apps.llm_workers.prompt_builder import PromptBuilder
-from core.ast.models import FastWordEstimator, ASTNode, FailureReason
+from core.ast.models import ASTNode
 from apps.llm_workers.rate_limiter import RateLimitedProvider, QuotaManager
 from apps.llm_workers.sync_bridge import SyncProviderBridge
 from core.pipeline.orchestrator import TranslationPipeline
 from core.metrics.summary import SummaryBuilder
-from core.compiler.assembler import DocumentAssembler, AssemblyPolicy
 from infra.db.fsm_repository import FSMRepository
 from infra.db.document_repository import SQLiteDocumentRepository
 from core.execution.handlers import DocumentCommandHandler
 from core.pipeline.state_store import FSMStateStore
 from apps.bootstrap.pipeline_factory import build_extraction_pipeline
 from helpers.fakes import FakeChunker, FakeDispatcher
+from core.validation.estimators import ExactBPEEstimator
+
 
 class FakeLLMProvider:
     async def translate(self, envelope: Any) -> Any:
@@ -42,7 +43,7 @@ class TestSemanticChunkRegression(unittest.IsolatedAsyncioTestCase):
         self.pdf_real_path = "tests/fixtures/sample_3_pages.pdf"
         self.golden_path = "tests/golden/sample_3_pages.semantics.json"
         
-        estimator = FastWordEstimator()
+        estimator = ExactBPEEstimator()
         from core.finops.measurement import InferenceMeasurementService
         from core.validation.budget import PromptBudgetCalculator, StandardCompressionPolicy
         
@@ -70,16 +71,6 @@ class TestSemanticChunkRegression(unittest.IsolatedAsyncioTestCase):
         fsm_repo = FSMRepository(fsm_db)
         doc_conn = sqlite3.connect(":memory:")
         document_repository = SQLiteDocumentRepository(doc_conn)
-        assembly_policy = AssemblyPolicy(
-            tolerance_ratio=0.05, allow_fallback=True,
-            degradable_failures=frozenset([
-                FailureReason.CONTEXT_OVERFLOW, FailureReason.PROVIDER_FAILURE,
-                FailureReason.RETRY_EXHAUSTED
-            ])
-        )
-        assembler = DocumentAssembler(
-            repository=document_repository, separator="\n\n", policy=assembly_policy
-        )
         state_store = FSMStateStore(fsm_repo, DocumentCommandHandler(fsm_repo))
         
         # FakeDispatcher cumple DispatcherProtocol.
@@ -88,7 +79,6 @@ class TestSemanticChunkRegression(unittest.IsolatedAsyncioTestCase):
             parser=parser,
             chunker=FakeChunker(),
             dispatcher=FakeDispatcher(),
-            assembler=assembler,
             audit_builder=SummaryBuilder(),
             state_store=state_store,
             document_repository=document_repository,

@@ -2,7 +2,7 @@ import unittest
 import uuid
 from typing import List, Any
 from unittest.mock import MagicMock, patch
-from core.ast.models import ASTNode, TranslationUnit, FastWordEstimator, TranslationTaskType
+from core.ast.models import ASTNode, TranslationUnit, TranslationTaskType
 from core.pipeline.job import TranslationJob, JobStatus
 
 from apps.llm_workers.prompt_builder import PromptBuilder
@@ -11,6 +11,8 @@ from apps.llm_workers.sync_bridge import SyncProviderBridge
 from apps.llm_workers.dispatcher import AsyncDispatcher
 from core.finops.measurement import InferenceMeasurementService
 from core.validation.budget import PromptBudgetCalculator, StandardCompressionPolicy
+from core.validation.estimators import ExactBPEEstimator
+
 
 class FinOpsControlledChunker:
     """Chunker de control presupuestario para pruebas E2E."""
@@ -52,7 +54,7 @@ class TestRealE2EFinOps(unittest.IsolatedAsyncioTestCase):
         self.pdf_real_path = "tests/fixtures/sample_3_pages.pdf"
         self.test_id = uuid.uuid4().hex
         
-        estimator = FastWordEstimator()
+        estimator = ExactBPEEstimator()
         measurement_service = InferenceMeasurementService(estimator=estimator)
         budget_calculator = PromptBudgetCalculator()
         compression_policy = StandardCompressionPolicy()
@@ -92,8 +94,6 @@ class TestRealE2EFinOps(unittest.IsolatedAsyncioTestCase):
         from apps.bootstrap.pipeline_factory import build_extraction_pipeline
         from core.pipeline.orchestrator import TranslationPipeline
         from core.metrics.summary import SummaryBuilder
-        from core.compiler.assembler import DocumentAssembler, AssemblyPolicy
-        from core.ast.models import FailureReason
         from infra.db.document_repository import SQLiteDocumentRepository
         from infra.db.connection import get_connection
         from infra.db.fsm_repository import FSMRepository
@@ -104,16 +104,8 @@ class TestRealE2EFinOps(unittest.IsolatedAsyncioTestCase):
         parser = build_extraction_pipeline()
         doc_conn = get_connection("infra/db/documents.db", timeout=30)
         document_repository = SQLiteDocumentRepository(doc_conn)
-        assembly_policy = AssemblyPolicy(
-            tolerance_ratio=0.05, allow_fallback=True,
-            degradable_failures=frozenset([
-                FailureReason.CONTEXT_OVERFLOW, FailureReason.PROVIDER_FAILURE,
-                FailureReason.RETRY_EXHAUSTED
-            ])
-        )
-        assembler = DocumentAssembler(
-            repository=document_repository, separator="\n\n", policy=assembly_policy
-        )
+    
+    
         fsm_db_conn = sqlite3.connect(":memory:")
         fsm_repo = FSMRepository(fsm_db_conn)
         state_store = FSMStateStore(fsm_repo, DocumentCommandHandler(fsm_repo))
@@ -122,7 +114,6 @@ class TestRealE2EFinOps(unittest.IsolatedAsyncioTestCase):
             parser=parser,
             chunker=FinOpsControlledChunker(),
             dispatcher=self.dispatcher,
-            assembler=assembler,
             audit_builder=SummaryBuilder(),
             state_store=state_store,
             document_repository=document_repository,
