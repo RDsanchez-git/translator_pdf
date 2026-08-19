@@ -1,5 +1,5 @@
 from pathlib import Path
-from core.extraction.ocr_providers.pymupdf_provider import PyMuPDFProvider
+from infra.extraction.providers.pymupdf_provider import PyMuPDFProvider
 from core.layout.models import LayoutBlockDraft, LayoutBlockCollection
 from core.ast.builder import FlatASTBuilder
 from infra.serialization.ast_json import write_ast_json_atomic

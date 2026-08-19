@@ -41,7 +41,7 @@ class NormalizationPipeline:
         return hashlib.sha256(json_payload.encode("utf-8")).hexdigest()
 
     def process_node(self, node: ASTNode) -> NormalizationReport:
-        canonical_key = node.node_type.value if hasattr(node.node_type, "value") else str(node.node_type)
+        canonical_key = node.node_type.value
         policy = self._registry.get_policy_for_type(canonical_key)
         
         current_text = node.text_content or ""

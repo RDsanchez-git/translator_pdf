@@ -1,7 +1,6 @@
 import os
 import time
 import logging
-import hashlib
 import psutil
 from typing import List
 
@@ -12,36 +11,24 @@ from core.benchmark.models import (
     TranslatedArtifact
 )
 from core.ast.models import ExecutionStatus, FailureReason
-from core.context.context_resolver import ResolvedContext
 
-from apps.llm_workers.adapters import GroqProvider
-from apps.llm_workers.rate_limiter import RateLimitedProvider, QuotaManager
 from apps.llm_workers.prompt_builder import PromptBuilder
 from apps.llm_workers.dispatcher import AsyncDispatcher
+from apps.bootstrap.provider_stack_factory import build_provider_stack
+from apps.bootstrap.pipeline_factory import build_healing_pipeline
 from core.validation.budget import PromptBudgetCalculator, StandardCompressionPolicy
 from core.finops.measurement import InferenceMeasurementService
-from core.prompting.dialects.openai_compatible import OpenAICompatibleDialect
 from core.metrics.pricing import PricingEngine
 from core.benchmark.quality import FormalLatexSyntaxParser, FormalMarkdownTableParser
+from core.context.context_registry import ContextRegistry
+from core.context.dynamic_resolver import DynamicContextResolver
 
 from core.validation.estimators import ExactBPEEstimator
 from core.validation.factory import build_validation_pipeline
-from core.healing.pipeline import HealingPipeline
-from core.healing.strategies.markdown_leakage import MarkdownLeakageHealingStrategy
-from core.healing.strategies.meta_text_leakage import MetaTextLeakageHealingStrategy
-from core.healing.strategies.structural import EOFBraceClosureStrategy, EOFMathClosureStrategy
-from core.healing.config import HealingPolicy
 
 
 logger = logging.getLogger(__name__)
 
-class DummyContextResolver:
-    """BENCHMARK ONLY: Aisla el P99 de red eliminando latencia de I/O de base de datos."""
-    def resolve_many(self, context_ids): 
-        return {}
-        
-    def resolve(self, context_id: str) -> ResolvedContext: 
-        return ResolvedContext(context_id=context_id, breadcrumbs=())
 
 class GroqBenchmarkRunner(BenchmarkRunnerProtocol):
     """SOTA: Ejecutor de carga Groq con rigor metodológico (Capability vs Equalized)."""
@@ -78,7 +65,6 @@ class GroqBenchmarkRunner(BenchmarkRunnerProtocol):
             max_output_reserve=4096
         )
         
-        # SOTA FIX: Alineación con la política de compresión canónica de la Fase 16
         compression_policy = StandardCompressionPolicy()
         
         prompt_builder = PromptBuilder(
@@ -94,26 +80,32 @@ class GroqBenchmarkRunner(BenchmarkRunnerProtocol):
         
         self.quota_snapshot = QuotaSnapshot(rpm_limit=rpm_limit, tpm_limit=tpm_limit, concurrency=self.concurrency)
         
-        dialect = OpenAICompatibleDialect()
-        groq_provider = GroqProvider(api_key=api_key, dialect=dialect)
-        quota_mgr = QuotaManager(rpm_limit=rpm_limit, tpm_limit=tpm_limit)
-        rate_provider = RateLimitedProvider(underlying=groq_provider, quota_manager=quota_mgr)
+        # DF-28: Usar factory canónica con cache deshabilitado.
+        # El benchmark mide capacidad del modelo, no eficiencia del sistema.
+        # Cache inflaría artificialmente TPS y reduciría costos.
+        # CircuitBreaker es MANDATORY (NADR-08 §5.2 R7).
+        provider_stack = await build_provider_stack(
+            api_key=api_key,
+            provider_type="groq",
+            rpm_limit=rpm_limit,
+            tpm_limit=tpm_limit,
+            cache_db_path=None,  # ← Sin cache (decisión metodológica)
+        )
         
-                # Construir pipelines de validación y curación
+        # DF-28: Contexto real (NADR-05 §5.1 R1).
+        # Registry vacío es funcionalmente equivalente a DummyContextResolver
+        # pero usa el mismo code path que producción.
+        context_registry = ContextRegistry()
+        context_resolver = DynamicContextResolver(registry=context_registry)
+        
+        # DF-28: Reutilizar construcción canónica de validation + healing.
         validation_pipeline = build_validation_pipeline()
-        policy = HealingPolicy()
-        strategies = [
-            MarkdownLeakageHealingStrategy(),
-            MetaTextLeakageHealingStrategy(),
-            EOFBraceClosureStrategy(policy=policy),
-            EOFMathClosureStrategy(policy=policy),
-        ]
-        healing_pipeline = HealingPipeline(validation_pipeline, strategies)
+        healing_pipeline = build_healing_pipeline(validation_pipeline)
 
         self._dispatcher = AsyncDispatcher(
-            context_resolver=DummyContextResolver(),
+            context_resolver=context_resolver,
             prompt_builder=prompt_builder,
-            provider_stack=rate_provider,
+            provider_stack=provider_stack,
             validation_pipeline=validation_pipeline,
             healing_pipeline=healing_pipeline,
             concurrency=self.concurrency,
@@ -161,7 +153,8 @@ class GroqBenchmarkRunner(BenchmarkRunnerProtocol):
 
             artifact_dto = None
             if success and text_payload:
-                sha256_hash = hashlib.sha256(text_payload.encode('utf-8')).hexdigest()
+                from core.shared.crypto import compute_sha256
+                sha256_hash = compute_sha256(text_payload.encode('utf-8'))
                 artifact_dto = TranslatedArtifact(
                     chunk_id=outcome.chunk_id,
                     translated_text=text_payload,

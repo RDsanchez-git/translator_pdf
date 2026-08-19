@@ -40,7 +40,7 @@ from core.document_profile.detectors.layout import HeuristicLayoutDetector
 from core.document_profile.detectors.semantic import HeuristicTypeDetector
 from infra.adapters.ast_profiling import NodeGeometryAdapter, NodeSemanticAdapter, FirstPagesSamplingPolicy
 
-from core.layout.builder import DocumentLayout
+from core.domain.document import DocumentLayout
 from core.layout.models import LayoutBlockCollection
 
 from apps.bootstrap.extraction_config import ExtractionConfiguration, ExtractionProviderId
@@ -60,7 +60,7 @@ from core.context.dynamic_resolver import DynamicContextResolver
 
 
 
-def _build_healing_pipeline(validation_pipeline: ValidationPipeline) -> HealingPipeline:
+def build_healing_pipeline(validation_pipeline: ValidationPipeline) -> HealingPipeline:
     """
     NADR-04: HealingPipeline se construye SOBRE la misma instancia de ValidationPipeline.
     Nunca dos ValidationPipeline distintos.
@@ -96,7 +96,7 @@ def build_pipeline(
 
     # 1. Validación y curación
     validation_pipeline = build_validation_pipeline()
-    healing_pipeline = _build_healing_pipeline(validation_pipeline)
+    healing_pipeline = build_healing_pipeline(validation_pipeline)
 
     # 2. Context stack (NADR-05 §5.1 R1)
     context_registry, context_resolver = _build_context_stack()

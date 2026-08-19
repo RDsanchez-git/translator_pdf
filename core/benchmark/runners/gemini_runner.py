@@ -1,8 +1,7 @@
 import os
 import time
 import logging
-import hashlib
-import psutil  
+import psutil
 from typing import List
 
 from core.benchmark.ports import BenchmarkRunnerProtocol, RunnerExecutionResult
@@ -12,35 +11,24 @@ from core.benchmark.models import (
     TranslatedArtifact
 )
 from core.ast.models import ExecutionStatus, FailureReason
-from core.context.context_resolver import ResolvedContext
 
-from apps.llm_workers.adapters import GeminiProvider
-from apps.llm_workers.rate_limiter import RateLimitedProvider, QuotaManager
 from apps.llm_workers.prompt_builder import PromptBuilder
 from apps.llm_workers.dispatcher import AsyncDispatcher
+from apps.bootstrap.provider_stack_factory import build_provider_stack
+from apps.bootstrap.pipeline_factory import build_healing_pipeline
 from core.validation.budget import PromptBudgetCalculator, StandardCompressionPolicy
 from core.finops.measurement import InferenceMeasurementService
 from core.metrics.pricing import PricingEngine
 from core.benchmark.quality import FormalLatexSyntaxParser, FormalMarkdownTableParser
+from core.context.context_registry import ContextRegistry
+from core.context.dynamic_resolver import DynamicContextResolver
 
 from core.validation.factory import build_validation_pipeline
-from core.healing.pipeline import HealingPipeline
-from core.healing.strategies.markdown_leakage import MarkdownLeakageHealingStrategy
-from core.healing.strategies.meta_text_leakage import MetaTextLeakageHealingStrategy
-from core.healing.strategies.structural import EOFBraceClosureStrategy, EOFMathClosureStrategy
-from core.healing.config import HealingPolicy
 from core.validation.estimators import ExactBPEEstimator
 
 
 logger = logging.getLogger(__name__)
 
-class DummyContextResolver:
-    """BENCHMARK ONLY: Aisla el P99 de red eliminando latencia de I/O de base de datos."""
-    def resolve_many(self, context_ids): 
-        return {}
-        
-    def resolve(self, context_id: str) -> ResolvedContext: 
-        return ResolvedContext(context_id=context_id, breadcrumbs=())
 
 class GeminiBenchmarkRunner(BenchmarkRunnerProtocol):
     """SOTA: Ejecutor de carga pura para ecosistema Gemini."""
@@ -78,7 +66,6 @@ class GeminiBenchmarkRunner(BenchmarkRunnerProtocol):
             max_output_reserve=8192
         )
         
-        # SOTA FIX: Uso de la política de compresión canónica importada directamente de budget.py
         compression_policy = StandardCompressionPolicy()
         
         prompt_builder = PromptBuilder(
@@ -94,25 +81,29 @@ class GeminiBenchmarkRunner(BenchmarkRunnerProtocol):
         
         self.quota_snapshot = QuotaSnapshot(rpm_limit=rpm_limit, tpm_limit=tpm_limit, concurrency=self.concurrency)
         
-        gemini_provider = GeminiProvider(api_key=api_key)
-        quota_mgr = QuotaManager(rpm_limit=rpm_limit, tpm_limit=tpm_limit)
-        rate_provider = RateLimitedProvider(underlying=gemini_provider, quota_manager=quota_mgr)
+        # DF-28: Usar factory canónica con cache deshabilitado y Gemini como provider base.
+        # El benchmark mide capacidad del modelo, no eficiencia del sistema.
+        # CircuitBreaker es MANDATORY (NADR-08 §5.2 R7).
+        provider_stack = await build_provider_stack(
+            api_key=api_key,
+            provider_type="gemini",  # ← Gemini como provider base
+            rpm_limit=rpm_limit,
+            tpm_limit=tpm_limit,
+            cache_db_path=None,  # ← Sin cache (decisión metodológica)
+        )
         
-                # Construir pipelines de validación y curación
+        # DF-28: Contexto real (NADR-05 §5.1 R1).
+        context_registry = ContextRegistry()
+        context_resolver = DynamicContextResolver(registry=context_registry)
+        
+        # DF-28: Reutilizar construcción canónica de validation + healing.
         validation_pipeline = build_validation_pipeline()
-        policy = HealingPolicy()
-        strategies = [
-            MarkdownLeakageHealingStrategy(),
-            MetaTextLeakageHealingStrategy(),
-            EOFBraceClosureStrategy(policy=policy),
-            EOFMathClosureStrategy(policy=policy),
-        ]
-        healing_pipeline = HealingPipeline(validation_pipeline, strategies)
+        healing_pipeline = build_healing_pipeline(validation_pipeline)
 
         self._dispatcher = AsyncDispatcher(
-            context_resolver=DummyContextResolver(),
+            context_resolver=context_resolver,
             prompt_builder=prompt_builder,
-            provider_stack=rate_provider,
+            provider_stack=provider_stack,
             validation_pipeline=validation_pipeline,
             healing_pipeline=healing_pipeline,
             concurrency=self.concurrency,
@@ -160,7 +151,8 @@ class GeminiBenchmarkRunner(BenchmarkRunnerProtocol):
 
             artifact_dto = None
             if success and text_payload:
-                sha256_hash = hashlib.sha256(text_payload.encode('utf-8')).hexdigest()
+                from core.shared.crypto import compute_sha256
+                sha256_hash = compute_sha256(text_payload.encode('utf-8'))
                 artifact_dto = TranslatedArtifact(
                     chunk_id=outcome.chunk_id,
                     translated_text=text_payload,

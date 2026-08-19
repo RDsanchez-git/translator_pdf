@@ -6,7 +6,7 @@ from docling_core.types.doc.items.text import TextItem
 from docling_core.types.doc.labels import DocItemLabel
 
 from core.domain.document import LayoutBlockType
-from core.extraction.ocr_providers.docling_provider import DoclingProvider
+from infra.extraction.providers.docling_provider import DoclingProvider
 
 
 def test_docling_provider_name():
@@ -20,7 +20,7 @@ def test_docling_provider_file_not_found():
         provider.extract("non_existent_file.pdf")
 
 
-@patch("core.extraction.ocr_providers.docling_provider.DocumentConverter")
+@patch("infra.extraction.providers.docling_provider.DocumentConverter")
 def test_docling_provider_domain_mapping(mock_converter_cls, tmp_path: Path):
     dummy_pdf = tmp_path / "test.pdf"
     dummy_pdf.write_bytes(b"%PDF-1.4 dummy content")

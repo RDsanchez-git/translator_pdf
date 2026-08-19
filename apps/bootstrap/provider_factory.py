@@ -1,6 +1,6 @@
 from core.extraction.provider import ExtractionProvider
 from apps.bootstrap.extraction_config import ExtractionProviderId
-from core.extraction.ocr_providers.pymupdf_provider import PyMuPDFProvider
+from infra.extraction.providers.pymupdf_provider import PyMuPDFProvider
 from core.layout.classification import LayoutClassifier, HeuristicLayoutClassifier
 
 

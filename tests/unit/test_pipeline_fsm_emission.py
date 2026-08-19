@@ -15,7 +15,7 @@ from core.execution.state import (
     StartProcessingCommand,
     MarkAssemblyReadyCommand,
 )
-from core.execution.state_mapping import RecoveredJobSnapshot
+from core.execution.models import RecoveredJobSnapshot
 from core.ast.models import DispatchResult
 from core.metrics.summary import TranslationAuditSummary
 

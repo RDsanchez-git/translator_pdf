@@ -1,4 +1,3 @@
-# core/resilience/rate_limit_store.py
 """
 Puerto abstracto para persistencia de estado de cuotas.
 
@@ -13,6 +12,10 @@ coordinación multi-proceso. Ver GF-01 en el Governance Findings Register.
 
 El algoritmo de Token Bucket (refill, wait_time, consume) pertenece a
 QuotaManager. El Store solo persiste/recupera estado.
+
+NOTA: Este puerto es SÍNCRONO por diseño. La capa infra/db/ usa
+exclusivamente sqlite3 (sync). La concurrencia intra-proceso la
+garantiza asyncio.Lock() en QuotaManager, no el Store.
 """
 
 from typing import Protocol, Optional
@@ -21,7 +24,14 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class BucketState:
-    """Snapshot inmutable del estado de un bucket de cuota."""
+    """
+    Snapshot inmutable del estado de un bucket de cuota.
+    
+    tokens: cantidad de tokens disponibles en el momento del snapshot.
+    last_update: time.time() (epoch seconds) del momento del snapshot.
+                 NO es time.monotonic(). El QuotaManager convierte
+                 entre epoch y monotonic al cargar/guardar.
+    """
     tokens: float
     last_update: float
 
@@ -39,7 +49,7 @@ class RateLimitStore(Protocol):
     coordinación (try_consume, CAS) se definirá en Gate 4 (GF-01).
     """
 
-    async def load(self, bucket_id: str) -> Optional[BucketState]:
+    def load(self, bucket_id: str) -> Optional[BucketState]:
         """
         Retorna el estado actual del bucket.
         
@@ -48,7 +58,7 @@ class RateLimitStore(Protocol):
         """
         ...
 
-    async def save(self, bucket_id: str, state: BucketState) -> None:
+    def save(self, bucket_id: str, state: BucketState) -> None:
         """
         Persiste el estado del bucket (overwrite atómico).
         """

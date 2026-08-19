@@ -12,8 +12,8 @@ import sys
 from pathlib import Path
 from typing import Dict, Type
 
-from core.extraction.ocr_providers.docling_provider import DoclingProvider
-from core.extraction.ocr_providers.pymupdf_provider import PyMuPDFProvider
+from infra.extraction.providers.docling_provider import DoclingProvider
+from infra.extraction.providers.pymupdf_provider import PyMuPDFProvider
 from core.extraction.provider import ExtractionProvider
 from core.shared.crypto import compute_sha256
 from core.utils.fs import ensure_parent_dir

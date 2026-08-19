@@ -4,7 +4,7 @@ import time
 import asyncio
 import logging
 from pathlib import Path
-
+from typing import Iterator
 # SOTA FIX: Asegurar que el script reconozca la raíz del proyecto al ejecutarse aislado
 sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
 
@@ -24,6 +24,16 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger("BenchmarkDriver")
+
+def _iter_file_chunks(file_path: Path, chunk_size: int = 8192) -> Iterator[bytes]:
+    """Imperative Shell: I/O aislado en el borde."""
+    with open(file_path, "rb") as f:
+        while True:
+            chunk = f.read(chunk_size)
+            if not chunk:
+                break
+            yield chunk
+
 
 async def main() -> None:
     logger.info("Iniciando Laboratorio de Evaluación SOTA (Fase 16.10)...")
@@ -56,7 +66,6 @@ async def main() -> None:
         from core.benchmark.models import BenchmarkDataset, BenchmarkDocument, DocumentComplexity, PreparedBenchmarkDataset, QualityPolicy
         from core.ast.models import TranslationUnit, TranslationTaskType
         from apps.bootstrap.pipeline_factory import build_extraction_pipeline
-        import hashlib
 
         pdf_target_path = Path.cwd() / "[Amoretal_2023]_3hojas.pdf"
         
@@ -83,14 +92,15 @@ async def main() -> None:
             if not safe_content.strip():
                 continue
                 
-            node_sha = hashlib.sha256(safe_content.encode('utf-8')).hexdigest()
+            from core.shared.crypto import compute_sha256
+            node_sha = compute_sha256(safe_content.encode('utf-8'))
             est_tokens = max(1, len(safe_content) // 4) 
             total_estimated_tokens += est_tokens
             
             task_type = TranslationTaskType.TRANSLATE
             complexity = DocumentComplexity.STANDARD_PROSE
             
-            node_type_val = node.node_type.value if hasattr(node.node_type, "value") else str(node.node_type)
+            node_type_val = node.node_type.value
             if "EQUATION" in node_type_val or "TABLE" in node_type_val:
                 task_type = TranslationTaskType.PARTIAL
                 complexity = DocumentComplexity.MIXED_HYBRID
@@ -113,7 +123,8 @@ async def main() -> None:
             prepared_units.append(unit)
             unit_complexity_map[unit.chunk_id] = complexity
 
-        doc_sha = hashlib.sha256(pdf_target_path.read_bytes()).hexdigest()
+        from core.shared.crypto import compute_sha256_stream
+        doc_sha = compute_sha256_stream(_iter_file_chunks(pdf_target_path))
         doc = BenchmarkDocument(
             id=pdf_target_path.stem,
             file_path=str(pdf_target_path),

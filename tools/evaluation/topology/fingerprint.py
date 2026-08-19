@@ -16,11 +16,7 @@ class ASTFingerprintPolicy:
         Devuelve la tupla semántica (node_type_str, text_content).
         Garantiza que la comparación considere tanto el tipo de nodo como su contenido.
         """
-        node_type_str = (
-            node.node_type.value
-            if hasattr(node.node_type, "value")
-            else str(node.node_type)
-        )
+        node_type_str = node.node_type.value
         content_str = node.text_content.strip()
         return (node_type_str, content_str)
 

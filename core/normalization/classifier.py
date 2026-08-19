@@ -143,7 +143,7 @@ class SemanticNodeClassifier:
 
     def _mutate_node_type(self, node: ASTNode, new_type: ContentNodeType, reason: str, score: int) -> ASTNode:
         new_cp = dict(node.control_plane)
-        new_cp["classifier_reclassified_from"] = node.node_type.value if hasattr(node.node_type, "value") else str(node.node_type)
+        new_cp["classifier_reclassified_from"] = node.node_type.value
         new_cp["classifier_reason"] = reason
         new_cp["classifier_score"] = score
         new_cp["classifier_version"] = self._version

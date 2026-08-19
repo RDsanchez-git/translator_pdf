@@ -24,6 +24,13 @@ class FailureType(Enum):
     SEMANTIC_VALIDATION_FAILURE = "semantic_validation_failure"
     LATEX_COMPILATION_FAILURE = "latex_compilation_failure"
 
+@dataclass(frozen=True, slots=True)
+class RecoveredJobSnapshot:
+    """SOTA: Capa Anticorrupción. Representación agnóstica de la FSM aislada del pipeline."""
+    document_id: str
+    ast_hash: str
+    state_value: str
+
 @dataclass(frozen=True)
 class ValidationError:
     code: str

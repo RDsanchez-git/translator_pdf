@@ -9,7 +9,7 @@ NADR-09 §5.1 R5: MUST NOT existir mecanismos de auto-promoción.
 
 from typing import Protocol, Optional
 from core.execution.state import DocumentCommand
-from core.execution.state_mapping import RecoveredJobSnapshot
+from core.execution.models import RecoveredJobSnapshot
 from infra.db.fsm_repository import FSMRepository
 from core.execution.handlers import DocumentCommandHandler
 

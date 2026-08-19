@@ -2,6 +2,7 @@ import asyncio
 import logging
 import random
 import time
+from typing import Optional
 from enum import Enum
 from dataclasses import dataclass
 from typing import Protocol
@@ -9,6 +10,8 @@ from apps.llm_workers.prompt_builder import PromptEnvelope
 from apps.llm_workers.routing import LLMProvider
 from core.prompting.inference_result import InferenceResult
 from core.execution.exceptions import PermanentQuotaRejection, QuotaTimeoutError
+from core.resilience.rate_limit_store import RateLimitStore
+from core.resilience.rate_limit_store import BucketState
 
 
 logger = logging.getLogger(__name__)
@@ -105,12 +108,61 @@ class TokenBucket:
 
 class QuotaManager(QuotaManagerProtocol):
     """SOTA: Gestor de estado predictivo adaptado al QuotaManagerProtocol."""
-    def __init__(self, rpm_limit: int, tpm_limit: int, clock: ClockProtocol = SystemClock()):
+    def __init__(
+        self,
+        rpm_limit: int,
+        tpm_limit: int,
+        clock: ClockProtocol = SystemClock(),
+        store: Optional[RateLimitStore] = None,
+    ):
         self.rpm_bucket = TokenBucket(rpm_limit, rpm_limit / 60.0, clock)
         self.tpm_bucket = TokenBucket(tpm_limit, tpm_limit / 60.0, clock)
         self.tpm_limit = tpm_limit
         self.clock = clock
         self.lock = asyncio.Lock()
+        self._store = store
+
+        # DF-27: Restaurar estado persistente si existe
+        if self._store is not None:
+            self._restore_bucket_state("rpm", self.rpm_bucket, rpm_limit)
+            self._restore_bucket_state("tpm", self.tpm_bucket, tpm_limit)
+
+    def _restore_bucket_state(
+        self,
+        bucket_id: str,
+        bucket: TokenBucket,
+        capacity: int,
+    ) -> None:
+        """
+        Restaura el estado de un bucket desde el store.
+        
+        Convierte epoch (del store) a monotonic (del bucket) y aplica
+        refill por el tiempo transcurrido desde el último save.
+        """
+        if self._store is None:  # ← Type guard requerido por Pyright
+            return
+        state = self._store.load(bucket_id)
+        if state is None:
+            return
+
+        elapsed = max(0.0, time.time() - state.last_update)
+        refilled = min(float(capacity), state.tokens + elapsed * bucket.refill_rate)
+        bucket.tokens = refilled
+        bucket.last_update = self.clock.now()
+
+    def _persist_bucket_state(self) -> None:
+        """Persiste el estado actual de ambos buckets (epoch seconds)."""
+        if self._store is None:  # ← Type guard ya existía, verificar que esté
+            return
+        now_epoch = time.time()
+        self._store.save("rpm", BucketState(
+            tokens=self.rpm_bucket.tokens,
+            last_update=now_epoch,
+        ))
+        self._store.save("tpm", BucketState(
+            tokens=self.tpm_bucket.tokens,
+            last_update=now_epoch,
+        ))
 
     async def reserve(self, estimated_tokens: int, estimated_requests: int = 1) -> QuotaReservation:
         if estimated_tokens > self.tpm_limit:
@@ -129,6 +181,10 @@ class QuotaManager(QuotaManagerProtocol):
             if max_wait <= 0.0:
                 self.rpm_bucket.consume(float(estimated_requests))
                 self.tpm_bucket.consume(float(estimated_tokens))
+
+                # DF-27: Persistir estado tras consumo exitoso
+                self._persist_bucket_state()
+
                 return QuotaReservation.create_granted(
                     tokens=estimated_tokens,
                     requests=estimated_requests,

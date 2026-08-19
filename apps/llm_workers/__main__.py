@@ -21,11 +21,12 @@ from infra.db.event_repo import EventPlaneRepository
 from infra.db.materialized_repo import MaterializedPlaneRepository
 from core.validation.budget import PromptBudgetCalculator, StandardCompressionPolicy
 from core.finops.measurement import InferenceMeasurementService
-from core.prompting.dialects.openai_compatible import OpenAICompatibleDialect
 from core.metrics.metrics import Metrics
+from apps.bootstrap.provider_stack_factory import build_provider_stack
 
 setup_distributed_logger()
 logger = logging.getLogger("worker_llm")
+
 
 class TaskLeaseHeartbeat:
     """
@@ -199,13 +200,9 @@ class LLMWorkerDaemon:
 
 if __name__ == "__main__":
     from apps.llm_workers.sync_bridge import SyncProviderBridge
-    from apps.llm_workers.adapters import GroqProvider
-    from apps.llm_workers.rate_limiter import RateLimitedProvider, QuotaManager
-    from apps.llm_workers.cache_provider import CachedLLMProvider
     from apps.llm_workers.prompt_builder import PromptBuilder
     from core.validation.estimators import ExactBPEEstimator
-    from core.resilience.circuit_breaker import GlobalCircuitBreaker
-    from apps.llm_workers.circuit_breaker_provider import CircuitBreakerProvider
+    from infra.resilience.sqlite_rate_limit_store import SQLiteRateLimitStore
 
     QUEUE_DB_PATH = os.getenv("QUEUE_DB_PATH", "infra/db/queue.db")
     EVENT_DB_PATH = os.getenv("EVENT_DB_PATH", "infra/db/event.db")
@@ -232,7 +229,6 @@ if __name__ == "__main__":
     estimator = ExactBPEEstimator()
     measurement_service = InferenceMeasurementService(estimator=estimator)
 
-    # SOTA FIX: Firma FinOps corregida sin el parámetro estimator obsoleto
     budget_calculator = PromptBudgetCalculator(
         primary_window_limit=8192,
         fallback_window_limit=1048576,
@@ -242,7 +238,6 @@ if __name__ == "__main__":
 
     compression_policy = StandardCompressionPolicy()
 
-    # SOTA FIX: Inyección de la suite FinOps completa requerida por PromptBuilder en la Fase 16
     builder = PromptBuilder(
         model_name="llama3-70b-8192", 
         prompt_version="v1.0", 
@@ -250,20 +245,22 @@ if __name__ == "__main__":
         budget_calculator=budget_calculator,
         compression_policy=compression_policy
     )
-    
-    # SOTA FIX: Inyección del dialecto estricto de OpenAI y remoción de ResilientProvider
-    dialect = OpenAICompatibleDialect()
-    groq_provider = GroqProvider(api_key=api_key, dialect=dialect)
-    quota = QuotaManager(rpm_limit=30, tpm_limit=6000)
-    rate_provider = RateLimitedProvider(underlying=groq_provider, quota_manager=quota)
-    
-    cached_provider = CachedLLMProvider(rate_provider, db_path=MAT_DB_PATH)
-    
-    asyncio.run(cached_provider.initialize())
-    
-    # Stack order: CircuitBreaker → Cache → RateLimiter → Provider
-    breaker = GlobalCircuitBreaker()
-    provider_stack = CircuitBreakerProvider(underlying=cached_provider, breaker=breaker)
+
+    rpm_limit = int(os.getenv("GROQ_RPM_LIMIT", "30"))
+    tpm_limit = int(os.getenv("GROQ_TPM_LIMIT", "6000"))
+
+    # DF-27: Persistencia de cuotas con SQLite WAL
+    rl_conn = get_connection("infra/db/rate_limits.db", timeout=30)
+    rl_conn.execute("PRAGMA busy_timeout=30000")
+    rl_store = SQLiteRateLimitStore(rl_conn)
+
+    # DF-26: Provider stack construido en Composition Root único
+    provider_stack = asyncio.run(build_provider_stack(
+        api_key=api_key,
+        rpm_limit=rpm_limit,
+        tpm_limit=tpm_limit,
+        rate_limit_store=rl_store,
+    ))
     
     processor = SyncProviderBridge(async_provider=provider_stack, prompt_builder=builder)
 
@@ -290,7 +287,7 @@ if __name__ == "__main__":
     finally:
         logger.info("Liberando recursos globales...")
         processor.shutdown()
-        for conn in (queue_conn, evt_conn, mat_conn):
+        for conn in (queue_conn, evt_conn, mat_conn, rl_conn):
             try:
                 conn.close()
             except Exception:

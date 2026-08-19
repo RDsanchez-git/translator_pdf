@@ -1,8 +1,8 @@
 import os
 import time
 import asyncio
-import hashlib
 import logging
+from typing import Iterator
 from typing import List, Tuple, Optional
 import numpy as np
 
@@ -34,6 +34,18 @@ from core.benchmark.reporter import StatisticalComparator
 logger = logging.getLogger(__name__)
 
 
+
+
+def _iter_file_chunks(file_path: os.PathLike | str, chunk_size: int = 8192) -> Iterator[bytes]:
+    """Imperative Shell: I/O aislado en el borde."""
+    with open(file_path, "rb") as f:
+        while True:
+            chunk = f.read(chunk_size)
+            if not chunk:
+                break
+            yield chunk
+
+
 class DatasetIntegrityValidator:
     """Validador de consistencia del set de datos."""
     
@@ -43,12 +55,8 @@ class DatasetIntegrityValidator:
             logger.error(f"Falla de Fixture: Archivo ausente en {document.file_path}")
             return False
             
-        sha256 = hashlib.sha256()
-        with open(document.file_path, "rb") as f:
-            while chunk := f.read(8192):
-                sha256.update(chunk)
-                
-        computed_hash = sha256.hexdigest()
+        from core.shared.crypto import compute_sha256_stream
+        computed_hash = compute_sha256_stream(_iter_file_chunks(document.file_path))
         if computed_hash != document.file_sha256:
             logger.error(
                 f"Corrupción detectada en {document.id}. Esperado: {document.file_sha256}, Obtenido: {computed_hash}"

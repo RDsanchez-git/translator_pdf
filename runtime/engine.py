@@ -1,4 +1,5 @@
 ﻿import os
+import asyncio
 import sys
 import hashlib
 import time
@@ -32,9 +33,9 @@ from core.ast.registry import ASTRegistry
 from core.normalization.latex_sanitizer import InlineMathProtector
 from core.validation.budget import PromptBudgetCalculator, StandardCompressionPolicy
 from core.finops.measurement import InferenceMeasurementService
-from core.prompting.dialects.openai_compatible import OpenAICompatibleDialect
 from core.ast.enums import ContentNodeType
 from apps.llm_workers.prompt_builder import PromptBuilder
+from apps.bootstrap.provider_stack_factory import build_provider_stack
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +47,7 @@ MAT_DB_PATH = "infra/db/materialized.db"
 GLOBAL_LLM_SEMAPHORE = threading.Semaphore(int(os.getenv("MAX_GLOBAL_LLM_CONCURRENCY", "4")))
 
 def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_traduccion.pdf") -> dict:
+    
     pipeline_start = time.time()
     logger.info(f"Orquestador de Runtime acoplado al Documento [ID: {document_id[:8]}]")
     
@@ -65,9 +67,8 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
     
     # SOTA: Instanciación Singleton del Bridge para aislamiento Thread-Safe
     from apps.llm_workers.sync_bridge import SyncProviderBridge
-    from apps.llm_workers.adapters import GroqProvider
-    from apps.llm_workers.rate_limiter import RateLimitedProvider, QuotaManager
     from core.validation.estimators import ExactBPEEstimator
+    from infra.resilience.sqlite_rate_limit_store import SQLiteRateLimitStore
     
     api_key = os.getenv("GROQ_API_KEY")
     if not api_key:
@@ -97,12 +98,18 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
     rpm_limit = int(os.getenv("GROQ_RPM_LIMIT", "30"))
     tpm_limit = int(os.getenv("GROQ_TPM_LIMIT", "6000"))
     
-    dialect = OpenAICompatibleDialect()
-    groq_provider = GroqProvider(api_key=api_key, dialect=dialect)
-    quota = QuotaManager(rpm_limit=rpm_limit, tpm_limit=tpm_limit)
-    rate_provider = RateLimitedProvider(underlying=groq_provider, quota_manager=quota)
-    
-    processor = SyncProviderBridge(async_provider=rate_provider, prompt_builder=builder)
+        # DF-27: Persistencia de cuotas con SQLite WAL
+    rl_conn = get_connection("infra/db/rate_limits.db", timeout=30)
+    rl_conn.execute("PRAGMA busy_timeout=30000")
+    rl_store = SQLiteRateLimitStore(rl_conn)
+
+    provider_stack = asyncio.run(build_provider_stack(
+        api_key=api_key,
+        rpm_limit=rpm_limit,
+        tpm_limit=tpm_limit,
+        rate_limit_store=rl_store,
+    ))
+    processor = SyncProviderBridge(async_provider=provider_stack, prompt_builder=builder)
     owner_id = f"orchestrator_{uuid.uuid4().hex[:8]}"
     cache_key = (document_id, ast_hash)
     
@@ -375,7 +382,7 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
     final_state_val = current_state.value if current_state else "UNKNOWN"
     processor.shutdown()
     
-    for conn in (fsm_conn, queue_conn, evt_conn, mat_conn):
+    for conn in (fsm_conn, queue_conn, evt_conn, mat_conn, rl_conn):
         try:
             conn.close()
         except Exception:

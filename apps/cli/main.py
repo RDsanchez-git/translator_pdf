@@ -17,17 +17,12 @@ from core.chunking.semantic_chunking import build_semantic_chunks_as_units
 from core.validation.estimators import ExactBPEEstimator
 from infra.db.connection import get_connection
 
-from apps.llm_workers.adapters import GroqProvider
-from apps.llm_workers.rate_limiter import RateLimitedProvider, QuotaManager
-from apps.llm_workers.cache_provider import CachedLLMProvider
 from apps.llm_workers.prompt_builder import PromptBuilder
 from core.validation.budget import PromptBudgetCalculator, StandardCompressionPolicy
 from core.finops.measurement import InferenceMeasurementService
-from core.prompting.dialects.openai_compatible import OpenAICompatibleDialect
-
-from core.resilience.circuit_breaker import GlobalCircuitBreaker
-from apps.llm_workers.circuit_breaker_provider import CircuitBreakerProvider
 from core.validation.protocols import TokenEstimatorProtocol
+from apps.bootstrap.provider_stack_factory import build_provider_stack
+from infra.resilience.sqlite_rate_limit_store import SQLiteRateLimitStore
 
 
 console = Console()
@@ -90,17 +85,17 @@ async def handle_translate_async(args):
     rpm_limit = int(os.getenv("GROQ_RPM_LIMIT", "30"))
     tpm_limit = int(os.getenv("GROQ_TPM_LIMIT", "6000"))
     
-    dialect = OpenAICompatibleDialect()
-    groq_provider = GroqProvider(api_key=api_key, dialect=dialect)
-    quota_manager = QuotaManager(rpm_limit=rpm_limit, tpm_limit=tpm_limit)
-    rate_provider = RateLimitedProvider(underlying=groq_provider, quota_manager=quota_manager)
-    cached_provider = CachedLLMProvider(underlying=rate_provider, db_path="infra/db/materialized.db")
+    # DF-27: Persistencia de cuotas con SQLite WAL
+    rl_conn = get_connection("infra/db/rate_limits.db", timeout=30)
+    rl_conn.execute("PRAGMA busy_timeout=30000")
+    rl_store = SQLiteRateLimitStore(rl_conn)
     
-    await cached_provider.initialize()
-
-    # Stack order: CircuitBreaker → Cache → RateLimiter → Provider
-    breaker = GlobalCircuitBreaker()
-    provider_stack = CircuitBreakerProvider(underlying=cached_provider, breaker=breaker)
+    provider_stack = await build_provider_stack(
+        api_key=api_key,
+        rpm_limit=rpm_limit,
+        tpm_limit=tpm_limit,
+        rate_limit_store=rl_store,
+    )
 
     optimal_concurrency = max(1, min(int((rpm_limit / 60.0) * 1.5) * 2, 50))
 
@@ -174,6 +169,12 @@ async def handle_translate_async(args):
         import traceback
         traceback.print_exc()
         sys.exit(1)
+    finally:
+        # DF-27: Cerrar conexión de rate limits
+        try:
+            rl_conn.close()
+        except Exception:
+            pass
 
 def handle_translate(args):
     asyncio.run(handle_translate_async(args))

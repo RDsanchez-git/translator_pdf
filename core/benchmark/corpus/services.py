@@ -1,4 +1,3 @@
-import hashlib
 from typing import Dict, List
 from core.benchmark.corpus.dtos import RawCorpusManifestDTO, RawDocumentEntryDTO
 from core.benchmark.corpus.models import CorpusVersion, CorpusDocumentMetadata, DocumentFingerprint
@@ -10,23 +9,16 @@ class ManifestFingerprintCalculator:
 
     @staticmethod
     def compute_hash(version: CorpusVersion, documents: List[CorpusDocumentMetadata]) -> str:
-        """Genera un hash SHA-256 molecular basado en la versión del corpus y sus documentos indexados."""
-        hasher = hashlib.sha256()
-        hasher.update(version.value.encode("utf-8"))
-        
-        # Ordenamiento alfabético estricto de identificadores para asegurar determinismo absoluto
+        from core.shared.crypto import compute_sha256
+        parts = [version.value.encode("utf-8")]
         sorted_documents = sorted(documents, key=lambda doc: doc.document_id)
-        
         for doc in sorted_documents:
             # Ordenamiento alfabético estricto de los rasgos (traits) de cada documento
             sorted_traits = sorted([trait.value for trait in doc.traits])
             traits_str = ",".join(sorted_traits)
-            
-            # Composición estricta del payload por documento
             document_payload = f"{doc.document_id}:{doc.fingerprint.sha256}:{traits_str}:{doc.page_count}"
-            hasher.update(document_payload.encode("utf-8"))
-            
-        return hasher.hexdigest()
+            parts.append(document_payload.encode("utf-8"))
+        return compute_sha256(b"".join(parts))
 
 
 class ManifestLineageSealer:
