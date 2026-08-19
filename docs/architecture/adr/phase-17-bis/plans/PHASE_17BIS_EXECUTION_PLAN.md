@@ -540,3 +540,317 @@ el Gate actual pero requieren atención en Gates futuros.
 - La separación de planos (Resolver valida / Assembler decide / Service materializa) eliminó la doble materialización de contenido
 - `DispatchResult` como contrato inter-stage era la raíz del acoplamiento entre el pipeline lógico y el daemon físico
 - Los tests que dependían del ensamblado lógico quedaron obsoletos correctamente (el ensamblado es asíncrono)
+
+
+## 12. GATES EXIT REVIEWS — FINDINGS REGISTER & EVIDENCE LOG
+
+**Las tablas fueron construidas en base al `docs\architecture\adr\phase-17-bis\reports`. Para más detalles consultar ese archivo. **
+
+## Resumen por clasificación
+
+| Clasificación | Cantidad | DFs |
+|--------------|----------|-----|
+| `CLOSED (NAR)` | 6 | DF-03, DF-07, DF-20, DF-21, DF-22, GF-01 |
+| `RESOLVED — DELETE` | 4 | DF-10, DF-14, DF-25, DF-29 |
+| `RESOLVED` | 2 | DF-13, DF-16 |
+| `IMPLEMENTATION_REQUIRED` | 7 | DF-01, DF-02, DF-11, DF-12, DF-26, DF-27, DF-28 |
+| `RECLASSIFIED_FUTURE_PHASE` | 6 | DF-04, DF-17, DF-18, DF-24, DF-34 |
+| `REVIEW_REQUIRED` | 2 | DF-19, H-11-A |
+| `ACCEPTED_LIMITATION` | 2 | DF-15, DF-31 |
+
+## Tabla consolidada final
+
+| DF | Estado | Decisión |
+|----|--------|----------|
+| GF-01 | `CLOSED — NORMATIVE COMPATIBILITY ESTABLISHED` | Reconciliación normativa |
+| DF-01 | `IMPLEMENTATION_REQUIRED — ACCIÓN PENDIENTE` | Identidad semántica en Benchmark |
+| DF-02 | `IMPLEMENTATION_REQUIRED — ALCANCE ACOTADO` | Patrón defensivo `hasattr` |
+| DF-03 | `CLOSED (NAR)` | Ya cerrado en Gate 3 |
+| DF-04 | `RECLASSIFIED_FUTURE_PHASE` | AST sin contexto cruzado |
+| DF-07 | `CLOSED (NAR)` | Dependencias legítimas |
+| DF-10 | `RESOLVED — DELETE` | Eliminar 3 archivos |
+| DF-11 | `IMPLEMENTATION_REQUIRED — HEXAGONAL_BOUNDARY` | Migrar providers a infra/ |
+| DF-12 | `IMPLEMENTATION_REQUIRED — ALCANCE POR DEFINIR` | Zombis + migración FlatASTBuilder |
+| DF-13 | `RESOLVED` | Capacidades por provider |
+| DF-14 | `RESOLVED — DELETE` | Eliminar LogicalClassifier |
+| DF-15 | `ACCEPTED_LIMITATION` | Limitación de PyMuPDF |
+| DF-16 | `RESOLVED — ACCEPTED SEPARATION` | Taxonomías ortogonales |
+| DF-17 | `RECLASSIFIED_FUTURE_PHASE` | Asset management no existe |
+| DF-18 | `RECLASSIFIED_FUTURE_PHASE` | AssemblyExecutionContext ≠ ExecutionContext unificado |
+| DF-19 | `REVIEW_REQUIRED` | God Factory parcial |
+| DF-20 | `CLOSED (NAR)` | Dispatcher delega vía DI |
+| DF-21 | `CLOSED (NAR)` | Registries de bounded contexts distintos |
+| DF-22 | `CLOSED (NAR)` | Snapshot intencional |
+| DF-24 | `RECLASSIFIED_FUTURE_PHASE` | CB en memoria suficiente |
+| DF-25 | `RESOLVED — DELETE` | CQRSReconciliationDaemon zombie |
+| DF-26 | `IMPLEMENTATION_REQUIRED — EXTRAER PROVIDER STACK FACTORY` | 3 puntos + divergencia QuotaManager |
+| DF-27 | `IMPLEMENTATION_REQUIRED — ALCANCE POR DEFINIR` | RateLimitStore sin implementación |
+| DF-28 | `IMPLEMENTATION_REQUIRED — ALCANCE ACOTADO` | Divergencia benchmark/producción |
+| DF-29 | `RESOLVED — DELETE ZOMBIE + REMOVE IMPORT` | Eliminados dicts zombies + import |
+| DF-31 | `ACCEPTED_LIMITATION` | Port no detecta huérfanos. Funcionalmente correcto |
+| DF-34 | `RECLASSIFIED_FUTURE_PHASE` | Recovery gap. Destino: Recovery Gate / Fase 18 |
+| H-11-A | `REVIEW_REQUIRED` | measure_density.py |
+
+
+## 13. RESULTADOS FINALES DE DFs 
+
+### BATCH 1 — Limpieza de Código Zombie (Completado)
+
+**Fecha de ejecución:** 2026-08-16  
+**Validación:** Pyright 0 errors | pytest 274 passed, 5 skipped
+
+| DF ID | Estado Final | Acción Ejecutada | Archivos Afectados | Validación |
+|-------|--------------|------------------|-------------------|------------|
+| **DF-10** | `RESOLVED — DELETE` | DELETE 3 archivos | `core/ast/router.py`,`core/ast/ports.py``infra/adapters/pdf_router.py` | ✅ 0 imports✅ Pyright clean✅ Tests green |
+| **DF-14** | `RESOLVED — DELETE` | DELETE 1 archivo | `core/layout/classifier.py` | ✅ 0 imports✅ Pyright clean✅ Tests green |
+| **DF-25** | `RESOLVED — DELETE` | DELETE 1 archivo | `runtime/reconciliation.py` | ✅ 0 imports✅ Pyright clean✅ Tests green |
+| **DF-29** | `RESOLVED — DELETE ZOMBIE` | DELETE dicts zombies + import | `core/execution/state_mapping.py`(eliminados: `PIPELINE_TO_FSM`, `FSM_TO_PIPELINE_RESUME`, imports innecesarios) | ✅ 0 imports de core.pipeline✅ 0 referencias a dicts✅ Pyright clean✅ Tests green |
+
+---
+
+### Extensión Post-Batch 1 — Hallazgo Post-DF-29 (Completado)
+
+**Fecha de ejecución:** 2026-08-16  
+**Validación:** Pyright 0 errors | pytest 274 passed, 5 skipped | state_mapping.py eliminado
+
+| Acción | Detalle |
+|--------|---------|
+| Mover `RecoveredJobSnapshot` | De `core/execution/state_mapping.py` → `core/execution/models.py` |
+| Eliminar archivo con nombre engañoso | `core/execution/state_mapping.py` (Test-Path → False) |
+| Actualizar imports | `core/pipeline/state_store.py:12` + `tests/unit/test_pipeline_fsm_emission.py:18` |
+| Cero referencias a `state_mapping` en el proyecto | ✅ Confirmado |
+| Bounded context preservado | Clase permanece en `core/execution/` (dirección de dependencia intacta) |
+
+**Justificación de la extensión:**  
+Tras eliminar los dicts zombies en DF-29, `state_mapping.py` quedó con una sola clase cuyo nombre ya no reflejaba su contenido. Mover `RecoveredJobSnapshot` a `core/execution/models.py` (donde ya residen `ProcessingStage`, `ChunkLifecycle`, `FailureType`) elimina el archivo con nombre engañoso sin violar la dirección de dependencia pipeline → execution.
+
+---
+
+### Métricas acumuladas post-Batch 1 + extensión
+
+| Métrica | Valor |
+|---------|-------|
+| Archivos eliminados | 6 (5 en Batch 1 + 1 en extensión) |
+| Archivos reubicados | 1 clase movida a `core/execution/models.py` |
+| Tests ejecutados | 274 passed, 5 skipped (baseline mantenida) |
+| Errores de tipo estático | 0 |
+| Warnings | 1 (google.generativeai deprecated, no relacionado) |
+| Dependencias huérfanas detectadas | 0 |
+
+---
+
+### Batches Pendientes
+
+| Batch | DFs Incluidos | Estado |
+|-------|--------------|--------|
+| **Batch 2** | DF-11 (migrar providers a infra/) + DF-12-A (eliminar DocumentLayoutBuilder) | ⏳ Siguiente |
+| **Diseño DF-27** | Especificación de SQLiteRateLimitStore | ⏳ Pendiente |
+| **Batch 3** | DF-26 (extraer provider stack factory) + DF-27 (con diseño) | ⏳ Pendiente |
+| **Auditoría DF-12-B** | Evaluar stages del layout (veredicto propio) | ⏳ Pendiente |
+| **Batch 4** | DF-02 (eliminar hasattr) | ⏳ Pendiente |
+| **Diseño DF-01** | Especificación de identidad semántica en benchmark | ⏳ Pendiente |
+| **Batch 5** | DF-01 (con diseño) + DF-28 (alinear runners con Composition Root) | ⏳ Pendiente |
+| **Reevaluación** | DF-19, DF-12-C/D/E, H-11-A | ⏳ Pendiente |
+
+---
+
+### Notas de Gobernanza
+
+**Criterio de cierre por batch:**  
+Cada batch se considera cerrado cuando:
+1. Todos los tests pasan (pytest -q → baseline mantenida: 274 passed, 5 skipped)
+2. Pyright reporta 0 errors
+3. No se detectan imports huérfanos
+4. Los cambios están commiteados
+
+**Batch 1 + extensión completados sin bloqueos:**  
+Todos los DFs ejecutados eran de bajo riesgo (eliminación de código zombie sin dependencias activas). La extensión post-DF-29 se ejecutó como acción documentada y validada independiente.
+
+**Próximo hito — Batch 2:**
+- **DF-11:** Migración de `core/extraction/ocr_providers/` a `infra/extraction/providers/` (pymupdf, tesseract, docling). Requiere actualizar imports en provider_factory.py, generate_candidates.py, generate_pymupdf_candidate.py, test_docling_provider.py, test_pipeline_factory.py.
+- **DF-12-A:** Eliminar `core/layout/builder.py` (DocumentLayoutBuilder, 0 instancias confirmadas en Paso 0).
+- **H-11-A** queda excluido del Batch 2 conforme a la corrección normativa de la revisión de gobernanza: es `REVIEW_REQUIRED`, no `IMPLEMENTATION_REQUIRED`.
+- **PROJECT_TREE** actualizado para reflejar los cambios del Batch 1 y la extensión post-DF-29.
+
+---
+
+### Estado del Exit Review: ✅ CERRADO
+
+| Categoría | Cantidad |
+|-----------|----------|
+| Total de DFs analizados | 27 (25 DF + GF-01 + H-11-A) |
+| DFs resueltos en Batch 1 | 4 |
+| Extensión post-DF-29 | ✅ Completada |
+| DFs pendientes de implementación | 7 (DF-01, DF-02, DF-11, DF-12, DF-26, DF-27, DF-28) |
+| DFs pendientes de revisión | 2 (DF-19, H-11-A) |
+| DFs cerrados sin acción | 16 |
+
+
+### Batch 2 — Migración Hexagonal + Limpieza de Zombis (Completado)
+
+**Fecha de ejecución:** 2026-08-16  
+**Validación:** Pyright 0 errors | pytest 274 passed, 5 skipped
+
+| DF ID | Estado Final | Acción Ejecutada | Archivos Afectados | Validación |
+|-------|--------------|------------------|-------------------|------------|
+| **DF-11** | `RESOLVED — MOVE` | MOVE 3 providers de `core/` a `infra/` | `core/extraction/ocr_providers/pymupdf_provider.py` → `infra/extraction/providers/`<br>`core/extraction/ocr_providers/tesseract_provider.py` → `infra/extraction/providers/`<br>`core/extraction/ocr_providers/docling_provider.py` → `infra/extraction/providers/` | ✅ 0 infra imports en core/ (excepto H-11-A)<br>✅ Pyright clean<br>✅ Tests green |
+| **DF-12-A** | `RESOLVED — DELETE` | DELETE `DocumentLayoutBuilder` + corregir import | `core/layout/builder.py` eliminado<br>`apps/bootstrap/pipeline_factory.py:43` corregido (import canónico) | ✅ 0 instancias de DocumentLayoutBuilder<br>✅ Pyright clean<br>✅ Tests green |
+
+**Correcciones adicionales durante ejecución:**
+- `tests/unit/test_docling_provider.py`: Actualizado `@patch` con nueva ruta de módulo
+- `tools/benchmark_archive/run_calibration_v1.py`: Agregado `# pyright: ignore` (archivo archivado, DF-03 NAR)
+
+**Hallazgo registrado (pendiente de revisión):**
+- **H-11-A:** `core/metrics/measure_density.py` importa `fitz` directamente
+- Clasificación: `REVIEW_REQUIRED`
+- Acción: Determinar si es métrica de dominio o inspección física antes de decidir MOVE/DELETE
+
+**Métricas post-batch:**
+- Archivos movidos: 3 (providers OCR)
+- Archivos eliminados: 1 (DocumentLayoutBuilder)
+- Imports corregidos: 5 (4 en consumidores + 1 en test)
+- Tests ejecutados: 274 passed, 5 skipped
+- Errores de tipo estático: 0
+
+**Estructura hexagonal correcta:**
+- `core/extraction/provider.py` → Puerto abstracto (permanece en dominio)
+- `infra/extraction/providers/` → Adaptadores concretos (movidos desde core/)
+- `core/` libre de imports de infraestructura (excepto H-11-A pendiente)
+
+
+### Batch 3 — Composición y Wiring (Completado)
+
+**Fecha de ejecución:** 2026-08-17  
+**Validación:** Pyright 0 errors | pytest 274 passed, 5 skipped
+
+| DF ID | Estado Final | Acción Ejecutada | Archivos Afectados | Validación |
+|-------|--------------|------------------|-------------------|------------|
+| **DF-26** | `RESOLVED — FACTORY EXTRACTION` | Extraer `build_provider_stack()` | `apps/bootstrap/provider_stack_factory.py` (nuevo)<br>`apps/llm_workers/rate_limiter.py` (agregar `store` param)<br>`apps/cli/main.py` (usar factory)<br>`apps/llm_workers/__main__.py` (usar factory)<br>`runtime/engine.py` (usar factory + agregar cache/CB) | ✅ 0 construcciones inline<br>✅ Factory centralizada<br>✅ Pyright clean<br>✅ Tests green |
+| **DF-27** | `RESOLVED — SQLITE_RATE_LIMIT_STORE` | Implementar persistencia de cuotas | `infra/resilience/sqlite_rate_limit_store.py` (nuevo)<br>`core/resilience/rate_limit_store.py` (Protocol sync + docstring epoch)<br>`apps/llm_workers/rate_limiter.py` (_restore/_persist epoch↔monotonic)<br>`apps/cli/main.py` (inyectar store)<br>`apps/llm_workers/__main__.py` (inyectar store)<br>`runtime/engine.py` (inyectar store) | ✅ Store creado<br>✅ Protocol sync<br>✅ Conversión epoch↔monotonic<br>✅ 3 entry points inyectan store<br>✅ 3 entry points cierran rl_conn<br>✅ Pyright clean<br>✅ Tests green |
+
+**Cambios normativos aplicados:**
+- **NADR-08 §5.1 R1 cumplido:** Puerto abstracto `RateLimitStore` implementado
+- **NADR-08 §5.1 R2 cumplido:** Operaciones atómicas `load()`/`save()` con SQLite WAL
+- **NADR-08 §5.1 R3 cumplido:** Estado persistente en SQLite (no exclusivamente en RAM)
+- **NADR-08 §5.1 R4 cumplido:** Backend seleccionado desde Composition Root (entry points)
+- **GF-01 satisfecho:** Backend local SQLite WAL, sin infraestructura distribuida
+
+**Decisiones de diseño clave:**
+- **epoch↔monotonic:** `BucketState.last_update` almacena `time.time()` (epoch). `QuotaManager` convierte al cargar/guardar para compatibilidad con `TokenBucket` que usa `time.monotonic()`
+- **Sin `close()` en SQLiteRateLimitStore:** Coherente con patrón DI de `infra/db/` (8 repos). El caller cierra la conexión
+- **Factory NO crea store:** Caller decide si inyectar persistencia. `rate_limit_store=None` = memoria local (backward compatible, testeable)
+- **PRAGMA WAL idempotente:** Coherente con patrón de `CachedLLMProvider.initialize()`
+
+**Métricas acumuladas Batch 3:**
+- Archivos creados: 2 (`provider_stack_factory.py`, `sqlite_rate_limit_store.py`)
+- Archivos modificados: 6 (rate_limit_store.py, rate_limiter.py, 3 entry points, pipeline_factory.py indirecto)
+- Tests ejecutados: 274 passed, 5 skipped
+- Errores de tipo estático: 0
+
+
+
+### Batch 4 — Limpieza de Zombis Layout + Eliminación de Patrones Defensivos (Completado)
+
+**Fecha de ejecución:** 2026-08-17  
+**Validación:** Pyright 0 errors | pytest 274 passed, 5 skipped
+
+| DF ID | Estado Final | Acción Ejecutada | Archivos Afectados | Validación |
+|-------|--------------|------------------|-------------------|------------|
+| **DF-12-B** | `RESOLVED — DELETE` | Eliminar 6 stages zombis del layout pipeline | `core/layout/detector.py` (SpatialAnalyzer) — eliminado<br>`core/layout/identity.py` (BlockIdentityGenerator) — eliminado<br>`core/layout/merger.py` (SpatialMerger) — eliminado<br>`core/layout/normalizer.py` (CoordinateNormalizer) — eliminado<br>`core/layout/reading_order.py` (ReadingOrderResolver) — eliminado<br>`core/layout/base.py` (LayoutStage, PipelineContext, PipelineConfig, ProviderDescriptor, MergePolicy, ReadingOrderPolicy) — eliminado | ✅ 6 archivos eliminados<br>✅ 3 archivos preservados (models.py, classification.py, validator.py)<br>✅ 0 referencias huérfanas<br>✅ Pyright clean<br>✅ Tests green |
+| **DF-02-A** | `RESOLVED — REFACTORED` | Eliminar `hasattr(node.node_type, "value")` en producción | `core/benchmark/__main__.py:93`<br>`core/normalization/classifier.py:146`<br>`core/normalization/pipeline.py:44` | ✅ Acceso directo a `.value`<br>✅ Pyright clean<br>✅ Tests green |
+| **DF-02-B** | `RESOLVED — REFACTORED` | Eliminar `hasattr` en tooling de benchmark | `tools/evaluation/topology/fingerprint.py:19` | ✅ Acceso directo a `.value`<br>✅ Pyright clean<br>✅ Tests green |
+
+---
+
+#### DF-12-B: Eliminación de Stages Zombis del Layout Pipeline
+
+**Evidencia de auditoría:**
+- Los 5 stages tenían **0 instancias** y **0 consumidores externos** en todo el proyecto
+- `base.py` era un zombi derivado: sus 6 clases solo eran consumidas por los 5 stages eliminados
+- `DocumentLayoutBuilder` (orquestador) fue eliminado previamente en DF-12-A (Batch 2)
+- El benchmark NO usa estos stages — usa `LayoutBlockDraft`/`LayoutBlockCollection` como DTOs hacia `FlatASTBuilder`, sin invocar ningún stage
+
+**Archivos preservados en `core/layout/`:**
+- `models.py` — `LayoutBlockDraft` + `LayoutBlockCollection` (activos, consumidos por FlatASTBuilder)
+- `classification.py` — `HeuristicLayoutClassifier` (activo, consumido por PyMuPDFProvider)
+- `validator.py` — `DocumentLayoutValidator` (activo, consumido por pipeline_factory)
+
+**DF-12-C/D/E diferido:**
+La migración de `FlatASTBuilder` a consumir `list[LayoutBlock]` directamente (eliminando la capa `LayoutBlockDraft`/`LayoutBlockCollection`) es un refactor de contrato que afecta 5+ archivos activos. Requiere ADR de diseño propio y se difiere a un batch futuro.
+
+---
+
+#### DF-02: Eliminación de Patrón `hasattr` Defensivo
+
+**Justificación técnica:**
+- `ASTNode.node_type` está tipado como `ContentNodeType` (Enum puro, sin Union)
+- Pydantic garantiza el tipo post-construcción — si el tipo fuera incorrecto, fallaría con `ValidationError`
+- El fallback `else str(node.node_type)` violaba ENGINEERING_PRINCIPLES §IV (Cero Fallos Silenciosos)
+- Método de edición: manual (Opción A) para preservar encoding original y evitar BOM de PowerShell
+
+**Verificación previa del tipo:**
+- `ASTNode.node_type: ContentNodeType` — tipo puro, sin Union, sin Optional
+- `ContentNodeType(str, Enum)` — Enum con 11 miembros, `.value` siempre existe
+
+---
+
+
+### DF-01 — Identidad Semántica y Centralización Criptográfica (Parcial)
+
+**Fecha de ejecución:** 2026-08-19  
+**Validación:** Pyright 0 errors | pytest 274 passed, 5 skipped
+
+| Sub-DF | Estado Final | Acción Ejecutada | Archivos Afectados | Validación |
+|--------|--------------|------------------|-------------------|------------|
+| **DF-01-A** | `RESOLVED — REFACTORED` | Migrar `hashlib.sha256()` directo a funciones canónicas de `core/shared/crypto.py` | `core/shared/crypto.py` (nueva función pura `compute_sha256_stream`)<br>`core/benchmark/__main__.py` (2 puntos, 1 con streaming)<br>`core/benchmark/runners/gemini_runner.py`<br>`core/benchmark/runners/groq_runner.py`<br>`core/benchmark/corpus/services.py`<br>`core/benchmark/orchestrator.py` (streaming) | ✅ 0 `hashlib` directo en benchmark<br>✅ 0 `.read_bytes()` (soporte para libros 500+ págs)<br>✅ Pyright clean<br>✅ Tests green |
+
+**Decisiones de diseño clave:**
+- **Streaming para libros extensos:** Se agregó `compute_sha256_stream(chunks: Iterable[bytes])` como función pura (Functional Core). El I/O de lectura por chunks se aísla en el caller (Imperative Shell). Esto previene cargar PDFs de 200-500 MB en RAM.
+- **Centralización criptográfica:** Todo el hashing del benchmark pasa ahora por el punto canónico `core/shared/crypto.py` (ENGINEERING_PRINCIPLES §III).
+
+**Reclasificación de sub-hallazgos de DF-01:**
+| Sub-DF | Estado Final | Justificación |
+|--------|--------------|---------------|
+| **DF-01-A** | `RESOLVED` | Centralización criptográfica completada. |
+| **DF-01-B** | `CLOSED — NAR` | Falso positivo: `node_sha` por chunk y `compute_ast_hash()` por documento tienen propósitos ortogonales. |
+| **DF-01-C** | `DEFERRED — FASE 2/3` | Requiere ADR de diseño futuro sobre el linaje de identidad semántica en la Scientific Baseline. |
+| **DF-01-D** | `CLOSED — NAR` | Agregar `ast_hash` a `DocumentFingerprint` violaría la separación de dimensiones del ADR Maestro §3 (Integridad física vs Identidad semántica). |
+
+
+### DF-28 — Alineación de Runners de Benchmark con Stack de Producción (Completado)
+
+**Fecha de ejecución:** 2026-08-19  
+**Validación:** Pyright 0 errors | pytest 274 passed, 5 skipped
+
+| DF ID | Estado Final | Acción Ejecutada | Archivos Afectados | Validación |
+|-------|--------------|------------------|-------------------|------------|
+| **DF-28** | `RESOLVED — PRODUCTION ALIGNMENT` | Alinear runners de benchmark con stack de producción | `apps/bootstrap/pipeline_factory.py` (`_build_healing_pipeline` → `build_healing_pipeline` público)<br>`apps/bootstrap/provider_stack_factory.py` (parámetro `base_provider` agregado)<br>`core/benchmark/runners/groq_runner.py` (usar factory canónica)<br>`core/benchmark/runners/gemini_runner.py` (usar factory canónica) | ✅ `DummyContextResolver` eliminado<br>✅ `DynamicContextResolver` con registry vacío<br>✅ `CircuitBreakerProvider` incluido vía factory<br>✅ `build_healing_pipeline()` reutilizado<br>✅ Pyright clean<br>✅ Tests green |
+
+**Cambios normativos aplicados:**
+- **NADR-05 §5.1 R1 cumplido:** Contexto real (DynamicContextResolver) en benchmark. Registry vacío es funcionalmente equivalente pero usa el mismo code path que producción.
+- **NADR-08 §5.2 R7 cumplido:** CircuitBreaker MANDATORY en benchmark (vía `build_provider_stack()`).
+- **NADR-11 §5.1 R1 cumplido:** Único punto de construcción del grafo de objetos (`build_provider_stack` reutilizado, no se creó factory paralela).
+- **ADR_F17_BIS_01 §4 cumplido:** "Lo que el benchmark evalúa es exactamente lo que producción ejecuta."
+
+**Decisiones de diseño clave:**
+- **Sin cache en benchmark** (decisión metodológica): El benchmark mide capacidad del modelo (TPS, latencia, calidad), no eficiencia del sistema. `cache_db_path=None` deshabilita cache en la factory canónica.
+- **`base_provider` en `build_provider_stack()`:** Permite al GeminiRunner inyectar `GeminiProvider` como base sin duplicar lógica de CB + RateLimiter.
+- **`build_healing_pipeline()` pública:** Extraída de `_build_healing_pipeline()` para eliminar duplicación de ~20 líneas entre producción y benchmark.
+
+
+### H-11-A — Limpieza de Frontera Hexagonal en core/metrics (Completado)
+
+**Fecha de ejecución:** 2026-08-19  
+**Validación:** Pyright 0 errors | pytest 274 passed, 5 skipped
+
+| Item | Estado Final | Acción Ejecutada | Archivos Afectados | Validación |
+|------|--------------|------------------|-------------------|------------|
+| **H-11-A** | `RESOLVED — DELETE` | Eliminar script de diagnóstico con violación de frontera hexagonal | `core/metrics/measure_density.py` — eliminado | ✅ Archivo eliminado<br>✅ 0 imports de `fitz` en `core/`<br>✅ 0 referencias huérfanas<br>✅ Pyright clean<br>✅ Tests green |
+
+**Justificación de la eliminación:**
+- **Violación NADR-02:** `import fitz` (PyMuPDF) directamente en la capa `core/`. El dominio no debe conocer proveedores concretos de extracción.
+- **Violación ENGINEERING_PRINCIPLES §II:** Functional Core contaminado con I/O de terceros.
+- **Código zombi completo:** 0 consumidores, 0 imports, 0 tests. Script de diagnóstico manual sin integración al pipeline.
+- **No pertenece a `core/metrics/`:** Los otros archivos (`metrics.py`, `pricing.py`, `summary.py`, `exporters.py`) son componentes activos del pipeline.
+
+**Métrica:** -1 archivo, -25 líneas de código muerto, frontera hexagonal restaurada.

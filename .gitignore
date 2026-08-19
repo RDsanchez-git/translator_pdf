@@ -1,33 +1,123 @@
-# Entorno Python
+# =====================================================================
+# ENTORNO PYTHON
+# =====================================================================
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
 .env
+.env.local
 venv/
 env/
+.venv/
 
-# Artefactos del Compilador
+# =====================================================================
+# ARTEFACTOS DEL COMPILADOR
+# =====================================================================
 MVP_traduccion.pdf
 debug.tex
+*.aux
+*.log
+*.synctex.gz
 
-# Persistencia Local (Cachés legacy)
+# =====================================================================
+# PERSISTENCIA LOCAL (CACHÉS Y BASES DE DATOS)
+# =====================================================================
+
+# Cachés legacy
 checkpoint.json
 checkpoint.json.tmp
 translation_cache.json
 translation_cache.json.tmp
 translation_cache.db*
 
-# =====================================================================
-# SOTA: ARQUITECTURA NUEVA (CACHÉS UNIFICADAS Y BASES DE DATOS WAL)
-# =====================================================================
-
-# Ignorar TODAS las bases de datos SQLite (.db, .db-wal, .db-shm)
+# Bases de datos SQLite (WAL mode)
 *.db
 *.db-wal
 *.db-shm
 infra/db/*.db*
+infra/telemetry/*.db*
+infra/benchmarks/*.db*
 
-# Ignorar la carpeta unificada de modelos, torch y tectonic
+# Carpeta unificada de modelos, torch y tectonic
 .cache/
 
-# Entornos locales de IDE
+# =====================================================================
+# ENTORNOS LOCALES DE IDE
+# =====================================================================
 .vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# =====================================================================
+# ARTEFACTOS DE PROCESO — FASE 17-BIS (NO COMMITEAR)
+# =====================================================================
+# Estos son artefactos de trabajo generados durante la auditoría y
+# ejecución de la Fase 17-BIS. No son documentación de gobernanza
+# ni código de producción.
+
+# Grafos de arquitectura generados
+P1_PRODUCTION_PIPELINE_GRAPH.md
+P2_PHYSICAL_INGESTION_GRAPH.md
+P3_TRANSFORMATION_GRAPH.md
+P4_OPERATIONAL_DISPATCH_GRAPH.md
+P5_VALIDATION_HEALING_GRAPH.md
+P6_ASSEMBLY_COMPILER_GRAPH.md
+P7_RUNTIME_CQRS_FSM_GRAPH.md
+PIPELINE_GRAPH.md
+architecture_graph.md
+architecture_graph_1.md
+architecture_index.txt
+arquitectura_limpia.txt
+
+# Snapshots automáticos del workspace
+ARCHITECTURE_WORKSPACE.md
+PROJECT_TREE.txt
+
+# Scripts generadores de grafos y workspace
+generate_p1_graph.py
+generate_p2_graph.py
+generate_p3_graph.py
+generate_p4_graph.py
+generate_p5_graph.py
+generate_p6_graph.py
+generate_p7_graph.py
+generate_workspace.py
+extraer_benchmark.py
+
+# Archivos de auditoría y notas de trabajo
+auditoria_*.txt
+baseline.txt
+etapa_*.txt
+pyright_report.txt
+pyright_report.json
+resultados_pytest_*.txt
+
+# Reportes generados
+reports/
+
+# =====================================================================
+# DATOS Y ARTEFACTOS DE BENCHMARK (NO COMMITEAR)
+# =====================================================================
+# Datos de corpus y calibración que se regeneran o son específicos
+# del entorno local. Los fixtures de tests necesarios SÍ se commitean.
+data/
+
+# Archivos temporales de calibración
+tests/corpus/calibration_v1/candidates/*/tmp*
+
+# =====================================================================
+# CÓDIGO ARCHIVADO (NO COMMITEAR)
+# =====================================================================
+# Código de fases anteriores que ya no forma parte del pipeline activo.
+tools/benchmark_archive/
+tools/archive/
+
+# =====================================================================
+# ARTEFACTOS DE EGGS Y BUILD
+# =====================================================================
+*.egg-info/
+dist/
+build/
