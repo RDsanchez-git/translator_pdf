@@ -2,12 +2,21 @@
 ## ADR_F17_BIS_01: Production Pipeline Alignment
 
 * **Estado:** FROZEN
+* **Versión:** 1.1.0
 * **Fecha de Emisión:** 2026-08-04
+* **Fecha de Última Actualización:** 2026-08-04
 * **Autor:** Architecture Board / Staff Engineering
 * **Fase Parent:** 17-BIS (Scientific Baseline / Canonical Corpus)
 * **Capacidades Afectadas:** Las definidas por el ADR Maestro que resulten afectadas por esta subfase.
+* **Evidencia Forense Vinculante:** HITO_0.1, HITO_0.2, HITO_0.3, HITO_0.4.1, HITO_0.4.2, HITO_0.4.3, HITO_0.4.4, HITO_0.4.5, HITO_0.5 (Gap Matrix)
+* **Referencias Cruzadas:**
+  * **Depende de:** `ADR_F17_BIS_MASTER.md` (ADR Maestro de la Fase 17-BIS)
+  * **Implementado por:** NADR-01 a NADR-11 (reglas normativas de la Fase 1)
+  * **Ejecutado por:** `PHASE_17BIS_EXECUTION_PLAN.md`
+  * **Conflictúa con:** Ninguno
 
 > **Nota de Gobernanza:** Este documento desarrolla una decisión arquitectónica particular dentro de la Fase 17-BIS, conforme a la arquitectura definida por el `ADR_F17_BIS_MASTER.md`. No modifica ni reemplaza las decisiones del ADR Maestro; únicamente las particulariza para esta subfase.
+
 ---
 
 ## 1. CONTEXTO Y JUSTIFICACIÓN
@@ -45,7 +54,7 @@ En consecuencia:
 
 ---
 
-## 4. OBJETIVO DE LA FASE
+## 4. OBJETIVO DE LA SUBFASE
 
 Alinear el pipeline de producción real con la arquitectura de dominio declarada, eliminando cortocircuitos, conectando los módulos aislados y unificando el plano de ejecución.
 
@@ -100,13 +109,26 @@ El estado objetivo de la arquitectura establece un flujo unidireccional y unific
 
 ---
 
-## 8. RELACIÓN CON LA METODOLOGÍA DE GOBERNANZA
+## 8. RELACIÓN CON OTROS ARTEFACTOS
 
-Este documento actúa en estricto cumplimiento con el *Architecture Governance Framework*.
+| Artefacto | Relación | Bidireccional |
+|---|---|---|
+| `ADR_F17_BIS_MASTER.md` | Este ADR particulariza las decisiones del Maestro para la subfase de alineación del pipeline | ✅ |
+| `ADR_F17_BIS_0.md` | La evidencia forense de la Fase 0 fundamenta la decisión de este ADR | ✅ |
+| `NADR_01` a `NADR_11` | Implementan las reglas normativas derivadas de esta decisión arquitectónica | ✅ |
+| `PHASE_17BIS_EXECUTION_PLAN.md` | Secuencia las tareas que materializan este ADR | ✅ |
+| `METHODOLOGY_FOR_ORDERED_PIPELINE_CHANGES.md` | Este ADR actúa en cumplimiento de la metodología de gobernanza | ✅ |
+
+---
+
+## 9. RELACIÓN CON LA METODOLOGÍA DE GOBERNANZA
+
+Este documento actúa en estricto cumplimiento con el *Architecture Governance Framework* definido en `METHODOLOGY_FOR_ORDERED_PIPELINE_CHANGES.md`.
 
 * **Este ADR** define exclusivamente la visión arquitectónica de la sub-fase (el QUÉ y el POR QUÉ).
 * Las **reglas técnicas obligatorias** y las restricciones de diseño se encuentran promulgadas en la serie normativa de NADRs aprobados para la Fase 1.
 * La **secuencia operativa, tareas concretas, definición de completitud (DoD) y disposición de módulos** se rigen por el Execution Plan.
-    
+
 Este documento **no prescribe implementaciones específicas, planificación operacional ni criterios de revisión de código.**
+
 Toda implementación que pretenda materializar esta decisión deberá demostrar trazabilidad explícita hacia este ADR mediante los NADRs y el Execution Plan correspondientes.

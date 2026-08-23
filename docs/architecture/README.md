@@ -30,6 +30,10 @@ docs/
         │   ├── plans/                    (Secuencia Operativa y Táctica)
         │   │   └── PHASE_17BIS_EXECUTION_PLAN.md
         │   ├── reports/                  (Métricas, CI, Benchmarks)
+        |   ├── reviews/  
+        │   |   ├── FASE_{X}_DEFERRED_FINDINGS_REGISTER.md   ← Registro de decisiones + batches
+        │       ├── FASE_{X}_EXIT_REVIEW_EVIDENCE_LOG.md     ← Evidencia forense (este documento)
+        │       └── DF-{XX}_{NOMBRE}.md                      ← Opcional, para hallazgos muy com
         │   └── handoff/                  (Documentación de transición a Fase 18)
         └── phase-18/
 ```
@@ -57,8 +61,8 @@ La autoridad fluye estrictamente de arriba hacia abajo. Cada nivel implementa o 
 ## 4. Estructura Interna de una Fase
 
 Toda fase respeta la misma organización de directorios para separar responsabilidades:
-* **`ADR/`**: Visión y decisiones arquitectónicas.
-* **`NADR/`**: Decisiones técnicas normativas e inmutables.
+* **`ADR/`**: Visión y decisiones arquitectónicas. 
+* **`NADR/`**: Decisiones técnicas normativas e inmutables. 
 * **`00-foundation/`**: Auditorías, evidencia forense y descubrimiento.
 * **`plans/`**: Secuenciación operativa (Execution Plans).
 * **`reports/`**: Métricas, reportes de benchmark y evidencia de CI.
@@ -91,3 +95,14 @@ La documentación arquitectónica existe para habilitar y respaldar la implement
 * Accionable
 
 **Cuando una decisión arquitectónica ha sido implementada y verificada mediante tests, la arquitectura ha cumplido su propósito.**
+
+## 7. Metodología Obligatoria para la escritura de la documentación necesaria a cada gobernanza
+
+- `docs\architecture\1_METHODOLOGY_FOR_ORDERED_PIPELINE_CHANGES.md` ➔ Metodología General para cambios ordenados en el pipeline del Traductor
+- `` 
+- `docs\architecture\3_METH_ADR_PHASES.md` ➔ Metodología General para la construcción de las Fases en cuestión definida en el ADR_Master.
+- `docs\architecture\4_METH_NADR.md` ➔ Plantilla Canónica para el armado de los NADRs de las Fases.
+- `docs\architecture\5_METH_EXECUTION_PLAN.md` ➔ Metodología General para la construcción del Plan de Ejecución de una Fase en específico.
+- `docs\architecture\6_METH_DEFERRED_FINDINGS_REGISTER_FASE_{X}.md` ➔ Metodología General para el regristro de la auditoría técnica de los DFs/GFs obtenido en la Fase.
+- `docs\architecture\6_METH_EXIT_REVIEW_EVIDENCE_LOG_FASE_{X}.md` ➔ Metodología General para la construcción de la evidencia y resultado de los DFs/Gfs obtenidos en la Fase.
+- `docs\architecture\7_METH_HANDOFF_FASE_{X}md` ➔ Metodología General para la construcción de los handoff una vez finalizada la implementación de una Fase en particular.
