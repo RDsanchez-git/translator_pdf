@@ -1,16 +1,32 @@
-from typing import Sequence, Dict
+from typing import Tuple, Dict
 from core.ast.models import ASTNode
 from core.benchmark.corpus.ports import CorpusManifestLoaderPort
 from core.benchmark.corpus.services import ManifestLineageSealer
-from core.benchmark.ground_truth.ports import GroundTruthReaderPort, GroundTruthDraftWriterPort, ASTExtractionPort, GroundTruthArtifactPort
+from core.benchmark.ground_truth.ports import (
+    GroundTruthReaderPort,
+    GroundTruthDraftWriterPort,
+    ASTExtractionPort,
+    GroundTruthArtifactPort,
+)
 from core.shared.crypto import compute_sha256
 
 
 class LoadGroundTruthUseCase:
+    """Caso de uso de lectura del Ground Truth.
+
+    NADR-F17BIS-12 §5.1 R3: retorna la secuencia hidratada vía contrato
+    canónico. NO construye la entidad de dominio porque el estado
+    (DRAFT vs SEALED) no está en el artefacto y debe ser provisto por
+    contexto. La construcción de la entidad es responsabilidad de la
+    fábrica `hydrate_ground_truth` invocada por el consumidor que conoce
+    el estado (Task 1.2.1 para sellado, casos de uso específicos para
+    lectura con estado conocido).
+    """
+
     def __init__(self, reader: GroundTruthReaderPort):
         self._reader = reader
 
-    def execute(self, document_id: str) -> Sequence[ASTNode]:
+    def execute(self, document_id: str) -> Tuple[ASTNode, ...]:
         if not document_id:
             raise ValueError("Invariant failure: document_id cannot be an empty string.")
         return self._reader.load_ground_truth(document_id)

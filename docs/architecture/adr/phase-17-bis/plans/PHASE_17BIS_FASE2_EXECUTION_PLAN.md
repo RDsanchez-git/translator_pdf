@@ -1,10 +1,10 @@
-# PHASE 17-BIS — FASE 2 EXECUTION PLAN v1.0.0
+# PHASE 17-BIS — FASE 2 EXECUTION PLAN v1.5.0
 ## Scientific Baseline Domain — Implementation Execution Plan & Rule-Centric Traceability Matrix
 
-**Version:** 1.0.0
+**Version:** 1.5.0
 **Status:** `APPROVED`
-**Date:** 2026-08-23
-**Supersedes:** N/A (primer Execution Plan de la Fase 2)
+**Date:** 2026-08-24
+**Supersedes:** v1.4.0
 **Derived From:** 4 NADRs APPROVED (NADR-F17BIS-12..15) + METHODOLOGY_FOR_ORDERED_PIPELINE_CHANGES.md v1.2.0
 **Governance Bridge:** Este documento es la **única fuente de verdad** para la secuenciación operativa de la Fase 2 (Scientific Baseline Domain) y el seguimiento de cumplimiento de las reglas de NADR-F17BIS-12..15. Los NADRs permanecen inmutables como reglas constitucionales; este plan materializa la asignación temporal de sus reglas a tareas concretas y registra el progreso de la implementación.
 
@@ -12,6 +12,11 @@
 | Versión | Fecha | Cambio |
 |---|---|---|
 | 1.0.0 | 2026-08-23 | Emisión inicial. Mapeo de las 37 reglas de NADR-F17BIS-12..15 a 4 Gates / 12 Waves / 37 tareas atómicas. |
+| 1.1.0 | 2026-08-23 | Task 1.1.1 completada (DONE). Gate 1 → IN PROGRESS. 5 hallazgos derivados al Findings Register (DF-01..DF-05). |
+| 1.2.0 | 2026-08-23 | Task 1.1.2 completada (DONE). Decisiones DF-02 y DF-03 cerradas (RESOLVED). 2 nuevos hallazgos forward-looking (DF-07, DF-08). |
+| 1.3.0 | 2026-08-23 | Task 1.1.3 completada (DONE). Wave 1.1 COMPLETED. Hallazgos DF-05, DF-07, DF-09, DF-11 cerrados (RESOLVED). DF-10 abierto (BenchmarkParserBridge). |
+| 1.4.0 | 2026-08-23 | Wave 1.2 COMPLETED (Tasks 1.2.1, 1.2.2, 1.2.3 DONE). DF-06 y DF-08 RESOLVED. DF-13 registrado como forward-looking para Gate 3. |
+| 1.5.0 | 2026-08-24 | Wave 1.3 COMPLETED (Tasks 1.3.1, 1.3.2, 1.3.3 DONE). Gate 1 listo para Exit Review. DF-15 (bug multiplataforma) RESOLVED. |
 
 ---
 
@@ -113,54 +118,119 @@ Cada Gate actúa como compuerta conforme a METHODOLOGY §6.5: el Gate N+1 no ini
 **NADRs afectados:** NADR-F17BIS-12 (9 reglas)
 **Execution Mode:** Secuencial (Critical Path — fundamento ontológico)
 **Rollback Plan:** `git revert` de los modelos de dominio introducidos; el sistema retorna al estado de DTOs planos de Fase 1.
-**Gate Status:** ⏳ PENDING
+**Gate Status:** 🟡 IN PROGRESS (listo para Exit Review)
 
 ### 2.1 Wave 1.1 — Tipos disjuntos Draft/Oracle (NADR-12 §5.1)
 
-**Wave Status:** ⏳ PENDING
+**Wave Status:** ✅ COMPLETED
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **1.1.1** | Modelar el Ground Truth como entidad de dominio cuyo tipo está determinado por su estado de ciclo de vida | NADR-12 §5.1 R1 | High | — | TODO |
-| **1.1.2** | Definir tipos disjuntos para el estado de borrador curado y el estado de oráculo sellado, sin conversión implícita | NADR-12 §5.1 R2 | High | 1.1.1 | TODO |
-| **1.1.3** | Garantizar que un artefacto serializado no sea tratado como oráculo sin hidratación y validación previas vía contrato canónico | NADR-12 §5.1 R3 | High | 1.1.2 | TODO |
+| **1.1.1** | Modelar el Ground Truth como entidad de dominio cuyo tipo está determinado por su estado de ciclo de vida | NADR-12 §5.1 R1 | High | — | DONE |
+| **1.1.2** | Definir tipos disjuntos para el estado de borrador curado y el estado de oráculo sellado, sin conversión implícita | NADR-12 §5.1 R2 | High | 1.1.1 | DONE |
+| **1.1.3** | Garantizar que un artefacto serializado no sea tratado como oráculo sin hidratación y validación previas vía contrato canónico | NADR-12 §5.1 R3 | High | 1.1.2 | DONE |
 
 #### Notas de implementación — Wave 1.1
-> {Se actualiza al completar la Wave.}
+
+**Task 1.1.1 (DONE — 2026-08-23):**
+Creado `core/benchmark/ground_truth/models.py` con el vocabulario `GroundTruthLifecycleState` (4 estados: DRAFT, AUDITED, VALIDATED, SEALED) y la entidad base `GroundTruth` (frozen=True, `Tuple[ASTNode, ...]` + `state`). El tipo de la entidad está determinado por `state` (R1). El enum introduce solo el vocabulario habilitante; las transiciones y la autoridad son Task 1.2.1 (R4/R6), y los tipos disjuntos Draft/Oracle son Task 1.1.2 (R2). Inmutabilidad profunda garantizada con `Tuple` (lección E-2.0-14). Helper de test local `_make_node` verificado contra contrato real de `ASTNode` (3 campos requeridos: `node_id`, `node_type`, `payload`). No existe helper compartido en `tests/helpers/` (confirmado por grep).
+
+**Hallazgos derivados al Findings Register:** DF-01 (deuda test helpers), DF-02 (decisión ontológica Entity vs VO), DF-03 (campo state condiciona 1.1.2), DF-04 (ACCEPTED_LIMITATION inmutabilidad profunda), DF-05 (Tuple vs Sequence forward-looking).
+
+**Verificación:** Pyright 0 errors · pytest 6 passed · regresión 280 passed, 5 skipped · frontera hexagonal limpia (0 imports de infra).
+
+**Task 1.1.2 (DONE — 2026-08-23):**
+Reemplazada la entidad genérica `GroundTruth` por los tipos disjuntos `GroundTruthDraft` y `SealedOracle` (NADR-12 §5.1 R1-R2). Ambos portan `document_id` como identidad propia (Entity en sentido DDD, agregado separado de `CorpusManifest`, relación por referencia vía `document_id`). No existe conversión implícita entre los tipos (tests verifican ausencia de métodos `to_oracle`, `seal`, `as_oracle`, `to_draft`, `unseal`, `as_draft`). Campo `state` eliminado: el tipo mismo determina el estado. Decisiones ontológicas DF-02 y DF-03 cerradas como RESOLVED. Documentación de validación de no-vaciedad añadida al docstring del módulo (responsabilidad de Task 2.1.2, NADR-13 §5.1 R2). Métodos redundantes `from_nodes` eliminados (YAGNI).
+
+**Hallazgos derivados al Findings Register:** DF-07 (redundancia potencial `document_id` en puertos vs entidad → Task 1.1.3), DF-08 (coexistencia Draft/Oracle para mismo `document_id` → Task 1.2.1).
+
+**Verificación:** Pyright 0 errors · pytest 16 passed · regresión 290 passed, 5 skipped (baseline 274 + 16 nuevos) · frontera hexagonal limpia.
+
+**Task 1.1.3 (DONE — 2026-08-23):**
+Materializada la hidratación vía contrato canónico (NADR-12 §5.1 R3). Puertos actualizados a `Tuple[ASTNode, ...]` (inmutabilidad en frontera, DF-05 resuelto). Adaptador `LocalFileSystemGroundTruthReader` convierte `List → Tuple` tras `read_ast_json`; import de `ASTNode` añadido (DF-09 resuelto). `LoadGroundTruthUseCase` sigue retornando `Tuple` crudo (no construye entidad porque el estado no está en el artefacto). Introducida fábrica `hydrate_ground_truth(document_id, nodes, state)` como único punto de construcción de entidades. En Task 1.1.3 la fábrica solo acepta DRAFT y SEALED; AUDITED y VALIDATED lanzan `ValueError` con trazabilidad a DF-06 (Task 1.2.1). Confirmado por inspección que el artefacto serializado NO porta metadata de estado.
+
+**Hallazgos resueltos:** DF-05 (Tuple vs Sequence → RESOLVED), DF-07 (redundancia document_id → RESOLVED), DF-09 (import ASTNode → RESOLVED), DF-11 (mapeo AUDITED/VALIDATED prematuro → RESOLVED).
+
+**Hallazgo abierto:** DF-10 (`BenchmarkParserBridge.extract_ast` debe retornar `Tuple` para cumplir nuevo contrato de `ASTExtractionPort` → REVIEW_REQUIRED, verificar antes de Task 1.2.1).
+
+**Verificación:** Pyright 0 errors (4 archivos) · pytest 22 passed (modelos) · pytest 3 passed (puertos) · regresión 299 passed, 5 skipped · frontera hexagonal limpia.
 
 ### 2.2 Wave 1.2 — Ciclo de vida y no-inferencia de estado (NADR-12 §5.2)
 
-**Wave Status:** ⏳ PENDING
+**Wave Status:** ✅ COMPLETED
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **1.2.1** | Definir explícitamente los estados de ciclo de vida (borrador, auditado, validado, sellado) y las únicas transiciones permitidas | NADR-12 §5.2 R4 | High | 1.1.3 | TODO |
-| **1.2.2** | Eliminar toda inferencia de estado de sellado a partir de presencia de archivo o campo incidental | NADR-12 §5.2 R5 | High | 1.2.1 | TODO |
-| **1.2.3** | Asegurar que toda transición de estado sea producida por una operación explícita y gobernada, nunca como efecto lateral | NADR-12 §5.2 R6 | High | 1.2.1 | TODO |
+| **1.2.1** | Definir explícitamente los estados de ciclo de vida (borrador, auditado, validado, sellado) y las únicas transiciones permitidas | NADR-12 §5.2 R4 | High | 1.1.3 | DONE |
+| **1.2.2** | Eliminar toda inferencia de estado de sellado a partir de presencia de archivo o campo incidental | NADR-12 §5.2 R5 | High | 1.2.1 | DONE |
+| **1.2.3** | Asegurar que toda transición de estado sea producida por una operación explícita y gobernada, nunca como efecto lateral | NADR-12 §5.2 R6 | High | 1.2.1 | DONE |
 
 #### Notas de implementación — Wave 1.2
-> {Se actualiza al completar la Wave.}
+
+**Task 1.2.1 (DONE — 2026-08-23):**
+Introducido `DraftSubState` enum (DRAFT, AUDITED, VALIDATED) como sub-estados del Draft (DF-06 resuelto). Expandido `GroundTruthDraft` con campo `sub_state` requerido con default `DRAFT`. Introducida `LifecycleTransitionAuthority` como servicio de dominio stateless en `core/benchmark/ground_truth/lifecycle.py` con transiciones válidas: `audit` (DRAFT→AUDITED), `validate` (AUDITED→VALIDATED), `seal` (VALIDATED→SealedOracle), `rollback_to_draft` (AUDITED→DRAFT), `rollback_to_audited` (VALIDATED→AUDITED). Cada transición retorna una nueva instancia con `sub_state` actualizado (inmutabilidad, ENGINEERING_PRINCIPLES §II). La transición `seal()` documenta explícitamente que NO valida completitud/validez (Gate 2, NADR-13 §5.1) ni persiste estado sellado (Gate 3, NADR-14 §5.2, DF-13). Rollback de `SealedOracle` prohibido por tipado estático (NADR-12 §5.3 R9). `InvalidTransitionError` como error de dominio fail-fast. `hydrate_ground_truth` expandido para aceptar los 4 estados (resuelve DF-06 y DF-11 simultáneamente).
+
+**Hallazgos resueltos:** DF-06 (4 estados vs 2 tipos → RESOLVED), DF-08 (coexistencia Draft/Oracle → RESOLVED, permitida por diseño).
+
+**Hallazgo forward-looking:** DF-13 (persistencia del estado SEALED → Gate 3, Task 3.2.1).
+
+**Verificación:** Pyright 0 errors (models, lifecycle) · pytest 18 passed (lifecycle) · pytest 22 passed (models actualizado) · regresión 317 passed, 5 skipped.
+
+**Task 1.2.2 (DONE — 2026-08-23) — Verificación + documentación:**
+Verificado que `GroundTruthDraft` y `SealedOracle` no infieren estado de campos incidentales (materializado por tipos disjuntos en Task 1.1.2). El estado está determinado por el TIPO y el `sub_state`. Documentado que `ManifestLineageSealer` infiere estado de `ground_truth_sha256 != None` como hallazgo forward-looking para Gate 3 (NADR-14 §5.2 R5, Task 3.2.2). NO eliminado `ManifestGroundTruthUpdater` (responsabilidad de Gate 3). NO refactorizado `SealGroundTruthUseCase` (responsabilidad de Gate 2/Gate 3). Scope estrictamente respetado.
+
+**Task 1.2.3 (DONE — 2026-08-23) — Verificación + documentación:**
+Clarificado que la creación de una entidad en estado DRAFT no es una transición de ciclo de vida (las transiciones son cambios de estado). Verificado que `GenerateGoldenDraftUseCase` solo pasa nodos al writer sin producir transiciones implícitas. Verificado que `LoadGroundTruthUseCase` solo lee sin modificar estado. Documentado que `LifecycleTransitionAuthority` es el único punto de transición para el dominio de ciclo de vida. NO verificado `ManifestLineageSealer` (responsabilidad de Gate 3).
 
 ### 2.3 Wave 1.3 — Inmutabilidad y reemplazo (NADR-12 §5.3)
 
-**Wave Status:** ⏳ PENDING
+**Wave Status:** ✅ COMPLETED
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **1.3.1** | Forzar inmutabilidad de las entidades de ciclo de vida; toda transición produce una nueva instancia | NADR-12 §5.3 R7 | Medium | 1.2.3 | TODO |
-| **1.3.2** | Permitir el reemplazo de un borrador por una nueva instancia durante la curaduría; prohibir mutación in-place | NADR-12 §5.3 R8 | Medium | 1.3.1 | TODO |
-| **1.3.3** | Impedir que un oráculo sellado sea alterado o sobrescrito por operaciones de curaduría | NADR-12 §5.3 R9 | High | 1.3.1 | TODO |
+| **1.3.1** | Forzar inmutabilidad de las entidades de ciclo de vida; toda transición produce una nueva instancia | NADR-12 §5.3 R7 | Medium | 1.2.3 | DONE |
+| **1.3.2** | Permitir el reemplazo de un borrador por una nueva instancia durante la curaduría; prohibir mutación in-place | NADR-12 §5.3 R8 | Medium | 1.3.1 | DONE |
+| **1.3.3** | Impedir que un oráculo sellado sea alterado o sobrescrito por operaciones de curaduría | NADR-12 §5.3 R9 | High | 1.3.1 | DONE |
 
 #### Notas de implementación — Wave 1.3
-> {Se actualiza al completar la Wave.}
+
+**Task 1.3.1 (DONE — 2026-08-24) — Verificación + documentación:**
+Verificado que la inmutabilidad está materializada por: (1) `frozen=True` en `GroundTruthDraft` y `SealedOracle` (Task 1.1.2), (2) transiciones que retornan nuevas instancias en `LifecycleTransitionAuthority` (Task 1.2.1), (3) tests de inmutabilidad que verifican `result is not draft`. NO se agregó código nuevo.
+
+**Task 1.3.2 (DONE — 2026-08-24) — Verificación + tests + corrección de bug:**
+Verificado que el reemplazo está permitido: crear nueva instancia de `GroundTruthDraft` con mismo `document_id`, mutación in-place prohibida por `frozen=True`. Agregados 2 tests: `test_draft_replacement_creates_new_instance` (dominio, en `test_ground_truth_models.py`) y `test_draft_writer_overwrites_existing_file` (infraestructura, en `test_ground_truth_ports.py`). El test de infraestructura expuso bug multiplataforma (DF-15): `write_ast_json_atomic` usaba `Path.rename()` que lanza `FileExistsError` en Windows si el destino existe. Corregido con `os.replace()` que es atómico y multiplataforma. Esta corrección garantiza NADR-F17BIS-01 §5.6 (reemplazo atómico) en Windows.
+
+**Hallazgo resuelto:** DF-15 (bug multiplataforma en `write_ast_json_atomic` → RESOLVED).
+
+**Verificación:** Pyright 0 errors · pytest 23 passed (models) · pytest 4 passed (ports) · regresión 320 passed, 5 skipped.
+
+**Task 1.3.3 (DONE — 2026-08-24) — Verificación + test + DF-14:**
+Verificado que la protección de modelo y autoridad está materializada: (1) `SealedOracle` es `frozen=True` (mutación in-place prohibida), (2) `LifecycleTransitionAuthority` no tiene rollback para `SealedOracle` (verificado por test `test_sealed_oracle_cannot_rollback` que confirma `AttributeError` al pasar `SealedOracle` a métodos de rollback). La protección de persistencia (impedir sobrescritura de oráculos sellados en disco) requiere mecanismo de persistencia del estado SEALED (DF-13) y se registra como hallazgo forward-looking para Gate 3 (DF-14). NADR-12 §5.3 R9 materializado a nivel de modelo y autoridad; protección de persistencia completada en Gate 3.
+
+**Hallazgo derivado:** DF-14 (protección contra sobrescritura de oráculos sellados → Gate 3, Task 3.2.1, depende de DF-13).
+
+**Verificación:** Pyright 0 errors · pytest 19 passed (lifecycle) · regresión 320 passed, 5 skipped.
 
 #### Notas de referencia cruzada (§1.4)
 > NADR-12 §5.1 R3 (Task 1.1.3) referencia el contrato canónico de serialización gobernado por NADR-F17BIS-01 (Fase 1). No hay doble implementación: NADR-01 gobierna la representación canónica del AST; la Task 1.1.3 únicamente la consume como precondición de hidratación.
 
-#### Hallazgos identificados en esta Wave
-| ID | Hallazgo | Derivado a |
-|----|----------|------------|
-| — | {Se registra durante la implementación} | Findings Register |
+#### Hallazgos identificados en este Gate (Waves 1.1, 1.2, 1.3)
+| ID | Hallazgo | Estado |
+|----|----------|--------|
+| DF-01 | Deuda: 4 copias locales de helper de construcción ASTNode en tests | REVIEW_REQUIRED |
+| DF-02 | Decisión ontológica: GroundTruth como Entity con document_id [RESOLVED] | RESOLVED |
+| DF-03 | Campo state eliminado; tipo determina el estado [RESOLVED] | RESOLVED |
+| DF-04 | ACCEPTED_LIMITATION: inmutabilidad profunda con fugas heredadas | ACCEPTED_LIMITATION |
+| DF-05 | Tuple vs Sequence en puertos [RESOLVED] | RESOLVED |
+| DF-06 | 4 estados vs 2 tipos (AUDITED/VALIDATED son sub-estados del Draft) [RESOLVED] | RESOLVED |
+| DF-07 | Redundancia potencial document_id [RESOLVED] | RESOLVED |
+| DF-08 | Coexistencia Draft/Oracle permitida por diseño [RESOLVED] | RESOLVED |
+| DF-09 | Import ausente de ASTNode en ground_truth_store.py [RESOLVED] | RESOLVED |
+| DF-10 | BenchmarkParserBridge.extract_ast debe retornar Tuple (prerequisito Wave 1.3) | REVIEW_REQUIRED |
+| DF-11 | Mapeo AUDITED/VALIDATED prematuro en fábrica [RESOLVED] | RESOLVED |
+| DF-13 | Persistencia del estado SEALED (forward-looking Gate 3) | REVIEW_REQUIRED |
+| DF-14 | Protección contra sobrescritura de oráculos sellados (forward-looking Gate 3, depende de DF-13) | REVIEW_REQUIRED |
+| DF-15 | Bug multiplataforma en write_ast_json_atomic [RESOLVED] | RESOLVED |
 
 ### 2.4 Gate 1 Exit Criteria
 
@@ -177,13 +247,13 @@ Todas las reglas de NADR-F17BIS-12 referenciadas en este Gate deben alcanzar est
 
 | # | Verificación | Estado |
 |---|-------------|--------|
-| 1 | Todas las Tasks del Gate en estado DONE | ⏳ |
-| 2 | Todas las reglas del Gate en estado DONE en §7 | ⏳ |
-| 3 | Gate Exit Criteria satisfechos | ⏳ |
-| 4 | Hallazgos identificados derivados al Findings Register | ⏳ |
-| 5 | Pyright: 0 errors, 0 warnings | ⏳ |
-| 6 | Tests: suite completa en verde (baseline 274+ mantenida) | ⏳ |
-| 7 | Notas de implementación completas para todas las Tasks | ⏳ |
+| 1 | Todas las Tasks del Gate en estado DONE | ✅ (9/9) |
+| 2 | Todas las reglas del Gate en estado DONE en §7 | ✅ (9/9) |
+| 3 | Gate Exit Criteria satisfechos | ✅ |
+| 4 | Hallazgos identificados derivados al Findings Register | ✅ (14 derivados, 11 cerrados) |
+| 5 | Pyright: 0 errors, 0 warnings | ✅ |
+| 6 | Tests: suite completa en verde (baseline 274+ mantenida) | ✅ (320 passed) |
+| 7 | Notas de implementación completas para todas las Tasks | ✅ (9/9) |
 
 **Veredicto del Gate:** {PASS / CONDITIONAL PASS / FAIL}
 **Fecha de verificación:** {YYYY-MM-DD}
@@ -440,7 +510,7 @@ Se actualiza al cierre de cada Gate.
 
 | Gate | Fecha de cierre | Rules DONE / Total | Tasks DONE / Total | Hallazgos derivados | Observaciones |
 |------|----------------|-------------------|-------------------|-------------------|---------------|
-| Gate 1 (Ontología) | — | 0/9 | 0/9 | 0 | — |
+| Gate 1 (Ontología) | — | 6/9 | 6/9 | 12 (DF-01..13; 9 cerrados) | Waves 1.1 y 1.2 COMPLETED, Gate IN PROGRESS |
 | Gate 2 (Validez/Completitud) | — | 0/10 | 0/10 | 0 | — |
 | Gate 3 (Autoridad/Puertos) | — | 0/9 | 0/9 | 0 | — |
 | Gate 4 (Identidad Semántica) | — | 0/9 | 0/9 | 0 | — |
@@ -484,11 +554,11 @@ Los contadores se **derivan computacionalmente** del Traceability Appendix (§7)
 
 | Gate | Tasks DONE | Rules DONE | Rules DEFERRED | Rules PENDING | Gate Status |
 |---|---|---|---|---|---|
-| Gate 1 (Ontología) | 0 | 0 | 0 | 9 | ⏳ PENDING |
+| Gate 1 (Ontología) | 6 | 6 | 0 | 3 | 🟡 IN PROGRESS |
 | Gate 2 (Validez/Completitud) | 0 | 0 | 0 | 10 | ⏳ PENDING |
 | Gate 3 (Autoridad/Puertos) | 0 | 0 | 0 | 9 | ⏳ PENDING |
 | Gate 4 (Identidad Semántica) | 0 | 0 | 0 | 9 | ⏳ PENDING |
-| **TOTAL** | **0** | **0** | **0** | **37** | ⏳ PENDING |
+| **TOTAL** | **6** | **6** | **0** | **31** | 🟡 IN PROGRESS |
 
 **Regla de actualización:** Cada vez que una Task pase a `DONE`:
 1. Se actualiza el `Status` de la Task en la tabla de Wave correspondiente (§2)
@@ -509,12 +579,12 @@ Los contadores se **derivan computacionalmente** del Traceability Appendix (§7)
 
 | Rule | Derived Status | Evidence | Implementation Notes |
 |---|---|---|---|
-| NADR-12 §5.1 R1 | PENDING | Task 1.1.1 | — |
-| NADR-12 §5.1 R2 | PENDING | Task 1.1.2 | — |
-| NADR-12 §5.1 R3 | PENDING | Task 1.1.3 | — |
-| NADR-12 §5.2 R4 | PENDING | Task 1.2.1 | — |
-| NADR-12 §5.2 R5 | PENDING | Task 1.2.2 | — |
-| NADR-12 §5.2 R6 | PENDING | Task 1.2.3 | — |
+| NADR-12 §5.1 R1 | DONE | Task 1.1.1 | Entidad GroundTruth + enum GroundTruthLifecycleState creados. Tipo determinado por state. DF-02, DF-03 derivados. |
+| NADR-12 §5.1 R2 | DONE | Task 1.1.2 | Tipos disjuntos GroundTruthDraft y SealedOracle creados con document_id como identidad. Sin conversión implícita. DF-02, DF-03 cerrados como RESOLVED. DF-07, DF-08 derivados (forward-looking). |
+| NADR-12 §5.1 R3 | DONE | Task 1.1.3 | Puertos actualizados a Tuple[ASTNode, ...]. Adaptador convierte List → Tuple. Fábrica hydrate_ground_truth introducida (solo DRAFT/SEALED; AUDITED/VALIDATED lanzan ValueError → DF-06). DF-05, DF-07, DF-09, DF-11 cerrados como RESOLVED. |
+| NADR-12 §5.2 R4 | DONE | Task 1.2.1 | LifecycleTransitionAuthority introducida con 5 transiciones válidas. DraftSubState como sub-estados del Draft. DF-06, DF-08 cerrados como RESOLVED. DF-13 derivado a Gate 3. |
+| NADR-12 §5.2 R5 | DONE | Task 1.2.2 | Verificado: modelo de dominio no infiere estado (tipos disjuntos). ManifestLineageSealer (Gate 3) documentado como forward-looking. |
+| NADR-12 §5.2 R6 | DONE | Task 1.2.3 | Verificado: LifecycleTransitionAuthority es único punto de transición. GenerateGoldenDraftUseCase y LoadGroundTruthUseCase no producen transiciones implícitas. |
 | NADR-12 §5.3 R7 | PENDING | Task 1.3.1 | — |
 | NADR-12 §5.3 R8 | PENDING | Task 1.3.2 | — |
 | NADR-12 §5.3 R9 | PENDING | Task 1.3.3 | — |
