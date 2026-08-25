@@ -1,13 +1,16 @@
-from typing import Tuple, Dict
+from typing import Dict, Tuple
 from core.ast.models import ASTNode
 from core.benchmark.corpus.ports import CorpusManifestLoaderPort
 from core.benchmark.corpus.services import ManifestLineageSealer
+from core.benchmark.ground_truth.completeness import BaselineCompletenessVerifier
+from core.benchmark.ground_truth.errors import BaselineContractError, OracleValidityError
 from core.benchmark.ground_truth.ports import (
-    GroundTruthReaderPort,
-    GroundTruthDraftWriterPort,
     ASTExtractionPort,
     GroundTruthArtifactPort,
+    GroundTruthDraftWriterPort,
+    GroundTruthReaderPort,
 )
+from core.benchmark.ground_truth.validity import OracleValidityContract
 from core.shared.crypto import compute_sha256
 
 
@@ -51,28 +54,55 @@ class GenerateGoldenDraftUseCase:
 
 class SealGroundTruthUseCase:
     """Orquestador purificado de aplicación. Totalmente desacoplado de los modelos internos del Corpus."""
-    def __init__(self, corpus_loader: CorpusManifestLoaderPort, artifact_port: GroundTruthArtifactPort):
+    """Sellado atómico con reporte agregado (NADR-13 §5.3 R9-R10)."""
+
+    def __init__(
+        self,
+        corpus_loader: CorpusManifestLoaderPort,
+        artifact_port: GroundTruthArtifactPort,
+        reader: GroundTruthReaderPort,
+    ):
         self._corpus_loader = corpus_loader
         self._artifact_port = artifact_port
+        self._reader = reader
 
     def execute(self, target_version: str = "v1.0") -> str:
         current_manifest = self._corpus_loader.load_raw_manifest()
+        manifest_doc_ids = frozenset(
+            d.document_id for d in current_manifest.documents
+        )
+
+        # 1. Completitud (R4-R8)
+        artifact_doc_ids = frozenset(self._artifact_port.list_artifact_ids())
+        completeness_errors = BaselineCompletenessVerifier.verify(
+            manifest_doc_ids, artifact_doc_ids
+        )
+
+        # 2. Validez (R1-R3) — solo intersección existente
+        validity_errors = []
+        existing_doc_ids = manifest_doc_ids & artifact_doc_ids
+        for doc_id in sorted(existing_doc_ids):
+            nodes = self._reader.load_ground_truth(doc_id)
+            try:
+                OracleValidityContract.validate(doc_id, tuple(nodes))
+            except OracleValidityError as e:
+                validity_errors.append(str(e))
+
+        # 3. Reporte agregado: fallar sin mutar nada
+        if completeness_errors or validity_errors:
+            raise BaselineContractError(completeness_errors, validity_errors)
+
+        # 4. Compute hashes + seal (solo si todo pasó)
         detected_hashes: Dict[str, str] = {}
+        for doc_id in sorted(existing_doc_ids):
+            raw_bytes = self._artifact_port.read_artifact_bytes(doc_id)
+            detected_hashes[doc_id] = compute_sha256(raw_bytes)
 
-        # 1. Recolección de firmas binarias puras sin tocar modelos de dominio extraños
-        for doc_entry in current_manifest.documents:
-            doc_id = doc_entry.document_id
-            if self._artifact_port.artifact_exists(doc_id):
-                raw_bytes = self._artifact_port.read_artifact_bytes(doc_id)
-                detected_hashes[doc_id] = compute_sha256(raw_bytes)
-
-        # 2. Delegación inter-contexto al servicio especialista del Corpus
         sealed_manifest = ManifestLineageSealer.seal_manifest_with_ground_truth(
             current_manifest=current_manifest,
             detected_hashes=detected_hashes,
-            target_version=target_version
+            target_version=target_version,
         )
 
-        # 3. Persistencia a través del puerto
         self._corpus_loader.save_manifest_dto(sealed_manifest)
         return sealed_manifest.manifest_hash

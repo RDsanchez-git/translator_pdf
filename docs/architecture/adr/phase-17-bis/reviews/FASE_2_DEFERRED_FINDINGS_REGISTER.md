@@ -1,11 +1,11 @@
 # FASE_2_DEFERRED_FINDINGS_REGISTER.md
 
 **Documento:** `docs/architecture/adr/phase-17-bis/reviews/FASE_2_DEFERRED_FINDINGS_REGISTER.md`
-**Versión:** 1.5.0
+**Versión:** 1.7.0
 **Estado:** IN_PROGRESS
 **Fecha de creación:** 2026-08-23
-**Última actualización:** 2026-08-24
-**Derivado de:** `PHASE_17BIS_FASE2_EXECUTION_PLAN.md` v1.5.0
+**Última actualización:** 2026-08-25
+**Derivado de:** `PHASE_17BIS_FASE2_EXECUTION_PLAN.md` v1.7.0
 **Propósito:** Registro auditable de hallazgos identificados durante la implementación
 del Execution Plan de Fase 2 (Scientific Baseline Domain), su clasificación,
 resolución y evidencia empírica de los batches.
@@ -94,13 +94,33 @@ ADR_F17_BIS_MASTER > ADR_F17_BIS_02 > NADR-F17BIS-12..15 > PHASE_17BIS_FASE2_EXE
 | Hallazgo reclasificado | Actualizar estado + justificación en tabla consolidada |
 | Fase cerrada | Estado del documento → `ARCHIVED` |
 
+### 1.5 Clasificación semántica de hallazgos (nota aclaratoria)
+
+Los hallazgos registrados en este documento pueden ser de tres tipos:
+
+1. **Hallazgos fuera de scope:** Se detectan durante la implementación pero
+   corresponden a otra fase/gate. Se clasifican como RECLASSIFIED_FUTURE_PHASE
+   o DEFERRED — FASE X.
+
+2. **Hallazgos bloqueantes:** Se detectan durante la implementación y bloquean
+   la tarea actual. Se resuelven inline y se clasifican como RESOLVED.
+
+3. **Decisiones de diseño inline:** Elecciones arquitectónicas que surgen
+   durante la implementación y se resuelven en la misma tarea/wave. Se
+   clasifican como RESOLVED.
+
+DF-06, DF-11 y DF-12 de Gate 1 corresponden a la categoría 3 (decisiones de diseño
+inline). Están correctamente clasificados como RESOLVED. Para Gate 2 en
+adelante, las decisiones de diseño inline se documentarán en las Notas de
+Implementación del Execution Plan, no en este registro.
+
 ---
 
 ## 2. GATE EXIT REVIEWS
 
 ### 2.1 Gate 1 — Oracle Ontology & Lifecycle (NADR-F17BIS-12)
 
-**Estado:** 🟡 IN PROGRESS (Waves 1.1, 1.2 y 1.3 COMPLETED — 9 tareas completadas; listo para Gate Exit Review)
+**Estado:** ✅ COMPLETED (Waves 1.1, 1.2 y 1.3 COMPLETED — 9 tareas completadas)
 
 #### Hallazgos identificados durante Task 1.1.1
 
@@ -132,10 +152,15 @@ ADR_F17_BIS_MASTER > ADR_F17_BIS_02 > NADR-F17BIS-12..15 > PHASE_17BIS_FASE2_EXE
 
 | ID | Hallazgo | Clasificación | Dueño | Estado |
 |----|----------|---------------|-------|--------|
+| **DF-12** | Persistencia de `sub_state`: ¿el estado del ciclo de vida se persiste en disco o es efímero en memoria? Si se persiste, ¿dónde (artefacto, metadata separada, manifiesto)? Si es efímero, ¿cómo se recupera el estado sellado al hidratar? | `RESOLVED` | Task 1.2.1 | **Cerrado** — Opción 3: `sub_state` es efímero en memoria. El oráculo en disco se trata como DRAFT al hidratar. El estado SEALED requiere mecanismo de persistencia (DF-13, Gate 3). La fábrica `hydrate_ground_truth` es trust-based: el consumidor que conoce el estado lo provee explícitamente. |
 | **DF-13** | Persistencia del estado SEALED requiere mecanismo que no sea inferencia. Opciones candidatas: B (archivo de metadata separado) o D (campo `ground_truth_state` explícito en manifiesto). Gate 3 debe resolver. Implicaciones: (1) refactorización de `SealGroundTruthUseCase`; (2) si Opción D, posible migración de manifiestos y actualización de `ManifestFingerprintCalculator`; (3) sincronización entre estado sellado persistente y sub_state efímero al hidratar. La fábrica `hydrate_ground_truth` es trust-based y depende de que Gate 3 verifique el estado correctamente. | `REVIEW_REQUIRED` | Task 3.2.1 (Gate 3) | Abierto |
-| **DF-14** | Protección contra sobrescritura de oráculos sellados en disco. Requiere mecanismo de persistencia del estado SEALED (DF-13). | `REVIEW_REQUIRED` | Task 3.2.1 (Gate 3) | Abierto (depende de DF-13) |
-| **DF-15** | Bug multiplataforma en `write_ast_json_atomic`: `Path.rename()` lanza `FileExistsError` en Windows si el destino existe. Viola NADR-F17BIS-01 §5.6 (reemplazo atómico) en Windows. Corregido con `os.replace()`, que es atómico y multiplataforma. El test `test_draft_writer_overwrites_existing_file` (Task 1.3.2) expuso el bug. | `RESOLVED` | Task 1.3.2 (Gate 1) | **Cerrado** — Corregido en Task 1.3.2 |
 
+#### Hallazgos identificados durante Wave 1.3 (Tasks 1.3.1, 1.3.2, 1.3.3)
+
+| ID | Hallazgo | Clasificación | Dueño | Estado |
+|----|----------|---------------|-------|--------|
+| **DF-14** | Protección contra sobrescritura de oráculos sellados en disco. Requiere mecanismo de persistencia del estado SEALED (DF-13). NADR-12 §5.3 R9 materializado a nivel de modelo (frozen=True) y autoridad (sin rollback); protección de persistencia completada en Gate 3. | `REVIEW_REQUIRED` | Task 3.2.1 (Gate 3) | Abierto (depende de DF-13) |
+| **DF-15** | Bug multiplataforma en `write_ast_json_atomic`: `Path.rename()` lanza `FileExistsError` en Windows si el destino existe. Viola NADR-F17BIS-01 §5.6 (reemplazo atómico) en Windows. Corregido con `os.replace()`, que es atómico y multiplataforma. El test `test_draft_writer_overwrites_existing_file` (Task 1.3.2) expuso el bug. | `RESOLVED` | Task 1.3.2 (Gate 1) | **Cerrado** — Corregido en Task 1.3.2 |
 
 #### Archivos auditados
 
@@ -156,6 +181,31 @@ ADR_F17_BIS_MASTER > ADR_F17_BIS_02 > NADR-F17BIS-12..15 > PHASE_17BIS_FASE2_EXE
 
 ---
 
+### 2.2 Gate 2 — Ground Truth Validity & Baseline Completeness (NADR-F17BIS-13)
+
+**Estado:** ✅ COMPLETED (10 tareas completadas, 10 reglas materializadas)
+
+#### Hallazgos identificados durante Gate 2
+
+| ID | Hallazgo | Clasificación | Dueño | Estado |
+|----|----------|---------------|-------|--------|
+| **DF-16** | `ASTValidator.validate()` tiene parámetros `unknown_count_floor` y `max_unknown_ratio` no utilizados en el cuerpo del método (dead code o API incompleta de Fase 16). Identificado durante Task 2.1.2 (reutilización de ASTValidator). | `RECLASSIFIED_FUTURE_PHASE` | Post-Fase 2 | Diferido |
+
+**Justificación de diferimiento:** Los parámetros no afectan la implementación de Gate 2 (el contrato de validez del oráculo no los usa). Su evaluación (uso o eliminación) requiere análisis de impacto en Fase 16 y pertenece a una fase de limpieza técnica posterior.
+
+#### Archivos auditados
+
+- `core/ast/validator.py` — `ASTValidator.validate()` con parámetros no usados
+- `core/benchmark/ground_truth/validity.py` — `OracleValidityContract` (nuevo)
+- `core/benchmark/ground_truth/completeness.py` — `BaselineCompletenessVerifier` (nuevo)
+- `core/benchmark/ground_truth/errors.py` — Taxonomía de errores de contrato
+- `core/benchmark/ground_truth/use_cases.py` — `SealGroundTruthUseCase` refactorizado
+- `core/benchmark/ground_truth/ports.py` — `GroundTruthArtifactPort` extendido
+- `infra/fs/ground_truth_store.py` — `LocalFileSystemGroundTruthArtifactAdapter` extendido
+- `tools/evaluation/freeze_ground_truth.py` — Entry point actualizado
+
+---
+
 ## 3. TABLA CONSOLIDADA FINAL
 
 {Pendiente. Se actualiza al cierre del último Gate Exit Review.}
@@ -164,9 +214,10 @@ ADR_F17_BIS_MASTER > ADR_F17_BIS_02 > NADR-F17BIS-12..15 > PHASE_17BIS_FASE2_EXE
 
 | Clasificación | Cantidad | DFs |
 |--------------|----------|-----|
-| `REVIEW_REQUIRED` | 4 | DF-01, DF-10, DF-13, DF-14 |
+| `REVIEW_REQUIRED` | 3 | DF-01, DF-10, DF-13, DF-14 |
 | `ACCEPTED_LIMITATION` | 1 | DF-04 |
-| `RESOLVED` | 11 | DF-02, DF-03, DF-05, DF-06, DF-07, DF-08, DF-09, DF-11, DF-15 |
+| `RESOLVED` | 11 | DF-02, DF-03, DF-05, DF-06, DF-07, DF-08, DF-09, DF-11, DF-12, DF-15 |
+| `RECLASSIFIED_FUTURE_PHASE` | 1 | DF-16 |
 | `IMPLEMENTATION_REQUIRED` | 0 | — |
 
 ### 3.2 Tabla consolidada
@@ -184,9 +235,11 @@ ADR_F17_BIS_MASTER > ADR_F17_BIS_02 > NADR-F17BIS-12..15 > PHASE_17BIS_FASE2_EXE
 | DF-09 | `RESOLVED` | Import de `ASTNode` añadido en `ground_truth_store.py` como parte de la actualización del adaptador. | Task 1.1.3 (cerrado) |
 | DF-10 | `REVIEW_REQUIRED` | `BenchmarkParserBridge.extract_ast` debe retornar `Tuple` para cumplir contrato actualizado de `ASTExtractionPort`. Prerequisito de Wave 1.3. | Task 1.3.1 |
 | DF-11 | `RESOLVED` | Fábrica `hydrate_ground_truth` corregida: solo acepta DRAFT y SEALED. AUDITED/VALIDATED lanzan `ValueError` con trazabilidad a DF-06. | Task 1.1.3 (cerrado) |
+| DF-12 | `RESOLVED` | `sub_state` es efímero en memoria (Opción 3). El oráculo en disco se trata como DRAFT al hidratar. Estado SEALED requiere DF-13 (Gate 3). Fábrica trust-based. | Task 1.2.1 (cerrado) |
 | DF-13 | `REVIEW_REQUIRED` | Persistencia del estado SEALED requiere mecanismo no-inferencia (Opción B o D). Gate 3 debe resolver. Implicaciones en `SealGroundTruthUseCase` y `ManifestFingerprintCalculator`. Fábrica trust-based. | Task 3.2.1 (Gate 3) |
 | DF-14 | `REVIEW_REQUIRED` | Protección contra sobrescritura de oráculos sellados en disco. Depende de DF-13 (mecanismo de persistencia del estado SEALED). Gate 3 debe resolver. | Task 3.2.1 (Gate 3) |
 | DF-15 | `RESOLVED` | Bug multiplataforma en `write_ast_json_atomic` corregido con `os.replace()`. Test `test_draft_writer_overwrites_existing_file` expuso el bug. | Task 1.3.2 (cerrado) |
+| DF-16 | `RECLASSIFIED_FUTURE_PHASE` | `ASTValidator.validate()` tiene parámetros no utilizados (dead code de Fase 16). Diferido a post-Fase 2 para evaluación de uso o eliminación. | Post-Fase 2 |
 
 ---
 
@@ -200,19 +253,19 @@ ADR_F17_BIS_MASTER > ADR_F17_BIS_02 > NADR-F17BIS-12..15 > PHASE_17BIS_FASE2_EXE
 
 | Métrica | Valor |
 |---------|-------|
-| Total de hallazgos analizados | 15 |
-| Hallazgos resueltos | 11 (DF-02, DF-03, DF-05, DF-06, DF-07, DF-08, DF-09, DF-11, DF-15) |
+| Total de hallazgos analizados | 16 |
+| Hallazgos resueltos | 11 (DF-02, DF-03, DF-05, DF-06, DF-07, DF-08, DF-09, DF-11, DF-12, DF-15) |
 | Hallazgos cerrados sin acción | 0 |
-| Hallazgos reclasificados a fase futura | 0 |
+| Hallazgos reclasificados a fase futura | 1 (DF-16) |
 | Hallazgos aceptados como limitación | 1 (DF-04) |
 | Hallazgos pendientes de revisión | 4 (DF-01, DF-10, DF-13, DF-14) |
 | Hallazgos pendientes de implementación | 0 |
 | Batches completados | 0 |
 | Archivos eliminados totales | 0 |
 | Archivos movidos totales | 0 |
-| Archivos creados totales | 5 (`core/benchmark/ground_truth/models.py`, `tests/unit/test_ground_truth_models.py`, `tests/unit/test_ground_truth_ports.py`, `core/benchmark/ground_truth/lifecycle.py`, `tests/unit/test_ground_truth_lifecycle.py`) |
-| Archivos modificados totales | 4 (`core/benchmark/ground_truth/ports.py`, `core/benchmark/ground_truth/use_cases.py`, `infra/fs/ground_truth_store.py`, `infra/serialization/ast_json.py`) |
-| Tests finales | 320 passed, 5 skipped (baseline 274 + 46 nuevos) |
+| Archivos creados totales | 8 (Gate 1: 5, Gate 2: 3) |
+| Archivos modificados totales | 8 (Gate 1: 4, Gate 2: 4) |
+| Tests finales | 335 passed, 5 skipped (baseline 274 + 61 nuevos) |
 | Pyright final | 0 errors |
 
 ---
@@ -224,6 +277,7 @@ ADR_F17_BIS_MASTER > ADR_F17_BIS_02 > NADR-F17BIS-12..15 > PHASE_17BIS_FASE2_EXE
 | DF-01 (deuda helpers de test) | Refactor futuro test-infra | No bloquea Fase 2; deuda de infraestructura de testing |
 | DF-04 (fugas inmutabilidad ASTNode) | Fuera de scope Fase 2 | Código de Fase 16 congelado; requiere decisión arquitectónica sobre `ASTNode` que excede el mandato de NADR-12..15 |
 | DF-13 (persistencia estado SEALED) | Gate 3 (Task 3.2.1) | Requiere decisión arquitectónica sobre mecanismo de persistencia que excede Gate 1 |
+| DF-16 (parámetros no usados en ASTValidator) | Post-Fase 2 | Evaluación de uso o eliminación requiere análisis de impacto en Fase 16 |
 
 ---
 
@@ -232,7 +286,7 @@ ADR_F17_BIS_MASTER > ADR_F17_BIS_02 > NADR-F17BIS-12..15 > PHASE_17BIS_FASE2_EXE
 ### 7.1 Criterio de cierre por batch
 
 Cada batch se considera cerrado cuando:
-1. Todos los tests pasan (pytest → baseline mantenida: 317 passed, 5 skipped)
+1. Todos los tests pasan (pytest → baseline mantenida: 335 passed, 5 skipped)
 2. Pyright reporta 0 errors
 3. No se detectan imports huérfanos
 4. Los cambios están commiteados
@@ -251,14 +305,15 @@ El documento se considera cerrado (`ARCHIVED`) cuando:
 
 | Categoría | Cantidad |
 |-----------|----------|
-| Total de hallazgos analizados | 15 |
+| Total de hallazgos analizados | 16 |
 | Hallazgos resueltos | 11 |
 | Hallazgos pendientes de implementación | 0 |
 | Hallazgos pendientes de revisión | 4 |
 | Hallazgos cerrados sin acción | 0 |
 | Hallazgos aceptados como limitación | 1 |
+| Hallazgos reclasificados a fase futura | 1 |
 | Batches completados | 0/4 |
-| Estado del Exit Review | 🟡 IN PROGRESS (Gate 1 listo para Exit Review) |
+| Estado del Exit Review | 🟡 IN PROGRESS (Gate 2 COMPLETED, Gate 3 PENDING) |
 
 ---
 

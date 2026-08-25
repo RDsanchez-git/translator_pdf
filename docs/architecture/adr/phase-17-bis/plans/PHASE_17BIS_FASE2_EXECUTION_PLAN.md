@@ -1,10 +1,10 @@
-# PHASE 17-BIS — FASE 2 EXECUTION PLAN v1.5.0
+# PHASE 17-BIS — FASE 2 EXECUTION PLAN v1.7.0
 ## Scientific Baseline Domain — Implementation Execution Plan & Rule-Centric Traceability Matrix
 
-**Version:** 1.5.0
+**Version:** 1.7.0
 **Status:** `APPROVED`
-**Date:** 2026-08-24
-**Supersedes:** v1.4.0
+**Date:** 2026-08-25
+**Supersedes:** v1.6.0
 **Derived From:** 4 NADRs APPROVED (NADR-F17BIS-12..15) + METHODOLOGY_FOR_ORDERED_PIPELINE_CHANGES.md v1.2.0
 **Governance Bridge:** Este documento es la **única fuente de verdad** para la secuenciación operativa de la Fase 2 (Scientific Baseline Domain) y el seguimiento de cumplimiento de las reglas de NADR-F17BIS-12..15. Los NADRs permanecen inmutables como reglas constitucionales; este plan materializa la asignación temporal de sus reglas a tareas concretas y registra el progreso de la implementación.
 
@@ -17,6 +17,8 @@
 | 1.3.0 | 2026-08-23 | Task 1.1.3 completada (DONE). Wave 1.1 COMPLETED. Hallazgos DF-05, DF-07, DF-09, DF-11 cerrados (RESOLVED). DF-10 abierto (BenchmarkParserBridge). |
 | 1.4.0 | 2026-08-23 | Wave 1.2 COMPLETED (Tasks 1.2.1, 1.2.2, 1.2.3 DONE). DF-06 y DF-08 RESOLVED. DF-13 registrado como forward-looking para Gate 3. |
 | 1.5.0 | 2026-08-24 | Wave 1.3 COMPLETED (Tasks 1.3.1, 1.3.2, 1.3.3 DONE). Gate 1 listo para Exit Review. DF-15 (bug multiplataforma) RESOLVED. |
+| 1.6.0 | 2026-08-24 | Corrección de inconsistencias de contadores. Gate 1 → COMPLETED (9/9 tasks, 9/9 rules, 15 hallazgos: 12 cerrados, 3 forward-looking). Traceability Appendix actualizado (R7, R8, R9 → DONE). |
+| 1.7.0 | 2026-08-25 | Gate 2 COMPLETED (10/10 tasks, 10/10 rules NADR-13). Waves 2.1, 2.2, 2.3 COMPLETED. Sellado atómico implementado con reporte agregado. DF-16 (parámetros no usados en ASTValidator) registrado como RECLASSIFIED_FUTURE_PHASE. |
 
 ---
 
@@ -95,6 +97,26 @@ Conforme al ADR Maestro §4 y ENGINEERING_PRINCIPLES:
 - **Memory Efficiency:** DTOs inmutables (`frozen=True`), cero mutación in-place.
 - **FinOps First & Fail-Fast:** Ninguna degradación silenciosa; toda anomalía aborta o emite warning indexable.
 
+### 1.7 Clasificación semántica de hallazgos (nota aclaratoria)
+
+Los hallazgos registrados en este documento pueden ser de tres tipos:
+
+1. **Hallazgos fuera de scope:** Se detectan durante la implementación pero
+   corresponden a otra fase/gate. Se clasifican como RECLASSIFIED_FUTURE_PHASE
+   o DEFERRED — FASE X.
+
+2. **Hallazgos bloqueantes:** Se detectan durante la implementación y bloquean
+   la tarea actual. Se resuelven inline y se clasifican como RESOLVED.
+
+3. **Decisiones de diseño inline:** Elecciones arquitectónicas que surgen
+   durante la implementación y se resuelven en la misma tarea/wave. Se
+   clasifican como RESOLVED.
+
+DF-06, DF-11 y DF-12 de Gate 1 corresponden a la categoría 3 (decisiones de diseño
+inline). Están correctamente clasificados como RESOLVED. Para Gate 2 en
+adelante, las decisiones de diseño inline se documentarán en las Notas de
+Implementación del Execution Plan, no en el Findings Register.
+
 ---
 
 ## 2. GATES DE LA FASE 2 — SCIENTIFIC BASELINE DOMAIN
@@ -102,10 +124,10 @@ Conforme al ADR Maestro §4 y ENGINEERING_PRINCIPLES:
 La Fase 2 se estructura en **4 Gates**, uno por NADR, respetando el grafo de dependencias ontológicas:
 
 ```text
-Gate 1 (NADR-12: Ontología)
-   └──► Gate 2 (NADR-13: Validez/Completitud) — opera sobre entidades con estado
-          └──► Gate 3 (NADR-14: Autoridad/Puertos) — exige validez como precondición
-                 └──► Gate 4 (NADR-15: Identidad Semántica) — porta sobre oráculo sellado
+Gate 1 (NADR-12: Ontología) ✅ COMPLETED
+   └──► Gate 2 (NADR-13: Validez/Completitud) ✅ COMPLETED
+          └──► Gate 3 (NADR-14: Autoridad/Puertos) ⏳ PENDING
+                 └──► Gate 4 (NADR-15: Identidad Semántica) ⏳ PENDING
 ```
 
 Cada Gate actúa como compuerta conforme a METHODOLOGY §6.5: el Gate N+1 no inicia hasta que el Gate N pase su Exit Review.
@@ -118,7 +140,7 @@ Cada Gate actúa como compuerta conforme a METHODOLOGY §6.5: el Gate N+1 no ini
 **NADRs afectados:** NADR-F17BIS-12 (9 reglas)
 **Execution Mode:** Secuencial (Critical Path — fundamento ontológico)
 **Rollback Plan:** `git revert` de los modelos de dominio introducidos; el sistema retorna al estado de DTOs planos de Fase 1.
-**Gate Status:** 🟡 IN PROGRESS (listo para Exit Review)
+**Gate Status:** ✅ COMPLETED
 
 ### 2.1 Wave 1.1 — Tipos disjuntos Draft/Oracle (NADR-12 §5.1)
 
@@ -170,7 +192,9 @@ Materializada la hidratación vía contrato canónico (NADR-12 §5.1 R3). Puerto
 **Task 1.2.1 (DONE — 2026-08-23):**
 Introducido `DraftSubState` enum (DRAFT, AUDITED, VALIDATED) como sub-estados del Draft (DF-06 resuelto). Expandido `GroundTruthDraft` con campo `sub_state` requerido con default `DRAFT`. Introducida `LifecycleTransitionAuthority` como servicio de dominio stateless en `core/benchmark/ground_truth/lifecycle.py` con transiciones válidas: `audit` (DRAFT→AUDITED), `validate` (AUDITED→VALIDATED), `seal` (VALIDATED→SealedOracle), `rollback_to_draft` (AUDITED→DRAFT), `rollback_to_audited` (VALIDATED→AUDITED). Cada transición retorna una nueva instancia con `sub_state` actualizado (inmutabilidad, ENGINEERING_PRINCIPLES §II). La transición `seal()` documenta explícitamente que NO valida completitud/validez (Gate 2, NADR-13 §5.1) ni persiste estado sellado (Gate 3, NADR-14 §5.2, DF-13). Rollback de `SealedOracle` prohibido por tipado estático (NADR-12 §5.3 R9). `InvalidTransitionError` como error de dominio fail-fast. `hydrate_ground_truth` expandido para aceptar los 4 estados (resuelve DF-06 y DF-11 simultáneamente).
 
-**Hallazgos resueltos:** DF-06 (4 estados vs 2 tipos → RESOLVED), DF-08 (coexistencia Draft/Oracle → RESOLVED, permitida por diseño).
+**Decisión de diseño inline (DF-12):** `sub_state` es efímero en memoria. La persistencia del estado sellado es responsabilidad de Gate 3 (NADR-14 §5.2). Opción 3 seleccionada: `sub_state` es efímero; el oráculo en disco se trata como DRAFT al hidratar; el estado SEALED requiere mecanismo de persistencia (DF-13).
+
+**Hallazgos resueltos:** DF-06 (4 estados vs 2 tipos → RESOLVED), DF-08 (coexistencia Draft/Oracle → RESOLVED, permitida por diseño), DF-12 (persistencia de sub_state → RESOLVED, Opción 3).
 
 **Hallazgo forward-looking:** DF-13 (persistencia del estado SEALED → Gate 3, Task 3.2.1).
 
@@ -228,6 +252,7 @@ Verificado que la protección de modelo y autoridad está materializada: (1) `Se
 | DF-09 | Import ausente de ASTNode en ground_truth_store.py [RESOLVED] | RESOLVED |
 | DF-10 | BenchmarkParserBridge.extract_ast debe retornar Tuple (prerequisito Wave 1.3) | REVIEW_REQUIRED |
 | DF-11 | Mapeo AUDITED/VALIDATED prematuro en fábrica [RESOLVED] | RESOLVED |
+| DF-12 | Persistencia de sub_state (Opción 3: efímero en memoria) [RESOLVED] | RESOLVED |
 | DF-13 | Persistencia del estado SEALED (forward-looking Gate 3) | REVIEW_REQUIRED |
 | DF-14 | Protección contra sobrescritura de oráculos sellados (forward-looking Gate 3, depende de DF-13) | REVIEW_REQUIRED |
 | DF-15 | Bug multiplataforma en write_ast_json_atomic [RESOLVED] | RESOLVED |
@@ -250,13 +275,13 @@ Todas las reglas de NADR-F17BIS-12 referenciadas en este Gate deben alcanzar est
 | 1 | Todas las Tasks del Gate en estado DONE | ✅ (9/9) |
 | 2 | Todas las reglas del Gate en estado DONE en §7 | ✅ (9/9) |
 | 3 | Gate Exit Criteria satisfechos | ✅ |
-| 4 | Hallazgos identificados derivados al Findings Register | ✅ (14 derivados, 11 cerrados) |
+| 4 | Hallazgos identificados derivados al Findings Register | ✅ (15 derivados, 12 cerrados, 3 forward-looking) |
 | 5 | Pyright: 0 errors, 0 warnings | ✅ |
 | 6 | Tests: suite completa en verde (baseline 274+ mantenida) | ✅ (320 passed) |
 | 7 | Notas de implementación completas para todas las Tasks | ✅ (9/9) |
 
-**Veredicto del Gate:** {PASS / CONDITIONAL PASS / FAIL}
-**Fecha de verificación:** {YYYY-MM-DD}
+**Veredicto del Gate:** PASS
+**Fecha de verificación:** 2026-08-24
 
 ---
 
@@ -266,52 +291,100 @@ Todas las reglas de NADR-F17BIS-12 referenciadas en este Gate deben alcanzar est
 **NADRs afectados:** NADR-F17BIS-13 (10 reglas)
 **Execution Mode:** Secuencial (depende de Gate 1)
 **Rollback Plan:** `git revert` de los contratos de validez y completitud; el sellado retorna al comportamiento de Fase 1 (no recomendado — reproduce el defecto P0).
-**Gate Status:** ⏳ PENDING
+**Gate Status:** ✅ COMPLETED
 
 ### 2.6 Wave 2.1 — Contrato de validez estructural (NADR-13 §5.1)
 
-**Wave Status:** ⏳ PENDING
+**Wave Status:** ✅ COMPLETED
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **2.1.1** | Definir un contrato explícito de validez estructural que todo oráculo debe satisfacer antes del sellado | NADR-13 §5.1 R1 | High | Gate 1 | TODO |
-| **2.1.2** | Incluir en el contrato la no-vaciedad del contenido, la integridad de los nodos y la coherencia estructural | NADR-13 §5.1 R2 | High | 2.1.1 | TODO |
-| **2.1.3** | Rechazar de forma explícita e inmediata el sellado de todo oráculo que no satisfaga el contrato de validez | NADR-13 §5.1 R3 | Critical | 2.1.2 | TODO |
+| **2.1.1** | Definir un contrato explícito de validez estructural que todo oráculo debe satisfacer antes del sellado | NADR-13 §5.1 R1 | High | Gate 1 | DONE |
+| **2.1.2** | Incluir en el contrato la no-vaciedad del contenido, la integridad de los nodos y la coherencia estructural | NADR-13 §5.1 R2 | High | 2.1.1 | DONE |
+| **2.1.3** | Rechazar de forma explícita e inmediata el sellado de todo oráculo que no satisfaga el contrato de validez | NADR-13 §5.1 R3 | Critical | 2.1.2 | DONE |
 
 #### Notas de implementación — Wave 2.1
-> {Se actualiza al completar la Wave.}
+
+**Task 2.1.1 (DONE — 2026-08-25):**
+Introducido `OracleValidityContract` como servicio de dominio stateless en `core/benchmark/ground_truth/validity.py`. Define el contrato explícito que todo oráculo debe satisfacer antes del sellado. Reutiliza `ASTValidator.validate()` de Fase 16 (Reuse Before Invent, ADR Maestro §5) para las invariantes de no-vaciedad de lista, IDs únicos y balanceo LaTeX.
+
+**Task 2.1.2 (DONE — 2026-08-25):**
+Implementadas las 4 invariantes del contrato de validez: (1) no-vaciedad de lista (ASTValidator), (2) IDs únicos (ASTValidator), (3) balanceo LaTeX (ASTValidator), (4) no-vaciedad de contenido excluyendo IMAGE (propia, cierra GAP identificado). La invariante 4 es necesaria porque `ASTValidator` solo valida la lista, no el contenido de los nodos. Un oráculo con todos los nodos vacíos es inválido porque no porta contenido científico. Excluye nodos IMAGE porque no portan texto (coherente con `ASTHealthReport.from_ast()`). La corrección `if non_image_nodes and not any(...)` permite oráculos de solo imágenes (documentos puramente visuales), que son válidos estructuralmente.
+
+**Decisión de diseño inline:** GAP cerrado. La no-vaciedad de contenido es una invariante propia del contrato del oráculo, no delegable a ASTValidator.
+
+**Hallazgo derivado:** DF-16 (`ASTValidator.validate()` tiene parámetros `unknown_count_floor` y `max_unknown_ratio` no utilizados → RECLASSIFIED_FUTURE_PHASE).
+
+**Task 2.1.3 (DONE — 2026-08-25):**
+El contrato rechaza explícitamente (raise `OracleValidityError`) todo oráculo inválido. Integrado en `SealGroundTruthUseCase` como precondición de sellado. Los errores se recolectan como strings para el reporte agregado (Wave 2.3).
+
+**Verificación:** Pyright 0 errors · pytest 5 passed (validez) · frontera hexagonal limpia.
 
 ### 2.7 Wave 2.2 — Completitud biyectiva (NADR-13 §5.2)
 
-**Wave Status:** ⏳ PENDING
+**Wave Status:** ✅ COMPLETED
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **2.2.1** | Forzar la correspondencia biyectiva completa entre documentos fuente declarados y sus oráculos | NADR-13 §5.2 R4 | Critical | 2.1.3 | TODO |
-| **2.2.2** | Verificar la completitud en ambas direcciones (documento→oráculo y oráculo→documento) | NADR-13 §5.2 R5 | Critical | 2.2.1 | TODO |
-| **2.2.3** | Abortar el sellado mediante fallo explícito ante la ausencia de oráculo para un documento fuente declarado | NADR-13 §5.2 R6 | Critical | 2.2.2 | TODO |
-| **2.2.4** | Detectar oráculos huérfanos (sin documento fuente declarado) y abortar el sellado | NADR-13 §5.2 R7 | Critical | 2.2.2 | TODO |
-| **2.2.5** | Prohibir la degradación de la incompletitud a advertencias no bloqueantes | NADR-13 §5.2 R8 | High | 2.2.3 | TODO |
+| **2.2.1** | Forzar la correspondencia biyectiva completa entre documentos fuente declarados y sus oráculos | NADR-13 §5.2 R4 | Critical | 2.1.3 | DONE |
+| **2.2.2** | Verificar la completitud en ambas direcciones (documento→oráculo y oráculo→documento) | NADR-13 §5.2 R5 | Critical | 2.2.1 | DONE |
+| **2.2.3** | Abortar el sellado mediante fallo explícito ante la ausencia de oráculo para un documento fuente declarado | NADR-13 §5.2 R6 | Critical | 2.2.2 | DONE |
+| **2.2.4** | Detectar oráculos huérfanos (sin documento fuente declarado) y abortar el sellado | NADR-13 §5.2 R7 | Critical | 2.2.2 | DONE |
+| **2.2.5** | Prohibir la degradación de la incompletitud a advertencias no bloqueantes | NADR-13 §5.2 R8 | High | 2.2.3 | DONE |
 
 #### Notas de implementación — Wave 2.2
-> {Se actualiza al completar la Wave.}
+
+**Task 2.2.1 (DONE — 2026-08-25):**
+Introducido `BaselineCompletenessVerifier` como servicio de dominio stateless en `core/benchmark/ground_truth/completeness.py`. Verifica la correspondencia biyectiva completa entre documentos fuente declarados (manifiesto) y sus oráculos (artefactos en disco).
+
+**Task 2.2.2 (DONE — 2026-08-25):**
+Verificación bidireccional implementada: (1) documentos declarados sin oráculo (faltantes), (2) oráculos sin documento declarado (huérfanos). Retorna `List[str]` de errores para integrar con el reporte agregado. `sorted()` garantiza determinismo (reproducibilidad de mensajes de error, ADR Maestro §5).
+
+**Task 2.2.3 (DONE — 2026-08-25):**
+Aborto explícito implementado: si hay documentos sin oráculo, `SealGroundTruthUseCase` lanza `BaselineContractError` sin mutar el manifiesto. Elimina el `if artifact_exists` permisivo de E-2.0-01 (partial sealing).
+
+**Task 2.2.4 (DONE — 2026-08-25):**
+Detección de oráculos huérfanos implementada. Extendido `GroundTruthArtifactPort` con `list_artifact_ids() -> Tuple[str, ...]` (determinista, ordenado alfabéticamente). Implementado en `LocalFileSystemGroundTruthArtifactAdapter` usando `sorted()` sobre `glob("*.json")`.
+
+**Task 2.2.5 (DONE — 2026-08-25):**
+Prohibición de degradación a warnings materializada: cualquier error de completitud lanza `BaselineContractError` (fail-fast, ENGINEERING_PRINCIPLES §IV). No hay warnings silenciosos.
+
+**Verificación:** Pyright 0 errors · pytest 6 passed (completitud) · frontera hexagonal limpia.
 
 ### 2.8 Wave 2.3 — Atomicidad del sellado (NADR-13 §5.3)
 
-**Wave Status:** ⏳ PENDING
+**Wave Status:** ✅ COMPLETED
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **2.3.1** | Hacer del sellado una operación atómica: se certifica la baseline completa y válida, o no se certifica nada | NADR-13 §5.3 R9 | Critical | 2.2.5 | TODO |
-| **2.3.2** | Garantizar que un sellado abortado no deje una baseline parcialmente certificada ni un manifiesto inconsistente | NADR-13 §5.3 R10 | Critical | 2.3.1 | TODO |
+| **2.3.1** | Hacer del sellado una operación atómica: se certifica la baseline completa y válida, o no se certifica nada | NADR-13 §5.3 R9 | Critical | 2.2.5 | DONE |
+| **2.3.2** | Garantizar que un sellado abortado no deje una baseline parcialmente certificada ni un manifiesto inconsistente | NADR-13 §5.3 R10 | Critical | 2.3.1 | DONE |
 
 #### Notas de implementación — Wave 2.3
-> {Se actualiza al completar la Wave.}
 
-#### Hallazgos identificados en esta Wave
-| ID | Hallazgo | Derivado a |
-|----|----------|------------|
-| — | {Se registra durante la implementación} | Findings Register |
+**Task 2.3.1 (DONE — 2026-08-25):**
+Sellado atómico implementado en `SealGroundTruthUseCase`. Flujo: (1) load_manifest, (2) verify_completeness, (3) validate_all_oracles (solo intersección existente manifest ∩ artifacts), (4) si errores → `BaselineContractError` (no se muta nada), (5) compute_hashes + seal_manifest, (6) save_manifest (solo si 2 y 3 pasaron).
+
+**Decisión de diseño inline (reporte agregado):** Se implementa reporte agregado en lugar de short-circuit. El curador científico ve todos los fallos de completitud y validez simultáneamente, evitando iteraciones múltiples. Fail-Fast (ENGINEERING_PRINCIPLES §IV) obliga a fallar duro, no a fallar pronto con información incompleta.
+
+**Task 2.3.2 (DONE — 2026-08-25):**
+Atomicidad garantizada: un sellado abortado no deja baseline parcialmente certificada ni manifiesto inconsistente. El punto de persistencia (`save_manifest_dto`) solo se alcanza si los pasos de completitud y validez no lanzaron. Tests de atomicidad verifican que `saved_manifests` permanece vacío tras aborto.
+
+**Taxonomía de errores implementada (jerarquía semántica):**
+- `OracleValidityError(GroundTruthError)`: error individual de validez (R1-R3)
+- `IncompleteBaselineError(GroundTruthError)`: error individual de completitud (R4-R8)
+- `OrphanOracleError(IncompleteBaselineError)`: caso específico de oráculo huérfano (R7)
+- `BaselineContractError(GroundTruthError)`: error COMPUESTO del caso de uso, recolecta todos los errores como strings
+
+**Verificación:** Pyright 0 errors · pytest 4 passed (atomicidad) · regresión 335 passed, 5 skipped.
+
+#### Notas de referencia cruzada (§1.4)
+> Gate 2 implementa la LÓGICA de validación/completitud (qué hace correcto el sellado). Gate 3 (NADR-14) implementará la AUTORIDAD/GOBERNANZA del sellado (quién puede sellar, segregación de puertos, eliminación de duplicados). Ambas responsabilidades son complementarias y respetan el grafo de dependencias.
+
+#### Hallazgos identificados en este Gate
+| ID | Hallazgo | Estado |
+|----|----------|--------|
+| DF-16 | ASTValidator.validate() tiene parámetros unknown_count_floor y max_unknown_ratio no utilizados (dead code de Fase 16) | RECLASSIFIED_FUTURE_PHASE (Post-Fase 2) |
 
 ### 2.9 Gate 2 Exit Criteria
 
@@ -327,16 +400,16 @@ Todas las reglas de NADR-F17BIS-13 referenciadas en este Gate deben alcanzar est
 
 | # | Verificación | Estado |
 |---|-------------|--------|
-| 1 | Todas las Tasks del Gate en estado DONE | ⏳ |
-| 2 | Todas las reglas del Gate en estado DONE en §7 | ⏳ |
-| 3 | Gate Exit Criteria satisfechos | ⏳ |
-| 4 | Hallazgos identificados derivados al Findings Register | ⏳ |
-| 5 | Pyright: 0 errors, 0 warnings | ⏳ |
-| 6 | Tests: suite completa en verde | ⏳ |
-| 7 | Notas de implementación completas para todas las Tasks | ⏳ |
+| 1 | Todas las Tasks del Gate en estado DONE | ✅ (10/10) |
+| 2 | Todas las reglas del Gate en estado DONE en §7 | ✅ (10/10) |
+| 3 | Gate Exit Criteria satisfechos | ✅ |
+| 4 | Hallazgos identificados derivados al Findings Register | ✅ (1 derivado: DF-16) |
+| 5 | Pyright: 0 errors, 0 warnings | ✅ |
+| 6 | Tests: suite completa en verde (baseline 320+ mantenida) | ✅ (335 passed) |
+| 7 | Notas de implementación completas para todas las Tasks | ✅ (10/10) |
 
-**Veredicto del Gate:** {PASS / CONDITIONAL PASS / FAIL}
-**Fecha de verificación:** {YYYY-MM-DD}
+**Veredicto del Gate:** PASS
+**Fecha de verificación:** 2026-08-25
 
 ---
 
@@ -389,6 +462,10 @@ Todas las reglas de NADR-F17BIS-13 referenciadas en este Gate deben alcanzar est
 
 #### Notas de referencia cruzada (§1.4)
 > NADR-14 §5.3 R7 (Task 3.3.1) referencia la raíz de composición gobernada por NADR-F17BIS-11 (Fase 1). No hay doble implementación: NADR-11 gobierna la composición del pipeline de traducción; la Task 3.3.1 extiende el mismo principio a los entry points de curaduría de la baseline.
+
+#### Dependencias de Gate 2 (forward-looking)
+- **DF-13:** Mecanismo de persistencia del estado SEALED (Opción B: archivo de metadata separado, Opción D: campo explícito en manifiesto)
+- **DF-14:** Protección contra sobrescritura de oráculos sellados en disco (depende de DF-13)
 
 #### Hallazgos identificados en esta Wave
 | ID | Hallazgo | Derivado a |
@@ -510,8 +587,8 @@ Se actualiza al cierre de cada Gate.
 
 | Gate | Fecha de cierre | Rules DONE / Total | Tasks DONE / Total | Hallazgos derivados | Observaciones |
 |------|----------------|-------------------|-------------------|-------------------|---------------|
-| Gate 1 (Ontología) | — | 6/9 | 6/9 | 12 (DF-01..13; 9 cerrados) | Waves 1.1 y 1.2 COMPLETED, Gate IN PROGRESS |
-| Gate 2 (Validez/Completitud) | — | 0/10 | 0/10 | 0 | — |
+| Gate 1 (Ontología) | 2026-08-24 | 9/9 | 9/9 | 15 (12 cerrados, 3 forward-looking) | Waves 1.1, 1.2, 1.3 COMPLETED. Gate PASS. |
+| Gate 2 (Validez/Completitud) | 2026-08-25 | 10/10 | 10/10 | 1 (DF-16 diferido a Post-Fase 2) | Waves 2.1, 2.2, 2.3 COMPLETED. Gate PASS. |
 | Gate 3 (Autoridad/Puertos) | — | 0/9 | 0/9 | 0 | — |
 | Gate 4 (Identidad Semántica) | — | 0/9 | 0/9 | 0 | — |
 
@@ -554,11 +631,11 @@ Los contadores se **derivan computacionalmente** del Traceability Appendix (§7)
 
 | Gate | Tasks DONE | Rules DONE | Rules DEFERRED | Rules PENDING | Gate Status |
 |---|---|---|---|---|---|
-| Gate 1 (Ontología) | 6 | 6 | 0 | 3 | 🟡 IN PROGRESS |
-| Gate 2 (Validez/Completitud) | 0 | 0 | 0 | 10 | ⏳ PENDING |
+| Gate 1 (Ontología) | 9 | 9 | 0 | 0 | ✅ COMPLETED |
+| Gate 2 (Validez/Completitud) | 10 | 10 | 0 | 0 | ✅ COMPLETED |
 | Gate 3 (Autoridad/Puertos) | 0 | 0 | 0 | 9 | ⏳ PENDING |
 | Gate 4 (Identidad Semántica) | 0 | 0 | 0 | 9 | ⏳ PENDING |
-| **TOTAL** | **6** | **6** | **0** | **31** | 🟡 IN PROGRESS |
+| **TOTAL** | **19** | **19** | **0** | **18** | 🟡 IN PROGRESS |
 
 **Regla de actualización:** Cada vez que una Task pase a `DONE`:
 1. Se actualiza el `Status` de la Task en la tabla de Wave correspondiente (§2)
@@ -582,27 +659,27 @@ Los contadores se **derivan computacionalmente** del Traceability Appendix (§7)
 | NADR-12 §5.1 R1 | DONE | Task 1.1.1 | Entidad GroundTruth + enum GroundTruthLifecycleState creados. Tipo determinado por state. DF-02, DF-03 derivados. |
 | NADR-12 §5.1 R2 | DONE | Task 1.1.2 | Tipos disjuntos GroundTruthDraft y SealedOracle creados con document_id como identidad. Sin conversión implícita. DF-02, DF-03 cerrados como RESOLVED. DF-07, DF-08 derivados (forward-looking). |
 | NADR-12 §5.1 R3 | DONE | Task 1.1.3 | Puertos actualizados a Tuple[ASTNode, ...]. Adaptador convierte List → Tuple. Fábrica hydrate_ground_truth introducida (solo DRAFT/SEALED; AUDITED/VALIDATED lanzan ValueError → DF-06). DF-05, DF-07, DF-09, DF-11 cerrados como RESOLVED. |
-| NADR-12 §5.2 R4 | DONE | Task 1.2.1 | LifecycleTransitionAuthority introducida con 5 transiciones válidas. DraftSubState como sub-estados del Draft. DF-06, DF-08 cerrados como RESOLVED. DF-13 derivado a Gate 3. |
+| NADR-12 §5.2 R4 | DONE | Task 1.2.1 | LifecycleTransitionAuthority introducida con 5 transiciones válidas. DraftSubState como sub-estados del Draft. DF-06, DF-08, DF-12 cerrados como RESOLVED. DF-13 derivado a Gate 3. |
 | NADR-12 §5.2 R5 | DONE | Task 1.2.2 | Verificado: modelo de dominio no infiere estado (tipos disjuntos). ManifestLineageSealer (Gate 3) documentado como forward-looking. |
 | NADR-12 §5.2 R6 | DONE | Task 1.2.3 | Verificado: LifecycleTransitionAuthority es único punto de transición. GenerateGoldenDraftUseCase y LoadGroundTruthUseCase no producen transiciones implícitas. |
-| NADR-12 §5.3 R7 | PENDING | Task 1.3.1 | — |
-| NADR-12 §5.3 R8 | PENDING | Task 1.3.2 | — |
-| NADR-12 §5.3 R9 | PENDING | Task 1.3.3 | — |
+| NADR-12 §5.3 R7 | DONE | Task 1.3.1 | Inmutabilidad materializada por frozen=True en modelos y transiciones que retornan nuevas instancias. Verificación + documentación, sin código nuevo. |
+| NADR-12 §5.3 R8 | DONE | Task 1.3.2 | Reemplazo permitido: crear nueva instancia con mismo document_id. Mutación in-place prohibida por frozen=True. Tests de dominio e infraestructura agregados. DF-15 (bug multiplataforma) RESOLVED. |
+| NADR-12 §5.3 R9 | DONE | Task 1.3.3 | Protección de modelo (frozen=True) y autoridad (sin rollback) materializadas. Protección de persistencia (sobrescritura en disco) forward-looking para Gate 3 (DF-13, DF-14). |
 
 ### 7.2 Gate 2 — NADR-F17BIS-13 (Validity & Completeness)
 
 | Rule | Derived Status | Evidence | Implementation Notes |
 |---|---|---|---|
-| NADR-13 §5.1 R1 | PENDING | Task 2.1.1 | — |
-| NADR-13 §5.1 R2 | PENDING | Task 2.1.2 | — |
-| NADR-13 §5.1 R3 | PENDING | Task 2.1.3 | — |
-| NADR-13 §5.2 R4 | PENDING | Task 2.2.1 | — |
-| NADR-13 §5.2 R5 | PENDING | Task 2.2.2 | — |
-| NADR-13 §5.2 R6 | PENDING | Task 2.2.3 | — |
-| NADR-13 §5.2 R7 | PENDING | Task 2.2.4 | — |
-| NADR-13 §5.2 R8 | PENDING | Task 2.2.5 | — |
-| NADR-13 §5.3 R9 | PENDING | Task 2.3.1 | — |
-| NADR-13 §5.3 R10 | PENDING | Task 2.3.2 | — |
+| NADR-13 §5.1 R1 | DONE | Task 2.1.1 | OracleValidityContract introducido como servicio de dominio stateless. Contrato explícito de validez estructural. Reutiliza ASTValidator (Reuse Before Invent). |
+| NADR-13 §5.1 R2 | DONE | Task 2.1.2 | 4 invariantes implementadas: no-vaciedad lista, IDs únicos, balanceo LaTeX (ASTValidator), no-vaciedad contenido excluyendo IMAGE (propia). GAP cerrado: ASTValidator no valida contenido de nodos. |
+| NADR-13 §5.1 R3 | DONE | Task 2.1.3 | Rechazo explícito vía OracleValidityError. Integrado en SealGroundTruthUseCase como precondición. Errores recolectados para reporte agregado. |
+| NADR-13 §5.2 R4 | DONE | Task 2.2.1 | BaselineCompletenessVerifier introducido como servicio de dominio stateless. Correspondencia biyectiva completa. |
+| NADR-13 §5.2 R5 | DONE | Task 2.2.2 | Verificación bidireccional (manifest→artifacts y artifacts→manifest). List[str] para reporte agregado. sorted() garantiza determinismo. |
+| NADR-13 §5.2 R6 | DONE | Task 2.2.3 | Aborto explícito ante ausencia de oráculo. BaselineContractError sin mutar manifiesto. Eliminado if artifact_exists permisivo de E-2.0-01. |
+| NADR-13 §5.2 R7 | DONE | Task 2.2.4 | Detección de oráculos huérfanos. GroundTruthArtifactPort extendido con list_artifact_ids() determinista (sorted). |
+| NADR-13 §5.2 R8 | DONE | Task 2.2.5 | Cero degradación a warnings. Fail-fast (ENGINEERING_PRINCIPLES §IV). |
+| NADR-13 §5.3 R9 | DONE | Task 2.3.1 | Sellado atómico: solo se certifica baseline completa y válida. Flujo load→verify→validate→seal→save. Reporte agregado (no short-circuit). |
+| NADR-13 §5.3 R10 | DONE | Task 2.3.2 | Atomicidad garantizada. Aborto no deja baseline parcial ni manifiesto inconsistente. Jerarquía semántica de errores: OracleValidityError, IncompleteBaselineError, OrphanOracleError, BaselineContractError (compuesto). |
 
 ### 7.3 Gate 3 — NADR-F17BIS-14 (Port Asymmetry & Sealing Authority)
 

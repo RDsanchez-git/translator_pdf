@@ -28,8 +28,6 @@ class LocalFileSystemGroundTruthReader(GroundTruthReaderPort):
             raise FileNotFoundError(
                 f"Oracle consistency error: Ground Truth for '{document_id}' not found."
             )
-        # read_ast_json retorna List[ASTNode] (mutable). La conversión a
-        # tuple garantiza inmutabilidad de la colección en la frontera.
         return tuple(read_ast_json(target_path))
 
 
@@ -41,8 +39,6 @@ class LocalFileSystemGroundTruthDraftWriter(GroundTruthDraftWriterPort):
 
     def save_draft_ast(self, document_id: str, nodes: Tuple[ASTNode, ...]) -> None:
         target_path = self._ground_truth_directory / f"{document_id}.json"
-        # write_ast_json_atomic requiere List[ASTNode]. La conversión es
-        # interna al adaptador; la frontera del puerto permanece inmutable.
         write_ast_json_atomic(list(nodes), target_path, indent=2)
 
 
@@ -59,3 +55,12 @@ class LocalFileSystemGroundTruthArtifactAdapter(GroundTruthArtifactPort):
     def read_artifact_bytes(self, document_id: str) -> bytes:
         target_path = self._ground_truth_directory / f"{document_id}.json"
         return target_path.read_bytes()
+
+    def list_artifact_ids(self) -> Tuple[str, ...]:
+        artifact_ids = sorted(
+            p.stem
+            for p in self._ground_truth_directory.glob("*.json")
+            if p.is_file()
+        )
+        return tuple(artifact_ids)
+
