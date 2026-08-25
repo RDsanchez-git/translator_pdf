@@ -1,7 +1,7 @@
 # PHASE 17-BIS — FASE 2 EXECUTION PLAN v1.7.0
 ## Scientific Baseline Domain — Implementation Execution Plan & Rule-Centric Traceability Matrix
 
-**Version:** 1.7.0
+**Version:** 1.8.0
 **Status:** `APPROVED`
 **Date:** 2026-08-25
 **Supersedes:** v1.6.0
@@ -19,6 +19,7 @@
 | 1.5.0 | 2026-08-24 | Wave 1.3 COMPLETED (Tasks 1.3.1, 1.3.2, 1.3.3 DONE). Gate 1 listo para Exit Review. DF-15 (bug multiplataforma) RESOLVED. |
 | 1.6.0 | 2026-08-24 | Corrección de inconsistencias de contadores. Gate 1 → COMPLETED (9/9 tasks, 9/9 rules, 15 hallazgos: 12 cerrados, 3 forward-looking). Traceability Appendix actualizado (R7, R8, R9 → DONE). |
 | 1.7.0 | 2026-08-25 | Gate 2 COMPLETED (10/10 tasks, 10/10 rules NADR-13). Waves 2.1, 2.2, 2.3 COMPLETED. Sellado atómico implementado con reporte agregado. DF-16 (parámetros no usados en ASTValidator) registrado como RECLASSIFIED_FUTURE_PHASE. |
+| 1.8.0 | 2026-08-25 | Gate 3 COMPLETED (9/9 tasks, 9/9 rules NADR-14). Waves 3.1, 3.2, 3.3 COMPLETED. Asimetría de puertos materializada. Autoridad única de sellado consolidada. DF-13 y DF-14 RESOLVED. |
 
 ---
 
@@ -126,7 +127,7 @@ La Fase 2 se estructura en **4 Gates**, uno por NADR, respetando el grafo de dep
 ```text
 Gate 1 (NADR-12: Ontología) ✅ COMPLETED
    └──► Gate 2 (NADR-13: Validez/Completitud) ✅ COMPLETED
-          └──► Gate 3 (NADR-14: Autoridad/Puertos) ⏳ PENDING
+          └──► Gate 3 (NADR-14: Autoridad/Puertos) ✅ COMPLETED
                  └──► Gate 4 (NADR-15: Identidad Semántica) ⏳ PENDING
 ```
 
@@ -419,58 +420,88 @@ Todas las reglas de NADR-F17BIS-13 referenciadas en este Gate deben alcanzar est
 **NADRs afectados:** NADR-F17BIS-14 (9 reglas)
 **Execution Mode:** Secuencial (depende de Gate 2)
 **Rollback Plan:** `git revert` de la segregación de puertos; restaurar la autoridad de sellado previa.
-**Gate Status:** ⏳ PENDING
+**Gate Status:** ✅ COMPLETED
 
 ### 2.11 Wave 3.1 — Asimetría de puertos (NADR-14 §5.1)
 
-**Wave Status:** ⏳ PENDING
+**Wave Status:** ✅ COMPLETED
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **3.1.1** | Exponer las operaciones de curaduría (escritura) y de runtime (lectura) sobre la baseline mediante contratos de acceso distintos | NADR-14 §5.1 R1 | High | Gate 2 | TODO |
-| **3.1.2** | Garantizar que el contrato de lectura de runtime no exponga capacidad de escritura ni mutación de la baseline | NADR-14 §5.1 R2 | High | 3.1.1 | TODO |
-| **3.1.3** | Impedir que el contrato de curaduría sea consumido por los caminos de runtime que leen la baseline certificada | NADR-14 §5.1 R3 | High | 3.1.1 | TODO |
+| **3.1.1** | Exponer las operaciones de curaduría (escritura) y de runtime (lectura) sobre la baseline mediante contratos de acceso distintos | NADR-14 §5.1 R1 | High | Gate 2 | DONE |
+| **3.1.2** | Garantizar que el contrato de lectura de runtime no exponga capacidad de escritura ni mutación de la baseline | NADR-14 §5.1 R2 | High | 3.1.1 | DONE |
+| **3.1.3** | Impedir que el contrato de curaduría sea consumido por los caminos de runtime que leen la baseline certificada | NADR-14 §5.1 R3 | High | 3.1.1 | DONE |
 
 #### Notas de implementación — Wave 3.1
-> {Se actualiza al completar la Wave.}
+
+**Task 3.1.1 (DONE — 2026-08-25):**
+Asimetría de puertos materializada. `CorpusManifestLoaderPort` eliminado (Zero Debt); reemplazado por `CorpusManifestReaderPort` (load) + `CorpusManifestWriterPort` (save). `LocalFileSystemCorpusLoader` implementa ambos puertos. Corregido E-2.0-05 (fail-fast: `load_raw_manifest()` lanza `FileNotFoundError` si el manifiesto no existe, reemplazando el fail-open anterior que retornaba DTO vacío). Corregido E-2.0-06 (escritura atómica con `tempfile + fsync + os.replace`, coherente con `write_ast_json_atomic` de Task 1.3.2). Agregado `ground_truth_state: Optional[str] = None` a `RawDocumentEntryDTO` (DF-13, default None → interpretado como DRAFT por la capa de consumo; valor canónico `"sealed"` en minúsculas coherente con `GroundTruthLifecycleState.SEALED.value`). Actualizados todos los entry points (`bootstrap_corpus.py`, `freeze_ground_truth.py`, `generate_golden_draft.py`) para inyectar puertos segregados. Cerrado DF-10 (`BenchmarkParserBridge.extract_ast` retorna `Tuple[ASTNode, ...]`).
+
+**Hallazgos resueltos:** DF-10 (BenchmarkParserBridge Tuple → RESOLVED), DF-13 parcial (campo agregado), E-2.0-05 (fail-fast → RESOLVED), E-2.0-06 (atomicidad → RESOLVED).
+
+**Verificación:** Pyright 0 errors · pytest 7 passed (asimetría) · regresión 342 passed, 5 skipped.
 
 ### 2.12 Wave 3.2 — Autoridad única de sellado (NADR-14 §5.2)
 
-**Wave Status:** ⏳ PENDING
+**Wave Status:** ✅ COMPLETED
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **3.2.1** | Consolidar la certificación de oráculos y baselines en una única autoridad de sellado | NADR-14 §5.2 R4 | High | 3.1.3 | TODO |
-| **3.2.2** | Eliminar la coexistencia de múltiples autoridades de sellado con lógica duplicada o divergente | NADR-14 §5.2 R5 | Medium | 3.2.1 | TODO |
-| **3.2.3** | Asegurar que toda operación de sellado delegue en la autoridad única, sin rutas alternativas | NADR-14 §5.2 R6 | High | 3.2.1 | TODO |
+| **3.2.1** | Consolidar la certificación de oráculos y baselines en una única autoridad de sellado | NADR-14 §5.2 R4 | High | 3.1.3 | DONE |
+| **3.2.2** | Eliminar la coexistencia de múltiples autoridades de sellado con lógica duplicada o divergente | NADR-14 §5.2 R5 | Medium | 3.2.1 | DONE |
+| **3.2.3** | Asegurar que toda operación de sellado delegue en la autoridad única, sin rutas alternativas | NADR-14 §5.2 R6 | High | 3.2.1 | DONE |
 
 #### Notas de implementación — Wave 3.2
-> {Se actualiza al completar la Wave.}
+
+**Task 3.2.1 (DONE — 2026-08-25):**
+Autoridad única de sellado materializada. `ManifestGroundTruthUpdater` eliminado (Zero Debt, E-2.0-03); el archivo `services.py` queda como placeholder con docstring de historial. `SealGroundTruthUseCase` es el único camino hacia el sellado. Su nueva interfaz `execute(validated_drafts: Tuple[GroundTruthDraft, ...], target_version)` recibe entidades ya validadas del entry point (Imperative Shell orquesta el ciclo de vida en memoria: cargar → validar estructura → transicionar DRAFT → AUDITED → VALIDATED → pasar al caso de uso). El caso de uso verifica completitud bidireccional defensiva (orphan_drafts + missing_drafts), estado VALIDATED, sella con `LifecycleTransitionAuthority.seal()`, calcula hashes DESDE DISCO vía `artifact_port`, persiste `ground_truth_state = "sealed"` en el manifiesto (DF-13 completado), y guarda. Atomicidad garantizada: si cualquier invariante falla, lanza `BaselineContractError` sin mutar el manifiesto.
+
+**Decisión de diseño inline (separación audit/validate):** `OracleValidityContract.validate()` (Gate 2) verifica estructura; `LifecycleTransitionAuthority.audit()/validate()` (Gate 1) gestiona estados. El entry point orquesta ambas en secuencia atómica (sin I/O intermedio), respetando separación de responsabilidades.
+
+**DF-17 documentado en código:** El `manifest_hash` calculado por `ManifestLineageSealer` NO incluye `ground_truth_state`. La ventana de vulnerabilidad se cierra en Gate 4 (NADR-15 §5.3 R9).
+
+**Hallazgos resueltos:** DF-13 (persistencia estado SEALED → RESOLVED), E-2.0-03 (duplicado eliminado → RESOLVED).
+
+**Hallazgo forward-looking:** DF-17 (ventana entre Gate 3 y Gate 4 → DEFERRED — FASE 4, Gate 4 la cierra).
+
+**Verificación:** Pyright 0 errors · pytest 6 passed (atomicidad + Zero Debt) · regresión 344 passed, 5 skipped.
 
 ### 2.13 Wave 3.3 — Superficie de curaduría gobernada (NADR-14 §5.3)
 
-**Wave Status:** ⏳ PENDING
+**Wave Status:** ✅ COMPLETED
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **3.3.1** | Componer las dependencias de todo punto de entrada de curaduría/sellado conforme a la raíz de composición establecida | NADR-14 §5.3 R7 | Medium | 3.2.3 | TODO |
-| **3.3.2** | Propagar los fallos de integridad durante curaduría/sellado como errores explícitos, sin degradación a advertencias | NADR-14 §5.3 R8 | High | 3.3.1 | TODO |
-| **3.3.3** | Proveer explícitamente los parámetros que determinan la identidad de la baseline (versión objetivo del sello), sin fijación implícita | NADR-14 §5.3 R9 | Medium | 3.3.1 | TODO |
+| **3.3.1** | Componer las dependencias de todo punto de entrada de curaduría/sellado conforme a la raíz de composición establecida | NADR-14 §5.3 R7 | Medium | 3.2.3 | DONE |
+| **3.3.2** | Propagar los fallos de integridad durante curaduría/sellado como errores explícitos, sin degradación a advertencias | NADR-14 §5.3 R8 | High | 3.3.1 | DONE |
+| **3.3.3** | Proveer explícitamente los parámetros que determinan la identidad de la baseline (versión objetivo del sello), sin fijación implícita | NADR-14 §5.3 R9 | Medium | 3.3.1 | DONE |
 
 #### Notas de implementación — Wave 3.3
-> {Se actualiza al completar la Wave.}
+
+**Task 3.3.1 (DONE — 2026-08-25):**
+Superficie de curaduría gobernada materializada. `GenerateGoldenDraftUseCase` actualizado para verificar estado sellado antes de escribir (DF-14). Inyecta `CorpusManifestReaderPort` como nueva dependencia (dependencia entre bounded contexts `ground_truth → corpus`, aceptable porque el sellado es una operación cruzada; solo lectura, respeta asimetría de puertos). Entry point `generate_golden_draft.py` actualizado para inyectar el nuevo puerto. Lógica de verificación: si documento está en manifiesto con `ground_truth_state == "sealed"` → lanza `SealedOracleOverwriteError`; si no está en manifiesto o state ≠ sealed → permite.
+
+**Taxonomía de errores actualizada:** Agregada `SealedOracleOverwriteError(GroundTruthError)` con docstring explícito que referencia NADR-12 §5.3 R9 + DF-14.
+
+**Hallazgo resuelto:** DF-14 (protección contra sobrescritura → RESOLVED).
+
+**Verificación:** Pyright 0 errors · pytest 5 passed (protección sellado) · regresión 349 passed, 5 skipped.
 
 #### Notas de referencia cruzada (§1.4)
 > NADR-14 §5.3 R7 (Task 3.3.1) referencia la raíz de composición gobernada por NADR-F17BIS-11 (Fase 1). No hay doble implementación: NADR-11 gobierna la composición del pipeline de traducción; la Task 3.3.1 extiende el mismo principio a los entry points de curaduría de la baseline.
 
 #### Dependencias de Gate 2 (forward-looking)
-- **DF-13:** Mecanismo de persistencia del estado SEALED (Opción B: archivo de metadata separado, Opción D: campo explícito en manifiesto)
-- **DF-14:** Protección contra sobrescritura de oráculos sellados en disco (depende de DF-13)
+- **DF-17:** Ventana donde el estado sellado no está protegido por el hash del manifiesto. Gate 4 (NADR-15 §5.3 R9) la cierra al encadenar el estado en la firma del catálogo.
 
-#### Hallazgos identificados en esta Wave
-| ID | Hallazgo | Derivado a |
-|----|----------|------------|
-| — | {Se registra durante la implementación} | Findings Register |
+#### Hallazgos identificados en este Gate
+| ID | Hallazgo | Estado |
+|----|----------|--------|
+| DF-13 | Persistencia del estado SEALED (Opción D, default DRAFT) | RESOLVED |
+| DF-14 | Protección contra sobrescritura de oráculos sellados | RESOLVED |
+| DF-17 | Ventana entre Gate 3 y Gate 4 (estado no protegido por hash) | DEFERRED — FASE 4 |
+| E-2.0-03 | ManifestGroundTruthUpdater duplicado | RESOLVED |
+| E-2.0-05 | Fail-open en load_raw_manifest | RESOLVED |
+| E-2.0-06 | Escritura no atómica en save_manifest_dto | RESOLVED |
 
 ### 2.14 Gate 3 Exit Criteria
 
@@ -486,17 +517,16 @@ Todas las reglas de NADR-F17BIS-14 referenciadas en este Gate deben alcanzar est
 
 | # | Verificación | Estado |
 |---|-------------|--------|
-| 1 | Todas las Tasks del Gate en estado DONE | ⏳ |
-| 2 | Todas las reglas del Gate en estado DONE en §7 | ⏳ |
-| 3 | Gate Exit Criteria satisfechos | ⏳ |
-| 4 | Hallazgos identificados derivados al Findings Register | ⏳ |
-| 5 | Pyright: 0 errors, 0 warnings | ⏳ |
-| 6 | Tests: suite completa en verde | ⏳ |
-| 7 | Notas de implementación completas para todas las Tasks | ⏳ |
+| 1 | Todas las Tasks del Gate en estado DONE | ✅ (9/9) |
+| 2 | Todas las reglas del Gate en estado DONE en §7 | ✅ (9/9) |
+| 3 | Gate Exit Criteria satisfechos | ✅ |
+| 4 | Hallazgos identificados derivados al Findings Register | ✅ (6 derivados, 5 cerrados, 1 diferido a Gate 4) |
+| 5 | Pyright: 0 errors, 0 warnings | ✅ |
+| 6 | Tests: suite completa en verde (baseline 335+ mantenida) | ✅ (349 passed) |
+| 7 | Notas de implementación completas para todas las Tasks | ✅ (9/9) |
 
-**Veredicto del Gate:** {PASS / CONDITIONAL PASS / FAIL}
-**Fecha de verificación:** {YYYY-MM-DD}
-
+**Veredicto del Gate:** PASS
+**Fecha de verificación:** 2026-08-25
 ---
 
 ## GATE 4 — SEMANTIC IDENTITY LINEAGE IN THE BASELINE MODEL
@@ -583,13 +613,11 @@ Todas las reglas de NADR-F17BIS-15 referenciadas en este Gate deben alcanzar est
 
 ## 3. GATE COMPLETION LOG (Living Document)
 
-Se actualiza al cierre de cada Gate.
-
 | Gate | Fecha de cierre | Rules DONE / Total | Tasks DONE / Total | Hallazgos derivados | Observaciones |
 |------|----------------|-------------------|-------------------|-------------------|---------------|
 | Gate 1 (Ontología) | 2026-08-24 | 9/9 | 9/9 | 15 (12 cerrados, 3 forward-looking) | Waves 1.1, 1.2, 1.3 COMPLETED. Gate PASS. |
 | Gate 2 (Validez/Completitud) | 2026-08-25 | 10/10 | 10/10 | 1 (DF-16 diferido a Post-Fase 2) | Waves 2.1, 2.2, 2.3 COMPLETED. Gate PASS. |
-| Gate 3 (Autoridad/Puertos) | — | 0/9 | 0/9 | 0 | — |
+| Gate 3 (Autoridad/Puertos) | 2026-08-25 | 9/9 | 9/9 | 6 (5 cerrados, 1 diferido a Gate 4) | Waves 3.1, 3.2, 3.3 COMPLETED. Gate PASS. |
 | Gate 4 (Identidad Semántica) | — | 0/9 | 0/9 | 0 | — |
 
 ---
@@ -633,9 +661,9 @@ Los contadores se **derivan computacionalmente** del Traceability Appendix (§7)
 |---|---|---|---|---|---|
 | Gate 1 (Ontología) | 9 | 9 | 0 | 0 | ✅ COMPLETED |
 | Gate 2 (Validez/Completitud) | 10 | 10 | 0 | 0 | ✅ COMPLETED |
-| Gate 3 (Autoridad/Puertos) | 0 | 0 | 0 | 9 | ⏳ PENDING |
+| Gate 3 (Autoridad/Puertos) | 9 | 9 | 0 | 0 | ✅ COMPLETED |
 | Gate 4 (Identidad Semántica) | 0 | 0 | 0 | 9 | ⏳ PENDING |
-| **TOTAL** | **19** | **19** | **0** | **18** | 🟡 IN PROGRESS |
+| **TOTAL** | **28** | **28** | **0** | **9** | 🟡 IN PROGRESS |
 
 **Regla de actualización:** Cada vez que una Task pase a `DONE`:
 1. Se actualiza el `Status` de la Task en la tabla de Wave correspondiente (§2)
@@ -685,15 +713,15 @@ Los contadores se **derivan computacionalmente** del Traceability Appendix (§7)
 
 | Rule | Derived Status | Evidence | Implementation Notes |
 |---|---|---|---|
-| NADR-14 §5.1 R1 | PENDING | Task 3.1.1 | — |
-| NADR-14 §5.1 R2 | PENDING | Task 3.1.2 | — |
-| NADR-14 §5.1 R3 | PENDING | Task 3.1.3 | — |
-| NADR-14 §5.2 R4 | PENDING | Task 3.2.1 | — |
-| NADR-14 §5.2 R5 | PENDING | Task 3.2.2 | — |
-| NADR-14 §5.2 R6 | PENDING | Task 3.2.3 | — |
-| NADR-14 §5.3 R7 | PENDING | Task 3.3.1 | — |
-| NADR-14 §5.3 R8 | PENDING | Task 3.3.2 | — |
-| NADR-14 §5.3 R9 | PENDING | Task 3.3.3 | — |
+| NADR-14 §5.1 R1 | DONE | Task 3.1.1 | Asimetría de puertos materializada. CorpusManifestLoaderPort eliminado; reemplazado por Reader + Writer. LocalFileSystemCorpusLoader implementa ambos. |
+| NADR-14 §5.1 R2 | DONE | Task 3.1.2 | Contrato de lectura runtime no expone escritura. LoadCorpusManifestUseCase solo inyecta ReaderPort. |
+| NADR-14 §5.1 R3 | DONE | Task 3.1.3 | Contrato de curaduría no consumido por runtime. BootstrapCorpusManifestUseCase y SealGroundTruthUseCase inyectan ambos puertos (curaduría). |
+| NADR-14 §5.2 R4 | DONE | Task 3.2.1 | Autoridad única consolidada en SealGroundTruthUseCase. Recibe validated_drafts del entry point. |
+| NADR-14 §5.2 R5 | DONE | Task 3.2.2 | ManifestGroundTruthUpdater eliminado (Zero Debt, E-2.0-03). services.py como placeholder. |
+| NADR-14 §5.2 R6 | DONE | Task 3.2.3 | SealGroundTruthUseCase es el único camino hacia el sellado. Sin rutas alternativas. |
+| NADR-14 §5.3 R7 | DONE | Task 3.3.1 | Entry points componen vía raíz de composición. freeze_ground_truth.py orquesta ciclo de vida. |
+| NADR-14 §5.3 R8 | DONE | Task 3.3.2 | Fallos de integridad propagados como errores explícitos. SealedOracleOverwriteError sin degradación. |
+| NADR-14 §5.3 R9 | DONE | Task 3.3.3 | Parámetros explícitos para identidad de baseline. target_version en SealGroundTruthUseCase. |
 
 ### 7.4 Gate 4 — NADR-F17BIS-15 (Semantic Identity Lineage)
 

@@ -206,6 +206,36 @@ Implementación del Execution Plan, no en este registro.
 
 ---
 
+### 2.3 Gate 3 — Curation/Runtime Port Asymmetry & Sealing Authority (NADR-F17BIS-14)
+
+**Estado:** ✅ COMPLETED (9 tareas completadas, 9 reglas materializadas)
+
+#### Hallazgos identificados durante Gate 3
+
+| ID | Hallazgo | Clasificación | Dueño | Estado |
+|----|----------|---------------|-------|--------|
+| **DF-10** | `BenchmarkParserBridge.extract_ast` en `infra/benchmarks/adapters/ground_truth_parser_adapter.py` debe retornar `Tuple[ASTNode, ...]` para cumplir el contrato actualizado de `ASTExtractionPort` (Gate 1). | `RESOLVED` | Wave 3.1 | **Cerrado** — `extract_ast` retorna `Tuple[ASTNode, ...]` envolviendo con `tuple()` el retorno del parser. |
+| **DF-13** | Persistencia del estado SEALED requiere mecanismo que no sea inferencia. Opción D (campo `ground_truth_state` en `RawDocumentEntryDTO`) seleccionada. Default None interpretado como DRAFT. | `RESOLVED` | Waves 3.1 + 3.2 | **Cerrado** — Campo agregado en Wave 3.1; persistencia completada en Wave 3.2. |
+| **DF-14** | Protección contra sobrescritura de oráculos sellados en disco. Requiere mecanismo de persistencia del estado SEALED (DF-13). | `RESOLVED` | Wave 3.3 | **Cerrado** — `GenerateGoldenDraftUseCase` verifica `ground_truth_state == "sealed"` antes de escribir. Lanza `SealedOracleOverwriteError` si sellado. |
+| **DF-17** | Ventana entre Gate 3 y Gate 4 donde el estado sellado no está protegido por el hash del manifiesto. `ManifestLineageSealer` calcula hash sin incluir `ground_truth_state`. | `DEFERRED — FASE 4` | Gate 4 (Task 4.3.2) | **Diferido** — Gate 4 encadena el estado en la firma vía NADR-15 §5.3 R9. |
+| **E-2.0-03** | `ManifestGroundTruthUpdater` duplicado línea por línea de `ManifestLineageSealer`. Cero consumidores. | `RESOLVED` | Wave 3.2 | **Cerrado** — Archivo eliminado (Zero Debt). `services.py` como placeholder. |
+| **E-2.0-05** | `load_raw_manifest()` retorna DTO vacío si el archivo no existe (fail-open). Viola Cero Fallos Silenciosos. | `RESOLVED` | Wave 3.1 | **Cerrado** — Corregido a fail-fast: lanza `FileNotFoundError`. |
+| **E-2.0-06** | `save_manifest_dto()` usa `open()` directo sin atomicidad. Inconsistente con `write_ast_json_atomic`. | `RESOLVED` | Wave 3.1 | **Cerrado** — Corregido con `tempfile + fsync + os.replace`. |
+
+#### Archivos auditados
+
+- `core/benchmark/corpus/ports.py` — Segregación Reader/Writer
+- `infra/fs/corpus_repository.py` — Fail-fast + escritura atómica
+- `core/benchmark/corpus/dtos.py` — Campo `ground_truth_state` agregado
+- `core/benchmark/corpus/use_cases.py` — Bootstrap=reader+writer, Load=reader
+- `core/benchmark/ground_truth/use_cases.py` — SealGroundTruthUseCase como autoridad única + GenerateGoldenDraftUseCase con verificación de sellado
+- `core/benchmark/ground_truth/services.py` — ManifestGroundTruthUpdater eliminado
+- `core/benchmark/ground_truth/errors.py` — SealedOracleOverwriteError agregado
+- `tools/evaluation/bootstrap_corpus.py` — Inyección de puertos segregados
+- `tools/evaluation/freeze_ground_truth.py` — Orquestación del ciclo de vida en memoria
+- `tools/evaluation/generate_golden_draft.py` — Inyección de corpus_reader
+- `infra/benchmarks/adapters/ground_truth_parser_adapter.py` — DF-10 cerrado
+
 ## 3. TABLA CONSOLIDADA FINAL
 
 {Pendiente. Se actualiza al cierre del último Gate Exit Review.}
@@ -214,10 +244,11 @@ Implementación del Execution Plan, no en este registro.
 
 | Clasificación | Cantidad | DFs |
 |--------------|----------|-----|
-| `REVIEW_REQUIRED` | 3 | DF-01, DF-10, DF-13, DF-14 |
+| `REVIEW_REQUIRED` | 2 | DF-01, DF-18 |
 | `ACCEPTED_LIMITATION` | 1 | DF-04 |
-| `RESOLVED` | 11 | DF-02, DF-03, DF-05, DF-06, DF-07, DF-08, DF-09, DF-11, DF-12, DF-15 |
+| `RESOLVED` | 17 | DF-02, DF-03, DF-05, DF-06, DF-07, DF-08, DF-09, DF-10, DF-11, DF-12, DF-13, DF-14, DF-15, E-2.0-03, E-2.0-05, E-2.0-06 |
 | `RECLASSIFIED_FUTURE_PHASE` | 1 | DF-16 |
+| `DEFERRED — FASE 4` | 1 | DF-17 |
 | `IMPLEMENTATION_REQUIRED` | 0 | — |
 
 ### 3.2 Tabla consolidada
@@ -233,13 +264,17 @@ Implementación del Execution Plan, no en este registro.
 | DF-07 | `RESOLVED` | Parámetro `document_id` es clave de acceso (puerto); campo `document_id` es identidad (entidad). La fábrica los unifica. | Task 1.1.3 (cerrado) |
 | DF-08 | `RESOLVED` | Coexistencia Draft/Oracle permitida por diseño. Verificado en test `test_same_document_id_different_types`. | Task 1.2.1 (cerrado) |
 | DF-09 | `RESOLVED` | Import de `ASTNode` añadido en `ground_truth_store.py` como parte de la actualización del adaptador. | Task 1.1.3 (cerrado) |
-| DF-10 | `REVIEW_REQUIRED` | `BenchmarkParserBridge.extract_ast` debe retornar `Tuple` para cumplir contrato actualizado de `ASTExtractionPort`. Prerequisito de Wave 1.3. | Task 1.3.1 |
+| DF-10 | `RESOLVED` | BenchmarkParserBridge.extract_ast retorna Tuple[ASTNode, ...] | Wave 3.1 (cerrado) |
 | DF-11 | `RESOLVED` | Fábrica `hydrate_ground_truth` corregida: solo acepta DRAFT y SEALED. AUDITED/VALIDATED lanzan `ValueError` con trazabilidad a DF-06. | Task 1.1.3 (cerrado) |
 | DF-12 | `RESOLVED` | `sub_state` es efímero en memoria (Opción 3). El oráculo en disco se trata como DRAFT al hidratar. Estado SEALED requiere DF-13 (Gate 3). Fábrica trust-based. | Task 1.2.1 (cerrado) |
-| DF-13 | `REVIEW_REQUIRED` | Persistencia del estado SEALED requiere mecanismo no-inferencia (Opción B o D). Gate 3 debe resolver. Implicaciones en `SealGroundTruthUseCase` y `ManifestFingerprintCalculator`. Fábrica trust-based. | Task 3.2.1 (Gate 3) |
-| DF-14 | `REVIEW_REQUIRED` | Protección contra sobrescritura de oráculos sellados en disco. Depende de DF-13 (mecanismo de persistencia del estado SEALED). Gate 3 debe resolver. | Task 3.2.1 (Gate 3) |
+| DF-13 | `RESOLVED` | Campo ground_truth_state agregado a RawDocumentEntryDTO; persistencia completada | Waves 3.1 + 3.2 (cerrado) |
+| DF-14 | `RESOLVED` | GenerateGoldenDraftUseCase verifica estado sellado antes de escribir | Wave 3.3 (cerrado) |
 | DF-15 | `RESOLVED` | Bug multiplataforma en `write_ast_json_atomic` corregido con `os.replace()`. Test `test_draft_writer_overwrites_existing_file` expuso el bug. | Task 1.3.2 (cerrado) |
 | DF-16 | `RECLASSIFIED_FUTURE_PHASE` | `ASTValidator.validate()` tiene parámetros no utilizados (dead code de Fase 16). Diferido a post-Fase 2 para evaluación de uso o eliminación. | Post-Fase 2 |
+| DF-17 | `DEFERRED — FASE 4` | Ventana de vulnerabilidad: estado sellado no protegido por hash. Gate 4 la cierra vía NADR-15 §5.3 R9 | Gate 4 (Task 4.3.2) |
+| E-2.0-03 | `RESOLVED` | ManifestGroundTruthUpdater eliminado (Zero Debt) | Wave 3.2 (cerrado) |
+| E-2.0-05 | `RESOLVED` | Fail-fast en load_raw_manifest | Wave 3.1 (cerrado) |
+| E-2.0-06 | `RESOLVED` | Escritura atómica con tempfile + fsync + os.replace | Wave 3.1 (cerrado) |
 
 ---
 
@@ -253,19 +288,20 @@ Implementación del Execution Plan, no en este registro.
 
 | Métrica | Valor |
 |---------|-------|
-| Total de hallazgos analizados | 16 |
-| Hallazgos resueltos | 11 (DF-02, DF-03, DF-05, DF-06, DF-07, DF-08, DF-09, DF-11, DF-12, DF-15) |
+| Total de hallazgos analizados | 23 |
+| Hallazgos resueltos | 17 (DF-02, DF-03, DF-05, DF-06, DF-07, DF-08, DF-09, DF-10, DF-11, DF-12, DF-13, DF-14, DF-15, E-2.0-03, E-2.0-05, E-2.0-06) |
 | Hallazgos cerrados sin acción | 0 |
 | Hallazgos reclasificados a fase futura | 1 (DF-16) |
+| Hallazgos diferidos a Fase 4 | 1 (DF-17) |
 | Hallazgos aceptados como limitación | 1 (DF-04) |
-| Hallazgos pendientes de revisión | 4 (DF-01, DF-10, DF-13, DF-14) |
+| Hallazgos pendientes de revisión | 2 (DF-01, DF-18) |
 | Hallazgos pendientes de implementación | 0 |
 | Batches completados | 0 |
-| Archivos eliminados totales | 0 |
+| Archivos eliminados totales | 1 (ManifestGroundTruthUpdater en services.py) |
 | Archivos movidos totales | 0 |
-| Archivos creados totales | 8 (Gate 1: 5, Gate 2: 3) |
-| Archivos modificados totales | 8 (Gate 1: 4, Gate 2: 4) |
-| Tests finales | 335 passed, 5 skipped (baseline 274 + 61 nuevos) |
+| Archivos creados totales | 13 (Gate 1: 5, Gate 2: 3, Gate 3: 5) |
+| Archivos modificados totales | 15 (Gate 1: 4, Gate 2: 4, Gate 3: 7) |
+| Tests finales | 349 passed, 5 skipped (baseline 274 + 75 nuevos) |
 | Pyright final | 0 errors |
 
 ---
@@ -305,15 +341,16 @@ El documento se considera cerrado (`ARCHIVED`) cuando:
 
 | Categoría | Cantidad |
 |-----------|----------|
-| Total de hallazgos analizados | 16 |
-| Hallazgos resueltos | 11 |
+| Total de hallazgos analizados | 23 |
+| Hallazgos resueltos | 17 |
 | Hallazgos pendientes de implementación | 0 |
-| Hallazgos pendientes de revisión | 4 |
+| Hallazgos pendientes de revisión | 2 |
 | Hallazgos cerrados sin acción | 0 |
 | Hallazgos aceptados como limitación | 1 |
 | Hallazgos reclasificados a fase futura | 1 |
+| Hallazgos diferidos a Fase 4 | 1 |
 | Batches completados | 0/4 |
-| Estado del Exit Review | 🟡 IN PROGRESS (Gate 2 COMPLETED, Gate 3 PENDING) |
+| Estado del Exit Review | 🟡 IN PROGRESS (Gate 3 COMPLETED, Gate 4 PENDING) |
 
 ---
 

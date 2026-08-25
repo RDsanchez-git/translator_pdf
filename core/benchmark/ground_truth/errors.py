@@ -1,3 +1,16 @@
+"""Taxonomía de errores del bounded context ground_truth.
+
+Jerarquía:
+- GroundTruthError (base)
+  ├── EmptyGroundTruthDraftError (extracción vacía)
+  ├── OracleValidityError (validez estructural, Gate 2)
+  ├── IncompleteBaselineError (completitud biyectiva, Gate 2)
+  │   └── OrphanOracleError (oráculo huérfano, Gate 2)
+  ├── BaselineContractError (reporte agregado, Gate 2)
+  └── SealedOracleOverwriteError (protección contra sobrescritura, Gate 3)
+"""
+
+
 class GroundTruthError(Exception):
     """Base exception for the ground_truth bounded context."""
     pass
@@ -8,7 +21,7 @@ class EmptyGroundTruthDraftError(GroundTruthError):
     pass
 
 
-# --- Errores INDIVIDUALES (recolectados como strings por el caso de uso) ---
+# --- Gate 2: Errores de contrato de baseline ---
 
 
 class OracleValidityError(GroundTruthError):
@@ -24,9 +37,6 @@ class IncompleteBaselineError(GroundTruthError):
 class OrphanOracleError(IncompleteBaselineError):
     """Raised when an oracle exists without corresponding manifest entry (NADR-13 §5.2 R7)."""
     pass
-
-
-# --- Error COMPUESTO del caso de uso (reporte agregado) ---
 
 
 class BaselineContractError(GroundTruthError):
@@ -50,3 +60,17 @@ class BaselineContractError(GroundTruthError):
             f"{len(self.validity_errors)} validity."
         )
         super().__init__(msg)
+
+
+# --- Gate 3: Errores de superficie de curaduría gobernada ---
+
+
+class SealedOracleOverwriteError(GroundTruthError):
+    """Raised when a curation operation attempts to overwrite a sealed oracle.
+
+    NADR-12 §5.3 R9 + DF-14: Un oráculo sellado no puede ser alterado
+    ni sobrescrito por operaciones de curaduría. Materializa la protección
+    a nivel de persistencia (la protección de modelo ya existe desde Gate 1
+    vía frozen=True en SealedOracle).
+    """
+    pass

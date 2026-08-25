@@ -1,6 +1,7 @@
 from typing import List, Optional
 from pydantic import BaseModel, ConfigDict
 
+
 class RawDocumentEntryDTO(BaseModel):
     document_id: str
     sha256: str
@@ -8,7 +9,12 @@ class RawDocumentEntryDTO(BaseModel):
     page_count: int
     ground_truth_version: Optional[str] = None
     ground_truth_sha256: Optional[str] = None
+    # DF-13: estado del ciclo de vida del Ground Truth. Raw string (no enum)
+    # para evitar dependencia cruzada corpus→ground_truth. Default None;
+    # la capa de consumo interpreta None como DRAFT (migración).
+    ground_truth_state: Optional[str] = None
     model_config = ConfigDict(frozen=True)
+
 
 class RawCorpusManifestDTO(BaseModel):
     corpus_version: str
@@ -16,8 +22,8 @@ class RawCorpusManifestDTO(BaseModel):
     documents: List[RawDocumentEntryDTO]
     model_config = ConfigDict(frozen=True)
 
+
 class BootstrapCorpusResult(BaseModel):
-    """DTO Rico de salida para control operacional en la capa de aplicación (Problema 4)."""
     manifest_hash: str
     documents_processed: int
     total_pages_indexed: int

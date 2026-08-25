@@ -1,11 +1,16 @@
-"""Tests de atomicidad del sellado (Wave 2.3).
+"""Tests de atomicidad y autoridad única de sellado (Wave 3.2).
 
-Verifica NADR-F17BIS-13 §5.3 R9-R10: el sellado es atómico y un aborto
-no deja una baseline parcialmente certificada ni manifiesto inconsistente.
-Usa fakes de puertos (Functional Core: el caso de uso recibe dependencias).
+Verifica:
+- NADR-14 §5.2 R4-R6: autoridad única de sellado
+- NADR-13 §5.3 R9-R10: atomicidad del sellado
+- Integración con LifecycleTransitionAuthority (Gate 1)
+- Persistencia del estado SEALED (DF-13)
+- Completitud bidireccional defensiva
 """
 
 from __future__ import annotations
+
+from typing import List
 
 import pytest
 
@@ -13,7 +18,17 @@ from core.ast.enums import ContentNodeType, TranslationStrategy
 from core.ast.models import ASTNode, ParagraphPayload
 from core.benchmark.corpus.dtos import RawCorpusManifestDTO, RawDocumentEntryDTO
 from core.benchmark.ground_truth.errors import BaselineContractError
+from core.benchmark.ground_truth.lifecycle import LifecycleTransitionAuthority
+from core.benchmark.ground_truth.models import (
+    DraftSubState,
+    GroundTruthDraft,
+    GroundTruthLifecycleState,
+)
 from core.benchmark.ground_truth.use_cases import SealGroundTruthUseCase
+
+
+# Hash SHA-256 real de la cadena vacía (hexálido, minúsculas)
+_VALID_SHA256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
 
 
 def _make_node(node_id: str, content: str) -> ASTNode:
@@ -26,24 +41,29 @@ def _make_node(node_id: str, content: str) -> ASTNode:
     )
 
 
-# Hash SHA-256 real de la cadena vacía, usado como valor por defecto válido
-# en los fakes. Evita problemas de validación de Pydantic con dataclasses
-# anidados (DocumentFingerprint).
-_VALID_SHA256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+def _make_validated_draft(doc_id: str) -> GroundTruthDraft:
+    """Construye un draft en estado VALIDATED."""
+    draft = GroundTruthDraft(
+        document_id=doc_id,
+        nodes=(_make_node("n1", "Contenido válido."),),
+        sub_state=DraftSubState.DRAFT,
+    )
+    audited = LifecycleTransitionAuthority.audit(draft)
+    return LifecycleTransitionAuthority.validate(audited)
 
 
 class FakeCorpusLoader:
     def __init__(self, doc_ids):
         self._doc_ids = doc_ids
-        self.saved_manifests = []
+        self.saved_manifests: List[RawCorpusManifestDTO] = []
 
-    def load_raw_manifest(self):
+    def load_raw_manifest(self) -> RawCorpusManifestDTO:
         documents = [
             RawDocumentEntryDTO(
                 document_id=d,
                 sha256=_VALID_SHA256,
-                traits=["native_pdf"],  # Al menos un trait (CorpusDocumentMetadata requiere min_length=1)
-                page_count=1
+                traits=["native_pdf"],
+                page_count=1,
             )
             for d in self._doc_ids
         ]
@@ -51,7 +71,7 @@ class FakeCorpusLoader:
             corpus_version="v1.0", manifest_hash="", documents=documents
         )
 
-    def save_manifest_dto(self, dto):
+    def save_manifest_dto(self, dto: RawCorpusManifestDTO) -> None:
         self.saved_manifests.append(dto)
 
 
@@ -59,77 +79,130 @@ class FakeArtifactPort:
     def __init__(self, artifact_ids):
         self._artifact_ids = set(artifact_ids)
 
-    def artifact_exists(self, document_id):
+    def artifact_exists(self, document_id: str) -> bool:
         return document_id in self._artifact_ids
 
-    def read_artifact_bytes(self, document_id):
+    def read_artifact_bytes(self, document_id: str) -> bytes:
         return b"{}"
 
     def list_artifact_ids(self):
         return tuple(sorted(self._artifact_ids))
 
 
-class FakeReader:
-    def __init__(self, oracle_nodes_by_doc):
-        self._oracles = oracle_nodes_by_doc
-
-    def load_ground_truth(self, document_id):
-        return self._oracles[document_id]
-
-
-class TestSealAtomicity:
-    def _make_use_case(self, doc_ids, artifact_ids, oracles):
+class TestSealAuthorityAndAtomicity:
+    def _make_use_case(self, doc_ids, artifact_ids):
         loader = FakeCorpusLoader(doc_ids)
         artifact_port = FakeArtifactPort(artifact_ids)
-        reader = FakeReader(oracles)
-        return SealGroundTruthUseCase(
-            corpus_loader=loader,
-            artifact_port=artifact_port,
-            reader=reader,
-        ), loader
+        return (
+            SealGroundTruthUseCase(
+                corpus_reader=loader,
+                corpus_writer=loader,
+                artifact_port=artifact_port,
+            ),
+            loader,
+        )
 
-    def test_successful_seal_saves_manifest(self) -> None:
-        nodes = (_make_node("n1", "Contenido válido."),)
+    def test_successful_seal_saves_manifest_with_sealed_state(self) -> None:
+        """Sellado exitoso: persiste manifiesto con ground_truth_state=sealed."""
         use_case, loader = self._make_use_case(
             doc_ids=["doc-1"],
             artifact_ids=["doc-1"],
-            oracles={"doc-1": nodes},
         )
-        result_hash = use_case.execute(target_version="v1.0")
+        validated = _make_validated_draft("doc-1")
+
+        result_hash = use_case.execute(
+            validated_drafts=(validated,),
+            target_version="v1.0",
+        )
+
         assert isinstance(result_hash, str)
         assert len(loader.saved_manifests) == 1
+        saved = loader.saved_manifests[0]
+        assert saved.documents[0].ground_truth_state == GroundTruthLifecycleState.SEALED.value
+        assert saved.documents[0].ground_truth_version == "v1.0"
 
-    def test_missing_oracle_aborts_without_saving_manifest(self) -> None:
-        """R9/R10: aborto por completitud no deja manifiesto guardado."""
-        use_case, loader = self._make_use_case(
-            doc_ids=["doc-1", "doc-2"],
-            artifact_ids=["doc-1"],
-            oracles={"doc-1": (_make_node("n1", "Ok."),)},
-        )
-        with pytest.raises(BaselineContractError):
-            use_case.execute(target_version="v1.0")
-        assert loader.saved_manifests == []
-
-    def test_invalid_oracle_aborts_without_saving_manifest(self) -> None:
-        """R9/R10: aborto por validez no deja manifiesto guardado."""
+    def test_draft_not_in_validated_state_aborts(self) -> None:
+        """El caso de uso rechaza drafts no-VALIDATED."""
         use_case, loader = self._make_use_case(
             doc_ids=["doc-1"],
             artifact_ids=["doc-1"],
-            oracles={"doc-1": (_make_node("n1", ""),)},  # contenido vacío
         )
-        with pytest.raises(BaselineContractError):
-            use_case.execute(target_version="v1.0")
+        draft_in_draft_state = GroundTruthDraft(
+            document_id="doc-1",
+            nodes=(_make_node("n1", "Ok"),),
+            sub_state=DraftSubState.DRAFT,
+        )
+
+        with pytest.raises(BaselineContractError) as exc_info:
+            use_case.execute(validated_drafts=(draft_in_draft_state,))
+
+        err = exc_info.value
+        assert len(err.validity_errors) == 1
+        assert "VALIDATED state" in err.validity_errors[0]
         assert loader.saved_manifests == []
 
-    def test_aggregate_error_contains_completeness_and_validity(self) -> None:
-        """Reporte agregado: ambos tipos de error se recolectan juntos."""
-        use_case, _ = self._make_use_case(
-            doc_ids=["doc-missing", "doc-invalid"],
-            artifact_ids=["doc-invalid"],
-            oracles={"doc-invalid": (_make_node("n1", ""),)},
+    def test_validated_draft_not_in_manifest_aborts(self) -> None:
+        """Draft validado con doc_id que no está en manifiesto aborta."""
+        use_case, loader = self._make_use_case(
+            doc_ids=["doc-1"],
+            artifact_ids=["doc-1", "doc-orphan"],
         )
+        # doc-1 cubre el manifiesto; doc-orphan es huérfano
+        validated = (
+            _make_validated_draft("doc-1"),
+            _make_validated_draft("doc-orphan"),
+        )
+
         with pytest.raises(BaselineContractError) as exc_info:
-            use_case.execute(target_version="v1.0")
+            use_case.execute(validated_drafts=validated)
+
         err = exc_info.value
-        assert len(err.completeness_errors) == 1  # doc-missing
-        assert len(err.validity_errors) == 1  # doc-invalid
+        assert len(err.completeness_errors) == 1
+        assert "doc-orphan" in err.completeness_errors[0]
+        assert loader.saved_manifests == []
+
+    def test_manifest_document_without_validated_draft_aborts(self) -> None:
+        """Caso de uso aborta si hay documentos del manifiesto sin draft validado."""
+        use_case, loader = self._make_use_case(
+            doc_ids=["doc-1", "doc-2"],
+            artifact_ids=["doc-1", "doc-2"],
+        )
+        # Solo validamos doc-1; doc-2 queda sin draft validado
+        validated = _make_validated_draft("doc-1")
+
+        with pytest.raises(BaselineContractError) as exc_info:
+            use_case.execute(validated_drafts=(validated,))
+
+        err = exc_info.value
+        assert len(err.completeness_errors) == 1
+        assert "doc-2" in err.completeness_errors[0]
+        assert loader.saved_manifests == []
+
+    def test_multiple_documents_seal_atomically(self) -> None:
+        """Atomicidad: todos los documentos se sellan juntos."""
+        use_case, loader = self._make_use_case(
+            doc_ids=["doc-a", "doc-b", "doc-c"],
+            artifact_ids=["doc-a", "doc-b", "doc-c"],
+        )
+        validated = (
+            _make_validated_draft("doc-a"),
+            _make_validated_draft("doc-b"),
+            _make_validated_draft("doc-c"),
+        )
+
+        use_case.execute(validated_drafts=validated, target_version="v1.0")
+
+        assert len(loader.saved_manifests) == 1
+        saved = loader.saved_manifests[0]
+        assert len(saved.documents) == 3
+        for doc in saved.documents:
+            assert doc.ground_truth_state == GroundTruthLifecycleState.SEALED.value
+
+
+class TestSingleAuthorityOfSealing:
+    def test_manifest_ground_truth_updater_removed(self) -> None:
+        """ManifestGroundTruthUpdater fue eliminado (Zero Debt, E-2.0-03)."""
+        from core.benchmark.ground_truth import services
+        assert not hasattr(
+            services, "ManifestGroundTruthUpdater"
+        ), "ManifestGroundTruthUpdater was removed (E-2.0-03, Zero Debt)"
