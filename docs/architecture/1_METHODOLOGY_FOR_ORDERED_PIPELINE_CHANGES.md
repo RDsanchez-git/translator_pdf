@@ -1,10 +1,10 @@
 # METHODOLOGY_FOR_ORDERED_PIPELINE_CHANGES.md
 ## Metodología General para Cambios Ordenados en el Pipeline del Traductor
 
-* **Versión:** 1.2.0
+* **Versión:** 1.3.0
 * **Estado:** FROZEN
 * **Fecha de Emisión:** 2026-08-04
-* **Fecha de Última Actualización:** 2026-08-19
+* **Fecha de Última Actualización:** 2026-08-25
 * **Autoridad:** Architecture Board
 * **Alcance:** Todas las fases futuras del proyecto (17-BIS en adelante)
 * **Ubicación:** `docs/architecture/METHODOLOGY_FOR_ORDERED_PIPELINE_CHANGES.md`
@@ -15,6 +15,7 @@
 | 1.0.0 | 2026-08-04 | Emisión inicial |
 | 1.1.0 | 2026-08-04 | Sección 3.5: Artefactos de Auditoría y Revisión. Sección 6.6: Flujo de Revisión Post-Implementación. Sección 7.5: Nomenclatura de reportes. Sección 7.6: Estructura de directorios. Actualización de jerarquía y resumen ejecutivo. |
 | 1.2.0 | 2026-08-19 | Unificación de nomenclatura a *Deferred Findings Register*. Corrección del flujo de trabajo (§6.1) para separar el *Exit Review Evidence Log* de la empiria de implementación. Incorporación del *Evidence Log* en nomenclatura (§7.5), estructura de directorios (§7.6) y resumen ejecutivo (§11). |
+| 1.3.0 | {fecha actual} | Clarificación del ciclo de vida del Exit Review Evidence Log: construcción incremental gate por gate, inmutabilidad de entradas registradas, FROZEN al cierre de la fase. Actualización de §3.5.2, §6.1, §6.5, §6.6, §6.7. |
 
 ---
 
@@ -157,8 +158,9 @@ Los artefactos de auditoría y revisión son el registro formal de lo que se enc
 | **Responde** | ¿Qué evidencia forense fundamenta cada clasificación del Findings Register? |
 | **Contiene** | Por cada DF/GF: texto original, reformulación, archivos auditados, análisis, gaps confirmados, no-gaps, impacto, sub-acciones, clasificación consolidada, regla aplicada |
 | **NO contiene** | Resultados de implementación por batch (van en Findings Register), métricas acumuladas |
-| **Naturaleza** | Registro de evidencia forense. Se FROZEN al cierre del Exit Review. No se actualiza durante la implementación de los batches. |
-| **Estado** | FROZEN al cierre del Exit Review |
+| **Naturaleza** | Registro de evidencia forense. Se construye incrementalmente gate por gate; cada entrada es inmutable una vez registrada. El documento completo se FROZEN al cierre de la fase. |
+| **Construcción** | Incremental. Cada Gate Exit Review agrega su sección de evidencia forense al documento. Las entradas registradas no se modifican durante los batches de resolución. |
+| **Estado** | En construcción durante la fase. FROZEN al cierre de la fase. |
 | **Ubicación** | `docs/architecture/adr/phase-{fase}/reviews/` |
 | **Nomenclatura** | `FASE_{X}_EXIT_REVIEW_EVIDENCE_LOG.md` |
 | **Relación** | El Deferred Findings Register referencia este documento para justificar cada clasificación |
@@ -304,9 +306,14 @@ Deferred Findings Register
        │
        ▼
 8. EXIT REVIEW EVIDENCE LOG (evidencia forense de hallazgos) → reviews/
+   Nota: Este documento se construye INCREMENTALMENTE. Cada Gate Exit Review
+   agrega su sección de evidencia forense. El documento completo se FROZEN
+   al cierre de la fase (§3.5.2).
        │
        ▼
 9. DEFERRED FINDINGS REGISTER (clasificación, batches y resolución) → reviews/
+   Nota: Este documento se actualiza gate por gate durante la implementación.
+   Se ARCHIVA al cierre de la fase (§3.5.3).
        │
        ▼
 10. CONGELACIÓN (FROZEN / ARCHIVED) → todos los documentos y handoff final
@@ -334,13 +341,16 @@ Cada grupo de tareas (Wave) actúa como una compuerta. La Wave N no se considera
 * Todas sus tareas están DONE
 * Los criterios de salida están verificados
 * El mecanismo de rollback queda invalidado por estabilización en main
+Al cerrar un Gate (agrupación de Waves), se ejecuta el **Gate Exit Review**, que actualiza ambos artefactos de revisión:
+* El *Exit Review Evidence Log*: se agrega la sección de evidencia forense del Gate mientras la evidencia está fresca. Las entradas registradas son inmutables.
+* El *Deferred Findings Register*: se clasifican los hallazgos identificados en el Gate y se registra el Gate Exit Review.
 
 ### 6.6 Revisión Post-Implementación (v1.1.0)
 
-Al finalizar la implementación de una fase (o un bloque significativo de la misma), se ejecuta una revisión estructurada:
+La revisión estructurada se ejecuta incrementalmente en cada Gate Exit Review y se consolida al cierre de la fase:
 
 1. **Identificación de findings:** Se audita el código implementado contra los NADRs y el ADR Maestro. Los hallazgos se registran con ID único (`DF-{XX}` o `GF-{XX}`).
-2. **Evidencia Forense:** Se documenta el análisis detallado de cada hallazgo en el *Exit Review Evidence Log*.
+2. **Evidencia Forense:** Se documenta el análisis detallado de cada hallazgo en el *Exit Review Evidence Log*. Esta evidencia se registra en cada Gate Exit Review, mientras está fresca, para minimizar el riesgo de omisión. Las entradas registradas son inmutables.
 3. **Clasificación:** Cada finding se clasifica en el *Deferred Findings Register* como:
    - `IMPLEMENTATION_REQUIRED`: Requiere código nuevo o modificación
    - `REVIEW_REQUIRED`: Requiere análisis adicional antes de decidir
@@ -359,7 +369,7 @@ Al finalizar la implementación de una fase (o un bloque significativo de la mis
 | Artefacto | ¿Se commitea? | Momento |
 |---|---|---|
 | HITOs de Fase 0 | ✅ Sí | Al finalizar la Fase 0, como parte de `00-foundation/` |
-| Exit Review Evidence Log | ✅ Sí | Al cerrar el Exit Review, como parte de `reviews/` |
+| Exit Review Evidence Log | ✅ Sí | Se construye gate por gate; se commitea en estado `FROZEN` al cierre de la fase, como parte de `reviews/` |
 | Deferred Findings Register | ✅ Sí | Al cerrar cada fase, como parte de `reviews/` |
 | DF Reports consolidados | ✅ Sí (si existen) | Junto con el Findings Register |
 | Notas de trabajo intermedias | ❌ No | Se gestionan vía `.gitignore` |

@@ -1,16 +1,26 @@
 # FASE_2_DEFERRED_FINDINGS_REGISTER.md
 
 **Documento:** `docs/architecture/adr/phase-17-bis/reviews/FASE_2_DEFERRED_FINDINGS_REGISTER.md`
-**Versión:** 1.7.0
-**Estado:** IN_PROGRESS
+**Versión:** 2.0.0
+**Estado:** ARCHIVED
 **Fecha de creación:** 2026-08-23
 **Última actualización:** 2026-08-25
-**Derivado de:** `PHASE_17BIS_FASE2_EXECUTION_PLAN.md` v1.7.0
+**Derivado de:** `PHASE_17BIS_FASE2_EXECUTION_PLAN.md` v1.9.0
 **Propósito:** Registro auditable de hallazgos identificados durante la implementación
 del Execution Plan de Fase 2 (Scientific Baseline Domain), su clasificación,
 resolución y evidencia empírica de los batches.
 
 ---
+
+### Changelog
+| Versión | Fecha | Cambio |
+|---|---|---|
+| 1.0.0 | 2026-08-23 | Emisión inicial |
+| 1.7.0 | 2026-08-25 | Gates 1-3 COMPLETED |
+| 1.8.0 | 2026-08-25 | Gate 3 Exit Review completado |
+| 1.9.0 | 2026-08-25 | Gate 4 COMPLETED. DF-17 RESOLVED, DF-19 DOCUMENTED |
+| 2.0.0 | 2026-08-25 | **ARCHIVED**. DF-01 y DF-18 reclasificados a RECLASSIFIED_FUTURE_PHASE (DF-16 fue reclasificado en Gate 2 / v1.7.0). Exit Review Evidence Log FROZEN. Fase 2 COMPLETADA. |
+
 
 ## 0. MARCO NORMATIVO Y PRINCIPIOS RECTORES
 
@@ -236,26 +246,50 @@ Implementación del Execution Plan, no en este registro.
 - `tools/evaluation/generate_golden_draft.py` — Inyección de corpus_reader
 - `infra/benchmarks/adapters/ground_truth_parser_adapter.py` — DF-10 cerrado
 
+### 2.4 Gate 4 — Semantic Identity Lineage (NADR-F17BIS-15)
+
+**Estado:** ✅ COMPLETED (9 tareas completadas, 9 reglas materializadas)
+
+#### Hallazgos identificados durante Gate 4
+
+| ID | Hallazgo | Clasificación | Dueño | Estado |
+|----|----------|---------------|-------|--------|
+| **DF-17** | Ventana entre Gate 3 y Gate 4 donde el estado sellado no está protegido por el hash del manifiesto. `ManifestLineageSealer` calculaba hash sin incluir `ground_truth_state`. | `RESOLVED` | Wave 4.3 | **Cerrado** — `ManifestFingerprintCalculator` ahora incluye `oracle_hash` y `ground_truth_state` en el payload. Test `test_ground_truth_state_change_produces_different_hash` verifica sensibilidad. |
+| **DF-19** | Migración de formato de hash del manifiesto. Wave 4.2 cambió el formato del payload de 4 a 6 dimensiones, rompiendo compatibilidad con hashes anteriores. | `DOCUMENTED` | Wave 4.2 | **Documentado** — Docstring de `ManifestFingerprintCalculator` documenta el cambio de formato. Test `test_df19_regression_old_format_differs_from_new_format` verifica empíricamente la ruptura. Manifiestos existentes deben re-sellarse. |
+
+#### Archivos auditados
+
+- `core/benchmark/ground_truth/identity.py` — `OracleSemanticIdentityCalculator` (nuevo)
+- `core/benchmark/corpus/dtos.py` — `oracle_hash` agregado a `RawDocumentEntryDTO`
+- `core/benchmark/corpus/models.py` — `oracle_hash` y `ground_truth_state` agregados a `CorpusDocumentMetadata`
+- `core/benchmark/corpus/services.py` — `ManifestFingerprintCalculator` (formato extendido) + `ManifestLineageSealer` (propagación)
+- `core/benchmark/corpus/use_cases.py` — `LoadCorpusManifestUseCase` + `BootstrapCorpusManifestUseCase` (propagación)
+- `core/benchmark/ground_truth/use_cases.py` — `SealGroundTruthUseCase` (cálculo de `oracle_hashes` + `ground_truth_states`)
+- `tests/unit/test_oracle_identity.py` — 8 tests de identidad semántica (nuevo)
+- `tests/unit/test_manifest_fingerprint.py` — 10 tests de fingerprint (nuevo)
+- `tests/unit/test_ground_truth_sealing_atomicity.py` — tests actualizados para verificar propagación
+
+
 ## 3. TABLA CONSOLIDADA FINAL
 
-{Pendiente. Se actualiza al cierre del último Gate Exit Review.}
 
 ### 3.1 Resumen por clasificación
 
 | Clasificación | Cantidad | DFs |
 |--------------|----------|-----|
-| `REVIEW_REQUIRED` | 2 | DF-01, DF-18 |
+| `REVIEW_REQUIRED` | 0 | - |
 | `ACCEPTED_LIMITATION` | 1 | DF-04 |
-| `RESOLVED` | 17 | DF-02, DF-03, DF-05, DF-06, DF-07, DF-08, DF-09, DF-10, DF-11, DF-12, DF-13, DF-14, DF-15, E-2.0-03, E-2.0-05, E-2.0-06 |
-| `RECLASSIFIED_FUTURE_PHASE` | 1 | DF-16 |
-| `DEFERRED — FASE 4` | 1 | DF-17 |
+| `RESOLVED` | 17 | DF-02, DF-03, DF-05, DF-06, DF-07, DF-08, DF-09, DF-10, DF-11, DF-12, DF-13, DF-14, DF-15, DF-17, E-2.0-03, E-2.0-05, E-2.0-06 |
+| `RECLASSIFIED_FUTURE_PHASE` | 3 | DF-1, DF-16, DF-18 |
+| `DOCUMENTED` | 1 | DF-19 |
+| `DEFERRED — FASE 4` | 0 | — (DF-17 movido a RESOLVED) |
 | `IMPLEMENTATION_REQUIRED` | 0 | — |
 
 ### 3.2 Tabla consolidada
 
 | DF | Estado | Decisión | Dueño |
 |----|--------|----------|-------|
-| DF-01 | `REVIEW_REQUIRED` | Deuda: evaluar extracción de helper compartido a `tests/helpers/` tras completar Fase 2 | Refactor futuro test-infra |
+| DF-01 | `RECLASSIFIED_FUTURE_PHASE` | Deuda de testing diferida a Fase 18 / Refactor test-infra. No afecta ontología ni identidad. YAGNI (ENGINEERING_PRINCIPLES §I). | Fase 18 / Refactor test-infra |
 | DF-02 | `RESOLVED` | GroundTruth es Entity con `document_id` como campo. Agregado separado de `CorpusManifest`, relación por referencia. | Task 1.1.2 (cerrado) |
 | DF-03 | `RESOLVED` | Campo `state` eliminado; el tipo mismo determina el estado (`GroundTruthDraft` vs `SealedOracle`). | Task 1.1.2 (cerrado) |
 | DF-04 | `ACCEPTED_LIMITATION` | Fugas de inmutabilidad en `ASTNode` heredadas de Fase 16. Documentado, no remediable en Fase 2. | — |
@@ -271,7 +305,9 @@ Implementación del Execution Plan, no en este registro.
 | DF-14 | `RESOLVED` | GenerateGoldenDraftUseCase verifica estado sellado antes de escribir | Wave 3.3 (cerrado) |
 | DF-15 | `RESOLVED` | Bug multiplataforma en `write_ast_json_atomic` corregido con `os.replace()`. Test `test_draft_writer_overwrites_existing_file` expuso el bug. | Task 1.3.2 (cerrado) |
 | DF-16 | `RECLASSIFIED_FUTURE_PHASE` | `ASTValidator.validate()` tiene parámetros no utilizados (dead code de Fase 16). Diferido a post-Fase 2 para evaluación de uso o eliminación. | Post-Fase 2 |
-| DF-17 | `DEFERRED — FASE 4` | Ventana de vulnerabilidad: estado sellado no protegido por hash. Gate 4 la cierra vía NADR-15 §5.3 R9 | Gate 4 (Task 4.3.2) |
+| DF-17 | `RESOLVED` | Ventana de estado no protegido por hash cerrada. `ManifestFingerprintCalculator` incluye `oracle_hash` y `ground_truth_state`. | Wave 4.3 (cerrado) |
+| DF-18 | `RECLASSIFIED_FUTURE_PHASE` | Exit code 0 en fallo es degradación silenciosa (ENGINEERING_PRINCIPLES §IV). Debe resolverse antes de integración en CI. Destino: Fase 5 / Baseline Certification. Punto crítico: Fase 6 (CI Gates). | Fase 5 / Baseline Certification |
+| DF-19 | `DOCUMENTED` | Migración de formato de hash del manifiesto. Documentado en docstring + test de regresión. Manifiestos existentes deben re-sellarse. | Wave 4.2 (documentado) |
 | E-2.0-03 | `RESOLVED` | ManifestGroundTruthUpdater eliminado (Zero Debt) | Wave 3.2 (cerrado) |
 | E-2.0-05 | `RESOLVED` | Fail-fast en load_raw_manifest | Wave 3.1 (cerrado) |
 | E-2.0-06 | `RESOLVED` | Escritura atómica con tempfile + fsync + os.replace | Wave 3.1 (cerrado) |
@@ -280,7 +316,14 @@ Implementación del Execution Plan, no en este registro.
 
 ## 4. RESULTADOS DE IMPLEMENTACIÓN POR BATCH
 
-{Pendiente. Se agregará una sub-sección por cada batch ejecutado.}
+**No se ejecutaron batches de implementación.**
+
+Justificación: según METHODOLOGY §6.6, los batches agrupan findings
+`IMPLEMENTATION_REQUIRED`. En Fase 2 no hubo ningún hallazgo en ese estado:
+todos los findings se resolvieron inline durante las waves normales
+(RESOLVED), se reclasificaron a fases futuras (RECLASSIFIED_FUTURE_PHASE),
+se aceptaron como limitación (ACCEPTED_LIMITATION) o se documentaron
+(DOCUMENTED). Por lo tanto, no se planificaron ni ejecutaron batches.
 
 ---
 
@@ -288,20 +331,21 @@ Implementación del Execution Plan, no en este registro.
 
 | Métrica | Valor |
 |---------|-------|
-| Total de hallazgos analizados | 23 |
-| Hallazgos resueltos | 17 (DF-02, DF-03, DF-05, DF-06, DF-07, DF-08, DF-09, DF-10, DF-11, DF-12, DF-13, DF-14, DF-15, E-2.0-03, E-2.0-05, E-2.0-06) |
+| Total de hallazgos analizados | 22 |
+| Hallazgos resueltos | 17 (DF-02, DF-03, DF-05, DF-06, DF-07, DF-08, DF-09, DF-10, DF-11, DF-12, DF-13, DF-14, DF-15, DF-17, E-2.0-03, E-2.0-05, E-2.0-06) |
+| Hallazgos documentados | 1 (DF-19, migración Fase 5) |
 | Hallazgos cerrados sin acción | 0 |
-| Hallazgos reclasificados a fase futura | 1 (DF-16) |
-| Hallazgos diferidos a Fase 4 | 1 (DF-17) |
+| Hallazgos reclasificados a fase futura | 3 (DF-01, DF-18, DF-16) |
+| Hallazgos diferidos a Fase 4 | 0 (DF-17 movido a RESOLVED) |
 | Hallazgos aceptados como limitación | 1 (DF-04) |
-| Hallazgos pendientes de revisión | 2 (DF-01, DF-18) |
+| Hallazgos pendientes de revisión | 0 |
 | Hallazgos pendientes de implementación | 0 |
-| Batches completados | 0 |
+| Batches completados | 0 (no requeridos: 0 findings IMPLEMENTATION_REQUIRED) |
 | Archivos eliminados totales | 1 (ManifestGroundTruthUpdater en services.py) |
 | Archivos movidos totales | 0 |
-| Archivos creados totales | 13 (Gate 1: 5, Gate 2: 3, Gate 3: 5) |
-| Archivos modificados totales | 15 (Gate 1: 4, Gate 2: 4, Gate 3: 7) |
-| Tests finales | 349 passed, 5 skipped (baseline 274 + 75 nuevos) |
+| Archivos creados totales | 16 (Gate 1: 5, Gate 2: 3, Gate 3: 5, Gate 4: 3) |
+| Archivos modificados totales | 21 (Gate 1: 4, Gate 2: 4, Gate 3: 7, Gate 4: 6) |
+| Tests finales | 368 passed, 5 skipped (baseline 274 + 94 nuevos) |
 | Pyright final | 0 errors |
 
 ---
@@ -310,10 +354,10 @@ Implementación del Execution Plan, no en este registro.
 
 | Hallazgo | Destino | Justificación |
 |----------|---------|---------------|
-| DF-01 (deuda helpers de test) | Refactor futuro test-infra | No bloquea Fase 2; deuda de infraestructura de testing |
-| DF-04 (fugas inmutabilidad ASTNode) | Fuera de scope Fase 2 | Código de Fase 16 congelado; requiere decisión arquitectónica sobre `ASTNode` que excede el mandato de NADR-12..15 |
-| DF-13 (persistencia estado SEALED) | Gate 3 (Task 3.2.1) | Requiere decisión arquitectónica sobre mecanismo de persistencia que excede Gate 1 |
-| DF-16 (parámetros no usados en ASTValidator) | Post-Fase 2 | Evaluación de uso o eliminación requiere análisis de impacto en Fase 16 |
+| DF-01 (deuda helpers de test) | Fase 18 / Refactor test-infra | No bloquea Fase 2; deuda de infraestructura de testing. YAGNI. |
+| DF-04 (fugas inmutabilidad ASTNode) | Fuera de scope Fase 2 | Código de Fase 16 congelado; requiere decisión arquitectónica sobre ASTNode. |
+| DF-16 (parámetros no usados en ASTValidator) | Post-Fase 2 | Evaluación de uso o eliminación requiere análisis de impacto en Fase 16. |
+| DF-18 (exit code 0 en entry points) | Fase 5 / Baseline Certification | Degradación silenciosa (ENGINEERING_PRINCIPLES §IV). Punto crítico: Fase 6 (CI Gates). |
 
 ---
 
@@ -322,7 +366,7 @@ Implementación del Execution Plan, no en este registro.
 ### 7.1 Criterio de cierre por batch
 
 Cada batch se considera cerrado cuando:
-1. Todos los tests pasan (pytest → baseline mantenida: 335 passed, 5 skipped)
+1. Todos los tests pasan (pytest → sin degradación del baseline inicial de Fase 2: 274 passed, 5 skipped)
 2. Pyright reporta 0 errors
 3. No se detectan imports huérfanos
 4. Los cambios están commiteados
@@ -341,16 +385,15 @@ El documento se considera cerrado (`ARCHIVED`) cuando:
 
 | Categoría | Cantidad |
 |-----------|----------|
-| Total de hallazgos analizados | 23 |
+| Total de hallazgos analizados | 22 |
 | Hallazgos resueltos | 17 |
+| Hallazgos documentados | 1 |
 | Hallazgos pendientes de implementación | 0 |
-| Hallazgos pendientes de revisión | 2 |
-| Hallazgos cerrados sin acción | 0 |
+| Hallazgos pendientes de revisión | 0 |
 | Hallazgos aceptados como limitación | 1 |
-| Hallazgos reclasificados a fase futura | 1 |
-| Hallazgos diferidos a Fase 4 | 1 |
-| Batches completados | 0/4 |
-| Estado del Exit Review | 🟡 IN PROGRESS (Gate 3 COMPLETED, Gate 4 PENDING) |
+| Hallazgos reclasificados a fase futura | 3 |
+| Batches completados | N/A (0 planificados, 0 findings IMPLEMENTATION_REQUIRED) |
+| Estado del Exit Review | ✅ **ARCHIVED** (Fase 2 COMPLETADA: 4 Gates PASS, 37/37 reglas, Evidence Log FROZEN) |
 
 ---
 

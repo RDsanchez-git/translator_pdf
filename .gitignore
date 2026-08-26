@@ -104,7 +104,7 @@ reports/
 # Datos de corpus y calibración que se regeneran o son específicos
 # del entorno local. Los fixtures de tests necesarios SÍ se commitean.
 data/
-
+tests/corpus/benchmark_v1/
 # Archivos temporales de calibración
 tests/corpus/calibration_v1/candidates/*/tmp*
 
@@ -114,6 +114,7 @@ tests/corpus/calibration_v1/candidates/*/tmp*
 # Código de fases anteriores que ya no forma parte del pipeline activo.
 tools/benchmark_archive/
 tools/archive/
+tools/archive
 
 # =====================================================================
 # ARTEFACTOS DE EGGS Y BUILD
@@ -121,3 +122,14 @@ tools/archive/
 *.egg-info/
 dist/
 build/
+
+# =====================================================================
+# CACHÉS DE HERRAMIENTAS DE VERIFICACIÓN (NO COMMITEAR)
+# =====================================================================
+# Directorios de caché generados automáticamente por herramientas de
+# verificación estática y testing. Son específicos del entorno local
+# y no deben commitearse (METHODOLOGY §10.1).
+.pytest_cache/
+.pyright/
+.mypy_cache/
+.ruff_cache/

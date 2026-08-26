@@ -1,10 +1,10 @@
-# PHASE 17-BIS — FASE 2 EXECUTION PLAN v1.7.0
+# PHASE 17-BIS — FASE 2 EXECUTION PLAN v1.9.0
 ## Scientific Baseline Domain — Implementation Execution Plan & Rule-Centric Traceability Matrix
 
-**Version:** 1.8.0
+**Version:** 1.9.0
 **Status:** `APPROVED`
 **Date:** 2026-08-25
-**Supersedes:** v1.6.0
+**Supersedes:** v1.8.0
 **Derived From:** 4 NADRs APPROVED (NADR-F17BIS-12..15) + METHODOLOGY_FOR_ORDERED_PIPELINE_CHANGES.md v1.2.0
 **Governance Bridge:** Este documento es la **única fuente de verdad** para la secuenciación operativa de la Fase 2 (Scientific Baseline Domain) y el seguimiento de cumplimiento de las reglas de NADR-F17BIS-12..15. Los NADRs permanecen inmutables como reglas constitucionales; este plan materializa la asignación temporal de sus reglas a tareas concretas y registra el progreso de la implementación.
 
@@ -20,6 +20,8 @@
 | 1.6.0 | 2026-08-24 | Corrección de inconsistencias de contadores. Gate 1 → COMPLETED (9/9 tasks, 9/9 rules, 15 hallazgos: 12 cerrados, 3 forward-looking). Traceability Appendix actualizado (R7, R8, R9 → DONE). |
 | 1.7.0 | 2026-08-25 | Gate 2 COMPLETED (10/10 tasks, 10/10 rules NADR-13). Waves 2.1, 2.2, 2.3 COMPLETED. Sellado atómico implementado con reporte agregado. DF-16 (parámetros no usados en ASTValidator) registrado como RECLASSIFIED_FUTURE_PHASE. |
 | 1.8.0 | 2026-08-25 | Gate 3 COMPLETED (9/9 tasks, 9/9 rules NADR-14). Waves 3.1, 3.2, 3.3 COMPLETED. Asimetría de puertos materializada. Autoridad única de sellado consolidada. DF-13 y DF-14 RESOLVED. |
+| 1.9.0 | 2026-08-25 | Gate 4 COMPLETED (9/9 tasks, 9/9 rules NADR-15). Waves 4.1, 4.2, 4.3 COMPLETED. Identidad semántica del oráculo materializada ($H_{semantic}$). Encadenamiento de dimensiones en firma global. DF-17 RESOLVED, DF-19 DOCUMENTED. **Fase 2 COMPLETADA: 37/37 reglas materializadas.** |
+
 
 ---
 
@@ -128,7 +130,7 @@ La Fase 2 se estructura en **4 Gates**, uno por NADR, respetando el grafo de dep
 Gate 1 (NADR-12: Ontología) ✅ COMPLETED
    └──► Gate 2 (NADR-13: Validez/Completitud) ✅ COMPLETED
           └──► Gate 3 (NADR-14: Autoridad/Puertos) ✅ COMPLETED
-                 └──► Gate 4 (NADR-15: Identidad Semántica) ⏳ PENDING
+                 └──► Gate 4 (NADR-15: Identidad Semántica) ✅ COMPLETED
 ```
 
 Cada Gate actúa como compuerta conforme a METHODOLOGY §6.5: el Gate N+1 no inicia hasta que el Gate N pase su Exit Review.
@@ -535,46 +537,118 @@ Todas las reglas de NADR-F17BIS-14 referenciadas en este Gate deben alcanzar est
 **NADRs afectados:** NADR-F17BIS-15 (9 reglas)
 **Execution Mode:** Secuencial (depende de Gate 3)
 **Rollback Plan:** `git revert` del modelo de linaje de identidad; el modelo retorna al estado de integridad de bytes de Fase 1.
-**Gate Status:** ⏳ PENDING
+**Gate Status:** ✅ COMPLETED
 
 ### 2.16 Wave 4.1 — Linaje de identidad semántica (NADR-15 §5.1)
 
-**Wave Status:** ⏳ PENDING
+**Wave Status:** ✅ COMPLETED
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **4.1.1** | Portar la identidad semántica del oráculo como parte de su linaje dentro del modelo de baseline | NADR-15 §5.1 R1 | High | Gate 3 | TODO |
-| **4.1.2** | Incluir la identidad semántica del oráculo en el linaje del sellado, además de la integridad del artefacto | NADR-15 §5.1 R2 | High | 4.1.1 | TODO |
-| **4.1.3** | Asegurar que la identidad semántica corresponda a la firma semántica determinista del AST gobernada por el contrato canónico de hashing | NADR-15 §5.1 R3 | High | 4.1.2 | TODO |
+| **4.1.1** | Portar la identidad semántica del oráculo como parte de su linaje dentro del modelo de baseline | NADR-15 §5.1 R1 | High | Gate 3 | DONE |
+| **4.1.2** | Incluir la identidad semántica del oráculo en el linaje del sellado, además de la integridad del artefacto | NADR-15 §5.1 R2 | High | 4.1.1 | DONE |
+| **4.1.3** | Asegurar que la identidad semántica corresponda a la firma semántica determinista del AST gobernada por el contrato canónico de hashing | NADR-15 §5.1 R3 | High | 4.1.2 | DONE |
 
 #### Notas de implementación — Wave 4.1
-> {Se actualiza al completar la Wave.}
+
+**Tasks 4.1.1, 4.1.2, 4.1.3 (DONE — 2026-08-25):**
+Introducido `OracleSemanticIdentityCalculator` como servicio de dominio stateless en `core/benchmark/ground_truth/identity.py`. Calcula $H_{semantic}$ como hash SHA-256 determinista que captura 4 dimensiones semánticas: `node_id`, `node_type`, `strategy`, y `payload` (serializado con `model_dump_json()`).
+
+**Decisiones de diseño:**
+- **`sequence_id` excluido** del hash: es metadata física incidental (índice en el documento original), no semántica. El orden de la tupla `nodes` ya captura el orden semántico.
+- **`control_plane` excluido** del hash: `Dict[str, Any]` de control, no contenido semántico. Su exclusión garantiza determinismo sin necesidad de `sort_keys`.
+- **Payload como JSON completo** (`model_dump_json()`): Pydantic garantiza serialización determinista. Verificación forense (Observación X1): los 7 payloads (`HeadingPayload`, `ParagraphPayload`, `MathPayload`, `CodePayload`, `TablePayload`, `ImagePayload`, `ListPayload`) no tienen campos `Dict[str, Any]`.
+- **`payload` es campo requerido** de `ASTNode` (tipo `ASTPayload`, no `Optional`): Pydantic garantiza que nunca es `None`. No se agrega verificación defensiva (YAGNI, ENGINEERING_PRINCIPLES §I).
+
+**Propiedades verificadas por 8 tests:**
+1. Determinismo: mismo contenido → mismo hash
+2. Sensibilidad al contenido: cambiar texto → hash diferente
+3. Sensibilidad al orden: cambiar orden de nodos → hash diferente
+4. Sensibilidad al `node_id`: cambiar ID → hash diferente
+5. Sensibilidad al `node_type`: cambiar tipo → hash diferente
+6. Sensibilidad a la `strategy`: cambiar estrategia → hash diferente
+7. Insensibilidad a metadata física: `sequence_id` NO afecta el hash
+8. Caso borde: oráculo vacío produce hash válido (SHA-256 de bytes vacíos)
+
+**Observación X2 (documentada en docstring):** La atomicidad entre el hash físico (disco) y el hash semántico (memoria) se garantiza por la ausencia de escrituras concurrentes durante la curaduría. No requiere código adicional.
+
+**Verificación:** Pyright 0 errors · pytest 8 passed (identidad) · regresión 357 passed, 5 skip
 
 ### 2.17 Wave 4.2 — Separación de dimensiones de identidad (NADR-15 §5.2)
 
-**Wave Status:** ⏳ PENDING
+**Wave Status:** ✅ COMPLETED
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **4.2.1** | Residir las dimensiones de identidad (semántica, integridad del artefacto, identidad física del documento fuente, versión de esquema) en lugares ontológicos diferenciados | NADR-15 §5.2 R4 | High | 4.1.3 | TODO |
-| **4.2.2** | Prohibir el colapso de dos o más dimensiones de identidad en un único campo o mecanismo | NADR-15 §5.2 R5 | High | 4.2.1 | TODO |
-| **4.2.3** | Impedir que el hash de integridad de los bytes de un artefacto sea utilizado como identidad semántica del oráculo | NADR-15 §5.2 R6 | Critical | 4.2.1 | TODO |
-| **4.2.4** | Impedir que la identidad física del documento fuente incorpore la identidad semántica del oráculo | NADR-15 §5.2 R7 | High | 4.2.1 | TODO |
+| **4.2.1** | Residir las dimensiones de identidad (semántica, integridad del artefacto, identidad física del documento fuente, versión de esquema) en lugares ontológicos diferenciados | NADR-15 §5.2 R4 | High | 4.1.3 | DONE |
+| **4.2.2** | Prohibir el colapso de dos o más dimensiones de identidad en un único campo o mecanismo | NADR-15 §5.2 R5 | High | 4.2.1 | DONE |
+| **4.2.3** | Impedir que el hash de integridad de los bytes de un artefacto sea utilizado como identidad semántica del oráculo | NADR-15 §5.2 R6 | Critical | 4.2.1 | DONE |
+| **4.2.4** | Impedir que la identidad física del documento fuente incorpore la identidad semántica del oráculo | NADR-15 §5.2 R7 | High | 4.2.1 | DONE |
 
 #### Notas de implementación — Wave 4.2
-> {Se actualiza al completar la Wave.}
+
+**Tasks 4.2.1, 4.2.2, 4.2.3, 4.2.4 (DONE — 2026-08-25):**
+Dimensiones de identidad diferenciadas en el modelo de baseline:
+- `CorpusDocumentMetadata.oracle_hash: Optional[str]` — identidad semántica ($H_{semantic}$)
+- `CorpusDocumentMetadata.ground_truth_state: Optional[str]` — estado del ciclo de vida (DF-13)
+- `RawDocumentEntryDTO.oracle_hash: Optional[str]` — propagación a persistencia (Problema C resuelto)
+
+**`ManifestFingerprintCalculator` actualizado (DF-19):**
+Formato extendido del payload de 4 a 6 dimensiones:
+- **Antes (Gate 1-3):** `{doc_id}:{fingerprint_sha256}:{traits}:{page_count}`
+- **Ahora (Gate 4):** `{doc_id}:{fingerprint_sha256}:{traits}:{page_count}:{oracle_hash}:{ground_truth_state}`
+
+Sentinel `'none'` para valores ausentes (determinista, sin ambigüedad).
+
+**`ManifestLineageSealer` actualizado (Problema B resuelto):**
+- Nuevos parámetros `oracle_hashes` y `ground_truth_states` como `Dict[str, str]` (strings genéricos, NO enum).
+- Mantiene separación de bounded contexts: `corpus` NO importa `GroundTruthLifecycleState` de `ground_truth`.
+- Parámetros opcionales con default `None` para compatibilidad con Wave 3.2.
+
+**Matiz 1 (preservación de valores anteriores):**
+Para documentos sin oráculo sellado en el ciclo actual:
+```python
+new_oracle_hash = oracle_hashes.get(doc_id, doc_entry.oracle_hash)
+```
+- Preserva el valor previo. No sobrescribe con `None`.
+
+**Casos de uso actualizados (Problemas D y E resueltos):**
+- `LoadCorpusManifestUseCase`propaga `oracle_hash` y `ground_truth_state` desde DTO hacia `CorpusDocumentMetadata`.
+- `BootstrapCorpusManifestUseCase` propaga ambos campos.
+
+**DF-19 DOCUMENTADO:** Migración de formato de hash del manifiesto (ruptura de compatibilidad). El docstring de `ManifestFingerprintCalculator` documenta explícitamente el cambio de formato y la necesidad de re-sellar manifiestos existentes. Test de regresión `test_df19_regression_old_format_differs_from_new_format` verifica empíricamente la ruptura.
+
+**Verificación:** Pyright 0 errors · pytest 10 passed (fingerprint) · regresión 367 passed, 5 skipped · frontera hexagonal limpia.
 
 ### 2.18 Wave 4.3 — Diferenciación de versiones (NADR-15 §5.3)
 
-**Wave Status:** ⏳ PENDING
+**Wave Status:** ✅ COMPLETED
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **4.3.1** | Diferenciar la versión del esquema del AST, la versión del corpus y la identidad de la baseline en el modelo de identidad | NADR-15 §5.3 R8 | High | 4.2.4 | TODO |
-| **4.3.2** | Hacer la firma del catálogo sensible al linaje de los oráculos; una mutación de oráculo altera la firma resultante | NADR-15 §5.3 R9 | Critical | 4.3.1 | TODO |
+| **4.3.1** | Diferenciar la versión del esquema del AST, la versión del corpus y la identidad de la baseline en el modelo de identidad | NADR-15 §5.3 R8 | High | 4.2.4 | DONE |
+| **4.3.2** | Hacer la firma del catálogo sensible al linaje de los oráculos; una mutación de oráculo altera la firma resultante | NADR-15 §5.3 R9 | Critical | 4.3.1 | DONE |
 
 #### Notas de implementación — Wave 4.3
-> {Se actualiza al completar la Wave.}
+
+**Tasks 4.3.1, 4.3.2 (DONE — 2026-08-25):**
+`SealGroundTruthUseCase` actualizado para cerrar la ventana de inconsistencia temporal abierta en Wave 4.2:
+
+1. **Cálculo de `oracle_hashes`:** Para cada oráculo sellado, calcula $H_{semantic}$ usando `OracleSemanticIdentityCalculator.calculate(oracle.nodes)`.
+2. **Construcción de `ground_truth_states`:** Dict de strings genéricos usando `GroundTruthLifecycleState.SEALED.value` (string `"sealed"`).
+3. **Propagación a `ManifestLineageSealer`:** Pasa ambos dicts explícitamente, cerrando la ventana de inconsistencia.
+
+**Corrección aplicada durante implementación:**
+- **Import al inicio del archivo** (Problema A): `OracleSemanticIdentityCalculator` importado al inicio, no dentro de `execute()`. No hay dependencia circular real (`identity.py` no importa de `use_cases.py`). Viola PEP 8 y ENGINEERING_PRINCIPLES §III (Explicit over Implicit) tener imports dentro de funciones sin justificación.
+- **Consistencia de `sorted()`** (Problema B): Pasos 6 y 7 usan `sorted(sealed_oracles.keys())` para consistencia con el paso 5.
+
+**DF-17 RESOLVED COMPLETAMENTE:** El estado sellado ahora está protegido por el hash del manifiesto. Test `test_ground_truth_state_change_produces_different_hash` verifica que cambiar el estado produce hash diferente.
+
+**Tests actualizados:**
+- `test_successful_seal_saves_manifest_with_sealed_state_and_oracle_hash`: verifica que `oracle_hash` está presente, tiene longitud 64, y caracteres hex válidos.
+- `test_oracle_hash_is_deterministic_across_seals`: verifica que dos sellados del mismo contenido producen el mismo `oracle_hash`.
+
+**Verificación:** Pyright 0 errors · pytest 7 passed (sellado) · regresión 368 passed, 5 sk
 
 #### Notas de referencia cruzada (§1.4)
 > NADR-15 §5.1 R3 (Task 4.1.3) referencia la firma semántica determinista gobernada por NADR-F17BIS-03 (Fase 1). No hay doble implementación: NADR-03 gobierna la fórmula de `compute_ast_hash`; la Task 4.1.3 únicamente consume esa firma como identidad semántica del oráculo.
@@ -598,16 +672,16 @@ Todas las reglas de NADR-F17BIS-15 referenciadas en este Gate deben alcanzar est
 
 | # | Verificación | Estado |
 |---|-------------|--------|
-| 1 | Todas las Tasks del Gate en estado DONE | ⏳ |
-| 2 | Todas las reglas del Gate en estado DONE en §7 | ⏳ |
-| 3 | Gate Exit Criteria satisfechos | ⏳ |
-| 4 | Hallazgos identificados derivados al Findings Register | ⏳ |
-| 5 | Pyright: 0 errors, 0 warnings | ⏳ |
-| 6 | Tests: suite completa en verde | ⏳ |
-| 7 | Notas de implementación completas para todas las Tasks | ⏳ |
+| 1 | Todas las Tasks del Gate en estado DONE | ✅ (9/9) |
+| 2 | Todas las reglas del Gate en estado DONE en §7 | ✅ (9/9) |
+| 3 | Gate Exit Criteria satisfechos | ✅ |
+| 4 | Hallazgos identificados derivados al Findings Register | ✅ (2 derivados: DF-17 RESOLVED, DF-19 DOCUMENTED) |
+| 5 | Pyright: 0 errors, 0 warnings | ✅ |
+| 6 | Tests: suite completa en verde (baseline 349+ mantenida) | ✅ (368 passed) |
+| 7 | Notas de implementación completas para todas las Tasks | ✅ (9/9) |
 
-**Veredicto del Gate:** {PASS / CONDITIONAL PASS / FAIL}
-**Fecha de verificación:** {YYYY-MM-DD}
+**Veredicto del Gate:** PASS
+**Fecha de verificación:** 2026-08-25
 
 ---
 
@@ -618,7 +692,7 @@ Todas las reglas de NADR-F17BIS-15 referenciadas en este Gate deben alcanzar est
 | Gate 1 (Ontología) | 2026-08-24 | 9/9 | 9/9 | 15 (12 cerrados, 3 forward-looking) | Waves 1.1, 1.2, 1.3 COMPLETED. Gate PASS. |
 | Gate 2 (Validez/Completitud) | 2026-08-25 | 10/10 | 10/10 | 1 (DF-16 diferido a Post-Fase 2) | Waves 2.1, 2.2, 2.3 COMPLETED. Gate PASS. |
 | Gate 3 (Autoridad/Puertos) | 2026-08-25 | 9/9 | 9/9 | 6 (5 cerrados, 1 diferido a Gate 4) | Waves 3.1, 3.2, 3.3 COMPLETED. Gate PASS. |
-| Gate 4 (Identidad Semántica) | — | 0/9 | 0/9 | 0 | — |
+| Gate 4 (Identidad Semántica) | 2026-08-25 | 9/9 | 9/9 | 2 (DF-17 RESOLVED, DF-19 DOCUMENTED) | Waves 4.1, 4.2, 4.3 COMPLETED. Gate PASS. **Fase 2 COMPLETADA.** |
 
 ---
 
@@ -662,8 +736,8 @@ Los contadores se **derivan computacionalmente** del Traceability Appendix (§7)
 | Gate 1 (Ontología) | 9 | 9 | 0 | 0 | ✅ COMPLETED |
 | Gate 2 (Validez/Completitud) | 10 | 10 | 0 | 0 | ✅ COMPLETED |
 | Gate 3 (Autoridad/Puertos) | 9 | 9 | 0 | 0 | ✅ COMPLETED |
-| Gate 4 (Identidad Semántica) | 0 | 0 | 0 | 9 | ⏳ PENDING |
-| **TOTAL** | **28** | **28** | **0** | **9** | 🟡 IN PROGRESS |
+| Gate 4 (Identidad Semántica) | 9 | 9 | 0 | 0 | ✅ COMPLETED |
+| **TOTAL** | **37** | **37** | **0** | **0** | ✅ **COMPLETED** |
 
 **Regla de actualización:** Cada vez que una Task pase a `DONE`:
 1. Se actualiza el `Status` de la Task en la tabla de Wave correspondiente (§2)
@@ -727,15 +801,15 @@ Los contadores se **derivan computacionalmente** del Traceability Appendix (§7)
 
 | Rule | Derived Status | Evidence | Implementation Notes |
 |---|---|---|---|
-| NADR-15 §5.1 R1 | PENDING | Task 4.1.1 | — |
-| NADR-15 §5.1 R2 | PENDING | Task 4.1.2 | — |
-| NADR-15 §5.1 R3 | PENDING | Task 4.1.3 | — |
-| NADR-15 §5.2 R4 | PENDING | Task 4.2.1 | — |
-| NADR-15 §5.2 R5 | PENDING | Task 4.2.2 | — |
-| NADR-15 §5.2 R6 | PENDING | Task 4.2.3 | — |
-| NADR-15 §5.2 R7 | PENDING | Task 4.2.4 | — |
-| NADR-15 §5.3 R8 | PENDING | Task 4.3.1 | — |
-| NADR-15 §5.3 R9 | PENDING | Task 4.3.2 | — |
+| NADR-15 §5.1 R1 | DONE | Task 4.1.1 | `OracleSemanticIdentityCalculator` introducido. 4 dimensiones semánticas: `node_id`, `node_type`, `strategy`, `payload`. Insensible a metadata física (`sequence_id`, `depth`, `parent_id`). |
+| NADR-15 §5.1 R2 | DONE | Task 4.1.2 | Identidad semántica incluida en el linaje del sellado. `SealGroundTruthUseCase` calcula `oracle_hash` para cada oráculo sellado (Wave 4.3). |
+| NADR-15 §5.1 R3 | DONE | Task 4.1.3 | Firma semántica determinista con `compute_sha256` (Reuse Before Invent). Serialización con `model_dump_json()` (Pydantic garantiza determinismo). Verificación X1: 7 payloads sin `Dict[str, Any]`. |
+| NADR-15 §5.2 R4 | DONE | Task 4.2.1 | Dimensiones diferenciadas: `oracle_hash` (semántica), `fingerprint.sha256` (integridad), `DocumentFingerprint` (física), `CorpusVersion` (esquema). |
+| NADR-15 §5.2 R5 | DONE | Task 4.2.2 | Cero colapso de dimensiones. Cada dimensión en campo separado de `CorpusDocumentMetadata`. |
+| NADR-15 §5.2 R6 | DONE | Task 4.2.3 | `fingerprint.sha256` (hash físico del artefacto) NO se usa como identidad semántica. `oracle_hash` es calculado independientemente. |
+| NADR-15 §5.2 R7 | DONE | Task 4.2.4 | `DocumentFingerprint` (identidad física del PDF) NO incorpora `oracle_hash`. Separación estricta. |
+| NADR-15 §5.3 R8 | DONE | Task 4.3.1 | Versiones diferenciadas: `ASTSchemaVersion` (estructura), `CorpusVersion` (conjunto), `manifest_hash` (identidad de baseline). |
+| NADR-15 §5.3 R9 | DONE | Task 4.3.2 | Firma del catálogo sensible al linaje. `ManifestFingerprintCalculator` incluye `oracle_hash` y `ground_truth_state` en el payload. DF-17 RESOLVED. DF-19 DOCUMENTED (migración de formato). |
 
 ---
 
