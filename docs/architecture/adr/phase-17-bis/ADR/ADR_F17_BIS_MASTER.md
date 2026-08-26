@@ -114,10 +114,10 @@ El progreso de la Fase 17-BIS se estructurará en las siguientes capacidades arq
     ├── FASE 0 — Architecture & Baseline Audit Gate (COMPLETADA)
     │
     ├── FASE 1 — Production Pipeline Alignment 
-    │            (Prerrequisito arquitectónico para la certificación científica) (EN EJECUCIÓN)
+    │            (Prerrequisito arquitectónico para la certificación científica) (COMPLETADA)
     │
     ├── FASE 2 — Scientific Baseline Domain 
-    │            (Definición de modelos inmutables y contratos del oráculo)
+    │            (Definición de modelos inmutables y contratos del oráculo) (COMPLETADA)
     │
     ├── FASE 3 — Identity & Trust Model 
     │            (Hashes deterministas, linaje y encadenamiento criptográfico)
