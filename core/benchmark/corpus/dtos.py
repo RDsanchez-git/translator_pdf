@@ -1,4 +1,5 @@
 from typing import List, Optional
+
 from pydantic import BaseModel, ConfigDict
 
 
@@ -13,6 +14,10 @@ class RawDocumentEntryDTO(BaseModel):
     # para evitar dependencia cruzada corpus→ground_truth. Default None;
     # la capa de consumo interpreta None como DRAFT (migración).
     ground_truth_state: Optional[str] = None
+    # Gate 4 (Wave 4.2): identidad semántica del oráculo ($H_{semantic}$).
+    # Hash SHA-256 determinista del contenido semántico del oráculo.
+    # None si el documento no tiene oráculo sellado.
+    oracle_hash: Optional[str] = None
     model_config = ConfigDict(frozen=True)
 
 

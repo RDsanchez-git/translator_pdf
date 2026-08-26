@@ -102,8 +102,8 @@ class TestSealAuthorityAndAtomicity:
             loader,
         )
 
-    def test_successful_seal_saves_manifest_with_sealed_state(self) -> None:
-        """Sellado exitoso: persiste manifiesto con ground_truth_state=sealed."""
+    def test_successful_seal_saves_manifest_with_sealed_state_and_oracle_hash(self) -> None:
+        """Sellado exitoso: persiste manifiesto con ground_truth_state=sealed y oracle_hash válido."""
         use_case, loader = self._make_use_case(
             doc_ids=["doc-1"],
             artifact_ids=["doc-1"],
@@ -120,6 +120,10 @@ class TestSealAuthorityAndAtomicity:
         saved = loader.saved_manifests[0]
         assert saved.documents[0].ground_truth_state == GroundTruthLifecycleState.SEALED.value
         assert saved.documents[0].ground_truth_version == "v1.0"
+        # Gate 4 (Wave 4.3): oracle_hash debe estar presente y ser un SHA-256 válido
+        assert saved.documents[0].oracle_hash is not None
+        assert len(saved.documents[0].oracle_hash) == 64
+        assert all(c in "0123456789abcdef" for c in saved.documents[0].oracle_hash)
 
     def test_draft_not_in_validated_state_aborts(self) -> None:
         """El caso de uso rechaza drafts no-VALIDATED."""
@@ -197,6 +201,28 @@ class TestSealAuthorityAndAtomicity:
         assert len(saved.documents) == 3
         for doc in saved.documents:
             assert doc.ground_truth_state == GroundTruthLifecycleState.SEALED.value
+
+    def test_oracle_hash_is_deterministic_across_seals(self) -> None:
+        """Gate 4 (Wave 4.3): el oracle_hash es determinista (mismo contenido → mismo hash)."""
+        use_case, loader = self._make_use_case(
+            doc_ids=["doc-1"],
+            artifact_ids=["doc-1"],
+        )
+        validated = _make_validated_draft("doc-1")
+
+        # Primer sellado
+        use_case.execute(validated_drafts=(validated,), target_version="v1.0")
+        first_oracle_hash = loader.saved_manifests[0].documents[0].oracle_hash
+
+        # Resetear el loader para un segundo sellado
+        loader.saved_manifests = []
+
+        # Segundo sellado (mismo contenido)
+        use_case.execute(validated_drafts=(validated,), target_version="v1.0")
+        second_oracle_hash = loader.saved_manifests[0].documents[0].oracle_hash
+
+        # El oracle_hash debe ser idéntico (determinismo, NADR-15 §5.1)
+        assert first_oracle_hash == second_oracle_hash
 
 
 class TestSingleAuthorityOfSealing:
