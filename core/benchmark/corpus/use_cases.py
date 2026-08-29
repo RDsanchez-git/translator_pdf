@@ -62,7 +62,6 @@ class BootstrapCorpusManifestUseCase:
                     fingerprint=DocumentFingerprint(sha256=calculated_sha256),
                     traits=frozenset(ExtractionChallengeTrait(t) for t in entry.traits),
                     page_count=real_page_count,
-                    # Gate 4 (Wave 4.2): propagar dimensiones de identidad
                     oracle_hash=entry.oracle_hash,
                     ground_truth_state=entry.ground_truth_state,
                 )
@@ -74,8 +73,6 @@ class BootstrapCorpusManifestUseCase:
                     sha256=calculated_sha256,
                     traits=entry.traits,
                     page_count=real_page_count,
-                    ground_truth_version=entry.ground_truth_version,
-                    ground_truth_sha256=entry.ground_truth_sha256,
                     ground_truth_state=entry.ground_truth_state,
                     oracle_hash=entry.oracle_hash,
                 )
@@ -130,7 +127,6 @@ class LoadCorpusManifestUseCase:
                     fingerprint=DocumentFingerprint(sha256=entry.sha256),
                     traits=frozenset(ExtractionChallengeTrait(t) for t in entry.traits),
                     page_count=entry.page_count,
-                    # Gate 4 (Wave 4.2): propagar dimensiones de identidad
                     oracle_hash=entry.oracle_hash,
                     ground_truth_state=entry.ground_truth_state,
                 )

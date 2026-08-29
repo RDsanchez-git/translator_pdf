@@ -6,6 +6,11 @@ Verifica:
 - Integración con LifecycleTransitionAuthority (Gate 1)
 - Persistencia del estado SEALED (DF-13)
 - Completitud bidireccional defensiva
+
+DC-08 (resuelto): Se eliminó el parámetro `target_version` de las llamadas
+a `execute()` y las aserciones sobre `ground_truth_version` /
+`ground_truth_sha256`, ya que estos campos fueron eliminados del DTO
+como parte de la limpieza radical de campos huérfanos.
 """
 
 from __future__ import annotations
@@ -27,7 +32,7 @@ from core.benchmark.ground_truth.models import (
 from core.benchmark.ground_truth.use_cases import SealGroundTruthUseCase
 
 
-# Hash SHA-256 real de la cadena vacía (hexálido, minúsculas)
+# Hash SHA-256 real de la cadena vacía (hex válido, minúsculas)
 _VALID_SHA256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
 
 
@@ -58,6 +63,8 @@ class FakeCorpusLoader:
         self.saved_manifests: List[RawCorpusManifestDTO] = []
 
     def load_raw_manifest(self) -> RawCorpusManifestDTO:
+        # DC-08: RawDocumentEntryDTO ya no lleva ground_truth_version
+        # ni ground_truth_sha256.
         documents = [
             RawDocumentEntryDTO(
                 document_id=d,
@@ -76,6 +83,14 @@ class FakeCorpusLoader:
 
 
 class FakeArtifactPort:
+    """Fake del puerto de artefactos de Ground Truth.
+
+    DC-08: `read_artifact_bytes` ya no es invocado por
+    SealGroundTruthUseCase.execute() tras la eliminación del cálculo
+    de `detected_hashes`. Se mantiene la implementación para cumplir
+    el protocolo GroundTruthArtifactPort.
+    """
+
     def __init__(self, artifact_ids):
         self._artifact_ids = set(artifact_ids)
 
@@ -110,20 +125,27 @@ class TestSealAuthorityAndAtomicity:
         )
         validated = _make_validated_draft("doc-1")
 
+        # DC-08: llamada simplificada sin target_version (parámetro eliminado)
         result_hash = use_case.execute(
             validated_drafts=(validated,),
-            target_version="v1.0",
         )
 
+        # Verificación del contrato de execute(): retorna un SHA-256 válido
         assert isinstance(result_hash, str)
-        assert len(loader.saved_manifests) == 1
+        assert len(result_hash) == 64
+        assert all(c in "0123456789abcdef" for c in result_hash)
+
+        # DC-08: se eliminó la aserción sobre ground_truth_version
         saved = loader.saved_manifests[0]
-        assert saved.documents[0].ground_truth_state == GroundTruthLifecycleState.SEALED.value
-        assert saved.documents[0].ground_truth_version == "v1.0"
-        # Gate 4 (Wave 4.3): oracle_hash debe estar presente y ser un SHA-256 válido
+        assert saved.corpus_version == "v1.0"
+        assert saved.manifest_hash != ""
+        assert len(saved.documents) == 1
+        assert saved.documents[0].document_id == "doc-1"
+        assert saved.documents[0].ground_truth_state == "sealed"
         assert saved.documents[0].oracle_hash is not None
-        assert len(saved.documents[0].oracle_hash) == 64
-        assert all(c in "0123456789abcdef" for c in saved.documents[0].oracle_hash)
+
+        # Verificación de consistencia: el hash retornado coincide con el persistido
+        assert result_hash == saved.manifest_hash
 
     def test_draft_not_in_validated_state_aborts(self) -> None:
         """El caso de uso rechaza drafts no-VALIDATED."""
@@ -194,7 +216,8 @@ class TestSealAuthorityAndAtomicity:
             _make_validated_draft("doc-c"),
         )
 
-        use_case.execute(validated_drafts=validated, target_version="v1.0")
+        # DC-08: llamada simplificada sin target_version (parámetro eliminado)
+        use_case.execute(validated_drafts=validated)
 
         assert len(loader.saved_manifests) == 1
         saved = loader.saved_manifests[0]
@@ -210,15 +233,15 @@ class TestSealAuthorityAndAtomicity:
         )
         validated = _make_validated_draft("doc-1")
 
-        # Primer sellado
-        use_case.execute(validated_drafts=(validated,), target_version="v1.0")
+        # DC-08: Primer sellado sin target_version
+        use_case.execute(validated_drafts=(validated,))
         first_oracle_hash = loader.saved_manifests[0].documents[0].oracle_hash
 
         # Resetear el loader para un segundo sellado
         loader.saved_manifests = []
 
-        # Segundo sellado (mismo contenido)
-        use_case.execute(validated_drafts=(validated,), target_version="v1.0")
+        # DC-08: Segundo sellado (mismo contenido) sin target_version
+        use_case.execute(validated_drafts=(validated,))
         second_oracle_hash = loader.saved_manifests[0].documents[0].oracle_hash
 
         # El oracle_hash debe ser idéntico (determinismo, NADR-15 §5.1)

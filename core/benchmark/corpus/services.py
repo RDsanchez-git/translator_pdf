@@ -12,6 +12,32 @@ from core.benchmark.corpus.models import (
 class ManifestFingerprintCalculator:
     """Servicio de dominio encargado del cálculo determinista de la firma global del manifiesto.
 
+    JUSTIFICACIÓN DE ground_truth_state EN EL HASH (NADR-F17BIS-16 §5.3 R10, DC-03 resuelto):
+    La inclusión de ground_truth_state en el payload del hash es correcta y necesaria porque:
+
+    1. PREVIENE DES-SELLADO SILENCIOSO: Si un oráculo sellado pudiera ser "des-sellado"
+       (transicionado de SEALED a DRAFT) sin alterar el manifest_hash, la integridad
+       del proceso de certificación quedaría comprometida. Al incluir el estado en el
+       hash, cualquier cambio de estado invalida la firma global.
+
+    2. PROTEGE LA INTEGRIDAD DEL PROCESO DE CERTIFICACIÓN: El estado de ciclo de vida
+       no es identidad científica del contenido (eso lo captura oracle_hash), sino
+       identidad del proceso de certificación. Un oráculo con el mismo contenido pero
+       diferente estado (DRAFT vs SEALED) representa diferentes niveles de confianza
+       y validación.
+
+    3. INVALIDA EL SELLO ANTE CAMBIOS DE ESTADO: Cualquier transición de estado
+       (VALIDATED → SEALED, o SEALED → DRAFT) altera el manifest_hash, forzando
+       re-certificación. Esto garantiza que la baseline solo puede estar en estado
+       SEALED si todas las dimensiones (incluyendo el estado) son consistentes.
+
+    SEMÁNTICA (NADR-F17BIS-16 §5.3 R9-R12):
+    - ground_truth_state es ESTADO OPERACIONAL del ciclo de vida, no identidad
+      científica del contenido.
+    - oracle_hash es IDENTIDAD CIENTÍFICA del contenido del oráculo.
+    - Ambos son dimensiones ortogonales que participan en la identidad global de
+      la baseline, pero con semánticas distintas.
+
     DF-19 (Migración de formato de hash): Wave 4.2 actualizó el formato del
     payload para incluir las nuevas dimensiones de identidad (oracle_hash y
     ground_truth_state). El formato anterior era:
@@ -32,12 +58,9 @@ class ManifestFingerprintCalculator:
         parts = [version.value.encode("utf-8")]
         sorted_documents = sorted(documents, key=lambda doc: doc.document_id)
         for doc in sorted_documents:
-            # Ordenamiento alfabético estricto de los rasgos (traits) de cada documento
             sorted_traits = sorted([trait.value for trait in doc.traits])
             traits_str = ",".join(sorted_traits)
 
-            # Gate 4 (Wave 4.2): payload extendido con oracle_hash y ground_truth_state.
-            # 'none' como sentinel para valores ausentes (determinista, sin ambigüedad).
             oracle_hash_str = doc.oracle_hash if doc.oracle_hash is not None else "none"
             gt_state_str = doc.ground_truth_state if doc.ground_truth_state is not None else "none"
 
@@ -58,23 +81,19 @@ class ManifestLineageSealer:
 
     Gate 4 (Wave 4.2): recibe oracle_hashes y ground_truth_states como
     Dict[str, str] (strings genéricos) para evitar dependencia cruzada
-    corpus→ground_truth (Problema B). El bounded context ground_truth
-    (SealGroundTruthUseCase) pasa los valores como strings.
+    corpus→ground_truth (Problema B).
 
     Matiz 1: para documentos sin oráculo sellado en este ciclo, preserva
     el oracle_hash y ground_truth_state anteriores (no sobrescribe con None).
 
-    Nota de compatibilidad: oracle_hashes y ground_truth_states son opcionales
-    para mantener compatibilidad con SealGroundTruthUseCase de Wave 3.2.
-    Wave 4.3 actualizará SealGroundTruthUseCase para pasar estos parámetros
-    explícitamente, cerrando la ventana de inconsistencia.
+    DC-08 resuelto (Wave 1.2 Fase 3): Se eliminaron detected_hashes y target_version
+    porque ground_truth_version y ground_truth_sha256 eran campos huérfanos que
+    no participaban en manifest_hash ni en CorpusDocumentMetadata. YAGNI.
     """
 
     @staticmethod
     def seal_manifest_with_ground_truth(
         current_manifest: RawCorpusManifestDTO,
-        detected_hashes: Dict[str, str],
-        target_version: str,
         oracle_hashes: Optional[Dict[str, str]] = None,
         ground_truth_states: Optional[Dict[str, str]] = None,
     ) -> RawCorpusManifestDTO:
@@ -89,15 +108,7 @@ class ManifestLineageSealer:
 
         for doc_entry in current_manifest.documents:
             doc_id = doc_entry.document_id
-            gt_version = doc_entry.ground_truth_version
-            gt_hash = doc_entry.ground_truth_sha256
 
-            # Aplicación de la regla de negocio: si existe una muestra curada en disco, se asimila el linaje
-            if doc_id in detected_hashes:
-                gt_version = target_version
-                gt_hash = detected_hashes[doc_id]
-
-            # Gate 4 (Wave 4.2): propagar oracle_hash y ground_truth_state.
             # Matiz 1: preservar valores anteriores para documentos sin oráculo en este ciclo.
             new_oracle_hash = oracle_hashes.get(doc_id, doc_entry.oracle_hash)
             new_gt_state = ground_truth_states.get(doc_id, doc_entry.ground_truth_state)
@@ -108,8 +119,6 @@ class ManifestLineageSealer:
                     sha256=doc_entry.sha256,
                     traits=doc_entry.traits,
                     page_count=doc_entry.page_count,
-                    ground_truth_version=gt_version,
-                    ground_truth_sha256=gt_hash,
                     ground_truth_state=new_gt_state,
                     oracle_hash=new_oracle_hash,
                 )
@@ -126,7 +135,6 @@ class ManifestLineageSealer:
                 )
             )
 
-        # Invocación local y directa al calculador de huella digital
         new_manifest_hash = ManifestFingerprintCalculator.compute_hash(
             version=CorpusVersion(value=current_manifest.corpus_version),
             documents=domain_documents_for_rehash,

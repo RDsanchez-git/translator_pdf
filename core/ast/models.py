@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from collections import Counter
 from core.domain.document import BoundingBox
 from core.ast.enums import ContentNodeType, TranslationStrategy, HeadingLevel, SemanticOrigin
+from core.shared.identity_contracts import NodeId
 
 # =====================================================================
 # FAMILIA 1 Y 2: AST V2 COMPOSITION (Estructura Plana y Payloads Tipados)
@@ -78,28 +79,72 @@ ASTPayload = Union[
 ]
 
 class ASTNode(BaseModel):
-    """SOTA: Contenedor unificado e inmutable. Resuelve la ambigüedad posicional de Pydantic."""
+    """Contenedor unificado e inmutable del AST V2.
+
+    CONTRATO DE DOMINIO (NADR-F17BIS-17 §5.1, Task 2.2.1/2.2.3 Fase 3):
+
+    node_id:
+        - Identidad lógica estable del nodo dentro del AST.
+        - DOMINIO: cualquier string no vacío que NO contenga el carácter ':'.
+        - PROHIBIDO: ':' (delimitador de campo en el framing criptográfico
+          de OracleSemanticIdentityCalculator).
+        - JUSTIFICACIÓN: garantizar inyectividad del encoding. El oracle_hash
+          usa un framing determinista donde node_id participa como dimensión
+          de identidad semántica. Si node_id pudiera contener ':', dos payloads
+          distintos podrían producir representaciones ambiguas antes del hash.
+        - VALIDACIÓN: fail-fast en construcción vía NodeId
+          (core/shared/identity_contracts.py).
+        - SENTINEL: no aplica (node_id es obligatorio).
+
+    parent_node_id:
+        - Referencia al node_id del nodo padre (para fragmentos).
+        - Mismo contrato de dominio que node_id (Optional[NodeId]).
+        - None para nodos raíz o no fragmentados.
+        - JUSTIFICACIÓN: consistencia de dominio. Si node_id no puede contener
+          ':', ninguna referencia a un node_id debería poder contenerlo.
+
+    Nota SOTA:
+        Los métodos que crean nuevos ASTNode con node_id actualizado deben pasar
+        por el constructor validado. En particular, spawn_fragment() NO usa
+        model_copy(update={"node_id": ...}) porque Pydantic v2 no revalida los
+        campos actualizados en model_copy().
+    """
+
     model_config = ConfigDict(frozen=True)
-    node_id: str
+    node_id: NodeId
     sequence_id: int = -1
     node_type: ContentNodeType
     strategy: TranslationStrategy = TranslationStrategy.TRANSLATE
     metadata: NodeMetadata = Field(default_factory=lambda: NodeMetadata())
     depth: int = 0
     payload: ASTPayload
-    
+
     control_plane: Dict[str, Any] = Field(default_factory=dict)
-    parent_node_id: Optional[str] = None
+    parent_node_id: Optional[NodeId] = None
     segment_index: int = 0
     segment_count: int = 1
 
-    def spawn_fragment(self, new_id: str, new_payload: 'ASTPayload', segment_index: int) -> 'ASTNode':
-        return self.model_copy(update={
-            "node_id": new_id,
-            "payload": new_payload,
-            "parent_node_id": self.node_id,
-            "segment_index": segment_index
-        })
+    def spawn_fragment(self, new_id: str, new_payload: "ASTPayload", segment_index: int) -> "ASTNode":
+        """Crea un fragmento hijo validando explícitamente el nuevo node_id.
+
+        Importante: NO usar model_copy(update={"node_id": new_id}).
+        En Pydantic v2, model_copy(update=...) no revalida los campos,
+        por lo que permitiría saltarse el contrato NodeId. Usamos el
+        constructor completo para preservar fail-fast.
+        """
+        return ASTNode(
+            node_id=new_id,
+            sequence_id=self.sequence_id,
+            node_type=self.node_type,
+            strategy=self.strategy,
+            metadata=self.metadata,
+            depth=self.depth,
+            payload=new_payload,
+            control_plane=dict(self.control_plane),
+            parent_node_id=self.node_id,
+            segment_index=segment_index,
+            segment_count=self.segment_count,
+        )
 
     @property
     def has_valid_sequence(self) -> bool:
@@ -110,17 +155,28 @@ class ASTNode(BaseModel):
     def _discriminate_payload(cls, values: Any) -> Any:
         if not isinstance(values, dict):
             return values
-        
+
         # SOTA FIX: Forzado estricto en tiempo de análisis estático mediante cast.
         # Destruye el rastro de dict[Unknown, Unknown] generado por el Type Guard.
         v_dict = cast(Dict[str, Any], values)
         n_type: Optional[ContentNodeType] = v_dict.get("node_type")
         payload_data: Any = v_dict.get("payload")
-        
+
         if n_type is None or payload_data is None:
             return v_dict
-            
-        if isinstance(payload_data, (HeadingPayload, ParagraphPayload, MathPayload, CodePayload, TablePayload, ImagePayload, ListPayload)):
+
+        if isinstance(
+            payload_data,
+            (
+                HeadingPayload,
+                ParagraphPayload,
+                MathPayload,
+                CodePayload,
+                TablePayload,
+                ImagePayload,
+                ListPayload,
+            ),
+        ):
             return v_dict
 
         type_mapping: Dict[ContentNodeType, Any] = {
@@ -149,7 +205,7 @@ class ASTNode(BaseModel):
             target_model = type_mapping.get(n_type)
             if target_model:
                 v_dict["payload"] = target_model(**payload_data)
-            
+
         return v_dict
 
     @property
@@ -161,7 +217,7 @@ class ASTNode(BaseModel):
             return self
         return self.model_copy(update={"strategy": new_strategy})
 
-    def with_sequence_id(self, new_seq: int) -> 'ASTNode':
+    def with_sequence_id(self, new_seq: int) -> "ASTNode":
         return self.model_copy(update={"sequence_id": new_seq})
     
 # =====================================================================

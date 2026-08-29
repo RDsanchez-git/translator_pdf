@@ -120,7 +120,10 @@ def main() -> None:
     try:
         global_manifest_hash = use_case.execute(
             validated_drafts=tuple(validated_drafts),
-            target_version="v1.0",
+        )
+        logger.info(
+            "Cryptographic lock complete. Manifest verified under global SHA-256: %s",
+            global_manifest_hash,
         )
         logger.info(
             "Cryptographic lock complete. Manifest verified under global SHA-256: %s",

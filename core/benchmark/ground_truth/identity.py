@@ -1,4 +1,22 @@
-"""Identidad semántica del oráculo (NADR-15 §5.1).
+"""Identidad semántica del oráculo (NADR-15 §5.1, NADR-F17BIS-16 §5.2).
+
+CONTRATO CANÓNICO PARA LINAJE DE BASELINE:
+Este módulo implementa el contrato canónico de identidad semántica del oráculo
+para el linaje de la baseline científica (NADR-F17BIS-16 §5.2 R8).
+
+DIFERENCIACIÓN DE CONTRATOS (DC-01 resuelto):
+- OracleSemanticIdentityCalculator (ESTE): Contrato canónico para linaje de baseline.
+  Incluye node_id porque la identidad del oráculo requiere distinguir nodos,
+  incluso si el contenido semántico es idéntico. Esto garantiza que dos oráculos
+  con la misma estructura pero diferentes identidades de nodo produzcan hashes
+  distintos, protegiendo la integridad del proceso de certificación.
+
+- compute_ast_hash (core/ast/hashing.py): Contrato alternativo para comparación
+  de parsers y evaluación topológica. Excluye node_id porque busca comparar
+  contenido semántico puro, independiente de la identidad de los nodos.
+
+Ambos contratos coexisten legítimamente con propósitos arquitectónicos distintos
+(NADR-F17BIS-16 §5.2 R4-R8).
 
 Materializa la identidad semántica del oráculo ($H_{semantic}$), un hash
 determinista que captura el contenido semántico del oráculo sin acoplarse

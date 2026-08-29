@@ -7,7 +7,7 @@ from core.benchmark.corpus.ports import (
 )
 from core.benchmark.corpus.services import ManifestLineageSealer
 from core.benchmark.ground_truth.errors import BaselineContractError
-from core.benchmark.ground_truth.identity import OracleSemanticIdentityCalculator  # ← Movido al inicio
+from core.benchmark.ground_truth.identity import OracleSemanticIdentityCalculator
 from core.benchmark.ground_truth.lifecycle import LifecycleTransitionAuthority
 from core.benchmark.ground_truth.models import (
     DraftSubState,
@@ -21,7 +21,6 @@ from core.benchmark.ground_truth.ports import (
     GroundTruthDraftWriterPort,
     GroundTruthReaderPort,
 )
-from core.shared.crypto import compute_sha256
 
 
 class LoadGroundTruthUseCase:
@@ -76,28 +75,22 @@ class GenerateGoldenDraftUseCase:
 class SealGroundTruthUseCase:
     """Autoridad única de sellado de la baseline (NADR-14 §5.2 R4-R6).
 
-    Recibe oráculos ya validados y transicionados al estado VALIDATED
-    (responsabilidad del entry point). Su responsabilidad es:
+    Recibe oráculos ya validados y transicionados al estado VALIDATED.
+    Su responsabilidad es:
     (1) verificar completitud bidireccional contra el manifiesto,
     (2) verificar estado VALIDATED (invariante defensiva),
     (3) sellar cada draft con LifecycleTransitionAuthority,
     (4) calcular identidad semántica (oracle_hash) de cada oráculo,
-    (5) persistir estado SEALED y oracle_hash en el manifiesto (DF-13, DF-17),
-    (6) calcular hashes de artefactos en disco y recalcular firma global.
+    (5) persistir estado SEALED y oracle_hash en el manifiesto,
+    (6) recalcular firma global.
 
     Atomicidad (NADR-13 §5.3 R9-R10): si cualquier invariante falla,
     el caso de uso lanza BaselineContractError sin mutar el manifiesto.
-    La verificación de completitud es bidireccional para garantizar que
-    solo se sellan baselines completas, independientemente de que el
-    entry point haya verificado previamente.
 
-    NADR-14 §5.2 R5: ManifestGroundTruthUpdater fue eliminado (Zero Debt).
-    Este caso de uso es el único camino hacia el sellado.
-
-    Gate 4 (Wave 4.3): cierra la ventana de inconsistencia temporal abierta
-    en Wave 4.2. Calcula oracle_hash (H_semantic) y ground_truth_state para
-    cada oráculo sellado, y los pasa como strings genéricos a
-    ManifestLineageSealer (sin dependencia cruzada corpus→ground_truth).
+    DC-08 resuelto (Wave 1.2 Fase 3): Se eliminó el cálculo de detected_hashes
+    y target_version porque eran utilizados únicamente para alimentar campos
+    huérfanos (ground_truth_sha256 y ground_truth_version). Esto elimina I/O
+    de disco innecesario durante el sellado. YAGNI.
     """
 
     def __init__(
@@ -113,7 +106,6 @@ class SealGroundTruthUseCase:
     def execute(
         self,
         validated_drafts: Tuple[GroundTruthDraft, ...],
-        target_version: str = "v1.0",
     ) -> str:
         # 1. Cargar manifiesto
         current_manifest = self._corpus_reader.load_raw_manifest()
@@ -126,13 +118,9 @@ class SealGroundTruthUseCase:
         if orphan_drafts or missing_drafts:
             completeness_errors = []
             for doc_id in sorted(orphan_drafts):
-                completeness_errors.append(
-                    f"Validated draft not in manifest: {doc_id}"
-                )
+                completeness_errors.append(f"Validated draft not in manifest: {doc_id}")
             for doc_id in sorted(missing_drafts):
-                completeness_errors.append(
-                    f"Manifest document without validated draft: {doc_id}"
-                )
+                completeness_errors.append(f"Manifest document without validated draft: {doc_id}")
             raise BaselineContractError(
                 completeness_errors=completeness_errors,
                 validity_errors=[],
@@ -158,38 +146,25 @@ class SealGroundTruthUseCase:
             oracle = LifecycleTransitionAuthority.seal(draft)
             sealed_oracles[draft.document_id] = oracle
 
-        # 5. Calcular hashes DESDE DISCO (H_physical, no desde memoria)
-        detected_hashes: Dict[str, str] = {}
-        for doc_id in sorted(sealed_oracles.keys()):
-            raw_bytes = self._artifact_port.read_artifact_bytes(doc_id)
-            detected_hashes[doc_id] = compute_sha256(raw_bytes)
-
-        # 6. Calcular identidad semántica (H_semantic) de cada oráculo sellado.
-        # Gate 4 (Wave 4.3): cierra la ventana de inconsistencia.
+        # 5. Calcular identidad semántica (H_semantic) de cada oráculo sellado.
         oracle_hashes: Dict[str, str] = {}
-        for doc_id in sorted(sealed_oracles.keys()):  # ← sorted() para consistencia
+        for doc_id in sorted(sealed_oracles.keys()):
             oracle = sealed_oracles[doc_id]
-            oracle_hashes[doc_id] = OracleSemanticIdentityCalculator.calculate(
-                oracle.nodes
-            )
+            oracle_hashes[doc_id] = OracleSemanticIdentityCalculator.calculate(oracle.nodes)
 
-        # 7. Construir ground_truth_states como dict de strings genéricos.
-        # El bounded context corpus NO debe importar GroundTruthLifecycleState
-        # (separación de bounded contexts, Problema B resuelto en Wave 4.2).
+        # 6. Construir ground_truth_states como dict de strings genéricos.
         ground_truth_states: Dict[str, str] = {
             doc_id: GroundTruthLifecycleState.SEALED.value
-            for doc_id in sorted(sealed_oracles.keys())  # ← sorted() para consistencia
+            for doc_id in sorted(sealed_oracles.keys())
         }
 
-        # 8. Aplicar firmas + recalcular hash global (ahora con oracle_hash y state)
+        # 7. Aplicar firmas + recalcular hash global
         sealed_manifest = ManifestLineageSealer.seal_manifest_with_ground_truth(
             current_manifest=current_manifest,
-            detected_hashes=detected_hashes,
-            target_version=target_version,
             oracle_hashes=oracle_hashes,
             ground_truth_states=ground_truth_states,
         )
 
-        # 9. Guardar manifiesto (solo si todo pasó)
+        # 8. Guardar manifiesto (solo si todo pasó)
         self._corpus_writer.save_manifest_dto(sealed_manifest)
         return sealed_manifest.manifest_hash

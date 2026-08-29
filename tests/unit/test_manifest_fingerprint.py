@@ -125,10 +125,9 @@ class TestManifestLineageSealer:
             documents=[_make_entry("doc-1")],
         )
 
+        # DC-08: Se eliminaron detected_hashes y target_version
         sealed = ManifestLineageSealer.seal_manifest_with_ground_truth(
             current_manifest=manifest,
-            detected_hashes={"doc-1": "new_hash"},
-            target_version="v1.0",
             oracle_hashes={"doc-1": "semantic_hash_abc"},
             ground_truth_states={"doc-1": "sealed"},
         )
@@ -136,8 +135,7 @@ class TestManifestLineageSealer:
         doc = sealed.documents[0]
         assert doc.oracle_hash == "semantic_hash_abc"
         assert doc.ground_truth_state == "sealed"
-        assert doc.ground_truth_sha256 == "new_hash"
-        assert doc.ground_truth_version == "v1.0"
+        # ground_truth_sha256 y ground_truth_version han sido eliminados (DC-08)
 
     def test_sealer_preserves_previous_oracle_hash(self) -> None:
         """Matiz 1: documentos sin oráculo en este ciclo preservan oracle_hash anterior."""
@@ -150,11 +148,9 @@ class TestManifestLineageSealer:
             ],
         )
 
-        # Solo doc-1 se sella en este ciclo; doc-2 no está en detected_hashes
+        # Solo doc-1 se sella en este ciclo; doc-2 no está en oracle_hashes
         sealed = ManifestLineageSealer.seal_manifest_with_ground_truth(
             current_manifest=manifest,
-            detected_hashes={"doc-1": "new_physical_hash"},
-            target_version="v2.0",
             oracle_hashes={"doc-1": "new_semantic_hash"},
             ground_truth_states={"doc-1": "sealed"},
         )
@@ -180,8 +176,6 @@ class TestManifestLineageSealer:
 
         sealed = ManifestLineageSealer.seal_manifest_with_ground_truth(
             current_manifest=manifest,
-            detected_hashes={},
-            target_version="v1.0",
         )
 
         doc = sealed.documents[0]
