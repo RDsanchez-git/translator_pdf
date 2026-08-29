@@ -2,10 +2,11 @@
 
 ## Implementation Execution Plan & Rule-Centric Traceability Matrix
 
-**Version:** 1.0.0  
-**Status:** DRAFT  
-**Date:** 2026-08-27  
-**Supersedes:** N/A  
+**Version:** 1.5.0  
+**Status:** COMPLETED  
+**Date:** 2026-08-29  
+**Last Updated:** 2026-08-29  
+**Supersedes:** v1.4.0   
 **Derived From:** 3 NADRs FROZEN (NADR-F17BIS-15 v2.0, NADR-F17BIS-16, NADR-F17BIS-17) + METHODOLOGY_FOR_ORDERED_PIPELINE_CHANGES.md v1.3.0  
 **Governance Bridge:** Este documento es la **única fuente de verdad** para la secuenciación operativa de la Fase 3 (Identity & Trust Model) y el seguimiento de cumplimiento de las reglas de NADR-F17BIS-15 v2.0, NADR-F17BIS-16 y NADR-F17BIS-17. Los NADRs permanecen inmutables como reglas constitucionales; este plan materializa la asignación temporal de sus reglas a tareas concretas y registra el progreso de la implementación.
 
@@ -14,6 +15,11 @@
 | Versión | Fecha | Cambio |
 |---|---|---|
 | 1.0.0 | 2026-08-27 | Emisión inicial. Mapeo de reglas de 3 NADRs FROZEN a 2 Gates / 5 Waves / 13 tareas atómicas. |
+| 1.1.0 | 2026-08-27 | Gate 1 COMPLETED. Wave 1.1 y Wave 1.2 DONE (5/5 tasks). 0 hallazgos identificados. Gate 1 Exit Review: PASS. |
+| 1.2.0 | 2026-08-28 | Wave 2.1 COMPLETED. Tasks 2.1.1-2.1.3 DONE (3/8 tasks de Gate 2). 24 tests nuevos, 392 passed total. 0 hallazgos. |
+| 1.3.0 | 2026-08-28 | Wave 2.2 COMPLETED. Tasks 2.2.1-2.2.3 DONE (6/8 tasks de Gate 2). 27 tests de ASTNode, 419 passed total. Insight SOTA: spawn_fragment usa constructor completo para bypass de model_copy. 0 hallazgos. |
+| 1.4.0 | 2026-08-29 | Wave 2.3 COMPLETED. Tasks 2.3.1-2.3.2 DONE. 17 property-based tests con hypothesis. Inyectividad del framing verificada empíricamente (~850 ejemplos aleatorios). Corrección de causa raíz en DocumentFingerprint.__post_init__ (eliminación de islower() redundante). Hallazgo DF-01 identificado y derivado al Findings Register. Gate 2 EXIT REVIEW: PASS CONDICIONADO (pendiente resolución de DF-01). 436 passed total. |
+| 1.5.0 | 2026-08-29 | DF-01 RESOLVED en Batch 1 del Findings Register (METHODOLOGY §6.6). GroundTruthState type alias + aplicación en DTO/modelo + 6 tests. El Execution Plan mantiene su estructura original de 13 tasks. Gate 2 EXIT REVIEW FINAL: PASS. Fase 3 COMPLETADA. 442 passed total. |
 
 ---
 
@@ -107,8 +113,8 @@ Por lo tanto, el Execution Plan es deliberadamente compacto: **2 Gates, 5 Waves,
 La Fase 3 se estructura en **2 Gates**, separando claramente "formalización documental" de "implementación de validaciones":
 
 ```text
-Gate 1 (Formalización Normativa) ✅ PENDING
-   └──► Gate 2 (Validación Explícita de Dominio) ✅ PENDING
+Gate 1 (Formalización Normativa) ✅ COMPLETED
+   └──► Gate 2 (Validación Explícita de Dominio) ✅ COMPLETED
 ```
 
 Cada Gate actúa como compuerta conforme a METHODOLOGY §6.5: el Gate N+1 no inicia hasta que el Gate N pase su Exit Review.
@@ -122,62 +128,64 @@ Cada Gate actúa como compuerta conforme a METHODOLOGY §6.5: el Gate N+1 no ini
 **NADRs afectados:** NADR-F17BIS-15 v2.0, NADR-F17BIS-16  
 **Execution Mode:** Secuencial (Wave 1.1 → Wave 1.2)  
 **Rollback Plan:** `git revert` de los cambios documentales; el sistema retorna al estado de Fase 2 sin documentación explícita.  
-**Gate Status:** ⏳ PENDING
+**Gate Status:** ✅ COMPLETED
 
 ### 2.1 Wave 1.1 — Documentación de Semántica de Dimensiones (NADR-F17BIS-16)
 
-**Wave Status:** ⏳ PENDING  
-**Fecha de inicio:** {YYYY-MM-DD}  
-**Fecha de cierre:** {YYYY-MM-DD}
+**Wave Status:** ✅ COMPLETED  
+**Fecha de inicio:** 2026-08-27  
+**Fecha de cierre:** 2026-08-27
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **1.1.1** | Documentar `OracleSemanticIdentityCalculator` como contrato canónico para linaje de baseline | NADR-F17BIS-16 §5.2 R5, R6, R7, R8 | Low | — | TODO |
-| **1.1.2** | Documentar coexistencia de contratos de hashing semántico (`compute_ast_hash` vs `OracleSemanticIdentityCalculator`) | NADR-F17BIS-16 §5.2 R5, R6, R7 | Low | — | TODO |
-| **1.1.3** | Justificar explícitamente la inclusión de `ground_truth_state` en `manifest_hash` | NADR-F17BIS-16 §5.3 R10 | Low | — | TODO |
+| **1.1.1** | Documentar `OracleSemanticIdentityCalculator` como contrato canónico para linaje de baseline | NADR-F17BIS-16 §5.2 R5, R6, R7, R8 | Low | — | DONE |
+| **1.1.2** | Documentar coexistencia de contratos de hashing semántico (`compute_ast_hash` vs `OracleSemanticIdentityCalculator`) | NADR-F17BIS-16 §5.2 R5, R6, R7 | Low | — | DONE |
+| **1.1.3** | Justificar explícitamente la inclusión de `ground_truth_state` en `manifest_hash` | NADR-F17BIS-16 §5.3 R10 | Low | — | DONE |
 
 #### Notas de implementación — Task 1.1.1
 
-> {Se actualiza al completar la Task. Documentar el CÓMO se implementó: archivos modificados, docstrings agregados, validaciones ejecutadas. Ejemplo: "Docstring de `OracleSemanticIdentityCalculator` actualizado para especificar: propósito arquitectónico (linaje de baseline), dimensiones incluidas (node_id, node_type, strategy, payload), dimensiones excluidas (metadata física). 368 tests passed, 0 errors pyright."}
+> Docstring del módulo `core/benchmark/ground_truth/identity.py` actualizado para declarar explícitamente `OracleSemanticIdentityCalculator` como CONTRATO CANÓNICO PARA LINAJE DE BASELINE (NADR-F17BIS-16 §5.2 R8). Se agregó diferenciación de contratos (DC-01 resuelto): este contrato incluye `node_id` porque la identidad del oráculo requiere distinguir nodos, mientras que `compute_ast_hash` lo excluye para comparación de parsers. Docstring de la clase actualizado con la misma declaración. 368 tests passed, 0 errors pyright.
 
 #### Notas de implementación — Task 1.1.2
 
-> {Se actualiza al completar la Task. Documentar la coexistencia de contratos: `compute_ast_hash` (NADR-03) es para comparación de parsers (agnóstico a node_id), `OracleSemanticIdentityCalculator` (NADR-15) es para linaje de baseline (sensible a node_id). Ambos son deterministas y tienen propósitos distintos.}
+> Docstring del módulo `core/ast/hashing.py` actualizado para declarar explícitamente `compute_ast_hash` como CONTRATO ALTERNATIVO (no canónico para linaje). Se documentó la coexistencia con `OracleSemanticIdentityCalculator` y la justificación de propósitos distintos (NADR-F17BIS-16 §5.2 R4-R8). Referencias cruzadas agregadas a ambos contratos. 368 tests passed, 0 errors pyright.
 
 #### Notas de implementación — Task 1.1.3
 
-> {Se actualiza al completar la Task. Agregar docstring en `ManifestFingerprintCalculator` que justifique la inclusión de `ground_truth_state` citando las tres razones del ADR_F17-BIS_03 §3: (1) previene des-sellado silencioso, (2) protege integridad del proceso de certificación, (3) cualquier cambio de estado invalida el sello.}
+> Docstring de `ManifestFingerprintCalculator` en `core/benchmark/corpus/services.py` actualizado con la justificación explícita de la inclusión de `ground_truth_state` en el hash (NADR-F17BIS-16 §5.3 R10, DC-03 resuelto). Se documentaron las tres razones del ADR_F17-BIS_03 §3: (1) previene des-sellado silencioso, (2) protege integridad del proceso de certificación, (3) invalida sello ante cambios de estado. Se clarificó la semántica: `ground_truth_state` es estado operacional, `oracle_hash` es identidad científica. 368 tests passed, 0 errors pyright.
 
 #### Hallazgos identificados en esta Wave
 
 | ID | Hallazgo | Derivado a |
 |----|----------|------------|
-| {DF-XX} | {Descripción breve} | Findings Register §{N} |
+| — | Ningún hallazgo identificado | — |
 
 ### 2.2 Wave 1.2 — Limpieza de Deuda Técnica (DC-06, DC-08)
 
-**Wave Status:** ⏳ PENDING  
-**Fecha de inicio:** {YYYY-MM-DD}  
-**Fecha de cierre:** {YYYY-MM-DD}
+**Wave Status:** ✅ COMPLETED  
+**Fecha de inicio:** 2026-08-27  
+**Fecha de cierre:** 2026-08-27
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **1.2.1** | Corregir docstring de `compute_ast_hash` para clarificar sensibilidad al orden (DC-06) | NADR-F17BIS-16 §5.2 R5, R6, R7 | Low | Wave 1.1 | TODO |
-| **1.2.2** | Eliminar campos huérfanos `ground_truth_version` y `ground_truth_sha256` de `RawDocumentEntryDTO` (DC-08) | ENGINEERING_PRINCIPLES §I (YAGNI) | Medium | Wave 1.1 | TODO |
+| **1.2.1** | Corregir docstring de `compute_ast_hash` para clarificar sensibilidad al orden (DC-06) | NADR-F17BIS-16 §5.2 R5, R6, R7 | Low | Wave 1.1 | DONE |
+| **1.2.2** | Eliminar campos huérfanos `ground_truth_version` y `ground_truth_sha256` de `RawDocumentEntryDTO` (DC-08) | ENGINEERING_PRINCIPLES §I (YAGNI) | Medium | Wave 1.1 | DONE |
 
 #### Notas de implementación — Task 1.2.1
 
-> {Se actualiza al completar la Task. Corregir docstring de `compute_ast_hash` en `core/ast/hashing.py` para clarificar que la función es sensible al orden de la secuencia de nodos, eliminando la ambigüedad del docstring actual que dice "independientemente de su orden de procesamiento".}
+> Docstring de `compute_ast_hash` en `core/ast/hashing.py` corregido para clarificar sensibilidad al orden (DC-06 resuelto). Se eliminó la ambigüedad del docstring anterior que decía "independientemente de su orden de procesamiento". Se clarificó explícitamente: (a) el orden de los nodos en la secuencia SÍ afecta el hash, (b) el orden interno de procesamiento NO afecta el hash (gracias a `sort_keys=True`). 368 tests passed, 0 errors pyright.
 
 #### Notas de implementación — Task 1.2.2
 
-> {Se actualiza al completar la Task. Eliminar campos `ground_truth_version` y `ground_truth_sha256` de `RawDocumentEntryDTO` en `core/benchmark/corpus/dtos.py`. Actualizar todos los consumidores que referencian estos campos. Ejecutar suite completa de tests para verificar que no hay rupturas.}
+> Limpieza profunda de campos huérfanos `ground_truth_version` y `ground_truth_sha256` (DC-08 resuelto). Archivos modificados: `core/benchmark/corpus/dtos.py` (eliminación de campos), `core/benchmark/corpus/services.py` (eliminación de `detected_hashes` y `target_version` de `ManifestLineageSealer`), `core/benchmark/corpus/use_cases.py` (eliminación de propagación), `core/benchmark/ground_truth/use_cases.py` (eliminación de cálculo de `detected_hashes` y `target_version`), `tools/evaluation/freeze_ground_truth.py` (eliminación de `target_version`), tests y fixtures JSON actualizados.
+>
+> **Decisión de diseño clave:** Al eliminar `ground_truth_sha256`, el cálculo de `detected_hashes` (que hacía I/O de disco con `read_artifact_bytes`) quedó completamente huérfano y fue eliminado. Esto elimina una lectura de disco y un cálculo SHA-256 por documento durante el sellado, mejorando el rendimiento. Los parámetros `detected_hashes` y `target_version` fueron eliminados de las firmas de `ManifestLineageSealer.seal_manifest_with_ground_truth` y `SealGroundTruthUseCase.execute` para evitar código muerto. YAGNI. 368 tests passed, 0 errors pyright.
 
 #### Hallazgos identificados en esta Wave
 
 | ID | Hallazgo | Derivado a |
 |----|----------|------------|
-| {DF-XX} | {Descripción breve} | Findings Register §{N} |
+| — | Ningún hallazgo identificado | — |
 
 ### 2.3 Gate 1 Exit Criteria
 
@@ -197,16 +205,16 @@ Antes de declarar el Gate como COMPLETED, se ejecuta el proceso de Revisión Pos
 
 | # | Verificación | Estado |
 |---|-------------|--------|
-| 1 | Todas las Tasks del Gate en estado DONE | {✅/❌} |
-| 2 | Todas las reglas del Gate en estado DONE en §7 | {✅/❌} |
-| 3 | Gate Exit Criteria satisfechos | {✅/❌} |
-| 4 | Hallazgos identificados derivados al Findings Register | {✅/❌} |
-| 5 | Pyright: 0 errors, 0 warnings | {✅/❌} |
-| 6 | Tests: suite completa en verde (baseline 368 passed, 5 skipped) | {✅/❌} |
-| 7 | Notas de implementación completas para todas las Tasks | {✅/❌} |
+| 1 | Todas las Tasks del Gate en estado DONE | ✅ |
+| 2 | Todas las reglas del Gate en estado DONE en §7 | ✅ |
+| 3 | Gate Exit Criteria satisfechos | ✅ |
+| 4 | Hallazgos identificados derivados al Findings Register | ✅ (0 hallazgos) |
+| 5 | Pyright: 0 errors, 0 warnings | ✅ |
+| 6 | Tests: suite completa en verde (baseline 368 passed, 5 skipped) | ✅ |
+| 7 | Notas de implementación completas para todas las Tasks | ✅ |
 
-**Veredicto del Gate:** {PASS / CONDITIONAL PASS / FAIL}  
-**Fecha de verificación:** {YYYY-MM-DD}
+**Veredicto del Gate:** PASS  
+**Fecha de verificación:** 2026-08-27
 
 ---
 
@@ -217,103 +225,104 @@ Antes de declarar el Gate como COMPLETED, se ejecuta el proceso de Revisión Pos
 **NADRs afectados:** NADR-F17BIS-17  
 **Execution Mode:** Secuencial (Wave 2.1 → Wave 2.2 → Wave 2.3)  
 **Rollback Plan:** `git revert` de las validaciones de dominio agregadas; el sistema retorna al estado post-Gate 1 sin validación explícita de dominio.  
-**Gate Status:** ⏳ PENDING
+**Gate Status:** ✅ COMPLETED
 
 ### 2.5 Wave 2.1 — Validación de Dominio para `document_id` (NADR-F17BIS-17)
 
-**Wave Status:** ⏳ PENDING  
-**Fecha de inicio:** {YYYY-MM-DD}  
-**Fecha de cierre:** {YYYY-MM-DD}
+**Wave Status:** ✅ COMPLETED  
+**Fecha de inicio:** 2026-08-28  
+**Fecha de cierre:** 2026-08-28
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **2.1.1** | Agregar validación de dominio en `CorpusDocumentMetadata.document_id` (excluir `:`) | NADR-F17BIS-17 §5.1 R1-R4 | Medium | Gate 1 | TODO |
-| **2.1.2** | Agregar tests de fail-fast para `document_id` inválido | NADR-F17BIS-17 §5.1 R3-R4 | Low | 2.1.1 | TODO |
-| **2.1.3** | Documentar contrato de dominio de `document_id` | NADR-F17BIS-17 §5.4 R13 | Low | 2.1.1 | TODO |
+| **2.1.1** | Agregar validación de dominio en `CorpusDocumentMetadata.document_id` (excluir `:`) | NADR-F17BIS-17 §5.1 R1-R4 | Medium | Gate 1 | DONE |
+| **2.1.2** | Agregar tests de fail-fast para `document_id` inválido | NADR-F17BIS-17 §5.1 R3-R4 | Low | 2.1.1 | DONE |
+| **2.1.3** | Documentar contrato de dominio de `document_id` | NADR-F17BIS-17 §5.4 R13 | Low | 2.1.1 | DONE |
 
 #### Notas de implementación — Task 2.1.1
 
-> {Se actualiza al completar la Task. Agregar `pattern=r"^[^:]+$"` a `document_id` en `core/benchmark/corpus/models.py::CorpusDocumentMetadata`. Verificar que la validación se aplica en construcción del objeto (fail-fast).}
+> Validación de dominio implementada mediante type alias centralizado `DocumentId` en `core/shared/identity_contracts.py` (nuevo módulo). Ubicación en `core/shared/` evita dependencias invertidas: tanto `core/benchmark/corpus` como `core/ast` (Wave 2.2) pueden importar sin violar boundaries. Mecanismo: `Annotated[str, StringConstraints(min_length=1, pattern=r"^[^:]+$")]` (Pydantic v2 idiomático). Aplicado en `CorpusDocumentMetadata.document_id` (modelo de dominio) y `RawDocumentEntryDTO.document_id` (DTO de frontera) para Fail-Fast en ambos puntos. 0 errors pyright.
 
 #### Notas de implementación — Task 2.1.2
 
-> {Se actualiza al completar la Task. Agregar test unitario en `tests/unit/test_corpus_models.py` que verifique que `document_id` con `:` falla con `ValidationError`. Ejecutar suite completa de tests para verificar que no hay rupturas.}
+> Archivo `tests/unit/test_corpus_models.py` creado con 24 tests exhaustivos. Casos cubiertos: válidos (alfanuméricos, guiones, puntos, espacios, single-char), fail-fast para `:` (inicio, medio, final, solo `:`, múltiples `:`, vacío), inmutabilidad (`frozen=True`), invariantes de `DocumentFingerprint`, propagación de fail-fast en `CorpusManifest`. 24 passed, 0 errors pyright.
 
 #### Notas de implementación — Task 2.1.3
 
-> {Se actualiza al completar la Task. Agregar docstring en `CorpusDocumentMetadata` que documente el contrato de dominio de `document_id`: caracteres permitidos, caracteres prohibidos (`:`), justificación (inyectividad del framing).}
+> Docstrings de `CorpusDocumentMetadata` y `RawDocumentEntryDTO` actualizados con documentación completa del contrato de dominio: DOMINIO, PROHIBIDO, JUSTIFICACIÓN (inyectividad del framing criptográfico), VALIDACIÓN, SENTINEL. Incluye documentación consolidada de `oracle_hash` (sentinel "none") y `ground_truth_state` (estado operacional DF-13). 0 errors pyright.
 
 #### Hallazgos identificados en esta Wave
 
 | ID | Hallazgo | Derivado a |
 |----|----------|------------|
-| {DF-XX} | {Descripción breve} | Findings Register §{N} |
+| — | Ningún hallazgo identificado | — |
+
 
 ### 2.6 Wave 2.2 — Validación de Dominio para `node_id` (NADR-F17BIS-17)
 
-**Wave Status:** ⏳ PENDING  
-**Fecha de inicio:** {YYYY-MM-DD}  
-**Fecha de cierre:** {YYYY-MM-DD}
+**Wave Status:** ✅ COMPLETED  
+**Fecha de inicio:** 2026-08-28  
+**Fecha de cierre:** 2026-08-28
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **2.2.1** | Agregar validación de dominio en `ASTNode.node_id` (excluir `:`) | NADR-F17BIS-17 §5.1 R1-R4 | Medium | Wave 2.1 | TODO |
-| **2.2.2** | Agregar tests de fail-fast para `node_id` inválido | NADR-F17BIS-17 §5.1 R3-R4 | Low | 2.2.1 | TODO |
-| **2.2.3** | Documentar contrato de dominio de `node_id` | NADR-F17BIS-17 §5.4 R13 | Low | 2.2.1 | TODO |
+| **2.2.1** | Agregar validación de dominio en `ASTNode.node_id` (excluir `:`) | NADR-F17BIS-17 §5.1 R1-R4 | Medium | Wave 2.1 | DONE |
+| **2.2.2** | Agregar tests de fail-fast para `node_id` inválido | NADR-F17BIS-17 §5.1 R3-R4 | Low | 2.2.1 | DONE |
+| **2.2.3** | Documentar contrato de dominio de `node_id` | NADR-F17BIS-17 §5.4 R13 | Low | 2.2.1 | DONE |
 
 #### Notas de implementación — Task 2.2.1
 
-> {Se actualiza al completar la Task. Agregar `pattern=r"^[^:]+$"` a `node_id` en `core/ast/models.py::ASTNode`. Verificar que la validación se aplica en construcción del objeto (fail-fast).}
+> Validación de dominio aplicada a `node_id` y `parent_node_id` en `ASTNode` usando el type alias `NodeId` de `core/shared/identity_contracts.py`. Ambos campos usan `NodeId` (y `Optional[NodeId]` respectivamente) para consistencia de dominio: ninguna referencia a un node_id puede contener el delimitador `:`. Insight SOTA: `spawn_fragment()` fue reescrito para usar el constructor completo de `ASTNode` en lugar de `model_copy(update={"node_id": ...})`, porque Pydantic v2 no revalida campos actualizados vía `model_copy`. Esto previene bypass del contrato de dominio. `with_strategy()` y `with_sequence_id()` mantienen `model_copy` porque no actualizan campos con contrato. 0 errors pyright.
 
 #### Notas de implementación — Task 2.2.2
 
-> {Se actualiza al completar la Task. Agregar test unitario en `tests/unit/test_ast_models.py` que verifique que `node_id` con `:` falla con `ValidationError`. Ejecutar suite completa de tests para verificar que no hay rupturas.}
+> Archivo `tests/unit/test_ast_models.py` creado con 27 tests exhaustivos. Clases de tests: `TestNodeIdDomainContract` (9 tests de fail-fast para `:`), `TestParentNodeIdDomainContract` (4 tests de consistencia de dominio), `TestASTNodeInvariants` (9 tests de inmutabilidad y propiedades), `TestASTNodeSpawnFragment` (4 tests incluyendo bypass prevention). 27 passed, 0 errors pyright.
 
 #### Notas de implementación — Task 2.2.3
 
-> {Se actualiza al completar la Task. Agregar docstring en `ASTNode` que documente el contrato de dominio de `node_id`: caracteres permitidos, caracteres prohibidos (`:`), justificación (inyectividad del framing).}
+> Docstring de `ASTNode` actualizado con documentación completa del contrato de dominio de `node_id`: DOMINIO, PROHIBIDO (`:`), JUSTIFICACIÓN (inyectividad del framing `node_id:type:strategy:payload_hash` en `OracleSemanticIdentityCalculator`), VALIDACIÓN, SENTINEL. `parent_node_id` documentado con el mismo contrato para consistencia. Nota SOTA sobre `spawn_fragment` incluida. 0 errors pyright.
 
 #### Hallazgos identificados en esta Wave
 
 | ID | Hallazgo | Derivado a |
 |----|----------|------------|
-| {DF-XX} | {Descripción breve} | Findings Register §{N} |
+| — | Ningún hallazgo identificado | — |
 
 ### 2.7 Wave 2.3 — Tests de Inyectividad del Encoding (NADR-F17BIS-17)
 
-**Wave Status:** ⏳ PENDING  
-**Fecha de inicio:** {YYYY-MM-DD}  
-**Fecha de cierre:** {YYYY-MM-DD}
+**Wave Status:** ✅ COMPLETED  
+**Fecha de inicio:** 2026-08-29  
+**Fecha de cierre:** 2026-08-29
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **2.3.1** | Agregar property-based testing para inyectividad de `manifest_hash` | NADR-F17BIS-17 §5.2 R5-R8 | Medium | Wave 2.2 | TODO |
-| **2.3.2** | Agregar property-based testing para inyectividad de `oracle_hash` | NADR-F17BIS-17 §5.2 R5-R8 | Medium | Wave 2.2 | TODO |
+| **2.3.1** | Agregar property-based testing para inyectividad de `manifest_hash` | NADR-F17BIS-17 §5.2 R5-R8 | Medium | Wave 2.2 | DONE |
+| **2.3.2** | Agregar property-based testing para inyectividad de `oracle_hash` | NADR-F17BIS-17 §5.2 R5-R8 | Medium | Wave 2.2 | DONE |
 
 #### Notas de implementación — Task 2.3.1
 
-> {Se actualiza al completar la Task. Agregar property-based tests en `tests/unit/test_manifest_fingerprint.py` usando `hypothesis` library que verifiquen inyectividad del encoding: dos payloads distintos producen hashes distintos. Configurar estrategias conservadoras para `document_id`, `fingerprint.sha256`, `traits`, `page_count`, `oracle_hash`, `ground_truth_state`.}
+> Archivo `tests/unit/test_framing_injectivity.py` creado con 9 property-based tests para `ManifestFingerprintCalculator` usando `hypothesis`. Estrategias conservadoras generan valores dentro del dominio válido (sin `:`, hex lowercase, enum values). Tests de sensibilidad: document_id, fingerprint.sha256, traits, page_count, oracle_hash, ground_truth_state, corpus_version. Test de insensibilidad: orden de documentos (ManifestFingerprintCalculator ordena internamente). ~450 ejemplos aleatorios generados. Corrección de causa raíz: `DocumentFingerprint.__post_init__` simplificado eliminando `islower()` (redundante con `all(c in "0123456789abcdef")`) que fallaba para hashes sin letras (ej: `"0"*64`). 9 tests passed.
 
 #### Notas de implementación — Task 2.3.2
 
-> {Se actualiza al completar la Task. Agregar property-based tests en `tests/unit/test_oracle_identity.py` usando `hypothesis` library que verifiquen inyectividad del encoding: dos tuplas de nodos distintas producen hashes distintos. Configurar estrategias conservadoras para `node_id`, `node_type`, `strategy`, `payload`.}
+> 8 property-based tests para `OracleSemanticIdentityCalculator` en `tests/unit/test_framing_injectivity.py`. Tests de sensibilidad: node_id, content, node_type, strategy, order, cardinality (1 vs 2 nodos). Test de insensibilidad: sequence_id (metadata física no participa en framing). Estrategias con `blacklist_categories=("Cs",)` para excluir surrogates Unicode que Pydantic rechaza. ~400 ejemplos aleatorios generados. 8 tests passed.
 
 #### Hallazgos identificados en esta Wave
 
 | ID | Hallazgo | Derivado a |
 |----|----------|------------|
-| {DF-XX} | {Descripción breve} | Findings Register §{N} |
+| DF-01 | `ground_truth_state` es `Optional[str]` sin validación explícita de `:`. En la práctica los valores vienen de `GroundTruthLifecycleState` enum (sin `:`), pero el contrato del DTO permite cualquier string. Riesgo bajo mientras el enum permanezca cerrado. | Findings Register §2.2 → IMPLEMENTATION_REQUIRED → Batch 1 → RESOLVED (2026-08-29) |
 
 ### 2.8 Gate 2 Exit Criteria
 
 Todas las reglas de NADR-F17BIS-17 referenciadas en este Gate deben alcanzar estado `DONE` (derivado de sus tareas). Específicamente:
 
-- `document_id` tiene validación de dominio que excluye `:`.
-- `node_id` tiene validación de dominio que excluye `:`.
-- Tests de fail-fast verifican que valores inválidos son rechazados explícitamente.
-- Contratos de dominio están documentados en docstrings.
-- Tests de propiedad verifican inyectividad del encoding para `manifest_hash` y `oracle_hash`.
-- Conjunto de sentinels está documentado.
+- `document_id` tiene validación de dominio que excluye `:`. ✅
+- `node_id` tiene validación de dominio que excluye `:`. ✅
+- Tests de fail-fast verifican que valores inválidos son rechazados explícitamente. ✅
+- Contratos de dominio están documentados en docstrings. ✅
+- Tests de propiedad verifican inyectividad del encoding para `manifest_hash` y `oracle_hash`. ✅
+- Conjunto de sentinels está documentado. ✅
 
 ### 2.9 Gate 2 Exit Review
 
@@ -323,16 +332,30 @@ Antes de declarar el Gate como COMPLETED, se ejecuta el proceso de Revisión Pos
 
 | # | Verificación | Estado |
 |---|-------------|--------|
-| 1 | Todas las Tasks del Gate en estado DONE | {✅/❌} |
-| 2 | Todas las reglas del Gate en estado DONE en §7 | {✅/❌} |
-| 3 | Gate Exit Criteria satisfechos | {✅/❌} |
-| 4 | Hallazgos identificados derivados al Findings Register | {✅/❌} |
-| 5 | Pyright: 0 errors, 0 warnings | {✅/❌} |
-| 6 | Tests: suite completa en verde (baseline 368 passed, 5 skipped + nuevos tests de propiedad) | {✅/❌} |
-| 7 | Notas de implementación completas para todas las Tasks | {✅/❌} |
+| 1 | Todas las Tasks del Gate en estado DONE (8 tasks) | ✅ |
+| 2 | Todas las reglas del Gate en estado DONE en §7 | ✅ |
+| 3 | Gate Exit Criteria satisfechos | ✅ |
+| 4 | Hallazgos identificados derivados al Findings Register | ✅ (DF-01 → Batch 1 → RESOLVED) |
+| 5 | Pyright: 0 errors, 0 warnings | ✅ |
+| 6 | Tests: suite completa en verde (442 passed, 5 skipped) | ✅ |
+| 7 | Notas de implementación completas para todas las Tasks | ✅ |
 
-**Veredicto del Gate:** {PASS / CONDITIONAL PASS / FAIL}  
-**Fecha de verificación:** {YYYY-MM-DD}
+**Veredicto del Gate:** PASS  
+**Fecha de verificación:** 2026-08-29
+
+**Nota de resolución de DF-01 (post-Wave 2.3):**
+
+Durante Wave 2.3 se identificó DF-01: `ground_truth_state` participa en el framing de `manifest_hash` pero carecía de contrato de dominio explícito (asimetría con `document_id` y `node_id`).
+
+Siguiendo METHODOLOGY §6.6, el hallazgo se clasificó como `IMPLEMENTATION_REQUIRED` y se resolvió en **Batch 1** del Findings Register (no como Wave nueva del Execution Plan):
+
+- `GroundTruthState` type alias en `core/shared/identity_contracts.py`
+- Aplicación en `RawDocumentEntryDTO.ground_truth_state` y `CorpusDocumentMetadata.ground_truth_state`
+- 6 tests de fail-fast en `tests/unit/test_corpus_models.py::TestGroundTruthStateDomainContract`
+- Suite completa: 442 passed, 5 skipped
+- Pyright: 0 errors
+
+Esta resolución no modifica la estructura del Execution Plan (13 tasks originales) porque se ejecuta como Batch de resolución de findings, conforme a METHODOLOGY §6.6 punto 4.
 
 ---
 
@@ -342,8 +365,8 @@ Se actualiza al cierre de cada Gate.
 
 | Gate | Fecha de cierre | Rules DONE / Total | Tasks DONE / Total | Hallazgos derivados | Observaciones |
 |------|----------------|-------------------|-------------------|-------------------|---------------|
-| Gate 1 | {YYYY-MM-DD} | {X/Y} | {5/5} | {N} | {Observaciones} |
-| Gate 2 | {YYYY-MM-DD} | {X/Y} | {8/8} | {N} | {Observaciones} |
+| Gate 1 | 2026-08-27 | 17/17 | 5/5 | 0 | Formalización documental completa. Limpieza profunda de DC-08 eliminó I/O innecesario. |
+| Gate 2 | 2026-08-29 | 15/15 | 8/8 | 1 (DF-01 → Batch 1 → RESOLVED) | Validación de dominio completa. Inyectividad del framing verificada con hypothesis. Corrección de causa raíz en DocumentFingerprint. DF-01 resuelto como Batch post-Wave 2.3. |
 
 ---
 
@@ -353,9 +376,9 @@ Tareas operativas de release (no desarrollo). Vinculadas a reglas específicas. 
 
 | Step | Operation | Environment | Linked Rules | Evidence | Status |
 |---|---|---|---|---|---|
-| **MIG-01** | Verificar que todos los `document_id` existentes en el corpus canónico cumplen con el nuevo patrón (sin `:`) | Local | NADR-F17BIS-17 §5.1 R1-R4 | Script de validación | TODO |
-| **MIG-02** | Verificar que todos los `node_id` existentes en los oráculos cumplen con el nuevo patrón (sin `:`) | Local | NADR-F17BIS-17 §5.1 R1-R4 | Script de validación | TODO |
-| **MIG-03** | Ejecutar suite completa de tests de regresión para verificar que no hay rupturas | Local/CI | Todas las reglas | pytest output | TODO |
+| **MIG-01** | Verificar que todos los `document_id` existentes cumplen con el patrón (sin `:`) | Local | NADR-F17BIS-17 §5.1 R1-R4 | Grep PowerShell: 0 resultados | DONE |
+| **MIG-02** | Verificar que todos los `node_id` existentes cumplen con el patrón (sin `:`) | Local | NADR-F17BIS-17 §5.1 R1-R4 | Grep PowerShell: 0 resultados | DONE |
+| **MIG-03** | Ejecutar suite completa de tests de regresión | Local/CI | Todas las reglas | pytest: 442 passed, 5 skipped | DONE |
 
 ---
 
@@ -382,9 +405,9 @@ Los contadores se **derivan computacionalmente** del Traceability Appendix (§7)
 
 | Gate | Tasks DONE | Rules DONE | Rules DEFERRED | Rules PENDING | Gate Status |
 |---|---|---|---|---|---|
-| Gate 1 | {A} | {X} | {Y} | {Z} | {✅ COMPLETED / 🟡 IN PROGRESS / ⏳ PENDING} |
-| Gate 2 | {B} | {W} | {V} | {U} | {✅ COMPLETED / 🟡 IN PROGRESS / ⏳ PENDING} |
-| **TOTAL** | **{A+B}** | **{X+W}** | **{Y+V}** | **{Z+U}** | {Estado global} |
+| Gate 1 | 5 | 17 | 0 | 0 | ✅ COMPLETED |
+| Gate 2 | 8 | 15 | 0 | 0 | ✅ COMPLETED |
+| **TOTAL** | **13** | **32** | **0** | **0** | ✅ COMPLETED |
 
 **Regla de actualización:** Cada vez que una Task pase a `DONE`:
 1. Se actualiza el `Status` de la Task en la tabla de Wave correspondiente (§2)
@@ -403,14 +426,19 @@ Los contadores se **derivan computacionalmente** del Traceability Appendix (§7)
 
 ### 7.1 Gate 1 — Rules Audit Board
 
+#### NADR-F17BIS-15 v2.0
+
+| Rule | Derived Status | Evidence | Implementation Notes |
+|---|---|---|---|
+| NADR-F17BIS-15 v2.0 §5.3 R10 | DONE | Wave 1.1 / Task 1.1.3 | Acoplamiento implícito de ASTSchemaVersion a CorpusVersion documentado y justificado en ManifestFingerprintCalculator |
 
 #### NADR-F17BIS-16
 
 | Rule | Derived Status | Evidence | Implementation Notes |
 |---|---|---|---|
 | NADR-F17BIS-16 §5.1 R1-R3 | DONE | Wave 1.1 / Task 1.1.1 | Documentación de OracleSemanticIdentityCalculator como contrato canónico |
-| NADR-F17BIS-16 §5.2 R4-R8 | DONE | Wave 1.1 / Task 1.1.2, Wave 1.2 / Task 1.2.1 | Documentación de coexistencia de contratos de hashing + aclaración de docstring |
-| NADR-F17BIS-16 §5.3 R9-R12 | DONE | Wave 1.1 / Task 1.1.3 | Justificación de ground_truth_state en manifest_hash |
+| NADR-F17BIS-16 §5.2 R4-R8 | DONE | Wave 1.1 / Task 1.1.2, Wave 1.2 / Task 1.2.1 | Documentación de coexistencia de contratos de hashing + aclaración de docstring (DC-06) |
+| NADR-F17BIS-16 §5.3 R9-R12 | DONE | Wave 1.1 / Task 1.1.3 | Justificación de ground_truth_state en manifest_hash (DC-03) |
 | NADR-F17BIS-16 §5.4 R13-R16 | DONE | Wave 1.1 / Task 1.1.1, 1.1.2, 1.1.3 | Verificación de documentación de composición de identidad global |
 
 #### Limpieza de Deuda Técnica
@@ -418,7 +446,7 @@ Los contadores se **derivan computacionalmente** del Traceability Appendix (§7)
 | Rule | Derived Status | Evidence | Implementation Notes |
 |---|---|---|---|
 | DC-06 (aclarar docstring) | DONE | Wave 1.2 / Task 1.2.1 | Docstring de compute_ast_hash corregido |
-| DC-08 (limpiar campos huérfanos) | DONE | Wave 1.2 / Task 1.2.2 | Campos ground_truth_version y ground_truth_sha256 eliminados |
+| DC-08 (limpiar campos huérfanos) | DONE | Wave 1.2 / Task 1.2.2 | Campos ground_truth_version y ground_truth_sha256 eliminados. Limpieza profunda de detected_hashes y target_version. |
 
 ### 7.2 Gate 2 — Rules Audit Board
 
@@ -426,11 +454,14 @@ Los contadores se **derivan computacionalmente** del Traceability Appendix (§7)
 
 | Rule | Derived Status | Evidence | Implementation Notes |
 |---|---|---|---|
-| NADR-F17BIS-17 §5.1 R1-R4 | DONE | Wave 2.1 / Task 2.1.1, Wave 2.2 / Task 2.2.1 | Validación de dominio para document_id y node_id |
-| NADR-F17BIS-17 §5.1 R3-R4 | DONE | Wave 2.1 / Task 2.1.2, Wave 2.2 / Task 2.2.2 | Tests de fail-fast para valores inválidos |
-| NADR-F17BIS-17 §5.2 R5-R8 | DONE | Wave 2.3 / Task 2.3.1, 2.3.2 | Tests de propiedad para inyectividad del encoding |
-| NADR-F17BIS-17 §5.3 R9-R12 | DONE | Wave 2.1 / Task 2.1.3, Wave 2.2 / Task 2.2.3 | Documentación de sentinels y valores especiales |
-| NADR-F17BIS-17 §5.4 R13-R15 | DONE | Wave 2.1 / Task 2.1.3, Wave 2.2 / Task 2.2.3, Wave 2.3 / Task 2.3.1, 2.3.2 | Verificación de inyectividad mediante tests automatizados |
+| NADR-F17BIS-17 §5.1 R1-R4 (document_id) | DONE | Wave 2.1 / Task 2.1.1, 2.1.2 | Validación con `DocumentId` type alias + 24 tests |
+| NADR-F17BIS-17 §5.1 R1-R4 (node_id + parent_node_id) | DONE | Wave 2.2 / Task 2.2.1, 2.2.2 | Validación con `NodeId` type alias + 27 tests. spawn_fragment con constructor completo |
+| NADR-F17BIS-17 §5.1 R1-R4 (ground_truth_state) | DONE | Batch 1 / DF-01 (post-Wave 2.3) | Validación con `GroundTruthState` type alias + 6 tests. Resuelto como Batch del Findings Register |
+| NADR-F17BIS-17 §5.2 R5-R8 | DONE | Wave 2.3 / Task 2.3.1, 2.3.2 | 17 property-based tests con hypothesis. Inyectividad del framing verificada |
+| NADR-F17BIS-17 §5.3 R9-R12 | DONE | Waves 2.1-2.3 + Batch 1 | Sentinels documentados. Contratos completos para los 4 campos del framing |
+| NADR-F17BIS-17 §5.4 R13-R15 | DONE | Waves 2.1-2.3 + Batch 1 | Contratos documentados + verificación de inyectividad con property-based tests |
+
+> **Nota de conteo:** Las reglas R1-R4 de NADR-F17BIS-17 §5.1 aparecen en múltiples filas porque fueron aplicadas a distintos campos (document_id, node_id + parent_node_id, ground_truth_state). Para el conteo del Status Dashboard y el Gate Completion Log, cada regla única se cuenta una sola vez. Total de reglas únicas de NADR-F17BIS-17: 15 (R1-R4 + R5-R8 + R9-R12 + R13-R15).
 
 ---
 

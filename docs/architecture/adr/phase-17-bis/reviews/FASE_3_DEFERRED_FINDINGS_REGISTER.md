@@ -1,11 +1,11 @@
 # FASE_3_DEFERRED_FINDINGS_REGISTER.md
 
 **Documento:** `docs/architecture/adr/phase-17-bis/reviews/FASE_3_DEFERRED_FINDINGS_REGISTER.md`  
-**Versión:** 0.1.0-IN_PROGRESS  
-**Estado:** IN_PROGRESS  
+**Versión:** 1.0.0-COMPLETED  
+**Estado:** COMPLETED  
 **Fecha de creación:** 2026-08-27  
-**Última actualización:** 2026-08-27  
-**Derivado de:** `PHASE_17BIS_FASE3_EXECUTION_PLAN.md` v1.0.0  
+**Última actualización:** 2026-08-29  
+**Derivado de:** `PHASE_17BIS_FASE3_EXECUTION_PLAN.md` v1.1.0  
 **Propósito:** Registro auditable de hallazgos identificados durante la implementación del Execution Plan de Fase 3 (Identity & Trust Model), su clasificación, resolución y evidencia empírica de los batches.
 
 ---
@@ -54,6 +54,7 @@ ADR_F17_BIS_MASTER > ADR_F17-BIS_03 > NADR-F17BIS-15 v2.0, NADR-F17BIS-16, NADR-
 
 | Estado | Significado |
 |--------|-------------|
+| `PENDING_REVIEW` | Pendiente de análisis en Exit Review |
 | `RESOLVED` | Implementado y cerrado con evidencia |
 | `RESOLVED — DELETE` | Código muerto eliminado |
 | `RESOLVED — MOVE` | Código reubicado en capa correcta |
@@ -86,52 +87,75 @@ ADR_F17_BIS_MASTER > ADR_F17-BIS_03 > NADR-F17BIS-15 v2.0, NADR-F17BIS-16, NADR-
 
 ## 2. GATE EXIT REVIEWS
 
-### 2.1 Gate 1 Exit Review — Formalización Normativa ({YYYY-MM-DD})
+### 2.1 Gate 1 Exit Review — Formalización Normativa (2026-08-27)
 
 **Árbol de decisión aplicado:**
 
 ```text
 1. ¿Sigue siendo válido el hallazgo? → NO: CLOSED (NAR) / SÍ: continuar
-2. ¿Puede resolverse dentro del Gate actual? → SÍ: RESOLVED / NO: continuar
+2. ¿Puede resolverse dentro del Gate actual?
+   → SÍ: ¿Requiere implementación de código?
+      → SÍ: IMPLEMENTATION_REQUIRED → Batch (METHODOLOGY §6.6) → RESOLVED
+      → NO: RESOLVED (resolución documental)
+   → NO: continuar
 3. ¿Es un problema técnico? → SÍ: RECLASIFICADO / NO: continuar
 4. ¿Es un conflicto normativo? → SÍ: CONVERTIDO EN GF
 ```
 
 | DF | ¿Válido? | ¿Resoluble? | ¿Técnico? | Decisión | Motivo |
 |----|----------|-------------|-----------|----------|--------|
-| {DF-XX} | {✅ Sí / ❌ No / ⚠️ Parcial} | {✅ Sí / ❌ No} | {✅ Sí / ❌ No} | {Decisión} | {Motivo} |
+| — | — | — | — | — | Ningún hallazgo identificado en Gate 1 |
 
 **Resumen:**
-- RESOLVED: {N} ({DF-XX})
-- RECLASIFICADO → Gate 2: {N} ({DF-XX, DF-YY})
-- CLOSED (NAR): {N} ({DF-XX})
-- CONVERTIDO EN GF: {N} ({GF-XX})
-- Nuevos hallazgos registrados: {N} ({DF-XX})
+- RESOLVED: 0
+- RECLASIFICADO → Gate 2: 0
+- CLOSED (NAR): 0
+- CONVERTIDO EN GF: 0
+- Nuevos hallazgos registrados: 0
 
-#### Decisiones arquitectónicas congeladas en Gate 1 (si aplica)
+**Nota:** La Wave 1.1 (documentación) y Wave 1.2 (limpieza de deuda técnica) se ejecutaron sin identificar hallazgos. La limpieza profunda de DC-08 (eliminación de campos huérfanos, `detected_hashes` y `target_version`) se completó sin generar efectos colaterales. Pyright 0 errors, pytest 368 passed, 5 skipped.
+
+#### Decisiones arquitectónicas congeladas en Gate 1
 
 | Decisión | Task | Justificación |
 |----------|------|---------------|
-| {Decisión} | {Task ID} | {NADR/Principio que la respalda} |
+| Eliminación de `detected_hashes` y `target_version` de `ManifestLineageSealer` y `SealGroundTruthUseCase` | 1.2.2 | YAGNI: al eliminar `ground_truth_sha256`, estos parámetros quedaron huérfanos. Eliminarlos evita código muerto y mejora rendimiento (menos I/O). |
 
-#### Lecciones aprendidas (si aplica)
+#### Lecciones aprendidas
 
-- {Lección 1}
-- {Lección 2}
+- La limpieza de campos huérfanos puede desbloquear limpiezas más profundas de código muerto (parámetros, cálculos de I/O) que no eran evidentes inicialmente.
 
 ---
 
-### 2.2 Gate 2 Exit Review — Validación Explícita de Dominio ({YYYY-MM-DD})
+### 2.2 Gate 2 Exit Review — Validación Explícita de Dominio (2026-08-29)
 
 **Árbol de decisión aplicado:**
 
-{Misma estructura que Gate 1}
+| DF | ¿Válido? | ¿Resoluble? | ¿Técnico? | Decisión | Motivo |
+|----|----------|-------------|-----------|----------|--------|
+| DF-01 | ✅ Sí | ✅ Sí (~30 líneas) | ✅ Sí (hardening de dominio) | IMPLEMENTATION_REQUIRED → Batch 1 | Asimetría defensiva con document_id y node_id |
 
 **Resumen:**
-- RESOLVED: {N} ({DF-XX})
-- CLOSED (NAR): {N} ({DF-XX})
-- RECLASSIFIED_FUTURE_PHASE: {N} ({DF-XX})
-- Nuevos hallazgos registrados: {N} ({DF-XX})
+- IMPLEMENTATION_REQUIRED: 1 (DF-01)
+- CLOSED (NAR): 0
+- RECLASSIFIED_FUTURE_PHASE: 0
+- Nuevos hallazgos registrados: 1 → resuelto en Batch 1
+
+#### Decisiones arquitectónicas congeladas en Gate 2
+
+| Decisión | Task/Batch | Justificación |
+|----------|------|---------------|
+| Corrección de causa raíz en DocumentFingerprint.__post_init__ | 2.3.1 | Eliminar islower() redundante que fallaba para hashes sin letras (ej: "0"*64). |
+| spawn_fragment con constructor completo | 2.2.1 | Pydantic v2 model_copy(update=...) no revalida campos. Previene bypass del contrato NodeId. |
+| parent_node_id: Optional[NodeId] | 2.2.1 | Consistencia de dominio: referencias a node_id deben tener el mismo contrato. |
+| GroundTruthState type alias | Batch 1 (DF-01) | Cierre de asimetría defensiva. ground_truth_state participa en framing de manifest_hash al igual que document_id. |
+
+#### Lecciones aprendidas
+
+- `str.islower()` en Python retorna False para strings sin caracteres alfabéticos. Los invariantes deben verificar el contrato real, no propiedades incidentales.
+- Pydantic v2 `model_copy(update=...)` no revalida campos actualizados. Métodos factory que modifican campos con contratos deben usar constructor completo.
+- `hypothesis` con `st.characters()` incluye surrogates Unicode por defecto. Usar `blacklist_categories=("Cs",)`.
+- Los hallazgos `IMPLEMENTATION_REQUIRED` se resuelven como Batches del Findings Register (METHODOLOGY §6.6), no como Waves nuevas del Execution Plan. Esto preserva la estructura original del plan y mantiene la trazabilidad findings → batches → commits.
 
 ---
 
@@ -143,65 +167,66 @@ Se actualiza al cierre del último Gate Exit Review.
 
 | Clasificación | Cantidad | DFs |
 |--------------|----------|-----|
-| `CLOSED (NAR)` | {N} | {DF-XX, DF-YY} |
-| `RESOLVED — DELETE` | {N} | {DF-XX} |
-| `RESOLVED` | {N} | {DF-XX} |
-| `IMPLEMENTATION_REQUIRED` | {N} | {DF-XX} |
-| `RECLASSIFIED_FUTURE_PHASE` | {N} | {DF-XX} |
-| `REVIEW_REQUIRED` | {N} | {DF-XX} |
-| `ACCEPTED_LIMITATION` | {N} | {DF-XX} |
+| `CLOSED (NAR)` | 0 | — |
+| `RESOLVED — DELETE` | 0 | — |
+| `RESOLVED` | 1 | DF-01 (Batch 1) |
+| `IMPLEMENTATION_REQUIRED` | 0 | — |
+| `RECLASSIFIED_FUTURE_PHASE` | 0 | — |
+| `REVIEW_REQUIRED` | 0 | — |
+| `ACCEPTED_LIMITATION` | 0 | — |
+
 
 ### 3.2 Tabla consolidada
 
 | DF | Estado | Decisión |
 |----|--------|----------|
-| {DF/GF-XX} | `{Estado final}` | {Descripción breve} |
-
+| DF-01 | `RESOLVED` | Resuelto en Batch 1 mediante GroundTruthState type alias aplicado en DTO y modelo de dominio + 6 tests de fail-fast. Asimetría defensiva cerrada. |
 ---
+
 
 ## 4. RESULTADOS DE IMPLEMENTACIÓN POR BATCH
 
-### 4.{N} BATCH {N} — {NOMBRE DEL BATCH} ({Completado/Pendiente})
+### 4.1 BATCH 1 — Resolución de DF-01 (2026-08-29)
 
-**Fecha de ejecución:** {YYYY-MM-DD}  
-**Validación:** Pyright {N} errors | pytest {X} passed, {Y} skipped
+**Fecha de ejecución:** 2026-08-29  
+**Validación:** Pyright 0 errors | pytest 442 passed, 5 skipped
 
 | DF ID | Estado Final | Acción Ejecutada | Archivos Afectados | Validación |
 |-------|--------------|------------------|-------------------|------------|
-| **DF-{XX}** | `{RESOLVED — ACCIÓN}` | {Acción} | {Lista de archivos} | ✅ {Evidencia} |
+| **DF-01** | `RESOLVED` | GroundTruthState type alias + aplicación en DTO/modelo + 6 tests fail-fast | core/shared/identity_contracts.py, core/benchmark/corpus/dtos.py, core/benchmark/corpus/models.py, tests/unit/test_corpus_models.py | ✅ 442 passed |
 
 #### Correcciones adicionales durante ejecución
 
-- {Corrección 1}
-- {Corrección 2}
+- Ninguna. El cambio fue aditivo y de riesgo cero (verificado con grep previo: 0 fixtures con ground_truth_state, 0 asignaciones con ':').
 
 #### Hallazgos registrados durante el batch
 
 | ID | Hallazgo | Clasificación | Acción |
 |----|----------|---------------|--------|
-| {H-XX-X} | {Descripción} | {REVIEW_REQUIRED / etc.} | {Acción} |
+| — | Ninguno | — | — |
 
 #### Cambios normativos aplicados
 
 | NADR | Regla | Cómo se cumple |
 |------|-------|----------------|
-| NADR-F17BIS-{XX} | §{Y.Z} R{N} | {Evidencia de cumplimiento} |
+| NADR-F17BIS-17 | §5.1 R1-R4 | ground_truth_state ahora tiene contrato de dominio explícito (GroundTruthState) con validación fail-fast en construcción |
 
 #### Decisiones de diseño clave
 
 | Decisión | Justificación | Alternativas rechazadas |
 |----------|---------------|------------------------|
-| {Decisión} | {NADR/Principio} | {Qué se rechazó y por qué} |
+| GroundTruthState = Annotated[str, StringConstraints(min_length=1, pattern=r"^[^:]+$")] | Mismo patrón que DocumentId y NodeId. Consistencia de dominio. | Enum acoplado al DTO (violación de Problema B), diferir a Fase 4/5 (deuda técnica deliberada) |
+| Resolver en Batch 1 (no diferir) | ENGINEERING_PRINCIPLES §I (Cero Deuda Técnica Deliberada). El cambio es trivial (~30 líneas) y cierra asimetría defensiva. | RECLASSIFIED_FUTURE_PHASE a Fase 4 (destino incorrecto, Fase 4 es Scientific Verification) |
 
 #### Métricas post-batch
 
 | Métrica | Valor |
 |---------|-------|
-| Archivos creados | {N} |
-| Archivos modificados | {N} |
-| Archivos eliminados | {N} |
-| Tests ejecutados | {X} passed, {Y} skipped |
-| Errores de tipo estático | {N} |
+| Archivos creados | 0 |
+| Archivos modificados | 4 |
+| Archivos eliminados | 0 |
+| Tests ejecutados | 442 passed, 5 skipped |
+| Errores de tipo estático | 0 |
 
 ---
 
@@ -211,17 +236,19 @@ Se actualiza al cierre de cada batch.
 
 | Métrica | Valor |
 |---------|-------|
-| Total de hallazgos analizados | {N} |
-| Hallazgos resueltos | {N} |
-| Hallazgos cerrados sin acción | {N} |
-| Hallazgos reclasificados a fase futura | {N} |
-| Hallazgos pendientes de implementación | {N} |
-| Hallazgos pendientes de revisión | {N} |
-| Batches completados | {N} |
-| Archivos eliminados totales | {N} |
-| Archivos creados totales | {N} |
-| Tests finales | {X} passed, {Y} skipped |
-| Pyright final | {N} errors |
+| Total de hallazgos analizados | 1 |
+| Hallazgos resueltos | 1 |
+| Hallazgos cerrados sin acción | 0 |
+| Hallazgos reclasificados a fase futura | 0 |
+| Hallazgos pendientes de implementación | 0 |
+| Hallazgos pendientes de revisión | 0 |
+| Batches completados | 1 |
+| Archivos eliminados totales | 0 |
+| Archivos creados totales (Fase 3) | 4 (identity_contracts.py, test_corpus_models.py, test_ast_models.py, test_framing_injectivity.py) |
+| Archivos modificados totales (Fase 3) | 15 (identity.py, hashing.py, services.py, dtos.py, use_cases.py ×2, freeze_ground_truth.py, models.py ×2, models_ast.py, pyproject.toml, test_corpus_models.py, manifest.json, test_ground_truth_sealing_atomicity.py, test_manifest_fingerprint.py, test_corpus_port_asymmetry.py) |
+| Archivos modificados en Batch 1 | 4 (corpus/dtos.py, corpus/models.py, test_corpus_models.py, identity_contracts.py) |
+| Tests finales | 442 passed, 5 skipped |
+| Pyright final | 0 errors |
 
 ---
 
@@ -229,7 +256,7 @@ Se actualiza al cierre de cada batch.
 
 | Hallazgo | Destino | Justificación |
 |----------|---------|---------------|
-| DF-{XX} | {Fase destino} | {Razón por la que se difiere} |
+| — | — | Sin hallazgos diferidos. DF-01 fue resuelto en Batch 1 de la misma fase. |
 
 ---
 
@@ -257,13 +284,13 @@ El documento se considera cerrado (`ARCHIVED`) cuando:
 
 | Categoría | Cantidad |
 |-----------|----------|
-| Total de hallazgos analizados | {N} |
-| Hallazgos resueltos | {N} |
-| Hallazgos pendientes de implementación | {N} |
-| Hallazgos pendientes de revisión | {N} |
-| Hallazgos cerrados sin acción | {N} |
-| Batches completados | {N}/{Total} |
-| Estado del Exit Review | {🟡 IN PROGRESS / ✅ CERRADO} |
+| Total de hallazgos analizados | 1 |
+| Hallazgos resueltos | 1 (DF-01 → Batch 1) |
+| Hallazgos pendientes de implementación | 0 |
+| Hallazgos pendientes de revisión | 0 |
+| Hallazgos cerrados sin acción | 0 |
+| Batches completados | 1/1 |
+| Estado del Exit Review | ✅ CERRADO (Gate 1 PASS, Gate 2 PASS con DF-01 RESOLVED en Batch 1) |
 
 ---
 

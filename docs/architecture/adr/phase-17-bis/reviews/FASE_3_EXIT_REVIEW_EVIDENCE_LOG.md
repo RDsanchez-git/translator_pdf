@@ -1,11 +1,11 @@
 # FASE_3_EXIT_REVIEW_EVIDENCE_LOG.md
 
 **Documento:** `docs/architecture/adr/phase-17-bis/reviews/FASE_3_EXIT_REVIEW_EVIDENCE_LOG.md`  
-**Versión:** 0.1.0-IN_PROGRESS  
-**Estado:** IN_PROGRESS  
+**Versión:** 1.0.0-COMPLETED  
+**Estado:** COMPLETED  
 **Fecha:** 2026-08-27  
-**Última actualización:** 2026-08-27  
-**Derivado de:** `PHASE_17BIS_FASE3_EXECUTION_PLAN.md` v1.0.0 — Gates 1-2 Exit Review  
+**Última actualización:** 2026-08-28  
+**Derivado de:** `PHASE_17BIS_FASE3_EXECUTION_PLAN.md` v1.5.0 — Gates 1-2 Exit Review  
 **Propósito:** Registro auditable de la evidencia forense que fundamenta cada decisión tomada durante el Exit Review de cada Gate de Fase 3. Cada finding incluye los archivos auditados, el análisis, los gaps confirmados, la justificación normativa y la clasificación final.
 
 > **Este documento NO es:**
@@ -23,6 +23,11 @@
 | Versión | Fecha | Cambio |
 |---|---|---|
 | 0.1.0-IN_PROGRESS | 2026-08-27 | Emisión inicial. Esqueleto para Gate 1 y Gate 2. |
+| 0.2.0-IN_PROGRESS | 2026-08-27 | Gate 1 Exit Review registrado. 0 hallazgos identificados. Gate 1 PASS. |
+| 0.3.0-IN_PROGRESS | 2026-08-28 | Wave 2.1 completada sin hallazgos. Gate 2 aún en progreso (faltan Wave 2.2 y 2.3). Sin Exit Review de Gate 2 aún. |
+| 0.4.0-IN_PROGRESS | 2026-08-28 | Wave 2.2 completada sin hallazgos. Insight SOTA: spawn_fragment reescrito con constructor completo (model_copy no revalida). 419 tests passed. Faltan Wave 2.3 (inyectividad). |
+| 0.5.0-IN_PROGRESS | 2026-08-28 | Wave 2.3 completada. 17 property-based tests con hypothesis. Corrección de causa raíz en DocumentFingerprint.__post_init__ (islower() redundante). Hallazgo DF-01 identificado (ground_truth_state sin validación ':'). 436 tests passed. |
+| 1.0.0-COMPLETED | 2026-08-28 | DF-01 RESOLVED en Batch 1 (post-Wave 2.3). GroundTruthState type alias + aplicación en DTO/modelo + 6 tests fail-fast. Cierre de asimetría defensiva. 442 tests passed. Gate 2 Exit Review FINAL: PASS. Fase 3 OFICIALMENTE COMPLETADA. |
 
 ---
 
@@ -80,6 +85,7 @@ ADR_F17_BIS_MASTER > ADR_F17-BIS_03 > NADR-F17BIS-15 v2.0, NADR-F17BIS-16, NADR-
 | `IMPLEMENTATION_REQUIRED` | Requiere implementación (scope por definir o acotado) |
 | `REVIEW_REQUIRED` | Requiere análisis adicional antes de decidir |
 | `PENDING_REVIEW` | Pendiente de análisis en Exit Review |
+| `DEFERRED — FASE {X}` | Diferido a fase específica con ADR pendiente |
 
 ### 1.3 Reglas de evidencia
 
@@ -96,7 +102,9 @@ ADR_F17_BIS_MASTER > ADR_F17-BIS_03 > NADR-F17BIS-15 v2.0, NADR-F17BIS-16, NADR-
    → SÍ: continuar
 
 2. ¿Puede resolverse dentro del Gate actual?
-   → SÍ: RESOLVED
+   → SÍ: ¿Requiere implementación de código?
+      → SÍ: IMPLEMENTATION_REQUIRED → Batch (METHODOLOGY §6.6) → RESOLVED
+      → NO: RESOLVED (resolución documental)
    → NO: continuar
 
 3. ¿Es un problema técnico?
@@ -112,155 +120,156 @@ ADR_F17_BIS_MASTER > ADR_F17-BIS_03 > NADR-F17BIS-15 v2.0, NADR-F17BIS-16, NADR-
 
 ## 2. ESTRUCTURA POR FINDING
 
-{Repetir esta estructura por cada DF/GF analizado.}
+Un finding fue registrado durante la fase: DF-01. Las Waves 1.1, 1.2, 2.1 y 2.2 se ejecutaron sin identificar hallazgos.
 
-### 2.{N} {DF/GF}-{XX} — {Título corto del hallazgo}
+**Nota de progreso Wave 2.1 (2026-08-28):** Validación de dominio de `document_id` implementada con type alias centralizado en `core/shared/identity_contracts.py`. 24 tests nuevos de fail-fast pasaron sin identificar hallazgos. Suite total: 392 passed, 5 skipped. Pyright 0 errors.
+
+**Nota de progreso Wave 2.2 (2026-08-28):** Validación de dominio de `node_id` y `parent_node_id` implementada con type alias `NodeId` de `core/shared/identity_contracts.py`. Insight SOTA: `spawn_fragment()` usa constructor completo en lugar de `model_copy(update=...)` porque Pydantic v2 no revalida campos actualizados, previniendo bypass del contrato de dominio. 27 tests nuevos de fail-fast pasaron sin identificar hallazgos. Suite total: 419 passed, 5 skipped. Pyright 0 errors.
+
+**Nota de progreso Wave 2.3 (2026-08-28):** Inyectividad del framing verificada empíricamente con 17 property-based tests usando `hypothesis` (~850 ejemplos aleatorios). Corrección de causa raíz en `DocumentFingerprint.__post_init__`: se eliminó `str.islower()` que retornaba False para hashes sin caracteres alfabéticos (ej: `"0"*64`), siendo redundante con `all(c in "0123456789abcdef")`. Se identificó DF-01 durante esta wave. Suite total: 436 passed, 5 skipped. Pyright 0 errors.
+
+**Nota de resolución Batch 1 (2026-08-28):** DF-01 resuelto mediante `GroundTruthState` type alias aplicado en `RawDocumentEntryDTO.ground_truth_state` y `CorpusDocumentMetadata.ground_truth_state`, más 6 tests de fail-fast. Cierre de asimetría defensiva con `document_id` y `node_id`. Suite total: 442 passed, 5 skipped. Pyright 0 errors.
+
+
+### 2.1 DF-01 — ground_truth_state sin validación de ':' en DTO
 
 | Campo | Valor |
 |-------|-------|
-| **ID** | {DF/GF}-{XX} |
-| **Tipo** | {Deferred Finding / Governance Finding / Hallazgo derivado} |
-| **Estado** | `{Clasificación final}` |
-| **Origen** | {Wave/Task/Gate donde se identificó} |
-| **Gate destino original** | {Gate original} |
-| **Estado previo** | {Estado anterior si fue reclasificado} |
-| **Prioridad** | {Baja / Media / Alta / Critical / N/A} |
-| **¿Requiere implementación?** | {Sí/No — con alcance si aplica} |
-| **¿Bloquea formalización de identidad criptográfica?** | {Sí/No/Condicional} |
+| **ID** | DF-01 |
+| **Tipo** | Deferred Finding |
+| **Estado** | `RESOLVED` |
+| **Origen** | Wave 2.3 / Task 2.3.1 |
+| **Gate destino original** | Gate 2 |
+| **Estado previo** | RECLASSIFIED_FUTURE_PHASE → IMPLEMENTATION_REQUIRED → RESOLVED |
+| **Resuelto en** | Batch 1 del Findings Register (2026-08-28) |
+| **Prioridad** | Baja |
+| **¿Requiere implementación?** | Sí (implementado en Batch 1) |
+| **¿Bloquea formalización de identidad criptográfica?** | No, pero creaba asimetría defensiva |
 
-#### 2.{N}.1 Texto original del DF
+#### 2.1.1 Texto original del DF
 
-> *"{Texto exacto del hallazgo tal como fue registrado originalmente en el Execution Plan}"*
+> *"ground_truth_state es Optional[str] sin validación explícita de que no contenga ':'. En la práctica los valores vienen de GroundTruthLifecycleState enum, pero el contrato del DTO permite cualquier string."*
 
-#### 2.{N}.2 Reformulación corregida (si aplica)
-
-{Si el texto original era ambiguo, incorrecto o desactualizado, reformular con precisión. Si no aplica, indicar "No requiere reformulación" y omitir esta sección.}
-
-**Formulación correcta:**
-
-> *"{Reformulación precisa del hallazgo}"*
-
-#### 2.{N}.3 Archivos y documentos auditados
+#### 2.1.3 Archivos y documentos auditados
 
 | # | Archivo / Documento | Evidencia extraída |
 |---|---------------------|-------------------|
-| 1 | `{ruta/al/archivo.py}` | {Descripción de la evidencia concreta encontrada} |
-| 2 | `{ruta/al/documento.md}` §{N} | {Cita o descripción de la evidencia} |
-| 3 | Grep: `{patrón}` en `{directorios}` | {Resultado del grep: N resultados / 0 resultados} |
+| 1 | `core/benchmark/corpus/dtos.py` | `ground_truth_state: Optional[str] = None` — sin StringConstraints ni pattern |
+| 2 | `core/benchmark/ground_truth/models.py` | `GroundTruthLifecycleState` enum con 4 valores: "draft", "audited", "validated", "sealed" (ninguno contiene ':') |
+| 3 | `core/benchmark/corpus/services.py::ManifestFingerprintCalculator` | `ground_truth_state` participa en framing como `{gt_state_str}` |
 
-#### 2.{N}.4 Análisis
+#### 2.1.4 Análisis
 
-{Análisis detallado del hallazgo. Debe responder:}
-- ¿La condición original existe?
-- ¿Es una violación normativa o un comportamiento correcto por diseño?
-- ¿Qué NADRs/ADRs aplican?
-- ¿Cuál es el impacto funcional real?
+- **La condición existe:** `ground_truth_state` es `Optional[str]` sin restricción de dominio en el DTO.
+- **¿Es violación arquitectónica?** Parcial. NADR-F17BIS-17 §5.1 exige validación de dominio para campos en framing criptográfico. Sin embargo, el riesgo real es bajo porque los valores provienen de un enum cerrado sin ':'.
+- **Impacto funcional real:** Si un consumidor externo inyectara un string con ':' en ground_truth_state, el framing podría producir ambigüedad. En la práctica esto no ocurre porque el pipeline solo asigna valores del enum.
 
-#### 2.{N}.5 Gaps objetivos confirmados (si aplica)
-
-| # | Gap | Evidencia | Severidad |
-|---|-----|-----------|-----------|
-| G1 | {Descripción del gap} | {Archivo/línea que lo demuestra} | {Baja/Media/Alta} |
-
-#### 2.{N}.6 Lo que NO es un gap
-
-| Aspecto | Veredicto | Justificación |
-|---------|-----------|---------------|
-| {Aspecto que podría parecer gap pero no lo es} | ✅ Correcto por diseño | {Justificación con referencia normativa} |
-
-#### 2.{N}.7 Impacto en Fase 3
+#### 2.1.7 Impacto en Fase 3
 
 | Dimensión | ¿Afecta? | Justificación |
 |-----------|----------|---------------|
-| Determinismo | {✅/❌/⚠️} | {Justificación} |
-| Reproducibilidad | {✅/❌/⚠️} | {Justificación} |
-| Inyectividad del encoding | {✅/❌/⚠️} | {Justificación} |
-| Bloquea Fase 4 (Scientific Verification) | {✅/❌/⚠️} | {Justificación} |
+| Determinismo | ❌ | No afecta |
+| Reproducibilidad | ❌ | No afecta |
+| Inyectividad del encoding | ⚠️ | Teóricamente sí, pero en la práctica no (enum cerrado) |
+| Bloquea Fase 4 | ❌ | No bloquea |
 
-#### 2.{N}.8 Sub-acciones identificadas (si aplica)
+#### 2.1.8 Resolución implementada (Batch 1)
 
-| Sub-acción | Descripción | Estado | Scope |
-|------------|-------------|--------|-------|
-| {DF}-{XX}-A | {Descripción} | {Demostrado/Pendiente} | {Producción/Benchmark/Tooling} |
+**Archivos modificados:**
+- `core/shared/identity_contracts.py`: Agregado `GroundTruthState = Annotated[str, StringConstraints(min_length=1, pattern=r"^[^:]+$")]`
+- `core/benchmark/corpus/dtos.py`: `RawDocumentEntryDTO.ground_truth_state` ahora usa `Optional[GroundTruthState]`
+- `core/benchmark/corpus/models.py`: `CorpusDocumentMetadata.ground_truth_state` ahora usa `Optional[GroundTruthState]`
+- `tests/unit/test_corpus_models.py`: Clase `TestGroundTruthStateDomainContract` con 6 tests de fail-fast
 
-#### 2.{N}.9 Clasificación consolidada
+**Evidencia de validación:**
+- 6 tests nuevos: todos PASSED
+- Suite completa: 442 passed, 5 skipped
+- Pyright: 0 errors
+- Grep de ground_truth_state con ':': 0 resultados
+
+#### 2.1.9 Clasificación consolidada
 
 | Campo | Valor |
 |-------|-------|
-| Condición original existe | {✅ Sí / ❌ No / ⚠️ Parcialmente} |
-| Es violación arquitectónica | {✅ Sí / ❌ No} |
-| Es violación de gobernanza | {✅ Sí / ❌ No} |
-| Es problema técnico | {✅ Sí / ❌ No} |
-| Pertenece a Fase 3 | {✅ Sí / ❌ No} |
-| Bloquea formalización de identidad | {✅ Sí / ❌ No / ⚠️ Condicional} |
-| Clasificación | `{ESTADO_FINAL}` |
-| Prioridad | {Baja/Media/Alta/N/A} |
+| Condición original existe | ✅ Sí |
+| Es violación arquitectónica | ⚠️ Parcial (riesgo bajo) |
+| Es violación de gobernanza | ❌ No |
+| Es problema técnico | ✅ Sí (hardening de dominio) |
+| Pertenece a Fase 3 | ✅ Sí (resuelto en Batch 1) |
+| Bloquea formalización de identidad | ❌ No |
+| Clasificación | `RESOLVED` |
+| Prioridad | Baja |
 
-#### 2.{N}.10 Regla aplicada
+#### 2.1.10 Regla aplicada
 
-> **{NADR/ADR/ENGINEERING_PRINCIPLES} §{N} ({Nombre}):**
-> *"{Cita textual de la regla que fundamenta la decisión}"*
+> **NADR-F17BIS-17 §5.1 R1-R4:**
+> *"Los campos que participan en identidades criptográficas deben tener contratos de dominio explícitos con validación fail-fast."*
 
-{Explicación de cómo la regla aplica al caso concreto.}
+ground_truth_state participa en el framing de manifest_hash. Inicialmente se consideró diferir la corrección a Fase 4 (`RECLASSIFIED_FUTURE_PHASE`), pero se reclasificó a `IMPLEMENTATION_REQUIRED` y se resolvió en Batch 1 por las siguientes razones:
+
+1. **ENGINEERING_PRINCIPLES §I (Cero Deuda Técnica Deliberada):** Diferir ~30 líneas de código es deuda deliberada.
+2. **Coherencia con Waves 2.1 y 2.2:** document_id y node_id tienen el mismo contrato; ground_truth_state debía tenerlo también.
+3. **Destino de fase correcto:** Hardening de contratos de dominio pertenece a Fase 3, no a Fase 4 (Scientific Verification — ZhangShasha, EntityRecall, criticidad).
+4. **Mecanismo correcto:** METHODOLOGY §6.6 punto 4 establece que findings `IMPLEMENTATION_REQUIRED` se resuelven en Batches del Findings Register, no como Waves nuevas del Execution Plan.
+
+El framing de `manifest_hash` ahora tiene contrato de dominio explícito para ground_truth_state, cerrando la asimetría defensiva con document_id y node_id.
 
 ---
 
 ## 3. GATE EXIT REVIEW SUMMARY
 
-### 3.1 Gate 1 Exit Review — Formalización Normativa ({YYYY-MM-DD})
+### 3.1 Gate 1 Exit Review — Formalización Normativa (2026-08-27)
 
 **Árbol de decisión aplicado:**
 
 | DF | ¿Válido? | ¿Resoluble? | ¿Técnico? | Decisión | Motivo |
 |----|----------|-------------|-----------|----------|--------|
-| DF-{XX} | {✅ Sí / ❌ No / ⚠️ Parcial} | {✅ Sí / ❌ No} | {✅ Sí / ❌ No} | {Decisión} | {Motivo} |
+| — | — | — | — | — | Ningún hallazgo identificado |
 
 **Resumen:**
-- RESOLVED: {N} ({DF-XX})
-- RECLASIFICADO → Gate 2: {N} ({DF-XX, DF-YY})
-- CLOSED (NAR): {N} ({DF-XX})
-- CONVERTIDO EN GF: {N} ({GF-XX})
-- Nuevos hallazgos registrados: {N} ({DF-XX})
+- RESOLVED: 0
+- RECLASIFICADO → Gate 2: 0
+- CLOSED (NAR): 0
+- CONVERTIDO EN GF: 0
+- Nuevos hallazgos registrados: 0
+
+**Nota:** Gate 1 se ejecutó sin identificar hallazgos. La Wave 1.1 (documentación de semántica de dimensiones) y Wave 1.2 (limpieza de deuda técnica DC-06, DC-08) se completaron sin generar efectos colaterales ni hallazgos nuevos. La limpieza profunda de DC-08 eliminó campos huérfanos, parámetros muertos (`detected_hashes`, `target_version`) y I/O innecesario del flujo de sellado. Verificación: pyright 0 errors, pytest 368 passed, 5 skipped.
 
 ---
 
-### 3.2 Gate 2 Exit Review — Validación Explícita de Dominio ({YYYY-MM-DD})
+### 3.2 Gate 2 Exit Review — Validación Explícita de Dominio (2026-08-28)
 
 **Árbol de decisión aplicado:**
 
 | DF | ¿Válido? | ¿Resoluble? | ¿Técnico? | Decisión | Motivo |
 |----|----------|-------------|-----------|----------|--------|
-| DF-{XX} | {✅ Sí / ❌ No / ⚠️ Parcial} | {✅ Sí / ❌ No} | {✅ Sí / ❌ No} | {Decisión} | {Motivo} |
+| DF-01 | ✅ Sí | ✅ Sí (~30 líneas) | ✅ Sí (hardening de dominio) | IMPLEMENTATION_REQUIRED → Batch 1 → RESOLVED | Asimetría defensiva con document_id y node_id |
 
 **Resumen:**
-- RESOLVED: {N} ({DF-XX})
-- CLOSED (NAR): {N} ({DF-XX})
-- RECLASSIFIED_FUTURE_PHASE: {N} ({DF-XX})
-- Nuevos hallazgos registrados: {N} ({DF-XX})
+- IMPLEMENTATION_REQUIRED → RESOLVED: 1 (DF-01 en Batch 1)
+- CLOSED (NAR): 0
+- RECLASSIFIED_FUTURE_PHASE: 0
+- Nuevos hallazgos registrados: 1 → resuelto en misma fase
+
+**Nota:** DF-01 fue identificado en Wave 2.3 y clasificado inicialmente como `RECLASSIFIED_FUTURE_PHASE`. Tras análisis de gobernanza, se reclasificó a `IMPLEMENTATION_REQUIRED` y se resolvió en Batch 1 del Findings Register (METHODOLOGY §6.6 punto 4), preservando la estructura original del Execution Plan (13 tasks). Verificación final: 442 passed, 5 skipped, pyright 0 errors.
 
 ---
 
 ## 4. TABLA CONSOLIDADA FINAL
 
-{Se completa al cierre del último Gate Exit Review.}
-
 ### 4.1 Resumen por clasificación
 
 | Clasificación | Cantidad | DFs |
 |--------------|----------|-----|
-| `CLOSED (NAR)` | {N} | {DF-XX, DF-YY} |
-| `RESOLVED — DELETE` | {N} | {DF-XX} |
-| `RESOLVED` | {N} | {DF-XX} |
-| `IMPLEMENTATION_REQUIRED` | {N} | {DF-XX} |
-| `RECLASSIFIED_FUTURE_PHASE` | {N} | {DF-XX} |
-| `REVIEW_REQUIRED` | {N} | {DF-XX} |
-| `ACCEPTED_LIMITATION` | {N} | {DF-XX} |
+| `CLOSED (NAR)` | 0 | — |
+| `RESOLVED` | 1 | DF-01 (Batch 1) |
+| `RECLASSIFIED_FUTURE_PHASE` | 0 | — |
 
 ### 4.2 Tabla consolidada
 
 | DF | Estado | Decisión |
 |----|--------|----------|
-| {DF/GF-XX} | `{Estado final}` | {Descripción breve de la decisión} |
+| DF-01 | `RESOLVED` | Resuelto en Batch 1 mediante GroundTruthState type alias aplicado en DTO y modelo de dominio + 6 tests de fail-fast. Asimetría defensiva cerrada. |
 
 ---
 
@@ -270,12 +279,12 @@ ADR_F17_BIS_MASTER > ADR_F17-BIS_03 > NADR-F17BIS-15 v2.0, NADR-F17BIS-16, NADR-
 
 El documento se considera cerrado (`FROZEN`) cuando:
 
-- [ ] Todos los hallazgos del Execution Plan tienen evidencia forense registrada
-- [ ] Ningún hallazgo está en estado `PENDING_REVIEW`
-- [ ] La tabla consolidada final está completa
-- [ ] Cada clasificación tiene al menos una regla normativa aplicada
-- [ ] Los hallazgos `RECLASSIFIED_FUTURE_PHASE` tienen destino explícito
-- [ ] Los hallazgos `REVIEW_REQUIRED` tienen plan de reevaluación
+- [x] Todos los hallazgos del Execution Plan tienen evidencia forense registrada
+- [x] Ningún hallazgo está en estado `PENDING_REVIEW`
+- [x] La tabla consolidada final está completa
+- [x] Cada clasificación tiene al menos una regla normativa aplicada
+- [x] Los hallazgos `RECLASSIFIED_FUTURE_PHASE` tienen destino explícito
+- [x] Los hallazgos `REVIEW_REQUIRED` tienen plan de reevaluación
 
 ### 5.2 Relación con el Findings Register
 
