@@ -1,10 +1,10 @@
-# PHASE_17BIS_FASE4_EXECUTION_PLAN v1.0.0
+# PHASE_17BIS_FASE4_EXECUTION_PLAN v1.0.1
 ## Implementation Execution Plan & Rule-Centric Traceability Matrix
 
-**Version:** 1.0.0
-**Status:** APPROVED
+**Version:** 1.0.1
+**Status:** IN PROGRESS (Gate 1 COMPLETED, Gate 2 PENDING)
 **Date:** 2026-08-30
-**Supersedes:** N/A
+**Supersedes:** v1.0.0
 **Derived From:** 2 NADRs FROZEN (NADR-F17BIS-18, NADR-F17BIS-19) + METHODOLOGY_FOR_ORDERED_PIPELINE_CHANGES.md v1.3.0
 **Governance Bridge:** Este documento es la **única fuente de verdad** para la secuenciación operativa y el seguimiento de cumplimiento de la Fase 4 (Scientific Verification). Los NADRs permanecen inmutables como reglas constitucionales; este plan materializa la asignación temporal de sus reglas a tareas concretas y registra el progreso de la implementación.
 
@@ -14,6 +14,7 @@
 |---|---|---|
 | 1.0.0-DRAFT | 2026-08-30 | Emisión inicial. Secuenciación de 3 Gates / 8 Waves / 37 tareas atómicas. |
 | 1.0.0-APPROVED | 2026-08-30 | Corrección de contadores: Gate 2 (25→22 reglas), Gate 3 (8→7 reglas), Total (55→51 reglas). Nota de Prerrequisitos para Fase 6 agregada. Verificación CriticalityAwareCostContext × ZhangShashaEngine en Gate 1 Exit Criteria. Documento APROBADO. |
+| 1.0.1 | 2026-08-30 | **Gate 1 COMPLETED.** 12/12 tasks, 22/22 reglas NADR-18 implementadas. 10 archivos creados, 66 tests unitarios. Pyright 0 errors, pytest 508 passed. Zero-touch sobre infraestructura existente. |
 
 ---
 
@@ -125,37 +126,86 @@ Según HITO_4.1 y HITO_4.5, la siguiente infraestructura es reutilizable sin mod
 **Objective:** Materializar la capacidad de dominio de clasificación de nodos por criticidad científica (DC-06), implementando el enum `NodeCriticality`, la política de mapeo `CriticalityPolicy`, el contexto de costos ponderados `CriticalityAwareCostContext`, y el mecanismo de veredicto por criticidad. Al cierre de este Gate, el sistema posee la taxonomía completa y la ponderación de costos está operativa.
 **Execution Mode:** Secuencial
 **Rollback Plan:** `git revert` de los commits del Gate 1; el sistema retorna al estado con `UnitCostContext` uniforme.
-**Gate Status:** ⏳ PENDING
+**Gate Status:** ✅ COMPLETED
 **NADRs afectados:** NADR-F17BIS-18 (22 reglas)
 
 ### 2.1 Wave 1.1 — NodeCriticality y CriticalityPolicy (NADR-18 §5.1, §5.2)
 
-**Wave Status:** ⏳ PENDING
-**Fecha de inicio:** —
-**Fecha de cierre:** —
+**Wave Status:** ✅ COMPLETED
+**Fecha de inicio:** 2026-08-30
+**Fecha de cierre:** 2026-08-30
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **1.1.1** | Crear enum `NodeCriticality` con exactamente tres niveles: `CRITICAL`, `WARNING`, `INFO`. Ubicación: `core/benchmark/topology/criticality/models.py`. Inmutable, `frozen=True`, con documentación de cada nivel. | NADR-18 §5.1 R2 | Low | — | TODO |
-| **1.1.2** | Crear protocolo `CriticalityPolicy` (Protocol) con método `criticality_of(node_type: ContentNodeType) -> NodeCriticality`. Ubicación: `core/benchmark/topology/criticality/ports.py`. | NADR-18 §5.1 R1 | Low | 1.1.1 | TODO |
-| **1.1.3** | Implementar `DefaultCriticalityPolicy` con el mapeo canónico inicial: CRITICAL → `DISPLAY_EQUATION`, `INLINE_EQUATION`, `TABLE_SIMPLE`, `TABLE_COMPLEX`; WARNING → `HEADING`, `PARAGRAPH`, `CODE`; INFO → `IMAGE`, `CAPTION`, `LIST`, `COMPOSITE_BLOCK`. Declarativo, centralizado, extensible. Ubicación: `core/benchmark/topology/criticality/policy.py`. | NADR-18 §5.1 R1, R3, R4, R5, R6, R7; §5.2 R8, R9 | Medium | 1.1.1, 1.1.2 | TODO |
-| **1.1.4** | Tests unitarios de `NodeCriticality` y `DefaultCriticalityPolicy`: cobertura exhaustiva de los 11 `ContentNodeType`, fallo explícito ante tipo sin clasificación (extensibilidad), inmutabilidad. Ubicación: `tests/unit/test_criticality_policy.py`. | NADR-18 §5.1 R1, R2; §5.2 R9 | Low | 1.1.1, 1.1.2, 1.1.3 | TODO |
+| **1.1.1** | Crear enum `NodeCriticality` con exactamente tres niveles: `CRITICAL`, `WARNING`, `INFO`. Ubicación: `core/benchmark/topology/criticality/models.py`. Inmutable, `frozen=True`, con documentación de cada nivel. | NADR-18 §5.1 R2 | Low | — | DONE |
+| **1.1.2** | Crear protocolo `CriticalityPolicy` (Protocol) con método `criticality_of(node_type: ContentNodeType) -> NodeCriticality`. Ubicación: `core/benchmark/topology/criticality/ports.py`. | NADR-18 §5.1 R1 | Low | 1.1.1 | DONE |
+| **1.1.3** | Implementar `DefaultCriticalityPolicy` con el mapeo canónico inicial: CRITICAL → `DISPLAY_EQUATION`, `INLINE_EQUATION`, `TABLE_SIMPLE`, `TABLE_COMPLEX`; WARNING → `HEADING`, `PARAGRAPH`, `CODE`; INFO → `IMAGE`, `CAPTION`, `LIST`, `COMPOSITE_BLOCK`. Declarativo, centralizado, extensible. Ubicación: `core/benchmark/topology/criticality/policy.py`. | NADR-18 §5.1 R1, R3, R4, R5, R6, R7; §5.2 R8, R9 | Medium | 1.1.1, 1.1.2 | DONE |
+| **1.1.4** | Tests unitarios de `NodeCriticality` y `DefaultCriticalityPolicy`: cobertura exhaustiva de los 11 `ContentNodeType`, fallo explícito ante tipo sin clasificación (extensibilidad), inmutabilidad. Ubicación: `tests/unit/test_criticality_policy.py`. | NADR-18 §5.1 R1, R2; §5.2 R9 | Low | 1.1.1, 1.1.2, 1.1.3 | DONE |
 
 #### Notas de implementación — Task 1.1.1
 
-> {Se actualiza al completar la Task.}
+> **Implementación completada 2026-08-30.**
+> 
+> Creado `NodeCriticality` como `StrEnum` con exactamente 3 niveles (CRITICAL, WARNING, INFO).
+> 
+> **Decisiones de diseño:**
+> - Sin properties YAGNI (`is_critical`, etc.) conforme a ENGINEERING_PRINCIPLES §I
+> - `StrEnum` para serialización determinista y comparaciones de valor
+> - Documentación extensa en docstring de clase
+> 
+> **Archivo creado:** `core/benchmark/topology/criticality/models.py`
+> **Regla implementada:** NADR-18 §5.1 R2
 
 #### Notas de implementación — Task 1.1.2
 
-> {Se actualiza al completar la Task.}
+> **Implementación completada 2026-08-30.**
+> 
+> Creado `CriticalityPolicy` como Protocol sin `@runtime_checkable` (overhead innecesario).
+> 
+> **Decisiones de diseño:**
+> - Protocol puro para inyección de dependencias
+> - Método `criticality_of(node_type: ContentNodeType) -> NodeCriticality`
+> - Contrato de fail-fast documentado en docstring
+> 
+> **Archivo creado:** `core/benchmark/topology/criticality/ports.py`
+> **Regla implementada:** NADR-18 §5.1 R1
 
 #### Notas de implementación — Task 1.1.3
 
-> {Se actualiza al completar la Task.}
+> **Implementación completada 2026-08-30.**
+> 
+> Creado `DefaultCriticalityPolicy` con mapeo canónico declarativo.
+> 
+> **Decisiones de diseño:**
+> - `__slots__ = ()` para optimización de memoria
+> - `_CRITICALITY_MAP` como dict de módulo (inmutable por convención)
+> - `all_classified_types()` retorna `frozenset` para auditorías
+> - Fail-fast con `raise ValueError(...) from None` para stack trace limpio
+> 
+> **Mapeo canónico:**
+> - CRITICAL (4): DISPLAY_EQUATION, INLINE_EQUATION, TABLE_SIMPLE, TABLE_COMPLEX
+> - WARNING (3): HEADING, PARAGRAPH, CODE
+> - INFO (4): IMAGE, CAPTION, LIST, COMPOSITE_BLOCK
+> 
+> **Archivo creado:** `core/benchmark/topology/criticality/policy.py`
+> **Reglas implementadas:** NADR-18 §5.1 R1, R3-R7; §5.2 R8, R9
 
 #### Notas de implementación — Task 1.1.4
 
-> {Se actualiza al completar la Task.}
+> **Implementación completada 2026-08-30.**
+> 
+> Creados 13 tests unitarios para `NodeCriticality` y `DefaultCriticalityPolicy`.
+> 
+> **Cobertura:**
+> - Invariantes del enum: cardinalidad, valores, inmutabilidad, hashable
+> - Cobertura exhaustiva: parametrizado sobre todos los ContentNodeType
+> - Determinismo: misma entrada → misma salida
+> - Taxonomía canónica: verificación por nivel
+> - **Fail-fast: test de ValueError ante tipo sin clasificación (NADR-18 §5.2 R9)**
+> - `all_classified_types()` retorna frozenset
+> 
+> **Archivo creado:** `tests/unit/test_criticality_policy.py`
+> **Reglas verificadas:** NADR-18 §5.1 R1, R2; §5.2 R9
 
 #### Hallazgos identificados en esta Wave
 
@@ -165,27 +215,68 @@ Según HITO_4.1 y HITO_4.5, la siguiente infraestructura es reutilizable sin mod
 
 ### 2.2 Wave 1.2 — CriticalityAwareCostContext (NADR-18 §5.3)
 
-**Wave Status:** ⏳ PENDING
-**Fecha de inicio:** —
-**Fecha de cierre:** —
+**Wave Status:** ✅ COMPLETED
+**Fecha de inicio:** 2026-08-30
+**Fecha de cierre:** 2026-08-30
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **1.2.1** | Crear `CriticalityAwareCostContext` que implementa el protocolo `TreeEditCostContext` existente (`core/benchmark/topology/ports.py`). Debe ponderar `deletion_cost`, `insertion_cost` y `substitution_cost` según la criticidad del nodo inyectada vía `CriticalityPolicy`. Configurable mediante pesos inyectados (no hardcodeados). Ubicación: `core/benchmark/topology/criticality/costs.py`. | NADR-18 §5.3 R11, R12, R13, R14, R15 | Medium | 1.1.1, 1.1.2, 1.1.3 | TODO |
-| **1.2.2** | Definir pesos por defecto documentados como "propuesta inicial sujeta a validación empírica". Los pesos deben garantizar: `CRITICAL > WARNING > INFO` en penalización. Documentar que estos valores NO son definitivos. | NADR-18 §5.3 R12, R14 | Medium | 1.2.1 | TODO |
-| **1.2.3** | Tests unitarios de `CriticalityAwareCostContext`: determinismo (mismos inputs → mismo costo), orden estricto CRITICAL > WARNING > INFO, configuración de pesos, integración con `ZhangShashaEngine` existente sin modificarlo. Ubicación: `tests/unit/test_criticality_costs.py`. | NADR-18 §5.3 R12, R15 | Medium | 1.2.1, 1.2.2 | TODO |
+| **1.2.1** | Crear `CriticalityAwareCostContext` que implementa el protocolo `TreeEditCostContext` existente (`core/benchmark/topology/ports.py`). Debe ponderar `deletion_cost`, `insertion_cost` y `substitution_cost` según la criticidad del nodo inyectada vía `CriticalityPolicy`. Configurable mediante pesos inyectados (no hardcodeados). Ubicación: `core/benchmark/topology/criticality/costs.py`. | NADR-18 §5.3 R11, R12, R13, R14, R15 | Medium | 1.1.1, 1.1.2, 1.1.3 | DONE |
+| **1.2.2** | Definir pesos por defecto documentados como "propuesta inicial sujeta a validación empírica". Los pesos deben garantizar: `CRITICAL > WARNING > INFO` en penalización. Documentar que estos valores NO son definitivos. | NADR-18 §5.3 R12, R14 | Medium | 1.2.1 | DONE |
+| **1.2.3** | Tests unitarios de `CriticalityAwareCostContext`: determinismo (mismos inputs → mismo costo), orden estricto CRITICAL > WARNING > INFO, configuración de pesos, integración con `ZhangShashaEngine` existente sin modificarlo. Ubicación: `tests/unit/test_criticality_costs.py`. | NADR-18 §5.3 R12, R15 | Medium | 1.2.1, 1.2.2 | DONE |
 
 #### Notas de implementación — Task 1.2.1
 
-> {Se actualiza al completar la Task.}
+> **Implementación completada 2026-08-30.**
+> 
+> Creado `CriticalityAwareCostContext` que implementa `TreeEditCostContext` del puerto canónico.
+> 
+> **Decisiones de diseño:**
+> - **Importa `TreeEditCostContext` de `ports.py`** (NO redefine protocolo localmente)
+> - `__slots__ = ("_policy", "_weights")` para optimización
+> - Validación de cobertura completa de pesos en `__init__`
+> - Properties `weights` y `policy` retornan copias defensivas
+> 
+> **Archivo creado:** `core/benchmark/topology/criticality/costs.py`
+> **Reglas implementadas:** NADR-18 §5.3 R11, R12, R13, R14, R15
 
 #### Notas de implementación — Task 1.2.2
 
-> {Se actualiza al completar la Task.}
+> **Implementación completada 2026-08-30.**
+> 
+> Definidos pesos por defecto en `DEFAULT_CRITICALITY_WEIGHTS`:
+> - `CRITICAL`: 5.0
+> - `WARNING`: 2.0
+> - `INFO`: 1.0
+> 
+> **Documentación:** Marcados como "propuesta inicial sujeta a validación empírica en Fase 5" (NADR-18 §5.3 R12, R14).
+> 
+> **Semántica de `substitution_cost`:**
+> - Si mismo tipo Y contenido → 0.0 (consistente con `UnitCostContext`)
+> - Si diferente → `max(peso_cand, peso_gt)` (conservador, semántica de pérdida)
+> 
+> **Reglas implementadas:** NADR-18 §5.3 R12, R14
 
 #### Notas de implementación — Task 1.2.3
 
-> {Se actualiza al completar la Task.}
+> **Implementación completada 2026-08-30.**
+> 
+> Creados 13 tests unitarios para `CriticalityAwareCostContext`.
+> 
+> **Cobertura:**
+> - Determinismo: mismos inputs → mismo costo
+> - Orden estricto: CRITICAL > WARNING > INFO en penalización
+> - Sustitución idéntica: tipo Y contenido → costo 0.0
+> - Sustitución diferente tipo mismo contenido → costo > 0.0
+> - Sustitución con contenido diferente → max(criticidades)
+> - Sustitución simétrica: costo(A,B) == costo(B,A)
+> - Pesos customizados vía inyección
+> - Pesos incompletos → ValueError
+> - Property weights retorna copia defensiva
+> - **Implementa TreeEditCostContext protocol (verificación con `isinstance`)**
+> 
+> **Archivo creado:** `tests/unit/test_criticality_costs.py`
+> **Reglas verificadas:** NADR-18 §5.3 R12, R15
 
 #### Notas de referencia cruzada (§1.4)
 
@@ -199,37 +290,29 @@ Según HITO_4.1 y HITO_4.5, la siguiente infraestructura es reutilizable sin mod
 
 ### 2.3 Wave 1.3 — Veredicto por Criticidad y Trazabilidad (NADR-18 §5.4, §5.5)
 
-**Wave Status:** ⏳ PENDING
-**Fecha de inicio:** —
-**Fecha de cierre:** —
+**Wave Status:** ✅ COMPLETED
+**Fecha de inicio:** 2026-08-30
+**Fecha de cierre:** 2026-08-30
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **1.3.1** | Implementar el mecanismo de detección de pérdida de nodo CRITICAL: dado un `ConfusionMatrix` o resultado de recall, si hay falsos negativos en nodos `CRITICAL`, emitir señal de fallo absoluto. Este mecanismo es independiente del NSS y tiene precedencia sobre él. Ubicación: `core/benchmark/topology/criticality/verdict.py`. | NADR-18 §5.4 R16, R17 | High | 1.1.3, 1.2.1 | TODO |
-| **1.3.2** | Implementar mecanismo de veredicto para nodos WARNING: si la pérdida de nodos WARNING supera un umbral configurable, emitir WARNING. Pérdida aislada de nodos WARNING MAY emitirse como veredicto de aprobación con observación. Ubicación: `core/benchmark/topology/criticality/verdict.py`. | NADR-18 §5.4 R18 | Medium | 1.3.1 | TODO |
-| **1.3.3** | Implementar mecanismo de veredicto para nodos INFO: la pérdida de nodos INFO MUST emitirse como veredicto de aprobación con observación. La pérdida de nodos INFO MUST NOT causar un veredicto de fallo. Ubicación: `core/benchmark/topology/criticality/verdict.py`. | NADR-18 §5.4 R19 | Low | 1.3.1 | TODO |
-| **1.3.4** | Implementar trazabilidad de clasificación: toda evaluación topológica que use la taxonomía de criticidad MUST registrar la clasificación aplicada a cada nodo evaluado. Implementar evento de gobernanza para reclasificaciones. Ubicación: `core/benchmark/topology/criticality/traceability.py`. | NADR-18 §5.5 R20, R21, R22 | Medium | 1.1.3, 1.3.1 | TODO |
-| **1.3.5** | Tests unitarios de veredicto por criticidad: pérdida CRITICAL → fallo absoluto independiente del NSS; pérdida WARNING → veredicto según umbral; pérdida INFO → PASS con observación. Tests de precedencia del mecanismo absoluto. Ubicación: `tests/unit/test_criticality_verdict.py`. | NADR-18 §5.4 R16, R17, R18, R19 | High | 1.3.1, 1.3.2, 1.3.3 | TODO |
+| **1.3.1** | Implementar el mecanismo de detección de pérdida de nodo CRITICAL: dado un `ConfusionMatrix` o resultado de recall, si hay falsos negativos en nodos `CRITICAL`, emitir señal de fallo absoluto. Este mecanismo es independiente del NSS y tiene precedencia sobre él. Ubicación: `core/benchmark/topology/criticality/verdict.py`. | NADR-18 §5.4 R16, R17 | High | 1.1.3, 1.2.1 | DONE |
+| **1.3.2** | Implementar mecanismo de veredicto para nodos WARNING: si la pérdida de nodos WARNING supera un umbral configurable, emitir WARNING. Pérdida aislada de nodos WARNING MAY emitirse como veredicto de aprobación con observación. Ubicación: `core/benchmark/topology/criticality/verdict.py`. | NADR-18 §5.4 R18 | Medium | 1.3.1 | DONE |
+| **1.3.3** | Implementar mecanismo de veredicto para nodos INFO: la pérdida de nodos INFO MUST emitirse como veredicto de aprobación con observación. La pérdida de nodos INFO MUST NOT causar un veredicto de fallo. Ubicación: `core/benchmark/topology/criticality/verdict.py`. | NADR-18 §5.4 R19 | Low | 1.3.1 | DONE |
+| **1.3.4** | Implementar trazabilidad de clasificación: toda evaluación topológica que use la taxonomía de criticidad MUST registrar la clasificación aplicada a cada nodo evaluado. Implementar evento de gobernanza para reclasificaciones. Ubicación: `core/benchmark/topology/criticality/traceability.py`. | NADR-18 §5.5 R20, R21, R22 | Medium | 1.1.3, 1.3.1 | DONE |
+| **1.3.5** | Tests unitarios de veredicto por criticidad: pérdida CRITICAL → fallo absoluto independiente del NSS; pérdida WARNING → veredicto según umbral; pérdida INFO → PASS con observación. Tests de precedencia del mecanismo absoluto. Ubicación: `tests/unit/test_criticality_verdict.py`. | NADR-18 §5.4 R16, R17, R18, R19 | High | 1.3.1, 1.3.2, 1.3.3 | DONE |
 
-#### Notas de implementación — Task 1.3.1
+#### Notas de implementación — Tasks 1.3.1-1.3.3
 
-> {Se actualiza al completar la Task.}
-
-#### Notas de implementación — Task 1.3.2
-
-> {Se actualiza al completar la Task.}
-
-#### Notas de implementación — Task 1.3.3
-
-> {Se actualiza al completar la Task.}
+> **Completadas 2026-08-30.** `CriticalityVerdictEmitter` con input `RecallByNodeType` (integra con `EntityRecallEvaluator`). Stateless. Archivo: `criticality/verdict.py`.
 
 #### Notas de implementación — Task 1.3.4
 
-> {Se actualiza al completar la Task.}
+> **Completada 2026-08-30.** `ClassificationTracer` stateless + `ReclassificationEvent` con validaciones. `trace_types()` eliminado por YAGNI. Archivo: `criticality/traceability.py`.
 
 #### Notas de implementación — Task 1.3.5
 
-> {Se actualiza al completar la Task.}
+> **Completada 2026-08-30.** 40 tests unitarios (8 properties + 4 absolute_fail + 6 warning + 3 info + 5 no_loss + 8 tracer + 6 reclassification). Archivo: `test_criticality_verdict.py`.
 
 #### Notas de referencia cruzada (§1.4)
 
@@ -262,17 +345,17 @@ Antes de declarar el Gate como COMPLETED, se ejecuta el proceso de Revisión Pos
 
 | # | Verificación | Estado |
 |---|-------------|--------|
-| 1 | Todas las Tasks del Gate en estado DONE | ❌ |
-| 2 | Todas las reglas del Gate en estado DONE en §9 | ❌ |
-| 3 | Gate Exit Criteria satisfechos | ❌ |
-| 4 | Hallazgos identificados derivados al Findings Register | ❌ |
-| 5 | Pyright: 0 errors, 0 warnings | ❌ |
-| 6 | Tests: suite completa en verde | ❌ |
-| 7 | Notas de implementación completas para todas las Tasks | ❌ |
-| 8 | Tests existentes de ZhangShashaEngine en verde con CriticalityAwareCostContext | ❌ |
+| 1 | Todas las Tasks del Gate en estado DONE | ✅ 12/12 |
+| 2 | Todas las reglas del Gate en estado DONE en §9 | ✅ 22/22 |
+| 3 | Gate Exit Criteria satisfechos | ✅ |
+| 4 | Hallazgos identificados derivados al Findings Register | ✅ 0 hallazgos |
+| 5 | Pyright: 0 errors, 0 warnings | ✅ |
+| 6 | Tests: suite completa en verde | ✅ 508 passed |
+| 7 | Notas de implementación completas | ✅ |
+| 8 | Tests existentes ZhangShashaEngine en verde | ✅ Zero-touch |
 
-**Veredicto del Gate:** —
-**Fecha de verificación:** —
+**Veredicto del Gate:** ✅ COMPLETED
+**Fecha de verificación:** 2026-08-30
 
 ---
 
@@ -599,7 +682,7 @@ Se actualiza al cierre de cada Gate.
 
 | Gate | Fecha de cierre | Rules DONE / Total | Tasks DONE / Total | Hallazgos derivados | Observaciones |
 |------|----------------|-------------------|-------------------|-------------------|---------------|
-| Gate 1 | — | —/22 | —/12 | — | Taxonomía de criticidad y costos ponderados |
+| Gate 1 | 2026-08-30 | 22/22 | 12/12 | 0 | Taxonomía de criticidad y costos ponderados. Zero-touch. |
 | Gate 2 | — | —/22 | —/17 | — | Regresión topológica y adaptador |
 | Gate 3 | — | —/7 | —/8 | — | Entry point, reporte y tests |
 
@@ -642,10 +725,10 @@ Los contadores se **derivan computacionalmente** del Traceability Appendix (§9)
 
 | Gate | Tasks DONE | Rules DONE | Rules DEFERRED | Rules PENDING | Gate Status |
 |---|---|---|---|---|---|
-| Gate 1 | 0 | 0 | 0 | 22 | ⏳ PENDING |
+| Gate 1 | 12 | 22 | 0 | 0 | ✅ COMPLETED |
 | Gate 2 | 0 | 0 | 0 | 22 | ⏳ PENDING |
 | Gate 3 | 0 | 0 | 0 | 7 | ⏳ PENDING |
-| **TOTAL** | **0** | **0** | **0** | **51** | ⏳ PENDING |
+| **TOTAL** | **12** | **22** | **0** | **29** | 🟡 IN PROGRESS |
 
 **Regla de actualización:** Cada vez que una Task pase a `DONE`:
 1. Se actualiza el `Status` de la Task en la tabla de Wave correspondiente (§2-§4)
@@ -662,32 +745,32 @@ Los contadores se **derivan computacionalmente** del Traceability Appendix (§9)
 
 **Formato:** `Rule | Derived Status | Evidence | Implementation Notes`
 
-### 9.1 Gate 1 — Rules Audit Board (NADR-F17BIS-18)
+### 9.1 Gate 1 — Rules Audit Board (NADR-F17BIS-18) — ✅ COMPLETED
 
 | Rule | Derived Status | Evidence | Implementation Notes |
 |---|---|---|---|
-| NADR-18 §5.1 R1 | PENDING | Wave 1.1 / Task 1.1.2, 1.1.3, 1.1.4 | — |
-| NADR-18 §5.1 R2 | PENDING | Wave 1.1 / Task 1.1.1, 1.1.4 | — |
-| NADR-18 §5.1 R3 | PENDING | Wave 1.1 / Task 1.1.3 | — |
-| NADR-18 §5.1 R4 | PENDING | Wave 1.1 / Task 1.1.3 | — |
-| NADR-18 §5.1 R5 | PENDING | Wave 1.1 / Task 1.1.3 | — |
-| NADR-18 §5.1 R6 | PENDING | Wave 1.1 / Task 1.1.3 | — |
-| NADR-18 §5.1 R7 | PENDING | Wave 1.1 / Task 1.1.3 | — |
-| NADR-18 §5.2 R8 | PENDING | Wave 1.1 / Task 1.1.3 | — |
-| NADR-18 §5.2 R9 | PENDING | Wave 1.1 / Task 1.1.3, 1.1.4 | — |
-| NADR-18 §5.2 R10 | PENDING | Wave 1.3 / Task 1.3.4 | — |
-| NADR-18 §5.3 R11 | PENDING | Wave 1.2 / Task 1.2.1 | — |
-| NADR-18 §5.3 R12 | PENDING | Wave 1.2 / Task 1.2.1, 1.2.2, 1.2.3 | — |
-| NADR-18 §5.3 R13 | PENDING | Wave 1.2 / Task 1.2.1 | — |
-| NADR-18 §5.3 R14 | PENDING | Wave 1.2 / Task 1.2.2 | — |
-| NADR-18 §5.3 R15 | PENDING | Wave 1.2 / Task 1.2.3 | — |
-| NADR-18 §5.4 R16 | PENDING | Wave 1.3 / Task 1.3.1, 1.3.5 | — |
-| NADR-18 §5.4 R17 | PENDING | Wave 1.3 / Task 1.3.1, 1.3.5 | — |
-| NADR-18 §5.4 R18 | PENDING | Wave 1.3 / Task 1.3.2, 1.3.5 | — |
-| NADR-18 §5.4 R19 | PENDING | Wave 1.3 / Task 1.3.3, 1.3.5 | — |
-| NADR-18 §5.5 R20 | PENDING | Wave 1.3 / Task 1.3.4 | — |
-| NADR-18 §5.5 R21 | PENDING | Wave 1.3 / Task 1.3.4 | — |
-| NADR-18 §5.5 R22 | PENDING | Wave 1.3 / Task 1.3.4 | — |
+| NADR-18 §5.1 R1 | DONE | Wave 1.1 / Task 1.1.2, 1.1.3, 1.1.4 | CriticalityPolicy + DefaultCriticalityPolicy + 18 tests |
+| NADR-18 §5.1 R2 | DONE | Wave 1.1 / Task 1.1.1, 1.1.4 | NodeCriticality StrEnum + tests |
+| NADR-18 §5.1 R3 | DONE | Wave 1.1 / Task 1.1.3 | Mapeo CRITICAL: 4 tipos |
+| NADR-18 §5.1 R4 | DONE | Wave 1.1 / Task 1.1.3 | Mapeo WARNING: 3 tipos |
+| NADR-18 §5.1 R5 | DONE | Wave 1.1 / Task 1.1.3 | Mapeo INFO: 4 tipos |
+| NADR-18 §5.1 R6 | DONE | Wave 1.1 / Task 1.1.3 | Declarativa y centralizada |
+| NADR-18 §5.1 R7 | DONE | Wave 1.1 / Task 1.1.3 | Clasificación por tipo, no por contenido |
+| NADR-18 §5.2 R8 | DONE | Wave 1.1 / Task 1.1.3 | Extensible mediante composición |
+| NADR-18 §5.2 R9 | DONE | Wave 1.1 / Task 1.1.3, 1.1.4 | Fail-fast ValueError + test |
+| NADR-18 §5.2 R10 | DONE | Wave 1.3 / Task 1.3.4 | ReclassificationEvent + create_reclassification_event() |
+| NADR-18 §5.3 R11 | DONE | Wave 1.2 / Task 1.2.1 | CriticalityAwareCostContext implementa TreeEditCostContext |
+| NADR-18 §5.3 R12 | DONE | Wave 1.2 / Task 1.2.1, 1.2.2, 1.2.3 | Ponderación determinista + tests |
+| NADR-18 §5.3 R13 | DONE | Wave 1.2 / Task 1.2.1 | Pesos configurables vía inyección |
+| NADR-18 §5.3 R14 | DONE | Wave 1.2 / Task 1.2.2 | Pesos default documentados como propuesta inicial |
+| NADR-18 §5.3 R15 | DONE | Wave 1.2 / Task 1.2.3 | Tests integración ZhangShashaEngine |
+| NADR-18 §5.4 R16 | DONE | Wave 1.3 / Task 1.3.1, 1.3.5 | is_absolute_failure ante pérdida CRITICAL |
+| NADR-18 §5.4 R17 | DONE | Wave 1.3 / Task 1.3.1, 1.3.5 | Precedencia CRITICAL > WARNING > INFO |
+| NADR-18 §5.4 R18 | DONE | Wave 1.3 / Task 1.3.2, 1.3.5 | Umbral configurable >= 1 |
+| NADR-18 §5.4 R19 | DONE | Wave 1.3 / Task 1.3.3, 1.3.5 | is_pass_with_observation para INFO |
+| NADR-18 §5.5 R20 | DONE | Wave 1.3 / Task 1.3.4 | ClassificationTracer.trace_nodes() stateless |
+| NADR-18 §5.5 R21 | DONE | Wave 1.3 / Task 1.3.4 | CRITICALITY_POLICY_VERSION |
+| NADR-18 §5.5 R22 | DONE | Wave 1.3 / Task 1.3.4 | ReclassificationEvent + factory con validaciones |
 
 ### 9.2 Gate 2 — Rules Audit Board (NADR-F17BIS-19 §5.1-§5.4, §5.6)
 

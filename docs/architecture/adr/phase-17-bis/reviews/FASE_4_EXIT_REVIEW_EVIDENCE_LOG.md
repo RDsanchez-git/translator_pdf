@@ -1,11 +1,11 @@
 # FASE_4_EXIT_REVIEW_EVIDENCE_LOG.md
 
 **Documento:** `docs/architecture/adr/phase-17-bis/reviews/FASE_4_EXIT_REVIEW_EVIDENCE_LOG.md`
-**Versión:** 0.1.0-DRAFT
+**Versión:** 0.3.0
 **Estado:** IN_PROGRESS
 **Fecha:** 2026-08-30
 **Última actualización:** 2026-08-30
-**Derivado de:** `PHASE_17BIS_FASE4_EXECUTION_PLAN.md` v1.0.0
+**Derivado de:** `PHASE_17BIS_FASE4_EXECUTION_PLAN.md` v1.0.1 — Gate 1 Exit Review
 **Propósito:** Registro auditable de la evidencia forense que fundamenta cada decisión
 tomada durante el Exit Review de la Fase 4 (Scientific Verification). Cada finding
 incluye los archivos auditados, el análisis, los gaps confirmados, la justificación
@@ -25,7 +25,9 @@ normativa y la clasificación final.
 
 | Versión | Fecha | Cambio |
 |---|---|---|
-| 0.1.0-DRAFT | 2026-08-30 | Creación del documento. Estructura inicial vacía, lista para recibir evidencia forense de Gate 1. |
+| 0.1.0-DRAFT | 2026-08-30 | Creación del documento. Estructura inicial. |
+| 0.2.0 | 2026-08-30 | Gate 1 COMPLETED. Evidencia forense de PRE-01 a PRE-04 reclasificados como DF-01 a DF-04. |
+| 0.3.0 | 2026-08-30 | Regeneración completa siguiendo plantilla canónica. Estructura por finding completa para DF-01 a DF-04 con las 10 subsecciones. |
 
 ---
 
@@ -34,7 +36,7 @@ normativa y la clasificación final.
 ### 0.1 Jerarquía normativa aplicada
 
 ```text
-ADR_F17_BIS_MASTER  >  ADR_F17-BIS_04  >  NADR-F17BIS-18 / NADR-F17BIS-19  >  PHASE_17BIS_FASE4_EXECUTION_PLAN
+ADR_F17_BIS_MASTER > ADR_F17-BIS_04 > NADR-F17BIS-18 / NADR-F17BIS-19 > PHASE_17BIS_FASE4_EXECUTION_PLAN
 ```
 
 > *"No lower governance level is authorized to redefine or contradict
@@ -96,7 +98,7 @@ ADR_F17_BIS_MASTER  >  ADR_F17-BIS_04  >  NADR-F17BIS-18 / NADR-F17BIS-19  >  PH
 | `RESOLVED — REFACTORED` | Código refactorizado sin cambio funcional |
 | `RESOLVED — FACTORY EXTRACTION` | Lógica extraída a factory canónica |
 | `CLOSED (NAR)` | No Action Required — falso positivo o correcto por diseño |
-| `ACCEPTED_LIMITATION` | Limitación conocida y documentada |
+| `ACCEPTED_LIMITATION` | Limitación conocida, documentada y aceptada |
 | `RECLASSIFIED_FUTURE_PHASE` | Movido a fase posterior con justificación |
 | `IMPLEMENTATION_REQUIRED` | Requiere implementación (scope por definir o acotado) |
 | `REVIEW_REQUIRED` | Requiere análisis adicional antes de decidir |
@@ -133,120 +135,391 @@ ADR_F17_BIS_MASTER  >  ADR_F17-BIS_04  >  NADR-F17BIS-18 / NADR-F17BIS-19  >  PH
 
 ## 2. ESTRUCTURA POR FINDING
 
-{Repetir esta estructura por cada DF/GF analizado. Se agregan dinámicamente durante la implementación.}
-
-<!--
-### 1 DF-01 — {Título corto del hallazgo}
+### 1 DF-01 — Tests tautológicos en integración
 
 | Campo | Valor |
 |-------|-------|
-| **ID** | DF-01 |
-| **Tipo** | {Deferred Finding / Governance Finding / Hallazgo derivado} |
-| **Estado** | `{Clasificación final}` |
-| **Origen** | {Wave/Task/Gate donde se identificó} |
-| **Gate destino original** | {Gate original} |
-| **Estado previo** | {Estado anterior si fue reclasificado} |
-| **Prioridad** | {Baja / Media / Alta / Critical / N/A} |
-| **¿Requiere implementación?** | {Sí/No — con alcance si aplica} |
-| **¿Bloquea la regresión científica graduada?** | {Sí/No/Condicional} |
+| **ID** | DF-01 (anteriormente PRE-01) |
+| **Tipo** | Deferred Finding |
+| **Estado** | `RECLASSIFIED_FUTURE_PHASE` |
+| **Origen** | HITO_0.4.4 (GAP-0.4-09), HITO_4.4 |
+| **Gate destino original** | Gate 4 (propuesta original) |
+| **Estado previo** | PENDING_REVIEW |
+| **Prioridad** | Alta |
+| **¿Requiere implementación?** | Sí — pero en Fase 6, no en Fase 4 |
+| **¿Bloquea la regresión científica graduada?** | No — la Fase 4 define las reglas; la Fase 6 las integra en CI |
 
 #### 1.1 Texto original del DF
 
-> *"{Texto exacto del hallazgo tal como fue registrado originalmente
-> en el Execution Plan}"*
+> *"Tests tautológicos (`test_golden_parser.py`: tautología A==A; `test_chunker_snapshot.py`: autogeneración + sub-aserción)"*
 
-#### 1.2 Reformulación corregida (si aplica)
+#### 1.2 Reformulación corregida
 
-{Si el texto original era ambiguo, incorrecto o desactualizado,
-reformular con precisión. Si no aplica, indicar
-"No requiere reformulación" y omitir esta sección.}
+No requiere reformulación.
 
 #### 1.3 Archivos y documentos auditados
 
 | # | Archivo / Documento | Evidencia extraída |
 |---|---------------------|-------------------|
-| 1 | `{ruta/al/archivo.py}` | {Descripción de la evidencia concreta encontrada} |
-| 2 | `{ruta/al/documento.md}` §{N} | {Cita o descripción de la evidencia} |
-| 3 | Grep: `{patrón}` en `{directorios}` | {Resultado del grep: N resultados / 0 resultados} |
+| 1 | `tests/integration/test_golden_parser.py` | Tautología: `expected_fingerprint = current_fingerprint`. El test siempre pasa porque compara el valor actual consigo mismo. |
+| 2 | `tests/integration/test_chunker_snapshot.py` | Autogeneración silenciosa de baseline: `if not os.path.exists(snapshot_path): json.dump(...)`. Sub-aserción: solo compara 4 de 11 campos serializados. |
+| 3 | HITO_0.4.4_C5 (GAP-0.4-09) | Confirma P0 (Crítico). Dictamina REESCRIBIR para golden test y REFACTORIZAR para snapshot. |
+| 4 | ADR_F17_BIS_MASTER §6 | Fase 6 = Continuous Verification (Integración definitiva en CI Gates). |
 
 #### 1.4 Análisis
 
-{Análisis detallado del hallazgo. Debe responder:}
-- ¿La condición original existe?
-- ¿Es una violación normativa o un comportamiento correcto por diseño?
-- ¿Qué NADRs/ADRs aplican?
-- ¿Cuál es el impacto funcional real?
+- **¿La condición original existe?** ✅ Sí. Los tests tautológicos existen en el repositorio.
+- **¿Es una violación normativa?** No es una violación de NADRs de Fase 4. Es un defecto de testing que pertenece a Fase 6.
+- **¿Qué NADRs/ADRs aplican?** ADR_F17_BIS_MASTER §6 (Fase 6), NADR-10 (Regression Gates & CI Automation).
+- **¿Cuál es el impacto funcional real?** Bajo para Fase 4. Los tests tautológicos no afectan la implementación de la taxonomía de criticidad ni del mecanismo de veredicto. Afectan la confianza en la suite de tests de integración, pero eso es responsabilidad de Fase 6.
 
-#### 1.5 Gaps objetivos confirmados (si aplica)
+#### 1.5 Gaps objetivos confirmados
 
 | # | Gap | Evidencia | Severidad |
 |---|-----|-----------|-----------|
-| G1 | {Descripción del gap} | {Archivo/línea que lo demuestra} | {Baja/Media/Alta} |
+| G1 | Golden test tautológico (A==A) | `test_golden_parser.py`: `expected_fingerprint = current_fingerprint` | Alta |
+| G2 | Snapshot con autogeneración silenciosa | `test_chunker_snapshot.py`: `if not os.path.exists(...)` | Alta |
+| G3 | Snapshot con sub-aserción (4 de 11 campos) | `test_chunker_snapshot.py`: solo compara campos parciales | Media |
 
 #### 1.6 Lo que NO es un gap
 
 | Aspecto | Veredicto | Justificación |
 |---------|-----------|---------------|
-| {Aspecto que podría parecer gap pero no lo es} | ✅ Correcto por diseño | {Justificación con referencia normativa} |
+| Tests unitarios de Fase 4 | ✅ Correcto por diseño | 66 tests unitarios nuevos cubren la taxonomía y el veredicto. Los tests tautológicos son de integración, no de unidad. |
+| `pyproject.toml` y `ci.yml` | ✅ Correcto por diseño | Ambos archivos existen y tienen configuración básica. La verificación de cobertura es Fase 6. |
 
 #### 1.7 Impacto en la regresión científica graduada
 
 | Dimensión | ¿Afecta? | Justificación |
 |-----------|----------|---------------|
-| Determinismo | {✅/❌/⚠️} | {Justificación} |
-| Reproducibilidad | {✅/❌/⚠️} | {Justificación} |
-| Corrección funcional | {✅/❌/⚠️} | {Justificación} |
-| Bloquea la regresión científica graduada | {✅/❌/⚠️} | {Justificación} |
+| Determinismo | ❌ No afecta | La taxonomía y el veredicto son deterministas independientemente de los tests tautológicos. |
+| Reproducibilidad | ❌ No afecta | Los componentes de Fase 4 son reproducibles sin depender de los tests de integración. |
+| Corrección funcional | ❌ No afecta | La corrección funcional de Fase 4 está verificada por los 66 tests unitarios. |
+| Bloquea Fase 5 | ❌ No | La Fase 5 (Baseline Certification) no depende de los tests tautológicos. |
 
-#### 1.8 Sub-acciones identificadas (si aplica)
+#### 1.8 Sub-acciones identificadas
 
 | Sub-acción | Descripción | Estado | Scope |
 |------------|-------------|--------|-------|
-| DF-01-A | {Descripción} | {Demostrado/Pendiente} | {Producción/Benchmark/Tooling} |
+| DF-01-A | Reescribir `test_golden_parser.py` sin tautología | Pendiente | Fase 6 |
+| DF-01-B | Remediar `test_chunker_snapshot.py` sin autogeneración | Pendiente | Fase 6 |
 
 #### 1.9 Clasificación consolidada
 
 | Campo | Valor |
 |-------|-------|
-| Condición original existe | {✅ Sí / ❌ No / ⚠️ Parcialmente} |
-| Es violación arquitectónica | {✅ Sí / ❌ No} |
-| Es violación de gobernanza | {✅ Sí / ❌ No} |
-| Es problema técnico | {✅ Sí / ❌ No} |
-| Pertenece a la Fase 4 | {✅ Sí / ❌ No} |
-| Bloquea la regresión científica graduada | {✅ Sí / ❌ No / ⚠️ Condicional} |
-| Clasificación | `{ESTADO_FINAL}` |
-| Prioridad | {Baja/Media/Alta/N/A} |
+| Condición original existe | ✅ Sí |
+| Es violación arquitectónica | ❌ No |
+| Es violación de gobernanza | ❌ No |
+| Es problema técnico | ✅ Sí |
+| Pertenece a la Fase 4 | ❌ No (pertenece a Fase 6) |
+| Bloquea la regresión científica graduada | ❌ No |
+| Clasificación | `RECLASSIFIED_FUTURE_PHASE` |
+| Prioridad | Alta |
 
 #### 1.10 Regla aplicada
 
-> **{NADR/ADR/ENGINEERING_PRINCIPLES} §{N} ({Nombre}):**
-> *"{Cita textual de la regla que fundamenta la decisión}"*
+> **ADR_F17_BIS_MASTER §6 (Sub-fases de la Fase 17-BIS):**
+> *"FASE 6 — Continuous Verification (Integración definitiva en CI Gates)"*
 
-{Explicación de cómo la regla aplica al caso concreto.}
--->
+La remediación de tests tautológicos y la integración en CI pertenecen a Fase 6 según el ADR Maestro. La Fase 4 define las reglas de regresión; la Fase 6 las ejecuta como compuertas de merge.
+
+---
+
+### 2 DF-02 — Verificación de CI workflows
+
+| Campo | Valor |
+|-------|-------|
+| **ID** | DF-02 (anteriormente PRE-02) |
+| **Tipo** | Deferred Finding |
+| **Estado** | `RECLASSIFIED_FUTURE_PHASE` |
+| **Origen** | HITO_4.4 |
+| **Gate destino original** | Gate 4 (propuesta original) |
+| **Estado previo** | PENDING_REVIEW |
+| **Prioridad** | Media |
+| **¿Requiere implementación?** | Sí — pero en Fase 6, no en Fase 4 |
+| **¿Bloquea la regresión científica graduada?** | No |
+
+#### 2.1 Texto original del DF
+
+> *"Verificación de completitud de `pyproject.toml` y `.github/workflows/ci.yml` para los nuevos tests de regresión de Fase 4"*
+
+#### 2.2 Reformulación corregida
+
+No requiere reformulación.
+
+#### 2.3 Archivos y documentos auditados
+
+| # | Archivo / Documento | Evidencia extraída |
+|---|---------------------|-------------------|
+| 1 | `pyproject.toml` | EXISTE. Contiene `[tool.pytest.ini_options]` con markers (regression, integration, unit, smoke), `[tool.pyright]`, `[tool.importlinter]`, `[tool.coverage.run]`. |
+| 2 | `.github/workflows/ci.yml` | EXISTE. Contiene 4 jobs: static-analysis, regression-gates, unit-tests, integration-tests. Incluye `git diff --exit-code tests/fixtures/` para protección de oráculos. |
+| 3 | HITO_4.4 | Confirma que ambos archivos existen pero no están verificados para los nuevos tests de regresión de Fase 4. |
+| 4 | NADR-10 (Regression Gates & CI Automation) | La integración de regression gates en CI pertenece a Fase 6. |
+
+#### 2.4 Análisis
+
+- **¿La condición original existe?** ⚠️ Parcialmente. Los archivos existen pero no están verificados para los nuevos tests de regresión.
+- **¿Es una violación normativa?** No. Es una tarea de verificación que pertenece a Fase 6.
+- **¿Qué NADRs/ADRs aplican?** NADR-10 (Regression Gates & CI Automation), ADR_F17_BIS_MASTER §6.
+- **¿Cuál es el impacto funcional real?** Bajo para Fase 4. La evaluación de regresión puede ejecutarse localmente sin CI. La integración en CI es responsabilidad de Fase 6.
+
+#### 2.5 Gaps objetivos confirmados
+
+| # | Gap | Evidencia | Severidad |
+|---|-----|-----------|-----------|
+| G1 | No verificado si `ci.yml` cubre los nuevos tests de regresión de Fase 4 | `.github/workflows/ci.yml` no menciona `test_criticality_*.py` | Baja |
+
+#### 2.6 Lo que NO es un gap
+
+| Aspecto | Veredicto | Justificación |
+|---------|-----------|---------------|
+| Existencia de `pyproject.toml` | ✅ Correcto por diseño | El archivo existe y tiene configuración completa. |
+| Existencia de `ci.yml` | ✅ Correcto por diseño | El archivo existe y tiene 4 jobs funcionales. |
+
+#### 2.7 Impacto en la regresión científica graduada
+
+| Dimensión | ¿Afecta? | Justificación |
+|-----------|----------|---------------|
+| Determinismo | ❌ No afecta | La evaluación de regresión es determinista sin CI. |
+| Reproducibilidad | ❌ No afecta | La evaluación puede ejecutarse localmente. |
+| Corrección funcional | ❌ No afecta | Los 66 tests unitarios verifican la corrección funcional. |
+| Bloquea Fase 5 | ❌ No | La Fase 5 no depende de la integración en CI. |
+
+#### 2.8 Sub-acciones identificadas
+
+| Sub-acción | Descripción | Estado | Scope |
+|------------|-------------|--------|-------|
+| DF-02-A | Verificar que `ci.yml` cubre los nuevos tests de regresión | Pendiente | Fase 6 |
+| DF-02-B | Configurar Required Status Checks | Pendiente | Fase 6 |
+
+#### 2.9 Clasificación consolidada
+
+| Campo | Valor |
+|-------|-------|
+| Condición original existe | ⚠️ Parcialmente |
+| Es violación arquitectónica | ❌ No |
+| Es violación de gobernanza | ❌ No |
+| Es problema técnico | ✅ Sí |
+| Pertenece a la Fase 4 | ❌ No (pertenece a Fase 6) |
+| Bloquea la regresión científica graduada | ❌ No |
+| Clasificación | `RECLASSIFIED_FUTURE_PHASE` |
+| Prioridad | Media |
+
+#### 2.10 Regla aplicada
+
+> **NADR-10 (Regression Gates & CI Automation):**
+> La integración de regression gates en CI pertenece a Fase 6. La Fase 4 define las reglas; la Fase 6 las ejecuta como compuertas de merge.
+
+---
+
+### 3 DF-03 — Deuda técnica LayoutBlockDraft
+
+| Campo | Valor |
+|-------|-------|
+| **ID** | DF-03 (anteriormente PRE-03) |
+| **Tipo** | Deferred Finding |
+| **Estado** | `RECLASSIFIED_FUTURE_PHASE` |
+| **Origen** | HITO_0.4.4_C3 (C3-FUTURE-07), HITO_4.5 |
+| **Gate destino original** | N/A (deuda técnica preexistente) |
+| **Estado previo** | PENDING_REVIEW |
+| **Prioridad** | Baja |
+| **¿Requiere implementación?** | Sí — pero en Gate futuro, no en Fase 4 |
+| **¿Bloquea la regresión científica graduada?** | No |
+
+#### 3.1 Texto original del DF
+
+> *"Deuda técnica de `LayoutBlockDraft` (mapper transicional `_layout_block_to_draft()` en `pipeline_factory.py`)"*
+
+#### 3.2 Reformulación corregida
+
+No requiere reformulación.
+
+#### 3.3 Archivos y documentos auditados
+
+| # | Archivo / Documento | Evidencia extraída |
+|---|---------------------|-------------------|
+| 1 | `core/layout/models.py` | Contiene `LayoutBlockDraft` y `LayoutBlockCollection` como DTOs legacy. |
+| 2 | `apps/bootstrap/pipeline_factory.py` | Contiene `_layout_block_to_draft()` con nota DF-12: "LayoutBlockDraft pertenece al legacy DocumentLayoutBuilder (zombi). Este mapper es transicional." |
+| 3 | HITO_0.4.4_C3 (C3-FUTURE-07) | "En Gate 3, FlatASTBuilder debe consumir LayoutBlock directamente, eliminando LayoutBlockDraft y LayoutBlockCollection." |
+| 4 | HITO_4.5 E-4.5-003 | Confirma que el mapper transicional no es bloqueante para la regresión. |
+
+#### 3.4 Análisis
+
+- **¿La condición original existe?** ✅ Sí. `LayoutBlockDraft` existe como DTO legacy.
+- **¿Es una violación normativa?** No. Es deuda técnica documentada que no bloquea la Fase 4.
+- **¿Qué NADRs/ADRs aplican?** HITO_0.4.4_C3 (C3-FUTURE-07).
+- **¿Cuál es el impacto funcional real?** Nulo para Fase 4. El mapper funciona correctamente y produce el AST esperado.
+
+#### 3.5 Gaps objetivos confirmados
+
+| # | Gap | Evidencia | Severidad |
+|---|-----|-----------|-----------|
+| G1 | `LayoutBlockDraft` es legacy zombi | `core/layout/models.py`, nota DF-12 en `pipeline_factory.py` | Baja |
+
+#### 3.6 Lo que NO es un gap
+
+| Aspecto | Veredicto | Justificación |
+|---------|-----------|---------------|
+| Funcionalidad del mapper | ✅ Correcto por diseño | El mapper `_layout_block_to_draft()` funciona correctamente y produce el AST esperado. |
+| Impacto en la regresión | ✅ Correcto por diseño | La regresión evalúa el AST resultante, no el mecanismo interno de construcción. |
+
+#### 3.7 Impacto en la regresión científica graduada
+
+| Dimensión | ¿Afecta? | Justificación |
+|-----------|----------|---------------|
+| Determinismo | ❌ No afecta | El mapper es determinista. |
+| Reproducibilidad | ❌ No afecta | El mapper es reproducible. |
+| Corrección funcional | ❌ No afecta | El mapper produce el AST correcto. |
+| Bloquea Fase 5 | ❌ No | La Fase 5 no depende de la eliminación de LayoutBlockDraft. |
+
+#### 3.8 Sub-acciones identificadas
+
+| Sub-acción | Descripción | Estado | Scope |
+|------------|-------------|--------|-------|
+| DF-03-A | Eliminar `LayoutBlockDraft` y `LayoutBlockCollection` | Pendiente | Gate futuro (remediación de layout) |
+| DF-03-B | `FlatASTBuilder` debe consumir `LayoutBlock` directamente | Pendiente | Gate futuro (remediación de layout) |
+
+#### 3.9 Clasificación consolidada
+
+| Campo | Valor |
+|-------|-------|
+| Condición original existe | ✅ Sí |
+| Es violación arquitectónica | ❌ No |
+| Es violación de gobernanza | ❌ No |
+| Es problema técnico | ✅ Sí (deuda técnica documentada) |
+| Pertenece a la Fase 4 | ❌ No (pertenece a Gate futuro) |
+| Bloquea la regresión científica graduada | ❌ No |
+| Clasificación | `RECLASSIFIED_FUTURE_PHASE` |
+| Prioridad | Baja |
+
+#### 3.10 Regla aplicada
+
+> **HITO_0.4.4_C3 (C3-FUTURE-07):**
+> *"En Gate 3, FlatASTBuilder debe consumir LayoutBlock directamente, eliminando LayoutBlockDraft y LayoutBlockCollection."*
+
+La eliminación de `LayoutBlockDraft` es una tarea de remediación de layout identificada en Fase 0. No bloquea la Fase 4 porque el mapper funciona correctamente.
+
+---
+
+### 4 DF-04 — Dualidad ZhangShasha/APTED
+
+| Campo | Valor |
+|-------|-------|
+| **ID** | DF-04 (anteriormente PRE-04) |
+| **Tipo** | Deferred Finding |
+| **Estado** | `REVIEW_REQUIRED` |
+| **Origen** | HITO_0.4.1 (OBS-0.4.1-04), HITO_4.5 |
+| **Gate destino original** | N/A |
+| **Estado previo** | PENDING_REVIEW |
+| **Prioridad** | Media |
+| **¿Requiere implementación?** | Pendiente de benchmark comparativo |
+| **¿Bloquea la regresión científica graduada?** | No — la Fase 4 usa exclusivamente ZhangShashaEngine |
+
+#### 4.1 Texto original del DF
+
+> *"Dualidad `core/benchmark/topology/` (ZhangShashaEngine) vs `tools/evaluation/topology/metrics/structural.py` (StructuralTopologyMetric con APTED)"*
+
+#### 4.2 Reformulación corregida
+
+No requiere reformulación.
+
+#### 4.3 Archivos y documentos auditados
+
+| # | Archivo / Documento | Evidencia extraída |
+|---|---------------------|-------------------|
+| 1 | `core/benchmark/topology/engines/zhang_shasha/` | Motor TED nativo: Python puro, O(M²N²) amortiguado, particionado escalable, raíz virtual con costo 0.0. |
+| 2 | `tools/evaluation/topology/metrics/structural.py` | Motor TED legacy: APTED (gema externa), O(M³N), sin particionado, costos fijos (CostMatrix). |
+| 3 | HITO_0.4.1 (OBS-0.4.1-04) | "Dualidad core/ vs tools/ sin resolución. Se recomienda consolidar sobre la rama nativa." |
+| 4 | HITO_4.5 | Confirma que la Fase 4 usa exclusivamente `ZhangShashaEngine` (NADR-19 §5.2 R8). |
+| 5 | ENGINEERING_PRINCIPLES §I | "Benchmark Before Optimization: Ningún componente estructural se reemplaza sin evidencia estadística empírica." |
+
+#### 4.4 Análisis
+
+- **¿La condición original existe?** ✅ Sí. Ambos motores coexisten en el repositorio.
+- **¿Es una violación normativa?** No. No existe un NADR que prohíba la coexistencia de motores TED.
+- **¿Qué NADRs/ADRs aplican?** ENGINEERING_PRINCIPLES §I (Benchmark Before Optimization), NADR-19 §5.2 R8.
+- **¿Cuál es el impacto funcional real?** Bajo para Fase 4. La Fase 4 usa exclusivamente `ZhangShashaEngine`. La dualidad no afecta la implementación de la regresión.
+
+#### 4.5 Gaps objetivos confirmados
+
+| # | Gap | Evidencia | Severidad |
+|---|-----|-----------|-----------|
+| G1 | Dos implementaciones TED coexisten sin evidencia de equivalencia | `core/benchmark/topology/engines/zhang_shasha/` vs `tools/evaluation/topology/metrics/structural.py` | Media |
+
+#### 4.6 Lo que NO es un gap
+
+| Aspecto | Veredicto | Justificación |
+|---------|-----------|---------------|
+| Funcionalidad de ZhangShashaEngine | ✅ Correcto por diseño | 17 tests unitarios verifican la correctitud del motor. |
+| Uso de StructuralTopologyMetric en Fase 4 | ✅ Correcto por diseño | La Fase 4 usa exclusivamente ZhangShashaEngine (NADR-19 §5.2 R8). |
+
+#### 4.7 Impacto en la regresión científica graduada
+
+| Dimensión | ¿Afecta? | Justificación |
+|-----------|----------|---------------|
+| Determinismo | ❌ No afecta | ZhangShashaEngine es determinista. |
+| Reproducibilidad | ❌ No afecta | ZhangShashaEngine es reproducible. |
+| Corrección funcional | ❌ No afecta | La Fase 4 usa exclusivamente ZhangShashaEngine. |
+| Bloquea Fase 5 | ❌ No | La Fase 5 no depende de la decisión de deprecación. |
+
+#### 4.8 Sub-acciones identificadas
+
+| Sub-acción | Descripción | Estado | Scope |
+|------------|-------------|--------|-------|
+| DF-04-A | Ejecutar benchmark comparativo ZhangShasha vs APTED sobre corpus de calibración | Pendiente | Fase 5 |
+| DF-04-B | Decidir deprecación de StructuralTopologyMetric con evidencia empírica | Pendiente | Post-benchmark |
+
+#### 4.9 Clasificación consolidada
+
+| Campo | Valor |
+|-------|-------|
+| Condición original existe | ✅ Sí |
+| Es violación arquitectónica | ❌ No |
+| Es violación de gobernanza | ❌ No |
+| Es problema técnico | ✅ Sí (dualidad sin resolución) |
+| Pertenece a la Fase 4 | ❌ No (la Fase 4 usa exclusivamente ZhangShashaEngine) |
+| Bloquea la regresión científica graduada | ❌ No |
+| Clasificación | `REVIEW_REQUIRED` |
+| Prioridad | Media |
+
+#### 4.10 Regla aplicada
+
+> **ENGINEERING_PRINCIPLES §I (Benchmark Before Optimization):**
+> *"Ningún componente estructural se reemplaza sin evidencia estadística empírica."*
+
+La decisión de deprecación de `StructuralTopologyMetric` requiere un benchmark comparativo sobre el corpus de calibración. Sin evidencia empírica, no se puede tomar una decisión arquitectónica fundamentada.
 
 ---
 
 ## 3. GATE EXIT REVIEW SUMMARY
 
-{Una sub-sección por cada Gate Exit Review ejecutado. Se agregan dinámicamente durante la implementación.}
-
-<!--
-### 3.1 Gate 1 Exit Review ({YYYY-MM-DD})
+### 3.1 Gate 1 Exit Review (2026-08-30)
 
 **Árbol de decisión aplicado:**
 
-| DF | ¿Válido? | ¿Resoluble? | ¿Técnico? | Decisión | Motivo |
-|----|----------|-------------|-----------|----------|--------|
-| DF-{XX} | {✅ Sí / ❌ No / ⚠️ Parcial} | {✅ Sí / ❌ No} | {✅ Sí / ❌ No} | {Decisión} | {Motivo} |
+| DF | ¿Válido? | ¿Resoluble en Gate 1? | ¿Técnico? | Decisión | Motivo |
+|----|----------|----------------------|-----------|----------|--------|
+| DF-01 | ✅ Sí | ❌ No | ✅ Sí | RECLASSIFIED_FUTURE_PHASE → Fase 6 | ADR Maestro §6 |
+| DF-02 | ⚠️ Parcial | ❌ No | ✅ Sí | RECLASSIFIED_FUTURE_PHASE → Fase 6 | NADR-10 |
+| DF-03 | ✅ Sí | ❌ No | ✅ Sí | RECLASSIFIED_FUTURE_PHASE → Gate futuro | Deuda técnica layout |
+| DF-04 | ✅ Sí | ❌ No | ✅ Sí | REVIEW_REQUIRED | Pendiente benchmark |
 
 **Resumen:**
-- RESOLVED: {N} ({DF-XX})
-- RECLASIFICADO → Gate {X}: {N} ({DF-XX, DF-YY})
-- CLOSED (NAR): {N} ({DF-XX})
-- CONVERTIDO EN GF: {N} ({GF-XX})
-- Nuevos hallazgos registrados: {N} ({DF-XX})
--->
+- RESOLVED: 0
+- RECLASIFICADO → Fase 6: 2 (DF-01, DF-02)
+- RECLASIFICADO → Gate futuro: 1 (DF-03)
+- CLOSED (NAR): 0
+- REVIEW_REQUIRED: 1 (DF-04)
+- CONVERTIDO EN GF: 0
+- Nuevos hallazgos registrados durante Gate 1: 0
+
+**Verificación empírica:**
+- Pyright: 0 errors, 0 warnings, 0 informations
+- Pytest: 508 passed, 5 skipped, 1 warning (no relacionado)
+- Zero-touch: 0 archivos existentes modificados
+- Componentes stateless: `CriticalityVerdictEmitter`, `ClassificationTracer` (ENGINEERING_PRINCIPLES §II)
+- Determinismo: verificado en tests `test_deterministic_same_input_same_output` y `test_trace_is_deterministic`
 
 ---
 
@@ -262,15 +535,18 @@ reformular con precisión. Si no aplica, indicar
 | `RESOLVED — DELETE` | 0 | — |
 | `RESOLVED` | 0 | — |
 | `IMPLEMENTATION_REQUIRED` | 0 | — |
-| `RECLASSIFIED_FUTURE_PHASE` | 0 | — |
-| `REVIEW_REQUIRED` | 0 | — |
+| `RECLASSIFIED_FUTURE_PHASE` | 3 | DF-01, DF-02, DF-03 |
+| `REVIEW_REQUIRED` | 1 | DF-04 |
 | `ACCEPTED_LIMITATION` | 0 | — |
 
 ### 4.2 Tabla consolidada
 
 | DF | Estado | Decisión |
 |----|--------|----------|
-| — | — | — |
+| DF-01 | `RECLASSIFIED_FUTURE_PHASE` | Tests tautológicos → Fase 6 (ADR Maestro §6, NADR-10) |
+| DF-02 | `RECLASSIFIED_FUTURE_PHASE` | CI workflows verification → Fase 6 (NADR-10) |
+| DF-03 | `RECLASSIFIED_FUTURE_PHASE` | Deuda LayoutBlockDraft → Gate futuro (no bloquea) |
+| DF-04 | `REVIEW_REQUIRED` | Dualidad ZhangShasha/APTED — pendiente benchmark Fase 5 |
 
 ---
 
@@ -280,12 +556,12 @@ reformular con precisión. Si no aplica, indicar
 
 El documento se considera cerrado (`FROZEN`) cuando:
 
-- [ ] Todos los hallazgos del Execution Plan tienen evidencia forense registrada
-- [ ] Ningún hallazgo está en estado `PENDING_REVIEW`
-- [ ] La tabla consolidada final está completa
-- [ ] Cada clasificación tiene al menos una regla normativa aplicada
-- [ ] Los hallazgos `RECLASSIFIED_FUTURE_PHASE` tienen destino explícito
-- [ ] Los hallazgos `REVIEW_REQUIRED` tienen plan de reevaluación
+- [x] Todos los hallazgos del Execution Plan tienen evidencia forense registrada
+- [x] Ningún hallazgo está en estado `PENDING_REVIEW`
+- [x] La tabla consolidada final está completa
+- [x] Cada clasificación tiene al menos una regla normativa aplicada
+- [x] Los hallazgos `RECLASSIFIED_FUTURE_PHASE` tienen destino explícito
+- [x] Los hallazgos `REVIEW_REQUIRED` tienen plan de reevaluación
 
 ### 5.2 Relación con el Findings Register
 
