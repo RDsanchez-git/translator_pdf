@@ -120,7 +120,7 @@ El progreso de la Fase 17-BIS se estructurará en las siguientes capacidades arq
     │            (Definición de modelos inmutables y contratos del oráculo) (COMPLETADA)
     │
     ├── FASE 3 — Identity & Trust Model 
-    │            (Hashes deterministas, linaje y encadenamiento criptográfico)
+    │            (Hashes deterministas, linaje y encadenamiento criptográfico) (COMPLETADA)
     │
     ├── FASE 4 — Scientific Verification 
     │            (Topological regression, semantic recall y criticality)
