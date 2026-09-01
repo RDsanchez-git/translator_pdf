@@ -1,10 +1,10 @@
-# PHASE_17BIS_FASE4_EXECUTION_PLAN v1.0.1
+# PHASE_17BIS_FASE4_EXECUTION_PLAN v1.0.2
 ## Implementation Execution Plan & Rule-Centric Traceability Matrix
 
-**Version:** 1.0.1
-**Status:** IN PROGRESS (Gate 1 COMPLETED, Gate 2 PENDING)
+**Version:** 1.0.2
+**Status:** IN PROGRESS (Gate 1 COMPLETED, Gate 2 COMPLETED, Gate 3 PENDING)
 **Date:** 2026-08-30
-**Supersedes:** v1.0.0
+**Supersedes:** v1.0.1
 **Derived From:** 2 NADRs FROZEN (NADR-F17BIS-18, NADR-F17BIS-19) + METHODOLOGY_FOR_ORDERED_PIPELINE_CHANGES.md v1.3.0
 **Governance Bridge:** Este documento es la **única fuente de verdad** para la secuenciación operativa y el seguimiento de cumplimiento de la Fase 4 (Scientific Verification). Los NADRs permanecen inmutables como reglas constitucionales; este plan materializa la asignación temporal de sus reglas a tareas concretas y registra el progreso de la implementación.
 
@@ -15,6 +15,7 @@
 | 1.0.0-DRAFT | 2026-08-30 | Emisión inicial. Secuenciación de 3 Gates / 8 Waves / 37 tareas atómicas. |
 | 1.0.0-APPROVED | 2026-08-30 | Corrección de contadores: Gate 2 (25→22 reglas), Gate 3 (8→7 reglas), Total (55→51 reglas). Nota de Prerrequisitos para Fase 6 agregada. Verificación CriticalityAwareCostContext × ZhangShashaEngine en Gate 1 Exit Criteria. Documento APROBADO. |
 | 1.0.1 | 2026-08-30 | **Gate 1 COMPLETED.** 12/12 tasks, 22/22 reglas NADR-18 implementadas. 10 archivos creados, 66 tests unitarios. Pyright 0 errors, pytest 508 passed. Zero-touch sobre infraestructura existente. |
+| 1.0.2 | 2026-08-30 | **Gate 2 COMPLETED.** 17/17 tasks, 22/22 reglas NADR-19 (§5.1-§5.4, §5.6) implementadas. 12 archivos creados, 78 tests unitarios. Pyright 0 errors, pytest 586 passed. Zero-touch. 0 DF/GF durante implementación. Correcciones P0-1 (doble llamada evaluate) y P1 (overall_score fail-fast) aplicadas. |
 
 ---
 
@@ -364,37 +365,75 @@ Antes de declarar el Gate como COMPLETED, se ejecuta el proceso de Revisión Pos
 **Objective:** Materializar la capacidad de emisión de veredictos graduados (PASS/WARNING/HARD_FAIL), el doble mecanismo de protección (NSS ponderado + regla absoluta CRITICAL), el adaptador que conecta el `SealedOracle` con la evaluación topológica, y la estrategia de evaluación de regresión. Al cierre de este Gate, el sistema puede evaluar el runtime contra el oráculo sellado con veredicto graduado.
 **Execution Mode:** Secuencial
 **Rollback Plan:** `git revert` de los commits del Gate 2; el sistema retorna al estado con `ParserEvaluationStrategy` únicamente.
-**Gate Status:** ⏳ PENDING
+**Gate Status:** ✅ COMPLETED
 **NADRs afectados:** NADR-F17BIS-19 (§5.1-§5.4, §5.6)
 
 ### 3.1 Wave 2.1 — RegressionVerdict y RegressionThresholds (NADR-19 §5.1, §5.3)
 
-**Wave Status:** ⏳ PENDING
-**Fecha de inicio:** —
-**Fecha de cierre:** —
+**Wave Status:** ✅ COMPLETED
+**Fecha de inicio:** 2026-08-30
+**Fecha de cierre:** 2026-08-30
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **2.1.1** | Crear enum `RegressionVerdict` con exactamente tres niveles: `PASS`, `WARNING`, `HARD_FAIL`. Inmutable, `frozen=True`. Ubicación: `core/benchmark/topology/regression/models.py`. | NADR-19 §5.1 R1 | Low | Gate 1 | TODO |
-| **2.1.2** | Crear `RegressionThresholds` como DTO configurable: `nss_hard_fail: float`, `nss_warning: float`. Valores por defecto documentados como "propuesta inicial sujeta a validación empírica". Inmutable. Ubicación: `core/benchmark/topology/regression/models.py`. | NADR-19 §5.1 R4, R5, R6, R7; §5.3 R12, R13, R14 | Medium | 2.1.1 | TODO |
-| **2.1.3** | Implementar lógica de agregación por corpus: el veredicto por corpus MUST ser el peor veredicto de todos los documentos individuales. Si al menos un documento es HARD_FAIL, el corpus es HARD_FAIL. Si al menos un documento es WARNING y ninguno es HARD_FAIL, el corpus es WARNING. Solo si todos los documentos son PASS, el corpus es PASS. Ubicación: `core/benchmark/topology/regression/aggregation.py`. | NADR-19 §5.1 R2, R3 | Medium | 2.1.1 | TODO |
-| **2.1.4** | Tests unitarios de `RegressionVerdict`, `RegressionThresholds` y agregación por corpus. Ubicación: `tests/unit/test_regression_verdict.py`. | NADR-19 §5.1 R1, R2, R3; §5.3 R12 | Low | 2.1.1, 2.1.2, 2.1.3 | TODO |
+| **2.1.1** | Crear enum `RegressionVerdict` con exactamente tres niveles: `PASS`, `WARNING`, `HARD_FAIL`. Inmutable, `frozen=True`. Ubicación: `core/benchmark/topology/regression/models.py`. | NADR-19 §5.1 R1 | Low | Gate 1 | DONE |
+| **2.1.2** | Crear `RegressionThresholds` como DTO configurable: `nss_hard_fail: float`, `nss_warning: float`. Valores por defecto documentados como "propuesta inicial sujeta a validación empírica". Inmutable. Ubicación: `core/benchmark/topology/regression/models.py`. | NADR-19 §5.1 R4, R5, R6, R7; §5.3 R12, R13, R14 | Medium | 2.1.1 | DONE |
+| **2.1.3** | Implementar lógica de agregación por corpus: el veredicto por corpus MUST ser el peor veredicto de todos los documentos individuales. Si al menos un documento es HARD_FAIL, el corpus es HARD_FAIL. Si al menos un documento es WARNING y ninguno es HARD_FAIL, el corpus es WARNING. Solo si todos los documentos son PASS, el corpus es PASS. Ubicación: `core/benchmark/topology/regression/aggregation.py`. | NADR-19 §5.1 R2, R3 | Medium | 2.1.1 | DONE |
+| **2.1.4** | Tests unitarios de `RegressionVerdict`, `RegressionThresholds` y agregación por corpus. Ubicación: `tests/unit/test_regression_models.py` y `tests/unit/test_regression_aggregation.py`. | NADR-19 §5.1 R1, R2, R3; §5.3 R12 | Low | 2.1.1, 2.1.2, 2.1.3 | DONE |
 
 #### Notas de implementación — Task 2.1.1
 
-> {Se actualiza al completar la Task.}
+> **Implementación completada 2026-08-30.**
+>
+> Creado `RegressionVerdict` como `StrEnum` con exactamente 3 niveles (PASS, WARNING, HARD_FAIL) y property `severity_rank` para agregación.
+>
+> Creado `RegressionCriticalitySignal` como enum tipado (`ABSOLUTE_FAIL`, `WARNING`, `PASS`) para evitar strings libres (ENGINEERING_PRINCIPLES §III).
+>
+> **Archivo creado:** `core/benchmark/topology/regression/models.py`
+> **Regla implementada:** NADR-19 §5.1 R1
 
 #### Notas de implementación — Task 2.1.2
 
-> {Se actualiza al completar la Task.}
+> **Implementación completada 2026-08-30.**
+>
+> Creado `RegressionThresholds` con `nss_hard_fail=0.80`, `nss_warning=0.95` documentados como propuesta inicial no calibrada (NADR-19 §5.3 R12-R14).
+>
+> Invariante validada en `__post_init__`: `0.0 <= nss_hard_fail < nss_warning <= 1.0`.
+>
+> **Decisiones de diseño:**
+> - `DEFAULT_REGRESSION_THRESHOLDS` como constante de módulo
+> - Validación fail-fast en construcción
+> - Inmutabilidad vía `frozen=True`
+>
+> **Reglas implementadas:** NADR-19 §5.1 R4-R7; §5.3 R12-R14
 
 #### Notas de implementación — Task 2.1.3
 
-> {Se actualiza al completar la Task.}
+> **Implementación completada 2026-08-30.**
+>
+> Creado `aggregate_corpus_verdicts()` que retorna `max(verdicts, key=severity_rank)`.
+>
+> Validación fail-fast: secuencia vacía → `ValueError`.
+>
+> Creado `RegressionEvaluationReport` con `overall_score` **obligatorio** (sin default) para fail-fast: no existe estado válido del dominio sin NSS. `nss_score` es property alias de `overall_score` (única fuente de verdad). Método `to_topological_report()` propaga NSS correctamente.
+>
+> **Archivo creado:** `core/benchmark/topology/regression/aggregation.py`
+> **Reglas implementadas:** NADR-19 §5.1 R2, R3
 
 #### Notas de implementación — Task 2.1.4
 
-> {Se actualiza al completar la Task.}
+> **Implementación completada 2026-08-30.**
+>
+> Creados 30 tests unitarios (23 models + 7 aggregation).
+>
+> **Cobertura:**
+> - Invariantes del enum: cardinalidad, valores, inmutabilidad, severity_rank
+> - `RegressionCriticalitySignal`: enum tipado con 3 señales
+> - Thresholds: invariante, defaults, custom, inmutabilidad
+> - `RegressionEvaluationReport`: `overall_score` obligatorio, `nss_score` alias, `to_topological_report()` propaga NSS, veredicto se pierde en conversión
+> - Agregación: todos los casos (all PASS, one WARNING, one HARD_FAIL, empty raises)
+>
+> **Archivos creados:** `tests/unit/test_regression_models.py`, `tests/unit/test_regression_aggregation.py`
 
 #### Hallazgos identificados en esta Wave
 
@@ -404,32 +443,50 @@ Antes de declarar el Gate como COMPLETED, se ejecuta el proceso de Revisión Pos
 
 ### 3.2 Wave 2.2 — Doble Mecanismo de Protección (NADR-19 §5.2)
 
-**Wave Status:** ⏳ PENDING
-**Fecha de inicio:** —
-**Fecha de cierre:** —
+**Wave Status:** ✅ COMPLETED
+**Fecha de inicio:** 2026-08-30
+**Fecha de cierre:** 2026-08-30
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **2.2.1** | Implementar Mecanismo 1 (NSS ponderado por criticidad): calcular NSS utilizando `CriticalityAwareCostContext` (Gate 1) en lugar de `UnitCostContext`. Integrar con `TreeEditDistanceEvaluator` existente sin modificarlo (inyección de cost_context). | NADR-19 §5.2 R8 | High | Gate 1, 2.1.2 | TODO |
-| **2.2.2** | Implementar Mecanismo 2 (Regla absoluta de pérdida CRITICAL): si hay pérdida de nodos CRITICAL, emitir HARD_FAIL independientemente del NSS. Este mecanismo tiene precedencia sobre el Mecanismo 1. Utilizar el componente de veredicto por criticidad del Gate 1 (Task 1.3.1). | NADR-19 §5.2 R9, R10 | High | Gate 1 (1.3.1), 2.2.1 | TODO |
-| **2.2.3** | Implementar la complementariedad de ambos mecanismos: el veredicto final es el peor resultado de ambos. Documentar el ejemplo canónico: 1 nodo CRITICAL perdido en 1000 nodos → NSS alto pero HARD_FAIL. Ubicación: `core/benchmark/topology/regression/mechanism.py`. | NADR-19 §5.2 R8, R9, R10, R11 | High | 2.2.1, 2.2.2 | TODO |
-| **2.2.4** | Tests unitarios del doble mecanismo: NSS ponderado, regla absoluta CRITICAL, precedencia, complementariedad, ejemplo canónico de 1 CRITICAL en 1000 nodos. Ubicación: `tests/unit/test_regression_mechanism.py`. | NADR-19 §5.2 R8, R9, R10, R11 | High | 2.2.1, 2.2.2, 2.2.3 | TODO |
+| **2.2.1** | Implementar Mecanismo 1 (NSS ponderado por criticidad): calcular NSS utilizando `CriticalityAwareCostContext` (Gate 1) en lugar de `UnitCostContext`. Integrar con `TreeEditDistanceEvaluator` existente sin modificarlo (inyección de cost_context). | NADR-19 §5.2 R8 | High | Gate 1, 2.1.2 | DONE |
+| **2.2.2** | Implementar Mecanismo 2 (Regla absoluta de pérdida CRITICAL): si hay pérdida de nodos CRITICAL, emitir HARD_FAIL independientemente del NSS. Este mecanismo tiene precedencia sobre el Mecanismo 1. Utilizar el componente de veredicto por criticidad del Gate 1 (Task 1.3.1). | NADR-19 §5.2 R9, R10 | High | Gate 1 (1.3.1), 2.2.1 | DONE |
+| **2.2.3** | Implementar la complementariedad de ambos mecanismos: el veredicto final es el peor resultado de ambos. Documentar el ejemplo canónico: 1 nodo CRITICAL perdido en 1000 nodos → NSS alto pero HARD_FAIL. Ubicación: `core/benchmark/topology/regression/mechanism.py`. | NADR-19 §5.2 R8, R9, R10, R11 | High | 2.2.1, 2.2.2 | DONE |
+| **2.2.4** | Tests unitarios del doble mecanismo: NSS ponderado, regla absoluta CRITICAL, precedencia, complementariedad, ejemplo canónico de 1 CRITICAL en 1000 nodos. Ubicación: `tests/unit/test_regression_mechanism.py`. | NADR-19 §5.2 R8, R9, R10, R11 | High | 2.2.1, 2.2.2, 2.2.3 | DONE |
 
-#### Notas de implementación — Task 2.2.1
+#### Notas de implementación — Tasks 2.2.1-2.2.3
 
-> {Se actualiza al completar la Task.}
-
-#### Notas de implementación — Task 2.2.2
-
-> {Se actualiza al completar la Task.}
-
-#### Notas de implementación — Task 2.2.3
-
-> {Se actualiza al completar la Task.}
+> **Implementación completada 2026-08-30.**
+>
+> Creado `DoubleProtectionMechanism` con `DoubleProtectionResult` inmutable.
+>
+> **Decisiones de diseño:**
+> - **Precedencia total del Mecanismo 2:** si `criticality_verdict.has_critical_loss`, retorna `HARD_FAIL` inmediatamente sin evaluar NSS (NADR-19 §5.2 R9-R10).
+> - **Complementariedad:** si no hay pérdida CRITICAL, el veredicto final es `max(nss_verdict, criticality_verdict_enum, key=severity_rank)` (NADR-19 §5.2 R11).
+> - **Validación fail-fast de NSS:** `InvalidNSSScoreError` si `nss_score` no es finito o está fuera de `[0.0, 1.0]` (ENGINEERING_PRINCIPLES §IV, NADR-19 §5.2 R14).
+> - **`RegressionCriticalitySignal`** enum tipado: la señal refleja el peor componente (ABSOLUTE_FAIL / WARNING / PASS).
+> - Naming `DoubleProtectionMechanism` para trazabilidad directa con el ADR ("Doble Mecanismo de Protección").
+>
+> **Archivo creado:** `core/benchmark/topology/regression/mechanism.py`
+> **Reglas implementadas:** NADR-19 §5.2 R8-R11
 
 #### Notas de implementación — Task 2.2.4
 
-> {Se actualiza al completar la Task.}
+> **Implementación completada 2026-08-30.**
+>
+> Creados 17 tests unitarios del doble mecanismo.
+>
+> **Cobertura:**
+> - Ejemplo canónico: 1 CRITICAL en 1000 nodos → NSS 0.999 pero HARD_FAIL
+> - Precedencia CRITICAL sobre NSS
+> - NSS < hard_fail → HARD_FAIL; entre umbrales → WARNING; >= warning → PASS
+> - Pérdida WARNING → WARNING; solo INFO → PASS
+> - Complementariedad: peor resultado gana
+> - Validación NSS: negativo, >1, NaN, inf → `InvalidNSSScoreError`
+> - Boundaries: NSS=0.0 → HARD_FAIL, NSS=1.0 → PASS
+> - Custom thresholds, inmutabilidad, determinismo
+>
+> **Archivo creado:** `tests/unit/test_regression_mechanism.py`
 
 #### Notas de referencia cruzada (§1.4)
 
@@ -443,37 +500,48 @@ Antes de declarar el Gate como COMPLETED, se ejecuta el proceso de Revisión Pos
 
 ### 3.3 Wave 2.3 — Adaptador Baseline→Evaluación (NADR-19 §5.4)
 
-**Wave Status:** ⏳ PENDING
-**Fecha de inicio:** —
-**Fecha de cierre:** —
+**Wave Status:** ✅ COMPLETED
+**Fecha de inicio:** 2026-08-30
+**Fecha de cierre:** 2026-08-30
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **2.3.1** | Crear `RegressionAdapter` que verifica la integridad criptográfica del oráculo mediante `OracleSemanticIdentityCalculator.calculate(oracle.nodes)` comparado contra el `oracle_hash` del manifiesto. Si no coincide, abortar con `OracleIntegrityError` (Fail-Fast). Ubicación: `core/benchmark/topology/regression/adapter.py`. | NADR-19 §5.4 R15, R18, R19 | High | Gate 1 | TODO |
-| **2.3.2** | Implementar verificación de `ground_truth_state == SEALED` antes de evaluar. Si el estado no es SEALED, abortar con `OracleNotSealedError`. Utilizar el campo `ground_truth_state` de `CorpusDocumentMetadata` existente. | NADR-19 §5.4 R16, R18, R19 | Medium | 2.3.1 | TODO |
-| **2.3.3** | Implementar verificación de completitud biyectiva mediante `BaselineCompletenessVerifier` antes de evaluar. Si la verificación falla, abortar con `IncompleteBaselineError`. | NADR-19 §5.4 R17, R18, R19 | Medium | 2.3.1 | TODO |
-| **2.3.4** | Integrar las tres verificaciones (2.3.1, 2.3.2, 2.3.3) en secuencia Fail-Fast dentro del `RegressionAdapter`. El adaptador MUST reutilizar los evaluadores existentes sin modificarlos. | NADR-19 §5.4 R15, R16, R17, R18, R19 | High | 2.3.1, 2.3.2, 2.3.3 | TODO |
-| **2.3.5** | Tests unitarios del adaptador: verificación de oracle_hash (match/mismatch), verificación de ground_truth_state (SEALED/no SEALED), verificación de completitud (completa/incompleta), Fail-Fast ante cualquier fallo. Ubicación: `tests/unit/test_regression_adapter.py`. | NADR-19 §5.4 R15, R16, R17, R18, R19 | High | 2.3.1, 2.3.2, 2.3.3, 2.3.4 | TODO |
+| **2.3.1** | Crear `RegressionAdapter` que verifica la integridad criptográfica del oráculo mediante `OracleSemanticIdentityCalculator.calculate(oracle.nodes)` comparado contra el `oracle_hash` del manifiesto. Si no coincide, abortar con `OracleIntegrityError` (Fail-Fast). Ubicación: `core/benchmark/topology/regression/adapter.py`. | NADR-19 §5.4 R15, R18, R19 | High | Gate 1 | DONE |
+| **2.3.2** | Implementar verificación de `ground_truth_state == SEALED` antes de evaluar. Si el estado no es SEALED, abortar con `OracleNotSealedError`. Utilizar el campo `ground_truth_state` de `CorpusDocumentMetadata` existente. | NADR-19 §5.4 R16, R18, R19 | Medium | 2.3.1 | DONE |
+| **2.3.3** | Implementar verificación de completitud biyectiva mediante `BaselineCompletenessVerifier` antes de evaluar. Si la verificación falla, abortar con `IncompleteBaselineError`. | NADR-19 §5.4 R17, R18, R19 | Medium | 2.3.1 | DONE |
+| **2.3.4** | Integrar las tres verificaciones (2.3.1, 2.3.2, 2.3.3) en secuencia Fail-Fast dentro del `RegressionAdapter`. El adaptador MUST reutilizar los evaluadores existentes sin modificarlos. | NADR-19 §5.4 R15, R16, R17, R18, R19 | High | 2.3.1, 2.3.2, 2.3.3 | DONE |
+| **2.3.5** | Tests unitarios del adaptador: verificación de oracle_hash (match/mismatch), verificación de ground_truth_state (SEALED/no SEALED), verificación de completitud (completa/incompleta), Fail-Fast ante cualquier fallo. Ubicación: `tests/unit/test_regression_adapter.py`. | NADR-19 §5.4 R15, R16, R17, R18, R19 | High | 2.3.1, 2.3.2, 2.3.3, 2.3.4 | DONE |
 
-#### Notas de implementación — Task 2.3.1
+#### Notas de implementación — Tasks 2.3.1-2.3.4
 
-> {Se actualiza al completar la Task.}
-
-#### Notas de implementación — Task 2.3.2
-
-> {Se actualiza al completar la Task.}
-
-#### Notas de implementación — Task 2.3.3
-
-> {Se actualiza al completar la Task.}
-
-#### Notas de implementación — Task 2.3.4
-
-> {Se actualiza al completar la Task.}
+> **Implementación completada 2026-08-30.**
+>
+> Creado `RegressionAdapter` stateless con jerarquía de errores tipados en `core/benchmark/topology/regression/errors.py`.
+>
+> **Decisiones de diseño:**
+> - **Orden de verificación Fail-Fast en `verify_all()`:** (1) Identidad documental → (2) Completitud biyectiva → (3) Estado SEALED → (4) Integridad criptográfica. Este orden minimiza el trabajo desperdiciado: los chequeos más baratos y más probables de fallar van primero.
+> - **`verify_document_identity()` agregado:** detecta cruce de documentos (oráculo de `doc_A` con metadata de `doc_B`) antes de verificar integridad. Error tipado `OracleDocumentMismatchError`.
+> - **`MissingOracleHashError`** para `metadata.oracle_hash is None` (fail-fast explícito, no `ValueError` genérico).
+> - **`IncompleteBaselineError` reutilizado** desde `core/benchmark/ground_truth/errors.py` (Reuse Before Invent), lanzado con `"; ".join(errors)`.
+> - **`GroundTruthState` es `Annotated[str, StringConstraints]`** (NO enum): se usa directamente como `str`, sin `.value`.
+>
+> **Archivos creados:** `core/benchmark/topology/regression/adapter.py`, `core/benchmark/topology/regression/errors.py`
+> **Reglas implementadas:** NADR-19 §5.4 R15-R19
 
 #### Notas de implementación — Task 2.3.5
 
-> {Se actualiza al completar la Task.}
+> **Implementación completada 2026-08-30.**
+>
+> Creados 15 tests unitarios del adaptador.
+>
+> **Cobertura:**
+> - `verify_document_identity`: IDs coinciden pasan; IDs divergentes → `OracleDocumentMismatchError`
+> - `verify_oracle_integrity`: hash válido pasa; hash inválido → `OracleIntegrityError`; hash None → `MissingOracleHashError`
+> - `verify_sealed_state`: `sealed` pasa; `draft` → `OracleNotSealedError`; `None` → `OracleNotSealedError`
+> - `verify_completeness`: biyección completa pasa; faltante → `IncompleteBaselineError`; huérfano → `IncompleteBaselineError`
+> - `verify_all`: orden Fail-Fast verificado con 3 tests explícitos (identidad primero, completitud antes de estado, estado antes de integridad)
+>
+> **Archivo creado:** `tests/unit/test_regression_adapter.py`
 
 #### Notas de referencia cruzada (§1.4)
 
@@ -487,32 +555,51 @@ Antes de declarar el Gate como COMPLETED, se ejecuta el proceso de Revisión Pos
 
 ### 3.4 Wave 2.4 — RegressionEvaluationStrategy (NADR-19 §5.1, §5.2, §5.6)
 
-**Wave Status:** ⏳ PENDING
-**Fecha de inicio:** —
-**Fecha de cierre:** —
+**Wave Status:** ✅ COMPLETED
+**Fecha de inicio:** 2026-08-30
+**Fecha de cierre:** 2026-08-30
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **2.4.1** | Crear `RegressionEvaluationStrategy` que implementa el protocolo `EvaluationStrategy` existente (`core/benchmark/topology/ports.py`). Orquesta: (1) verificación de integridad, (2) evaluación TED ponderada, (3) evaluación Recall ponderada, (4) doble mecanismo de protección, (5) emisión de veredicto graduado. Ubicación: `core/benchmark/topology/regression/strategy.py`. | NADR-19 §5.1 R1, R2; §5.2 R8, R9, R10, R11 | High | 2.2.3, 2.3.4 | TODO |
-| **2.4.2** | Implementar interacción con `EntityRecallEvaluator` ponderada por criticidad: un recall bajo de nodos CRITICAL se trata con mayor severidad que un recall bajo de nodos INFO. El recall se evalúa por tipo de nodo, ponderado por criticidad. | NADR-19 §5.6 R23, R24, R25 | Medium | 2.4.1 | TODO |
-| **2.4.3** | Crear `RegressionEvaluationReport` que extiende `TopologicalEvaluationReport` existente con el campo `verdict: RegressionVerdict`. Inmutable. Ubicación: `core/benchmark/topology/regression/models.py`. | NADR-19 §5.1 R3 | Medium | 2.1.1, 2.4.1 | TODO |
-| **2.4.4** | Tests unitarios de `RegressionEvaluationStrategy`: evaluación completa con oráculo válido, emisión de veredicto correcto, integración con `RegressionAdapter`, determinismo, interacción con recall ponderado. Ubicación: `tests/unit/test_regression_strategy.py`. | NADR-19 §5.1 R1, R2, R3; §5.6 R23, R24, R25 | High | 2.4.1, 2.4.2, 2.4.3 | TODO |
+| **2.4.1** | Crear `RegressionEvaluationStrategy` que implementa el protocolo `EvaluationStrategy` existente (`core/benchmark/topology/ports.py`). Orquesta: (1) verificación de integridad, (2) evaluación TED ponderada, (3) evaluación Recall ponderada, (4) doble mecanismo de protección, (5) emisión de veredicto graduado. Ubicación: `core/benchmark/topology/regression/strategy.py`. | NADR-19 §5.1 R1, R2; §5.2 R8, R9, R10, R11 | High | 2.2.3, 2.3.4 | DONE |
+| **2.4.2** | Implementar interacción con `EntityRecallEvaluator` ponderada por criticidad: un recall bajo de nodos CRITICAL se trata con mayor severidad que un recall bajo de nodos INFO. El recall se evalúa por tipo de nodo, ponderado por criticidad. | NADR-19 §5.6 R23, R24, R25 | Medium | 2.4.1 | DONE |
+| **2.4.3** | Crear `RegressionEvaluationReport` que extiende `TopologicalEvaluationReport` existente con el campo `verdict: RegressionVerdict`. Inmutable. Ubicación: `core/benchmark/topology/regression/models.py`. | NADR-19 §5.1 R3 | Medium | 2.1.1, 2.4.1 | DONE |
+| **2.4.4** | Tests unitarios de `RegressionEvaluationStrategy`: evaluación completa con oráculo válido, emisión de veredicto correcto, integración con `RegressionAdapter`, determinismo, interacción con recall ponderado. Ubicación: `tests/unit/test_regression_strategy.py`. | NADR-19 §5.1 R1, R2, R3; §5.6 R23, R24, R25 | High | 2.4.1, 2.4.2, 2.4.3 | DONE |
 
-#### Notas de implementación — Task 2.4.1
+#### Notas de implementación — Tasks 2.4.1-2.4.3
 
-> {Se actualiza al completar la Task.}
-
-#### Notas de implementación — Task 2.4.2
-
-> {Se actualiza al completar la Task.}
-
-#### Notas de implementación — Task 2.4.3
-
-> {Se actualiza al completar la Task.}
+> **Implementación completada 2026-08-30.**
+>
+> Creado `RegressionEvaluationStrategy` con dos métodos de evaluación:
+> - `evaluate_run()` → retorna `TopologicalEvaluationReport` (cumple protocolo `EvaluationStrategy`; el veredicto se pierde en la conversión)
+> - `evaluate_regression()` → retorna `RegressionEvaluationReport` (veredicto completo; usar en Gate 3)
+>
+> **Decisiones de diseño:**
+> - **`_evaluate_recall_once()` (P0-1 corregido):** evalúa cada `EntityRecallEvaluator` **UNA sola vez**, retornando tanto `RecallByNodeType` (para veredicto) como `MetricScoreDTO` (para reporte). Elimina la doble llamada de la versión previa.
+> - **`Dict[ContentNodeType, EntityRecallEvaluator]`** en vez de `Sequence`: el dict garantiza que cada evaluador está mapeado a su tipo sin parsing frágil de `metric_name`.
+> - **Validación fail-fast:** `recall_evaluators` vacío → `ValueError` en `__init__`.
+> - **`isinstance(dto.diagnostics, RecallDiagnostics)`** mantenido como defensa perimetral con comentario explicativo (protege contra cambios futuros en la jerarquía de evaluadores).
+> - **`overall_score` obligatorio** en `RegressionEvaluationReport` (sin default): fail-fast, no existe estado válido sin NSS.
+> - **`nss_score`** es property alias de `overall_score` (única fuente de verdad, sin divergencia posible).
+>
+> **Archivo creado:** `core/benchmark/topology/regression/strategy.py`
+> **Reglas implementadas:** NADR-19 §5.1 R1-R3; §5.2 R8-R11; §5.6 R23-R25
 
 #### Notas de implementación — Task 2.4.4
 
-> {Se actualiza al completar la Task.}
+> **Implementación completada 2026-08-30.**
+>
+> Creados 16 tests unitarios de la strategy con mocks (`MagicMock(spec=...)`).
+>
+> **Cobertura:**
+> - PASS con NSS alto y sin pérdidas; HARD_FAIL con pérdida CRITICAL; WARNING con NSS bajo o pérdida WARNING; PASS con solo pérdida INFO
+> - `evaluate_run()` retorna `TopologicalEvaluationReport` y propaga NSS; el veredicto se pierde (verificado explícitamente)
+> - **`test_recall_evaluators_called_exactly_once`**: verifica la corrección P0-1 (`call_count == 1` por evaluador)
+> - **`test_empty_recall_evaluators_raises`**: validación fail-fast en `__init__`
+> - Métricas incluyen TED y recall; determinismo; custom thresholds; custom verdict_emitter
+> - **Mocks con `spec=EntityRecallEvaluator` y `spec=TreeEditDistanceEvaluator`** para que los tests fallen si la interfaz cambia
+>
+> **Archivo creado:** `tests/unit/test_regression_strategy.py`
 
 #### Notas de referencia cruzada (§1.4)
 
@@ -546,6 +633,21 @@ Antes de declarar el Gate como COMPLETED, se ejecuta el proceso de Revisión Pos
 
 | # | Verificación | Estado |
 |---|-------------|--------|
+| 1 | Todas las Tasks del Gate en estado DONE | ✅ 17/17 |
+| 2 | Todas las reglas del Gate en estado DONE en §9 | ✅ 22/22 |
+| 3 | Gate Exit Criteria satisfechos | ✅ |
+| 4 | Hallazgos identificados derivados al Findings Register | ✅ 0 hallazgos |
+| 5 | Pyright: 0 errors, 0 warnings | ✅ |
+| 6 | Tests: suite completa en verde | ✅ 586 passed |
+| 7 | Notas de implementación completas | ✅ |
+
+**Veredicto del Gate:** ✅ COMPLETED
+**Fecha de verificación:** 2026-08-30
+
+**Checklist de cierre:**
+
+| # | Verificación | Estado |
+|---|-------------|--------|
 | 1 | Todas las Tasks del Gate en estado DONE | ❌ |
 | 2 | Todas las reglas del Gate en estado DONE en §9 | ❌ |
 | 3 | Gate Exit Criteria satisfechos | ❌ |
@@ -553,9 +655,6 @@ Antes de declarar el Gate como COMPLETED, se ejecuta el proceso de Revisión Pos
 | 5 | Pyright: 0 errors, 0 warnings | ❌ |
 | 6 | Tests: suite completa en verde | ❌ |
 | 7 | Notas de implementación completas para todas las Tasks | ❌ |
-
-**Veredicto del Gate:** —
-**Fecha de verificación:** —
 
 ---
 
@@ -683,7 +782,7 @@ Se actualiza al cierre de cada Gate.
 | Gate | Fecha de cierre | Rules DONE / Total | Tasks DONE / Total | Hallazgos derivados | Observaciones |
 |------|----------------|-------------------|-------------------|-------------------|---------------|
 | Gate 1 | 2026-08-30 | 22/22 | 12/12 | 0 | Taxonomía de criticidad y costos ponderados. Zero-touch. |
-| Gate 2 | — | —/22 | —/17 | — | Regresión topológica y adaptador |
+| Gate 2 | 2026-08-30 | 22/22 | 17/17 | 0 | Regresión topológica graduada y adaptador baseline→evaluación. Correcciones P0-1 y P1 aplicadas. Zero-touch. |
 | Gate 3 | — | —/7 | —/8 | — | Entry point, reporte y tests |
 
 ---
@@ -726,9 +825,9 @@ Los contadores se **derivan computacionalmente** del Traceability Appendix (§9)
 | Gate | Tasks DONE | Rules DONE | Rules DEFERRED | Rules PENDING | Gate Status |
 |---|---|---|---|---|---|
 | Gate 1 | 12 | 22 | 0 | 0 | ✅ COMPLETED |
-| Gate 2 | 0 | 0 | 0 | 22 | ⏳ PENDING |
+| Gate 2 | 17 | 22 | 0 | 0 | ✅ COMPLETED |
 | Gate 3 | 0 | 0 | 0 | 7 | ⏳ PENDING |
-| **TOTAL** | **12** | **22** | **0** | **29** | 🟡 IN PROGRESS |
+| **TOTAL** | **29** | **44** | **0** | **7** | 🟡 IN PROGRESS |
 
 **Regla de actualización:** Cada vez que una Task pase a `DONE`:
 1. Se actualiza el `Status` de la Task en la tabla de Wave correspondiente (§2-§4)
@@ -749,7 +848,7 @@ Los contadores se **derivan computacionalmente** del Traceability Appendix (§9)
 
 | Rule | Derived Status | Evidence | Implementation Notes |
 |---|---|---|---|
-| NADR-18 §5.1 R1 | DONE | Wave 1.1 / Task 1.1.2, 1.1.3, 1.1.4 | CriticalityPolicy + DefaultCriticalityPolicy + 18 tests |
+| NADR-18 §5.1 R1 | DONE | Wave 1.1 / Task 1.1.2, 1.1.3, 1.1.4 | CriticalityPolicy + DefaultCriticalityPolicy + 13 tests |
 | NADR-18 §5.1 R2 | DONE | Wave 1.1 / Task 1.1.1, 1.1.4 | NodeCriticality StrEnum + tests |
 | NADR-18 §5.1 R3 | DONE | Wave 1.1 / Task 1.1.3 | Mapeo CRITICAL: 4 tipos |
 | NADR-18 §5.1 R4 | DONE | Wave 1.1 / Task 1.1.3 | Mapeo WARNING: 3 tipos |
@@ -772,32 +871,32 @@ Los contadores se **derivan computacionalmente** del Traceability Appendix (§9)
 | NADR-18 §5.5 R21 | DONE | Wave 1.3 / Task 1.3.4 | CRITICALITY_POLICY_VERSION |
 | NADR-18 §5.5 R22 | DONE | Wave 1.3 / Task 1.3.4 | ReclassificationEvent + factory con validaciones |
 
-### 9.2 Gate 2 — Rules Audit Board (NADR-F17BIS-19 §5.1-§5.4, §5.6)
+### 9.2 Gate 2 — Rules Audit Board (NADR-F17BIS-19 §5.1-§5.4, §5.6) — ✅ COMPLETED
 
 | Rule | Derived Status | Evidence | Implementation Notes |
 |---|---|---|---|
-| NADR-19 §5.1 R1 | PENDING | Wave 2.1 / Task 2.1.1, 2.1.4 | — |
-| NADR-19 §5.1 R2 | PENDING | Wave 2.1 / Task 2.1.3, 2.1.4; Wave 2.4 / Task 2.4.1 | — |
-| NADR-19 §5.1 R3 | PENDING | Wave 2.1 / Task 2.1.3, 2.1.4; Wave 2.4 / Task 2.4.3 | — |
-| NADR-19 §5.1 R4 | PENDING | Wave 2.1 / Task 2.1.2 | — |
-| NADR-19 §5.1 R5 | PENDING | Wave 2.1 / Task 2.1.2 | — |
-| NADR-19 §5.1 R6 | PENDING | Wave 2.1 / Task 2.1.2 | — |
-| NADR-19 §5.1 R7 | PENDING | Wave 2.1 / Task 2.1.2 | — |
-| NADR-19 §5.2 R8 | PENDING | Wave 2.2 / Task 2.2.1, 2.2.3; Wave 2.4 / Task 2.4.1 | — |
-| NADR-19 §5.2 R9 | PENDING | Wave 2.2 / Task 2.2.2, 2.2.3; Wave 2.4 / Task 2.4.1 | — |
-| NADR-19 §5.2 R10 | PENDING | Wave 2.2 / Task 2.2.2, 2.2.3; Wave 2.4 / Task 2.4.1 | — |
-| NADR-19 §5.2 R11 | PENDING | Wave 2.2 / Task 2.2.3; Wave 2.4 / Task 2.4.1 | — |
-| NADR-19 §5.3 R12 | PENDING | Wave 2.1 / Task 2.1.2, 2.1.4 | — |
-| NADR-19 §5.3 R13 | PENDING | Wave 2.1 / Task 2.1.2 | — |
-| NADR-19 §5.3 R14 | PENDING | Wave 2.1 / Task 2.1.2 | — |
-| NADR-19 §5.4 R15 | PENDING | Wave 2.3 / Task 2.3.1, 2.3.4, 2.3.5 | — |
-| NADR-19 §5.4 R16 | PENDING | Wave 2.3 / Task 2.3.2, 2.3.4, 2.3.5 | — |
-| NADR-19 §5.4 R17 | PENDING | Wave 2.3 / Task 2.3.3, 2.3.4, 2.3.5 | — |
-| NADR-19 §5.4 R18 | PENDING | Wave 2.3 / Task 2.3.1, 2.3.2, 2.3.3, 2.3.4, 2.3.5; Wave 3.1 / Task 3.1.4 | — |
-| NADR-19 §5.4 R19 | PENDING | Wave 2.3 / Task 2.3.1, 2.3.2, 2.3.3, 2.3.4, 2.3.5; Wave 3.1 / Task 3.1.4 | — |
-| NADR-19 §5.6 R23 | PENDING | Wave 2.4 / Task 2.4.2 | — |
-| NADR-19 §5.6 R24 | PENDING | Wave 2.4 / Task 2.4.2 | — |
-| NADR-19 §5.6 R25 | PENDING | Wave 2.4 / Task 2.4.2 | — |
+| NADR-19 §5.1 R1 | DONE | Wave 2.1 / Task 2.1.1, 2.1.4 | RegressionVerdict StrEnum (3 niveles) + severity_rank + tests |
+| NADR-19 §5.1 R2 | DONE | Wave 2.1 / Task 2.1.3, 2.1.4; Wave 2.4 / Task 2.4.1 | aggregate_corpus_verdicts + strategy |
+| NADR-19 §5.1 R3 | DONE | Wave 2.1 / Task 2.1.3, 2.1.4; Wave 2.4 / Task 2.4.3 | RegressionEvaluationReport con verdict |
+| NADR-19 §5.1 R4 | DONE | Wave 2.1 / Task 2.1.2 | RegressionThresholds configurable |
+| NADR-19 §5.1 R5 | DONE | Wave 2.1 / Task 2.1.2 | RegressionThresholds configurable |
+| NADR-19 §5.1 R6 | DONE | Wave 2.1 / Task 2.1.2 | RegressionThresholds configurable |
+| NADR-19 §5.1 R7 | DONE | Wave 2.1 / Task 2.1.2 | RegressionThresholds configurable |
+| NADR-19 §5.2 R8 | DONE | Wave 2.2 / Task 2.2.1, 2.2.3; Wave 2.4 / Task 2.4.1 | NSS ponderado vía CriticalityAwareCostContext |
+| NADR-19 §5.2 R9 | DONE | Wave 2.2 / Task 2.2.2, 2.2.3; Wave 2.4 / Task 2.4.1 | Regla absoluta CRITICAL |
+| NADR-19 §5.2 R10 | DONE | Wave 2.2 / Task 2.2.2, 2.2.3; Wave 2.4 / Task 2.4.1 | Precedencia Mecanismo 2 sobre Mecanismo 1 |
+| NADR-19 §5.2 R11 | DONE | Wave 2.2 / Task 2.2.3; Wave 2.4 / Task 2.4.1 | Complementariedad: peor resultado gana |
+| NADR-19 §5.3 R12 | DONE | Wave 2.1 / Task 2.1.2, 2.1.4 | Thresholds default documentados como propuesta inicial |
+| NADR-19 §5.3 R13 | DONE | Wave 2.1 / Task 2.1.2 | Thresholds configurables vía inyección |
+| NADR-19 §5.3 R14 | DONE | Wave 2.1 / Task 2.1.2; Wave 2.2 / Task 2.2.3 | Determinismo + InvalidNSSScoreError (finitud y rango) |
+| NADR-19 §5.4 R15 | DONE | Wave 2.3 / Task 2.3.1, 2.3.4, 2.3.5 | verify_oracle_integrity con OracleSemanticIdentityCalculator |
+| NADR-19 §5.4 R16 | DONE | Wave 2.3 / Task 2.3.2, 2.3.4, 2.3.5 | verify_sealed_state (GroundTruthState como str) |
+| NADR-19 §5.4 R17 | DONE | Wave 2.3 / Task 2.3.3, 2.3.4, 2.3.5 | verify_completeness con BaselineCompletenessVerifier |
+| NADR-19 §5.4 R18 | DONE | Wave 2.3 / Task 2.3.1-2.3.5; Wave 3.1 / Task 3.1.4 | Fail-Fast con errores tipados; verify_all ordenado |
+| NADR-19 §5.4 R19 | DONE | Wave 2.3 / Task 2.3.1-2.3.5; Wave 3.1 / Task 3.1.4 | Errores explícitos tipados (5 clases en errors.py) |
+| NADR-19 §5.6 R23 | DONE | Wave 2.4 / Task 2.4.2 | Recall por tipo ponderado por criticidad |
+| NADR-19 §5.6 R24 | DONE | Wave 2.4 / Task 2.4.2 | Recall por tipo ponderado por criticidad |
+| NADR-19 §5.6 R25 | DONE | Wave 2.4 / Task 2.4.2 | Recall por tipo ponderado por criticidad |
 
 ### 9.3 Gate 3 — Rules Audit Board (NADR-F17BIS-19 §5.5, §5.7)
 

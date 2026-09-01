@@ -1,11 +1,11 @@
 # FASE_4_EXIT_REVIEW_EVIDENCE_LOG.md
 
 **Documento:** `docs/architecture/adr/phase-17-bis/reviews/FASE_4_EXIT_REVIEW_EVIDENCE_LOG.md`
-**Versión:** 0.3.0
+**Versión:** 0.4.0
 **Estado:** IN_PROGRESS
 **Fecha:** 2026-08-30
 **Última actualización:** 2026-08-30
-**Derivado de:** `PHASE_17BIS_FASE4_EXECUTION_PLAN.md` v1.0.1 — Gate 1 Exit Review
+**Derivado de:** `PHASE_17BIS_FASE4_EXECUTION_PLAN.md` v1.0.2 — Gate 1 y Gate 2 Exit Review
 **Propósito:** Registro auditable de la evidencia forense que fundamenta cada decisión
 tomada durante el Exit Review de la Fase 4 (Scientific Verification). Cada finding
 incluye los archivos auditados, el análisis, los gaps confirmados, la justificación
@@ -28,6 +28,7 @@ normativa y la clasificación final.
 | 0.1.0-DRAFT | 2026-08-30 | Creación del documento. Estructura inicial. |
 | 0.2.0 | 2026-08-30 | Gate 1 COMPLETED. Evidencia forense de PRE-01 a PRE-04 reclasificados como DF-01 a DF-04. |
 | 0.3.0 | 2026-08-30 | Regeneración completa siguiendo plantilla canónica. Estructura por finding completa para DF-01 a DF-04 con las 10 subsecciones. |
+| 0.4.0 | 2026-08-30 | **Gate 2 COMPLETED.** Gate 2 Exit Review Summary agregado. 0 nuevos hallazgos durante implementación. Evidencia forense de Gate 2 registrada. |
 
 ---
 
@@ -185,7 +186,7 @@ No requiere reformulación.
 
 | Aspecto | Veredicto | Justificación |
 |---------|-----------|---------------|
-| Tests unitarios de Fase 4 | ✅ Correcto por diseño | 66 tests unitarios nuevos cubren la taxonomía y el veredicto. Los tests tautológicos son de integración, no de unidad. |
+| Tests unitarios de Fase 4 | ✅ Correcto por diseño | 66 tests unitarios de Gate 1 cubren la taxonomía y el veredict. |
 | `pyproject.toml` y `ci.yml` | ✅ Correcto por diseño | Ambos archivos existen y tienen configuración básica. La verificación de cobertura es Fase 6. |
 
 #### 1.7 Impacto en la regresión científica graduada
@@ -516,16 +517,52 @@ La decisión de deprecación de `StructuralTopologyMetric` requiere un benchmark
 
 **Verificación empírica:**
 - Pyright: 0 errors, 0 warnings, 0 informations
-- Pytest: 508 passed, 5 skipped, 1 warning (no relacionado)
+- Pytest: 508 passed, 5 skipped, 0 failures, 1 warning (no relacionado — FutureWarning de google.generativeai)
 - Zero-touch: 0 archivos existentes modificados
 - Componentes stateless: `CriticalityVerdictEmitter`, `ClassificationTracer` (ENGINEERING_PRINCIPLES §II)
 - Determinismo: verificado en tests `test_deterministic_same_input_same_output` y `test_trace_is_deterministic`
 
 ---
 
+### 3.2 Gate 2 Exit Review (2026-08-30)
+
+**Árbol de decisión aplicado:**
+
+No se identificaron nuevos hallazgos (DF/GF) durante la implementación de Gate 2. No hay entradas nuevas en la Estructura por Finding (§2) para este Gate.
+
+**Resumen:**
+- RESOLVED: 0
+- RECLASIFICADO: 0
+- CLOSED (NAR): 0
+- REVIEW_REQUIRED: 0
+- CONVERTIDO EN GF: 0
+- Nuevos hallazgos registrados durante Gate 2: **0**
+
+**Verificación empírica:**
+- Pyright: 0 errors, 0 warnings, 0 informations
+- Pytest: 586 passed, 5 skipped, 0 failures, 1 warning (no relacionado — `FutureWarning` de `google.generativeai` en `apps/llm_workers/adapters.py`)
+- Zero-touch: 0 archivos existentes modificados
+- Componentes stateless: `RegressionAdapter`, `RegressionEvaluationStrategy`, `DoubleProtectionMechanism` (ENGINEERING_PRINCIPLES §II)
+- Determinismo: verificado en tests `test_deterministic` (mechanism y strategy)
+- Corregibilidad P0-1: verificada en `test_recall_evaluators_called_exactly_once` (`call_count == 1`)
+- Cumplimiento de protocolo: `evaluate_run()` retorna `TopologicalEvaluationReport` (verificado en `test_evaluate_run_returns_topological_report`)
+
+**Justificación de ausencia de hallazgos:**
+
+La implementación de Gate 2 fue limpia por las siguientes razones:
+1. **Reutilización estricta (Reuse Before Invent):** Se consumió `OracleSemanticIdentityCalculator`, `BaselineCompletenessVerifier`, `IncompleteBaselineError`, `TreeEditDistanceEvaluator`, `EntityRecallEvaluator` y `CriticalityAwareCostContext` (Gate 1) sin modificación.
+2. **Análisis iterativo:** Los defectos detectados (P0-1 doble llamada, P1 `overall_score` default) eran errores de la propuesta inicial que se corrigieron **inline** dentro de la misma wave, antes de declarar el Gate COMPLETED. No constituyen hallazgos diferibles porque no representan deuda técnica ni decisiones arquitectónicas pendientes.
+3. **Zero-touch:** Ningún archivo existente fue modificado, eliminando el riesgo de regresiones sobre infraestructura de fases anteriores.
+4. **Sin conflictos normativos:** No se identificaron contradicciones entre NADRs ni con el ADR Maestro.
+
+**Nota de trazabilidad:** Los defectos P0-1 y P1 corregidos inline están documentados en las Notas de implementación del Execution Plan (§3.1-§3.4) y en el Changelog (v1.0.2), no como hallazgos en este Evidence Log, porque fueron resueltos dentro del mismo Gate sin requerir batches posteriores ni decisiones de clasificación.
+
+---
+
 ## 4. TABLA CONSOLIDADA FINAL
 
-{Se completa al cierre del último Gate Exit Review.}
+Se completa al cierre del último Gate Exit Review. Los 4 DFs actuales están clasificados.
+Si Gate 3 genera nuevos hallazgos, se agregarán a esta tabla.
 
 ### 4.1 Resumen por clasificación
 
@@ -562,6 +599,11 @@ El documento se considera cerrado (`FROZEN`) cuando:
 - [x] Cada clasificación tiene al menos una regla normativa aplicada
 - [x] Los hallazgos `RECLASSIFIED_FUTURE_PHASE` tienen destino explícito
 - [x] Los hallazgos `REVIEW_REQUIRED` tienen plan de reevaluación
+
+> **Nota:** Los checkboxes reflejan el estado actual (Gate 1 + Gate 2 completados).
+> Gate 2 no generó hallazgos nuevos, por lo que no hay entradas pendientes.
+> El documento permanece `IN_PROGRESS` hasta el cierre de Gate 3, momento en el cual
+> se ejecutará la verificación final y el documento pasará a `FROZEN`.
 
 ### 5.2 Relación con el Findings Register
 

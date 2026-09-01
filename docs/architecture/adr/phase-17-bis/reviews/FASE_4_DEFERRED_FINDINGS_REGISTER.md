@@ -1,11 +1,11 @@
 # FASE_4_DEFERRED_FINDINGS_REGISTER.md
 
 **Documento:** `docs/architecture/adr/phase-17-bis/reviews/FASE_4_DEFERRED_FINDINGS_REGISTER.md`
-**Versión:** 0.3.0
+**Versión:** 0.4.0
 **Estado:** IN_PROGRESS
 **Fecha de creación:** 2026-08-30
 **Última actualización:** 2026-08-30
-**Derivado de:** `PHASE_17BIS_FASE4_EXECUTION_PLAN.md` v1.0.1
+**Derivado de:** `PHASE_17BIS_FASE4_EXECUTION_PLAN.md` v1.0.2
 **Propósito:** Registro auditable de hallazgos identificados durante la implementación
 del Execution Plan de la Fase 4 (Scientific Verification), su clasificación,
 resolución y evidencia empírica de los batches.
@@ -17,6 +17,7 @@ resolución y evidencia empírica de los batches.
 | 0.1.0-DRAFT | 2026-08-30 | Creación del documento. Estructura inicial. |
 | 0.2.0 | 2026-08-30 | Gate 1 COMPLETED. PRE-01 a PRE-04 formalizados como DF-01 a DF-04. |
 | 0.3.0 | 2026-08-30 | Regeneración completa siguiendo plantilla canónica. Gate 1 Exit Review completo con árbol de decisión, tabla por DF, decisiones arquitectónicas y lecciones aprendidas. |
+| 0.4.0 | 2026-08-30 | **Gate 2 COMPLETED.** Gate 2 Exit Review registrado. 0 nuevos hallazgos (DF/GF) durante implementación. Métricas acumuladas actualizadas (22 archivos creados, 586 tests). Estado del Exit Review actualizado (2/3 Gates completados). |
 
 ---
 
@@ -146,7 +147,7 @@ ADR_F17_BIS_MASTER > ADR_F17-BIS_04 > NADR-F17BIS-18 / NADR-F17BIS-19 > PHASE_17
 
 | Decisión | Task | Justificación |
 |----------|------|---------------|
-| `CriticalityPolicy` como Protocol sin `@runtime_checkable` | 1.1.2 | ENGINEERING_PRINCIPLES §II (YAGNI): overhead innecesario sin consumidor actual de `isinstance()` |
+| `CriticalityPolicy` como Protocol sin `@runtime_checkable` | 1.1.2 | ENGINEERING_PRINCIPLES §I (YAGNI): overhead innecesario sin consumidor actual de `isinstance()` |
 | `DefaultCriticalityPolicy` con mapeo declarativo en dict de módulo | 1.1.3 | ENGINEERING_PRINCIPLES §III (Explicit over Implicit): sin magia, factoría explícita |
 | `CriticalityAwareCostContext` importa `TreeEditCostContext` del puerto canónico | 1.2.1 | DRY: no redefinir protocolos existentes; NADR-18 §5.3 R11 |
 | `substitution_cost` con `max(peso_cand, peso_gt)` | 1.2.2 | Semántica conservadora de pérdida: la sustitución de un nodo CRITICAL siempre tiene la mayor penalización |
@@ -154,11 +155,64 @@ ADR_F17_BIS_MASTER > ADR_F17-BIS_04 > NADR-F17BIS-18 / NADR-F17BIS-19 > PHASE_17
 | `ClassificationTracer` stateless | 1.3.4 | ENGINEERING_PRINCIPLES §II (Stateless Components): función pura, sin acumulación interna |
 | `trace_types()` eliminado por YAGNI | 1.3.4 | ENGINEERING_PRINCIPLES §I (YAGNI): sin consumidor actual |
 
-#### Lecciones aprendidas
+#### Lecciones aprendidas (Gate 1)
 
 - La integración con `EntityRecallEvaluator` vía `RecallByNodeType` es más limpia que recibir `Sequence[ASTNode]` directamente, porque no duplica la lógica de matching que ya vive en el evaluador.
 - Los componentes stateless (`ClassificationTracer`, `CriticalityVerdictEmitter`) son más fáciles de testear y componer que los stateful.
 - El umbral de WARNING con semántica `>=` (threshold o más FNs = WARNING) es más intuitivo que `>` (estrictamente mayor).
+
+---
+
+### 2.2 Gate 2 Exit Review (2026-08-30)
+
+**Árbol de decisión aplicado:**
+
+```text
+1. ¿Sigue siendo válido el hallazgo? → NO: CLOSED (NAR) / SÍ: continuar
+2. ¿Puede resolverse dentro del Gate actual? → SÍ: RESOLVED / NO: continuar
+3. ¿Es un problema técnico? → SÍ: RECLASIFICADO / NO: continuar
+4. ¿Es un conflicto normativo? → SÍ: CONVERTIDO EN GF
+```
+
+**No se identificaron nuevos hallazgos (DF/GF) durante la implementación de Gate 2.**
+
+La implementación fue limpia:
+- 0 Deferred Findings nuevos
+- 0 Governance Findings
+- Zero-touch sobre infraestructura existente
+- Todos los defectos detectados durante el análisis iterativo (P0-1 doble llamada `evaluator.evaluate()`, P1 `overall_score` default `0.0`) eran errores de la propuesta inicial que se corrigieron **inline** dentro de la misma wave, no hallazgos arquitectónicos diferibles.
+
+**Resumen:**
+- RESOLVED: 0
+- RECLASIFICADO: 0
+- CLOSED (NAR): 0
+- REVIEW_REQUIRED: 0
+- CONVERTIDO EN GF: 0
+- Nuevos hallazgos registrados durante Gate 2: **0**
+- Revisiones tardías documentadas: 0
+
+#### Decisiones arquitectónicas congeladas en Gate 2
+
+| Decisión | Task | Justificación |
+|----------|------|---------------|
+| `overall_score` obligatorio (sin default) en `RegressionEvaluationReport` | 2.1.3 | Fail-fast: no existe estado válido del dominio sin NSS. `nss_score` es property alias (única fuente de verdad). |
+| `RegressionCriticalitySignal` como enum tipado (no string libre) | 2.1.1 | ENGINEERING_PRINCIPLES §III (Explicit over Implicit): evita strings libres frágiles. |
+| `verify_document_identity()` antes de integridad | 2.3.4 | Detecta cruce de documentos antes de verificar hash; minimiza trabajo desperdiciado (Fail-Fast ordenado). |
+| `_evaluate_recall_once()` evalúa UNA vez por evaluador | 2.4.1 | ENGINEERING_PRINCIPLES §II: evaluar una vez, usar muchas. Elimina doble llamada (corrección P0-1). |
+| `Dict[ContentNodeType, EntityRecallEvaluator]` en vez de `Sequence` | 2.4.1 | Type-safe: el dict garantiza mapeo evaluador→tipo sin parsing frágil de `metric_name`. |
+| `evaluate_run()` retorna `TopologicalEvaluationReport`; `evaluate_regression()` retorna `RegressionEvaluationReport` | 2.4.1 | Resuelve tensión entre cumplir protocolo `EvaluationStrategy` existente y exponer veredicto completo. Gate 3 debe usar `evaluate_regression()`. |
+| `isinstance(RecallDiagnostics)` mantenido como defensa perimetral | 2.4.1 | Protege contra cambios futuros en jerarquía de evaluadores; costo cero; comentario explicativo. |
+| Validación `recall_evaluators` no vacío en `__init__` | 2.4.1 | Fail-fast: dict vacío produciría veredicto incorrecto de "sin pérdida". |
+| `InvalidNSSScoreError` para NSS no finito o fuera de [0.0, 1.0] | 2.2.3 | ENGINEERING_PRINCIPLES §IV (Cero Fallos Silenciosos); NADR-19 §5.2 R14. |
+| Naming `DoubleProtectionMechanism` | 2.2.3 | Trazabilidad directa con el ADR ("Doble Mecanismo de Protección"). |
+
+#### Lecciones aprendidas (Gate 2)
+
+- El análisis iterativo con múltiples rondas de revisión detectó defectos que una sola pasada no habría encontrado (P0-1 doble llamada `evaluator.evaluate()`).
+- La separación `evaluate_run()` / `evaluate_regression()` resuelve la tensión entre cumplir el protocolo `EvaluationStrategy` existente y exponer el veredicto completo. Gate 3 debe consumir `evaluate_regression()`.
+- El orden de verificación Fail-Fast (identidad → completitud → estado → integridad) minimiza el trabajo desperdiciado: los chequeos más baratos y más probables de fallar van primero.
+- Los tests con `spec=` en mocks (`MagicMock(spec=EntityRecallEvaluator)`) previenen acoplamiento frágil a implementaciones y hacen que los tests fallen si la interfaz cambia.
+- El test `test_recall_evaluators_called_exactly_once` (`call_count == 1`) es una regresión directa contra el defecto P0-1: si alguien reintroduce la doble llamada, el test falla.
 
 ---
 
@@ -191,9 +245,10 @@ Se actualiza al cierre del último Gate Exit Review.
 
 ## 4. RESULTADOS DE IMPLEMENTACIÓN POR BATCH
 
-{No se ejecutaron batches durante Gate 1 porque no se identificaron hallazgos
-que requirieran implementación. Los 4 findings pre-identificados fueron
-reclasificados a fases futuras sin necesidad de código nuevo.}
+{No se ejecutaron batches durante Gate 1 ni Gate 2 porque no se identificaron
+hallazgos que requirieran implementación. Los 4 findings pre-identificados fueron
+reclasificados a fases futuras sin necesidad de código nuevo. Los defectos P0-1 y P1
+detectados durante Gate 2 se corrigieron inline dentro de la misma wave.}
 
 ---
 
@@ -212,8 +267,8 @@ Se actualiza al cierre de cada batch.
 | Batches completados | 0 |
 | Archivos eliminados totales | 0 |
 | Archivos movidos totales | 0 |
-| Archivos creados totales | 10 (7 código + 3 tests) |
-| Tests finales | 66 (13 policy + 13 costs + 40 verdict) |
+| Archivos creados totales | 22 (Gate 1: 10 + Gate 2: 12) |
+| Tests finales | 586 passed, 5 skipped, 0 failures |
 | Pyright final | 0 errors, 0 warnings, 0 informations |
 
 ---
@@ -234,7 +289,7 @@ Se actualiza al cierre de cada batch.
 ### 7.1 Criterio de cierre por batch
 
 Cada batch se considera cerrado cuando:
-1. Todos los tests pasan (pytest → baseline mantenida: 508 passed, 5 skipped)
+1. Todos los tests pasan (pytest → baseline mantenida, sin regresiones sobre tests existentes)
 2. Pyright reporta 0 errors
 3. No se detectan imports huérfanos
 4. Los cambios están commiteados
@@ -259,6 +314,7 @@ El documento se considera cerrado (`ARCHIVED`) cuando:
 | Hallazgos pendientes de revisión | 1 (DF-04) |
 | Hallazgos cerrados sin acción | 0 |
 | Batches completados | 0 |
+| Gates completados | 2/3 (Gate 1, Gate 2) |
 | Estado del Exit Review | 🟡 IN PROGRESS |
 
 ---
