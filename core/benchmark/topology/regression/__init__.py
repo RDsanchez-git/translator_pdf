@@ -33,6 +33,14 @@ from core.benchmark.topology.regression.strategy import (
     RegressionEvaluationStrategy,
 )
 
+from core.benchmark.topology.regression.report import (
+    JsonRegressionReportFormatter,
+    MarkdownRegressionReportFormatter,
+    RegressionReport,
+    RegressionReportFormatter,
+    build_regression_report,
+)
+
 __all__ = [
     # Errors
     "RegressionError",
@@ -57,4 +65,10 @@ __all__ = [
     "RegressionAdapter",
     # Strategy
     "RegressionEvaluationStrategy",
+     # Report (Wave 3.2)
+    "RegressionReport",
+    "RegressionReportFormatter",
+    "JsonRegressionReportFormatter",
+    "MarkdownRegressionReportFormatter",
+    "build_regression_report",
 ]

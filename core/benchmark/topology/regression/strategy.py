@@ -34,7 +34,7 @@ from core.benchmark.topology.criticality.verdict import (
     RecallByNodeType,
 )
 from core.benchmark.topology.evaluators.recall import EntityRecallEvaluator
-from core.benchmark.topology.evaluators.ted import TreeEditDistanceEvaluator
+from core.benchmark.topology.ports import TopologicalEvaluatorProtocol
 from core.benchmark.topology.models import (
     MetricScoreDTO,
     RecallDiagnostics,
@@ -75,7 +75,7 @@ class RegressionEvaluationStrategy:
 
     def __init__(
         self,
-        ted_evaluator: TreeEditDistanceEvaluator,
+        ted_evaluator: TopologicalEvaluatorProtocol,
         recall_evaluators: Mapping[ContentNodeType, EntityRecallEvaluator],
         verdict_emitter: CriticalityVerdictEmitter | None = None,
         mechanism: DoubleProtectionMechanism | None = None,
@@ -237,7 +237,7 @@ class RegressionEvaluationStrategy:
         return tuple(recall_results), tuple(recall_dtos)
 
     @property
-    def ted_evaluator(self) -> TreeEditDistanceEvaluator:
+    def ted_evaluator(self) -> TopologicalEvaluatorProtocol:
         return self._ted_evaluator
 
     @property
