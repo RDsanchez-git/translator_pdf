@@ -1,11 +1,11 @@
 # FASE_4_DEFERRED_FINDINGS_REGISTER.md
 
 **Documento:** `docs/architecture/adr/phase-17-bis/reviews/FASE_4_DEFERRED_FINDINGS_REGISTER.md`
-**Versión:** 0.4.0
-**Estado:** IN_PROGRESS
+**Versión:** 0.5.0
+**Estado:** FROZEN
 **Fecha de creación:** 2026-08-30
-**Última actualización:** 2026-08-30
-**Derivado de:** `PHASE_17BIS_FASE4_EXECUTION_PLAN.md` v1.0.2
+**Última actualización:** 2026-09-02
+**Derivado de:** `PHASE_17BIS_FASE4_EXECUTION_PLAN.md` v1.0.3
 **Propósito:** Registro auditable de hallazgos identificados durante la implementación
 del Execution Plan de la Fase 4 (Scientific Verification), su clasificación,
 resolución y evidencia empírica de los batches.
@@ -18,6 +18,8 @@ resolución y evidencia empírica de los batches.
 | 0.2.0 | 2026-08-30 | Gate 1 COMPLETED. PRE-01 a PRE-04 formalizados como DF-01 a DF-04. |
 | 0.3.0 | 2026-08-30 | Regeneración completa siguiendo plantilla canónica. Gate 1 Exit Review completo con árbol de decisión, tabla por DF, decisiones arquitectónicas y lecciones aprendidas. |
 | 0.4.0 | 2026-08-30 | **Gate 2 COMPLETED.** Gate 2 Exit Review registrado. 0 nuevos hallazgos (DF/GF) durante implementación. Métricas acumuladas actualizadas (22 archivos creados, 586 tests). Estado del Exit Review actualizado (2/3 Gates completados). |
+| 0.5.0 | 2026-09-02 | **Gate 3 COMPLETED — FASE 4 OFICIALMENTE COMPLETADA.** Gate 3 Exit Review registrado. 0 nuevos hallazgos (DF/GF) durante implementación. 6 fixes de pyright aplicados inline (no constituyen hallazgos diferibles). Métricas acumuladas actualizadas (26 archivos creados, 624 tests). Estado del Exit Review actualizado (3/3 Gates completados). |
+| 0.6.0 | 2026-09-02 | **DF-04 reclasificado.** DF-04 (Dualidad ZhangShasha/APTED) reclasificado de `REVIEW_REQUIRED` a `RECLASSIFIED_FUTURE_PHASE` → Fase 5. Justificación: ENGINEERING_PRINCIPLES §I (Benchmark Before Optimization) requiere el corpus canónico de Fase 5 para ejecutar el benchmark comparativo. Cierre formal de Fase 4 habilitado. |
 
 ---
 
@@ -131,7 +133,8 @@ ADR_F17_BIS_MASTER > ADR_F17-BIS_04 > NADR-F17BIS-18 / NADR-F17BIS-19 > PHASE_17
 | DF-01 | ✅ Sí | ❌ No | ✅ Sí | RECLASSIFIED_FUTURE_PHASE → Fase 6 | Tests tautológicos no bloquean Fase 4; su remediación pertenece a Fase 6 (ADR Maestro §6) |
 | DF-02 | ⚠️ Parcial | ❌ No | ✅ Sí | RECLASSIFIED_FUTURE_PHASE → Fase 6 | pyproject.toml y ci.yml ya existen; la verificación de cobertura pertenece a Fase 6 (NADR-10) |
 | DF-03 | ✅ Sí | ❌ No | ✅ Sí | RECLASSIFIED_FUTURE_PHASE → Gate futuro | Deuda técnica de layout no bloquea Fase 4; pertenece a remediación de layout |
-| DF-04 | ✅ Sí | ❌ No | ✅ Sí | REVIEW_REQUIRED | Dualidad ZhangShasha/APTED requiere benchmark comparativo antes de decidir |
+| DF-04 | ✅ Sí | ❌ No | ✅ Sí | REVIEW_REQUIRED | Dualidad ZhangShasha/APTED requiere benchmark comparativo antes de decidir | 
+| DF-04 | ✅ Sí | ❌ No | ✅ Sí | RECLASSIFIED_FUTURE_PHASE → Fase 5 | Dualidad ZhangShasha/APTED requiere benchmark comparativo antes de decidir, ENGINEERING_PRINCIPLES §I: benchmark requiere corpus canónico (reclasificado en v0.6.0) |
 
 **Resumen:**
 - RESOLVED: 0
@@ -239,36 +242,36 @@ Se actualiza al cierre del último Gate Exit Review.
 | DF-01 | `RECLASSIFIED_FUTURE_PHASE` | Tests tautológicos → Fase 6 (ADR Maestro §6, NADR-10) |
 | DF-02 | `RECLASSIFIED_FUTURE_PHASE` | CI workflows verification → Fase 6 (NADR-10) |
 | DF-03 | `RECLASSIFIED_FUTURE_PHASE` | Deuda LayoutBlockDraft → Gate futuro (no bloquea) |
-| DF-04 | `REVIEW_REQUIRED` | Dualidad ZhangShasha/APTED — pendiente benchmark Fase 5 |
+| DF-04 | `RECLASSIFIED_FUTURE_PHASE` | Dualidad ZhangShasha/APTED — pendiente benchmark Fase 5 |
 
 ---
 
 ## 4. RESULTADOS DE IMPLEMENTACIÓN POR BATCH
 
-{No se ejecutaron batches durante Gate 1 ni Gate 2 porque no se identificaron
-hallazgos que requirieran implementación. Los 4 findings pre-identificados fueron
-reclasificados a fases futuras sin necesidad de código nuevo. Los defectos P0-1 y P1
-detectados durante Gate 2 se corrigieron inline dentro de la misma wave.}
+{No se ejecutaron batches durante Gate 1, Gate 2 ni Gate 3 porque no se
+identificaron hallazgos que requirieran implementación. Los 4 findings
+pre-identificados fueron reclasificados a fases futuras sin necesidad de
+código nuevo. Los defectos P0-1 y P1 detectados durante Gate 2 y los 6
+fixes de pyright detectados durante Gate 3 se corrigieron inline dentro
+de sus respectivas waves.}
 
 ---
 
 ## 5. MÉTRICAS ACUMULADAS DE LA FASE
-
-Se actualiza al cierre de cada batch.
 
 | Métrica | Valor |
 |---------|-------|
 | Total de hallazgos analizados | 4 (DF-01, DF-02, DF-03, DF-04) |
 | Hallazgos resueltos | 0 |
 | Hallazgos cerrados sin acción | 0 |
-| Hallazgos reclasificados a fase futura | 3 (DF-01, DF-02, DF-03) |
+| Hallazgos reclasificados a fase futura | 4 (DF-01, DF-02, DF-03, DF-04) |
 | Hallazgos pendientes de implementación | 0 |
-| Hallazgos pendientes de revisión | 1 (DF-04) |
+| Hallazgos pendientes de revisión | 0 |
 | Batches completados | 0 |
 | Archivos eliminados totales | 0 |
 | Archivos movidos totales | 0 |
-| Archivos creados totales | 22 (Gate 1: 10 + Gate 2: 12) |
-| Tests finales | 586 passed, 5 skipped, 0 failures |
+| Archivos creados totales | 26 (Gate 1: 10 + Gate 2: 12 + Gate 3: 4) |
+| Tests finales | 624 passed, 5 skipped, 0 failures |
 | Pyright final | 0 errors, 0 warnings, 0 informations |
 
 ---
@@ -280,7 +283,7 @@ Se actualiza al cierre de cada batch.
 | DF-01 | Fase 6 (Continuous Verification) | La remediación de tests tautológicos (`test_golden_parser.py`, `test_chunker_snapshot.py`) y la integración en CI pertenecen a Fase 6 según ADR Maestro §6. La Fase 4 define las reglas de regresión; la Fase 6 las ejecuta como compuertas de merge. |
 | DF-02 | Fase 6 (Continuous Verification) | `pyproject.toml` y `.github/workflows/ci.yml` ya existen. La verificación de que cubren los nuevos tests de regresión y la configuración de Required Status Checks pertenecen a Fase 6, gobernadas por NADR-10. |
 | DF-03 | Gate futuro (remediación de layout) | El mapper `_layout_block_to_draft()` funciona correctamente. La eliminación de `LayoutBlockDraft` y `LayoutBlockCollection` es una tarea de remediación de layout que no bloquea la Fase 4. Identificado en HITO_0.4.4_C3 (C3-FUTURE-07). |
-| DF-04 | Pendiente de benchmark Fase 5 | La Fase 4 usa exclusivamente `ZhangShashaEngine` (NADR-19 §5.2 R8). La decisión de deprecación de `StructuralTopologyMetric` (APTED) requiere evidencia empírica (benchmark comparativo sobre el corpus de calibración). Sin evidencia, no se puede tomar una decisión arquitectónica fundamentada. Identificado en HITO_0.4.1 (OBS-0.4.1-04). |
+| DF-04 | Fase 5 (Baseline Certification) | La decisión de deprecación de `StructuralTopologyMetric` (APTED) requiere un benchmark comparativo sobre el corpus canónico (20-30 documentos), que es el entregable de Fase 5. ENGINEERING_PRINCIPLES §I (Benchmark Before Optimization) prohíbe decidir sin evidencia estadística empírica. Identificado en HITO_0.4.1 (OBS-0.4.1-04). |
 
 ---
 
@@ -311,11 +314,13 @@ El documento se considera cerrado (`ARCHIVED`) cuando:
 | Total de hallazgos analizados | 4 |
 | Hallazgos resueltos | 0 |
 | Hallazgos pendientes de implementación | 0 |
-| Hallazgos pendientes de revisión | 1 (DF-04) |
+| Hallazgos pendientes de revisión | 0 |
 | Hallazgos cerrados sin acción | 0 |
+| Hallazgos reclasificados a fase futura | 4 (DF-01, DF-02, DF-03, DF-04) |
 | Batches completados | 0 |
-| Gates completados | 2/3 (Gate 1, Gate 2) |
-| Estado del Exit Review | 🟡 IN PROGRESS |
+| Gates completados | 3/3 (Gate 1, Gate 2, Gate 3) |
+| **Estado de la Fase 4** | ✅ **COMPLETADA** |
+| Estado del Exit Review | ✅ **CERRADO** |
 
 ---
 
