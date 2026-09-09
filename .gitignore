@@ -133,3 +133,5 @@ build/
 .pyright/
 .mypy_cache/
 .ruff_cache/
+# Backups operacionales MIG (no son artefactos de baseline)
+tests/corpus_backup_*/
