@@ -1,0 +1,2042 @@
+[
+  {
+    "file": "doc_01_single.json",
+    "total_nodes": 35,
+    "canonicalized_count": 35,
+    "nodes": [
+      {
+        "old_id": "value='p1_b0'",
+        "new_id": "p1_b0",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b1'",
+        "new_id": "p1_b1",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b2'",
+        "new_id": "p1_b2",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b3'",
+        "new_id": "p1_b3",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b4'",
+        "new_id": "p1_b4",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b5'",
+        "new_id": "p1_b5",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b6'",
+        "new_id": "p1_b6",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b7'",
+        "new_id": "p1_b7",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b8'",
+        "new_id": "p1_b8",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b9'",
+        "new_id": "p1_b9",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b10'",
+        "new_id": "p1_b10",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b1'",
+        "new_id": "p2_b1",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b2'",
+        "new_id": "p2_b2",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b3'",
+        "new_id": "p2_b3",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b4'",
+        "new_id": "p2_b4",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b5'",
+        "new_id": "p2_b5",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b6'",
+        "new_id": "p2_b6",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b7'",
+        "new_id": "p2_b7",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b8'",
+        "new_id": "p2_b8",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b9'",
+        "new_id": "p2_b9",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b10'",
+        "new_id": "p2_b10",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b11'",
+        "new_id": "p2_b11",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b12'",
+        "new_id": "p2_b12",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b13'",
+        "new_id": "p2_b13",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b14'",
+        "new_id": "p2_b14",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b1'",
+        "new_id": "p3_b1",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b2'",
+        "new_id": "p3_b2",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b3'",
+        "new_id": "p3_b3",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b4'",
+        "new_id": "p3_b4",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b5'",
+        "new_id": "p3_b5",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b6'",
+        "new_id": "p3_b6",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b7'",
+        "new_id": "p3_b7",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b8'",
+        "new_id": "p3_b8",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b9'",
+        "new_id": "p3_b9",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b10'",
+        "new_id": "p3_b10",
+        "canonicalized": true
+      }
+    ]
+  },
+  {
+    "file": "doc_02_double.json",
+    "total_nodes": 116,
+    "canonicalized_count": 116,
+    "nodes": [
+      {
+        "old_id": "value='p1_b1'",
+        "new_id": "p1_b1",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b2'",
+        "new_id": "p1_b2",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b3'",
+        "new_id": "p1_b3",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b5'",
+        "new_id": "p1_b5",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b6'",
+        "new_id": "p1_b6",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b7'",
+        "new_id": "p1_b7",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b8'",
+        "new_id": "p1_b8",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b9'",
+        "new_id": "p1_b9",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b10'",
+        "new_id": "p1_b10",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b11'",
+        "new_id": "p1_b11",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b12'",
+        "new_id": "p1_b12",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b13'",
+        "new_id": "p1_b13",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b14'",
+        "new_id": "p1_b14",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b15'",
+        "new_id": "p1_b15",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b16'",
+        "new_id": "p1_b16",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b17'",
+        "new_id": "p1_b17",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b18'",
+        "new_id": "p1_b18",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b19'",
+        "new_id": "p1_b19",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b20'",
+        "new_id": "p1_b20",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b21'",
+        "new_id": "p1_b21",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b22'",
+        "new_id": "p1_b22",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b24'",
+        "new_id": "p1_b24",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b25'",
+        "new_id": "p1_b25",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b26'",
+        "new_id": "p1_b26",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b27'",
+        "new_id": "p1_b27",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b0'",
+        "new_id": "p2_b0",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b1'",
+        "new_id": "p2_b1",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b2'",
+        "new_id": "p2_b2",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b3'",
+        "new_id": "p2_b3",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b4'",
+        "new_id": "p2_b4",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b5'",
+        "new_id": "p2_b5",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b6'",
+        "new_id": "p2_b6",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b7'",
+        "new_id": "p2_b7",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b8'",
+        "new_id": "p2_b8",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b9'",
+        "new_id": "p2_b9",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b10'",
+        "new_id": "p2_b10",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b11'",
+        "new_id": "p2_b11",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b1'",
+        "new_id": "p3_b1",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b2'",
+        "new_id": "p3_b2",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b3'",
+        "new_id": "p3_b3",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b4'",
+        "new_id": "p3_b4",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b5'",
+        "new_id": "p3_b5",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b6'",
+        "new_id": "p3_b6",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b7'",
+        "new_id": "p3_b7",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b8'",
+        "new_id": "p3_b8",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b9'",
+        "new_id": "p3_b9",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b10'",
+        "new_id": "p3_b10",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b11'",
+        "new_id": "p3_b11",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b12'",
+        "new_id": "p3_b12",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b13'",
+        "new_id": "p3_b13",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b14'",
+        "new_id": "p3_b14",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b15'",
+        "new_id": "p3_b15",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b16'",
+        "new_id": "p3_b16",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b17'",
+        "new_id": "p3_b17",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b18'",
+        "new_id": "p3_b18",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b19'",
+        "new_id": "p3_b19",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b20'",
+        "new_id": "p3_b20",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b21'",
+        "new_id": "p3_b21",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b22'",
+        "new_id": "p3_b22",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b23'",
+        "new_id": "p3_b23",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b24'",
+        "new_id": "p3_b24",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b25'",
+        "new_id": "p3_b25",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b26'",
+        "new_id": "p3_b26",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b27'",
+        "new_id": "p3_b27",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b28'",
+        "new_id": "p3_b28",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b29'",
+        "new_id": "p3_b29",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b30'",
+        "new_id": "p3_b30",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b31'",
+        "new_id": "p3_b31",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b32'",
+        "new_id": "p3_b32",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b33'",
+        "new_id": "p3_b33",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b34'",
+        "new_id": "p3_b34",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b35'",
+        "new_id": "p3_b35",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b36'",
+        "new_id": "p3_b36",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b37'",
+        "new_id": "p3_b37",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b38'",
+        "new_id": "p3_b38",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b39'",
+        "new_id": "p3_b39",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b40'",
+        "new_id": "p3_b40",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b41'",
+        "new_id": "p3_b41",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b42'",
+        "new_id": "p3_b42",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b43'",
+        "new_id": "p3_b43",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b44'",
+        "new_id": "p3_b44",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b45'",
+        "new_id": "p3_b45",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b46'",
+        "new_id": "p3_b46",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b47'",
+        "new_id": "p3_b47",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b48'",
+        "new_id": "p3_b48",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b49'",
+        "new_id": "p3_b49",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b50'",
+        "new_id": "p3_b50",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b51'",
+        "new_id": "p3_b51",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b52'",
+        "new_id": "p3_b52",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b53'",
+        "new_id": "p3_b53",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b54'",
+        "new_id": "p3_b54",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b55'",
+        "new_id": "p3_b55",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b56'",
+        "new_id": "p3_b56",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b57'",
+        "new_id": "p3_b57",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b58'",
+        "new_id": "p3_b58",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b59'",
+        "new_id": "p3_b59",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b60'",
+        "new_id": "p3_b60",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b61'",
+        "new_id": "p3_b61",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b62'",
+        "new_id": "p3_b62",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b63'",
+        "new_id": "p3_b63",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b64'",
+        "new_id": "p3_b64",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b65'",
+        "new_id": "p3_b65",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b66'",
+        "new_id": "p3_b66",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b67'",
+        "new_id": "p3_b67",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b68'",
+        "new_id": "p3_b68",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b69'",
+        "new_id": "p3_b69",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b70'",
+        "new_id": "p3_b70",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b71'",
+        "new_id": "p3_b71",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b72'",
+        "new_id": "p3_b72",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b73'",
+        "new_id": "p3_b73",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b74'",
+        "new_id": "p3_b74",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b76'",
+        "new_id": "p3_b76",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b77'",
+        "new_id": "p3_b77",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b78'",
+        "new_id": "p3_b78",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b79'",
+        "new_id": "p3_b79",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b80'",
+        "new_id": "p3_b80",
+        "canonicalized": true
+      }
+    ]
+  },
+  {
+    "file": "doc_03_math.json",
+    "total_nodes": 81,
+    "canonicalized_count": 81,
+    "nodes": [
+      {
+        "old_id": "value='p1_b1'",
+        "new_id": "p1_b1",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b2'",
+        "new_id": "p1_b2",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b3'",
+        "new_id": "p1_b3",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b4'",
+        "new_id": "p1_b4",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b5'",
+        "new_id": "p1_b5",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b6'",
+        "new_id": "p1_b6",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b7'",
+        "new_id": "p1_b7",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b8'",
+        "new_id": "p1_b8",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b9'",
+        "new_id": "p1_b9",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b10'",
+        "new_id": "p1_b10",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b11'",
+        "new_id": "p1_b11",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b12'",
+        "new_id": "p1_b12",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b13'",
+        "new_id": "p1_b13",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b14'",
+        "new_id": "p1_b14",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b15'",
+        "new_id": "p1_b15",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b16'",
+        "new_id": "p1_b16",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b17'",
+        "new_id": "p1_b17",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b18'",
+        "new_id": "p1_b18",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b19'",
+        "new_id": "p1_b19",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b20'",
+        "new_id": "p1_b20",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b21'",
+        "new_id": "p1_b21",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b22'",
+        "new_id": "p1_b22",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b23'",
+        "new_id": "p1_b23",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b24'",
+        "new_id": "p1_b24",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b25'",
+        "new_id": "p1_b25",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b26'",
+        "new_id": "p1_b26",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b27'",
+        "new_id": "p1_b27",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b28'",
+        "new_id": "p1_b28",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b29'",
+        "new_id": "p1_b29",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b2'",
+        "new_id": "p2_b2",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b3'",
+        "new_id": "p2_b3",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b4'",
+        "new_id": "p2_b4",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b5'",
+        "new_id": "p2_b5",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b6'",
+        "new_id": "p2_b6",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b7'",
+        "new_id": "p2_b7",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b8'",
+        "new_id": "p2_b8",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b9'",
+        "new_id": "p2_b9",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b10'",
+        "new_id": "p2_b10",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b11'",
+        "new_id": "p2_b11",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b12'",
+        "new_id": "p2_b12",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b13'",
+        "new_id": "p2_b13",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b14'",
+        "new_id": "p2_b14",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b15'",
+        "new_id": "p2_b15",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b16'",
+        "new_id": "p2_b16",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b17'",
+        "new_id": "p2_b17",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b18'",
+        "new_id": "p2_b18",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b19'",
+        "new_id": "p2_b19",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b20'",
+        "new_id": "p2_b20",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b21'",
+        "new_id": "p2_b21",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b22'",
+        "new_id": "p2_b22",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b23'",
+        "new_id": "p2_b23",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b24'",
+        "new_id": "p2_b24",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b25'",
+        "new_id": "p2_b25",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b26'",
+        "new_id": "p2_b26",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b2'",
+        "new_id": "p3_b2",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b3'",
+        "new_id": "p3_b3",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b4'",
+        "new_id": "p3_b4",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b5'",
+        "new_id": "p3_b5",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b6'",
+        "new_id": "p3_b6",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b7'",
+        "new_id": "p3_b7",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b8'",
+        "new_id": "p3_b8",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b9'",
+        "new_id": "p3_b9",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b10'",
+        "new_id": "p3_b10",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b11'",
+        "new_id": "p3_b11",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b12'",
+        "new_id": "p3_b12",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b13'",
+        "new_id": "p3_b13",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b14'",
+        "new_id": "p3_b14",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b15'",
+        "new_id": "p3_b15",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b16'",
+        "new_id": "p3_b16",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b17'",
+        "new_id": "p3_b17",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b18'",
+        "new_id": "p3_b18",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b19'",
+        "new_id": "p3_b19",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b20'",
+        "new_id": "p3_b20",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b21'",
+        "new_id": "p3_b21",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b22'",
+        "new_id": "p3_b22",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b23'",
+        "new_id": "p3_b23",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b24'",
+        "new_id": "p3_b24",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b25'",
+        "new_id": "p3_b25",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b26'",
+        "new_id": "p3_b26",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b27'",
+        "new_id": "p3_b27",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b28'",
+        "new_id": "p3_b28",
+        "canonicalized": true
+      }
+    ]
+  },
+  {
+    "file": "doc_04_table.json",
+    "total_nodes": 65,
+    "canonicalized_count": 65,
+    "nodes": [
+      {
+        "old_id": "value='p1_b0'",
+        "new_id": "p1_b0",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b1'",
+        "new_id": "p1_b1",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b2'",
+        "new_id": "p1_b2",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b3'",
+        "new_id": "p1_b3",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b4'",
+        "new_id": "p1_b4",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b5'",
+        "new_id": "p1_b5",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b6'",
+        "new_id": "p1_b6",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b7'",
+        "new_id": "p1_b7",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b8'",
+        "new_id": "p1_b8",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b9'",
+        "new_id": "p1_b9",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b10'",
+        "new_id": "p1_b10",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b11'",
+        "new_id": "p1_b11",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b12'",
+        "new_id": "p1_b12",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b13'",
+        "new_id": "p1_b13",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b14'",
+        "new_id": "p1_b14",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b15'",
+        "new_id": "p1_b15",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b16'",
+        "new_id": "p1_b16",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b17'",
+        "new_id": "p1_b17",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b18'",
+        "new_id": "p1_b18",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b19'",
+        "new_id": "p1_b19",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b20'",
+        "new_id": "p1_b20",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b21'",
+        "new_id": "p1_b21",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b22'",
+        "new_id": "p1_b22",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b23'",
+        "new_id": "p1_b23",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b24'",
+        "new_id": "p1_b24",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b25'",
+        "new_id": "p1_b25",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b26'",
+        "new_id": "p1_b26",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b27'",
+        "new_id": "p1_b27",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b28'",
+        "new_id": "p1_b28",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b29'",
+        "new_id": "p1_b29",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b30'",
+        "new_id": "p1_b30",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b31'",
+        "new_id": "p1_b31",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b32'",
+        "new_id": "p1_b32",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b33'",
+        "new_id": "p1_b33",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b34'",
+        "new_id": "p1_b34",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b1'",
+        "new_id": "p2_b1",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b2'",
+        "new_id": "p2_b2",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b3'",
+        "new_id": "p2_b3",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b4'",
+        "new_id": "p2_b4",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b5'",
+        "new_id": "p2_b5",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b6'",
+        "new_id": "p2_b6",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b7'",
+        "new_id": "p2_b7",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b8'",
+        "new_id": "p2_b8",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b9'",
+        "new_id": "p2_b9",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b10'",
+        "new_id": "p2_b10",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b11'",
+        "new_id": "p2_b11",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b12'",
+        "new_id": "p2_b12",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b13'",
+        "new_id": "p2_b13",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b14'",
+        "new_id": "p2_b14",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b1'",
+        "new_id": "p3_b1",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b2'",
+        "new_id": "p3_b2",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b3'",
+        "new_id": "p3_b3",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b4'",
+        "new_id": "p3_b4",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b5'",
+        "new_id": "p3_b5",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b6'",
+        "new_id": "p3_b6",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b7'",
+        "new_id": "p3_b7",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b8'",
+        "new_id": "p3_b8",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b9'",
+        "new_id": "p3_b9",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b10'",
+        "new_id": "p3_b10",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b11'",
+        "new_id": "p3_b11",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b12'",
+        "new_id": "p3_b12",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b13'",
+        "new_id": "p3_b13",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b14'",
+        "new_id": "p3_b14",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b15'",
+        "new_id": "p3_b15",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b16'",
+        "new_id": "p3_b16",
+        "canonicalized": true
+      }
+    ]
+  },
+  {
+    "file": "doc_05_graph.json",
+    "total_nodes": 104,
+    "canonicalized_count": 104,
+    "nodes": [
+      {
+        "old_id": "value='p1_b0'",
+        "new_id": "p1_b0",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b1'",
+        "new_id": "p1_b1",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b2'",
+        "new_id": "p1_b2",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b3'",
+        "new_id": "p1_b3",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b4'",
+        "new_id": "p1_b4",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p1_b5'",
+        "new_id": "p1_b5",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b1'",
+        "new_id": "p2_b1",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b2'",
+        "new_id": "p2_b2",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b3'",
+        "new_id": "p2_b3",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b4'",
+        "new_id": "p2_b4",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b5'",
+        "new_id": "p2_b5",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b6'",
+        "new_id": "p2_b6",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b7'",
+        "new_id": "p2_b7",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b8'",
+        "new_id": "p2_b8",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b9'",
+        "new_id": "p2_b9",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b10'",
+        "new_id": "p2_b10",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b11'",
+        "new_id": "p2_b11",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b12'",
+        "new_id": "p2_b12",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b13'",
+        "new_id": "p2_b13",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b14'",
+        "new_id": "p2_b14",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b15'",
+        "new_id": "p2_b15",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b16'",
+        "new_id": "p2_b16",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b17'",
+        "new_id": "p2_b17",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b18'",
+        "new_id": "p2_b18",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b19'",
+        "new_id": "p2_b19",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b20'",
+        "new_id": "p2_b20",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b21'",
+        "new_id": "p2_b21",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b22'",
+        "new_id": "p2_b22",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b23'",
+        "new_id": "p2_b23",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b24'",
+        "new_id": "p2_b24",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b25'",
+        "new_id": "p2_b25",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b26'",
+        "new_id": "p2_b26",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b27'",
+        "new_id": "p2_b27",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b28'",
+        "new_id": "p2_b28",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b29'",
+        "new_id": "p2_b29",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b30'",
+        "new_id": "p2_b30",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b31'",
+        "new_id": "p2_b31",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b32'",
+        "new_id": "p2_b32",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b33'",
+        "new_id": "p2_b33",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b34'",
+        "new_id": "p2_b34",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b35'",
+        "new_id": "p2_b35",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b36'",
+        "new_id": "p2_b36",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b37'",
+        "new_id": "p2_b37",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b38'",
+        "new_id": "p2_b38",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b39'",
+        "new_id": "p2_b39",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b40'",
+        "new_id": "p2_b40",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b41'",
+        "new_id": "p2_b41",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b42'",
+        "new_id": "p2_b42",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b43'",
+        "new_id": "p2_b43",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b44'",
+        "new_id": "p2_b44",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b45'",
+        "new_id": "p2_b45",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b46'",
+        "new_id": "p2_b46",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b47'",
+        "new_id": "p2_b47",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b48'",
+        "new_id": "p2_b48",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b49'",
+        "new_id": "p2_b49",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b50'",
+        "new_id": "p2_b50",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b51'",
+        "new_id": "p2_b51",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b52'",
+        "new_id": "p2_b52",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b53'",
+        "new_id": "p2_b53",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b54'",
+        "new_id": "p2_b54",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b55'",
+        "new_id": "p2_b55",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b56'",
+        "new_id": "p2_b56",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b57'",
+        "new_id": "p2_b57",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b58'",
+        "new_id": "p2_b58",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b59'",
+        "new_id": "p2_b59",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b60'",
+        "new_id": "p2_b60",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b61'",
+        "new_id": "p2_b61",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b62'",
+        "new_id": "p2_b62",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b63'",
+        "new_id": "p2_b63",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b64'",
+        "new_id": "p2_b64",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b65'",
+        "new_id": "p2_b65",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b66'",
+        "new_id": "p2_b66",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b67'",
+        "new_id": "p2_b67",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b68'",
+        "new_id": "p2_b68",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b69'",
+        "new_id": "p2_b69",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b70'",
+        "new_id": "p2_b70",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b71'",
+        "new_id": "p2_b71",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b72'",
+        "new_id": "p2_b72",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b73'",
+        "new_id": "p2_b73",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b74'",
+        "new_id": "p2_b74",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b75'",
+        "new_id": "p2_b75",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b76'",
+        "new_id": "p2_b76",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p2_b77'",
+        "new_id": "p2_b77",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b0'",
+        "new_id": "p3_b0",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b1'",
+        "new_id": "p3_b1",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b2'",
+        "new_id": "p3_b2",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b3'",
+        "new_id": "p3_b3",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b4'",
+        "new_id": "p3_b4",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b5'",
+        "new_id": "p3_b5",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b6'",
+        "new_id": "p3_b6",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b7'",
+        "new_id": "p3_b7",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b8'",
+        "new_id": "p3_b8",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b9'",
+        "new_id": "p3_b9",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b10'",
+        "new_id": "p3_b10",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b11'",
+        "new_id": "p3_b11",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b12'",
+        "new_id": "p3_b12",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b13'",
+        "new_id": "p3_b13",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b14'",
+        "new_id": "p3_b14",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b15'",
+        "new_id": "p3_b15",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b16'",
+        "new_id": "p3_b16",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b17'",
+        "new_id": "p3_b17",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b18'",
+        "new_id": "p3_b18",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b19'",
+        "new_id": "p3_b19",
+        "canonicalized": true
+      },
+      {
+        "old_id": "value='p3_b20'",
+        "new_id": "p3_b20",
+        "canonicalized": true
+      }
+    ]
+  }
+]

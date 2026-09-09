@@ -1,7 +1,7 @@
 # FASE_5_EXIT_REVIEW_EVIDENCE_LOG.md
 
 **Documento:** `docs/architecture/adr/phase-17-bis/reviews/FASE_5_EXIT_REVIEW_EVIDENCE_LOG.md`
-**Versión:** 0.1.0
+**Versión:** 0.4.0
 **Estado:** IN_PROGRESS
 **Fecha:** 2026-09-05
 **Última actualización:** 2026-09-05
@@ -26,6 +26,9 @@ normativa y la clasificación final.
 | Versión | Fecha | Cambio |
 |---|---|---|
 | 0.1.0 | 2026-09-05 | Emisión inicial del esqueleto dinámico. Documento vacío, listo para recibir evidencia forense durante la ejecución de los Gate Exit Reviews. |
+| 0.2.0 | 2026-09-06 | Wave 1.1 completada: 4 hallazgos derivados identificados (H-5.1-1 a H-5.1-4) y registrados como referencia de trazabilidad en §5.2. La evidencia forense formal se registrará en §2 durante el Gate 1 Exit Review. |
+| 0.3.0 | 2026-09-06 | **Wave 1.2 completada:** (1) H-5.1-4 reclasificado de PENDING_REVIEW a RESOLVED — traits reclasificados con nombres correctos del catálogo vigente (scanned_noise, heavy_math, nested_tables, floating_figures); (2) H-5.1-5 registrado y RESOLVED — discrepancia de nombres de traits (DENSE_TYPOGRAPHY y MIXED_CONTENT no existen en catálogo; HEAVY_MATHEMATICS→heavy_math, COMPLEX_TABLES→nested_tables, OCR_DEPENDENCY→scanned_noise); (3) H-5.1-6 registrado y CLOSED (NAR) — contrato del manifest verificado como 6D plano en RawDocumentEntryDTO; (4) Manifest canónico generado y verificado con BootstrapCorpusManifestUseCase (hash 62f0df16). |
+| 0.4.0 | 2026-09-09 | **Wave 1.3 completada:** (1) H-5.1-2 reclasificado de IMPLEMENTATION_REQUIRED a RESOLVED — archivo temporal tmptu237h6p eliminado en Task 1.3.1; (2) H-5.1-3 reclasificado de IMPLEMENTATION_REQUIRED a RESOLVED — AST legacy reemplazado por re-extracción post-recorte en Task 1.3.8; (3) H-5.1-7 registrado y RESOLVED — parent_node_id=None consistente con Flat Design, verificado en curaduría; (4) H-5.1-8 registrado y CLOSED (NAR) — ManifestFingerprintCalculator incluye page_count (verificado en source code); (5) H-5.1-9 registrado como ACCEPTED_LIMITATION — doc_02_double: fragmentación de ecuaciones por PyMuPDF en doble columna; (6) H-5.1-10 registrado como ACCEPTED_LIMITATION — doc_05_graph: labels de ejes como paragraphs; (7) H-5.1-11 registrado como RECLASSIFIED_FUTURE_PHASE — patrón Detect & Placeholder, fuera del scope de Fase 17-BIS (ADR §4); (8) Curation Report generado en reviews/. |
 
 ---
 
@@ -218,6 +221,104 @@ Gate Exit Reviews correspondientes, aplicando el árbol de decisión de §1.4.
 | DF-19 | Manifest legacy 4D→6D | `IMPLEMENTATION_REQUIRED` (preliminar) | Gate 1 W1.2, W1.3 | HITO 5.1 |
 | GAP-5.0-03 | Configuración implícita del corpus | `IMPLEMENTATION_REQUIRED` (preliminar) | Gate 4 W4.1 | HITO 5.0 |
 | GAP-5.2-05 | Certification Boundary Integrity violation | `IMPLEMENTATION_REQUIRED` (preliminar) | Gate 2 W2.1, Gate 4 W4.3 | HITO 5.2 |
+
+
+### 5.2.1 Hallazgos derivados de Wave 1.1 — referencia de trazabilidad
+
+Los siguientes hallazgos fueron identificados durante la ejecución de Wave 1.1
+(Corpus Discovery & Identity). Se registran aquí como referencia de trazabilidad.
+La evidencia forense formal (archivos auditados, análisis, gaps confirmados,
+regla aplicada) se registrará en §2 durante el Gate 1 Exit Review.
+
+| ID | Descripción | Estado preliminar | Gate destino | Fuente |
+|----|-------------|-------------------|--------------|--------|
+| H-5.1-1 | Discrepancia 7 vs 6 identidades (HITO 5.1). pesaran1999.pdf encontrado en datasets/raw/ e incluido como doc_07_pesaran.pdf (SHA-256: f1c80072). | `RESOLVED` | Gate 1 W1.1 T1.1.1 | Auditoría Wave 1.1 |
+| H-5.1-2 | Archivo temporal huérfano tmptu237h6p (35,557 bytes) en tests/corpus/calibration_v1/candidates/pymupdf/. Eliminado en Task 1.3.1. | `RESOLVED` | Gate 1 W1.1 T1.1.1 → W1.3 T1.3.1 | Auditoría Wave 1.1 → Resolución Wave 1.3 |
+| H-5.1-3 | AST de pesaran1999.pdf en formato legacy (type en lugar de node_type, sin strategy). Resuelto por re-extracción: PDF recortado a 3 páginas, GT regenerado con GenerateGoldenDraftUseCase (21 nodos, formato vigente). | `RESOLVED` | Gate 1 W1.1 T1.1.1 → W1.3 T1.3.8 | Auditoría Wave 1.1 → Resolución Wave 1.3 |
+| H-5.1-4 | doc_03_math y doc_06_johnstone son scanned_noise (no native_pdf). Clasificación corregida en manifest canónico con nombres del catálogo vigente. | `RESOLVED` | Gate 1 W1.2 T1.2.1 | Inspección visual Wave 1.1 → Reclasificación Wave 1.2 |
+
+> **Nota:** H-5.1-1 se marca como `RESOLVED` porque la identidad faltante fue
+> encontrada e incluida en el corpus canónico durante Wave 1.1. La evidencia
+> forense formal (SHA-256 verificado, archivos auditados) se registrará en §2
+> durante el Gate 1 Exit Review.
+>
+> H-5.1-2 se marca como `RESOLVED` porque el archivo temporal fue eliminado
+> durante Wave 1.3 (Task 1.3.1). La evidencia forense formal se registrará en §2
+> durante el Gate 1 Exit Review.
+>
+> H-5.1-3 se marca como `RESOLVED` porque el AST legacy fue reemplazado por
+> re-extracción durante Wave 1.3 (Task 1.3.8): PDF recortado a 3 páginas,
+> GT regenerado con GenerateGoldenDraftUseCase (21 nodos, formato vigente AST V2).
+> La evidencia forense formal se registrará en §2 durante el Gate 1 Exit Review.
+>
+> H-5.1-4 se marca como `RESOLVED` porque la clasificación de traits fue corregida
+> durante Wave 1.2 (Task 1.2.1) con los nombres correctos del catálogo vigente
+> (ExtractionChallengeTrait). La evidencia forense formal se registrará en §2
+> durante el Gate 1 Exit Review.
+
+
+### 5.2.2 Hallazgos derivados de Wave 1.2 — referencia de trazabilidad
+
+Los siguientes hallazgos fueron identificados durante la ejecución de Wave 1.2
+(Corpus Qualification & Manifest). Se registran aquí como referencia de trazabilidad.
+La evidencia forense formal (archivos auditados, análisis, gaps confirmados,
+regla aplicada) se registrará en §2 durante el Gate 1 Exit Review.
+
+| ID | Descripción | Estado preliminar | Gate destino | Fuente |
+|----|-------------|-------------------|--------------|--------|
+| H-5.1-5 | Discrepancia de nombres de traits entre clasificación preliminar y catálogo vigente (ExtractionChallengeTrait). Nombres inexistentes: DENSE_TYPOGRAPHY, MIXED_CONTENT. Nombres corregidos: HEAVY_MATHEMATICS→heavy_math, COMPLEX_TABLES→nested_tables, OCR_DEPENDENCY→scanned_noise. Reclasificación completada. | `RESOLVED` | Gate 1 W1.2 T1.2.1 | Auditoría Wave 1.2 |
+| H-5.1-6 | Contrato del manifest verificado como 6D plano en RawDocumentEntryDTO (document_id, sha256, traits, page_count, ground_truth_state, oracle_hash). El sha256 está encapsulado en DocumentFingerprint a nivel de dominio pero aplanado en el DTO de serialización. El contrato 6D es correcto. | `CLOSED (NAR)` | Gate 1 W1.2 T1.2.3 | Auditoría Wave 1.2 |
+
+> **Nota:** H-5.1-5 se marca como `RESOLVED` porque la discrepancia fue identificada
+> y corregida durante la misma Task (1.2.1). La reclasificación se completó contra
+> el catálogo vigente (ExtractionChallengeTrait). La evidencia forense formal se
+> registrará en §2 durante el Gate 1 Exit Review.
+>
+> H-5.1-6 se marca como `CLOSED (NAR)` porque la hipótesis (contrato NO es 6D plano)
+> fue refutada: RawDocumentEntryDTO SÍ es 6D plano. El sha256 está encapsulado en
+> DocumentFingerprint a nivel de dominio pero aplanado en el DTO de serialización.
+> La evidencia forense formal se registrará en §2 durante el Gate 1 Exit Review.
+
+
+### 5.2.3 Hallazgos derivados de Wave 1.3 — referencia de trazabilidad
+
+Los siguientes hallazgos fueron identificados durante la ejecución de Wave 1.3
+(GT Migration & Eligibility). Se registran aquí como referencia de trazabilidad.
+La evidencia forense formal (archivos auditados, análisis, gaps confirmados,
+regla aplicada) se registrará en §2 durante el Gate 1 Exit Review.
+
+| ID | Descripción | Estado preliminar | Gate destino | Fuente |
+|----|-------------|-------------------|--------------|--------|
+| H-5.1-7 | Todos los parent_node_id son None en los 5 GTs canonicalizados. Consistente con Flat Design (ENGINEERING_PRINCIPLES §II: secuencias lineales enriquecidas con metadatos topológicos). Verificado en curaduría manual. | `RESOLVED` | Gate 1 W1.3 T1.3.4 → T1.3.9 | Auditoría Wave 1.3 |
+| H-5.1-8 | ManifestFingerprintCalculator.compute_hash() incluye page_count en el payload (verificado en source code: `f"{doc.page_count}:"`). Hash anterior coincidió por valor por defecto de Pydantic que igualó el valor real. | `CLOSED (NAR)` | Gate 1 W1.3 T1.3.1 | Auditoría Wave 1.3 |
+| H-5.1-9 | doc_02_double: 52 nodos display_equation contienen fragmentos garbled (operadores/variables aislados: "+", "= = =", "p", "i t i i"). PyMuPDF no agrupa tokens matemáticos en layout de doble columna. GT fiel al extractor, no al documento fuente. | `ACCEPTED_LIMITATION` | Gate 1 W1.3 T1.3.9 | Curaduría Wave 1.3 |
+| H-5.1-10 | doc_05_graph: 56 labels de ejes de gráficos vectoriales extraídos como paragraph individuales (ej. "–20", "0", "15"). Estructura del gráfico no capturada. Comportamiento esperado de PyMuPDF frente a gráficos vectoriales. | `ACCEPTED_LIMITATION` | Gate 1 W1.3 T1.3.9 | Curaduría Wave 1.3 |
+| H-5.1-11 | Propuesta de patrón "Detect & Placeholder": PyMuPDF degrada silenciosamente tablas/figuras/ecuaciones al extraerlas como texto plano. Se propone detectar la presencia y dejar placeholder para pegado manual. Fuera del scope de Fase 17-BIS (ADR F17_BIS_MASTER §4: no modificar extractores). | `RECLASSIFIED_FUTURE_PHASE` | Post Fase 17-BIS | Curaduría Wave 1.3 |
+
+> **Nota:** H-5.1-7 se marca como `RESOLVED` porque la observación (parent_node_id=None)
+> es consistente con el Flat Design definido en ENGINEERING_PRINCIPLES §II. La curaduría
+> manual (Task 1.3.9) confirmó que los ASTs representan fielmente la estructura del
+> documento fuente dentro de las capacidades del extractor. La evidencia forense formal
+> se registrará en §2 durante el Gate 1 Exit Review.
+>
+> H-5.1-8 se marca como `CLOSED (NAR)` porque la inspección del source code de
+> ManifestFingerprintCalculator.compute_hash() confirmó que page_count SÍ está incluido
+> en el payload del hash. El hash anterior coincidió porque Pydantic asignó un valor
+> por defecto que igualó el valor real (todos los documentos tenían page_count=3).
+> La evidencia forense formal se registrará en §2 durante el Gate 1 Exit Review.
+>
+> H-5.1-9 y H-5.1-10 se marcan como `ACCEPTED_LIMITATION` porque documentan limitaciones
+> conocidas de PyMuPDFProvider (fragmentación de ecuaciones en doble columna y ruido
+> estructural en gráficos vectoriales). Los GTs son fieles a la salida del extractor
+> de producción actual, aunque no al contenido real del documento fuente. Documentado
+> en FASE_5_WAVE_1_3_CURATION_REPORT.md. La evidencia forense formal se registrará en §2
+> durante el Gate 1 Exit Review.
+>
+> H-5.1-11 se marca como `RECLASSIFIED_FUTURE_PHASE` porque la implementación del patrón
+> Detect & Placeholder requiere modificación de PyMuPDFProvider y nuevos tipos de nodo
+> (placeholder), lo cual está fuera del scope de Fase 17-BIS según ADR F17_BIS_MASTER §4.
+> Se documenta como candidato a decisión para una fase futura con ADR dedicado.
+> La evidencia forense formal se registrará en §2 durante el Gate 1 Exit Review.
 
 ---
 

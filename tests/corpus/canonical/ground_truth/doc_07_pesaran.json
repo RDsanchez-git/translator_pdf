@@ -1,0 +1,698 @@
+[
+  {
+    "node_id": "value='p1_b0'",
+    "sequence_id": 1,
+    "node_type": "heading",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 272.9599914550781,
+          "y0": 89.55701446533203,
+          "x1": 338.7164001464844,
+          "y1": 110.43701171875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "0",
+      "confidence": 1.0,
+      "layout_reading_order": 0,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "A@M*i W",
+      "heading_level": "unknown"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b1'",
+    "sequence_id": 2,
+    "node_type": "heading",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 88.16000366210938,
+          "y0": 123.28187561035156,
+          "x1": 523.66796875,
+          "y1": 140.56187438964844,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "1",
+      "confidence": 1.0,
+      "layout_reading_order": 1,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "5|@|\u0010t|\u0010Ut uLh 5i*iU|\u0010?} |\u0004i w@} \u0011h_ih Lu |\u0004i ,@h?\u0010?}t ,^\u0003@|\u0010L?",
+      "heading_level": "unknown"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b2'",
+    "sequence_id": 3,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 112.63999938964844,
+          "y0": 146.20001220703125,
+          "x1": 503.8039855957031,
+          "y1": 190.8399658203125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "2",
+      "confidence": 1.0,
+      "layout_reading_order": 2,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "`\u0010|\u0004 #i|ih4\u0010?\u0010t|\u0010U Ahi?_t\n`\u0010|\u0004L\u0003| #i|ih4\u0010?\u0010t|\u0010U Ahi?_t\nR\n\bU\u001c\n7\u0012\u001c\n\u001d2\n7\u001cE\u001c\n\u001d2\n7\u001cEe\u001c\n\bU\u001c\n7\u0012\u001c\n\u001d2\n7\u001cE\u001c\n\u001d2\n7\u001cEe\u001c\n\n\fb\u0015\f\f\n\ff2\u0015e\nS\u0015HS_\n\fD\u0015Hb_\n\f.\u0015D\n\ff\u0015Se\nH\u0015\fH_\n\fe\u0015HH_"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b3'",
+    "sequence_id": 4,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 112.63999938964844,
+          "y0": 192.20899963378906,
+          "x1": 491.8332824707031,
+          "y1": 205.719970703125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "3",
+      "confidence": 1.0,
+      "layout_reading_order": 3,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "2\n\f2e\u00152D\n\ff\u0015..\n2\u0015S\nb\u0015._\n\f2\f\u0015..\n\ff2\u0015S2\n\u0015bH\n2\u0015D2_"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b4'",
+    "sequence_id": 5,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 112.63999938964844,
+          "y0": 207.08900451660156,
+          "x1": 491.8332824707031,
+          "y1": 220.5999755859375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "4",
+      "confidence": 1.0,
+      "layout_reading_order": 4,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "2\u0015D\n2b\f\u0015.e\nf\u0015D2\n.\u0015f._\n\f2f\u0015H.\n2be\u0015e\f\n\u0015DS\nb\u0015\fD_"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b5'",
+    "sequence_id": 6,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 112.63999938964844,
+          "y0": 221.96900939941406,
+          "x1": 482.0,
+          "y1": 280.1199951171875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "5",
+      "confidence": 1.0,
+      "layout_reading_order": 5,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "e\n\f\fe\u0015\f.\n\ff\u0015\f\n\f\u0015eHWW\n.\u0015.bWW\n\f\fD\u0015\f.\n\ff\f\u0015S\f\n\f\u0015eWW\n.\u0015\f\nD\n\f\fD\u0015He\n2b.\u0015Df\nf\u0015f\f\n2\u0015Df\n\f\fS\u0015eb\n2bb\u0015e.\nf\u0015f\f\n2\u0015D\nS\n\f\f.\u0015fS\n2b\f\u0015e2\nf\u0015HD\n\f\u0015DH\n\f\f.\u0015f\f\n2be\u0015.2\nf\u0015bb\n\f\u0015bb\n.\n\f\fS\u0015bS\n2HH\u0015fe\nf\u0015.\n2\u00152f\n\f\fS\u0015HD\n2Hb\u00152D\nf\u0015fb\nf\u0015Se"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b6'",
+    "sequence_id": 7,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 72.07938385009766,
+          "y0": 262.12298583984375,
+          "x1": 539.6594848632812,
+          "y1": 321.6430358886719,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "6",
+      "confidence": 1.0,
+      "layout_reading_order": 6,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "\u0006 Qrwhv= s lv wkh odj rughu ri wkh frqglwlrqdo prgho +818,/ zlwk }hur uhvwulfwlrqv rq wkh frh\u0011flhqwv ri\nodjjhg fkdqjhv lq wkh surgxfwlylw| yduldeoh1 DLFs @ OOs \u0003 vs dqg VEFs @ OOs \u0003 vs"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b7'",
+    "sequence_id": 8,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 72.08016967773438,
+          "y0": 309.60308837890625,
+          "x1": 540.2921142578125,
+          "y1": 377.8016357421875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "7",
+      "confidence": 1.0,
+      "layout_reading_order": 7,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "5 oq+W,> duh wkh Dndlnh\ndqg Vfkzdu} Lqirupdwlrq Fulwhuld/ zkhuh OOs lv wkh pd{lpl}hg orj0olnholkrrg ydoxh ri wkh prgho/ s lv wkh\nodj rughu/ vs lv wkh qxpehu ri iuhho| hvwlpdwhg frh\u0011flhqwv/ dqg W lv wkh vdpsoh vl}h1 \"5\nVF+4, dqg \"5\nVF+7, duh\nwkh OP vwdwlvwlfv iru whvwlqj uhvlgxdo vhuldo fruuhodwlrqv ri rughuv 4 dqg 71 Wkh v|perov |/ \u0006/ dqg \u0006\u0006 uhsuhvhqw\nvljql\u000ffdqfh dw 4( ru ohvv/ 8( ru ohvv/ dqg 43( ru ohvv/ uhvshfwlyho|1"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b8'",
+    "sequence_id": 9,
+    "node_type": "heading",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 272.9599914550781,
+          "y0": 389.5570068359375,
+          "x1": 338.7164001464844,
+          "y1": 410.43701171875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "8",
+      "confidence": 1.0,
+      "layout_reading_order": 8,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "A@M*i 2W",
+      "heading_level": "unknown"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b9'",
+    "sequence_id": 10,
+    "node_type": "heading",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 72.08000183105469,
+          "y0": 425.6399841308594,
+          "x1": 560.4271240234375,
+          "y1": 440.0400085449219,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "9",
+      "confidence": 1.0,
+      "layout_reading_order": 9,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "6\u0013 @?_ |\u0013 5|@|\u0010t|\u0010Ut uLh Ait|\u0010?} |\u0004i , \u0010t|i?Ui Lu @ wL?}\u0013+\u0003? ,@h?\u0010?}t ,^\u0003@|\u0010L?",
+      "heading_level": "unknown"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b10'",
+    "sequence_id": 11,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 166.8800048828125,
+          "y0": 445.7200012207031,
+          "x1": 445.2439880371094,
+          "y1": 505.0,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "10",
+      "confidence": 1.0,
+      "layout_reading_order": 10,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "`\u0010|\u0004\n`\u0010|\u0004L\u0003|\nR\n#i|ih4\u0010?\u0010t|\u0010U Ahi?_t\n#i|ih4\u0010?\u0010t|\u0010U Ahi?_t\n8UT\n8T\n|T\n8UUU\n|UUU\ne\n2\u0015bb@\n2\u0015\fe@\n\u00132\u00152S@\n\f\u0015S\fK\n\u0013\f\u0015f2K"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b11'",
+    "sequence_id": 12,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 166.8800048828125,
+          "y0": 504.2829895019531,
+          "x1": 415.51568603515625,
+          "y1": 519.6400146484375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "11",
+      "confidence": 1.0,
+      "layout_reading_order": 11,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "D\ne\u0015e2K\n\f\u0015bSK\n\u00132\u0015H\f@\nD\u00152\fS\n\u0013e\u0015ffS"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b12'",
+    "sequence_id": 13,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 166.8800048828125,
+          "y0": 519.1630249023438,
+          "x1": 415.51568603515625,
+          "y1": 534.52001953125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "12",
+      "confidence": 1.0,
+      "layout_reading_order": 12,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "S\ne\u0015.HS\n\f\u0015DbK\n\u00132\u0015ee@\nD\u0015e2S\n\u0013\f\u0015eHK"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b13'",
+    "sequence_id": 14,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 72.07855224609375,
+          "y0": 539.31884765625,
+          "x1": 540.3051147460938,
+          "y1": 639.8816528320312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "13",
+      "confidence": 1.0,
+      "layout_reading_order": 13,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "\u0006 Qrwhv= s lv wkh odj rughu ri wkh xqghuo|lqj prgho1 Vhh dovr wkh qrwhv wr Wdeoh 41 ILY lv wkh I0vwdwlvwlf iru\nwhvwlqj }hur uhvwulfwlrqv rq wkh frh\u0011flhqwv ri wkh odjjhg ohyho yduldeohv dqg wkh wuhqg whup lq +818,1 IY\nlv\nwkh I0vwdwlvwlf iru whvwlqj }hur uhvwulfwlrqv rq wkh frh\u0011flhqwv ri wkh odjjhg ohyho yduldeohv lq +818,1 ILLL lv wkh\nI0vwdwlvwlf iru whvwlqj }hur uhvwulfwlrqv rq wkh frh\u0011flhqwv ri wkh odjjhg ohyho yduldeohv lq +818, zlwkrxw wkh\nwuhqg whup1 wY dqg wLLL duh wkh w0udwlrv ri wkh frh\u0011flhqw ri zw\u00034 lq +818, zlwk dqg zlwkrxw d ghwhuplqlvwlf\nolqhdu wuhqg1 d ghqrwhv wkdw wkh vwdwlvwlf olhv ehorz wkh <8( orzhu erxqg/ e ghqrwhv lw idoov zlwklq wkh <8(\nerxqgv/ dqg f ghqrwhv wkdw lw idoov rxwvlgh wkh <8( xsshu erxqg1"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p1_b14'",
+    "sequence_id": 15,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 296.9599914550781,
+          "y0": 733.719970703125,
+          "x1": 315.1999816894531,
+          "y1": 745.9599609375,
+          "is_normalized": false
+        },
+        {
+          "x0": 72.0799560546875,
+          "y0": 74.91997528076172,
+          "x1": 540.0800170898438,
+          "y1": 621.6399536132812,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1,
+        2
+      ],
+      "provider_native_id": "14",
+      "confidence": 1.0,
+      "layout_reading_order": 14,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "d2fo A\u0004i \u000f@h\u0010L\u0003t t|@|\u0010t|\u0010Ut \u0010? A@M*i 2 ?ii_ |L Mi UL4T@hi_ \u0016\u0010|\u0004 |\u0004i Uh\u0010|\u0010U@* \u000f@*\u0003i ML\u0003?_t\nThL\u000f\u0010_i_ \u0010? A@M*it \u0019 @?_ \u00192\u0015 6\u0010ht| UL?t\u0010_ih |\u0004i ML\u0003?_t 6 |it|\u0015 6Lh |\u0004i 4L_i* \u0016\u0010|\u0004 @\n_i|ih4\u0010?\u0010t|\u0010U |hi?_c 8T\n\u0010t |\u0004i t|@?_@h_ 6\u0013t|@|\u0010t|\u0010U uLh |it|\u0010?} |\u0004i hit|h\u0010U|\u0010L?t Z\u0019\u0019 ' f @?_\n\u001c\u0019%\u0017% ' f c \u0016\u0004\u0010*i 8UT \u0010t |\u0004i t|@?_@h_ 6\u0013t|@|\u0010t|\u0010U uLh |it|\u0010?} Z\u0019\u0019 ' fc \u001c\u0019%\u0017% ' fc @?_ S ' fc\n\u0010? ED\u0015D\u001c\u0015 \u0006t \u0004@t Mii? @h}\u0003i_ \u0010? \u0018it@h@?c 5\u0004\u0010? @?_ 54\u0010|\u0004 EbbH\u001cc |\u0004i t|@|\u0010t|\u0010U 8UT \u0016\u0004\u0010U\u0004\nti|t |\u0004i |hi?_ ULi\u001aU\u0010i?| |L 3ihL \u0003?_ih |\u0004i ?\u0003** Lu ?L *i\u000fi* *L?}\u0013h\u0003? hi*@|\u0010L?t\u0004\u0010T \u0010t 4Lhi\n@TThLTh\u0010@|i |\u0004@? 8T \u0016\u0004\u0010U\u0004 _Lit ?L| \u00104TLti t\u0003U\u0004 @ hit|h\u0010U|\u0010L?\u0015 \u0005L|\u0010Ui |\u0004@| \u0016\u0004i? |\u0004i |hi?_\nULi\u001aU\u0010i?|t @hi ?L| hit|h\u0010U|i_c ED\u0015D\u001c \u00104T*\u0010it @ ^\u0003@_h@|\u0010U |hi?_ \u0010? hi@* \u0016@}it \u0003?_ih |\u0004i ?\u0003**\n\u0004)TL|\u0004it\u0010t Lu Z\u0019\u0019 ' f @?_ \u001c\u0019%\u0017% ' fc \u0016\u0004\u0010U\u0004 \u0010t ?L| T*@\u0003t\u0010M*i\u0015 A\u0004i Uh\u0010|\u0010U@* \u000f@*\u0003i ML\u0003?_t uLh\n|\u0004i t|@|\u0010t|\u0010Ut 8UT @?_ 8T @hi }\u0010\u000fi? \u0010? A@M*it \u0019\u0015\u0010\u000f @?_ \u0019\u0015\u000fc hitTiU|\u0010\u000fi*)\u0015 5\u0010?Ui |\u0004i 4L_i*\nUL?|@\u0010?t e hi}hittLhtc |\u0004i bDI Uh\u0010|\u0010U@* \u000f@*\u0003i ML\u0003?_t @hi E\f\u0015SSc e\u0015.S\u001c @?_ E\f\u0015e.c e\u0015D.\u001c uLh 8UT\n@?_ 8T c hitTiU|\u0010\u000fi*)\u0015 A\u0004i |it| L\u0003|UL4i Uh\u0010|\u0010U@**) _iTi?_t L? |\u0004i U\u0004L\u0010Ui Lu |\u0004i *@} Lh_ihc R\u0015\n6Lh R ' e |\u0004i \u0004)TL|\u0004it\u0010t |\u0004@| |\u0004ihi i \u0010t|t ?L *L?}\u0013h\u0003? i@h?\u0010?}t i^\u0003@|\u0010L? \u0010t ?L| hi\u0017iU|i_ @|\n|\u0004i bDI *i\u000fi*c \u0010hhitTiU|\u0010\u000fi Lu \u0016\u0004i|\u0004ih |\u0004i hi}hittLht @hi UEf\u001c Lh UE\u001c\u0015 6Lh R ' D |\u0004i ML\u0003?_t\n|it| \u0010t \u0010?UL?U*\u0003t\u0010\u000fi\u0015 6Lh R ' S Eti*iU|i_ M) |\u0004i \u0006W\u0019\u001c |\u0004i t|@|\u0010t|\u0010U 8T\n\u0010t t|\u0010** \u0010?UL?U*\u0003t\u0010\u000fic\nM\u0003| 8UT ' e\u0017.H \u0017\u0003t| *\u0010it L\u0003|t\u0010_i |\u0004i bDI Uh\u0010|\u0010U@* \u000f@*\u0003i ML\u0003?_t @?_ hi\u0017iU|t |\u0004i ?\u0003** \u0004)TL|\u0004it\u0010t\n|\u0004@| |\u0004ihi i \u0010t|t ?L *L?}\u0013h\u0003? i@h?\u0010?}t i^\u0003@|\u0010L?c \u0010hhitTiU|\u0010\u000fi Lu \u0016\u0004i|\u0004ih |\u0004i hi}hittLht @hi\nUEf\u001c Lh UE\u001c\u0015. A\u0004\u0010t UL?U*\u0003t\u0010L? \u0010t UL?h4i_ i\u000fi? 4Lhi UL?U*\u0003t\u0010\u000fi*) \u0016\u0004i? |\u0004i ML\u0003?_t 6\u0013|it|\n\u0010t @TT*\u0010i_ |L |\u0004i i@h?\u0010?}t i^\u0003@|\u0010L?t \u0016\u0010|\u0004L\u0003| @ *\u0010?i@h |hi?_\u0015 A\u0004i hi*i\u000f@?| |it| t|@|\u0010t|\u0010U \u0010t\n8UUUc @?_ \u0010|t @ttLU\u0010@|i_ bDI Uh\u0010|\u0010U@* \u000f@*\u0003i ML\u0003?_t @hi E2\u0015HSc e\u0015f\u001c\u0015H 6Lh R ' ec 8UUU ' \f\u0017S\fc\n@?_ |\u0004i |it| hit\u0003*| \u0010t \u0010?UL?U*\u0003t\u0010\u000fi\u0015 \u0012\u0003| uLh R ' D @?_ S |\u0004i \u000f@*\u0003it Lu 8UUU @hi D\u00152\f @?_ D\u0015e2\n@?_ |\u0004i \u0004)TL|\u0004it\u0010t Lu ?L *L?}\u0013h\u0003? i@h?\u0010?}t i^\u0003@|\u0010L? \u0010t UL?U*\u0003t\u0010\u000fi*) hi\u0017iU|i_\u0015\nA\u0004i hit\u0003*|t uhL4 |\u0004i @TT*\u0010U@|\u0010L? Lu |\u0004i ML\u0003?_t |\u0013|it|t |L |\u0004i i@h?\u0010?}t i^\u0003@|\u0010L?t @hi *itt\nU*i@h U\u0003| @?_ _L ?L| @**L\u0016 |\u0004i \u00104TLt\u0010|\u0010L? Lu |\u0004i |hi?_ hit|h\u0010U|\u0010L?t _\u0010tU\u0003tti_ @ML\u000fi\u0015 A\u0004i |\u0016L\n|\u0013t|@|\u0010t|\u0010Ut hiTLh|i_ \u0010? A@M*i 2c |T @?_ |UUUc @hi |\u0004i |\u0013h@|\u0010Lt Lu |\u0004i \u0011w5 it|\u00104@|i Lu Z\u0019\u0019 \u0010?\nED\u0015D\u001cc \u0016\u0010|\u0004 @?_ \u0016\u0010|\u0004L\u0003| @ *\u0010?i@h |\u00104i |hi?_c hitTiU|\u0010\u000fi*)\u0015b A\u0004i bDI Uh\u0010|\u0010U@* \u000f@*\u0003i ML\u0003?_t\nuLh |UUU @?_ |T |it|t @hi E\u00132\u0015HSc \u0013\f\u0015bb\u001c @?_ E\u0013\f\u0015ec \u0013e\u0015\fS\u001c\u00152f A\u0004ihiuLhic \u0016\u0004i? @ *\u0010?i@h |hi?_ \u0010t\n\u0010?U*\u0003_i_ \u0010? |\u0004i 4L_i* |\u0004i ML\u0003?_t |\u0013|it| _Lit ?L| hi\u0017iU| |\u0004i ?\u0003** \u0004)TL|\u0004it\u0010t i\u000fi? uLh R ' D\nLh S\u0015 \u0012\u0003| \u0016\u0004i? |\u0004i |hi?_ |ih4 \u0010t i U*\u0003_i_ |\u0004i ?\u0003** \u0004)TL|\u0004it\u0010t \u0010t \u0017\u0003t| hi\u0017iU|i_ uLh R ' D\u0015\n\u0011\u000fih@**c |\u0004i |it| hit\u0003*|t t\u0003TTLh| |\u0004i i \u0010t|i?Ui Lu @ *L?}\u0013h\u0003? i@h?\u0010?}t i^\u0003@|\u0010L? \u0016\u0004i? @\nt\u0003\u001aU\u0010i?|*) \u0004\u0010}\u0004 *@} Lh_ih \u0010t ti*iU|i_ @?_ \u0016\u0004i? |\u0004i t|@|\u0010t|\u0010U@**) \u0010?t\u0010}?\u0010U@?| _i|ih4\u0010?\u0010t|\u0010U\n|hi?_ |ih4 \u0010t i U*\u0003_i_ uhL4 |\u0004i UL?_\u0010|\u0010L?@* 4L_i*\u0015 5\u0003U\u0004 @ tTiU\u0010U@|\u0010L? \u0010t \u0010? @UULh_ \u0016\u0010|\u0004\n|\u0004i i\u000f\u0010_i?Ui L? |\u0004i TihuLh4@?Ui Lu |\u0004i @*|ih?@|\u0010\u000fi UL?_\u0010|\u0010L?@* 4L_i*t ti| L\u0003| \u0010? A@M*i c\n@?_ \u0010? |\u0004i hi4@\u0010?_ih Lu |\u0004\u0010t tiU|\u0010L? \u0016i uLU\u0003t L\u0003h @||i?|\u0010L? L? |\u0004\u0010t tTiU\u0010U@|\u0010L? @?_ ThL\u000f\u0010_i\nit|\u00104@|it Lu |\u0004i *L?}\u0013h\u0003? ULi\u001aU\u0010i?|t @?_ |\u0004i t\u0004Lh|\u0013h\u0003? _)?@4\u0010Ut M@ti_ L? @ UL?_\u0010|\u0010L?@*\ni@h?\u0010?}t i^\u0003@|\u0010L? \u0016\u0010|\u0004 R ' Sc M\u0003| \u0016\u0010|\u0004L\u0003| @ _i|ih4\u0010?\u0010t|\u0010U |\u00104i |hi?_\u0015 6Lh |\u0004\u0010t 4L_i*c \u0003t\u0010?}\n|\u0004i \u0006+#w @TThL@U\u0004 |L |\u0004i it|\u00104@|\u0010L? Lu |\u0004i *L?}\u0013h\u0003? hi*@|\u0010L?t _\u0010tU\u0003tti_ \u0010? \u0018it@h@? @?_\n5\u0004\u0010? Ebbb\u001cc \u0016i LM|@\u0010? |\u0004i uL**L\u0016\u0010?} *i\u000fi* *L?}\u0013h\u0003? i@h?\u0010?}t i^\u0003@|\u0010L?2"
+    },
+    "control_plane": {
+      "merge_count": 2
+    },
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p2_b1'",
+    "sequence_id": 16,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 72.08014678955078,
+          "y0": 630.04296875,
+          "x1": 539.5977783203125,
+          "y1": 703.0012817382812,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "1",
+      "confidence": 1.0,
+      "layout_reading_order": 16,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "4:Wkh vdph frqfoxvlrq lv dovr uhdfkhg iru s @ :1\n4;Vhh Wdeoh F41lll1\n4<Qrwlfh dovr wkdw odjjhg fkdqjhv lq wkh surgxfwlylw| yduldeoh duh h{foxghg1\n53Vhh Wdeohv F51lll dqg F51y/ iru n @ 7 xqghu wkh froxpqv khdghg <8(1\n54Qrwlfh wkdw wkh DUGO dssurdfk dgydqfhg lq Shvdudq dqg Vklq +4<<<, lv dssolfdeoh luuhvshfwlyh ri\nzkhwkhu wkh uhjuhvvruv duh L+3, ru L+4,1"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p2_b2'",
+    "sequence_id": 17,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 296.9599914550781,
+          "y0": 733.719970703125,
+          "x1": 315.1999816894531,
+          "y1": 745.9599609375,
+          "is_normalized": false
+        },
+        {
+          "x0": 93.68000030517578,
+          "y0": 23.080039978027344,
+          "x1": 540.0799560546875,
+          "y1": 132.0400390625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2,
+        3
+      ],
+      "provider_native_id": "2",
+      "confidence": 1.0,
+      "layout_reading_order": 17,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "d2o \u0019| '\n\u0017fS\f \u001boJ_|\n\u0003f\u0017e L-|\n\u0003f\u0017bbH `e_}e|\nn\u0017ebD L?\u0010J?|\nn2\u0017.e\nn\t\u000f|c\nEf\u0017fD2S\u001c\nEf\u0017f\fbH\u001c\nEf\u0017f2b.\u001c\nEf\u0017\f..\u001c\nEf\u00172.e\u001c\nED\u0015S"
+    },
+    "control_plane": {
+      "merge_count": 2
+    },
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b1'",
+    "sequence_id": 18,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 72.0799560546875,
+          "y0": 145.239990234375,
+          "x1": 540.0679931640625,
+          "y1": 331.0,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "1",
+      "confidence": 1.0,
+      "layout_reading_order": 19,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "\u0016\u0004ihi \t\u000f| \u0010t |\u0004i ihhLh\u0013ULhhiU|\u0010L? |ih4\u0015 A\u0004i t|@?_@h_ ihhLht Lu |\u0004i *L?}\u0013h\u0003? it|\u00104@|it @hi }\u0010\u000fi?\n\u0010? Mh@U!i|t\u001522 \u0006** |\u0004i *L?}\u0013h\u0003? it|\u00104@|it @hi \u0004\u0010}\u0004*) t\u0010}?\u0010U@?| @?_ \u0004@\u000fi |\u0004i i TiU|i_ t\u0010}?t\u0015\nA\u0004i ULi\u001aU\u0010i?|t Lu |\u0004i ThL_\u0003U|\u0010\u000f\u0010|) @?_ |\u0004i \u0016i_}i \u000f@h\u0010@M*it _L ?L| _\u0010gih t\u0010}?\u0010U@?|*) uhL4\n\u0003?\u0010|)\u0015 W? Ahi@t\u0003h)<t i@h?\u0010?}t i^\u0003@|\u0010L? |\u0004i *L?}\u0013h\u0003? ULi\u001aU\u0010i?| Lu |\u0004i ThL_\u0003U|\u0010\u000f\u0010|) \u000f@h\u0010@M*i \u0010t\n\u00104TLti_ |L Mi \u0003?\u0010|)c @?_ |\u0004i @ML\u000fi it|\u00104@|it U@? Mi \u000f\u0010i\u0016i_ @t ThL\u000f\u0010_\u0010?} i4T\u0010h\u0010U@* t\u0003TTLh|\nuLh t\u0003U\u0004 @? @ Th\u0010Lh\u0010 hit|h\u0010U|\u0010L?\u0015 \u0011\u0003h *L?}\u0013h\u0003? it|\u00104@|it Lu |\u0004i igiU|t Lu |\u0004i \u0003?i4T*L)4i?|\nh@|i @?_ |\u0004i \u0003?\u0010L? \u000f@h\u0010@M*i L? hi@* \u0016@}it E?@4i*) \u0013f\u0015e @?_ \u0015ebD\u001c @hi @*tL \u0010? *\u0010?i \u0016\u0010|\u0004\nAhi@t\u0003h) it|\u00104@|it Lu \u0013\u0015fb @?_ \u0015\f\u00152\f A\u0004i 4@\u0010? _\u0010gihi?Ui Mi|\u0016ii? |\u0004i |\u0016L ti|t Lu it|\u00104@|it\nUL?Uih?t |\u0004i *L?}\u0013h\u0003? ULi\u001aU\u0010i?| Lu |\u0004i \u0016i_}i \u000f@h\u0010@M*i\u0015 `i LM|@\u0010? @ 4\u0003U\u0004 *@h}ih it|\u00104@|ic\n@*4Lt| |\u0016\u0010Ui @t 4\u0003U\u0004 @t |\u0004i it|\u00104@|i LM|@\u0010?i_ M) |\u0004i Ahi@t\u0003h)\u0015\nA\u0004i ihhLh ULhhiU|\u0010L? hi}hitt\u0010L? @ttLU\u0010@|i_ \u0016\u0010|\u0004 |\u0004i @ML\u000fi E*i\u000fi*\u001c *L?}\u0013h\u0003? hi*@|\u0010L?t\u0004\u0010T\n\u0010t }\u0010\u000fi? \u0010? A@M*i \f\u00152e A\u0004iti it|\u00104@|it ThL\u000f\u0010_i u\u0003h|\u0004ih _\u0010hiU| i\u000f\u0010_i?Ui L? |\u0004i UL4T*\u0010U@|i_\n_)?@4\u0010Ut |\u0004@| tii4 |L i \u0010t| Mi|\u0016ii? hi@* \u0016@}i 4L\u000fi4i?|t @?_ \u0010|t 4@\u0010? _i|ih4\u0010?@?|t\u00152D"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b2'",
+    "sequence_id": 19,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 72.0799789428711,
+          "y0": 272.6800231933594,
+          "x1": 540.0560913085938,
+          "y1": 489.8800048828125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "2",
+      "confidence": 1.0,
+      "layout_reading_order": 20,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "\u0006** |\u0004i \u000fi *@}}i_ U\u0004@?}it \u0010? hi@* \u0016@}it @hi t|@|\u0010t|\u0010U@**) t\u0010}?\u0010U@?|c u\u0003h|\u0004ih \u0017\u0003t|\u0010u)\u0010?} |\u0004i\nU\u0004L\u0010Ui Lu R ' S\u0015 A\u0004i ihhLh ULhhiU|\u0010L? ULi\u001aU\u0010i?| \u0010t it|\u00104@|i_ |L Mi \u0003f\u00172\fD Ef\u0017fS.D\u001cc2S \u0016\u0004\u0010U\u0004\n\u0010t hi@tL?@M*) *@h}i @?_ \u0004\u0010}\u0004*) t\u0010}?\u0010U@?|\u0015 A\u0004i @\u0003 \u0010*\u0010@h) i^\u0003@|\u0010L? Lu |\u0004i @\u0003|Lhi}hitt\u0010\u000fi T@h|\nLu |\u0004i 4L_i* \u0004@t |\u0004i hi@* hLL|t f\u0017b2DHc @?_ \u0003f\u0017 Hb\fc @?_ |\u0016L T@\u0010ht Lu UL4T*i hLL|t \u0016\u0010|\u0004\n4L_\u0003*\u0010c f\u0017.HD\fc @?_ f\u0017DbD( |\u0004\u0003t t\u0003}}it|\u0010?} @? \u0010?\u0010|\u0010@**) U)U*\u0010U@* hi@* \u0016@}i ThLUitt \u0016\u0004\u0010U\u0004\nt*L\u0016*) UL?\u000fih}it |L\u0016@h_t \u0010|t i^\u0003\u0010*\u0010Mh\u0010\u00034 }\u0010\u000fi? M) ED\u0015S\u001c\u00152. #itT\u0010|i |\u0004i 4@?) \u0010?t\u0010}?\u0010U@?|\nULi\u001aU\u0010i?|t |\u0004@| @hi hi|@\u0010?i_ \u0010? |\u0004\u0010t ihhLh ULhhiU|\u0010L? tTiU\u0010U@|\u0010L?c |\u0004i hi}hitt\u0010L? |t hi@\u0013\ntL?@M*) \u0016i** @?_ t@|\u0010tit |\u0004i _\u0010@}?Lt|\u0010U |it|t uLh ?L?\u0013?Lh4@* ihhLht @?_ \u0004i|ihLt!i_@t|\u0010U\u0010|)\u0015\nOL\u0016i\u000fihc \u0010| u@\u0010*t |\u0004i u\u0003?U|\u0010L?@* uLh4 4\u0010ttTiU\u0010U@|\u0010L? @| |\u0004i DI *i\u000fi*( \u0016\u0004\u0010U\u0004 4@) Mi t\u0003}}it\u0013\n|\u0010\u000fi Lu tL4i ?L?\u0013*\u0010?i@h igiU|t Lh @t)44i|h\u0010it \u0010? |\u0004i @_\u0017\u0003t|4i?| Lu hi@* \u0016@}i ThLUitt |\u0004@|\nL\u0003h *\u0010?i@h tTiU\u0010U@|\u0010L? \u0010t \u0010?U@T@M*i Lu |@!\u0010?} \u0010?|L @UUL\u0003?|\u00152H +iU\u0003ht\u0010\u000fi it|\u00104@|\u0010L? Lu |\u0004i"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b3'",
+    "sequence_id": 20,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 72.07916259765625,
+          "y0": 497.5630187988281,
+          "x1": 540.2447509765625,
+          "y1": 714.2810668945312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "3",
+      "confidence": 1.0,
+      "layout_reading_order": 21,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "55Wkh orqj0uxq hvwlpdwhv dqg wkhlu vwdqgdug huuruv duh frpsxwhg xvlqj Plfur\u000fw 7131 Vhh Shvdudq dqg\nShvdudq +4<<:,1\n56FVZ gr qrw uhsruw vwdqgdug huuruv iru wkh orqj0uxq hvwlpdwhv ri wkh Wuhdvxu| hduqlqjv htxdwlrq1\n57Lq sudfwlfh lw pd| eh ghvludeoh dovr wr ghulyh d pruh sduvlprqlrxv huuru fruuhfwlrq prgho e| lpsrv0\nlqj d xqlw orqj0uxq frh\u0011flhqw rq wkh surgxfwlylw| yduldeoh dqg e| gursslqj odjjhg fkdqjhv zlwk +mrlqwo|,\nvwdwlvwlfdoo| lqvljql\u000ffdqw frh\u0011flhqwv1 Exw iru rxu sxusrvhv wklv grhv qrw vhhp wr eh qhfhvvdu|1\n58Wkh vwdqgdug huuruv ri wkh hvwlpdwhv uhsruwhg lq Wdeoh 6 doorz iru wkh xqfhuwdlqw| dvvrfldwhg zlwk wkh\nhvwlpdwlrq ri wkh orqj0uxq frh\u0011flhqwv1 Wklv lv lpsruwdqw lq wkh suhvhqw dssolfdwlrq zkhuh lw lv qrw nqrzq\nzlwk fhuwdlqw| zkhwkhu wkh uhjuhvvruv duh L+3, ru L+4,1 Rqo| lq wkh fdvh zkhuh lw lv qrw nqrzq iru vxuh wkdw\ndoo wkh uhjuhvvruv duh L+4, dqg frlqwhjudwhg zrxog lw eh uhdvrqdeoh lq odujh vdpsohv wr wuhdw wkh hvwlpdwhv ri\nwkh orqj0uxq ohyho frh\u0011flhqwv dv nqrzq> rq wkh jurxqgv ri wkhlu vxshu0frqvlvwhqf|1\n59Wkh huuru fruuhfwlrq frh\u0011flhqw lq wkh Wuhdvxu|*v hduqlqjv htxdwlrq lv hvwlpdwhg wr eh \u00033=4;7; +3=385;,/\nzklfk lv txlwh d elw vpdoohu wkdq rxu hvwlpdwh1 +Vhh s1 44 lq Dqqh{ ri FVZ1, Wklv vhhpv wr eh gxh wr wkh\nvkruwhu odj ohqjwkv xvhg lq wkh hvwlpdwlrq ri wkh Wuhdvxu|*v htxdwlrq udwkhu wkdq wkh idfw wkdw lw kdv ehhq\nhvwlpdwhg ryhu d vkruwhu wlph shulrg= 4<:4t404<<7t61 Qrwlfh dovr wkdw wkh w0udwlr uhsruwhg iru wklv frh\u0011flhqw\ngrhv qrw kdyh wkh vwdqgdug w0glvwulexwlrq1\n5:Wkh frpsoh{ urrwv duh 3=673 9 \t 3=:3:9l> dqg \u00033=5349 \t 3=8;8<l> zkhuh l @ s\u000341\n5;Wkh huuru fruuhfwlrq uhjuhvvlrq lq Wdeoh 6 dovr sdvvhv wkh uhvlgxdo vhuldo fruuhodwlrq whvw1 Krzhyhu/ wkh"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "value='p3_b4'",
+    "sequence_id": 21,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 296.9599914550781,
+          "y0": 733.719970703125,
+          "x1": 315.1999816894531,
+          "y1": 745.9599609375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "4",
+      "confidence": 1.0,
+      "layout_reading_order": 22,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "d22o"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  }
+]

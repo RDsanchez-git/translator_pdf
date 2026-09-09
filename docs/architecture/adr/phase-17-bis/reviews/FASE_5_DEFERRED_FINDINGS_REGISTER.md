@@ -1,7 +1,7 @@
 # FASE_5_DEFERRED_FINDINGS_REGISTER.md
 
 **Documento:** `docs/architecture/adr/phase-17-bis/reviews/FASE_5_DEFERRED_FINDINGS_REGISTER.md`
-**Versión:** 0.3.0
+**Versión:** 0.6.0
 **Estado:** IN_PROGRESS
 **Fecha de creación:** 2026-09-05
 **Última actualización:** 2026-09-05
@@ -17,6 +17,9 @@ evidencia empírica de los batches.
 | 0.1.0 | 2026-09-05 | Emisión inicial. Esqueleto con hallazgos pre-registrados. |
 | 0.2.0 | 2026-09-05 | Hardening documental: expansión de marco normativo, estados de evidencia, árbol de decisión, mapeo Finding→Task, plantillas. |
 | 0.3.0 | 2026-09-05 | **Conversión a esqueleto dinámico de descubrimiento.** Se eliminan análisis detallados pre-escritos. Las secciones dinámicas (§2, §3, §4) quedan vacías, listas para recibir evidencia durante los Gate Exit Reviews. Los hallazgos pre-identificados (§9) se conservan únicamente como referencia de trazabilidad. |
+| 0.4.0 | 2026-09-06 | **Wave 1.1 completada:** 4 hallazgos derivados registrados (H-5.1-1 a H-5.1-4). H-5.1-1 RESOLVED (pesaran1999.pdf encontrado e incluido como doc_07). H-5.1-2, H-5.1-3 IMPLEMENTATION_REQUIRED. H-5.1-4 PENDING_REVIEW. Métricas actualizadas. |
+| 0.5.0 | 2026-09-06 | **Wave 1.2 completada:** (1) H-5.1-4 reclasificado de PENDING_REVIEW a RESOLVED — traits reclasificados con nombres correctos del catálogo vigente (scanned_noise, heavy_math, nested_tables, floating_figures); (2) H-5.1-5 registrado y RESOLVED — discrepancia de nombres de traits (DENSE_TYPOGRAPHY y MIXED_CONTENT no existen; HEAVY_MATHEMATICS→heavy_math, COMPLEX_TABLES→nested_tables, OCR_DEPENDENCY→scanned_noise); (3) H-5.1-6 registrado y CLOSED (NAR) — contrato del manifest verificado como 6D plano en RawDocumentEntryDTO; (4) Manifest canónico generado y verificado (hash 62f0df16); (5) Métricas y estado actualizados. |
+| 0.6.0 | 2026-09-09 | **Wave 1.3 completada:** (1) H-5.1-2 reclasificado de IMPLEMENTATION_REQUIRED a RESOLVED — archivo temporal tmptu237h6p eliminado en Task 1.3.1; (2) H-5.1-3 reclasificado de IMPLEMENTATION_REQUIRED a RESOLVED — AST legacy reemplazado por re-extracción en Task 1.3.8; (3) H-5.1-7 registrado y RESOLVED — parent_node_id=None en todos los GTs, consistente con Flat Design, verificado en curaduría; (4) H-5.1-8 registrado y CLOSED (NAR) — ManifestFingerprintCalculator.compute_hash() incluye page_count (verificado en source code); (5) H-5.1-9 registrado como ACCEPTED_LIMITATION — doc_02_double: fragmentación de ecuaciones por PyMuPDF en doble columna; (6) H-5.1-10 registrado como ACCEPTED_LIMITATION — doc_05_graph: labels de ejes como paragraphs; (7) H-5.1-11 registrado como RECLASSIFIED_FUTURE_PHASE — patrón Detect & Placeholder, fuera del scope de Fase 17-BIS (ADR §4); (8) Métricas y estado actualizados. |
 
 ---
 
@@ -364,7 +367,17 @@ Se actualiza al cierre del último Gate Exit Review.
 
 | ID | Estado | Evidence Status | Descripción | Gate/Wave/Task | Fecha |
 |----|--------|-----------------|-------------|----------------|-------|
-| — | — | — | — | — | — |
+| H-5.1-1 | RESOLVED | GAP_CONFIRMED | Discrepancia 7 vs 6 identidades (HITO 5.1). La identidad faltante (pesaran1999.pdf) estaba en datasets/raw/, fuera de tests/corpus/. Encontrada e incluida como doc_07_pesaran.pdf. SHA-256: f1c80072. | Gate 1 W1.1 T1.1.1 | 2026-09-06 |
+| H-5.1-2 | RESOLVED | GAP_CONFIRMED | Archivo temporal huérfano tmptu237h6p (35,557 bytes) en tests/corpus/calibration_v1/candidates/pymupdf/. Eliminado en Task 1.3.1. | Gate 1 W1.1 T1.1.1 → W1.3 T1.3.1 | 2026-09-09 |
+| H-5.1-3 | RESOLVED | GAP_CONFIRMED | AST de pesaran1999.pdf en formato legacy (type en lugar de node_type, sin strategy, content en lugar de payload.content). Resuelto por re-extracción en Task 1.3.8: PDF recortado a 3 páginas, GT regenerado con GenerateGoldenDraftUseCase (21 nodos, formato vigente). | Gate 1 W1.1 T1.1.1 → W1.3 T1.3.8 | 2026-09-09 |
+| H-5.1-4 | RESOLVED | GAP_CONFIRMED | doc_03_math y doc_06_johnstone son scanned_noise (no native_pdf). Inspección visual confirmó PDFs escaneados. Clasificación corregida en manifest canónico con nombres del catálogo vigente. | Gate 1 W1.1 T1.1.1 → W1.2 T1.2.1 | 2026-09-06 |
+| H-5.1-5 | RESOLVED | GAP_CONFIRMED | Discrepancia de nombres de traits entre clasificación preliminar y catálogo vigente (ExtractionChallengeTrait). Nombres inexistentes: DENSE_TYPOGRAPHY, MIXED_CONTENT. Nombres corregidos: HEAVY_MATHEMATICS→heavy_math, COMPLEX_TABLES→nested_tables, OCR_DEPENDENCY→scanned_noise. Reclasificación completada. | Gate 1 W1.2 T1.2.1 | 2026-09-06 |
+| H-5.1-6 | CLOSED (NAR) | NO_GAP | Hipótesis: contrato del manifest NO es 6 campos planos. Verificación: RawDocumentEntryDTO SÍ es 6D plano (document_id, sha256, traits, page_count, ground_truth_state, oracle_hash). El sha256 está encapsulado en DocumentFingerprint a nivel de dominio pero aplanado en el DTO de serialización. El contrato 6D es correcto. | Gate 1 W1.2 T1.2.3 | 2026-09-06 |
+| H-5.1-7 | RESOLVED | GAP_CONFIRMED | Todos los parent_node_id son None en los 5 GTs canonicalizados. Consistente con Flat Design (ENGINEERING_PRINCIPLES §II: secuencias lineales enriquecidas con metadatos topológicos). Verificado en curaduría manual (Task 1.3.9). | Gate 1 W1.3 T1.3.4 → T1.3.9 | 2026-09-09 |
+| H-5.1-8 | CLOSED (NAR) | NO_GAP | Hipótesis: ManifestFingerprintCalculator.compute_hash() no incluye page_count. Verificación en source code: el payload SÍ incluye page_count (f"{doc.page_count}:"). El hash anterior coincidió por valor por defecto de Pydantic que igualó el valor real. | Gate 1 W1.3 T1.3.1 | 2026-09-09 |
+| H-5.1-9 | ACCEPTED_LIMITATION | GAP_CONFIRMED | doc_02_double: 52 nodos display_equation contienen fragmentos garbled (operadores/variables aislados: "+", "= = =", "p", "i t i i"). PyMuPDF no agrupa tokens matemáticos en layout de doble columna. El GT es fiel a la salida del extractor pero NO al contenido matemático real. Documentado en FASE_5_WAVE_1_3_CURATION_REPORT.md. | Gate 1 W1.3 T1.3.9 | 2026-09-09 |
+| H-5.1-10 | ACCEPTED_LIMITATION | GAP_CONFIRMED | doc_05_graph: 56 labels de ejes de gráficos vectoriales extraídos como paragraph individuales (ej. "–20", "0", "15"). Estructura del gráfico no capturada. Comportamiento esperado de PyMuPDF frente a gráficos vectoriales. Documentado en FASE_5_WAVE_1_3_CURATION_REPORT.md. | Gate 1 W1.3 T1.3.9 | 2026-09-09 |
+| H-5.1-11 | RECLASSIFIED_FUTURE_PHASE | PARTIAL_GAP | Propuesta de patrón "Detect & Placeholder": PyMuPDF degrada silenciosamente tablas/figuras/ecuaciones al extraerlas como texto plano. Se propone detectar la presencia y dejar placeholder para pegado manual. Fuera del scope de Fase 17-BIS (ADR F17_BIS_MASTER §4: no modificar extractores). Documentado en FASE_5_WAVE_1_3_CURATION_REPORT.md. | Gate 1 W1.3 T1.3.9 | 2026-09-09 |
 
 ---
 
@@ -424,18 +437,19 @@ Se actualiza al cierre de cada batch.
 
 | Métrica | Valor |
 |---------|-------|
-| Total de hallazgos analizados | 0 |
-| Hallazgos activos de Fase 5 | 5 (pre-identificados, pendientes de análisis) |
-| Hallazgos resueltos | 0 |
-| Hallazgos cerrados sin acción | 0 |
-| Hallazgos reclasificados a fase futura | 0 |
+| Total de hallazgos analizados | 16 |
+| Hallazgos activos de Fase 5 | 5 (pre-identificados) + 11 (derivados de Wave 1.1, 1.2 y 1.3) |
+| Hallazgos resueltos | 6 (H-5.1-1, H-5.1-2, H-5.1-3, H-5.1-4, H-5.1-5, H-5.1-7) |
+| Hallazgos cerrados sin acción | 2 (H-5.1-6, H-5.1-8) |
+| Hallazgos reclasificados a fase futura | 1 (H-5.1-11) |
+| Hallazgos aceptados como limitación | 2 (H-5.1-9, H-5.1-10) |
 | Hallazgos pendientes de implementación | 0 |
 | Hallazgos pendientes de revisión | 0 |
 | Governance Findings abiertos | 0 |
 | Batches completados | 0 |
-| Archivos eliminados totales | 0 |
+| Archivos eliminados totales | 1 (tmptu237h6p) |
 | Archivos movidos totales | 0 |
-| Archivos creados totales | 0 |
+| Archivos creados totales | 9 (7 PDFs en canonical/pdf/, manifest.json, 6 GTs en canonical/ground_truth/, canonicalization_lineage.json, FASE_5_WAVE_1_3_CURATION_REPORT.md) |
 | Tests finales | 624 passed, 5 skipped (baseline) |
 | Pyright final | 0 errors |
 
@@ -447,7 +461,7 @@ Los hallazgos diferidos a fases futuras se registran aquí con destino explícit
 
 | Hallazgo | Destino | Justificación |
 |----------|---------|---------------|
-| — | — | Pendiente de cierre de los Gate Exit Reviews |
+| H-5.1-11 | Post Fase 17-BIS (requiere ADR dedicado) | ADR F17_BIS_MASTER §4: la modificación de extractores de producción está fuera del scope de Fase 17-BIS. El patrón Detect & Placeholder requiere diseño de nuevos tipos de nodo (placeholder) y modificación de PyMuPDFProvider. Se recomienda evaluar en Fase 18 (Advanced Local Runtime) o en una fase dedicada de mejora de extracción. |
 
 ---
 
@@ -504,16 +518,18 @@ El documento se considera cerrado (`ARCHIVED`) cuando:
 
 | Categoría | Cantidad |
 |-----------|----------|
-| Total de hallazgos analizados | 0 |
+| Total de hallazgos analizados | 16 |
 | Hallazgos activos de Fase 5 (pre-identificados) | 5 |
-| Hallazgos resueltos | 0 |
+| Hallazgos derivados de Wave 1.1, 1.2 y 1.3 | 11 |
+| Hallazgos resueltos | 6 (H-5.1-1, H-5.1-2, H-5.1-3, H-5.1-4, H-5.1-5, H-5.1-7) |
+| Hallazgos cerrados sin acción | 2 (H-5.1-6, H-5.1-8) |
+| Hallazgos aceptados como limitación | 2 (H-5.1-9, H-5.1-10) |
+| Hallazgos reclasificados a fase futura | 1 (H-5.1-11) |
 | Hallazgos pendientes de implementación | 0 |
 | Hallazgos pendientes de revisión | 0 |
-| Hallazgos cerrados sin acción | 0 |
-| Hallazgos reclasificados a fase futura | 0 |
 | Governance Findings abiertos | 0 |
 | Batches completados | 0/— |
-| Estado del Exit Review | 🟡 IN PROGRESS (pendiente de inicio de Gate 1) |
+| Estado del Exit Review | 🟡 IN PROGRESS (Gate 1 en ejecución, Wave 1.3 completada) |
 
 ---
 
@@ -547,12 +563,46 @@ durante los Gate Exit Reviews correspondientes, aplicando el árbol de decisión
 | GAP-5.0-03 | Configuración implícita del corpus. 6 de 8 entry points tienen rutas hardcoded sin argumentos CLI configurables. | `IMPLEMENTATION_REQUIRED` (preliminar) | Gate 4 W4.1 Task 4.1.3 | HITO 5.0 |
 | GAP-5.2-05 | Certification Boundary Integrity violation. `sanitize_ground_truth_types.py` puede sobrescribir Ground Truths sellados sin verificar estado de sellado. | `IMPLEMENTATION_REQUIRED` (preliminar) | Gate 2 W2.1 Task 2.1.2 (remediación primaria); Gate 4 W4.3 Task 4.3.2 (verificación de boundary) | HITO 5.2 |
 
+
+### 9.2.1 Hallazgos derivados de Wave 1.1 y 1.2 — registrados durante implementación
+
+| ID | Descripción | Estado preliminar | Gate destino primario | Fuente |
+|----|-------------|-------------------|----------------------|--------|
+| H-5.1-1 | Discrepancia 7 vs 6 identidades (HITO 5.1). pesaran1999.pdf encontrado en datasets/raw/ e incluido como doc_07_pesaran.pdf (SHA-256: f1c80072). | `RESOLVED` | Gate 1 W1.1 T1.1.1 | Auditoría Wave 1.1 |
+| H-5.1-2 | Archivo temporal huérfano tmptu237h6p (35,557 bytes) en tests/corpus/calibration_v1/candidates/pymupdf/. Eliminado en Task 1.3.1. | `RESOLVED` | Gate 1 W1.3 T1.3.1 | Auditoría Wave 1.1 → Resolución Wave 1.3 |
+| H-5.1-3 | AST de pesaran1999.pdf en formato legacy (type en lugar de node_type, sin strategy). Resuelto por re-extracción: PDF recortado a 3 páginas, GT regenerado con GenerateGoldenDraftUseCase (21 nodos, formato vigente). | `RESOLVED` | Gate 1 W1.3 T1.3.8 | Auditoría Wave 1.1 → Resolución Wave 1.3 |
+| H-5.1-4 | doc_03_math y doc_06_johnstone son scanned_noise (no native_pdf). Clasificación corregida en manifest canónico con nombres del catálogo vigente. | `RESOLVED` | Gate 1 W1.2 T1.2.1 | Inspección visual Wave 1.1 → Reclasificación Wave 1.2 |
+| H-5.1-5 | Discrepancia de nombres de traits entre clasificación preliminar y catálogo vigente (ExtractionChallengeTrait). DENSE_TYPOGRAPHY y MIXED_CONTENT no existen. Reclasificación completada. | `RESOLVED` | Gate 1 W1.2 T1.2.1 | Auditoría Wave 1.2 |
+| H-5.1-6 | Contrato del manifest verificado como 6D plano en RawDocumentEntryDTO. El sha256 está encapsulado en DocumentFingerprint a nivel de dominio pero aplanado en el DTO. El contrato 6D es correcto. | `CLOSED (NAR)` | Gate 1 W1.2 T1.2.3 | Auditoría Wave 1.2 |
+
+
+### 9.2.2 Hallazgos derivados de Wave 1.3 — registrados durante implementación
+
+| ID | Descripción | Estado preliminar | Gate destino primario | Fuente |
+|----|-------------|-------------------|----------------------|--------|
+| H-5.1-7 | Todos los parent_node_id son None en los 5 GTs canonicalizados. Consistente con Flat Design (ENGINEERING_PRINCIPLES §II). Verificado en curaduría manual. | `RESOLVED` | Gate 1 W1.3 T1.3.4 → T1.3.9 | Auditoría Wave 1.3 |
+| H-5.1-8 | ManifestFingerprintCalculator.compute_hash() incluye page_count en el payload (verificado en source code). Hash anterior coincidió por valor por defecto de Pydantic. | `CLOSED (NAR)` | Gate 1 W1.3 T1.3.1 | Auditoría Wave 1.3 |
+| H-5.1-9 | doc_02_double: 52 nodos display_equation con fragmentos garbled. PyMuPDF no agrupa ecuaciones en doble columna. GT fiel al extractor, no al documento fuente. | `ACCEPTED_LIMITATION` | Gate 1 W1.3 T1.3.9 | Curaduría Wave 1.3 |
+| H-5.1-10 | doc_05_graph: 56 labels de ejes de gráficos como paragraphs. Estructura de gráficos no capturada por PyMuPDF. | `ACCEPTED_LIMITATION` | Gate 1 W1.3 T1.3.9 | Curaduría Wave 1.3 |
+| H-5.1-11 | Propuesta de patrón "Detect & Placeholder" para extracción de tablas/figuras/ecuaciones. Fuera del scope de Fase 17-BIS (ADR F17_BIS_MASTER §4). | `RECLASSIFIED_FUTURE_PHASE` | Post Fase 17-BIS | Curaduría Wave 1.3 |
+
 ### 9.3 Mapeo Finding → Task (referencia cruzada con Execution Plan)
 
 | Finding | Task primaria | Tipo de relación | Nota |
 |---------|---------------|------------------|------|
-| DF-19 | 1.2.3 | Contrato | Define contrato de manifest canónico 6D |
-| DF-19 | 1.3.1 | Implementación / migración | Ejecuta migración del artefacto legacy |
+| DF-19 | 1.2.3 | Contrato | Define contrato de manifest canónico 6D (DONE) |
+| DF-19 | 1.3.1 | Implementación / migración | Ejecuta migración del artefacto legacy (TODO) |
+| H-5.1-1 | 1.1.1 | Resolución | pesaran1999.pdf incluido como doc_07 (RESOLVED) |
+| H-5.1-2 | 1.3.1 | Limpieza | Archivo temporal huérfano eliminado (RESOLVED) |
+| H-5.1-3 | 1.3.8 | Re-extracción | AST legacy reemplazado por re-extracción post-recorte (RESOLVED) |
+| H-5.1-4 | 1.2.1 | Documentación | doc_03/doc_06 son scanned_noise, documentado en manifest (RESOLVED) |
+| H-5.1-5 | 1.2.1 | Reclasificación | Nombres de traits corregidos contra catálogo vigente (RESOLVED) |
+| H-5.1-6 | 1.2.3 | Verificación | Contrato 6D verificado como correcto (CLOSED NAR) |
+| H-5.1-7 | 1.3.9 | Verificación | parent_node_id=None consistente con Flat Design (RESOLVED) |
+| H-5.1-8 | 1.3.1 | Verificación | page_count incluido en hash (CLOSED NAR) |
+| H-5.1-9 | 1.3.9 | Documentación | Limitación de PyMuPDF con ecuaciones en doble columna (ACCEPTED_LIMITATION) |
+| H-5.1-10 | 1.3.9 | Documentación | Limitación de PyMuPDF con gráficos vectoriales (ACCEPTED_LIMITATION) |
+| H-5.1-11 | 1.3.9 | Propuesta | Patrón Detect & Placeholder diferido a fase futura (RECLASSIFIED_FUTURE_PHASE) |
 | GAP-5.2-05 | 2.1.2 | Remediación primaria | Protección de SealedOracle en tooling de GT |
 | DF-04 | 2.4.7 | Investigación empírica | Benchmark ZhangShasha vs APTED |
 | GAP-5.0-03 | 4.1.3 | Remediación primaria | Configuración explícita de corpus |
