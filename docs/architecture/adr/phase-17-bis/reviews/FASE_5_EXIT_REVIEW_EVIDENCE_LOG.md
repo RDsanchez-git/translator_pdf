@@ -1,10 +1,10 @@
 # FASE_5_EXIT_REVIEW_EVIDENCE_LOG.md
 
 **Documento:** `docs/architecture/adr/phase-17-bis/reviews/FASE_5_EXIT_REVIEW_EVIDENCE_LOG.md`
-**Versión:** 0.4.0
+**Versión:** 0.8.0
 **Estado:** IN_PROGRESS
 **Fecha:** 2026-09-05
-**Última actualización:** 2026-09-05
+**Última actualización:** 2026-09-10
 **Derivado de:** `PHASE_17BIS_FASE5_EXECUTION_PLAN.md` v1.2.2 — Gates 1-5 Exit Reviews
 **Propósito:** Registro auditable de la evidencia forense que fundamenta cada decisión
 tomada durante los Gate Exit Reviews de Fase 5 (Baseline Certification). Cada finding
@@ -29,6 +29,10 @@ normativa y la clasificación final.
 | 0.2.0 | 2026-09-06 | Wave 1.1 completada: 4 hallazgos derivados identificados (H-5.1-1 a H-5.1-4) y registrados como referencia de trazabilidad en §5.2. La evidencia forense formal se registrará en §2 durante el Gate 1 Exit Review. |
 | 0.3.0 | 2026-09-06 | **Wave 1.2 completada:** (1) H-5.1-4 reclasificado de PENDING_REVIEW a RESOLVED — traits reclasificados con nombres correctos del catálogo vigente (scanned_noise, heavy_math, nested_tables, floating_figures); (2) H-5.1-5 registrado y RESOLVED — discrepancia de nombres de traits (DENSE_TYPOGRAPHY y MIXED_CONTENT no existen en catálogo; HEAVY_MATHEMATICS→heavy_math, COMPLEX_TABLES→nested_tables, OCR_DEPENDENCY→scanned_noise); (3) H-5.1-6 registrado y CLOSED (NAR) — contrato del manifest verificado como 6D plano en RawDocumentEntryDTO; (4) Manifest canónico generado y verificado con BootstrapCorpusManifestUseCase (hash 62f0df16). |
 | 0.4.0 | 2026-09-09 | **Wave 1.3 completada:** (1) H-5.1-2 reclasificado de IMPLEMENTATION_REQUIRED a RESOLVED — archivo temporal tmptu237h6p eliminado en Task 1.3.1; (2) H-5.1-3 reclasificado de IMPLEMENTATION_REQUIRED a RESOLVED — AST legacy reemplazado por re-extracción post-recorte en Task 1.3.8; (3) H-5.1-7 registrado y RESOLVED — parent_node_id=None consistente con Flat Design, verificado en curaduría; (4) H-5.1-8 registrado y CLOSED (NAR) — ManifestFingerprintCalculator incluye page_count (verificado en source code); (5) H-5.1-9 registrado como ACCEPTED_LIMITATION — doc_02_double: fragmentación de ecuaciones por PyMuPDF en doble columna; (6) H-5.1-10 registrado como ACCEPTED_LIMITATION — doc_05_graph: labels de ejes como paragraphs; (7) H-5.1-11 registrado como RECLASSIFIED_FUTURE_PHASE — patrón Detect & Placeholder, fuera del scope de Fase 17-BIS (ADR §4); (8) Curation Report generado en reviews/. |
+| 0.5.0 | 2026-09-09 | **Wave 2.1 completada:** (1) H-5.2-1 registrado como IMPLEMENTATION_REQUIRED — doc_06_johnstone excluido del manifest canónico para restaurar biyección N_PDF=N_GT=6 (Zero Partial Sealing), requiere re-incorporación con pipeline OCR; (2) H-5.2-2 registrado y CLOSED (NAR) — GroundTruthLifecycleState tiene 4 estados (DRAFT, AUDITED, VALIDATED, SEALED), diseño type-state confirmado por tests; (3) GAP-5.2-05 reclasificado de IMPLEMENTATION_REQUIRED a RESOLVED — sanitize_ground_truth_types.py protegido con SealedOracleOverwriteError (fail-hard), 3 tests nuevos; (4) Gate 2 Exit Review estado actualizado a IN_PROGRESS; (5) Baseline tests: 627 passed, 5 skipped. |
+| 0.6.0 | 2026-09-09 | **Wave 2.2 completada:** (1) H-5.2-3 registrado y RESOLVED — canonicalization_lineage.json movido de ground_truth/ a canonical/ raíz (separación de concerns, ground_truth/ solo contiene GTs); (2) H-5.2-4 registrado y RESOLVED — freeze_ground_truth.py path corregido de benchmark_v1 a canonical; (3) H-5.2-5 registrado y CLOSED (NAR) — log duplicado eliminado de freeze_ground_truth.py; (4) DF-19 reclasificado de IMPLEMENTATION_REQUIRED a RESOLVED — manifest en formato 6D sellado con oracle_hash y ground_truth_state; (5) Sellado ejecutado: manifest_hash 0fda7690, 6/6 GTs sellados, MIG-02 y MIG-06 ejecutados; (6) Corrección de inconsistencia: header Última actualización 2026-09-05 → 2026-09-09. |
+| 0.7.0 | 2026-09-09 | **Wave 2.3 completada:** (1) H-5.2-6 registrado como ACCEPTED_LIMITATION — ASTFingerprintPolicy.semantic_fingerprint() e identity_fingerprint() aplican .strip() violando NADR-22 §5.3 R10-R12, pero la divergencia está confinada al tooling experimental (tools/evaluation/topology/); la ruta canónica de regresión (run_regression.py → RegressionEvaluationStrategy → EntityRecallEvaluator) no usa ASTFingerprintPolicy ni aplica .strip(); (2) Task 2.3.1 completada por construcción: ZhangShashaEngine en composition root, APTED aislado en tools/ como experimental; (3) Task 2.3.2 completada por construcción: DEFAULT_CRITICALITY_WEIGHTS = CRITICAL 5.0, WARNING 2.0, INFO 1.0; run_regression.py pasa CriticalityAwareCostContext explícitamente; decisión: default del composition root permanece UnitCostContext (Explicit over Implicit + YAGNI); (4) Gate 2 Exit Review actualizado: 10/17 Tasks DONE. |
+| 0.8.0 | 2026-09-10 | **Wave 2.4 completada, Gate 2 COMPLETED:** (1) DF-04 reclasificado de IMPLEMENTATION_REQUIRED a RESOLVED — benchmark ejecutado con run_df04_benchmark.py sobre 6 documentos del corpus canónico sellado; divergencia promedio 8.56% (> umbral 1%), máxima 22.63% (doc_02_double); 4 causas raíz documentadas (cost model diferente, normalización diferente, fingerprint diferente H-5.2-6, estructura de árbol diferente); APTED queda como experimental no-normativo (NADR-22 §5.1 R3); evidencia forense en reports/df04/df04_benchmark.{json,md}; (2) Task 2.4.3 implementada: ConfigurationFingerprintCalculator con module.qualname, 12 tests nuevos; (3) Task 2.4.5 implementada: configuration_fingerprint propagado en RegressionReport y run_regression.py; (4) Task 2.4.6 completada: 6 tests de determinismo PASSED; (5) Tasks 2.4.1, 2.4.2, 2.4.4 completadas por construcción; (6) Gate 2 → COMPLETED (17/17 Tasks, 43/43 rules). |
 
 ---
 
@@ -144,13 +148,13 @@ Cada finding analizado recibe una sub-sección con la siguiente estructura.}
 
 ### 3.1 Gate 1 Exit Review — Canonical Corpus & GT Qualification
 
-**Estado:** ⏳ PENDING — Gate 1 no ha iniciado.
-**Fecha:** —
+**Estado:** 🟡 IN PROGRESS — Waves 1.1, 1.2 y 1.3 completadas (17/18 Tasks DONE). Task 1.1.5 pendiente (déficit de 13 documentos bloquea Exit Criteria).
+**Fecha:** 2026-09-06 (inicio)
 
 ### 3.2 Gate 2 Exit Review — GT Sealing & Canonical Evaluation Configuration
 
-**Estado:** ⏳ PENDING — Gate 2 no ha iniciado.
-**Fecha:** —
+**Estado:** ✅ COMPLETED — Waves 2.1, 2.2, 2.3 y 2.4 completadas (17/17 Tasks DONE). Gate 2 cerrado el 2026-09-10.
+**Fecha:** 2026-09-09 (inicio), 2026-09-10 (cierre)
 
 ### 3.3 Gate 3 Exit Review — Scientific Calibration & Experimental Provenance
 
@@ -216,11 +220,11 @@ Gate Exit Reviews correspondientes, aplicando el árbol de decisión de §1.4.
 
 | ID | Descripción | Estado preliminar | Gate destino | Fuente |
 |----|-------------|-------------------|--------------|--------|
-| DF-04 | Dualidad ZhangShasha/APTED | `IMPLEMENTATION_REQUIRED` (preliminar) | Gate 2 W2.4, Gate 5 W5.3 | FASE_4_HANDOFF §5.2 |
+| DF-04 | Dualidad ZhangShasha/APTED — benchmark comparativo ejecutado con run_df04_benchmark.py sobre 6 documentos del corpus canónico sellado. Divergencia promedio 8.56% (> umbral 1%), máxima 22.63% (doc_02_double). Desglose: doc_01_single (12.14%), doc_02_double (22.63%), doc_03_math (0.62%), doc_04_table (13.08%), doc_05_graph (2.88%), doc_07_pesaran (0.00%). Cuatro causas raíz identificadas: (1) cost model diferente (APTED penaliza sustituciones diff-type 2× más: 2.0 vs 1.0), (2) normalización diferente (MaxBound vs del×|GT|+ins×|Cand|), (3) fingerprint diferente (H-5.2-6: APTED usa .strip()), (4) estructura de árbol diferente (APTED reconstruye jerarquía vía parent_node_id). Patrón 1: APTED consistentemente más severo en 4/6 documentos. Patrón 2: divergencia alta en docs con estructura compleja. Patrón 3: coincidencia perfecta en casos triviales (doc_07_pesaran 0.00%, score 1.0 en ambos) valida correctitud de ambos motores. Decisión: APTED queda como experimental no-normativo conforme a NADR-22 §5.1 R3. Evidencia forense en reports/df04/df04_benchmark.{json,md}. | `RESOLVED` | Gate 2 W2.4 (investigación), Gate 5 W5.3 (cierre administrativo) | FASE_4_HANDOFF §5.2 → Resolución Wave 2.4 |
 | DF-18 | Semántica de fallo heterogénea | `IMPLEMENTATION_REQUIRED` (preliminar) | Gate 4 W4.2 | HITO 5.2 |
-| DF-19 | Manifest legacy 4D→6D | `IMPLEMENTATION_REQUIRED` (preliminar) | Gate 1 W1.2, W1.3 | HITO 5.1 |
+| DF-19 | Manifest legacy 4D→6D. Tasks 1.2.3 (contrato) y 1.3.1 (ejecución de migración) completadas. Manifest sellado en formato 6D con oracle_hash y ground_truth_state='sealed' para los 6 documentos. | `RESOLVED` | Gate 1 W1.2 W1.3 (implementación); Gate 2 W2.2 (sellado) | HITO 5.1 → Resolución Wave 1.3 → Sellado Wave 2.2 |
 | GAP-5.0-03 | Configuración implícita del corpus | `IMPLEMENTATION_REQUIRED` (preliminar) | Gate 4 W4.1 | HITO 5.0 |
-| GAP-5.2-05 | Certification Boundary Integrity violation | `IMPLEMENTATION_REQUIRED` (preliminar) | Gate 2 W2.1, Gate 4 W4.3 | HITO 5.2 |
+| GAP-5.2-05 | Certification Boundary Integrity violation. Remediado en Task 2.1.2: sanitize_ground_truth_types.py protegido con SealedOracleOverwriteError (fail-hard). | `RESOLVED` | Gate 2 W2.1 T2.1.2 (remediación primaria); Gate 4 W4.3 T4.3.2 (verificación de boundary) | HITO 5.2 → Resolución Wave 2.1 |
 
 
 ### 5.2.1 Hallazgos derivados de Wave 1.1 — referencia de trazabilidad
@@ -319,6 +323,98 @@ regla aplicada) se registrará en §2 durante el Gate 1 Exit Review.
 > (placeholder), lo cual está fuera del scope de Fase 17-BIS según ADR F17_BIS_MASTER §4.
 > Se documenta como candidato a decisión para una fase futura con ADR dedicado.
 > La evidencia forense formal se registrará en §2 durante el Gate 1 Exit Review.
+
+
+### 5.2.4 Hallazgos derivados de Wave 2.1 — referencia de trazabilidad
+
+Los siguientes hallazgos fueron identificados durante la ejecución de Wave 2.1
+(GT Validation & Structural Integrity). Se registran aquí como referencia de trazabilidad.
+La evidencia forense formal (archivos auditados, análisis, gaps confirmados,
+regla aplicada) se registrará en §2 durante el Gate 2 Exit Review.
+
+| ID | Descripción | Estado preliminar | Gate destino | Fuente |
+|----|-------------|-------------------|--------------|--------|
+| H-5.2-1 | doc_06_johnstone excluido del manifest canónico para restaurar biyección N_PDF=N_GT=6 (Zero Partial Sealing). El documento tiene trait scanned_noise y requiere pipeline OCR no disponible. PDF físico preservado en canonical/pdf/ como evidencia (quarantine). Manifest hash recalculado: 39cc80bd → fae41bb5. Re-incorporación planificada junto con déficit de 13 documentos. | `IMPLEMENTATION_REQUIRED` | Gate 2 W2.1 (pre-requisito biyección) | Auditoría Wave 2.1 |
+| H-5.2-2 | GroundTruthLifecycleState muestra 3 estados en inspección runtime pero tests esperan 4. Verificación: enum SÍ tiene 4 estados (DRAFT, AUDITED, VALIDATED, SEALED). Tests test_four_states_with_canonical_values y test_exactly_four_states PASSED. Diseño type-state: SEALED se representa como tipo SealedOracle (no GroundTruthDraft con estado). | `CLOSED (NAR)` | Gate 2 W2.1 T2.1.1 | Auditoría Wave 2.1 |
+
+> **Nota:** H-5.2-1 se marca como `IMPLEMENTATION_REQUIRED` porque la exclusión de
+> doc_06_johnstone es una medida temporal para restaurar la biyección exigida por
+> Zero Partial Sealing (ADR F17_BIS_MASTER §5). El documento debe ser re-incorporado
+> cuando se disponga de un pipeline OCR funcional, junto con los 13 documentos del
+> déficit. La evidencia forense formal se registrará en §2 durante el Gate 2 Exit Review.
+>
+> H-5.2-2 se marca como `CLOSED (NAR)` porque la inspección inicial mostró 3 estados
+> en runtime, pero los tests confirmaron que el enum SÍ tiene 4 estados. La discrepancia
+> fue un artefacto de la inspección (el script iteró sobre el enum pero no mostró SEALED
+> por razones de visualización). Los tests test_four_states_with_canonical_values y
+> test_exactly_four_states PASSED confirman el diseño type-state correcto.
+> La evidencia forense formal se registrará en §2 durante el Gate 2 Exit Review.
+
+
+### 5.2.5 Hallazgos derivados de Wave 2.2 — referencia de trazabilidad
+
+Los siguientes hallazgos fueron identificados durante la ejecución de Wave 2.2
+(Zero Partial Sealing & Oracle Identity). Se registran aquí como referencia de trazabilidad.
+La evidencia forense formal (archivos auditados, análisis, gaps confirmados,
+regla aplicada) se registrará en §2 durante el Gate 2 Exit Review.
+
+| ID | Descripción | Estado preliminar | Gate destino | Fuente |
+|----|-------------|-------------------|--------------|--------|
+| H-5.2-3 | canonicalization_lineage.json estaba en ground_truth/ contaminando BaselineCompletenessVerifier como oráculo huérfano (el verificador detectó "Orphan oracle (not in manifest): canonicalization_lineage"). Movido a canonical/ raíz. Separación de concerns: ground_truth/ debe contener exclusivamente GTs (uno por documento). | `RESOLVED` | Gate 2 W2.2 T2.2.1 | Ejecución Wave 2.2 |
+| H-5.2-4 | freeze_ground_truth.py apuntaba a tests/corpus/benchmark_v1/ en lugar de tests/corpus/canonical/. El entry point habría sellado un corpus inexistente o incorrecto. Path corregido a canonical/. | `RESOLVED` | Gate 2 W2.2 T2.2.1 | Ejecución Wave 2.2 |
+| H-5.2-5 | Log duplicado en freeze_ground_truth.py (línea logger.info "Cryptographic lock complete..." repetida). Eliminado. No afecta funcionalidad ni integridad del sellado. | `CLOSED (NAR)` | Gate 2 W2.2 T2.2.1 | Ejecución Wave 2.2 |
+
+> **Nota:** H-5.2-3 se marca como `RESOLVED` porque el archivo de trazabilidad
+> (canonicalization_lineage.json, creado en Wave 1.3 Task 1.3.2) fue movido fuera
+> del directorio ground_truth/ para restaurar la separación de concerns. El
+> BaselineCompletenessVerifier detectó correctamente el oráculo huérfano, lo que
+> confirma que el mecanismo de protección funciona. La evidencia forense formal
+> se registrará en §2 durante el Gate 2 Exit Review.
+>
+> H-5.2-4 se marca como `RESOLVED` porque el path del entry point fue corregido
+> de benchmark_v1 a canonical. Sin este fix, el sellado habría fallado con
+> FileNotFoundError o habría operado sobre un corpus inexistente. La evidencia
+> forense formal se registrará en §2 durante el Gate 2 Exit Review.
+>
+> H-5.2-5 se marca como `CLOSED (NAR)` porque el log duplicado no afectaba la
+> funcionalidad del sellado ni la integridad de los datos. Es un hallazgo cosmético.
+> La evidencia forense formal se registrará en §2 durante el Gate 2 Exit Review.
+
+
+### 5.2.6 Hallazgos derivados de Wave 2.3 — referencia de trazabilidad
+
+Los siguientes hallazgos fueron identificados durante la ejecución de Wave 2.3
+(Canonical Engine Composition). Se registran aquí como referencia de trazabilidad.
+La evidencia forense formal (archivos auditados, análisis, gaps confirmados,
+regla aplicada) se registrará en §2 durante el Gate 2 Exit Review.
+
+| ID | Descripción | Estado preliminar | Gate destino | Fuente |
+|----|-------------|-------------------|--------------|--------|
+| H-5.2-6 | ASTFingerprintPolicy.semantic_fingerprint() aplica node.text_content.strip() e identity_fingerprint() aplica str(content).strip(), violando NADR-22 §5.3 R10-R12 (normalización sin .strip(), sin fingerprint). Sin embargo, la divergencia está confinada al tooling experimental (tools/evaluation/topology/). La ruta canónica de regresión (run_regression.py → RegressionEvaluationStrategy → EntityRecallEvaluator) no usa ASTFingerprintPolicy. El dominio canónico (DefaultNodeMatchingPolicy, CriticalityAwareCostContext) no aplica .strip(). | `ACCEPTED_LIMITATION` | Gate 2 W2.3 T2.3.3 | AUDIT Wave 2.3 |
+
+> **Nota:** H-5.2-6 se marca como `ACCEPTED_LIMITATION` porque:
+> (1) ASTFingerprintPolicy está en tools/evaluation/topology/fingerprint.py (tooling experimental);
+> (2) los únicos usuarios son EntityRecallMetric, SequenceAlignmentMetric y StructuralTopologyMetric, todos en tools/evaluation/topology/metrics/;
+> (3) la ruta canónica de regresión (run_regression.py → RegressionEvaluationStrategy → EntityRecallEvaluator) no importa ni usa ASTFingerprintPolicy;
+> (4) el dominio canónico (DefaultNodeMatchingPolicy.match(), CriticalityAwareCostContext.substitution_cost()) usa comparación exacta de text_content sin normalización destructiva;
+> (5) modificar ASTFingerprintPolicy podría romper tests del tooling experimental sin beneficio para la certificación.
+> Se documenta como deuda técnica para Fase 6 (mejora del tooling de evaluación).
+> La evidencia forense formal se registrará en §2 durante el Gate 2 Exit Review.
+
+### 5.2.7 Hallazgos derivados de Wave 2.4 — referencia de trazabilidad
+
+Wave 2.4 (Engine Configuration Freeze & Verification) no generó nuevos hallazgos derivados (H-5.2-X). El hallazgo pre-identificado DF-04 fue resuelto con evidencia empírica completa.
+
+| ID | Descripción | Estado preliminar | Gate destino | Fuente |
+|----|-------------|-------------------|--------------|--------|
+| DF-04 | Benchmark comparativo ZhangShasha vs APTED ejecutado sobre 6 documentos del corpus canónico sellado. Divergencia promedio 8.56% (> umbral 1%), máxima 22.63% (doc_02_double). Cuatro causas raíz identificadas y documentadas: (1) cost model diferente (APTED penaliza sustituciones diff-type 2× más), (2) normalización diferente, (3) fingerprint diferente (H-5.2-6), (4) estructura de árbol diferente. APTED queda como experimental no-normativo (NADR-22 §5.1 R3). Evidencia forense en reports/df04/df04_benchmark.{json,md}. | `RESOLVED` | Gate 2 W2.4 T2.4.7 (investigación), Gate 5 W5.3 T5.3.3 (cierre administrativo) | Benchmark DF-04 Wave 2.4 |
+
+> **Nota:** DF-04 se marca como `RESOLVED` porque el benchmark fue ejecutado,
+> las cuatro causas raíz fueron identificadas y documentadas, y la decisión
+> normativa (APTED como experimental no-normativo) fue aplicada conforme a
+> NADR-22 §5.1 R3. La evidencia forense completa está en reports/df04/df04_benchmark.{json,md}.
+> El criterio DF-04 fue aplicado correctamente: divergencia ≥ 1%, causa raíz investigada y documentada.
+> Cierre administrativo pendiente en Gate 5 Task 5.3.3 (documentación final).
 
 ---
 

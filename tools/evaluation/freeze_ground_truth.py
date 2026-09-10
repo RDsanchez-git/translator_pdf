@@ -43,7 +43,7 @@ def main() -> None:
     el caso de uso es el Functional Core; este entry point es el Imperative
     Shell que gestiona el ciclo de vida en memoria.
     """
-    base_path = pathlib.Path("tests/corpus/benchmark_v1")
+    base_path = pathlib.Path("tests/corpus/canonical")
 
     corpus_loader = LocalFileSystemCorpusLoader(base_path)
     artifact_adapter = LocalFileSystemGroundTruthArtifactAdapter(base_path)
@@ -120,10 +120,6 @@ def main() -> None:
     try:
         global_manifest_hash = use_case.execute(
             validated_drafts=tuple(validated_drafts),
-        )
-        logger.info(
-            "Cryptographic lock complete. Manifest verified under global SHA-256: %s",
-            global_manifest_hash,
         )
         logger.info(
             "Cryptographic lock complete. Manifest verified under global SHA-256: %s",

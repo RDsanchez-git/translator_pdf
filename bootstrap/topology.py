@@ -19,6 +19,12 @@ from core.benchmark.topology.engines.lcs_engine import LCSSequenceAlignmentEngin
 from core.benchmark.topology.partitioning.heading import HeadingAnchorPartitionStrategy
 from core.benchmark.topology.policies.overflow import WorstCaseOverflowStrategy
 from core.benchmark.topology.policies.normalization import MaxBoundNormalizationPolicy
+from core.benchmark.topology.regression.configuration import (
+    CanonicalEngineConfiguration,
+)
+from core.benchmark.topology.regression.models import RegressionThresholds
+from core.benchmark.topology.criticality.costs import CriticalityAwareCostContext
+from core.benchmark.topology.criticality.models import NodeCriticality
 
 
 class DefaultNodeMatchingPolicy(NodeMatchingPolicy):
@@ -81,4 +87,80 @@ def create_topology_evaluator(
         normalizer=normalizer,
         cost_context=costs,
         evaluation_context=context
+    )
+
+
+def build_canonical_engine_configuration(
+    *,
+    matching_policy=None,
+    alignment_engine=None,
+    cost_context=None,
+    thresholds=None,
+    warning_threshold=1,
+):
+    """Construye la configuracion canonica del motor de evaluacion.
+
+    NADR-22 §5.6 R19: Identificador criptografico de configuracion.
+
+    SYNC: Los defaults de partitioner, normalizer, overflow y el algoritmo
+    de distancia deben coincidir exactamente con los de create_topology_evaluator().
+    Estos componentes son stateless y canonicos; la duplicacion controlada es
+    preferible a modificar la API de create_topology_evaluator.
+
+    El engine se construye explicitamente para poder extraer su identidad
+    tipada absoluta (module.qualname) y evitar strings libres en el payload
+    del fingerprint.
+    """
+    # Construir el engine explicitamente para extraer identidad tipada
+    indexer = PostorderIndexer()
+    forest_calc = ForestDistanceCalculator()
+    algorithm = ZhangShashaTreeDistanceCalculator(forest_calc)
+    engine = ZhangShashaEngine(indexer=indexer, algorithm=algorithm)
+
+    # Componentes inyectados o defaults (SYNC con create_topology_evaluator)
+    resolved_matching = matching_policy if matching_policy is not None else DefaultNodeMatchingPolicy()
+
+    if alignment_engine is not None:
+        resolved_alignment_engine = alignment_engine
+    else:
+        try:
+            resolved_alignment_engine = LCSSequenceAlignmentEngine(PreferCandidateTieBreaker())
+        except TypeError:
+            resolved_alignment_engine = LCSSequenceAlignmentEngine()
+
+    aligner = LCSAnchorAlignmentStrategy(
+        matching_policy=resolved_matching,
+        alignment_engine=resolved_alignment_engine,
+    )
+
+    # SYNC: estos 3 defaults deben coincidir con create_topology_evaluator()
+    partitioner = HeadingAnchorPartitionStrategy()
+    overflow = WorstCaseOverflowStrategy()
+    normalizer = MaxBoundNormalizationPolicy()
+
+    # Extraer pesos con isinstance (no hasattr)
+    resolved_costs = cost_context if cost_context is not None else UnitCostContext()
+    if isinstance(resolved_costs, CriticalityAwareCostContext):
+        w = resolved_costs.weights
+        cost_weights = (
+            w[NodeCriticality.CRITICAL],
+            w[NodeCriticality.WARNING],
+            w[NodeCriticality.INFO],
+        )
+    else:
+        cost_weights = (1.0, 1.0, 1.0)
+
+    resolved_thresholds = thresholds or RegressionThresholds()
+
+    return CanonicalEngineConfiguration.from_components(
+        engine=engine,
+        cost_weights=cost_weights,
+        partitioner=partitioner,
+        aligner=aligner,
+        normalizer=normalizer,
+        overflow=overflow,
+        matching_policy=resolved_matching,
+        nss_hard_fail=resolved_thresholds.nss_hard_fail,
+        nss_warning=resolved_thresholds.nss_warning,
+        warning_threshold=warning_threshold,
     )

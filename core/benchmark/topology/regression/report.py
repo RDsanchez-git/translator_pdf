@@ -56,12 +56,16 @@ class RegressionReport:
     # NADR-19 §5.7 R29: inyectado externamente, no generado internamente.
     # Si None, el reporte no incluye timestamp (determinismo total).
     generated_at: str | None = None
+    # NADR-22 §5.6 R19: Identificador criptografico de configuracion canonica.
+    # Si None, el reporte no incluye fingerprint (backward compatibility).
+    configuration_fingerprint: str | None = None
 
 
 def build_regression_report(
     corpus_version: str,
     evaluation_reports: Sequence[RegressionEvaluationReport],
     generated_at: str | None = None,
+    configuration_fingerprint: str | None = None,
 ) -> RegressionReport:
     """Construye el reporte agregado de regresión.
 
@@ -130,6 +134,7 @@ def build_regression_report(
         total_warning_false_negatives=total_warning_fn,
         total_info_false_negatives=total_info_fn,
         generated_at=generated_at,
+        configuration_fingerprint=configuration_fingerprint,
     )
 
 

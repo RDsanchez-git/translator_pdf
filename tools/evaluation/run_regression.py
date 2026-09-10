@@ -32,6 +32,7 @@ from pathlib import Path
 from apps.bootstrap.pipeline_factory import build_extraction_pipeline
 from bootstrap.topology import (
     DefaultNodeMatchingPolicy,
+    build_canonical_engine_configuration,
     create_topology_evaluator,
 )
 from core.ast.enums import ContentNodeType
@@ -43,6 +44,7 @@ from core.benchmark.ground_truth.models import (
 )
 from core.benchmark.ground_truth.use_cases import LoadGroundTruthUseCase
 from core.benchmark.topology.criticality.costs import CriticalityAwareCostContext
+from core.benchmark.topology.regression.configuration import ConfigurationFingerprintCalculator
 from core.benchmark.topology.evaluators.recall import EntityRecallEvaluator
 from core.benchmark.topology.regression import (
     JsonRegressionReportFormatter,
@@ -132,6 +134,13 @@ def main() -> None:
         ted_evaluator=ted_evaluator,
         recall_evaluators=recall_evaluators,
     )
+    
+    # NADR-22 §5.6 R19: Configuracion canonica + fingerprint
+    config = build_canonical_engine_configuration(
+        matching_policy=matching_policy,
+        cost_context=cost_context,
+    )
+    config_fingerprint = ConfigurationFingerprintCalculator.calculate(config)
 
     extraction_pipeline = build_extraction_pipeline()
 
@@ -177,6 +186,7 @@ def main() -> None:
         corpus_version=manifest.corpus_version.value,
         evaluation_reports=document_reports,
         generated_at=generated_at,
+        configuration_fingerprint=config_fingerprint,
     )
 
     # ── Paso 6: Escribir reportes ─────────────────────────────────

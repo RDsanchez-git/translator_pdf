@@ -33,6 +33,11 @@ from core.benchmark.topology.regression.strategy import (
     RegressionEvaluationStrategy,
 )
 
+from core.benchmark.topology.regression.configuration import (
+    CanonicalEngineConfiguration,
+    ConfigurationFingerprintCalculator,
+)
+
 from core.benchmark.topology.regression.report import (
     JsonRegressionReportFormatter,
     MarkdownRegressionReportFormatter,
@@ -71,4 +76,7 @@ __all__ = [
     "JsonRegressionReportFormatter",
     "MarkdownRegressionReportFormatter",
     "build_regression_report",
+    # Configuration (Wave 2.4)
+    "CanonicalEngineConfiguration",
+    "ConfigurationFingerprintCalculator",
 ]

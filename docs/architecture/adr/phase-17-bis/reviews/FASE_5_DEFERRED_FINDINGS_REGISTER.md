@@ -1,10 +1,10 @@
 # FASE_5_DEFERRED_FINDINGS_REGISTER.md
 
 **Documento:** `docs/architecture/adr/phase-17-bis/reviews/FASE_5_DEFERRED_FINDINGS_REGISTER.md`
-**Versión:** 0.6.0
+**Versión:** 0.10.0
 **Estado:** IN_PROGRESS
 **Fecha de creación:** 2026-09-05
-**Última actualización:** 2026-09-05
+**Última actualización:** 2026-09-10
 **Derivado de:** `PHASE_17BIS_FASE5_EXECUTION_PLAN.md` v1.2.2
 **Propósito:** Registro auditable de hallazgos identificados durante la implementación
 del Execution Plan de Fase 5 (Baseline Certification), su clasificación, resolución y
@@ -20,6 +20,10 @@ evidencia empírica de los batches.
 | 0.4.0 | 2026-09-06 | **Wave 1.1 completada:** 4 hallazgos derivados registrados (H-5.1-1 a H-5.1-4). H-5.1-1 RESOLVED (pesaran1999.pdf encontrado e incluido como doc_07). H-5.1-2, H-5.1-3 IMPLEMENTATION_REQUIRED. H-5.1-4 PENDING_REVIEW. Métricas actualizadas. |
 | 0.5.0 | 2026-09-06 | **Wave 1.2 completada:** (1) H-5.1-4 reclasificado de PENDING_REVIEW a RESOLVED — traits reclasificados con nombres correctos del catálogo vigente (scanned_noise, heavy_math, nested_tables, floating_figures); (2) H-5.1-5 registrado y RESOLVED — discrepancia de nombres de traits (DENSE_TYPOGRAPHY y MIXED_CONTENT no existen; HEAVY_MATHEMATICS→heavy_math, COMPLEX_TABLES→nested_tables, OCR_DEPENDENCY→scanned_noise); (3) H-5.1-6 registrado y CLOSED (NAR) — contrato del manifest verificado como 6D plano en RawDocumentEntryDTO; (4) Manifest canónico generado y verificado (hash 62f0df16); (5) Métricas y estado actualizados. |
 | 0.6.0 | 2026-09-09 | **Wave 1.3 completada:** (1) H-5.1-2 reclasificado de IMPLEMENTATION_REQUIRED a RESOLVED — archivo temporal tmptu237h6p eliminado en Task 1.3.1; (2) H-5.1-3 reclasificado de IMPLEMENTATION_REQUIRED a RESOLVED — AST legacy reemplazado por re-extracción en Task 1.3.8; (3) H-5.1-7 registrado y RESOLVED — parent_node_id=None en todos los GTs, consistente con Flat Design, verificado en curaduría; (4) H-5.1-8 registrado y CLOSED (NAR) — ManifestFingerprintCalculator.compute_hash() incluye page_count (verificado en source code); (5) H-5.1-9 registrado como ACCEPTED_LIMITATION — doc_02_double: fragmentación de ecuaciones por PyMuPDF en doble columna; (6) H-5.1-10 registrado como ACCEPTED_LIMITATION — doc_05_graph: labels de ejes como paragraphs; (7) H-5.1-11 registrado como RECLASSIFIED_FUTURE_PHASE — patrón Detect & Placeholder, fuera del scope de Fase 17-BIS (ADR §4); (8) Métricas y estado actualizados. |
+| 0.7.0 | 2026-09-09 | **Wave 2.1 completada:** (1) H-5.2-1 registrado como IMPLEMENTATION_REQUIRED — doc_06_johnstone excluido del manifest canónico para restaurar biyección N_PDF=N_GT=6, requiere re-incorporación con pipeline OCR; (2) H-5.2-2 registrado y CLOSED (NAR) — GroundTruthLifecycleState tiene 4 estados (DRAFT, AUDITED, VALIDATED, SEALED), diseño type-state confirmado por tests; (3) GAP-5.2-05 reclasificado de IMPLEMENTATION_REQUIRED a RESOLVED — sanitize_ground_truth_types.py protegido con SealedOracleOverwriteError (fail-hard), 3 tests nuevos; (4) Manifest hash recalculado: 39cc80bd → fae41bb5 (post exclusión doc_06); (5) Baseline tests: 627 passed, 5 skipped (3 nuevos de GAP-5.2-05); (6) Métricas y estado actualizados. |
+| 0.8.0 | 2026-09-09 | **Wave 2.2 completada:** (1) H-5.2-3 registrado y RESOLVED — canonicalization_lineage.json movido de ground_truth/ a canonical/ raíz (separación de concerns); (2) H-5.2-4 registrado y RESOLVED — freeze_ground_truth.py path corregido de benchmark_v1 a canonical; (3) H-5.2-5 registrado y CLOSED (NAR) — log duplicado eliminado de freeze_ground_truth.py; (4) DF-19 reclasificado de IMPLEMENTATION_REQUIRED a RESOLVED — manifest en formato 6D completo y sellado; (5) Sellado ejecutado: manifest_hash 0fda7690, 6/6 GTs sellados con oracle_hash; (6) MIG-02 y MIG-06 ejecutados; (7) Métricas y estado actualizados. |
+| 0.9.0 | 2026-09-09 | **Wave 2.3 completada:** (1) H-5.2-6 registrado como ACCEPTED_LIMITATION — ASTFingerprintPolicy.semantic_fingerprint() e identity_fingerprint() aplican .strip(), violando NADR-22 §5.3 R10-R12; divergencia confinada al tooling experimental (tools/evaluation/topology/); la ruta canónica de regresión (run_regression.py → RegressionEvaluationStrategy → EntityRecallEvaluator) no usa ASTFingerprintPolicy ni aplica .strip(); dominio canónico (DefaultNodeMatchingPolicy, CriticalityAwareCostContext) verificado libre de .strip(); (2) Métricas y estado actualizados. |
+| 0.10.0 | 2026-09-10 | **Wave 2.4 completada, Gate 2 COMPLETED:** (1) DF-04 reclasificado de IMPLEMENTATION_REQUIRED a RESOLVED — benchmark ejecutado con run_df04_benchmark.py sobre 6 documentos del corpus canónico sellado, divergencia promedio 8.56% (> umbral 1%), máxima 22.63% (doc_02_double), 4 causas raíz documentadas (cost model, normalización, fingerprint H-5.2-6, estructura de árbol), APTED queda como experimental no-normativo (NADR-22 §5.1 R3); (2) Tasks 2.4.1-2.4.2, 2.4.4 completadas por construcción; (3) Task 2.4.3 implementada: CanonicalEngineConfiguration + ConfigurationFingerprintCalculator con module.qualname, 12 tests nuevos; (4) Task 2.4.5 implementada: configuration_fingerprint propagado en RegressionReport; (5) Task 2.4.6 completada: 6 tests de determinismo PASSED; (6) Gate 2 → COMPLETED (17/17 Tasks, 43/43 rules); (7) Métricas actualizadas: 23 hallazgos analizados (DF-04 cerrado), 9 resueltos. |
 
 ---
 
@@ -219,17 +223,18 @@ hallazgos descubiertos durante la implementación.
 
 ### 2.2 Gate 2 Exit Review — GT Sealing & Canonical Evaluation Configuration
 
-**Estado:** ⏳ PENDING — Gate 2 no ha iniciado.
-**Fecha de ejecución:** —
+**Estado:** ✅ COMPLETED — Gate 2 cerrado con 17/17 Tasks DONE y 43/43 rules DONE.
+**Fecha de ejecución:** 2026-09-10
 **Execution Plan:** Gate 2 / Waves 2.1, 2.2, 2.3, 2.4
 **Hallazgos pre-asignados:** GAP-5.2-05, DF-04
 
 | DF/GF | ¿Válido? | Evidencia | ¿Resoluble en Gate? | ¿Técnico? | Decisión | Motivo |
 |-------|----------|-----------|---------------------|-----------|----------|--------|
-| — | — | — | — | — | — | Pendiente de ejecución del Gate 2 Exit Review |
+| GAP-5.2-05 | ✅ Sí | sanitize_ground_truth_types.py protegido con SealedOracleOverwriteError (fail-hard), 3 tests nuevos PASSED | ✅ Sí | ✅ Sí | RESOLVED | Protección de SealedOracle implementada y verificada (Wave 2.1 Task 2.1.2) |
+| DF-04 | ✅ Sí | Benchmark ejecutado: divergencia 8.56% promedio, 22.63% máxima, 4 causas raíz documentadas | ✅ Sí | ✅ Sí | RESOLVED | APTED queda como experimental no-normativo (NADR-22 §5.1 R3) |
 
 **Resumen:**
-- RESOLVED: 0
+- RESOLVED: 2 (GAP-5.2-05, DF-04)
 - IMPLEMENTATION_REQUIRED: 0
 - REVIEW_REQUIRED: 0
 - CLOSED (NAR): 0
@@ -240,11 +245,14 @@ hallazgos descubiertos durante la implementación.
 
 | Decisión | Task | Justificación |
 |----------|------|---------------|
-| — | — | — |
+| ConfigurationFingerprint con module.qualname | 2.4.3 | Unicidad absoluta de identidad tipada, evita strings libres y colisiones entre módulos (ENGINEERING_PRINCIPLES §III) |
+| Default del composition root permanece UnitCostContext | 2.3.2 | Caller explícito en run_regression.py, Explicit over Implicit + YAGNI |
+| APTED como experimental no-normativo | 2.4.7 | Divergencia 8.56% con 4 causas raíz documentadas, NADR-22 §5.1 R3 |
 
 #### Lecciones aprendidas
 
-- —
+- La divergencia algorítmica entre motores TED (ZhangShasha vs APTED) es esperable y documentable. Las 4 causas raíz (cost model, normalización, fingerprint, estructura de árbol) son factores conocidos que no indican bugs en ninguno de los dos motores.
+- El uso de `type(x).__module__ + "." + type(x).__qualname__` como identidad tipada es superior a strings libres o enums nuevos para fingerprints de configuración.
 
 ---
 
@@ -378,6 +386,13 @@ Se actualiza al cierre del último Gate Exit Review.
 | H-5.1-9 | ACCEPTED_LIMITATION | GAP_CONFIRMED | doc_02_double: 52 nodos display_equation contienen fragmentos garbled (operadores/variables aislados: "+", "= = =", "p", "i t i i"). PyMuPDF no agrupa tokens matemáticos en layout de doble columna. El GT es fiel a la salida del extractor pero NO al contenido matemático real. Documentado en FASE_5_WAVE_1_3_CURATION_REPORT.md. | Gate 1 W1.3 T1.3.9 | 2026-09-09 |
 | H-5.1-10 | ACCEPTED_LIMITATION | GAP_CONFIRMED | doc_05_graph: 56 labels de ejes de gráficos vectoriales extraídos como paragraph individuales (ej. "–20", "0", "15"). Estructura del gráfico no capturada. Comportamiento esperado de PyMuPDF frente a gráficos vectoriales. Documentado en FASE_5_WAVE_1_3_CURATION_REPORT.md. | Gate 1 W1.3 T1.3.9 | 2026-09-09 |
 | H-5.1-11 | RECLASSIFIED_FUTURE_PHASE | PARTIAL_GAP | Propuesta de patrón "Detect & Placeholder": PyMuPDF degrada silenciosamente tablas/figuras/ecuaciones al extraerlas como texto plano. Se propone detectar la presencia y dejar placeholder para pegado manual. Fuera del scope de Fase 17-BIS (ADR F17_BIS_MASTER §4: no modificar extractores). Documentado en FASE_5_WAVE_1_3_CURATION_REPORT.md. | Gate 1 W1.3 T1.3.9 | 2026-09-09 |
+| H-5.2-1 | IMPLEMENTATION_REQUIRED | GAP_CONFIRMED | doc_06_johnstone excluido del manifest canónico para restaurar biyección N_PDF=N_GT=6 (Zero Partial Sealing). El documento tiene trait scanned_noise y requiere pipeline OCR no disponible. PDF físico preservado en canonical/pdf/ como evidencia (quarantine). Manifest hash recalculado: 39cc80bd → fae41bb5. Re-incorporación planificada junto con déficit de 13 documentos. | Gate 2 W2.1 (pre-requisito biyección) | 2026-09-09 |
+| H-5.2-2 | CLOSED (NAR) | NO_GAP | Hipótesis: GroundTruthLifecycleState muestra 3 estados en runtime pero tests esperan 4. Verificación: enum SÍ tiene 4 estados (DRAFT, AUDITED, VALIDATED, SEALED). Tests test_four_states_with_canonical_values y test_exactly_four_states PASSED. Diseño type-state: SEALED se representa como tipo SealedOracle (no GroundTruthDraft con estado). | Gate 2 W2.1 T2.1.1 | 2026-09-09 |
+| H-5.2-3 | RESOLVED | GAP_CONFIRMED | canonicalization_lineage.json estaba en ground_truth/ contaminando BaselineCompletenessVerifier como oráculo huérfano. Movido a canonical/ raíz (separación de concerns: ground_truth/ solo contiene GTs, uno por documento). | Gate 2 W2.2 T2.2.1 | 2026-09-09 |
+| H-5.2-4 | RESOLVED | GAP_CONFIRMED | freeze_ground_truth.py apuntaba a tests/corpus/benchmark_v1/ en lugar de tests/corpus/canonical/. Path corregido a canonical/. Entry point funcional para sellado del corpus canónico. | Gate 2 W2.2 T2.2.1 | 2026-09-09 |
+| H-5.2-5 | CLOSED (NAR) | NO_GAP | Log duplicado en freeze_ground_truth.py (línea logger.info repetida). Eliminado. No afecta funcionalidad ni integridad. | Gate 2 W2.2 T2.2.1 | 2026-09-09 |
+| H-5.2-6 | ACCEPTED_LIMITATION | GAP_CONFIRMED | ASTFingerprintPolicy.semantic_fingerprint() aplica node.text_content.strip() e identity_fingerprint() aplica str(content).strip(), violando NADR-22 §5.3 R10-R12. Divergencia confinada al tooling experimental (tools/evaluation/topology/). Usada por EntityRecallMetric, SequenceAlignmentMetric y StructuralTopologyMetric (todas en tools/evaluation/topology/metrics/). La ruta canónica de regresión (run_regression.py → RegressionEvaluationStrategy → EntityRecallEvaluator) no usa ASTFingerprintPolicy. Dominio canónico (DefaultNodeMatchingPolicy, CriticalityAwareCostContext) no aplica .strip(). | Gate 2 W2.3 T2.3.3 | 2026-09-09 |
+| DF-04 | RESOLVED | GAP_CONFIRMED | Benchmark comparativo ZhangShasha vs APTED ejecutado sobre 6 documentos del corpus canónico sellado con run_df04_benchmark.py. Divergencia promedio 8.56% (> umbral 1%), máxima 22.63% (doc_02_double). Desglose: doc_01_single (12.14%), doc_02_double (22.63%), doc_03_math (0.62%), doc_04_table (13.08%), doc_05_graph (2.88%), doc_07_pesaran (0.00%). Cuatro causas raíz identificadas: (1) cost model diferente (APTED penaliza sustituciones diff-type 2× más: 2.0 vs 1.0), (2) normalización diferente (MaxBound vs del×|GT|+ins×|Cand|), (3) fingerprint diferente (H-5.2-6: APTED usa .strip()), (4) estructura de árbol diferente (APTED reconstruye jerarquía vía parent_node_id). Patrón 1: APTED consistentemente más severo en 4/6 documentos. Patrón 2: divergencia alta en docs con estructura compleja. Patrón 3: coincidencia perfecta en casos triviales (doc_07_pesaran 0.00%, score 1.0 en ambos) valida correctitud de ambos motores. Decisión: APTED queda como experimental no-normativo conforme a NADR-22 §5.1 R3. Criterio DF-04 aplicado: divergencia ≥ 1%, causa raíz investigada y documentada. Evidencia forense en reports/df04/df04_benchmark.{json,md}. | Gate 2 W2.4 T2.4.7 | 2026-09-10 |
 
 ---
 
@@ -437,20 +452,20 @@ Se actualiza al cierre de cada batch.
 
 | Métrica | Valor |
 |---------|-------|
-| Total de hallazgos analizados | 16 |
-| Hallazgos activos de Fase 5 | 5 (pre-identificados) + 11 (derivados de Wave 1.1, 1.2 y 1.3) |
-| Hallazgos resueltos | 6 (H-5.1-1, H-5.1-2, H-5.1-3, H-5.1-4, H-5.1-5, H-5.1-7) |
-| Hallazgos cerrados sin acción | 2 (H-5.1-6, H-5.1-8) |
+| Total de hallazgos analizados | 23 |
+| Hallazgos activos de Fase 5 | 4 pre-identificados (DF-18, GAP-5.0-03 pendientes; DF-19, GAP-5.2-05, DF-04 resueltos) + 17 derivados = 21 activos con resolución |
+| Hallazgos resueltos | 9 (H-5.1-1, H-5.1-2, H-5.1-3, H-5.1-4, H-5.1-5, H-5.1-7, H-5.2-3, H-5.2-4, DF-04) + 2 pre-identificados (DF-19, GAP-5.2-05) = 11 totales |
+| Hallazgos cerrados sin acción | 4 (H-5.1-6, H-5.1-8, H-5.2-2, H-5.2-5) |
 | Hallazgos reclasificados a fase futura | 1 (H-5.1-11) |
-| Hallazgos aceptados como limitación | 2 (H-5.1-9, H-5.1-10) |
-| Hallazgos pendientes de implementación | 0 |
+| Hallazgos aceptados como limitación | 3 (H-5.1-9, H-5.1-10, H-5.2-6) |
+| Hallazgos pendientes de implementación | 3 (H-5.2-1, DF-18, GAP-5.0-03) |
 | Hallazgos pendientes de revisión | 0 |
 | Governance Findings abiertos | 0 |
 | Batches completados | 0 |
 | Archivos eliminados totales | 1 (tmptu237h6p) |
-| Archivos movidos totales | 0 |
-| Archivos creados totales | 9 (7 PDFs en canonical/pdf/, manifest.json, 6 GTs en canonical/ground_truth/, canonicalization_lineage.json, FASE_5_WAVE_1_3_CURATION_REPORT.md) |
-| Tests finales | 624 passed, 5 skipped (baseline) |
+| Archivos movidos totales | 1 (canonicalization_lineage.json de ground_truth/ a canonical/) |
+| Archivos creados totales | 14 (7 PDFs en canonical/pdf/, manifest.json, 6 GTs en canonical/ground_truth/, canonicalization_lineage.json, FASE_5_WAVE_1_3_CURATION_REPORT.md, test_sanitize_ground_truth_types.py, sanitize_ground_truth_types.py refactorizado, configuration.py, test_configuration_fingerprint.py, run_df04_benchmark.py) |
+| Tests finales | 639 passed, 5 skipped (baseline establecida en Wave 2.1 con 627, +12 tests de configuration fingerprint en Wave 2.4) |
 | Pyright final | 0 errors |
 
 ---
@@ -518,18 +533,18 @@ El documento se considera cerrado (`ARCHIVED`) cuando:
 
 | Categoría | Cantidad |
 |-----------|----------|
-| Total de hallazgos analizados | 16 |
-| Hallazgos activos de Fase 5 (pre-identificados) | 5 |
-| Hallazgos derivados de Wave 1.1, 1.2 y 1.3 | 11 |
-| Hallazgos resueltos | 6 (H-5.1-1, H-5.1-2, H-5.1-3, H-5.1-4, H-5.1-5, H-5.1-7) |
-| Hallazgos cerrados sin acción | 2 (H-5.1-6, H-5.1-8) |
-| Hallazgos aceptados como limitación | 2 (H-5.1-9, H-5.1-10) |
+| Total de hallazgos analizados | 23 |
+| Hallazgos activos de Fase 5 (pre-identificados) | 5 (2 pendientes: DF-18, GAP-5.0-03; 3 resueltos: DF-19, GAP-5.2-05, DF-04) |
+| Hallazgos derivados de Waves 1.1-2.4 | 17 |
+| Hallazgos resueltos | 11 (8 derivados + 3 pre-identificados: DF-19, GAP-5.2-05, DF-04) |
+| Hallazgos cerrados sin acción | 4 (H-5.1-6, H-5.1-8, H-5.2-2, H-5.2-5) |
+| Hallazgos aceptados como limitación | 3 (H-5.1-9, H-5.1-10, H-5.2-6) |
 | Hallazgos reclasificados a fase futura | 1 (H-5.1-11) |
-| Hallazgos pendientes de implementación | 0 |
+| Hallazgos pendientes de implementación | 3 (H-5.2-1, DF-18, GAP-5.0-03) |
 | Hallazgos pendientes de revisión | 0 |
 | Governance Findings abiertos | 0 |
 | Batches completados | 0/— |
-| Estado del Exit Review | 🟡 IN PROGRESS (Gate 1 en ejecución, Wave 1.3 completada) |
+| Estado del Exit Review | 🟡 IN PROGRESS (Gate 2 COMPLETED, Gates 3-5 pendientes) |
 
 ---
 
@@ -557,11 +572,11 @@ durante los Gate Exit Reviews correspondientes, aplicando el árbol de decisión
 
 | ID | Descripción | Estado preliminar | Gate destino primario | Fuente |
 |----|-------------|-------------------|----------------------|--------|
-| DF-04 | Dualidad ZhangShasha/APTED — benchmark comparativo. Criterio (respaldado por FASE_4_HANDOFF §5.2): divergencia `< 1%` TED normalizado → APTED queda experimental sin acción adicional; divergencia `≥ 1%` → investigar causa raíz y documentar. | `IMPLEMENTATION_REQUIRED` (preliminar) | Gate 2 W2.4 Task 2.4.7 (implementación/investigación); Gate 5 W5.3 Task 5.3.3 (cierre administrativo) | FASE_4_HANDOFF §5.2 |
+| DF-04 | Dualidad ZhangShasha/APTED — benchmark comparativo ejecutado con run_df04_benchmark.py sobre 6 documentos del corpus canónico sellado. Divergencia promedio 8.56% (> umbral 1%), máxima 22.63% (doc_02_double). Cuatro causas raíz documentadas: (1) cost model diferente, (2) normalización diferente, (3) fingerprint diferente (H-5.2-6), (4) estructura de árbol diferente. APTED queda como experimental no-normativo (NADR-22 §5.1 R3). Criterio DF-04 aplicado y cerrado. | `RESOLVED` | Gate 2 W2.4 Task 2.4.7 (investigación); Gate 5 W5.3 Task 5.3.3 (cierre administrativo) | FASE_4_HANDOFF §5.2 → Resolución Wave 2.4 |
 | DF-18 | Semántica de fallo heterogénea en 4 entry points (`freeze_ground_truth.py`, `generate_golden_draft.py`, `generate_pymupdf_candidate.py`, `sanitize_ground_truth_types.py`). Múltiples caminos de error pueden terminar en exit 0. | `IMPLEMENTATION_REQUIRED` (preliminar) | Gate 4 W4.2 Task 4.2.3 | HITO 5.2 |
-| DF-19 | Manifest en formato legacy (4 dimensiones) incompatible con formato vigente (6 dimensiones). Hash almacenado ≠ hash calculado. | `IMPLEMENTATION_REQUIRED` (preliminar) | Gate 1 W1.2 Task 1.2.3 (contrato); Gate 1 W1.3 Task 1.3.1 (ejecución de migración) | HITO 5.1 |
+| DF-19 | Manifest en formato legacy (4 dimensiones) incompatible con formato vigente (6 dimensiones). Hash almacenado ≠ hash calculado. Tasks 1.2.3 (contrato) y 1.3.1 (ejecución de migración) completadas. Manifest sellado en formato 6D con oracle_hash y ground_truth_state. | `RESOLVED` | Gate 1 W1.2 Task 1.2.3 (contrato); Gate 1 W1.3 Task 1.3.1 (ejecución de migración) | HITO 5.1 → Resolución Wave 1.3 |
 | GAP-5.0-03 | Configuración implícita del corpus. 6 de 8 entry points tienen rutas hardcoded sin argumentos CLI configurables. | `IMPLEMENTATION_REQUIRED` (preliminar) | Gate 4 W4.1 Task 4.1.3 | HITO 5.0 |
-| GAP-5.2-05 | Certification Boundary Integrity violation. `sanitize_ground_truth_types.py` puede sobrescribir Ground Truths sellados sin verificar estado de sellado. | `IMPLEMENTATION_REQUIRED` (preliminar) | Gate 2 W2.1 Task 2.1.2 (remediación primaria); Gate 4 W4.3 Task 4.3.2 (verificación de boundary) | HITO 5.2 |
+| GAP-5.2-05 | Certification Boundary Integrity violation. `sanitize_ground_truth_types.py` puede sobrescribir Ground Truths sellados sin verificar estado de sellado. Remediado en Task 2.1.2: protección fail-hard con SealedOracleOverwriteError. | `RESOLVED` | Gate 2 W2.1 Task 2.1.2 (remediación primaria); Gate 4 W4.3 Task 4.3.2 (verificación de boundary) | HITO 5.2 → Resolución Wave 2.1 |
 
 
 ### 9.2.1 Hallazgos derivados de Wave 1.1 y 1.2 — registrados durante implementación
@@ -586,6 +601,43 @@ durante los Gate Exit Reviews correspondientes, aplicando el árbol de decisión
 | H-5.1-10 | doc_05_graph: 56 labels de ejes de gráficos como paragraphs. Estructura de gráficos no capturada por PyMuPDF. | `ACCEPTED_LIMITATION` | Gate 1 W1.3 T1.3.9 | Curaduría Wave 1.3 |
 | H-5.1-11 | Propuesta de patrón "Detect & Placeholder" para extracción de tablas/figuras/ecuaciones. Fuera del scope de Fase 17-BIS (ADR F17_BIS_MASTER §4). | `RECLASSIFIED_FUTURE_PHASE` | Post Fase 17-BIS | Curaduría Wave 1.3 |
 
+
+### 9.2.3 Hallazgos derivados de Wave 2.1 — registrados durante implementación
+
+| ID | Descripción | Estado preliminar | Gate destino primario | Fuente |
+|----|-------------|-------------------|----------------------|--------|
+| H-5.2-1 | doc_06_johnstone excluido del manifest canónico para restaurar biyección N_PDF=N_GT=6 (Zero Partial Sealing). Requiere re-incorporación con pipeline OCR. Manifest hash recalculado: 39cc80bd → fae41bb5. PDF físico preservado como evidencia. | `IMPLEMENTATION_REQUIRED` | Gate 2 W2.1 (pre-requisito biyección) | Auditoría Wave 2.1 |
+| H-5.2-2 | GroundTruthLifecycleState muestra 3 estados en inspección runtime pero tests esperan 4. Verificación: enum SÍ tiene 4 estados (DRAFT, AUDITED, VALIDATED, SEALED). Diseño type-state: SEALED se representa como tipo SealedOracle. | `CLOSED (NAR)` | Gate 2 W2.1 T2.1.1 | Auditoría Wave 2.1 |
+
+### 9.2.4 Hallazgos derivados de Wave 2.2 — registrados durante implementación
+
+| ID | Descripción | Estado preliminar | Gate destino primario | Fuente |
+|----|-------------|-------------------|----------------------|--------|
+| H-5.2-3 | canonicalization_lineage.json estaba en ground_truth/ contaminando BaselineCompletenessVerifier como oráculo huérfano. Movido a canonical/ raíz (separación de concerns). | `RESOLVED` | Gate 2 W2.2 T2.2.1 | Ejecución Wave 2.2 |
+| H-5.2-4 | freeze_ground_truth.py apuntaba a tests/corpus/benchmark_v1/ en lugar de tests/corpus/canonical/. Path corregido. | `RESOLVED` | Gate 2 W2.2 T2.2.1 | Ejecución Wave 2.2 |
+| H-5.2-5 | Log duplicado en freeze_ground_truth.py (línea logger.info repetida). Eliminado. No afecta funcionalidad. | `CLOSED (NAR)` | Gate 2 W2.2 T2.2.1 | Ejecución Wave 2.2 |
+
+> **Nota:** H-5.2-3 y H-5.2-4 se marcan como `RESOLVED` porque fueron remediados
+> durante la ejecución del sellado en Task 2.2.1. H-5.2-5 se marca como `CLOSED (NAR)`
+> porque el log duplicado no afectaba la funcionalidad ni la integridad del sellado.
+> La evidencia forense formal se registrará en §2 durante el Gate 2 Exit Review.
+
+
+### 9.2.5 Hallazgos derivados de Wave 2.3 — registrados durante implementación
+
+| ID | Descripción | Estado preliminar | Gate destino primario | Fuente |
+|----|-------------|-------------------|----------------------|--------|
+| H-5.2-6 | ASTFingerprintPolicy.semantic_fingerprint() e identity_fingerprint() aplican .strip() en el contenido, violando NADR-22 §5.3 R10-R12 (normalización de texto: sin .strip(), sin fingerprint). Divergencia confinada al tooling experimental (tools/evaluation/topology/). La ruta canónica de regresión no usa ASTFingerprintPolicy. Dominio canónico no aplica .strip(). | `ACCEPTED_LIMITATION` | Gate 2 W2.3 T2.3.3 | AUDIT Wave 2.3 |
+
+> **Nota:** H-5.2-6 se marca como `ACCEPTED_LIMITATION` porque:
+> (1) ASTFingerprintPolicy está en tools/evaluation/topology/fingerprint.py (tooling experimental, no dominio);
+> (2) los únicos usuarios son EntityRecallMetric, SequenceAlignmentMetric y StructuralTopologyMetric, todos en tools/evaluation/topology/metrics/;
+> (3) la ruta canónica de regresión (run_regression.py → RegressionEvaluationStrategy → EntityRecallEvaluator) no importa ni usa ASTFingerprintPolicy;
+> (4) el dominio canónico (DefaultNodeMatchingPolicy.match(), CriticalityAwareCostContext.substitution_cost()) usa comparación exacta de text_content sin normalización destructiva;
+> (5) modificar ASTFingerprintPolicy podría romper tests del tooling experimental sin beneficio para la certificación.
+> Se documenta como deuda técnica para Fase 6 (mejora del tooling de evaluación).
+> La evidencia forense formal se registrará en §2 durante el Gate 2 Exit Review.
+
 ### 9.3 Mapeo Finding → Task (referencia cruzada con Execution Plan)
 
 | Finding | Task primaria | Tipo de relación | Nota |
@@ -603,12 +655,20 @@ durante los Gate Exit Reviews correspondientes, aplicando el árbol de decisión
 | H-5.1-9 | 1.3.9 | Documentación | Limitación de PyMuPDF con ecuaciones en doble columna (ACCEPTED_LIMITATION) |
 | H-5.1-10 | 1.3.9 | Documentación | Limitación de PyMuPDF con gráficos vectoriales (ACCEPTED_LIMITATION) |
 | H-5.1-11 | 1.3.9 | Propuesta | Patrón Detect & Placeholder diferido a fase futura (RECLASSIFIED_FUTURE_PHASE) |
+| H-5.2-1 | (pre-requisito biyección) | Exclusión temporal | doc_06_johnstone excluido del manifest, requiere re-incorporación con OCR (IMPLEMENTATION_REQUIRED) |
+| H-5.2-2 | 2.1.1 | Verificación | GroundTruthLifecycleState tiene 4 estados, diseño type-state confirmado (CLOSED NAR) |
 | GAP-5.2-05 | 2.1.2 | Remediación primaria | Protección de SealedOracle en tooling de GT |
-| DF-04 | 2.4.7 | Investigación empírica | Benchmark ZhangShasha vs APTED |
+| DF-04 | 2.4.7 | Investigación empírica | Benchmark ejecutado, causa raíz documentada, APTED experimental no-normativo (RESOLVED) |
 | GAP-5.0-03 | 4.1.3 | Remediación primaria | Configuración explícita de corpus |
 | DF-18 | 4.2.3 | Remediación primaria | Semántica de fallo uniforme |
 | GAP-5.2-05 | 4.3.2 | Verificación de boundary | Validación de frontera de certificación |
-| DF-04 | 5.3.3 | Cierre administrativo | Documentación final del finding |
+| DF-04 | 5.3.3 | Cierre administrativo | Documentación final del finding (pendiente Gate 5) |
+| DF-19 | 1.2.3, 1.3.1 | Resolución | Manifest migrado a 6D y sellado (RESOLVED) |
+| H-5.2-3 | 2.2.1 | Limpieza | canonicalization_lineage.json movido fuera de ground_truth/ (RESOLVED) |
+| H-5.2-4 | 2.2.1 | Corrección | Path de freeze_ground_truth.py corregido (RESOLVED) |
+| H-5.2-5 | 2.2.1 | Limpieza | Log duplicado eliminado (CLOSED NAR) |
+| H-5.2-6 | 2.3.3 | Documentación | ASTFingerprintPolicy .strip() confinado a tooling experimental, deuda técnica registrada (ACCEPTED_LIMITATION) |
+
 
 ---
 
