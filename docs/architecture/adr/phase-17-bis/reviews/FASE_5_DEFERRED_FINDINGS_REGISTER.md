@@ -1,10 +1,10 @@
 # FASE_5_DEFERRED_FINDINGS_REGISTER.md
 
 **Documento:** `docs/architecture/adr/phase-17-bis/reviews/FASE_5_DEFERRED_FINDINGS_REGISTER.md`
-**Versión:** 0.10.0
+**Versión:** 0.13.0
 **Estado:** IN_PROGRESS
 **Fecha de creación:** 2026-09-05
-**Última actualización:** 2026-09-10
+**Última actualización:** 2026-09-11
 **Derivado de:** `PHASE_17BIS_FASE5_EXECUTION_PLAN.md` v1.2.2
 **Propósito:** Registro auditable de hallazgos identificados durante la implementación
 del Execution Plan de Fase 5 (Baseline Certification), su clasificación, resolución y
@@ -24,6 +24,9 @@ evidencia empírica de los batches.
 | 0.8.0 | 2026-09-09 | **Wave 2.2 completada:** (1) H-5.2-3 registrado y RESOLVED — canonicalization_lineage.json movido de ground_truth/ a canonical/ raíz (separación de concerns); (2) H-5.2-4 registrado y RESOLVED — freeze_ground_truth.py path corregido de benchmark_v1 a canonical; (3) H-5.2-5 registrado y CLOSED (NAR) — log duplicado eliminado de freeze_ground_truth.py; (4) DF-19 reclasificado de IMPLEMENTATION_REQUIRED a RESOLVED — manifest en formato 6D completo y sellado; (5) Sellado ejecutado: manifest_hash 0fda7690, 6/6 GTs sellados con oracle_hash; (6) MIG-02 y MIG-06 ejecutados; (7) Métricas y estado actualizados. |
 | 0.9.0 | 2026-09-09 | **Wave 2.3 completada:** (1) H-5.2-6 registrado como ACCEPTED_LIMITATION — ASTFingerprintPolicy.semantic_fingerprint() e identity_fingerprint() aplican .strip(), violando NADR-22 §5.3 R10-R12; divergencia confinada al tooling experimental (tools/evaluation/topology/); la ruta canónica de regresión (run_regression.py → RegressionEvaluationStrategy → EntityRecallEvaluator) no usa ASTFingerprintPolicy ni aplica .strip(); dominio canónico (DefaultNodeMatchingPolicy, CriticalityAwareCostContext) verificado libre de .strip(); (2) Métricas y estado actualizados. |
 | 0.10.0 | 2026-09-10 | **Wave 2.4 completada, Gate 2 COMPLETED:** (1) DF-04 reclasificado de IMPLEMENTATION_REQUIRED a RESOLVED — benchmark ejecutado con run_df04_benchmark.py sobre 6 documentos del corpus canónico sellado, divergencia promedio 8.56% (> umbral 1%), máxima 22.63% (doc_02_double), 4 causas raíz documentadas (cost model, normalización, fingerprint H-5.2-6, estructura de árbol), APTED queda como experimental no-normativo (NADR-22 §5.1 R3); (2) Tasks 2.4.1-2.4.2, 2.4.4 completadas por construcción; (3) Task 2.4.3 implementada: CanonicalEngineConfiguration + ConfigurationFingerprintCalculator con module.qualname, 12 tests nuevos; (4) Task 2.4.5 implementada: configuration_fingerprint propagado en RegressionReport; (5) Task 2.4.6 completada: 6 tests de determinismo PASSED; (6) Gate 2 → COMPLETED (17/17 Tasks, 43/43 rules); (7) Métricas actualizadas: 23 hallazgos analizados (DF-04 cerrado), 9 resueltos. |
+| 0.11.0 | 2026-09-10 | **Wave 3.1 completada (4 Tasks DONE):** (1) Tasks 3.1.1-3.1.4 DONE — definidas fases CAL/VAL/FINAL, partición por SHA-256, disjunción verificada, estrategia de independencia estadística documentada; (2) H-5.3-1 registrado como ACCEPTED_LIMITATION — calibración estadística no ejecutable con 6 documentos (N=6 < 20, NADR-23 R12 prohíbe presumir robustez), defaults evidence-informed por diseño, recalibración pendiente para corpus ≥20 con curvas precision-recall + bootstrap CI + human verdicts; (3) Dataset Independence Record creado en reviews/; (4) Métricas actualizadas: 24 hallazgos analizados, 4 aceptados como limitación. |
+| 0.12.0 | 2026-09-10 | **Wave 3.2 completada (3 Tasks DONE):** (1) Tasks 3.2.1-3.2.3 DONE — protocolo de calibración definido (R4-R8), lifecycle CAL→VAL→FREEZE ejecutado (R14-R16), condiciones de validez científica documentadas (R26-R28); (2) Sanity validation ejecutada sobre 6 documentos: 5/6 HARD_FAIL, corpus NSS 0.6536, 106 Critical FN totales, 1 PASS (doc_07 tautológico); (3) H-5.3-2 registrado como ACCEPTED_LIMITATION — divergencia masiva entre runtime de producción y GTs curados, confirma problema estructural del extractor (PyMuPDFProvider), no paramétrico; (4) H-5.3-3 registrado como ACCEPTED_LIMITATION — GT de doc_07_pesaran no editado en curaduría, NSS=1.0000 es tautología (extractor contra sí mismo), documento contiene tablas no extraídas por PyMuPDF (fuentes Type 3), curaduría real diferida con ampliación de corpus; (5) Parameter Identity (fingerprint) b942fc95... congelada sobre defaults normativos; (6) Calibration Protocol Record creado; (7) Métricas actualizadas: 26 hallazgos analizados, 6 aceptados como limitación. |
+| 0.13.0 | 2026-09-11 | **Wave 3.3 completada (3 Tasks DONE), Gate 3 COMPLETED:** (1) Tasks 3.3.1-3.3.3 DONE — Calibration Provenance Record materializado con 5 campos R18 (run NONE, origen NORMATIVE_DESIGN), Parameter freeze ejecutado vía MIG-08 (parameter_identity 67841171..., enforcement R24 vía test sobre artefacto del repo PASSED, inmutabilidad R25 verificada), Evaluation Provenance Record emitido con kind SANITY_VALIDATION y limitaciones H-5.3-1/2/3 (idempotencia por kind verificada, R33); (2) Sin nuevos hallazgos en Wave 3.3 (operación de materialización, no de descubrimiento); (3) Nuevo módulo de dominio `core/benchmark/topology/regression/provenance.py` con dataclasses frozen, invariantes de thresholds y serialización canónica; (4) 18 tests unitarios + 7 tests de integración PASSED; (5) Provenance Record creado (`FASE_5_WAVE_3_3_PROVENANCE_RECORD.md` v1.0.0); (6) Artefactos de freeze materializados en `reports/calibration/`; (7) Gate 3 → COMPLETED (10/10 Tasks, 31/31 rules); (8) Baseline tests: 665 passed, 5 skipped; (9) Métricas actualizadas: archivos creados totales = 24; sin cambios en contadores de hallazgos (Wave 3.3 no generó nuevos findings). |
 
 ---
 
@@ -258,14 +261,18 @@ hallazgos descubiertos durante la implementación.
 
 ### 2.3 Gate 3 Exit Review — Scientific Calibration & Experimental Provenance
 
-**Estado:** ⏳ PENDING — Gate 3 no ha iniciado.
-**Fecha de ejecución:** —
+**Estado:** ✅ COMPLETED — Gate 3 cerrado con 10/10 Tasks DONE y 31/31 rules DONE.
+**Fecha de ejecución:** 2026-09-10 (inicio), 2026-09-11 (cierre)
 **Execution Plan:** Gate 3 / Waves 3.1, 3.2, 3.3
-**Hallazgos pre-asignados:** —
+**Hallazgos pre-asignados:** H-5.3-1 (derivado en Wave 3.1)
 
 | DF/GF | ¿Válido? | Evidencia | ¿Resoluble en Gate? | ¿Técnico? | Decisión | Motivo |
 |-------|----------|-----------|---------------------|-----------|----------|--------|
-| — | — | — | — | — | — | Pendiente de ejecución del Gate 3 Exit Review |
+| H-5.3-1 | ✅ Sí | N=6 < 20 identidades, NADR-23 R12 prohíbe presumir robustez estadística. Dataset Independence Record documenta estrategia. | ✅ Sí | ✅ Sí | ACCEPTED_LIMITATION | Calibración estadística no ejecutable con corpus actual; defaults evidence-informed por diseño, recalibración pendiente para corpus ≥20 |
+| H-5.3-2 | ✅ Sí | Sanity validation: 5/6 HARD_FAIL, corpus NSS 0.6536, 106 Critical FN totales. reports/sanity_validation/regression_report.{json,md} | ✅ Sí | ✅ Sí | ACCEPTED_LIMITATION | Divergencia masiva runtime vs GTs es estructural (limitación PyMuPDFProvider H-5.1-9, H-5.1-10), no paramétrica. Refuerza decisión de no calibrar con N=6. |
+| H-5.3-3 | ✅ Sí | doc_07 NSS=1.0000 con global_ted=0.0 (tautología). Curation Report Wave 1.3 documenta observación "fuentes Type 3" sin edición. PDF contiene Table 1, Table 2 visibles. | ✅ Sí | ✅ Sí | ACCEPTED_LIMITATION | GT no editado = salida cruda del extractor. PASS es tautológico, no validación positiva. Curaduría real diferida con ampliación de corpus (H-5.2-1). |
+
+(Wave 3.3 no generó nuevos hallazgos. Las Tasks 3.3.1-3.3.3 materializaron los registros de provenance conforme al diseño sin desviaciones. Los tres findings en la tabla son de Waves 3.1 y 3.2 y se referencian en el campo `limitations` del Evaluation Provenance Record.)
 
 **Resumen:**
 - RESOLVED: 0
@@ -273,17 +280,29 @@ hallazgos descubiertos durante la implementación.
 - REVIEW_REQUIRED: 0
 - CLOSED (NAR): 0
 - CONVERTED_TO_GF: 0
-- Nuevos hallazgos registrados: 0
+- ACCEPTED_LIMITATION: 3 (H-5.3-1, H-5.3-2, H-5.3-3)
+- Nuevos hallazgos registrados en Wave 3.3: 0
 
 #### Decisiones arquitectónicas congeladas en Gate 3
 
 | Decisión | Task | Justificación |
 |----------|------|---------------|
-| — | — | — |
+| LOCAL_CALIBRATION_SET = ∅ con N=6 | 3.1.4 | NADR-23 R12 prohíbe presumir robustez estadística con <20 identidades. Defaults de diseño (no calibrados) validados como sanity check, no como calibración empírica. |
+| Regla anti-leakage SANITY→parámetros | 3.1.4 | NADR-23 R2: resultados de SANITY_VALIDATION_SET MUST NOT modificar nss_hard_fail, nss_warning, cost_weights ni warning_threshold. |
+| Protocolo de calibración APROBADO CONDICIONAL | 3.2.1 | 8 elementos del protocolo definidos (R5). Ejecución condicionada a corpus ≥20. Algoritmo de búsqueda diferido hasta momento de ejecución (R6). |
+| Defaults = NORMATIVOS, no CALIBRADOS | 3.2.3 | Distinción verificable (R27, R28): parámetros de diseño arquitectónico con justificación explícita, no resultado de tuning ad-hoc. |
+| doc_07 no-informativo para validación | 3.2.3 | Tautología por construcción (GT sin editar = salida del extractor). Curaduría diferida agrupada con ampliación de corpus. |
+| Parameter freeze con identidad separada de configuración | 3.3.2 | Cambio de motor sin cambio de parámetros NO genera nueva parameter identity (distinción R20/R25); evita falsas nuevas líneas de certificación. |
+| Evaluation record por kind con idempotencia (R33) | 3.3.3 | Nombre acotado por kind permite FINAL_EVALUATION sobre freeze existente sin caer en no-op; trazabilidad dura apunta a result_identity. |
 
 #### Lecciones aprendidas
 
-- —
+- Con corpus < 20 documentos, la calibración estadística (LOOCV, bootstrap, curva precision-recall) no es metodológicamente válida. La alternativa honesta es documentar defaults como evidence-informed por diseño y planificar recalibración cuando el corpus alcance tamaño suficiente.
+- La industria (GROBID, DocLayNet, Nougat) no publica umbrales PASS/WARNING/HARD_FAIL transferibles para regresión topológica de papers científicos. Los umbrales son específicos del caso de uso y requieren calibración local con learning curves.
+- La divergencia masiva entre runtime y GTs (106 Critical FN) confirma que el problema es el extractor (PyMuPDFProvider), no los thresholds. Los defaults (0.80/0.95) están funcionando correctamente al detectar la divergencia.
+- Un PASS perfecto (NSS=1.0) en sanity validation puede ser señal de tautología (GT = salida del extractor) y no de calidad. La curaduría real es indispensable para validación positiva.
+- La separación entre parameter_identity y configuration_identity resuelve un bug semántico latente: sin separación, un cambio de motor (normalización, matching) sin tocar thresholds falsamente invalidaría una certificación vigente.
+- El enforcement de R24 mediante un test que recalcula la identidad desde los defaults del dominio y la compara con el artefacto del repo (`test_repo_freeze_artifact_matches_domain_defaults`) es la forma correcta de cerrar el ciclo: la identidad no es solo declarada, es verificable en CI.
 
 ---
 
@@ -393,6 +412,9 @@ Se actualiza al cierre del último Gate Exit Review.
 | H-5.2-5 | CLOSED (NAR) | NO_GAP | Log duplicado en freeze_ground_truth.py (línea logger.info repetida). Eliminado. No afecta funcionalidad ni integridad. | Gate 2 W2.2 T2.2.1 | 2026-09-09 |
 | H-5.2-6 | ACCEPTED_LIMITATION | GAP_CONFIRMED | ASTFingerprintPolicy.semantic_fingerprint() aplica node.text_content.strip() e identity_fingerprint() aplica str(content).strip(), violando NADR-22 §5.3 R10-R12. Divergencia confinada al tooling experimental (tools/evaluation/topology/). Usada por EntityRecallMetric, SequenceAlignmentMetric y StructuralTopologyMetric (todas en tools/evaluation/topology/metrics/). La ruta canónica de regresión (run_regression.py → RegressionEvaluationStrategy → EntityRecallEvaluator) no usa ASTFingerprintPolicy. Dominio canónico (DefaultNodeMatchingPolicy, CriticalityAwareCostContext) no aplica .strip(). | Gate 2 W2.3 T2.3.3 | 2026-09-09 |
 | DF-04 | RESOLVED | GAP_CONFIRMED | Benchmark comparativo ZhangShasha vs APTED ejecutado sobre 6 documentos del corpus canónico sellado con run_df04_benchmark.py. Divergencia promedio 8.56% (> umbral 1%), máxima 22.63% (doc_02_double). Desglose: doc_01_single (12.14%), doc_02_double (22.63%), doc_03_math (0.62%), doc_04_table (13.08%), doc_05_graph (2.88%), doc_07_pesaran (0.00%). Cuatro causas raíz identificadas: (1) cost model diferente (APTED penaliza sustituciones diff-type 2× más: 2.0 vs 1.0), (2) normalización diferente (MaxBound vs del×|GT|+ins×|Cand|), (3) fingerprint diferente (H-5.2-6: APTED usa .strip()), (4) estructura de árbol diferente (APTED reconstruye jerarquía vía parent_node_id). Patrón 1: APTED consistentemente más severo en 4/6 documentos. Patrón 2: divergencia alta en docs con estructura compleja. Patrón 3: coincidencia perfecta en casos triviales (doc_07_pesaran 0.00%, score 1.0 en ambos) valida correctitud de ambos motores. Decisión: APTED queda como experimental no-normativo conforme a NADR-22 §5.1 R3. Criterio DF-04 aplicado: divergencia ≥ 1%, causa raíz investigada y documentada. Evidencia forense en reports/df04/df04_benchmark.{json,md}. | Gate 2 W2.4 T2.4.7 | 2026-09-10 |
+| H-5.3-1 | ACCEPTED_LIMITATION | GAP_CONFIRMED | Calibración estadística no ejecutable con 6 documentos (N=6 < 20). NADR-23 §5.3 R12 prohíbe presumir robustez estadística con <20 identidades. No existen estándares publicados de umbrales PASS/WARNING/HARD_FAIL para regresión topológica de papers científicos (GROBID declara: "no fixed threshold, depends on document variability"). Los defaults actuales (NSS 0.80/0.95, weights 5.0/2.0/1.0, warning_threshold 1) son evidence-informed por diseño, NO calibrados empíricamente. Estrategia: LOCAL_CALIBRATION_SET = ∅, SANITY_VALIDATION_SET = 6 docs (no modifica parámetros), FINAL_EVALUATION_SET reservado para Gate 5. Recalibración local requerida cuando corpus alcance ≥20 documentos diversos con metodología: curvas precision-recall + bootstrap confidence intervals + human verdicts PASS/WARNING/HARD_FAIL + learning curves (GROBID). Evidencia en FASE_5_WAVE_3_1_DATASET_INDEPENDENCE_RECORD.md. | Gate 3 W3.1 T3.1.4 | 2026-09-10 |
+| H-5.3-2 | ACCEPTED_LIMITATION | GAP_CONFIRMED | Divergencia masiva entre runtime de producción (build_extraction_pipeline() → PyMuPDFProvider) y GTs curados: 5/6 documentos HARD_FAIL, 106 Critical FN totales, corpus NSS 0.6536. Desglose: doc_01 (0.4286, 14 Critical FN), doc_02 (0.3643, 68 Critical FN), doc_03 (0.7350, 9 Critical FN), doc_04 (0.6355, 15 Critical FN), doc_05 (0.7582, 0 Critical FN pero 29 Warning FN), doc_07 (1.0000 PASS, tautológico ver H-5.3-3). Consistente con limitaciones de PyMuPDFProvider documentadas en H-5.1-9 (fragmentación de ecuaciones) y H-5.1-10 (labels de gráficos como paragraphs). Confirma que la divergencia es estructural (limitación del extractor), no paramétrica. Refuerza decisión de Wave 3.1 de no calibrar con N=6. Evidencia en reports/sanity_validation/regression_report.{json,md}. | Gate 3 W3.2 T3.2.2 | 2026-09-10 |
+| H-5.3-3 | ACCEPTED_LIMITATION | GAP_CONFIRMED | GT de doc_07_pesaran no editado en curaduría: es salida cruda de build_extraction_pipeline() (GenerateGoldenDraftUseCase). NSS=1.0000 con global_ted=0.0 es tautología (extractor comparado contra sí mismo), no validación positiva. El documento contiene tablas (Table 1, Table 2 con estadísticas econométricas) que PyMuPDF no extrae (fuentes Type 3 sin ToUnicode, documentado en Curation Report Wave 1.3). GT correctamente curado divergiría del runtime y produciría HARD_FAIL como los demás documentos. doc_07 marcado como no-informativo para validación. Curaduría real diferida y agrupada con ampliación de corpus (H-5.2-1 + déficit de 13 docs). Re-sellar en medio de Gate 3 rompería trazabilidad del manifest_hash usado en Waves 3.1-3.2 y no cambiaría ninguna decisión de calibración. | Gate 3 W3.2 T3.2.3 | 2026-09-10 |
 
 ---
 
@@ -452,20 +474,20 @@ Se actualiza al cierre de cada batch.
 
 | Métrica | Valor |
 |---------|-------|
-| Total de hallazgos analizados | 23 |
-| Hallazgos activos de Fase 5 | 4 pre-identificados (DF-18, GAP-5.0-03 pendientes; DF-19, GAP-5.2-05, DF-04 resueltos) + 17 derivados = 21 activos con resolución |
-| Hallazgos resueltos | 9 (H-5.1-1, H-5.1-2, H-5.1-3, H-5.1-4, H-5.1-5, H-5.1-7, H-5.2-3, H-5.2-4, DF-04) + 2 pre-identificados (DF-19, GAP-5.2-05) = 11 totales |
+| Total de hallazgos analizados | 26 |
+| Hallazgos activos de Fase 5 | 4 pre-identificados (DF-18, GAP-5.0-03 pendientes; DF-19, GAP-5.2-05, DF-04 resueltos) + 20 derivados = 24 activos con resolución |
+| Hallazgos resueltos | 9 derivados (H-5.1-1, H-5.1-2, H-5.1-3, H-5.1-4, H-5.1-5, H-5.1-7, H-5.2-3, H-5.2-4, DF-04) + 2 pre-identificados (DF-19, GAP-5.2-05) = 11 totales |
 | Hallazgos cerrados sin acción | 4 (H-5.1-6, H-5.1-8, H-5.2-2, H-5.2-5) |
 | Hallazgos reclasificados a fase futura | 1 (H-5.1-11) |
-| Hallazgos aceptados como limitación | 3 (H-5.1-9, H-5.1-10, H-5.2-6) |
+| Hallazgos aceptados como limitación | 6 (H-5.1-9, H-5.1-10, H-5.2-6, H-5.3-1, H-5.3-2, H-5.3-3) |
 | Hallazgos pendientes de implementación | 3 (H-5.2-1, DF-18, GAP-5.0-03) |
 | Hallazgos pendientes de revisión | 0 |
 | Governance Findings abiertos | 0 |
 | Batches completados | 0 |
 | Archivos eliminados totales | 1 (tmptu237h6p) |
 | Archivos movidos totales | 1 (canonicalization_lineage.json de ground_truth/ a canonical/) |
-| Archivos creados totales | 14 (7 PDFs en canonical/pdf/, manifest.json, 6 GTs en canonical/ground_truth/, canonicalization_lineage.json, FASE_5_WAVE_1_3_CURATION_REPORT.md, test_sanitize_ground_truth_types.py, sanitize_ground_truth_types.py refactorizado, configuration.py, test_configuration_fingerprint.py, run_df04_benchmark.py) |
-| Tests finales | 639 passed, 5 skipped (baseline establecida en Wave 2.1 con 627, +12 tests de configuration fingerprint en Wave 2.4) |
+| Archivos creados totales | 24 (incluyendo los 8 de Wave 3.3: provenance.py, freeze_parameters.py, parameter_freeze.json, calibration_provenance_record.json, evaluation_provenance_record_SANITY_VALIDATION.json, test_provenance_identities.py, test_parameter_freeze.py, FASE_5_WAVE_3_3_PROVENANCE_RECORD.md) |
+| Tests finales | 665 passed, 5 skipped (baseline definitiva post-Wave 3.3) |
 | Pyright final | 0 errors |
 
 ---
@@ -477,6 +499,9 @@ Los hallazgos diferidos a fases futuras se registran aquí con destino explícit
 | Hallazgo | Destino | Justificación |
 |----------|---------|---------------|
 | H-5.1-11 | Post Fase 17-BIS (requiere ADR dedicado) | ADR F17_BIS_MASTER §4: la modificación de extractores de producción está fuera del scope de Fase 17-BIS. El patrón Detect & Placeholder requiere diseño de nuevos tipos de nodo (placeholder) y modificación de PyMuPDFProvider. Se recomienda evaluar en Fase 18 (Advanced Local Runtime) o en una fase dedicada de mejora de extracción. |
+| H-5.3-1 | Post Fase 17-BIS o recalibración con corpus ampliado | NADR-23 §5.3 R12: con <20 identidades no se presume robustez estadística. Recalibración requerida cuando corpus alcance ≥20 documentos diversos. Metodología: curvas precision-recall + bootstrap CI + human verdicts + learning curves. Destino: Fase 6 (Continuous Verification) o extensión de Fase 5 cuando usuario adquiera 13+ documentos. |
+| H-5.3-2 | Post Fase 17-BIS o recalibración con corpus ampliado | Divergencia masiva runtime vs GTs (106 Critical FN) confirma limitación estructural de PyMuPDFProvider. No requiere acción en Gate 3 (problema del extractor, no de thresholds). Destino: mejora de extractor en fase futura (H-5.1-11) o recalibración cuando corpus ≥20. |
+| H-5.3-3 | Recalibración con corpus ampliado (agrupado con H-5.2-1) | Curaduría real de doc_07 (transcribir tablas como nodos table) requerirá re-sellado con nuevo manifest_hash. Diferida hasta ampliación del corpus para evitar romper trazabilidad de Waves 3.1-3.2 sin cambiar decisiones. |
 
 ---
 
@@ -533,18 +558,18 @@ El documento se considera cerrado (`ARCHIVED`) cuando:
 
 | Categoría | Cantidad |
 |-----------|----------|
-| Total de hallazgos analizados | 23 |
+| Total de hallazgos analizados | 26 |
 | Hallazgos activos de Fase 5 (pre-identificados) | 5 (2 pendientes: DF-18, GAP-5.0-03; 3 resueltos: DF-19, GAP-5.2-05, DF-04) |
-| Hallazgos derivados de Waves 1.1-2.4 | 17 |
-| Hallazgos resueltos | 11 (8 derivados + 3 pre-identificados: DF-19, GAP-5.2-05, DF-04) |
+| Hallazgos derivados de Waves 1.1-3.3 | 20 |
+| Hallazgos resueltos | 11 (9 derivados + 3 pre-identificados: DF-19, GAP-5.2-05, DF-04) |
 | Hallazgos cerrados sin acción | 4 (H-5.1-6, H-5.1-8, H-5.2-2, H-5.2-5) |
-| Hallazgos aceptados como limitación | 3 (H-5.1-9, H-5.1-10, H-5.2-6) |
+| Hallazgos aceptados como limitación | 6 (H-5.1-9, H-5.1-10, H-5.2-6, H-5.3-1, H-5.3-2, H-5.3-3) |
 | Hallazgos reclasificados a fase futura | 1 (H-5.1-11) |
 | Hallazgos pendientes de implementación | 3 (H-5.2-1, DF-18, GAP-5.0-03) |
 | Hallazgos pendientes de revisión | 0 |
 | Governance Findings abiertos | 0 |
 | Batches completados | 0/— |
-| Estado del Exit Review | 🟡 IN PROGRESS (Gate 2 COMPLETED, Gates 3-5 pendientes) |
+| Estado del Exit Review | 🟡 IN PROGRESS (Gate 2 COMPLETED, Gate 3 COMPLETED, Gates 4-5 pendientes) |
 
 ---
 
@@ -638,6 +663,57 @@ durante los Gate Exit Reviews correspondientes, aplicando el árbol de decisión
 > Se documenta como deuda técnica para Fase 6 (mejora del tooling de evaluación).
 > La evidencia forense formal se registrará en §2 durante el Gate 2 Exit Review.
 
+### 9.2.6 Hallazgos derivados de Wave 3.1 — registrados durante implementación
+
+| ID | Descripción | Estado preliminar | Gate destino primario | Fuente |
+|----|-------------|-------------------|----------------------|--------|
+| H-5.3-1 | Calibración estadística no ejecutable con 6 documentos. NADR-23 R12 prohíbe presumir robustez estadística con <20 identidades. No existen estándares publicados de umbrales PASS/WARNING/HARD_FAIL para regresión topológica de papers científicos (GROBID declara explícitamente: "no fixed threshold, depends on document variability, use learning curves"). Los defaults actuales son evidence-informed por diseño, NO calibrados empíricamente. Estrategia: LOCAL_CALIBRATION_SET = ∅, SANITY_VALIDATION_SET = 6 docs (no modifica parámetros), FINAL_EVALUATION_SET reservado para Gate 5. Recalibración pendiente para corpus ≥20. | `ACCEPTED_LIMITATION` | Gate 3 W3.1 T3.1.4 | AUDIT Wave 3.1 |
+
+> **Nota:** H-5.3-1 se marca como `ACCEPTED_LIMITATION` porque:
+> (1) NADR-23 §5.3 R12 explícitamente prohíbe presumir robustez estadística con <20 identidades;
+> (2) La industria (GROBID, DocLayNet, Nougat) no publica umbrales transferibles de regresión topológica;
+> (3) Los defaults actuales (NSS 0.80/0.95, weights 5.0/2.0/1.0) son de diseño, no calibrados;
+> (4) La estrategia LOCAL_CALIBRATION_SET = ∅ evita overfitting a 6 documentos;
+> (5) La regla anti-leakage (NADR-23 R2) garantiza que SANITY_VALIDATION no contamina parámetros;
+> (6) El protocolo de recalibración (curvas PR + bootstrap + human verdicts + learning curves) queda documentado para cuando el corpus alcance ≥20 documentos.
+> Se documenta como deuda técnica para recalibración en Fase 6 o cuando el usuario adquiera 13+ documentos adicionales.
+> La evidencia forense formal se registrará en §2 durante el Gate 3 Exit Review.
+
+### 9.2.7 Hallazgos derivados de Wave 3.2 — registrados durante implementación
+
+| ID | Descripción | Estado preliminar | Gate destino primario | Fuente |
+|----|-------------|-------------------|----------------------|--------|
+| H-5.3-2 | Divergencia masiva entre runtime de producción y GTs curados: 5/6 documentos HARD_FAIL, 106 Critical FN totales, corpus NSS 0.6536. Consistente con limitaciones estructurales de PyMuPDFProvider (H-5.1-9, H-5.1-10). Confirma que la divergencia es estructural, no paramétrica. Refuerza decisión de Wave 3.1 de no calibrar con N=6. | `ACCEPTED_LIMITATION` | Gate 3 W3.2 T3.2.2 | Sanity Validation Wave 3.2 |
+| H-5.3-3 | GT de doc_07_pesaran no editado en curaduría: es salida cruda de build_extraction_pipeline(). NSS=1.0000 es tautología (extractor contra sí mismo), no validación positiva. Documento contiene tablas (Table 1, Table 2) que PyMuPDF no extrae (fuentes Type 3). Curaduría real diferida con ampliación de corpus (H-5.2-1). | `ACCEPTED_LIMITATION` | Gate 3 W3.2 T3.2.3 | Sanity Validation Wave 3.2 |
+
+> **Nota:** H-5.3-2 se marca como `ACCEPTED_LIMITATION` porque:
+> (1) La divergencia masiva (106 Critical FN) es consistente con limitaciones ya documentadas de PyMuPDFProvider (H-5.1-9, H-5.1-10);
+> (2) El problema es estructural (extractor), no paramétrico — los thresholds actuales detectan correctamente la divergencia;
+> (3) Cualquier "calibración" sobre estos datos sería calibrar para aceptar mediocridad del extractor;
+> (4) No requiere acción en Gate 3 — la recalibración es innecesaria hasta que el extractor mejore o el corpus se amplíe.
+> Se documenta como evidencia de que los defaults normativos funcionan correctamente.
+>
+> H-5.3-3 se marca como `ACCEPTED_LIMITATION` porque:
+> (1) El Curation Report de Wave 1.3 documenta que doc_07 fue revisado pero NO editado (observación: "fuentes Type 3");
+> (2) El NSS=1.0000 con global_ted=0.0 confirma que GT y runtime son idénticos por construcción;
+> (3) El documento contiene tablas visibles (Table 1, Table 2) que PyMuPDF no extrae;
+> (4) Re-sellar doc_07 en medio de Gate 3 rompería la trazabilidad del manifest_hash usado en Waves 3.1-3.2;
+> (5) No cambia ninguna decisión de calibración (ya decidimos no calibrar con N=6).
+> Curaduría real diferida y agrupada con ampliación de corpus (H-5.2-1 + déficit de 13 docs).
+> La evidencia forense formal se registrará en §2 durante el Gate 3 Exit Review.
+
+### 9.2.8 Hallazgos derivados de Wave 3.3 — registrados durante implementación
+
+Wave 3.3 (Provenance & Parameter Freeze) no generó nuevos hallazgos derivados. Las Tasks 3.3.1-3.3.3 se ejecutaron conforme a protocolo sin desviaciones. Los hallazgos referenciados en el campo `limitations` del Evaluation Provenance Record (H-5.3-1, H-5.3-2, H-5.3-3) son de Waves 3.1 y 3.2.
+
+> **Nota:** Esta ausencia de hallazgos es consistente con el diseño de Wave 3.3: la materialización de provenance es una operación de registro y verificación, no de descubrimiento. Las limitaciones conocidas del corpus y del extractor ya están documentadas en Waves anteriores. La evidencia forense completa de Wave 3.3 reside en:
+> - `reports/calibration/parameter_freeze.json`
+> - `reports/calibration/calibration_provenance_record.json`
+> - `reports/calibration/evaluation_provenance_record_SANITY_VALIDATION.json`
+> - `tests/unit/test_provenance_identities.py` (18 tests)
+> - `tests/integration/test_parameter_freeze.py` (7 tests)
+> - `reviews/FASE_5_WAVE_3_3_PROVENANCE_RECORD.md` v1.0.0
+
 ### 9.3 Mapeo Finding → Task (referencia cruzada con Execution Plan)
 
 | Finding | Task primaria | Tipo de relación | Nota |
@@ -668,6 +744,12 @@ durante los Gate Exit Reviews correspondientes, aplicando el árbol de decisión
 | H-5.2-4 | 2.2.1 | Corrección | Path de freeze_ground_truth.py corregido (RESOLVED) |
 | H-5.2-5 | 2.2.1 | Limpieza | Log duplicado eliminado (CLOSED NAR) |
 | H-5.2-6 | 2.3.3 | Documentación | ASTFingerprintPolicy .strip() confinado a tooling experimental, deuda técnica registrada (ACCEPTED_LIMITATION) |
+| H-5.3-1 | 3.1.4 | Documentación | Estrategia de independencia estadística con N=6: LOCAL_CALIBRATION=∅, SANITY=6 docs (no modifica parámetros), FINAL reservado para Gate 5. Recalibración pendiente para corpus ≥20 (ACCEPTED_LIMITATION) |
+| H-5.3-2 | 3.2.2 | Evidencia empírica | Divergencia masiva runtime vs GTs: 5/6 HARD_FAIL, 106 Critical FN, confirma problema estructural del extractor (ACCEPTED_LIMITATION) |
+| H-5.3-3 | 3.2.3 | Documentación | GT de doc_07 no editado, NSS=1.0 tautológico; curaduría diferida con ampliación de corpus (ACCEPTED_LIMITATION) |
+| H-5.3-1 | 3.3.3 | Referenciado en limitations | Limitación de calibración estadística con N=6; referenciado en Evaluation Provenance Record de Wave 3.3 (ACCEPTED_LIMITATION) |
+| H-5.3-2 | 3.3.3 | Referenciado en limitations | Divergencia masiva runtime vs GTs; referenciado en Evaluation Provenance Record de Wave 3.3 (ACCEPTED_LIMITATION) |
+| H-5.3-3 | 3.3.3 | Referenciado en limitations | Tautología de doc_07; referenciado en Evaluation Provenance Record de Wave 3.3 (ACCEPTED_LIMITATION) |
 
 
 ---
@@ -678,7 +760,7 @@ durante los Gate Exit Reviews correspondientes, aplicando el árbol de decisión
 |------|-------|-------|-------------------------|
 | Gate 1 — Canonical Corpus & GT Qualification | W1.1, W1.2, W1.3 | 18 | DF-19 |
 | Gate 2 — GT Sealing & Canonical Evaluation Configuration | W2.1, W2.2, W2.3, W2.4 | 17 | GAP-5.2-05, DF-04 |
-| Gate 3 — Scientific Calibration & Experimental Provenance | W3.1, W3.2, W3.3 | 10 | — |
+| Gate 3 — Scientific Calibration & Experimental Provenance | W3.1, W3.2, W3.3 | 10 | H-5.3-1, H-5.3-2, H-5.3-3 (derivados en Waves 3.1 y 3.2) |
 | Gate 4 — Certification Tooling & Execution Safety | W4.1, W4.2, W4.3, W4.4 | 13 | GAP-5.0-03, DF-18, GAP-5.2-05 |
 | Gate 5 — End-to-End Certification & Baseline Freeze | W5.1, W5.2, W5.3 | 10 | DF-04 (cierre administrativo) |
 

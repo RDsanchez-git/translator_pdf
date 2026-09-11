@@ -38,6 +38,15 @@ from core.benchmark.topology.regression.configuration import (
     ConfigurationFingerprintCalculator,
 )
 
+from core.benchmark.topology.regression.provenance import (
+    CalibrationProvenanceRecord,
+    EvaluationProvenanceRecord,
+    ExperimentIdentityCalculator,
+    FrozenParameters,
+    ParameterIdentityCalculator,
+    ResultIdentityCalculator,
+)
+
 from core.benchmark.topology.regression.report import (
     JsonRegressionReportFormatter,
     MarkdownRegressionReportFormatter,
@@ -79,4 +88,11 @@ __all__ = [
     # Configuration (Wave 2.4)
     "CanonicalEngineConfiguration",
     "ConfigurationFingerprintCalculator",
+    # Provenance (Wave 3.3)
+    "FrozenParameters",
+    "ParameterIdentityCalculator",
+    "ExperimentIdentityCalculator",
+    "ResultIdentityCalculator",
+    "CalibrationProvenanceRecord",
+    "EvaluationProvenanceRecord",
 ]
