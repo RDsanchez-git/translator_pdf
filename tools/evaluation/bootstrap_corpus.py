@@ -1,11 +1,24 @@
 import pathlib
+import argparse
+from pathlib import Path
+from typing import Sequence
 from core.benchmark.corpus.use_cases import BootstrapCorpusManifestUseCase
 from infra.adapters.document_metadata import PyMuPdfDocumentMetadataExtractor
 from infra.fs.corpus_repository import LocalFileSystemCorpusLoader
 
 
-def main() -> None:
-    base_path = pathlib.Path("tests/corpus/benchmark_v1")
+def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Bootstrap del manifiesto del corpus (GAP-5.0-03, NADR-24 R10)."
+    )
+    parser.add_argument("--corpus-dir", type=Path, required=True,
+                        help="Directorio raiz del corpus (contiene pdf/ y manifest.json).")
+    return parser.parse_args(argv)
+
+
+def main(argv: Sequence[str] | None = None) -> None:
+    args = parse_args(argv)
+    base_path: pathlib.Path = args.corpus_dir
 
     # Un único adaptador implementa ambos puertos segregados.
     loader = LocalFileSystemCorpusLoader(base_path)

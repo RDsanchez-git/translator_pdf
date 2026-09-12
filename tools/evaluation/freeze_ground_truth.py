@@ -1,5 +1,7 @@
 import logging
-import pathlib
+from pathlib import Path
+from typing import Sequence
+import argparse
 
 from core.benchmark.corpus.ports import (
     CorpusManifestReaderPort,
@@ -19,6 +21,8 @@ from infra.fs.ground_truth_store import (
     LocalFileSystemGroundTruthArtifactAdapter,
     LocalFileSystemGroundTruthReader,
 )
+from core.shared.exit_codes import EXIT_EXECUTION_FAILURE, EXIT_OK
+from tools.evaluation.entry_guard import run_entry
 
 logging.basicConfig(
     level=logging.INFO,
@@ -27,23 +31,33 @@ logging.basicConfig(
 logger = logging.getLogger("freeze_ground_truth")
 
 
-def main() -> None:
+def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Sellado de Ground Truths (GAP-5.0-03, NADR-24 R10)."
+    )
+    parser.add_argument("--corpus-dir", type=Path, required=True,
+                        help="Directorio raiz del corpus canonico sellado.")
+    return parser.parse_args(argv)
+
+
+def main(argv: Sequence[str] | None = None) -> int:
     """Imperative Shell. Orquesta el ciclo de vida en memoria.
 
-    Secuencia atómica (sin I/O intermedio entre verificar y transicionar):
+    Secuencia atomica (sin I/O intermedio entre verificar y transicionar):
     1. Cargar manifiesto + enumerar artefactos
-    2. Verificar biyección (BaselineCompletenessVerifier)
+    2. Verificar biyeccion (BaselineCompletenessVerifier)
     3. Para cada documento:
        a. Cargar nodos desde disco
        b. Validar estructura (OracleValidityContract)
-       c. Construir GroundTruthDraft y transicionar DRAFT → AUDITED → VALIDATED
-    4. Pasar validated_drafts al SealGroundTruthUseCase (autoridad única)
+       c. Construir GroundTruthDraft y transicionar DRAFT -> AUDITED -> VALIDATED
+    4. Pasar validated_drafts al SealGroundTruthUseCase (autoridad unica)
 
-    ENGINEERING_PRINCIPLES §II (Functional Core, Imperative Shell):
+    ENGINEERING_PRINCIPLES SSII (Functional Core, Imperative Shell):
     el caso de uso es el Functional Core; este entry point es el Imperative
     Shell que gestiona el ciclo de vida en memoria.
     """
-    base_path = pathlib.Path("tests/corpus/canonical")
+    args = parse_args(argv)
+    base_path: Path = args.corpus_dir
 
     corpus_loader = LocalFileSystemCorpusLoader(base_path)
     artifact_adapter = LocalFileSystemGroundTruthArtifactAdapter(base_path)
@@ -56,24 +70,24 @@ def main() -> None:
     try:
         manifest_dto = corpus_reader.load_raw_manifest()
     except FileNotFoundError as e:
-        logger.critical("Manifest not found. Aborting sealing: %s", str(e))
-        return
+        logger.critical("[FREEZE-001] Manifest not found. Aborting sealing: %s", str(e))
+        return EXIT_EXECUTION_FAILURE
 
     manifest_doc_ids = frozenset(d.document_id for d in manifest_dto.documents)
     artifact_doc_ids = frozenset(artifact_adapter.list_artifact_ids())
 
-    # Verificación de completitud biyectiva (Gate 2)
+    # Verificacion de completitud biyectiva (Gate 2)
     completeness_errors = BaselineCompletenessVerifier.verify(
         manifest_doc_ids, artifact_doc_ids
     )
     if completeness_errors:
         logger.critical(
-            "Baseline incompleta. Sellado abortado con %d errores.",
+            "[FREEZE-004] Baseline incompleta. Sellado abortado con %d errores.",
             len(completeness_errors),
         )
         for err in completeness_errors:
             logger.critical("  - %s", err)
-        return
+        return EXIT_EXECUTION_FAILURE
 
     # Cargar, validar y transicionar cada draft
     validated_drafts: list[GroundTruthDraft] = []
@@ -86,7 +100,7 @@ def main() -> None:
             # Validar estructura (Gate 2)
             OracleValidityContract.validate(doc_id, nodes)
 
-            # Construir draft directamente y transicionar DRAFT → AUDITED → VALIDATED
+            # Construir draft directamente y transicionar DRAFT -> AUDITED -> VALIDATED
             draft = GroundTruthDraft(
                 document_id=doc_id,
                 nodes=nodes,
@@ -102,11 +116,11 @@ def main() -> None:
 
     if validation_errors:
         logger.critical(
-            "Sellado abortado: %d oráculos inválidos.", len(validation_errors)
+            "[FREEZE-005] Sellado abortado: %d oraculos invalidos.", len(validation_errors)
         )
-        return
+        return EXIT_EXECUTION_FAILURE
 
-    # Invocar la autoridad única de sellado (NADR-14 §5.2 R4-R6)
+    # Invocar la autoridad unica de sellado (NADR-14 SS5.2 R4-R6)
     use_case = SealGroundTruthUseCase(
         corpus_reader=corpus_reader,
         corpus_writer=corpus_writer,
@@ -126,10 +140,14 @@ def main() -> None:
             global_manifest_hash,
         )
     except BaselineContractError as e:
-        logger.critical("Seal aborted by contract violation: %s", str(e))
+        logger.critical("[FREEZE-002] Seal aborted by contract violation: %s", str(e))
+        return EXIT_EXECUTION_FAILURE
     except Exception as e:
-        logger.critical("Catastrophic lineage sealing breakdown: %s", str(e))
+        logger.critical("[FREEZE-003] Catastrophic lineage sealing breakdown: %s", str(e))
+        return EXIT_EXECUTION_FAILURE
+
+    return EXIT_OK
 
 
 if __name__ == "__main__":
-    main()
+    run_entry(main)

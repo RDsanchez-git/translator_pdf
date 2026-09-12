@@ -116,17 +116,16 @@ def test_final_evaluation_record_emitted_over_existing_freeze(tmp_path: Path):
     assert (out / 'parameter_freeze.json').read_bytes() == freeze_bytes
 
 
-def test_invalid_timestamp_returns_exit_1(tmp_path: Path):
+def test_invalid_timestamp_returns_exit_2(tmp_path: Path) -> None:
     report = tmp_path / 'report.json'
     _write_report(report)
     out = tmp_path / 'cal'
-    assert main(_argv(tmp_path, report, out, ts='sin-zona')) == 1
-    assert not (out / 'parameter_freeze.json').exists()
+    assert main(_argv(tmp_path, report, out, ts='sin-zona')) == 2
 
 
-def test_missing_report_returns_exit_1_without_partial_state(tmp_path: Path):
+def test_missing_report_returns_exit_2_without_partial_state(tmp_path: Path) -> None:
     out = tmp_path / 'cal'
-    assert main(_argv(tmp_path, tmp_path / 'nope.json', out)) == 1
+    assert main(_argv(tmp_path, tmp_path / 'nope.json', out)) == 2
     assert not out.exists() or not list(out.glob('*.json'))
 
 

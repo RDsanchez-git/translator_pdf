@@ -1,9 +1,9 @@
-# PHASE 17BIS_FASE5 EXECUTION PLAN v1.3.2
+# PHASE 17BIS_FASE5 EXECUTION PLAN v1.3.3
 ## Implementation Execution Plan & Rule-Centric Traceability Matrix
 
-**Version:** 1.3.2
+**Version:** 1.3.5
 **Status:** FROZEN
-**Date:** 2026-09-05
+**Date:** 2026-09-13
 **Supersedes:** v1.2.1-DRAFT (2026-09-05)
 **Derived From:** 5 NADRs FROZEN (NADR-F17BIS-20 a NADR-F17BIS-24, 168 reglas) + ADR_F17_BIS_MASTER (FROZEN) + ADR_F17_BIS_05 (FROZEN) + METHODOLOGY_FOR_ORDERED_PIPELINE_CHANGES.md v1.3.0
 **Governance Bridge:** Este documento es la **única fuente de verdad** para la secuenciación operativa y el seguimiento de cumplimiento de la Fase 5 (Baseline Certification). Los NADRs permanecen inmutables como reglas constitucionales; este plan materializa la asignación temporal de sus reglas a tareas concretas y registra el progreso de la implementación.
@@ -27,6 +27,9 @@
 | 1.3.0 | 2026-09-10 | **Wave 3.1 completada (4 Tasks DONE):** (1) Task 3.1.1 DONE — CALIBRATION/VALIDATION/FINAL EVALUATION definidas como fases secuenciales distintas (NADR-23 §5.1 R1-R3); (2) Task 3.1.2 DONE — partición por content identity SHA-256, 6 documentos verificados sin duplicados; (3) Task 3.1.3 DONE — disjunción Calibration ∩ Final = ∅ trivialmente satisfecha (Calibration = ∅); (4) Task 3.1.4 DONE — estrategia de independencia estadística documentada: N=6 < 20, NADR-23 R12 prohíbe presumir robustez estadística, LOCAL_CALIBRATION_SET = ∅, SANITY_VALIDATION_SET = 6 docs, FINAL_EVALUATION_SET reservado para Gate 5; (5) H-5.3-1 registrado como ACCEPTED_LIMITATION: calibración estadística no ejecutable con 6 documentos, defaults evidence-informed por diseño, recalibración pendiente para corpus ≥20; (6) Dataset Independence Record creado; (7) Gate 3 Status → IN PROGRESS; (8) Reglas NADR-23 §5.1 R1-R3 y §5.3 R9-R13 (8 reglas) → DONE. |
 | 1.3.1 | 2026-09-10 | **Wave 3.2 completada (3 Tasks DONE):** (1) Task 3.2.1 DONE — protocolo de calibración definido antes de elegir algoritmo (NADR-23 §5.2 R4-R8); 8 elementos del protocolo documentados (variable, ground truth observable, función objetivo, espacio de parámetros, restricciones, unidad de evaluación, independencia de datasets, criterio de aceptación); aprobación condicional a corpus ≥20; (2) Task 3.2.2 DONE — lifecycle CAL→VAL→FREEZE ejecutado: CALIBRATION = ∅ (N=6 insuficiente), VALIDATION = sanity validation ejecutada sobre 6 documentos sellados, PARAMETER FREEZE sobre defaults (fingerprint b942fc95...), FINAL EVALUATION reservada para Gate 5; regla anti-leakage reforzada (NADR-23 R2); (3) Task 3.2.3 DONE — condiciones de validez científica documentadas (R26-R28): defaults clasificados como NORMATIVOS (no calibrados empíricamente), distinción tuning vs calibración verificable, H-5.3-2 y H-5.3-3 registrados como ACCEPTED_LIMITATION; (4) H-5.3-2 registrado — divergencia masiva entre runtime de producción y GTs curados (5/6 HARD_FAIL, 106 Critical FN totales, corpus NSS 0.6536); consistente con limitaciones de PyMuPDFProvider documentadas en H-5.1-9 y H-5.1-10; confirma que el problema es estructural (extractor), no paramétrico; (5) H-5.3-3 registrado — GT de doc_07_pesaran no editado en curaduría; NSS=1.0000 es tautología (extractor contra sí mismo), no validación positiva; documento contiene tablas que PyMuPDF no extrae (fuentes Type 3); curaduría real diferida con ampliación de corpus (H-5.2-1); (6) Calibration Protocol Record creado; (7) Reglas NADR-23 §5.2 R4-R8, §5.4 R14-R16, §5.7 R26-R28 (11 reglas) → DONE. |
 | 1.3.2 | 2026-09-11 | **Wave 3.3 completada (3 Tasks DONE), Gate 3 COMPLETED:** (1) Task 3.3.1 DONE — Calibration Provenance Record materializado en `reports/calibration/calibration_provenance_record.json` con los 5 campos mínimos R18 (corpus_identity, metric_configuration, parameters, result, timestamp) y los 3 tipos de identidad R20; calibration_run=NONE, parameters_origin=NORMATIVE_DESIGN (distinguibilidad R28); (2) Task 3.3.2 DONE — Parameter freeze ejecutado vía MIG-08 con `tools/evaluation/freeze_parameters.py`: artefacto `reports/calibration/parameter_freeze.json` con parameter_identity `6784117165d75005c9db8f4d126f54c11629a1325338e14810a093290ed83bf5`, distinta de configuration_identity por diseño (evita falsas nuevas líneas de certificación ante cambios de motor sin cambio de parámetros); inmutabilidad R25 verificada por exit code 2 ante conflicto; verificabilidad R24 por test de enforcement sobre artefacto del repo (`test_repo_freeze_artifact_matches_domain_defaults` PASSED post-MIG-08); (3) Task 3.3.3 DONE — Evaluation Provenance Record emitido en `reports/calibration/evaluation_provenance_record_SANITY_VALIDATION.json`, nombre acotado por kind, trazable vía experiment_identity (R31), con limitaciones H-5.3-1, H-5.3-2, H-5.3-3; idempotencia por kind verificada (`test_final_evaluation_record_emitted_over_existing_freeze` PASSED); (4) Nuevo módulo de dominio `core/benchmark/topology/regression/provenance.py` con dataclasses frozen, invariantes de thresholds y serialización canónica; (5) 18 tests unitarios + 7 tests de integración PASSED (baseline 665 passed, 5 skipped); (6) Provenance Record creado (`FASE_5_WAVE_3_3_PROVENANCE_RECORD.md` v1.0.0); (7) Corrección aritmética del Status Dashboard (44 tasks DONE, 130 rules DONE, 38 pending); (8) Criterio de R17 (FINAL EVALUATION sobre conjunto disjunto) contabilizado en Gate 3 por implementación primaria en Task 3.2.2; (9) Gate 3 → COMPLETED (10/10 Tasks, 31/31 rules). |
+| 1.3.3 | 2026-09-12 | **Wave 4.1 y Wave 4.2 completadas (6 Tasks DONE, 22 reglas):** (1) Task 4.1.1 DONE — Contrato de ejecución materializado en `core/benchmark/certification/contract.py` con tres capas distinguibles (ExecutionOutcome / ScientificResult / CertificationStatus) conforme a NADR-24 §5.1 R5; `compose_certification_status` con rama explícita para ausencia de componente (R4); `CertificationExecutionContract` frozen con 4 identidades; (2) Task 4.1.2 DONE — PREFLIGHT implementado en `core/benchmark/certification/preflight.py` como Functional Core puro (`evaluate_preflight` con 13 kwargs keyword-only, 8 precondiciones R7 evaluables, determinista, idempotente R9); CLI en `tools/evaluation/preflight_certification.py` como Imperative Shell (4 argumentos required R10/R11, reutilización estricta de LoadCorpusManifestUseCase, BaselineCompletenessVerifier, RegressionAdapter, ConfigurationFingerprintCalculator, parameter_freeze.json); 14 tests unitarios nuevos (`test_certification_preflight.py`); happy path exit 0 + failure path exit 2 verificados; (3) Task 4.1.3 DONE — GAP-5.0-03 remediado: 5 entry points migrados a CLI con `--corpus-dir` required (`bootstrap_corpus`, `freeze_ground_truth`, `generate_golden_draft`, `generate_pymupdf_candidate`, `sanitize_ground_truth_types`); aritmética de cierre: 5 remediados + 4 ya explícitos + 1 deprecated que hereda + 1 fuera de scope con justificación = 11 entry points auditados; cambio rompiente documentado; decisión explícita de que `argparse.sys.exit(2)` ante required ausente propaga limpio porque `SystemExit` no hereda de `Exception` (C3); (4) Task 4.2.1 DONE — Taxonomía uniforme materializada en `core/shared/exit_codes.py` (EXIT_OK=0, EXIT_CERTIFICATION_REJECTED=1, EXIT_EXECUTION_FAILURE=2, frontera documentada: dominio no importa) y `core/shared/errors.py` (`IndexedError` con código indexable); `tools/evaluation/entry_guard.py` como guard de traducción R19 (traduce excepciones no capturadas a categoría c con `[UNEXPECTED-001]`); (5) Task 4.2.2 DONE — Tolerancia a fallos parciales ≠ certificación parcial (R22): `generate_golden_draft.py` introduce helper puro `classify_document_error` (D1: sealed oracle → skip, resto → failure), contadores separados `skips`/`failures`, `[DRAFT-001/002/003]` indexables, `[DRAFT-W01/W02]` para skips esperados; re-ejecución sobre corpus sellado mantiene exit 0 (idempotencia R33); (6) Task 4.2.3 DONE — DF-18 remediado: 4 entry points (`freeze_ground_truth`, `generate_golden_draft`, `generate_pymupdf_candidate`, `sanitize_ground_truth_types`) con `main() -> int` + `run_entry(main)`; D2 aplicado en sanitize (`--allow-missing-manifest` override explícito e indexable; sin manifest y sin override → `IndexedError SANITIZE-001`, aborta R26; evolución normativa NADR-21 → NADR-24 documentada); D3 aplicado en `freeze_parameters.py` (eliminación de `EXIT_CONTRACT_VIOLATION=1`, unificación en `EXIT_EXECUTION_FAILURE=2`, códigos `[FREEZE-PARAM-001..005]`); tests actualizados: `test_no_manifest_aborts_without_override`, `test_no_manifest_with_override_sanitizes`, `test_invalid_timestamp_returns_exit_2`, `test_missing_report_returns_exit_2_without_partial_state`; 5 tests nuevos en `test_exit_codes_and_guard.py` (TestRunEntryTranslation + TestClassifyDocumentError); (7) GF-01 registrado: conflicto real entre NADR-19 §5.5 R22 (run_regression taxonomía 0/1/2 PASS/WARNING/HARD_FAIL) y NADR-24 §5.4 R15-R17 (2 = fallo de ejecución); resolución por separación de scope: `run_regression` conserva taxonomía NADR-19 como compuerta de regresión CI; el runner de certificación de Gate 5 (Task 5.2.1) implementa taxonomía NADR-24 traduciendo veredicto científico a categoría (a)/(b) y crashes a (c); por eso `run_regression` NO se toca en Wave 4.2; (8) H-5.4-1 registrado como evidencia forense: pre-remediación, `bootstrap_corpus.py` sin argumentos indexó 0 documentos y retornó exit 0 con mensaje `[SUCCESS]` — falso positivo operacional confirmado (R16, R18); (9) H-5.4-2 registrado como evidencia forense: durante el pre-check de GAP-5.0-03, el run espurio de `generate_pymupdf_candidate.py` mutó 4 artefactos trackeados en `calibration_v1/candidates/pymupdf/` (revertidos con `git checkout`); evidencia dura del riesgo DF-18/GAP-5.0-03 que motiva la remediación; (10) Nuevo paquete de dominio `core/benchmark/certification/` (3 módulos, cero imports de infra en dominio); 24 tests nuevos totales (14 + 5 + 5 de test_certification_preflight, test_exit_codes_and_guard, actualizaciones); baseline: 685 passed, 5 skipped; (11) Corrección aritmética del Status Dashboard (50 tasks DONE, 152 rules DONE, 16 pending); (12) Gate 4 Status → IN PROGRESS (6/13 Tasks, 22/37 rules). |
+| 1.3.4 | 2026-09-13 | **Wave 4.3 completada (4 Tasks DONE, 9 reglas):** (1) Task 4.3.1 DONE — Boundary integrity verificada mediante AUDIT forense (5 comandos) + 10 contract tests en `test_certification_boundary.py`; SealedOracle frozen (model_config frozen=True, test_pydantic_frozen_config), sin mutadores de instancia, asignación bloqueada (test_assignment_raises ValidationError); LifecycleTransitionAuthority importada únicamente por `use_cases.py` (dominio) y `freeze_ground_truth.py` (sellado MIG-06, O-4.3-3); 3 adaptadores de `ground_truth_store.py` apuntan exclusivamente a `base_path/ground_truth`; tooling de certificación no importa puertos de escritura GT; (2) Task 4.3.2 DONE — GAP-5.2-05 verificación formal de la protección implementada en Wave 2.1 (Task 2.1.2): cadena sanitize/use cases/override D2 verificada; `sanitize_ground_truth_types.py` verifica estado de sellado antes de escribir (raise `SealedOracleOverwriteError`); `GenerateGoldenDraftUseCase` verifica estado antes de escribir; override `--allow-missing-manifest` explícito e indexable (fuera de ejecución certificante); (3) Task 4.3.3 DONE — Evidence completeness implementada: `core/benchmark/certification/evidence.py` con `CertificationEvidence` (7 elementos R29 + `evaluation_kind` + `result_identity`), `compute_corpus_content_identity` (SHA-256 de SHA-256 ordenados, fail-fast ante vacío NADR-20 R1), `serialize_evidence` determinista (sort_keys, indent fijo, ensure_ascii=False); GF-02 registrado como crosswalk normativo: `corpus_identity` = compuesto de contenido (NADR-20 §5.1-§5.5, estable entre sellados), `manifest_identity` = `manifest_hash` (NADR-20 §5.6 R24/R26, cambia al sellar); artefactos de Wave 3.3 permanecen válidos; (4) Task 4.3.4 DONE — POST-RUN VALIDATION implementada: `core/benchmark/certification/post_run.py` con `validate_post_run` (5 checks: provenance verifiable, per-document present, aggregate present, evidence elements, identity consistency); violaciones nombradas por elemento R29 (R30/R37); wiring con disco diferido a Gate 5 Task 5.2.1; (5) O-4.3-3 registrado: `freeze_ground_truth.py` importa `LifecycleTransitionAuthority` (entry point de sellado MIG-06, orquesta ciclo de vida en memoria invocando la autoridad; R28 prohíbe bypassear, no invocar; allowlist extendido con justificación); (6) Nuevo paquete `core/benchmark/certification/` (4 módulos: contract, preflight, evidence, post_run); 28 tests nuevos totales en Gate 4 (14 PREFLIGHT + 10 boundary + 18 evidence/post-run); baseline: 713 passed, 5 skipped; (7) Corrección aritmética del Status Dashboard: 54 tasks DONE, 161 rules DONE, 7 pending; (8) Gate 4 Status → IN PROGRESS (10/13 Tasks, 31/37 rules). |
+| 1.3.5 | 2026-09-13 | **Wave 4.4 completada (3 Tasks DONE, 4 reglas), Gate 4 COMPLETED (13/13 tasks, 37/37 rules):** (1) Task 4.4.1 DONE — Determinismo operacional (R32) verificado: tooling de certificación determinista por construcción (timestamps inyectados externamente, `sort_keys=True` en serialización, hashes sobre bytes canónicos); O-4.4-1 registrado: `orchestrator.py:196 run_timestamp=time.time()` en benchmark de Fase 17, no en certificación (verificar en Gate 5 si se propaga); (2) Task 4.4.2 DONE — Idempotencia lógica (R33) verificada: cero operaciones append a archivos en tooling de certificación; escrituras usan `write_text`/`write_bytes` (overwrite); O-4.4-2 registrado: `reporter.py:71 np.random.choice` en bootstrap estadístico, no en reporte de certificación; (3) Task 4.4.3 DONE — Recovery determinable (R34-R35): estado post-fallo determinable vía `validate_post_run` (violaciones nombradas por elemento); atomicidad física solo donde el dominio la exige (`core/ast/registry.py`, `infra/fs/corpus_repository.py` usan `tempfile + os.replace`); O-4.4-3 registrado: `freeze_parameters.py`, `run_regression.py`, `run_df04_benchmark.py` usan `write_text` directo (no atómico a nivel de syscall); no se migra porque R34/R35 no la exigen para reportes y añadiría superficie de cambio sin beneficio normativo (YAGNI); la ventana de corrupción ante crash se cubre con POST-RUN VALIDATION más re-ejecución manual; 7 tests nuevos (3 determinismo + 2 idempotencia + 2 recovery); baseline: 720 passed, 5 skipped (713 + 7); (4) Gate 4 → COMPLETED (13/13 Tasks, 37/37 rules); (5) Gate 5 habilitado; (6) Corrección aritmética del Status Dashboard: 57 tasks DONE, 167 rules DONE, 1 pending (R20 en Gate 1). |
 
 ---
 
@@ -629,52 +632,146 @@ No se identificaron nuevos hallazgos en Wave 3.3. Las Tasks 3.3.1-3.3.3 se ejecu
 
 #### 2.4.1 Wave 4.1 — PREFLIGHT & Explicit Configuration (NADR-24 §5.1, §5.2, §5.3)
 
-**Wave Status:** ⏳ PENDING
-**Fecha de inicio:** —
-**Fecha de cierre:** —
+**Wave Status:** ✅ COMPLETED
+**Fecha de inicio:** 2026-09-11
+**Fecha de cierre:** 2026-09-12
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **4.1.1** | Contrato de ejecución explícito: inputs requeridos, precondiciones normativas, postcondiciones de éxito, condiciones de fallo. | NADR-24 §5.1 R1-R3 | Medium | Gate 3 | TODO |
-| **4.1.2** | PREFLIGHT: verificación de precondiciones antes de RUN. Idempotente. Aborta con EXECUTION_FAILURE ante precondición no satisfecha. | NADR-24 §5.2 R6-R9 | High | 4.1.1 | TODO |
-| **4.1.3** | Configuración explícita: corpus explícito, no fallback silencioso. Remediación de GAP-5.0-03 (rutas hardcoded). | NADR-24 §5.3 R10-R14, GAP-5.0-03 | High | 4.1.2 | TODO |
+| **4.1.1** | Contrato de ejecución explícito: inputs requeridos, precondiciones normativas, postcondiciones de éxito, condiciones de fallo. | NADR-24 §5.1 R1-R3 | Medium | Gate 3 | ✅ DONE |
+| **4.1.2** | PREFLIGHT: verificación de precondiciones antes de RUN. Idempotente. Aborta con EXECUTION_FAILURE ante precondición no satisfecha. | NADR-24 §5.2 R6-R9 | High | 4.1.1 | ✅ DONE |
+| **4.1.3** | Configuración explícita: corpus explícito, no fallback silencioso. Remediación de GAP-5.0-03 (rutas hardcoded). | NADR-24 §5.3 R10-R14, GAP-5.0-03 | High | 4.1.2 | ✅ DONE |
+
+#### Notas de implementación — Task 4.1.1
+
+> Contrato de ejecución materializado en `core/benchmark/certification/contract.py`. Tres capas distinguibles (R5): `ExecutionOutcome` (SUCCESS/EXECUTION_FAILURE), `ScientificResult` (ACCEPTED/REJECTED), `CertificationStatus` (CERTIFIED/REJECTED/EXECUTION_FAILURE). `compose_certification_status` con rama explícita para ausencia de componente científico: sin `scientific` no hay rechazo científico sino fallo de ejecución (R4). `CertificationExecutionContract` frozen con 4 campos: corpus_identity, configuration_identity, frozen_parameters_identity, execution_mode (enum `ExecutionMode` con SANITY_VALIDATION / FINAL_EVALUATION, alineado con `evaluation_kind` de Wave 3.3 para trazabilidad R31 sin diccionarios paralelos). 5 tests unitarios en `TestComposeCertificationStatus` (incluyendo test_absent_scientific_result_is_execution_failure). Cumple NADR-24 §5.1 R1-R3 (y prepara R4-R5 para Gate 5).
+
+#### Notas de implementación — Task 4.1.2
+
+> PREFLIGHT implementado con separación Functional Core / Imperative Shell (ENGINEERING_PRINCIPLES §II). `core/benchmark/certification/preflight.py` contiene: (a) `PreflightCondition` enum con 8 valores (a-h de R7); (b) `PreflightViolation` y `PreflightReport` frozen dataclasses; (c) `evaluate_preflight` como función pura con 13 kwargs keyword-only, sin imports de infra ni composition root, determinista e idempotente (R9: misma entrada → mismo reporte). `tools/evaluation/preflight_certification.py` como Imperative Shell: 4 argumentos required (`--corpus-dir`, `--expected-manifest-hash`, `--expected-configuration-identity`, `--expected-parameter-identity`, R10/R11); reutilización estricta (ADR §5): `LoadCorpusManifestUseCase`, `ManifestFingerprintCalculator`, `RegressionAdapter.verify_completeness` (mapeando `IncompleteBaselineError` a violación, F4), `ConfigurationFingerprintCalculator`, lectura de `parameter_freeze.json` y `calibration_provenance_record.json`; `build_canonical_engine_configuration` importado solo en Shell, no en dominio. Condición (h) `NO_PARTITION_LEAKAGE`: check real de intersección `calibration_partition_identities & corpus_sha256_identities` (hoy vacío por H-5.3-1 pero evaluable, no comment muerto — F6). `run_entry(main)` como guard de traducción R19. 14 tests unitarios en `test_certification_preflight.py` (5 de contrato + 9 de preflight incluyendo idempotencia y short-circuit). Happy path contra corpus canónico: exit 0 con `[PREFLIGHT] All 8 conditions satisfied`; failure path: exit 2 con `[PREFLIGHT-corpus_identity_matches]` en stderr. Cumple NADR-24 §5.2 R6-R9.
+
+#### Notas de implementación — Task 4.1.3
+
+> GAP-5.0-03 remediado: 5 entry points con corpus hardcodeado migrados a CLI con `--corpus-dir` required (`bootstrap_corpus.py`, `freeze_ground_truth.py`, `generate_golden_draft.py`, `generate_pymupdf_candidate.py` con `--pdf-dir` y `--out-dir`, `sanitize_ground_truth_types.py`). Aritmética de cierre sobre 11 entry points auditados: 5 remediados (este task) + 4 ya explícitos (`run_regression`, `run_df04_benchmark`, `run_benchmark`, `freeze_parameters`) + 1 deprecated que hereda (`run_experimental_benchmark`, 0 rutas literales, redirige) + 1 fuera de scope con justificación (`generate_candidates`: CLI configurable, tooling de generación de candidatos no certificante). Cambio rompiente documentado: invocaciones canónicas exigen `--corpus-dir`; MIG-06 histórico. Decisión explícita (C3): `argparse.sys.exit(2)` ante required ausente coincide con categoría (c) de NADR-24 por diseño; `run_entry` no captura `SystemExit` (hereda de `BaseException`, no `Exception`) → el 2 propaga limpio. Evidencia forense dura del riesgo: H-5.4-1 y H-5.4-2 documentan el estado pre-remediación. Cumple NADR-24 §5.3 R10-R14.
+
+#### Hallazgos identificados en esta Wave
+
+| ID | Hallazgo | Derivado a |
+|----|----------|------------|
+| H-5.4-1 | Evidencia forense pre-remediación: `bootstrap_corpus.py` sin argumentos indexó 0 documentos y retornó exit 0 con mensaje `[SUCCESS]` y hash fa8b919c... Falso positivo operacional confirmado (NADR-24 R16, R18, ENGINEERING_PRINCIPLES §IV Cero Fallos Silenciosos). | Findings Register §9 (ACCEPTED_LIMITATION como evidencia forense) |
+| H-5.4-2 | Evidencia forense pre-remediación: durante el pre-check de GAP-5.0-03, el run espurio de `generate_pymupdf_candidate.py` mutó 4 artefactos trackeados en `calibration_v1/candidates/pymupdf/` (`doc_01_single.json`, `doc_02_double.json`, `doc_03_math.json`, `doc_05_graph.json`). Revertidos con `git checkout --`. Evidencia dura del riesgo DF-18/GAP-5.0-03. | Findings Register §9 (ACCEPTED_LIMITATION como evidencia forense) |
 
 #### 2.4.2 Wave 4.2 — Failure Semantics & Exit Contract (NADR-24 §5.4, §5.5)
 
-**Wave Status:** ⏳ PENDING
-**Fecha de inicio:** —
-**Fecha de cierre:** —
+**Wave Status:** ✅ COMPLETED
+**Fecha de inicio:** 2026-09-12
+**Fecha de cierre:** 2026-09-12
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **4.2.1** | Semántica de fallo uniforme: 3 categorías (certificación válida, certificación rechazada, fallo de ejecución). Cero fallos silenciosos. | NADR-24 §5.4 R15-R19 | Critical | 4.1.3 | TODO |
-| **4.2.2** | Tolerancia a fallos parciales ≠ certificación parcial. Resultado atómico a nivel de baseline. | NADR-24 §5.5 R20-R24 | High | 4.2.1 | TODO |
-| **4.2.3** | Remediación de DF-18: exit codes en freeze_ground_truth.py, generate_golden_draft.py, generate_pymupdf_candidate.py, sanitize_ground_truth_types.py. Ningún camino de error crítico produce exit code de categoría "certificación válida". | NADR-24 §5.4 R15-R16, DF-18 | Critical | 4.2.1 | TODO |
+| **4.2.1** | Semántica de fallo uniforme: 3 categorías (certificación válida, certificación rechazada, fallo de ejecución). Cero fallos silenciosos. | NADR-24 §5.4 R15-R19 | Critical | 4.1.3 | ✅ DONE |
+| **4.2.2** | Tolerancia a fallos parciales ≠ certificación parcial. Resultado atómico a nivel de baseline. | NADR-24 §5.5 R20-R24 | High | 4.2.1 | ✅ DONE |
+| **4.2.3** | Remediación de DF-18: exit codes en freeze_ground_truth.py, generate_golden_draft.py, generate_pymupdf_candidate.py, sanitize_ground_truth_types.py. Ningún camino de error crítico produce exit code de categoría "certificación válida". | NADR-24 §5.4 R15-R16, DF-18 | Critical | 4.2.1 | ✅ DONE |
+
+#### Notas de implementación — Task 4.2.1
+
+> Taxonomía uniforme materializada en `core/shared/exit_codes.py`: `EXIT_OK=0` (categoría a: ejecución completada con resultado válido), `EXIT_CERTIFICATION_REJECTED=1` (categoría b: resultado científico válido pero rechazado, reservado para el runner de certificación de Gate 5), `EXIT_EXECUTION_FAILURE=2` (categoría c: fallo de ejecución/configuración/integridad). Frontera documentada en docstring: el dominio (core/) NUNCA importa este módulo; solo la capa CLI (tools/) lo consume. El dominio señala mediante excepciones tipadas (`IndexedError`, `SealedOracleOverwriteError`, etc.); la traducción a exit codes ocurre exclusivamente en el Imperative Shell. `core/shared/errors.py`: `IndexedError` con código indexable (ej. `[SANITIZE-001]`) que identifica la causa raíz de forma trazable (ENGINEERING_PRINCIPLES §IV: Cero Fallos Silenciosos). `tools/evaluation/entry_guard.py`: `run_entry(main_fn)` como guard de traducción R19 — toda excepción no capturada se traduce a categoría (c) con mensaje indexable `[UNEXPECTED-001]`, sin propagar stack traces crudos como mecanismo primario; `SystemExit` no se captura (propaga limpio por diseño, C3). 3 tests unitarios en `TestRunEntryTranslation`. Cumple NADR-24 §5.4 R15-R19.
+
+#### Notas de implementación — Task 4.2.2
+
+> Tolerancia a fallos parciales ≠ certificación parcial (R22) materializada en `generate_golden_draft.py`. Helper puro `classify_document_error(exc) -> str`: `SealedOracleOverwriteError` → "skip" (esperado, idempotencia R33 — re-ejecución sobre corpus sellado mantiene exit 0); resto → "failure" (unidad obligatoria no procesada). Contadores separados `skips: list[str]` y `failures: list[str]`; códigos indexables `[DRAFT-001]` (manifest ausente), `[DRAFT-002]` (unidad fallida), `[DRAFT-003]` (aggregate failure con lista de failures); warnings `[DRAFT-W01]` (skip sealed oracle) y `[DRAFT-W02]` (aggregate skips). Cierre: `if failures: return EXIT_EXECUTION_FAILURE`; solo `return EXIT_OK` si no hay failures (independientemente de skips). 2 tests unitarios en `TestClassifyDocumentError`. Cumple NADR-24 §5.5 R20-R24.
+
+#### Notas de implementación — Task 4.2.3
+
+> DF-18 remediado en 4 entry points con patrón uniforme: `main(argv) -> int` + `run_entry(main)` en `__main__`. (a) `freeze_ground_truth.py`: `return EXIT_EXECUTION_FAILURE` en todos los caminos de error (`[FREEZE-001]` manifest ausente, `[FREEZE-002]` contract violation, `[FREEZE-003]` catastrophic breakdown, `[FREEZE-004]` baseline incompleta, `[FREEZE-005]` oráculos inválidos); `return EXIT_OK` al final. (b) `generate_golden_draft.py`: integración con Task 4.2.2 (skips/failures separados). (c) `generate_pymupdf_candidate.py`: `[PYMUPDF-001]` para PDFs ausentes; `run_entry(main)` traduce crashes. (d) `sanitize_ground_truth_types.py`: D2 aplicado — `--allow-missing-manifest` override explícito e indexable; sin manifest y sin override → `IndexedError SANITIZE-001` (NADR-24 R26: verificación de sellado imposible, aborta); con override → `logger.warning("[SANITIZE-W01] ...")` y continúa; `[SANITIZE-002]` para directorio inexistente. D3 aplicado en `tools/evaluation/freeze_parameters.py`: `EXIT_CONTRACT_VIOLATION = 1` eliminado; todos los `return EXIT_CONTRACT_VIOLATION` → `return EXIT_EXECUTION_FAILURE` (unificación de categoría c); `[FREEZE-PARAM-001..005]` indexables (timestamp inválido, manifest ausente, reporte ausente, reporte incompleto, conflicto de freeze). Tests actualizados: `test_no_manifest_allows_sanitization` desdoblado en `test_no_manifest_aborts_without_override` y `test_no_manifest_with_override_sanitizes` (evolución normativa NADR-21 → NADR-24); `test_invalid_timestamp_returns_exit_1` → `test_invalid_timestamp_returns_exit_2`; `test_missing_report_returns_exit_1_without_partial_state` → `test_missing_report_returns_exit_2_without_partial_state`. GF-01 documenta la resolución del conflicto NADR-19 vs NADR-24 en run_regression.py (separación de scope: no se toca). Cumple NADR-24 §5.4 R15-R16, DF-18.
+
+#### Hallazgos identificados en esta Wave
+
+| ID | Hallazgo | Derivado a |
+|----|----------|------------|
+| GF-01 | Conflicto normativo real entre NADR-19 §5.5 R22 (`run_regression` taxonomía 0=PASS / 1=WARNING / 2=HARD_FAIL) y NADR-24 §5.4 R15-R17 (2 = fallo de ejecución, rechazo científico es categoría b). Resolución por separación de scope: `run_regression` conserva su taxonomía NADR-19 como compuerta de regresión CI; el runner de certificación de Gate 5 (Task 5.2.1) implementa la taxonomía NADR-24 traduciendo el veredicto científico a categoría (a)/(b) y cualquier crash a (c). `run_regression` NO se toca en Wave 4.2. | Findings Register §11 (Governance Finding) |
 
 #### 2.4.3 Wave 4.3 — Certification Boundary & Evidence (NADR-24 §5.6, §5.7, §5.9) + GAP-5.2-05
 
-**Wave Status:** ⏳ PENDING
-**Fecha de inicio:** —
-**Fecha de cierre:** —
+**Wave Status:** ✅ COMPLETED
+**Fecha de inicio:** 2026-09-12
+**Fecha de cierre:** 2026-09-13
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **4.3.1** | Boundary integrity: Sealed inmutable sin excepción. Frontera Scientific Truth / Generated Output / Certification Evidence preservada. | NADR-24 §5.6 R25-R28 | High | 4.2.2 | TODO |
-| **4.3.2** | Remediación de GAP-5.2-05: protección de SealedOracle en sanitize_ground_truth_types.py. Verificar estado de sellado antes de cualquier modificación. | NADR-24 §5.6 R25-R26, GAP-5.2-05 | Critical | 4.3.1 | TODO |
-| **4.3.3** | Evidence completeness: 7 elementos mínimos (corpus identity, manifest identity, evaluation configuration identity, frozen parameters identity, evaluation provenance, per-document results, aggregate result). Auditable sin re-ejecución. | NADR-24 §5.7 R29-R31 | Medium | 4.3.1 | TODO |
-| **4.3.4** | POST-RUN VALIDATION: verificar post-condiciones de certificación. | NADR-24 §5.9 R36-R37 | Medium | 4.3.3 | TODO |
+| **4.3.1** | Boundary integrity: Sealed inmutable sin excepción. Frontera Scientific Truth / Generated Output / Certification Evidence preservada. | NADR-24 §5.6 R25-R28 | High | 4.2.2 | ✅ DONE |
+| **4.3.2** | Verificación formal de GAP-5.2-05: protección de SealedOracle en sanitize_ground_truth_types.py. Verificar estado de sellado antes de cualquier modificación. | NADR-24 §5.6 R25-R26, GAP-5.2-05 | Critical | 4.3.1 | ✅ DONE |
+| **4.3.3** | Evidence completeness: 7 elementos mínimos (corpus identity, manifest identity, evaluation configuration identity, frozen parameters identity, evaluation provenance, per-document results, aggregate result). Auditable sin re-ejecución. | NADR-24 §5.7 R29-R31 | Medium | 4.3.1 | ✅ DONE |
+| **4.3.4** | POST-RUN VALIDATION: verificar post-condiciones de certificación. | NADR-24 §5.9 R36-R37 | Medium | 4.3.3 | ✅ DONE |
+
+#### Notas de implementación — Task 4.3.1
+
+> Boundary integrity verificada mediante AUDIT forense (5 comandos de introspección) + 10 contract tests en `test_certification_boundary.py`. R25: SealedOracle frozen (model_config frozen=True verificado por test_pydantic_frozen_config), sin mutadores de instancia (test_no_instance_mutators por introspección), asignación bloqueada (test_assignment_raises ValidationError). R26: inventario de escrituras GT acotado a 3 categorías (drafts pre-sealing vía GenerateGoldenDraftUseCase con check de sellado, sellado vía SealGroundTruthUseCase + ManifestLineageSealer, sanitización con verificación de sellado); tooling de certificación (preflight, freeze_parameters, run_regression, run_df04) solo escribe reports/ y artefactos de calibración, nunca GT. R27: los 3 adaptadores de ground_truth_store.py apuntan exclusivamente a base_path/ground_truth; test comportamental confirma que list_artifact_ids ignora candidates/ y reports/, y el reader no resuelve fuera de ground_truth/ (FileNotFoundError). R28: LifecycleTransitionAuthority importada únicamente por core/benchmark/ground_truth/use_cases.py (dominio) y tools/evaluation/freeze_ground_truth.py (entry point de sellado MIG-06 que orquesta el ciclo de vida en memoria invocando la autoridad; O-4.3-3). Test de contrato escanea capas activas y falla ante nuevo importador no permitido. 10 tests unitarios. Cumple NADR-24 §5.6 R25-R28.
+
+#### Notas de implementación — Task 4.3.2
+
+> GAP-5.2-05 verificación formal de la protección implementada en Wave 2.1 (Task 2.1.2). Cadena verificada: (1) sanitize_ground_truth_types.py carga manifest vía _load_sealed_document_ids con override explícito --allow-missing-manifest (sin override → IndexedError SANITIZE-001; con override → warning indexable [SANITIZE-W01]); verifica estado de sellado antes de escribir (sanitize:100-103 raise SealedOracleOverwriteError si doc en sealed_ids). (2) GenerateGoldenDraftUseCase recibe corpus_reader y verifica ground_truth_state == SEALED antes de escribir (use_cases.py:58-63 raise SealedOracleOverwriteError). (3) SealGroundTruthUseCase permanece como autoridad única de sellado (MIG-06). Override --allow-missing-manifest opera fuera de ejecución certificante (R26): sanitize es mecanismo de migración/corrección, no tooling de certificación; sin manifest la verificación de sellado es imposible, por lo que el override es explícito, indexable y requiere acción humana deliberada. Cumple NADR-24 §5.6 R25-R26, GAP-5.2-05.
+
+#### Notas de implementación — Task 4.3.3
+
+> Evidence completeness implementada en `core/benchmark/certification/evidence.py`. `CertificationEvidence` (dataclass frozen) con los 7 elementos mínimos R29: corpus_identity, manifest_identity, configuration_identity, frozen_parameters_identity, evaluation_provenance_reference, per_document_results (tuple de DocumentResultEvidence), aggregate_result; + evaluation_kind y result_identity para trazabilidad R31. Functional Core puro: no lee disco; las identidades llegan computadas por el Shell con calculadores existentes (Reuse Before Invent). `serialize_evidence` determinista (sort_keys, indent fijo, ensure_ascii=False): auditable sin re-ejecución (R31). `compute_corpus_content_identity` fail-fast ante vacío (NADR-20 R1). GF-02 registrado: crosswalk normativo de identidades entre diccionarios NADR-23 (Wave 3.3) y NADR-24 (Wave 4.3); corpus_identity = compuesto de contenido (SHA-256 de SHA-256 ordenados, estable entre sellados, NADR-20 §5.1-§5.5), manifest_identity = manifest_hash (cambia al sellar, NADR-20 §5.6 R24/R26); artefactos de Wave 3.3 permanecen válidos (su corpus_identity per R18 = manifest_identity en NADR-24). 12 tests unitarios. Cumple NADR-24 §5.7 R29-R31.
+
+#### Notas de implementación — Task 4.3.4
+
+> POST-RUN VALIDATION implementada en `core/benchmark/certification/post_run.py`. `validate_post_run` (Functional Core puro) verifica 5 checks: (a) PROVENANCE_VERIFIABLE (record disponible + result/experiment identity coinciden), (b) PER_DOCUMENT_PRESENT (biyección veredictos↔manifest), (c) AGGREGATE_PRESENT (corpus_verdict presente), (d) EVIDENCE_ELEMENTS (los 7 elementos R29 completos vía validate_evidence_completeness), (e) IDENTITY_CONSISTENCY (config/params/manifest/corpus coinciden con lo esperado). Violaciones nombradas por elemento R29 (ELEMENT_MANIFEST_IDENTITY, ELEMENT_CORPUS_IDENTITY, etc.) para identificación explícita (R30/R37). `evidence=None` contemplado con violación nombrada. Wiring con disco y con el runner de certificación diferido a Gate 5 Task 5.2.1: no existe RUN de certificación que post-validar hasta ese punto; el Functional Core queda implementado y testeado en esta Wave. 6 tests unitarios con parametrización de 3 campos de identidad. Cumple NADR-24 §5.9 R36-R37.
+
+#### Hallazgos identificados en esta Wave
+
+| ID | Hallazgo | Derivado a |
+|----|----------|------------|
+| O-4.3-3 | `freeze_ground_truth.py` importa `LifecycleTransitionAuthority`. Análisis: es el entry point de sellado (MIG-06, Gate 2) que orquesta el ciclo de vida en memoria invocando la autoridad (audit/validate), diseño congelado en Wave 2.2; R28 prohíbe bypassear la autoridad, no invocarla. El tooling de ejecución certificante sigue teniendo prohibido importarla (verificado por TestCertificationModulesWithoutGtWritePorts). Resolución: extender el allowlist del test con justificación; sin refactor del código congelado de Gate 2 (YAGNI, no tocar código verificado). | Findings Register §9 (Observación, no Governance Finding) |
+| GF-02 | Crosswalk normativo de identidades entre diccionarios NADR-23 (Wave 3.3) y NADR-24 (Wave 4.3). NADR-23 R18 define corpus_identity como "SHA-256 del manifest"; NADR-24 R29 + NADR-20 exigen separar corpus identity (compuesto de contenido, estable entre sellados) de manifest identity (manifest_hash, cambia al sellar). Resolución: artefactos de Wave 3.3 permanecen válidos (su valor es inequívoco); crosswalk documenta el mapeo entre diccionarios. | Findings Register §11 (Governance Finding) |
 
 #### 2.4.4 Wave 4.4 — Determinism, Idempotency & Recovery (NADR-24 §5.8)
 
-**Wave Status:** ⏳ PENDING
-**Fecha de inicio:** —
-**Fecha de cierre:** —
+**Wave Status:** ✅ COMPLETED
+**Fecha de inicio:** 2026-09-13
+**Fecha de cierre:** 2026-09-13
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **4.4.1** | Determinismo operacional: mismas condiciones de ejecución certificables → mismo resultado. Distinguir de reproducibilidad científica (NADR-23). | NADR-24 §5.8 R32 | Medium | 4.2.2, 4.3.4 | TODO |
-| **4.4.2** | Idempotencia lógica: re-ejecución sin reutilización no determinista de residuos. | NADR-24 §5.8 R33 | Medium | 4.4.1 | TODO |
-| **4.4.3** | Recovery: estado post-fallo determinable (qué unidades evaluadas, qué artefactos en disco, si reutilizables, si re-ejecución reemplaza). No prometer atomicidad física completa si la infraestructura no la garantiza. | NADR-24 §5.8 R34-R35 | Medium | 4.4.2 | TODO |
+| **4.4.1** | Determinismo operacional: mismas condiciones de ejecución certificables → mismo resultado. Distinguir de reproducibilidad científica (NADR-23). | NADR-24 §5.8 R32 | Medium | 4.2.2, 4.3.4 | ✅ DONE |
+| **4.4.2** | Idempotencia lógica: re-ejecución sin reutilización no determinista de residuos. | NADR-24 §5.8 R33 | Medium | 4.4.1 | ✅ DONE |
+| **4.4.3** | Recovery: estado post-fallo determinable (qué unidades evaluadas, qué artefactos en disco, si reutilizables, si re-ejecución reemplaza). No prometer atomicidad física completa si la infraestructura no la garantiza. | NADR-24 §5.8 R34-R35 | Medium | 4.4.2 | ✅ DONE |
+
+#### Notas de implementación — Task 4.4.1 (R32: Determinismo operacional)
+
+> Tooling de certificación es determinista por construcción:
+> - Timestamps inyectados externamente (`generated_at: str | None = None` en reportes; flag `--inject-timestamp` en runners). Sin `datetime.now()` ni `time.time()` en formatters de certificación.
+> - Serialización con `sort_keys=True` y `ensure_ascii=False` en todos los `json.dumps` de certificación.
+> - Hashes computados con `compute_sha256` sobre bytes canónicos (ordenamiento previo donde aplica).
+> - `compute_corpus_content_identity` insensible al orden de documentos (sorted previo).
+>
+> O-4.4-1 (observación sin impacto): `orchestrator.py:196 run_timestamp=time.time()` está en el benchmark de Fase 17, no en el flujo de certificación. Verificar en Gate 5 si se propaga al reporte de certificación; si se propaga, remediar con inyección externa.
+
+#### Notas de implementación — Task 4.4.2 (R33: Idempotencia lógica)
+
+> Cero operaciones de append a archivos en el tooling de certificación. Todos los `.append()` detectados por el AUDIT son sobre listas en memoria (skips/failures, violations, líneas de markdown). Las escrituras a disco usan `write_text`/`write_bytes` en modo overwrite. Un residuo pre-planted es reemplazado íntegramente, no mezclado con el contenido nuevo (verificado por `test_idempotency_replacement.py`).
+>
+> O-4.4-2 (observación sin impacto): `reporter.py:71 np.random.choice` es el bootstrap del `StatisticalComparator` (análisis estadístico post-benchmark con intervalos de confianza), no forma parte del reporte de regresión de certificación. No-determinista por diseño, confinado al análisis de significancia.
+
+#### Notas de implementación — Task 4.4.3 (R34-R35: Recovery y atomicidad)
+
+> R34: el estado post-fallo es determinable por el contrato de `validate_post_run` (elementos nombrados `ELEMENT_*`). Ausencia de reporte = el run no completó; reporte presente con violaciones = EXECUTION_FAILURE identificando el elemento faltante.
+>
+> R35: atomicidad física solo donde el dominio la exige (`core/ast/registry.py:88-93` e `infra/fs/corpus_repository.py:44-55` usan `tempfile + os.replace` para oráculos y candidatos). Los reportes de certificación usan `write_text` directo.
+>
+> **Declaración explícita:** `write_text` NO es atómico a nivel de syscall (es `open + write + close`). Si el proceso muere a mitad de escritura, el archivo puede quedar corrupto (truncado, JSON inválido, bytes basura). No se promete atomicidad física completa del filesystem; la atomicidad es lógica a nivel de certificación (POST-RUN valida completitud antes de cualquier estado CERTIFIED). Si el proceso muere a mitad, el operador debe inspeccionar manualmente el disco y re-ejecutar (recuperación humana, no automática).
+>
+> O-4.4-3 (gap forense documentado): `freeze_parameters.py:88`, `run_regression.py:201-202`, `run_df04_benchmark.py:257-258` usan `write_text` directo (no atómico a nivel de syscall). Si el proceso muere a mitad de escritura, el reporte puede quedar corrupto. No se migra a escritura atómica porque R34/R35 no la exigen para reportes de certificación y añadiría superficie de cambio sin beneficio normativo (YAGNI); la ventana de corrupción ante crash se cubre con POST-RUN VALIDATION (detecta incompletitud, R36-R37) más re-ejecución manual del operador. Implementar `tempfile + os.replace` no violaría R35; simplemente no es requerido en este scope.
+
+#### Hallazgos identificados en esta Wave
+
+| ID | Hallazgo | Derivado a |
+|----|----------|------------|
+| O-4.4-1 | `orchestrator.py:196 run_timestamp=time.time()` en benchmark de Fase 17, no en flujo de certificación. Verificar en Gate 5 si se propaga al reporte de certificación. | Findings Register §9 (Observación, sin impacto para Gate 4) |
+| O-4.4-2 | `reporter.py:71 np.random.choice` es bootstrap estadístico post-benchmark, no forma parte del reporte de regresión de certificación. No-determinista por diseño, confinado al análisis de significancia. | Findings Register §9 (Observación, sin impacto para Gate 4) |
+| O-4.4-3 | `freeze_parameters.py`, `run_regression.py`, `run_df04_benchmark.py` usan `write_text` directo (no atómico a nivel de syscall). No se migra porque R34/R35 no la exigen para reportes de certificación; YAGNI; ventana de corrupción cubierta por POST-RUN VALIDATION + re-ejecución manual. | Findings Register §9 (Observación, gap documentado sin acción) |
 
 #### 2.4.5 Gate 4 Exit Criteria
 
@@ -697,16 +794,16 @@ No se identificaron nuevos hallazgos en Wave 3.3. Las Tasks 3.3.1-3.3.3 se ejecu
 
 | # | Verificación | Estado |
 |---|-------------|--------|
-| 1 | Todas las Tasks del Gate en estado DONE | ⏳ |
-| 2 | Todas las reglas del Gate en estado DONE en §7 | ⏳ |
-| 3 | Gate Exit Criteria satisfechos | ⏳ |
-| 4 | Hallazgos identificados derivados al Findings Register | ⏳ |
-| 5 | Pyright: 0 errors, 0 warnings | ⏳ |
-| 6 | Tests: suite completa en verde | ⏳ |
-| 7 | Notas de implementación completas para todas las Tasks | ⏳ |
+| 1 | Todas las Tasks del Gate en estado DONE | ✅ |
+| 2 | Todas las reglas del Gate en estado DONE en §7 | ✅ |
+| 3 | Gate Exit Criteria satisfechos | ✅ |
+| 4 | Hallazgos identificados derivados al Findings Register | ✅ |
+| 5 | Pyright: 0 errors, 0 warnings | ✅ |
+| 6 | Tests: suite completa en verde (720 passed, 5 skipped) | ✅ |
+| 7 | Notas de implementación completas para todas las Tasks | ✅ |
 
-**Veredicto del Gate:** ⏳ PENDING
-**Fecha de verificación:** —
+**Veredicto del Gate:** ✅ COMPLETED
+**Fecha de verificación:** 2026-09-13
 
 ---
 
@@ -819,7 +916,7 @@ Se actualiza al cierre de cada Gate.
 | Gate 1 | — | 56/57 | 17/18 | 0 | 🟡 IN PROGRESS |
 | Gate 2 | 2026-09-10 | 43/43 | 17/17 | 0 | ✅ COMPLETED |
 | Gate 3 | 2026-09-11 | 31/31 | 10/10 | 3 (H-5.3-1, H-5.3-2, H-5.3-3) | ✅ COMPLETED |
-| Gate 4 | — | 0/37 | 0/13 | 0 | ⏳ PENDING |
+| Gate 4 | 2026-09-13 | 37/37 | 13/13 | 2 (H-5.4-1, H-5.4-2) + 1 O (O-4.3-3) + 3 O (O-4.4-1, O-4.4-2, O-4.4-3) + 2 GF (GF-01, GF-02) | ✅ COMPLETED |
 | Gate 5 | — | 0/168 (verification-only) | 0/10 | 0 | ⏳ PENDING |
 
 **Nota normativa de contabilización:** Las reglas listadas como verificación en un Gate (§7, columna Implementation Notes) no se contabilizan en ese Gate. Se contabilizan únicamente en el Gate de implementación primaria. Gate 5 no posee reglas normativas primarias; sus verificaciones no alteran la asignación primaria de reglas. Gate 5 verifica que 57 + 43 + 31 + 37 = 168 reglas están DONE. Las 7 reglas de NADR-21 §5.6/§5.7 verificadas en Gate 2 (Wave 2.2 Tasks 2.2.3, 2.2.4) se contabilizan en Gate 1 (implementación primaria en Wave 1.3 Tasks 1.3.6, 1.3.7).
@@ -881,9 +978,9 @@ Los contadores se **derivan computacionalmente** del Traceability Appendix (§7)
 | Gate 1 | 17 | 56 | 0 | 1 (R20) | 🟡 IN PROGRESS |
 | Gate 2 | 17 | 43 | 0 | 0 | ✅ COMPLETED |
 | Gate 3 | 10 | 31 | 0 | 0 | ✅ COMPLETED |
-| Gate 4 | 0 | 0 | 0 | 37 | ⏳ PENDING |
+| Gate 4 | 13 | 37 | 0 | 0 | ✅ COMPLETED |
 | Gate 5 | 0 | 0 | 0 | 168 (verification-only) | ⏳ PENDING |
-| **TOTAL** | **44** | **130** | **0** | **38** | 🟡 IN PROGRESS |
+| **TOTAL** | **57** | **167** | **0** | **1** | 🟡 IN PROGRESS |
 
 **Nota normativa de contabilización:** Las reglas de verificación no se contabilizan en el Gate que las verifica, solo en el Gate de implementación primaria. Ver nota normativa en §3.
 
@@ -962,15 +1059,18 @@ Los contadores se **derivan computacionalmente** del Traceability Appendix (§7)
 
 | Rule | Derived Status | Evidence | Implementation Notes |
 |---|---|---|---|
-| NADR-24 §5.1 R1-R3 | PENDING | Wave 4.1 / Task 4.1.1 | — |
-| NADR-24 §5.2 R6-R9 | PENDING | Wave 4.1 / Task 4.1.2 | — |
-| NADR-24 §5.3 R10-R14 | PENDING | Wave 4.1 / Task 4.1.3 | — |
-| NADR-24 §5.4 R15-R19 | PENDING | Wave 4.2 / Task 4.2.1 | — |
-| NADR-24 §5.5 R20-R24 | PENDING | Wave 4.2 / Task 4.2.2 | — |
-| NADR-24 §5.6 R25-R28 | PENDING | Wave 4.3 / Task 4.3.1, 4.3.2 | — |
-| NADR-24 §5.7 R29-R31 | PENDING | Wave 4.3 / Task 4.3.3 | — |
-| NADR-24 §5.9 R36-R37 | PENDING | Wave 4.3 / Task 4.3.4 | — |
-| NADR-24 §5.8 R32-R35 | PENDING | Wave 4.4 / Task 4.4.1, 4.4.2, 4.4.3 | — |
+| NADR-24 §5.1 R1-R3 | DONE | Wave 4.1 / Task 4.1.1 | `CertificationExecutionContract` + `compose_certification_status` en `core/benchmark/certification/contract.py` |
+| NADR-24 §5.2 R6-R9 | DONE | Wave 4.1 / Task 4.1.2 | `evaluate_preflight` (Functional Core puro, 8 precondiciones) + CLI `preflight_certification.py` (Imperative Shell); 14 tests |
+| NADR-24 §5.3 R10-R14 | DONE | Wave 4.1 / Task 4.1.3 | 5 entry points migrados a `--corpus-dir` required (GAP-5.0-03) |
+| NADR-24 §5.4 R15-R19 | DONE | Wave 4.2 / Task 4.2.1, 4.2.3 | `core/shared/exit_codes.py` + `entry_guard.py` + remediación DF-18 en 4 entry points |
+| NADR-24 §5.5 R20-R24 | DONE | Wave 4.2 / Task 4.2.2 | `classify_document_error` + skips/failures separados en `generate_golden_draft.py` |
+| NADR-24 §5.6 R25-R28 | DONE | Wave 4.3 / Task 4.3.1 | Boundary integrity verificada: SealedOracle frozen, autoridad acotada, frontera R27 preservada |
+| NADR-24 §5.6 R25-R26 | DONE | Wave 4.3 / Task 4.3.2 | GAP-5.2-05 verificación formal: cadena sanitize/use cases/override D2 |
+| NADR-24 §5.7 R29-R31 | DONE | Wave 4.3 / Task 4.3.3 | CertificationEvidence con 7 elementos R29 + serialize_evidence determinista |
+| NADR-24 §5.9 R36-R37 | DONE | Wave 4.3 / Task 4.3.4 | validate_post_run con 5 checks y violaciones nombradas |
+| NADR-24 §5.8 R32 | DONE | Wave 4.4 / Task 4.4.1 | Determinismo operacional verificado: timestamps inyectados, sort_keys=True, hashes canónicos |
+| NADR-24 §5.8 R33 | DONE | Wave 4.4 / Task 4.4.2 | Idempotencia lógica verificada: cero append a archivos, escrituras overwrite |
+| NADR-24 §5.8 R34-R35 | DONE | Wave 4.4 / Task 4.4.3 | Recovery determinable (validate_post_run); atomicidad física solo donde el dominio la exige |
 
 ### 7.5 Gate 5 — Rules Audit Board (Verificación de las 168 reglas)
 
@@ -1064,6 +1164,39 @@ Este documento **NO contiene** hallazgos, decisiones de clasificación, resultad
 |----|-------------|---------------------|--------|
 | H-5.3-2 | Divergencia masiva entre runtime de producción y GTs curados: 5/6 documentos HARD_FAIL, 106 Critical FN totales, corpus NSS 0.6536, PASS count 1/6. Consistente con limitaciones de PyMuPDFProvider (H-5.1-9, H-5.1-10). Divergencia es estructural (extractor), no paramétrica. Refuerza decisión de Wave 3.1 de no calibrar con N=6. Evidencia en reports/sanity_validation/regression_report.{json,md}. | Gate 3 W3.2 T3.2.2 | ACCEPTED_LIMITATION |
 | H-5.3-3 | GT de doc_07_pesaran no editado en curaduría: es salida cruda de build_extraction_pipeline(). NSS=1.0000 es tautología (extractor contra sí mismo), no validación positiva. Documento contiene tablas que PyMuPDF no extrae (fuentes Type 3). Curaduría real diferida con ampliación de corpus (H-5.2-1). | Gate 3 W3.2 T3.2.3 | ACCEPTED_LIMITATION |
+
+**Hallazgos identificados durante Wave 4.1:**
+
+| ID | Descripción | Ubicación en el plan | Estado |
+|----|-------------|---------------------|--------|
+| H-5.4-1 | Evidencia forense pre-remediación: `bootstrap_corpus.py` sin argumentos indexó 0 documentos y retornó exit 0 con mensaje `[SUCCESS]`. Falso positivo operacional confirmado (NADR-24 R16, R18). Motivó la remediación de Task 4.1.3 + 4.2.3. | Gate 4 W4.1 T4.1.3 | ACCEPTED_LIMITATION (evidencia forense) |
+| H-5.4-2 | Evidencia forense pre-remediación: run espurio de `generate_pymupdf_candidate.py` mutó 4 artefactos trackeados en `calibration_v1/candidates/pymupdf/` (revertidos con `git checkout`). Motivó la remediación GAP-5.0-03 + DF-18. | Gate 4 W4.1 T4.1.3 | ACCEPTED_LIMITATION (evidencia forense) |
+
+**Governance Findings identificados durante Wave 4.2:**
+
+| ID | Descripción | Ubicación en el plan | Estado |
+|----|-------------|---------------------|--------|
+| GF-01 | Conflicto normativo NADR-19 §5.5 R22 (`run_regression` taxonomía 0/1/2 PASS/WARNING/HARD_FAIL) vs NADR-24 §5.4 R15-R17 (2 = fallo de ejecución). Resolución por separación de scope: `run_regression` conserva taxonomía NADR-19 como compuerta CI; runner de certificación de Gate 5 (Task 5.2.1) implementa taxonomía NADR-24 traduciendo veredicto científico. `run_regression` NO se toca en Wave 4.2. | Gate 4 W4.2 T4.2.3 | Documentado (no resuelto por diseño) |
+
+**Hallazgos identificados durante Wave 4.3:**
+
+| ID | Descripción | Ubicación en el plan | Estado |
+|----|-------------|---------------------|--------|
+| O-4.3-3 | `freeze_ground_truth.py` importa `LifecycleTransitionAuthority` (entry point de sellado MIG-06, no tooling de certificación). R28 prohíbe bypassear la autoridad, no invocarla. Allowlist extendido con justificación; sin refactor de código congelado de Gate 2. | Gate 4 W4.3 T4.3.1 | Observación (no Governance Finding) |
+
+**Governance Findings identificados durante Wave 4.3:**
+
+| ID | Descripción | Ubicación en el plan | Estado |
+|----|-------------|---------------------|--------|
+| GF-02 | Crosswalk normativo de identidades entre diccionarios NADR-23 (Wave 3.3) y NADR-24 (Wave 4.3). NADR-23 R18 define corpus_identity como "SHA-256 del manifest"; NADR-24 R29 + NADR-20 exigen separar corpus identity (compuesto de contenido, estable entre sellados) de manifest identity (manifest_hash, cambia al sellar). Resolución: artefactos de Wave 3.3 permanecen válidos; crosswalk documenta el mapeo entre diccionarios. | Gate 4 W4.3 T4.3.3 | Documentado (interpretación normativa) |
+
+**Hallazgos identificados durante Wave 4.4:**
+
+| ID | Descripción | Ubicación en el plan | Estado |
+|----|-------------|---------------------|--------|
+| O-4.4-1 | `orchestrator.py:196 run_timestamp=time.time()` en benchmark de Fase 17, no en flujo de certificación. Verificar en Gate 5 si se propaga al reporte de certificación. | Gate 4 W4.4 T4.4.1 | Observación (sin impacto para Gate 4) |
+| O-4.4-2 | `reporter.py:71 np.random.choice` es bootstrap estadístico post-benchmark, no forma parte del reporte de regresión de certificación. No-determinista por diseño, confinado al análisis de significancia. | Gate 4 W4.4 T4.4.2 | Observación (sin impacto para Gate 4) |
+| O-4.4-3 | `freeze_parameters.py`, `run_regression.py`, `run_df04_benchmark.py` usan `write_text` directo (no atómico a nivel de syscall). No se migra porque R34/R35 no la exigen para reportes de certificación; YAGNI; ventana de corrupción cubierta por POST-RUN VALIDATION + re-ejecución manual. | Gate 4 W4.4 T4.4.3 | Observación (gap documentado sin acción) |
 
 **Carry-forwards from Phase 4 (no bloquean Fase 5):**
 - DF-01: Tests tautológicos → Fase 6

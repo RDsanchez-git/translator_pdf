@@ -1,8 +1,11 @@
-﻿"""Tests de proteccion GAP-5.2-05 para sanitize_ground_truth_types.py (Task 2.1.2).
+﻿"""Tests de proteccion GAP-5.2-05 para sanitize_ground_truth_types.py (Task 2.1.2 + 4.2.3).
 
 Verifica:
 - GAP-5.2-05: sanitize_ground_truth_types no puede modificar oraculos sellados
 - NADR-21: oraculo sellado es inmutable
+- NADR-24 R26 (D2): sin manifest, aborta por defecto; requiere override explicito
+  --allow-missing-manifest para continuar asumiendo sin oraculos sellados.
+  Evolucion normativa NADR-21 -> NADR-24.
 """
 
 from __future__ import annotations
@@ -15,6 +18,7 @@ import pytest
 from core.benchmark.corpus.dtos import RawCorpusManifestDTO, RawDocumentEntryDTO
 from core.benchmark.ground_truth.errors import SealedOracleOverwriteError
 from core.benchmark.ground_truth.models import GroundTruthLifecycleState
+from core.shared.errors import IndexedError
 from tools.evaluation.sanitize_ground_truth_types import sanitize_corpus
 
 
@@ -31,6 +35,13 @@ class FakeCorpusReader:
             manifest_hash="abc",
             documents=self._entries,
         )
+
+
+class _NoManifestReader:
+    """Reader que simula un corpus legacy sin manifest.json."""
+
+    def load_raw_manifest(self) -> RawCorpusManifestDTO:
+        raise FileNotFoundError("no manifest")
 
 
 def _make_entry(doc_id: str, state: str | None = None) -> RawDocumentEntryDTO:
@@ -82,15 +93,42 @@ def test_draft_document_is_sanitized(tmp_path: Path) -> None:
     assert content[0]["node_type"] == "heading"
 
 
-def test_no_manifest_allows_sanitization(tmp_path: Path) -> None:
-    """Sin manifest (corpus legacy), no hay sellados y se sanitiza."""
+def test_no_manifest_aborts_without_override(tmp_path: Path) -> None:
+    """NADR-24 R26 (D2): sin manifest y sin override, aborta con SANITIZE-001.
+
+    Evolucion normativa NADR-21 -> NADR-24: sin manifest, la verificacion de
+    sellado es imposible, por lo que el default es abortar (fail-hard). Reemplaza
+    al antiguo test_no_manifest_allows_sanitization que permitia sanitizacion
+    libre bajo NADR-21.
+    """
     _write_gt(tmp_path / "ground_truth", "doc-1", "footer")
 
-    class _NoManifestReader:
-        def load_raw_manifest(self) -> RawCorpusManifestDTO:
-            raise FileNotFoundError("no manifest")
+    with pytest.raises(IndexedError) as exc_info:
+        sanitize_corpus(tmp_path, _NoManifestReader())
 
-    sanitize_corpus(tmp_path, _NoManifestReader())
+    assert exc_info.value.code == "SANITIZE-001"
+    assert "verificacion de sellado imposible" in exc_info.value.message
+
+    # El GT no debe haber sido modificado (aborto antes de sanitizar)
+    gt_file = tmp_path / "ground_truth" / "doc-1.json"
+    content = json.loads(gt_file.read_text(encoding="utf-8"))
+    assert content[0]["node_type"] == "footer"
+
+
+def test_no_manifest_with_override_sanitizes(tmp_path: Path) -> None:
+    """NADR-24 R26 (D2): con override explicito, sanitiza asumiendo sin sellados.
+
+    Conserva la operatividad legacy (corpus sin manifest) pero la hace explicita
+    e indexable: el caller debe pasar allow_missing_manifest=True, y el modulo
+    emite un warning [SANITIZE-W01] indexable.
+    """
+    _write_gt(tmp_path / "ground_truth", "doc-1", "footer")
+
+    sanitize_corpus(
+        tmp_path,
+        _NoManifestReader(),
+        allow_missing_manifest=True,
+    )
 
     gt_file = tmp_path / "ground_truth" / "doc-1.json"
     content = json.loads(gt_file.read_text(encoding="utf-8"))

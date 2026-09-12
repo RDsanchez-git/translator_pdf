@@ -1,5 +1,7 @@
-import logging
-import pathlib
+﻿import logging
+from pathlib import Path
+import argparse
+from typing import Sequence
 
 # Imports del flujo del Benchmark y Ground Truth
 # Wave 3.1: CorpusManifestLoaderPort eliminado; este entry point solo
@@ -8,7 +10,6 @@ import pathlib
 # para verificar estado sellado antes de escribir (DF-14).
 from core.benchmark.corpus.ports import CorpusManifestReaderPort
 from core.benchmark.ground_truth.errors import (
-    EmptyGroundTruthDraftError,
     SealedOracleOverwriteError,
 )
 from core.benchmark.ground_truth.use_cases import GenerateGoldenDraftUseCase
@@ -19,17 +20,39 @@ from infra.fs.ground_truth_store import LocalFileSystemGroundTruthDraftWriter
 # Imports exactos del Pipeline Oficial de Producción
 from apps.bootstrap.pipeline_factory import build_extraction_pipeline
 
+from core.shared.exit_codes import EXIT_EXECUTION_FAILURE, EXIT_OK
+from tools.evaluation.entry_guard import run_entry
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
 )
 logger = logging.getLogger("generate_golden_draft")
 
+def classify_document_error(exc: Exception) -> str:
+    """D1: sealed oracle es skip esperado (idempotencia R33); resto es failure (R22)."""
+    if isinstance(exc, SealedOracleOverwriteError):
+        return "skip"
+    return "failure"
 
-def main() -> None:
+
+def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Generacion de Golden Draft (GAP-5.0-03, NADR-24 R10)."
+    )
+    parser.add_argument("--corpus-dir", type=Path, required=True,
+                        help="Directorio raiz del corpus (contiene pdf/ y manifest.json).")
+    return parser.parse_args(argv)
+
+
+def main(argv: Sequence[str] | None = None) -> int:
     """Imperative Shell. Composes production components and triggers the drafting pipeline."""
-    base_path = pathlib.Path("tests/corpus/benchmark_v1")
+    args = parse_args(argv)
+    base_path: Path = args.corpus_dir
     pdf_directory = base_path / "pdf"
+
+    skips: list[str] = []
+    failures: list[str] = []
 
     # Un único adaptador implementa ambos puertos segregados.
     # Este entry point solo necesita lectura (NADR-14 §5.1 R1).
@@ -57,8 +80,8 @@ def main() -> None:
         # no existe. Este entry point ya captura y maneja ese caso.
         manifest_dto = corpus_reader.load_raw_manifest()
     except FileNotFoundError as e:
-        logger.error("Bootstrap aborted: Unable to load corpus manifest. %s", str(e))
-        return
+        logger.critical("[DRAFT-001] Bootstrap aborted: Unable to load corpus manifest. %s", str(e))
+        return EXIT_EXECUTION_FAILURE
 
     logger.info(
         "Starting automated drafting campaign. Corpus version: %s",
@@ -72,17 +95,26 @@ def main() -> None:
         try:
             use_case.execute(document_id=doc_id)
             logger.info("Draft successfully generated for document: %s", doc_id)
-        except SealedOracleOverwriteError as e:
-            # DF-14: El oráculo está sellado, no se puede sobrescribir.
-            # NADR-14 §5.3 R8: Fallo explícito, sin degradación a warning silencioso.
-            logger.warning("Document skipped (sealed oracle): %s", str(e))
-        except FileNotFoundError as e:
-            logger.warning("Document execution skipped: %s", str(e))
-        except EmptyGroundTruthDraftError as e:
-            logger.error("Invalid state detected: %s", str(e))
         except Exception as e:
-            logger.error("Unexpected failure processing document %s: %s", doc_id, str(e))
+            outcome = classify_document_error(e)
+            if outcome == "skip":
+                skips.append(doc_id)
+                logger.warning("[DRAFT-W01] Document skipped (sealed oracle): %s", str(e))
+            else:
+                failures.append(doc_id)
+                logger.error("[DRAFT-002] Document execution failed: %s", str(e))
+
+    if failures:
+        logger.critical(
+            "[DRAFT-003] %d unidad(es) obligatoria(s) no procesada(s): %s",
+            len(failures),
+            failures,
+        )
+        return EXIT_EXECUTION_FAILURE
+    if skips:
+        logger.warning("[DRAFT-W02] %d skip(s) esperados (oraculos sellados): %s", len(skips), skips)
+    return EXIT_OK
 
 
 if __name__ == "__main__":
-    main()
+    run_entry(main)

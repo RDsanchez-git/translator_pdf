@@ -8,12 +8,12 @@ Functional Core: los calculadores de identidad viven en el dominio
 (core/benchmark/topology/regression/provenance.py). Este entry point es el
 Imperative Shell: I/O, timestamps y codigos de salida.
 
-Semantica de fallo (consistente con DF-18, sin fallos silenciosos):
+Semantica de fallo (DF-18, NADR-24 R15-R19, taxonomia uniforme):
   exit 0 = freeze materializado, o no-op idempotente (freeze identico previo)
-  exit 1 = violacion de contrato (timestamp invalido, manifest ausente,
-           reporte de evaluacion ausente o incompleto)
-  exit 2 = conflicto de freeze (artefacto existente con parameter identity
-           distinta => nueva linea de certificacion obligatoria, R25)
+  exit 2 = violacion de contrato O conflicto de freeze (categoria c: fallo de
+           ejecucion/configuracion/integridad). D3: EXIT_CONTRACT_VIOLATION
+           eliminado; timestamp invalido, manifest ausente, reporte incompleto
+           y conflicto de parameter identity son todos categoria (c) de NADR-24.
 
 Semantica de escritura:
   - evaluation record: SIEMPRE se emite, nombre acotado por evaluation_kind
@@ -45,11 +45,8 @@ from core.benchmark.topology.regression.provenance import (
     ParameterIdentityCalculator,
     ResultIdentityCalculator,
 )
+from core.shared.exit_codes import EXIT_EXECUTION_FAILURE, EXIT_OK
 from infra.fs.corpus_repository import LocalFileSystemCorpusLoader
-
-EXIT_OK = 0
-EXIT_CONTRACT_VIOLATION = 1
-EXIT_FREEZE_CONFLICT = 2
 
 FREEZE_FILENAME = 'parameter_freeze.json'
 CALIBRATION_FILENAME = 'calibration_provenance_record.json'
@@ -102,23 +99,23 @@ def main(argv: Sequence[str] | None = None) -> int:
     try:
         timestamp = _validate_timestamp(args.timestamp)
     except ValueError as exc:
-        print(f'[ERROR] {exc}', file=sys.stderr)
-        return EXIT_CONTRACT_VIOLATION
+        print(f'[FREEZE-PARAM-001] {exc}', file=sys.stderr)
+        return EXIT_EXECUTION_FAILURE
 
     # 2. corpus_identity desde el manifest (reutilizacion estricta)
     try:
         loader = LocalFileSystemCorpusLoader(base_path=args.corpus_dir)
         manifest_dto = loader.load_raw_manifest()
     except FileNotFoundError as exc:
-        print(f'[ERROR] Manifest no encontrado: {exc}', file=sys.stderr)
-        return EXIT_CONTRACT_VIOLATION
+        print(f'[FREEZE-PARAM-002] Manifest no encontrado: {exc}', file=sys.stderr)
+        return EXIT_EXECUTION_FAILURE
     corpus_identity = manifest_dto.manifest_hash
 
     # 3. Reporte de evaluacion: result_identity + resumen (fail-fast si falta)
     report_path: Path = args.evaluation_report
     if not report_path.exists():
-        print(f'[ERROR] Reporte de evaluacion no encontrado: {report_path}', file=sys.stderr)
-        return EXIT_CONTRACT_VIOLATION
+        print(f'[FREEZE-PARAM-003] Reporte de evaluacion no encontrado: {report_path}', file=sys.stderr)
+        return EXIT_EXECUTION_FAILURE
     report_bytes = report_path.read_bytes()
     result_identity = ResultIdentityCalculator.calculate_from_bytes(report_bytes)
     try:
@@ -129,8 +126,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             f"warning={report_data['warning_count']}; hard_fail={report_data['hard_fail_count']}"
         )
     except (UnicodeDecodeError, json.JSONDecodeError, KeyError) as exc:
-        print(f'[ERROR] Reporte de evaluacion incompleto o invalido: {exc}', file=sys.stderr)
-        return EXIT_CONTRACT_VIOLATION
+        print(f'[FREEZE-PARAM-004] Reporte de evaluacion incompleto o invalido: {exc}', file=sys.stderr)
+        return EXIT_EXECUTION_FAILURE
 
     # 4. Configuracion canonica y parametros (fuente unica: composition root)
     config = build_canonical_engine_configuration(cost_context=CriticalityAwareCostContext())
@@ -183,12 +180,12 @@ def main(argv: Sequence[str] | None = None) -> int:
         existing_identity = existing.get('parameter_identity')
         if existing_identity != parameter_identity:
             print(
-                f'[ERROR] Conflicto de freeze: parameter_identity existente '
+                f'[FREEZE-PARAM-005] Conflicto de freeze: parameter_identity existente '
                 f'{existing_identity} distinta de la actual {parameter_identity}. '
                 f'Nueva linea de certificacion obligatoria (NADR-23 SS5.6 R25).',
                 file=sys.stderr,
             )
-            return EXIT_FREEZE_CONFLICT
+            return EXIT_EXECUTION_FAILURE
 
     # 7. Escrituras: evaluation record SIEMPRE (artefacto por run/kind,
     #    latest-emission-wins; la trazabilidad apunta a result_identity, no al
