@@ -133,3 +133,95 @@ class LoadCorpusManifestUseCase:
                 for entry in dto.documents
             ],
         )
+
+
+class AddDocumentToCorpusUseCase:
+    """Añade un documento al corpus preservando las entradas selladas (R25/R26).
+
+    Encapsula la lógica de negocio: validación de duplicados, preservación de
+    sellados, mapeo DTO->dominio y recálculo del hash encadenado. El Imperative
+    Shell solo orquesta I/O (copiar PDF, parsear args).
+    """
+
+    def __init__(
+        self,
+        reader: CorpusManifestReaderPort,
+        writer: CorpusManifestWriterPort,
+        extractor: DocumentMetadataExtractorPort,
+    ) -> None:
+        self._reader = reader
+        self._writer = writer
+        self._extractor = extractor
+
+    def execute(
+        self,
+        pdf_path,
+        doc_id: str,
+        traits: list[str],
+        new_version: str,
+    ) -> tuple[str, str, int]:
+        """Retorna (new_manifest_hash, sha256, page_count). Lanza IndexedError ante violación."""
+        from core.shared.errors import IndexedError
+
+        # 1. Cargar manifest existente (DTO)
+        dto = self._reader.load_raw_manifest()
+
+        # 2. Validar versión nueva distinta de la vigente (cascada de identidades, GF-02)
+        if new_version == dto.corpus_version:
+            raise IndexedError(
+                "ADD-DOC-008",
+                f"corpus_version '{new_version}' igual a la vigente. "
+                f"Añadir un documento es una nueva versión de corpus.",
+            )
+
+        # 3. Validar doc_id no duplicado
+        existing_ids = {e.document_id for e in dto.documents}
+        if doc_id in existing_ids:
+            raise IndexedError("ADD-DOC-005", f"doc_id '{doc_id}' ya existe en el manifest.")
+
+        # 4. Extraer metadata del nuevo PDF
+        sha256 = self._extractor.extract_sha256(pdf_path)
+        page_count = self._extractor.extract_page_count(pdf_path)
+
+        # 5. Validar sha256 no duplicado (contenido duplicado)
+        existing_sha = {e.sha256 for e in dto.documents}
+        if sha256 in existing_sha:
+            raise IndexedError("ADD-DOC-006", "SHA-256 duplicado: el contenido ya está en el corpus.")
+
+        # 6. Construir nueva entrada DTO (oracle_hash=None, state=None: pre-sealing)
+        new_entry = RawDocumentEntryDTO(
+            document_id=doc_id,
+            sha256=sha256,
+            traits=list(traits),
+            page_count=page_count,
+            oracle_hash=None,
+            ground_truth_state=None,
+        )
+
+        # 7. Preservar entradas selladas byte-a-byte + añadir nueva (R25/R26)
+        new_documents = list(dto.documents) + [new_entry]
+
+        # 8. Mapear DTO->dominio para compute_hash (misma lógica que LoadCorpusManifestUseCase)
+        domain_docs = [
+            CorpusDocumentMetadata(
+                document_id=e.document_id,
+                fingerprint=DocumentFingerprint(sha256=e.sha256),
+                traits=frozenset(ExtractionChallengeTrait(t) for t in e.traits),
+                page_count=e.page_count,
+                oracle_hash=e.oracle_hash,
+                ground_truth_state=e.ground_truth_state,
+            )
+            for e in new_documents
+        ]
+        new_hash = ManifestFingerprintCalculator.compute_hash(
+            CorpusVersion(value=new_version), domain_docs
+        )
+
+        # 9. Construir nuevo DTO con hash recalculado y salvar
+        new_dto = RawCorpusManifestDTO(
+            corpus_version=new_version,
+            manifest_hash=new_hash,
+            documents=new_documents,
+        )
+        self._writer.save_manifest_dto(new_dto)
+        return new_hash, sha256, page_count
