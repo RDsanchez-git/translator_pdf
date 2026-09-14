@@ -1,6 +1,6 @@
 {
-  "corpus_version": "v1.0",
-  "manifest_hash": "0fda76909289fe8777b8413f4178e2117d2961689437b66e4454c1a7a07a4c34",
+  "corpus_version": "v2.2",
+  "manifest_hash": "52c42353b153702eb5aef4562da9c0ded2d50791f09a61e0381016d0bf40cde4",
   "documents": [
     {
       "document_id": "doc_01_single",
@@ -72,6 +72,40 @@
       "page_count": 3,
       "ground_truth_state": "sealed",
       "oracle_hash": "8f361fb556b2d5c02a659187956e86aa47f557fdef3c2e3a632f0ce4f8698018"
+    },
+    {
+      "document_id": "doc_08_bilingual_cs",
+      "sha256": "248481ebb4e3ea5eb99716660f3a034450b46719990013ad3d48b7d331e9c459",
+      "traits": [
+        "native_pdf",
+        "multi_column",
+        "bilingual_mix"
+      ],
+      "page_count": 3,
+      "ground_truth_state": "sealed",
+      "oracle_hash": "b3ee11fb5e135ef3a1d7802e2d297b35433cd6094d9613235f903e2b44e104bd"
+    },
+    {
+      "document_id": "doc_09_vanhaverbeke",
+      "sha256": "1ab8a59aa0b4adb9c2abe6b166f493e5ebd42b4e4c4550f9d26b59de6b40146f",
+      "traits": [
+        "native_pdf",
+        "bilingual_mix"
+      ],
+      "page_count": 3,
+      "ground_truth_state": "sealed",
+      "oracle_hash": "dea560dfe3c1417204e24e9d20a44f8caae1185fa58212f9cccd09f2618cee0e"
+    },
+    {
+      "document_id": "doc_10_gross",
+      "sha256": "8dfcfda6ca8709c5123e8ad1e200d057327d218b38b4bd2d634fcca06f2e1686",
+      "traits": [
+        "native_pdf",
+        "bilingual_mix"
+      ],
+      "page_count": 3,
+      "ground_truth_state": "sealed",
+      "oracle_hash": "df0ca9817ef0e8f3b7f0ce80266549ba24017c00307644ccdf208191703bd228"
     }
   ]
 }

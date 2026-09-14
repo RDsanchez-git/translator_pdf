@@ -1,0 +1,2076 @@
+[
+  {
+    "node_id": "p1_b0",
+    "sequence_id": 1,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 83.15467834472656,
+          "y0": 68.5905990600586,
+          "x1": 248.03012084960938,
+          "y1": 78.23977661132812,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "0",
+      "confidence": 1.0,
+      "layout_reading_order": 0,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Model\nGenerated Output"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b1",
+    "sequence_id": 2,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 83.15467834472656,
+          "y0": 86.73536682128906,
+          "x1": 442.7794189453125,
+          "y1": 110.37606048583984,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "1",
+      "confidence": 1.0,
+      "layout_reading_order": 1,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Original (Gold)\ndamm todos se casaron and we still single lol forever alone\nEnglish (Source)\ndamn everyone got married and we’re still single lol forever alone"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b2",
+    "sequence_id": 3,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 83.15467834472656,
+          "y0": 119.27253723144531,
+          "x1": 517.087646484375,
+          "y1": 184.50045776367188,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "2",
+      "confidence": 1.0,
+      "layout_reading_order": 2,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Llama3\ndamn todos se fueron a casarse y nosotras estamos solitarias lol forever alone\nLlama3 Instruct\ndamm every1 got married and we’re still single lol alonso solit@o foreverrrr lolololo\nLlama3.3-70Bfs\ndamn todo el mundo se casó y nosotros seguimos solteros lol forever alone\nGPT-4ofs\ndamn todos se casaron y nosotros seguimos solteros lol forever alone\nNLLB\ndamn everyone got marry and its still single lol forever alone"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b3",
+    "sequence_id": 4,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 111.90699768066406,
+          "y0": 199.5329132080078,
+          "x1": 485.6340026855469,
+          "y1": 209.49551391601562,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "3",
+      "confidence": 1.0,
+      "layout_reading_order": 3,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Table 3: Example from the test set and the generated outputs of the different models."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b4",
+    "sequence_id": 5,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 72.0,
+          "y0": 231.59291076660156,
+          "x1": 291.9330749511719,
+          "y1": 361.7335510253906,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "4",
+      "confidence": 1.0,
+      "layout_reading_order": 4,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0.71 for fluency and 0.65 for adequacy. See Ap-\npendix C for further details.\nTo estimate the quality of the post-edition pro-\ncess, we compare the post-editions of two anno-\ntators on 100 additional random instances. The\nresults show that 75% of the sentences remain un-\nchanged, as they are already adequate. There is a\n87.87% similarity between the post-editions of the\ntwo annotators, as measured by Levenshtein dis-\ntance, demonstrating a high degree of consistency\nand quality in the post-edition process."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b5",
+    "sequence_id": 6,
+    "node_type": "heading",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 108.052001953125,
+          "y0": 382.8384704589844,
+          "x1": 254.21630859375,
+          "y1": 394.7936706542969,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "5",
+      "confidence": 1.0,
+      "layout_reading_order": 5,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "4.\nExperimental settings",
+      "heading_level": "unknown"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b6",
+    "sequence_id": 7,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 71.64099884033203,
+          "y0": 407.04290771484375,
+          "x1": 291.9347229003906,
+          "y1": 764.95849609375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "6",
+      "confidence": 1.0,
+      "layout_reading_order": 6,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Generation settings\nWith EN-CS as our starting\npoint, we frame CS generation as a MT task, with\nEnglish as the source and CS as the target lan-\nguage, where parts of the source sentence have to\nbe translated to Spanish. In our experiments, we\nfine-tune two small-sized generative models from\nthe Llama family, namely, Llama3 8B and Llama3\nInstruct 8B (Dubey et al., 2024).\nTo fine-tune the models, we use the causal lan-\nguage modelling objective, but with appropriate\ninput formats for the base and instruct models. For\nthe base model, we use templates (Zhu et al., 2024)\nin the form of “<X>=<Y>”, where <X> and <Y> are\nplaceholders for the input English sentence and\ngenerated CS, respectively. At inference, the sec-\nond code-switched part is left empty for the model\nto fill. For the instruction-tuned model, we provide\na system prompt with the instruction, a query by\nthe user in English, and an answer from the as-\nsistant with the code-switched target. At inference\ntime, the answer is left blank (See Appendix D for\nexample prompts).\nModels are trained using Quantized Low-Rank\nAdaptation (QLoRA) (Dettmers et al., 2023) with\nstandard parameters: the model is loaded in 4 bit\nwith NF4 quantization data type and bf16 compu-\ntational data type. The LoRA rank and scaling\nfactor are set to 16 and the dropout to 0.05. We\napply the LoRA update matrices to the attention\nblocks and do not train bias parameters. Regard- ing the hyperparameters, we only tune the learning\nrate (1e-4, 5e-4, 1e-3 and 5e-3) and training epoch\n∈[1 . . . 10], choosing the parameters that give the\nlowest cross-entropy loss on the development set\nfor each model. We use the transformers package\n(Wolf et al., 2020) for all training experiments.\nEarly experiments indicated that fine-tuned mod-\nels usually produce the desired output up to a punc-\ntuation mark and then either begin to translate the\nsentence again or hallucinate more content. We\ntherefore truncate the output up to a punctuation\nmark where the length is closest to that of the origi-\nnal sentence (Bawden and Yvon, 2023). Although\nsimple, this has proven to be the method that yields\nthe best results. We additionally experimented with\ndifferent generation parameters ( length_penalty\nand exponential_length_decay), as well as trying\nto control the length of the generation with length\ncodes, but find that the truncation heuristic per-\nforms the best. Accordingly, all further experiments\nwill use the truncated output."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b8",
+    "sequence_id": 9,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 306.9169921875,
+          "y0": 495.73492431640625,
+          "x1": 527.2109375,
+          "y1": 732.8455200195312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "8",
+      "confidence": 1.0,
+      "layout_reading_order": 8,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "In-domain and out-of-domain evaluation\nTo\nevaluate the performance of models, we test them\non the test set of EN-CS, and to evaluate their\ncapabilities outside of the domains covered by\nLINCE, we also propose an out-of-domain eval-\nuation. For this purpose, we gather a series of\nsmall creative non-fiction texts originally written us-\ning English-Spanish CS (Dwyer, 2017, 2019a,b,c,d,\n2020). These are quite different from the other split\nof the test set in domain and register, as well as\nmore superficial features such as the length of the\nsentences, that tend to be much longer than those\nin LINCE. To process this collection of texts in a\nsimilar manner to the instances of LINCE, we first\ndivide them into sentences and then obtain the lan-\nguage ID for each token using the models from the\nCodeSwitch repository.3 With each sentence tok-\nenized and tagged with its corresponding language,\nwe can then process and filter the instances just\nlike those sourced from LINCE (c.f. Section 3.1)."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b9",
+    "sequence_id": 10,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 307.2760009765625,
+          "y0": 745.2778930664062,
+          "x1": 479.43072509765625,
+          "y1": 766.9100952148438,
+          "is_normalized": false
+        },
+        {
+          "x0": 71.6709976196289,
+          "y0": 64.80091857910156,
+          "x1": 293.2560729980469,
+          "y1": 194.31552124023438,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1,
+        2
+      ],
+      "provider_native_id": "9",
+      "confidence": 1.0,
+      "layout_reading_order": 9,
+      "semantic_origin": "pdf_text",
+      "note": "footnote_3"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "3https://github.com/sagorbrur/\ncodeswitch Baselines\nWe\ninclude\nfew-shot\nexperi-\nments\nby\ndirectly\nprompting\nGPT-4o\nand\nLlama3.3 70B Instruct\nto\ngenerate\nCS\ntext\nusing a 5-shot approach (See Appendix D for\nexample prompts). We refer to these systems in\nthe experiments as GPT-4ofs and Llama3.3-70Bfs,\nrespectively. We also include a strong dedicated\nMT baseline, developed by fine-tuning the NLLB\n(NLLB Team et al., 2022)\nmodel\n(nllb-200-\ndistilled-600M) using EN-CS. The model was\ntrained with standard settings.4"
+    },
+    "control_plane": {
+      "merge_count": 2
+    },
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b1",
+    "sequence_id": 11,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 72.0,
+          "y0": 196.3229522705078,
+          "x1": 291.93304443359375,
+          "y1": 242.15054321289062,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "1",
+      "confidence": 1.0,
+      "layout_reading_order": 11,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Table 3 shows an example of the outputs of the\ndifferent models, compared to the original code-\nswitched sentence, and the English monolingual\nsentence that they received as input."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b2",
+    "sequence_id": 12,
+    "node_type": "heading",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 108.6500015258789,
+          "y0": 260.00946044921875,
+          "x1": 253.61880493164062,
+          "y1": 271.96466064453125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "2",
+      "confidence": 1.0,
+      "layout_reading_order": 12,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "5.\nQualitative evaluation",
+      "heading_level": "unknown"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b3",
+    "sequence_id": 13,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 71.6709976196289,
+          "y0": 283.075927734375,
+          "x1": 291.92926025390625,
+          "y1": 352.8145446777344,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "3",
+      "confidence": 1.0,
+      "layout_reading_order": 13,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "As a first step to assess the quality of the outputs\nproduced by the different models, we perform a\nmanual qualitative analysis of the results in two\nparts: a pairwise tournament-based human evalua-\ntion, and an in-depth analysis of the most common\nerrors made by the models and their distribution."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b4",
+    "sequence_id": 14,
+    "node_type": "heading",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 72.0,
+          "y0": 369.2205505371094,
+          "x1": 250.1679229736328,
+          "y1": 380.21923828125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "4",
+      "confidence": 1.0,
+      "layout_reading_order": 14,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "5.1.\nPreference based evaluation",
+      "level": 2
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b5",
+    "sequence_id": 15,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 71.53199768066406,
+          "y0": 388.11993408203125,
+          "x1": 292.20916748046875,
+          "y1": 685.0215454101562,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "5",
+      "confidence": 1.0,
+      "layout_reading_order": 15,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "We perform a tournament-based evaluation that al-\nlows us to determine the ranking of models in terms\nof human preference. A total of 1260 instances are\nmatched against each other, corresponding to the\noutputs of the five models for 210 English source\nsentences, as well as the gold standard reference.\nThe evaluation is conducted pairwise, requiring an-\nnotators to choose the best out of two sentences\nor declare a tie. When choosing the best sentence,\nannotators do not know the original English sen-\ntence, nor which model produced what output. This\nprocess results in 210 ·\n\u00006\n2\n\u0001\n= 3150 comparisons,\nand was carried out by 14 annotators, with each\nannotator performing at least 100 random compar-\nisons.\nAnnotators are provided with a series of criteria\nto choose between the instances, based on the\nerror analysis described in the next section. They\nmust take into account three main criteria, which\nmust be applied in the following order: a) the pres-\nence and naturalness of the CS; b) the content and\nfluency of the sentences; and c) the orthographical\nerrors of the instances (correct punctuation, pres-\nence of typos, etc.). Annotators are furthermore\nasked to avoid declaring ties, unless completely Llama3 Instruct\n270.5"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b6",
+    "sequence_id": 16,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 72.0,
+          "y0": 699.5798950195312,
+          "x1": 291.5174560546875,
+          "y1": 764.75927734375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "6",
+      "confidence": 1.0,
+      "layout_reading_order": 16,
+      "semantic_origin": "pdf_text",
+      "note": "footnote_4"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "4A batch size of 32, learning rate of 1 × 10−4, using\nconstant learning rate schedule with 1,000 warmup steps,\na gradient clipping threshold of 1.0, and a weight decay\nof 1×10−3. Training was conducted for 50,000steps. For\nevaluation, we selected the checkpoint that achieved the\nhighest BLEU score on the development set."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b7",
+    "sequence_id": 17,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 313.58258056640625,
+          "y0": 66.05855560302734,
+          "x1": 519.1048583984375,
+          "y1": 80.89460754394531,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "7",
+      "confidence": 1.0,
+      "layout_reading_order": 17,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "In domain\nOut of domain\nTotal\nModel\nScore\nRank\nScore\nRank\nScore\nRank"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b8",
+    "sequence_id": 18,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 313.58258056640625,
+          "y0": 88.15660095214844,
+          "x1": 385.93927001953125,
+          "y1": 94.83280181884766,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "8",
+      "confidence": 1.0,
+      "layout_reading_order": 18,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Gold Standard\n369.5"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b10",
+    "sequence_id": 19,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 422.08428955078125,
+          "y0": 88.15660095214844,
+          "x1": 438.78814697265625,
+          "y1": 94.83280181884766,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "10",
+      "confidence": 1.0,
+      "layout_reading_order": 19,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "434.5"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b12",
+    "sequence_id": 20,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 476.23687744140625,
+          "y0": 88.15660095214844,
+          "x1": 492.940673828125,
+          "y1": 94.83280181884766,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "12",
+      "confidence": 1.0,
+      "layout_reading_order": 20,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "804.0"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b14",
+    "sequence_id": 21,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 313.5826110839844,
+          "y0": 98.73039245605469,
+          "x1": 385.9393005371094,
+          "y1": 105.4065933227539,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "14",
+      "confidence": 1.0,
+      "layout_reading_order": 21,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Llama3\n291.5"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b16",
+    "sequence_id": 22,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 422.08428955078125,
+          "y0": 98.73039245605469,
+          "x1": 438.78814697265625,
+          "y1": 105.4065933227539,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "16",
+      "confidence": 1.0,
+      "layout_reading_order": 22,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "282.0"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b18",
+    "sequence_id": 23,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 476.23687744140625,
+          "y0": 98.73039245605469,
+          "x1": 492.940673828125,
+          "y1": 105.4065933227539,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "18",
+      "confidence": 1.0,
+      "layout_reading_order": 23,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "573.5"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b22",
+    "sequence_id": 25,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 422.08428955078125,
+          "y0": 109.30412292480469,
+          "x1": 512.869140625,
+          "y1": 115.9803237915039,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "22",
+      "confidence": 1.0,
+      "layout_reading_order": 25,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "210.0\n4\n480.5\n4"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b23",
+    "sequence_id": 26,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 313.5826416015625,
+          "y0": 119.87791442871094,
+          "x1": 438.78814697265625,
+          "y1": 126.55411529541016,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "23",
+      "confidence": 1.0,
+      "layout_reading_order": 26,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "NLLB\n259.5\n4\n247.5"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b25",
+    "sequence_id": 27,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 479.02081298828125,
+          "y0": 119.87797546386719,
+          "x1": 490.15667724609375,
+          "y1": 126.5541763305664,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "25",
+      "confidence": 1.0,
+      "layout_reading_order": 27,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "507"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b27",
+    "sequence_id": 28,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 313.5826110839844,
+          "y0": 128.03782653808594,
+          "x1": 512.869140625,
+          "y1": 143.3017120361328,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "27",
+      "confidence": 1.0,
+      "layout_reading_order": 28,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "GPT-4ofs\n251.5\n5\n162.0\n6\n413.5\n5\nLlama3.3-70Bfs\n207.5\n6\n164.0\n5\n371.5\n6"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b28",
+    "sequence_id": 29,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 306.9670104980469,
+          "y0": 156.21791076660156,
+          "x1": 525.538330078125,
+          "y1": 178.13552856445312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "28",
+      "confidence": 1.0,
+      "layout_reading_order": 29,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Table 4: Ranking of models according to human\npreference."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b29",
+    "sequence_id": 30,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 306.9670104980469,
+          "y0": 201.7049102783203,
+          "x1": 527.4810791015625,
+          "y1": 630.8345336914062,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "29",
+      "confidence": 1.0,
+      "layout_reading_order": 30,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "necessary (e.g., in a case where both sentences\nare completely monolingual and therefore equally\nincorrect) to compel them to develop a preference.\nThe complete annotation guidelines are available\nin Appendix E. Inter-annotator agreement on a sub-\nset of 200 sentence pairs shows substantial agree-\nment for the in-domain set (κ = 0.61) and moderate\nagreement for the out-of-domain set (κ = 0.51).\nWe calculate a global score for each model, as\nfollows: every time a model is voted, it gets 1 point,\nand the loser gets 0 points; in case of ties, both\nmodels get 0.5 points each. Table 4 shows the\nglobal scores, as well as the ranking of human pref-\nerences according to said score (second and third\ncolumns). We find that the gold standard reference\nobtains the highest score, as expected, with an\nspecially stark difference in the out-of-domain set,\nhighlighting the difficulty of this domain for all mod-\nels. Fine-tuned Llama3 ranks the highest among\nthe automatic methods in both in-domain and out-\nof-domain settings, which shows its ability to gener-\nalize to more challenging domains. The instruction-\ntuned model Llama3 Instruct obtains worse scores\ncompared to its base model counterpart, which\nis likely due to instruction tuning reducing certain\nmodel capabilities (Li et al., 2024; West and Potts,\n2025). It ranks higher than the NLLB model in-\ndomain, but lower in the out-of-domain evaluation\nand the overall scores. Still, the difference between\nLlama3 and NLLB shows the potential to rival ded-\nicated models in generation tasks. According to\nthese preferences, fine-tuning LLMs for CS gener-\nation can be critical to ensure better results, since\nthe larger models with few-shot prompting rank,\nboth GPT-4ofs and Llama3.3-70Bfs, are outranked\nby all models in both evaluation settings."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b30",
+    "sequence_id": 31,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 307.2760009765625,
+          "y0": 651.0675048828125,
+          "x1": 409.8168640136719,
+          "y1": 662.0662231445312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "30",
+      "confidence": 1.0,
+      "layout_reading_order": 31,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "5.2.\nError analysis"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b31",
+    "sequence_id": 32,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 307.2760009765625,
+          "y0": 671.3099365234375,
+          "x1": 527.2055053710938,
+          "y1": 764.95849609375,
+          "is_normalized": false
+        },
+        {
+          "x0": 131.57681274414062,
+          "y0": 258.20159912109375,
+          "x1": 491.6489562988281,
+          "y1": 268.88519287109375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2,
+        3
+      ],
+      "provider_native_id": "31",
+      "confidence": 1.0,
+      "layout_reading_order": 32,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "In order to further explore differences between\nmodel performance, we analyze the most common\nerrors made by the CS generation models, both\nquantitatively and qualitatively. We extend the MT\nerror typology presented in Popović (2018) to CS\ngeneration error analysis. To do so, we randomly\nselect a set of 100 outputs from all models and con-\nduct a detailed examination of the types of errors In\nOut\nIn\nOut\nIn\nOut\nIn\nOut\nIn\nOut"
+    },
+    "control_plane": {
+      "merge_count": 2
+    },
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b1",
+    "sequence_id": 33,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 93.73736572265625,
+          "y0": 240.32528686523438,
+          "x1": 96.59904479980469,
+          "y1": 247.95643615722656,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "1",
+      "confidence": 1.0,
+      "layout_reading_order": 34,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b2",
+    "sequence_id": 34,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 90.87596130371094,
+          "y0": 216.5387725830078,
+          "x1": 96.59931945800781,
+          "y1": 224.169921875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "2",
+      "confidence": 1.0,
+      "layout_reading_order": 35,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "20"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b3",
+    "sequence_id": 35,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 90.87596130371094,
+          "y0": 192.75225830078125,
+          "x1": 96.59931945800781,
+          "y1": 200.38340759277344,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "3",
+      "confidence": 1.0,
+      "layout_reading_order": 36,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "40"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b4",
+    "sequence_id": 36,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 90.87596130371094,
+          "y0": 168.9657440185547,
+          "x1": 96.59931945800781,
+          "y1": 176.59689331054688,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "4",
+      "confidence": 1.0,
+      "layout_reading_order": 37,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "60"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b5",
+    "sequence_id": 37,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 90.87596130371094,
+          "y0": 145.17922973632812,
+          "x1": 96.59931945800781,
+          "y1": 152.8103790283203,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "5",
+      "confidence": 1.0,
+      "layout_reading_order": 38,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "80"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b6",
+    "sequence_id": 38,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 88.01456451416016,
+          "y0": 121.39271545410156,
+          "x1": 96.599609375,
+          "y1": 129.02386474609375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "6",
+      "confidence": 1.0,
+      "layout_reading_order": 39,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "100"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b7",
+    "sequence_id": 39,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 88.01456451416016,
+          "y0": 97.606201171875,
+          "x1": 96.599609375,
+          "y1": 105.23735046386719,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "7",
+      "confidence": 1.0,
+      "layout_reading_order": 40,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "120"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b8",
+    "sequence_id": 40,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 71.94949340820312,
+          "y0": 146.962158203125,
+          "x1": 88.73802947998047,
+          "y1": 203.64263916015625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "8",
+      "confidence": 1.0,
+      "layout_reading_order": 41,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Error Count"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b9",
+    "sequence_id": 41,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 131.0635986328125,
+          "y0": 142.3612518310547,
+          "x1": 137.931640625,
+          "y1": 151.5186309814453,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "9",
+      "confidence": 1.0,
+      "layout_reading_order": 42,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "79"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b10",
+    "sequence_id": 42,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 170.11199951171875,
+          "y0": 147.11856079101562,
+          "x1": 176.98004150390625,
+          "y1": 156.27593994140625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "10",
+      "confidence": 1.0,
+      "layout_reading_order": 43,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "75"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b11",
+    "sequence_id": 43,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 209.16038513183594,
+          "y0": 151.8758544921875,
+          "x1": 216.02842712402344,
+          "y1": 161.03323364257812,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "11",
+      "confidence": 1.0,
+      "layout_reading_order": 44,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "71"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b12",
+    "sequence_id": 44,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 248.2087860107422,
+          "y0": 118.5747299194336,
+          "x1": 255.0768280029297,
+          "y1": 127.73211669921875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "12",
+      "confidence": 1.0,
+      "layout_reading_order": 45,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "99"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b13",
+    "sequence_id": 45,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 287.2572021484375,
+          "y0": 143.5505828857422,
+          "x1": 294.125244140625,
+          "y1": 152.7079620361328,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "13",
+      "confidence": 1.0,
+      "layout_reading_order": 46,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "78"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b14",
+    "sequence_id": 46,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 324.58660888671875,
+          "y0": 99.54552459716797,
+          "x1": 334.888671875,
+          "y1": 108.70291137695312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "14",
+      "confidence": 1.0,
+      "layout_reading_order": 47,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "115"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b15",
+    "sequence_id": 47,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 365.3539733886719,
+          "y0": 176.85169982910156,
+          "x1": 372.2220153808594,
+          "y1": 186.0090789794922,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "15",
+      "confidence": 1.0,
+      "layout_reading_order": 48,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "50"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b16",
+    "sequence_id": 48,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 404.4023742675781,
+          "y0": 164.9584503173828,
+          "x1": 411.2704162597656,
+          "y1": 174.11582946777344,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "16",
+      "confidence": 1.0,
+      "layout_reading_order": 49,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "60"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b17",
+    "sequence_id": 49,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 443.4507751464844,
+          "y0": 169.7157440185547,
+          "x1": 450.3188171386719,
+          "y1": 178.8731231689453,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "17",
+      "confidence": 1.0,
+      "layout_reading_order": 50,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "56"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b18",
+    "sequence_id": 50,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 482.4991760253906,
+          "y0": 123.33203887939453,
+          "x1": 489.3672180175781,
+          "y1": 132.4894256591797,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "18",
+      "confidence": 1.0,
+      "layout_reading_order": 51,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "95"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b19",
+    "sequence_id": 51,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 142.46408081054688,
+          "y0": 266.31744384765625,
+          "x1": 244.1852569580078,
+          "y1": 284.0539855957031,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "19",
+      "confidence": 1.0,
+      "layout_reading_order": 52,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Llama3\nLlama3\nInstruct"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b20",
+    "sequence_id": 52,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 295.65216064453125,
+          "y0": 266.31744384765625,
+          "x1": 324.7864074707031,
+          "y1": 277.00103759765625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "20",
+      "confidence": 1.0,
+      "layout_reading_order": 53,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Llama3.3"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b21",
+    "sequence_id": 53,
+    "node_type": "heading",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 301.89520263671875,
+          "y0": 273.29022216796875,
+          "x1": 318.1423645019531,
+          "y1": 283.97381591796875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "21",
+      "confidence": 1.0,
+      "layout_reading_order": 54,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "70Bfs",
+      "level": 2
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b22",
+    "sequence_id": 54,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 374.8175964355469,
+          "y0": 266.2049255371094,
+          "x1": 474.438232421875,
+          "y1": 277.00103759765625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "22",
+      "confidence": 1.0,
+      "layout_reading_order": 55,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "GPT-4ofs\nNLLB"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b23",
+    "sequence_id": 55,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 213.23326110839844,
+          "y0": 69.84207153320312,
+          "x1": 427.35205078125,
+          "y1": 82.05191802978516,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "23",
+      "confidence": 1.0,
+      "layout_reading_order": 56,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "CS Errors\nTranslation Errors\nFormat Errors"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b24",
+    "sequence_id": 56,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 72.0,
+          "y0": 303.53094482421875,
+          "x1": 525.5453491210938,
+          "y1": 325.4485168457031,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "24",
+      "confidence": 1.0,
+      "layout_reading_order": 57,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Figure 1: Error distribution by model, obtained by counting the number of instances that present errors of\neach type. Analyzed both for the in-domain (In) and out-of-domain (Out) sets."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b25",
+    "sequence_id": 57,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 72.0,
+          "y0": 347.5459289550781,
+          "x1": 291.93499755859375,
+          "y1": 453.1495361328125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "25",
+      "confidence": 1.0,
+      "layout_reading_order": 58,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "present in them. This thorough analysis allows us\nto identify recurring patterns and propose a refined\nerror typology specifically for automatic CS gener-\nation. This initial error analysis yields 18 total error\ncategories, which we simplify and group into three\nmain error types: a) CS errors, b) Translation Er-\nrors, and c) Format errors. The full error typology,\nalong with detailed descriptions for each error type,\nis provided in Appendix F."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b26",
+    "sequence_id": 58,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 91.92500305175781,
+          "y0": 462.1159362792969,
+          "x1": 291.93072509765625,
+          "y1": 543.8095092773438,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "26",
+      "confidence": 1.0,
+      "layout_reading_order": 59,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "CS Errors: Errors of sentences that are either\ncompletely monolingual or switch between lan-\nguages in an unnatural manner, e.g., by re-\npeating the same word in English and Span-\nish. In Example 4, Llama3.3-70Bfs preserves\nthe original meaning, but the sentence is fully\nmonolingual."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b27",
+    "sequence_id": 59,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 72.0,
+          "y0": 571.3428955078125,
+          "x1": 84.1742935180664,
+          "y1": 581.3054809570312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "27",
+      "confidence": 1.0,
+      "layout_reading_order": 60,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "(4)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b28",
+    "sequence_id": 60,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 101.95500183105469,
+          "y0": 553.3109130859375,
+          "x1": 284.50042724609375,
+          "y1": 599.3856201171875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "28",
+      "confidence": 1.0,
+      "layout_reading_order": 61,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Source\nyea... the best i can do is be here\nfor him if he needs me\nOutput\nsí... lo mejor que puedo hacer es\nestar aquí para él si me necesita"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b29",
+    "sequence_id": 61,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 91.61599731445312,
+          "y0": 605.419921875,
+          "x1": 291.6563415527344,
+          "y1": 711.0244750976562,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "29",
+      "confidence": 1.0,
+      "layout_reading_order": 62,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Translation errors: Critical errors that either\nchange the original meaning of the sentence\nor introduce mistakes in fluency or grammar,\nfor example, using the wrong tense or word\norder. Example 5 shows an instance where\nLlama3 Instruct outputs a seemingly natural\ncode-switched sentence, but the phrase “they\ngot hurt” is not adequately translated and the\nmeaning of the sentence is not preserved."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b30",
+    "sequence_id": 62,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 72.0,
+          "y0": 738.556884765625,
+          "x1": 84.1742935180664,
+          "y1": 748.5194702148438,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "30",
+      "confidence": 1.0,
+      "layout_reading_order": 63,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "(5)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b31",
+    "sequence_id": 63,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 101.95500183105469,
+          "y0": 720.52490234375,
+          "x1": 284.50341796875,
+          "y1": 766.6233520507812,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "31",
+      "confidence": 1.0,
+      "layout_reading_order": 64,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Source\nI wasn’t happy because they got\nhurt.\nOutput\ni wasn’t happy because me\ndolieron"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b32",
+    "sequence_id": 64,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 327.20098876953125,
+          "y0": 339.89593505859375,
+          "x1": 527.203369140625,
+          "y1": 421.58953857421875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "32",
+      "confidence": 1.0,
+      "layout_reading_order": 65,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Format errors: Errors in form that do not\nmake the sentences unintelligible nor change\ntheir meaning, such as repetitions of a word\nor phrase or incorrect punctuation. Example\n6, by the model Llama3, accurately preserves\nthe original meaning and introduces CS, but re-\nmoves the username and adds a smiley face."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b33",
+    "sequence_id": 65,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 307.2760009765625,
+          "y0": 434.10693359375,
+          "x1": 528.2640380859375,
+          "y1": 456.315185546875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "33",
+      "confidence": 1.0,
+      "layout_reading_order": 66,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "(6)\nSource\n<user> old mexican remedies\nOutput\nold school remedios mexicanos :)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b34",
+    "sequence_id": 66,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 306.9169921875,
+          "y0": 467.8789367675781,
+          "x1": 527.2107543945312,
+          "y1": 764.95849609375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "34",
+      "confidence": 1.0,
+      "layout_reading_order": 67,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "We classify 1, 000 additional instances (200 in-\nstances per model, obtained from the same source\nsentences) into these kind of errors, and show the\nresults in Figure 1.\nFor the in-domain test set, GPT-4ofs makes the\nfewest errors overall (50), closely followed by NLLB\n(56). However, 90% of GPT’s errors (45) and 45%\non NLLB’s (25) are CS related, indicating that while\nthese systems preserve the meaning of sentences\nand generate few formatting errors, they often pro-\nduce entirely monolingual outputs, which is a criti-\ncal error. In comparison, CS-related mistakes are\nthe least common in fine-tuned LLMs, accounting\nfor less than 15% of the overall error count. This\nanalysis shows that fine-tuned LLMs have effec-\ntively learned to switch between languages natu-\nrally, though they may still be prone to other less crit-\nical types of errors. The Llama3 base model strug-\ngles with maintaining the format of the sentences,\nwhich makes up 50.68% of its errors, whereas the\ninstruction-tuned model Llama3 Instruct presents\nmore meaning-related issues, 53, 45%. This sug-\ngests that the linguistic knowledge of the model\nhas degraded when tuned on instructions, a phe-\nnomenon that has been observed on other related"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  }
+]

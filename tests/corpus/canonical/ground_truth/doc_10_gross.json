@@ -1,0 +1,743 @@
+[
+  {
+    "node_id": "p1_b0",
+    "sequence_id": 1,
+    "node_type": "heading",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 35.49300003051758,
+          "y0": 57.1229248046875,
+          "x1": 559.2760009765625,
+          "y1": 65.2310791015625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "0",
+      "confidence": 1.0,
+      "layout_reading_order": 0,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Languages 2022, 7, 246\n10 of 34",
+      "heading_level": "unknown"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b1",
+    "sequence_id": 2,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 165.97500610351562,
+          "y0": 97.61046600341797,
+          "x1": 560.9307861328125,
+          "y1": 509.3321228027344,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "1",
+      "confidence": 1.0,
+      "layout_reading_order": 1,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "(exposure >5% of waking hours in a typical week) or signiﬁcant past exposure to a third\nlanguage from a care provider. ADHD and speech sound disorders were not exclusionary\ncriteria, as these often co-occur with language impairment.\nThe 24 participants in the current study represent a convenience sample of those\nchildren who were able to complete the conversational language sample task while par-\nticipating in the larger project. These children tended to have slightly higher language\nscores (mean Language Index of 106) than the original full sample of 62 (mean Language\nIndex of 102) and were more likely to be female (17/24 compared to 37/62) and attend\ndual-language schools (16/24 compared to 28/62); otherwise, the demographics are largely\nrepresentative of the original sample. The proportion of children identiﬁed as at risk for\nDLD in this subsample (5 out of 24 children) was comparable to that of the full sample (15\nout of 62 children). Children with DLD were included in the current study to examine code-\nswitching in children across a spectrum of abilities, as the ﬁndings from this exploratory\nstudy may have implications for clinical language assessment. The sub-group of children\nwith DLD in the current study was too small to conduct formal group comparisons, but a\ncontinuous measure of overall language ability was included as a potential predictor to\naccount for the wide range of language skills. Excluding children with DLD did not change\nthe major patterns of ﬁndings, with a few exceptions that are noted in the Results.\nTable 1 summarizes key participant characteristics. The timing of English exposure\nvaried within the sample: 17 children were exposed to English within the ﬁrst year of\nlife, and the remaining seven children were exposed to English at or after age 2. Nineteen\nchildren were born in the continental United States, two in Puerto Rico, one in Honduras,\nand the birthplace for two children was not reported. Although Mexican Spanish is the\nmost common variety among Spanish-speaking communities in this Midwestern city, there\nwas some heterogeneity in the regional background of children’s caregivers, which included\nMexico, Canada, Colombia, Guatemala, Honduras, Puerto Rico, Peru, Spain, Uruguay,\nand the United States. On average, caregivers reported using Spanish with their child\n70% of the time, but this varied widely across families. A majority of children attended\ndual-language preschool, daycare, or school programs, but six children received instruction\nonly in English. On average, caregivers reported limited use of code-switching with their\nchildren (average composite of 12 on a 30-point scale) and a general preference for children\nto use one language at a time. However, as discussed in the Introduction, it can be difﬁcult\nto obtain accurate self-report of code-switching behavior and attitudes."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b2",
+    "sequence_id": 3,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 166.09799194335938,
+          "y0": 524.7353515625,
+          "x1": 304.4933776855469,
+          "y1": 533.78662109375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "2",
+      "confidence": 1.0,
+      "layout_reading_order": 2,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Table 1. Participant characteristics."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b3",
+    "sequence_id": 4,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 138.4040069580078,
+          "y0": 547.8073120117188,
+          "x1": 471.3642578125,
+          "y1": 567.7327270507812,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "3",
+      "confidence": 1.0,
+      "layout_reading_order": 3,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Characteristic\nDescriptive Statistics\nMean (SD); Range"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b4",
+    "sequence_id": 5,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 41.694000244140625,
+          "y0": 574.6122436523438,
+          "x1": 497.8022766113281,
+          "y1": 739.5015869140625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "4",
+      "confidence": 1.0,
+      "layout_reading_order": 4,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Age of ﬁrst English exposure (months)\n11.96 (15.62); Range: 0–48\nCurrent Spanish input/output (% waking hrs) 1\n55% (14); Range: 26–84%\nParent self-reported Spanish use with child\n70% (29); Range: 5–100%\nLanguage of instruction at school/daycare\nBoth: 16; English: 6; Spanish: 2\nMaternal education (1–6) 2\n3.17 (1.79); Range: 1–6\nNonverbal intelligence std. score (Leiter-3)\n105.67 (6.47); Range: 90–117\nBESA Language Index 3\n105.54 (10.62); Range: 83–118\nBESA Spanish Morphosyntax std. score\n88.96 (17.85); Range: 55–113\nBESA English Morphosyntax std. score\n95.88 (17.26); Range: 68–115\nBESA Spanish Semantics std. score\n107.92 (10.18); Range: 90–128\nBESA English Semantics std. score\n105.08 (12.01); Range: 75–123\nBESA Morphosyntax Difference Score (Sp-En)\n−6.92 (20.75); Range: −48–35\nBSQ Switch to English Composite 4\n−0.06 (1.04); Range: −2.05–1.74\nBSQ Switch to Spanish Composite 4\n−0.06 (0.93); Range: −1.60–1.92\nParent Language Mixing Scale 5\n11.83 (8.68); Range: 0–28 (out of 30)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b0",
+    "sequence_id": 6,
+    "node_type": "heading",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 35.49300003051758,
+          "y0": 57.1229248046875,
+          "x1": 559.2760009765625,
+          "y1": 65.2310791015625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "0",
+      "confidence": 1.0,
+      "layout_reading_order": 5,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Languages 2022, 7, 246\n11 of 34",
+      "heading_level": "unknown"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b1",
+    "sequence_id": 7,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 166.09800720214844,
+          "y0": 97.24690246582031,
+          "x1": 220.43341064453125,
+          "y1": 106.28375244140625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "1",
+      "confidence": 1.0,
+      "layout_reading_order": 6,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Table 1. Cont."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b2",
+    "sequence_id": 8,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 138.4040069580078,
+          "y0": 120.38931274414062,
+          "x1": 471.3642578125,
+          "y1": 140.314697265625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "2",
+      "confidence": 1.0,
+      "layout_reading_order": 7,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Characteristic\nDescriptive Statistics\nMean (SD); Range"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b3",
+    "sequence_id": 9,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 41.694000244140625,
+          "y0": 147.1932373046875,
+          "x1": 432.6556396484375,
+          "y1": 210.9545440673828,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "3",
+      "confidence": 1.0,
+      "layout_reading_order": 8,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Parental Response to Child Code-switching (CS):\nAsk child to repeat in target language\n12\nRepeat in target language and move on\n6\nContinue conversation but no CS by parent\n2\nContinue conversation and parent uses CS\n2\nNot available\n2"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b4",
+    "sequence_id": 10,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 166.05899047851562,
+          "y0": 215.67413330078125,
+          "x1": 560.6671752929688,
+          "y1": 425.2520751953125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "4",
+      "confidence": 1.0,
+      "layout_reading_order": 9,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "1 Current Spanish exposure was determined by completing the Bilingual Input Output Survey from the Bilingual\nEnglish Spanish Assessment (BESA; Peña et al. 2014). The value represents the proportion of the child’s waking\nhours spent interacting in Spanish, averaging the values for hearing and speaking. Times when the child hears\nor speaks both languages are counted as 50% Spanish in the calculations, as per the instructions in the manual.\n2 Scale: 1 = less than high school, 2 = high school/General Educational Development (GED) diploma, 3 = some\ncollege/2-year degree, 4 = bachelor’s degree, 5 = master’s degree, 6 = doctorate. 3 The Language Index from\nthe BESA provides a composite measure of overall language ability that combines children’s best morphosyntax\nscore (whether Spanish or English) with their best semantics score (whether Spanish or English). For children\nwith mixed dominance, the Language Index could incorporate, for example, their English morphosyntax score\nand their Spanish semantics score. 4 Using an adapted version of the Bilingual Switching Questionnaire (BSQ,\nRodriguez-Fornells et al. 2012), parents rated the frequency of different types of switching behavior by their child\n(described in more detail in Section 2.4). These values represent composite factor scores generated from three\nitems for switches from Spanish to English (i.e., My child does not remember or cannot recall some Spanish\nwords when speaking in this language; When my child cannot remember a word in Spanish, my child tends\nto immediately produce it in English; Without intending to, my child sometimes produces the English word\nfaster when speaking Spanish) and three parallel items for switches from English to Spanish. 5 Overall rating\ncomprised of 5 items from the Language Mixing Scale for parents (Byers-Heinlein 2013, described in more detail\nin Section 2.4), with 30 as the highest possible score. A score of 30 would indicate that the parent responded “very\ntrue” to the following items: I often start a sentence in English and then switch to speaking Spanish; I often start a\nsentence in Spanish and then switch to speaking English; I often borrow a Spanish word when speaking English; I\noften borrow an English word when speaking Spanish; In general, I often mix English and Spanish. A score of 0\nwould indicate that the parent responded “not at all true” to all items."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b5",
+    "sequence_id": 11,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 165.97500610351562,
+          "y0": 442.6793212890625,
+          "x1": 559.4705200195312,
+          "y1": 502.7821044921875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "5",
+      "confidence": 1.0,
+      "layout_reading_order": 10,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "As shown in the wide ranges for the language scores in Table 1, children varied in their\nlanguage levels from limited skills in both languages (i.e., children at risk for DLD) to high\nproﬁciency in both languages, with other children exhibiting high English and low Spanish\nskills or high Spanish and low English skills. Below are sample utterances from a child\nwith limited skills in both languages and a child with high proﬁciency in both languages."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b6",
+    "sequence_id": 12,
+    "node_type": "heading",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 165.89500427246094,
+          "y0": 508.36151123046875,
+          "x1": 446.11309814453125,
+          "y1": 518.3240966796875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "6",
+      "confidence": 1.0,
+      "layout_reading_order": 11,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "1.\nChild at risk for DLD with limited skills in both languages",
+      "heading_level": "unknown"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b7",
+    "sequence_id": 13,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 189.45599365234375,
+          "y0": 523.9035034179688,
+          "x1": 559.2733764648438,
+          "y1": 659.39599609375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "7",
+      "confidence": 1.0,
+      "layout_reading_order": 12,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "a.\nCode-switching sample:\nand gusta\nplay\nmis\namigos\ncon [child’s name]\nlike-PRES_3rd_sing\nmy-pl friend-pl with [child name]’\n‘And like to play my friends with [child’s name]’ (missing subject, unusual\nword order)\nb.\nEnglish sample:\nPlay outside and go park.\nc.\nSpanish sample:\nMuchas\nropas\nmi muñeca.\nMany-PL clothing-PL my doll\nMy doll many clothings (missing verb, plural ending on mass noun)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b8",
+    "sequence_id": 14,
+    "node_type": "heading",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 166.39398193359375,
+          "y0": 664.9744262695312,
+          "x1": 394.42803955078125,
+          "y1": 674.93701171875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "8",
+      "confidence": 1.0,
+      "layout_reading_order": 13,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "2.\nChild with high proﬁciency in both languages:",
+      "heading_level": "unknown"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b9",
+    "sequence_id": 15,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 189.4559783935547,
+          "y0": 680.5164184570312,
+          "x1": 561.02001953125,
+          "y1": 765.7970581054688,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "9",
+      "confidence": 1.0,
+      "layout_reading_order": 14,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "a.\nEnglish sample:\nAnd then the bad guy wants to steal the puppies so he can make a big sweater\nout of their fur.\nb.\nSpanish sample:\nPractiqué\ntodo el año en invierno hasta que el hielo se derritió.\npractice-PAST_1st_sing all the year in winter until the ice melt-PAST_3rd_sing.\n‘I practiced all year in the winter until the ice melted’"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b0",
+    "sequence_id": 16,
+    "node_type": "heading",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 35.49300003051758,
+          "y0": 57.1229248046875,
+          "x1": 559.2760009765625,
+          "y1": 65.2310791015625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "0",
+      "confidence": 1.0,
+      "layout_reading_order": 15,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Languages 2022, 7, 246\n12 of 34",
+      "heading_level": "unknown"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b1",
+    "sequence_id": 17,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 166.06500244140625,
+          "y0": 97.746337890625,
+          "x1": 559.665771484375,
+          "y1": 145.2960968017578,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "1",
+      "confidence": 1.0,
+      "layout_reading_order": 16,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "As a group, children tended to have higher scores in English than in Spanish, especially\nfor morphosyntax. All children received nonverbal intelligence scores within normal limits\n(i.e., standard score of at least 85) on the Leiter International Performance Scale-Third\nEdition (Leiter-3; Roid et al. 2013)."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b2",
+    "sequence_id": 18,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 166.3939971923828,
+          "y0": 157.5769500732422,
+          "x1": 224.65528869628906,
+          "y1": 167.53955078125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "2",
+      "confidence": 1.0,
+      "layout_reading_order": 17,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "2.2. Procedure"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b3",
+    "sequence_id": 19,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 165.97500610351562,
+          "y0": 173.2203826904297,
+          "x1": 560.5172119140625,
+          "y1": 333.88909912109375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "3",
+      "confidence": 1.0,
+      "layout_reading_order": 18,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Data were collected between December 2016 and July 2018 in a laboratory space\nin a U.S. Midwestern city. All procedures were approved by the Institutional Review\nBoard. Parents provided written consent and children provided verbal assent in their\npreferred language. Children participated in three or four 1–1.5 h sessions, during which\nthey completed a language control task (reported elsewhere: Gross and Kaushanskaya\n2020, 2022), language and cognitive assessments, the focal conversation sample task for the\ncurrent study, and parent interviews/questionnaires. Children generally completed one\nsession in their preferred language, one session in their other language, and one session that\ncontained activities involving both languages. The order of sessions was counterbalanced\nsuch that some participants (n = 13) started with their preferred language and others started\nwith the dual-language tasks (n = 11). As described below, the conversation sample task\nwas conducted in three conditions, which aligned with the overall language of the session:\nin English, in Spanish, and with frequent code-switching by the examiner."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b4",
+    "sequence_id": 20,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 166.3939971923828,
+          "y0": 346.169921875,
+          "x1": 278.6127624511719,
+          "y1": 356.13250732421875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "4",
+      "confidence": 1.0,
+      "layout_reading_order": 19,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "2.3. Standardized Measures"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b5",
+    "sequence_id": 21,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 166.09500122070312,
+          "y0": 361.8346252441406,
+          "x1": 560.9326782226562,
+          "y1": 560.14208984375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "5",
+      "confidence": 1.0,
+      "layout_reading_order": 20,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Children completed the Spanish and English morphosyntax and semantics subtests\nof the Bilingual English Spanish Assessment (BESA, Peña et al. 2014), and their scores are\nsummarized in Table 1. This assessment was designed for and normed on Spanish/English\nbilingual children. Scores on the morphosyntax subtests served to identify children at risk\nfor DLD and to determine relative proﬁciency by calculating a difference score. The seman-\ntics subtests provided additional information about children’s language skills, including\nan overall Language Index score that combined their best semantics score with their best\nmorphosyntax score. However, because children can respond in either language regardless\nof the language of administration, the semantics subtests provide less speciﬁc information\nabout relative proﬁciency.\nIn addition, children completed the Leiter International Performance Scale (Leiter-3,\nRoid et al. 2013) as a measure of nonverbal intelligence. This measure is administered in a\npantomimed fashion (i.e., the examiner uses gestures and demonstrations as speciﬁed in\nthe manual to show the child how to complete tasks) and thus is ideal for children with\nlanguage disorders and/or those who are not native speakers of English. The children in\nthe current study exhibited performance within the average range on this measure."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b6",
+    "sequence_id": 22,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 166.3939971923828,
+          "y0": 572.4229736328125,
+          "x1": 294.2142333984375,
+          "y1": 582.3855590820312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "6",
+      "confidence": 1.0,
+      "layout_reading_order": 21,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "2.4. Caregiver Report Measures"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b7",
+    "sequence_id": 23,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 165.97500610351562,
+          "y0": 588.0653686523438,
+          "x1": 560.9309692382812,
+          "y1": 773.8690795898438,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "7",
+      "confidence": 1.0,
+      "layout_reading_order": 22,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Caregivers completed a variety of questionnaires in their preferred language in an\ninterview format to provide information about their child’s development, language history,\nand current language use and exposure. The Bilingual Input Output Survey from the\nBESA (BIOS; Peña et al. 2014) provided information about conversation partners and\nthe language(s) (i.e., Spanish, English, or Both) that the child hears and speaks during\neach waking hour of a typical weekday and weekend, yielding an overall proportion of\ninput/output in Spanish vs. English. Times when the child hears or speaks both languages\nwere counted as 50% Spanish in the calculation procedure, as indicated in the manual.\nCaregivers also completed two measures speciﬁc to code-switching. The language\nmixing scale (Byers-Heinlein 2013) provided an overall language mixing score that incapsu-\nlates how often caregivers codeswitch, particularly intra-sententially (e.g., start a sentence\nin Spanish and ﬁnish in English, and borrow words from English when speaking Spanish)\nwhen interacting with their child. Similar to the validation study by Byers-Heinlein, the\nratings for the ﬁve items by parents in our full sample (Gross and Kaushanskaya 2019) all\nloaded on a single factor, accounting for 62% of the variance, with high factor loadings"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  }
+]

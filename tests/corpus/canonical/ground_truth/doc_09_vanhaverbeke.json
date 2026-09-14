@@ -1,0 +1,613 @@
+[
+  {
+    "node_id": "p1_b0",
+    "sequence_id": 1,
+    "node_type": "heading",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 35.49300003051758,
+          "y0": 35.67193603515625,
+          "x1": 559.2760009765625,
+          "y1": 45.772090911865234,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "0",
+      "confidence": 1.0,
+      "layout_reading_order": 0,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Languages 2025, 10, 174\n12 of 36",
+      "heading_level": "unknown"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b1",
+    "sequence_id": 2,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 166.3939971923828,
+          "y0": 74.61040496826172,
+          "x1": 560.5213623046875,
+          "y1": 98.57112884521484,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "1",
+      "confidence": 1.0,
+      "layout_reading_order": 1,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "reckon that this awareness did not affect them too much and had only a minimal, if any,\nimpact on the overall naturalness of their language use."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b2",
+    "sequence_id": 3,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 172.37100219726562,
+          "y0": 113.94590759277344,
+          "x1": 553.2989501953125,
+          "y1": 416.5631408691406,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "2",
+      "confidence": 1.0,
+      "layout_reading_order": 2,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "(1)\nDN7658: Sí nos falta un minutito un minutito\n‘Yeah we need one more minute, one little minute’\nKV9880:\nVamos a decirles un secreto vamos va chiquito\n‘We’re gonna tell them a secret, let’s tell them a little one’\n(El Paso Bilingual Corpus, Dominguez08)\n(2)\nIB6767:\nDijo que ahorita como a los cuarenta y cinco regresaba\n‘She said that now like at forty five she would return’\nGZ5538:\nEn efecto whatever\n‘Actually’\nIB6767:\nYo digo que le dejemos cinco minutitos más\n‘I say we leave it about five minutes more’\n(El Paso Bilingual Corpus, Dominguez36)\n(3)\nGF4964:\nsí sí sí hace tres años por como cuatro años era abusivo mi papa\n‘yeah yeah yeah three years ago for like four years he was abusive my\ndad’\nVK3709:\n[xxx] en Juarez\n‘in Juarez’\nGF4964:\nSí (.) Pero no no era físicamente nomas era (..) psicológicamente\n‘yeah but it was not physically it was rather psychologically’\ngritaba mucho güey yo tengo muchos problemas todavía de eso\n‘he yelled a lot, dude, I have many problems still because of that’\n(El Paso Bilingual Corpus, Dominguez38)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b3",
+    "sequence_id": 4,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 166.0850067138672,
+          "y0": 430.8912048339844,
+          "x1": 561.0189819335938,
+          "y1": 566.2490844726562,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "3",
+      "confidence": 1.0,
+      "layout_reading_order": 3,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Similar to the Bangor Miami Corpus, the conversations in the El Paso Bilingual Cor-\npus exhibit considerable variation in bilingual language use. While some conversations\ntranspired predominantly in English with switches to Spanish, the reverse is true for others.\nTable 3 provides a categorical division of the number of conversations that were predomi-\nnantly in Spanish, predominantly in English, or that comprised an approximately equal\nfrequency of Spanish and English words. In the predominantly Spanish conversations,\nover 65% of the words were Spanish and less than 30% English, given that a certain per-\ncentage of the words can appear in both languages. Logically, the reverse is true for the\npredominantly English conversations, while in the nearly equally frequently Spanish and\nEnglish conversations, the respective word counts ranged between 35% and 55%."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b4",
+    "sequence_id": 5,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 166.09799194335938,
+          "y0": 581.6533203125,
+          "x1": 540.8027954101562,
+          "y1": 590.70458984375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "4",
+      "confidence": 1.0,
+      "layout_reading_order": 4,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Table 3. Distribution of conversations based on their word frequencies in Spanish and English."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b5",
+    "sequence_id": 6,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 187.36000061035156,
+          "y0": 602.7061767578125,
+          "x1": 519.8219604492188,
+          "y1": 612.6687622070312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "5",
+      "confidence": 1.0,
+      "layout_reading_order": 5,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Dominant Language in the Conversations\n#\n%"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b6",
+    "sequence_id": 7,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 264.8139953613281,
+          "y0": 619.5564575195312,
+          "x1": 526.60693359375,
+          "y1": 665.3850708007812,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "6",
+      "confidence": 1.0,
+      "layout_reading_order": 6,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Spanish\n20\n47.6\nEnglish\n12\n28.6\nboth\n10\n23.8\nTotal\n42\n100.0"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b7",
+    "sequence_id": 8,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 166.3939971923828,
+          "y0": 687.3323974609375,
+          "x1": 560.9307250976562,
+          "y1": 753.0770874023438,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "7",
+      "confidence": 1.0,
+      "layout_reading_order": 7,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "However, it is important to acknowledge that, in reality, the conversations more\naccurately represent a continuum with varying degrees of code-switching. At one end of\nthis spectrum, the corpus comprises several conversations with a heavy amount of code-\nswitching, such as Dominguez01 (excerpt (4)) and Dominguez06 (excerpt (5)). In these\nexcerpts, Spanish discourse is indicated in italics and English discourse in normal font."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b0",
+    "sequence_id": 9,
+    "node_type": "heading",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 35.49300003051758,
+          "y0": 35.67193603515625,
+          "x1": 559.2760009765625,
+          "y1": 45.772090911865234,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "0",
+      "confidence": 1.0,
+      "layout_reading_order": 8,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Languages 2025, 10, 174\n13 of 36",
+      "heading_level": "unknown"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b1",
+    "sequence_id": 10,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 107.03299713134766,
+          "y0": 74.29490661621094,
+          "x1": 487.9609069824219,
+          "y1": 752.9590454101562,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "1",
+      "confidence": 1.0,
+      "layout_reading_order": 9,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "(4)\nZQ0416:\nI normally last time los lavé (.) pero ya mira hasta me cayó ahí el café\n‘I washed them, but well look it even got the coffee’\nque me escupiste\n‘that you spat on me’\nFX7977:\nit was by accident, ay todos tus [xxx]\n‘ah all your’\nZQ0416:\nthat’s why I [//] viste? ahí tengo el café que me escupiste\n‘you see? Here I have the coffee you spat on me’\nFX7977:\nIt was an accident, I didn’t mean it\nZQ0416:\nLos tengo que volver a lavar, tú cómo los lavas?\n‘I have to wash them again, how do you wash them?’\nFX7977:\nqué?\n‘what?’\nZQ0416:\nlos zapatos\n‘your shoes’\nFX7977:\nI don’t mi mamá like she is like “pásame los zapatos” y yo “okay”\n‘my mom’\n‘pass me the shoes’ and I’\n(.) but she puts them in la lavadora\n‘the washing machine’\nZQ0416:\nI’ve seen like different techniques he visto unos que dicen que\n‘I’ve seen a few that say that’\npasta de dientes y luego otros que dicen like baking soda\n‘tooth paste and then others that say’\n(El Paso Bilingual Corpus, Dominguez01)\n(5)\nSU9854:\n“Okay pues ya acabé con tu tire it’s gonna be [/] it’s usually forty but\n‘well I already finished your’\nte cobro treinta cinco” and I was like “okay” y luego ya pues y le pagué\n‘I’ll charge you thirty-five’\n‘and then well and I paid him’\nand then he was like [/] we went into like the little shop para darle\n‘to give him’\nmi tarjeta y todo and then he’s like “tienes Facebook”? &=chuckles and\n‘my card and all’\n‘do you have Facebook?’\nI was like sí pero también tengo novio” y l(ueg)o dice “ay pues está bien’\n‘yes but I also have a boyfriend and then he says ‘ah well\nthat’s fine’\ny luego le salía así como no Add Friend le salía no más Message\n‘and then it showed him like not’\n‘it showed just’\nhe’s already my friend\nKZ1980:\nno sé\n‘I don’t know’\nSU9854:\ndoes that mean [//] porque hazte cuenta que he gave me his phone\n‘because note that’\nin Facebook and then I typed there my name y luego I clicked\n‘and then’\non my profile y luego no salía así Add Friend or Remove Friend\n‘and then it didn’t show like’\nna(da) más decía Message\n‘it just said’\n(El Paso Bilingual Corpus, Dominguez06)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b0",
+    "sequence_id": 11,
+    "node_type": "heading",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 35.49300003051758,
+          "y0": 35.67193603515625,
+          "x1": 559.2760009765625,
+          "y1": 45.772090911865234,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "0",
+      "confidence": 1.0,
+      "layout_reading_order": 10,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Languages 2025, 10, 174\n14 of 36",
+      "heading_level": "unknown"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b1",
+    "sequence_id": 12,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 166.3939971923828,
+          "y0": 74.6458740234375,
+          "x1": 559.662109375,
+          "y1": 209.9931182861328,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "1",
+      "confidence": 1.0,
+      "layout_reading_order": 11,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "On the other end of the continuum, two conversations need to be discussed in more\ndetail. Specifically, in conversation Dominguez10, the bilingual speakers talked exclusively\nin English. These speakers were two colleagues who recorded a conversation in their office\nduring lunch break hours, as a result of which we believe that the physical setting may have\naffected their language mode. In addition, in Dominguez08, the interlocutors addressed\neach other (mainly) in one language during predetermined blocks of time. That is to say, at\ncertain times during the conversation, speaker DN7658 indicated that they should switch\nto the other language. As a result, the alternation between languages in this conversation\nis more artificial, although there is still minor switching to the other language in each of\nthe blocks."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b2",
+    "sequence_id": 13,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 172.37100219726562,
+          "y0": 222.77293395996094,
+          "x1": 553.2989501953125,
+          "y1": 344.3291015625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "2",
+      "confidence": 1.0,
+      "layout_reading_order": 12,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "(6)\nDN7658: Mejor no lo veo\n‘It’s better if I don’t see it’\nKV9880:\nHabrán visto algo\n‘they will have seen something’\nDN7658: Speak in English\nKV9880:\nEnglish?\nDN7658: Yes. I mean I don’t really know the study is about but I am assuming\nthat it is +...\n(El Paso Bilingual Corpus, Dominguez08)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b3",
+    "sequence_id": 14,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 166.3939971923828,
+          "y0": 358.6333923339844,
+          "x1": 559.2718505859375,
+          "y1": 424.3771057128906,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "3",
+      "confidence": 1.0,
+      "layout_reading_order": 13,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Apart from the recordings of the conversations (in .wav-format) and the input to\nthe sociodemographic background questionnaire, additional metadata (a–g) about the\nconversations and the interlocutors were systematically registered by the research assistant\nduring the recording sessions on a technical information sheet. These metadata will also be\nmade available."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b4",
+    "sequence_id": 15,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 166.06500244140625,
+          "y0": 433.323486328125,
+          "x1": 431.4873352050781,
+          "y1": 512.9251098632812,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "4",
+      "confidence": 1.0,
+      "layout_reading_order": 14,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "(a)\nDate of the recording.\n(b)\nDuration of the recording.\n(c)\nPlace of the recording.\n(d)\nNumber of active participants and passive bystanders.\n(e)\nRelationship between the participants.\n(f)\nSocio-demographic information about the participants."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b5",
+    "sequence_id": 16,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 189.45599365234375,
+          "y0": 519.8784790039062,
+          "x1": 473.0614318847656,
+          "y1": 585.5521240234375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "5",
+      "confidence": 1.0,
+      "layout_reading_order": 15,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "a.\nGender and age.\nb.\nEducation level.\nc.\nCurrent profession.\nd.\nLanguages spoken by the participant before the recording.\ne.\nLanguages spoken by the participant after the recording."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b6",
+    "sequence_id": 17,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 166.06500244140625,
+          "y0": 592.5065307617188,
+          "x1": 546.8145751953125,
+          "y1": 602.4691162109375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "6",
+      "confidence": 1.0,
+      "layout_reading_order": 16,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "(g)\nField notes (i.e., any extra information that may be relevant for the data analysis)."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b7",
+    "sequence_id": 18,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 166.3939971923828,
+          "y0": 617.5879516601562,
+          "x1": 262.46337890625,
+          "y1": 627.550537109375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "7",
+      "confidence": 1.0,
+      "layout_reading_order": 17,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "3.3. Participant Profiles"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b8",
+    "sequence_id": 19,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 166.3939971923828,
+          "y0": 634.6337890625,
+          "x1": 561.0164794921875,
+          "y1": 756.0821533203125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "8",
+      "confidence": 1.0,
+      "layout_reading_order": 18,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "All conversations took place between two interlocutors with varying social relation-\nships (Table 4). The majority of the recorded conversations occurred between friends (71.4%,\nn = 30/42). In six of the conversations, the interlocutors were family members. Specifically,\nfour conversations were recorded between siblings (9.5%) and two between a mother and\ntheir young-adult daughter (4.8%). In four instances, the interlocutors were a couple (9.5%),\nand finally, in two cases the speakers were colleagues (4.8%).\nFor two of the conversations (i.e., Dominguez29, a conversation between siblings,\nand Dominguez33, between friends), the speech of only one of the interlocutors was\ntranscribed, as the other did not reconsent to the use of their data after the debriefing (cf."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  }
+]
