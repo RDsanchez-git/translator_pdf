@@ -25,9 +25,23 @@
 | `doc_05_graph.pdf` | `tests/corpus/calibration_v1/pdf/doc_05_graph.pdf` | `274ce908d472a06b...` |
 | `doc_06_johnstone.pdf` | `tests/corpus/johnstone00distribution_3hoja.pdf` | `b4f8e7a8a6f3e02e...` |
 | `doc_07_pesaran.pdf` | `datasets/raw/pesaran1999.pdf` | `f1c800724a622a08...` |
+| `doc_08_bilingual_cs.pdf` | `arXiv:2502.12924v3 (Heredia et al., 2026) — recorte páginas 4-6` | `248481ebb4e3ea5e...` |
 
 ## Nota Normativa
 
 Provenance ≠ identidad. La identidad está determinada por el SHA-256 del contenido,
 no por el provenance. El provenance documenta el origen y linaje del documento,
 pero no altera su identidad criptográfica.
+
+## Extensión v2.0 (2026-09-13)
+
+| Campo | Valor |
+|-------|-------|
+| Fecha de inclusión | 2026-09-13 |
+| Responsable | Usuario |
+| Método de selección | Búsqueda dirigida por trait faltante (bilingual_mix) |
+| Criterio | Código-switching EN-ES genuino (Examples 4, 5, 6 + Table 3) |
+| Recorte | Páginas 4-6 del original (18 páginas) |
+| Corpus version | v1.0 → v2.0 |
+| Manifest hash anterior | `0fda7690...` (v1.0, 6 sellados) |
+| Manifest hash nuevo | `5d2f47cb8d98b892...` (v2.0, 7 sellados) |

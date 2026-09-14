@@ -1,10 +1,10 @@
 # FASE_5_EXIT_REVIEW_EVIDENCE_LOG.md
 
 **Documento:** `docs/architecture/adr/phase-17-bis/reviews/FASE_5_EXIT_REVIEW_EVIDENCE_LOG.md`
-**Versión:** 0.14.0
+**Versión:** 0.15.0
 **Estado:** IN_PROGRESS
 **Fecha:** 2026-09-05
-**Última actualización:** 2026-09-13
+**Última actualización:** 2026-09-13  # ← MANTENER
 **Derivado de:** `PHASE_17BIS_FASE5_EXECUTION_PLAN.md` v1.2.2 — Gates 1-5 Exit Reviews
 **Propósito:** Registro auditable de la evidencia forense que fundamenta cada decisión
 tomada durante los Gate Exit Reviews de Fase 5 (Baseline Certification). Cada finding
@@ -39,6 +39,7 @@ normativa y la clasificación final.
 | 0.12.0 | 2026-09-12 | **Wave 4.1 y Wave 4.2 completadas (6 Tasks DONE, 22 reglas):** (1) DF-18 reclasificado de IMPLEMENTATION_REQUIRED a RESOLVED — semántica de fallo uniforme implementada en 4 entry points (`freeze_ground_truth.py`, `generate_golden_draft.py`, `generate_pymupdf_candidate.py`, `sanitize_ground_truth_types.py`) con patrón `main() -> int` + `run_entry(main)`; `core/shared/exit_codes.py` con taxonomía uniforme (EXIT_OK=0, EXIT_CERTIFICATION_REJECTED=1, EXIT_EXECUTION_FAILURE=2) y frontera documentada (dominio no importa); `core/shared/errors.py` con `IndexedError` para códigos indexables; `tools/evaluation/entry_guard.py` como guard de traducción R19; (2) GAP-5.0-03 reclasificado de IMPLEMENTATION_REQUIRED a RESOLVED — 5 entry points migrados a CLI con `--corpus-dir` required (`bootstrap_corpus`, `freeze_ground_truth`, `generate_golden_draft`, `generate_pymupdf_candidate` con `--pdf-dir`/`--out-dir`, `sanitize_ground_truth_types`); aritmética de cierre: 5 remediados + 4 ya explícitos + 1 deprecated que hereda + 1 fuera de scope con justificación = 11 entry points auditados; evidencia forense del falso positivo operacional pre-remediación registrada en H-5.4-1 y H-5.4-2; (3) H-5.4-1 registrado como ACCEPTED_LIMITATION (evidencia forense) — pre-remediación, `bootstrap_corpus.py` sin argumentos indexó 0 documentos y retornó exit 0 con mensaje `[SUCCESS]` y hash fa8b919c...; falso positivo operacional confirmado (NADR-24 R16, R18); (4) H-5.4-2 registrado como ACCEPTED_LIMITATION (evidencia forense) — pre-remediación, run espurio de `generate_pymupdf_candidate.py` mutó 4 artefactos trackeados en `calibration_v1/candidates/pymupdf/` (revertidos con `git checkout`); evidencia dura del riesgo DF-18/GAP-5.0-03; (5) GF-01 registrado como Governance Finding — conflicto real entre NADR-19 §5.5 R22 (`run_regression` taxonomía 0/1/2 PASS/WARNING/HARD_FAIL) y NADR-24 §5.4 R15-R17 (2 = fallo de ejecución); resolución por separación de scope: `run_regression` conserva taxonomía NADR-19 como compuerta CI; runner de certificación de Gate 5 (Task 5.2.1) implementa taxonomía NADR-24; `run_regression` NO se toca en Wave 4.2; (6) D1 aplicado en `generate_golden_draft.py`: helper puro `classify_document_error` (sealed oracle → skip, resto → failure), contadores separados `skips`/`failures`, idempotencia R33 (re-ejecución sobre corpus sellado mantiene exit 0); (7) D2 aplicado en `sanitize_ground_truth_types.py`: `--allow-missing-manifest` override explícito e indexable; sin manifest y sin override → `IndexedError SANITIZE-001` (NADR-24 R26: verificación de sellado imposible); evolución normativa NADR-21 → NADR-24 documentada; (8) D3 aplicado en `freeze_parameters.py`: eliminación de `EXIT_CONTRACT_VIOLATION=1`, unificación en `EXIT_EXECUTION_FAILURE=2` con códigos `[FREEZE-PARAM-001..005]`; (9) Nuevo paquete de dominio `core/benchmark/certification/` (3 módulos: `contract.py`, `preflight.py`, `__init__.py`) como Functional Core puro; CLI en `tools/evaluation/preflight_certification.py` como Imperative Shell; 14 tests nuevos en `test_certification_preflight.py` + 5 en `test_exit_codes_and_guard.py`; baseline: 685 passed, 5 skipped; (10) Gate 4 Exit Review estado actualizado a IN PROGRESS (6/13 Tasks DONE, 22/37 rules DONE; Waves 4.1-4.2 completadas, 4.3-4.4 pendientes). |
 | 0.13.0 | 2026-09-13 | **Wave 4.3 completada (4 Tasks DONE, 9 reglas nuevas en Gate 4):** (1) Task 4.3.1 DONE — Boundary integrity verificada mediante AUDIT forense (5 comandos) + 10 contract tests en `test_certification_boundary.py`; SealedOracle frozen (model_config frozen=True, test_pydantic_frozen_config), sin mutadores de instancia (test_no_instance_mutators), asignación bloqueada (test_assignment_raises ValidationError); LifecycleTransitionAuthority importada únicamente por `use_cases.py` (dominio) y `freeze_ground_truth.py` (sellado MIG-06, O-4.3-3); 3 adaptadores de `ground_truth_store.py` apuntan exclusivamente a `base_path/ground_truth`; tooling de certificación no importa puertos de escritura GT (TestCertificationModulesWithoutGtWritePorts en 4 módulos parametrizados); (2) Task 4.3.2 DONE — GAP-5.2-05 verificación formal de la protección implementada en Wave 2.1 (Task 2.1.2): cadena sanitize/use cases/override D2 verificada; `sanitize_ground_truth_types.py` verifica sellado antes de escribir (raise `SealedOracleOverwriteError`); `GenerateGoldenDraftUseCase` verifica estado antes de escribir; override `--allow-missing-manifest` explícito e indexable (fuera de ejecución certificante); GAP-5.2-05 estado actualizado de `RESOLVED (primaria)` a `RESOLVED` (verificación formal completada); (3) Task 4.3.3 DONE — Evidence completeness implementada: `core/benchmark/certification/evidence.py` con `CertificationEvidence` (7 elementos R29 + `evaluation_kind` + `result_identity`), `compute_corpus_content_identity` (SHA-256 de SHA-256 ordenados, fail-fast ante vacío NADR-20 R1), `serialize_evidence` determinista (sort_keys, indent fijo, ensure_ascii=False); GF-02 registrado: crosswalk normativo de identidades entre diccionarios NADR-23 (Wave 3.3) y NADR-24 (Wave 4.3); `corpus_identity` = compuesto de contenido (estable entre sellados, NADR-20 §5.1-§5.5), `manifest_identity` = `manifest_hash` (cambia al sellar, NADR-20 §5.6 R24/R26); artefactos de Wave 3.3 permanecen válidos (su `corpus_identity` per R18 = `manifest_identity` en NADR-24); (4) Task 4.3.4 DONE — POST-RUN VALIDATION implementada: `core/benchmark/certification/post_run.py` con `validate_post_run` (5 checks: provenance verifiable, per-document present, aggregate present, evidence elements, identity consistency); violaciones nombradas por elemento R29 (R30/R37); wiring con disco diferido a Gate 5 Task 5.2.1; (5) O-4.3-3 registrado: `freeze_ground_truth.py` importa `LifecycleTransitionAuthority` (entry point de sellado MIG-06; R28 prohíbe bypassear, no invocar; allowlist extendido con justificación); (6) Nuevo paquete `core/benchmark/certification/` expandido a 4 módulos (contract, preflight, evidence, post_run); 18 tests nuevos (10 boundary + 12 evidence - 4 overlap = 18 netos); baseline: 713 passed, 5 skipped; (7) Gate 4 Exit Review estado actualizado a IN PROGRESS (10/13 Tasks DONE, 31/37 rules DONE; Wave 4.4 pendiente). |
 | 0.14.0 | 2026-09-13 | **Wave 4.4 completada (3 Tasks DONE, 4 reglas), Gate 4 COMPLETED (13/13 tasks, 37/37 rules):** (1) Task 4.4.1 DONE — Determinismo operacional (R32) verificado: tooling de certificación determinista por construcción (timestamps inyectados externamente, `sort_keys=True` en serialización, hashes sobre bytes canónicos); O-4.4-1 registrado: `orchestrator.py:196 run_timestamp=time.time()` en benchmark de Fase 17, no en certificación; (2) Task 4.4.2 DONE — Idempotencia lógica (R33) verificada: cero operaciones append a archivos en tooling de certificación; escrituras usan `write_text`/`write_bytes` (overwrite); O-4.4-2 registrado: `reporter.py:71 np.random.choice` en bootstrap estadístico, no en reporte de certificación; (3) Task 4.4.3 DONE — Recovery determinable (R34-R35): estado post-fallo determinable vía `validate_post_run` (violaciones nombradas por elemento); atomicidad física solo donde el dominio la exige (`core/ast/registry.py`, `infra/fs/corpus_repository.py` usan `tempfile + os.replace`); O-4.4-3 registrado: `freeze_parameters.py`, `run_regression.py`, `run_df04_benchmark.py` usan `write_text` directo (no atómico a nivel de syscall); no se migra porque R34/R35 no la exigen para reportes y añadiría superficie de cambio sin beneficio normativo (YAGNI); ventana de corrupción cubierta por POST-RUN VALIDATION + re-ejecución manual; 7 tests nuevos (3 determinismo + 2 idempotencia + 2 recovery); baseline: 720 passed, 5 skipped (713 + 7); (4) Gate 4 → COMPLETED (13/13 Tasks, 37/37 rules); (5) Gate 5 habilitado. |
+| 0.15.0 | 2026-09-14 | **Primer poblado de §2 (evidencia forense formal):** (1) Entradas 1-3 registradas para O-4.4-1, O-4.4-2, O-4.4-3 con numeración posicional completa de plantilla ({N}.1-{N}.10); (2) Serie `O-*` y estado `OBSERVATION` registrados formalmente en §1.1/§1.2 (precedente Wave 4.3); réplica pendiente en Findings Register §1.1/§1.2; (3) §3.4 completado con árbol de decisión del Gate 4 para las observaciones formalizadas; (4) Backfill de evidencia de Gates 1-3 y resto de Gate 4 registrado como pendiente del criterio §6.1; (5) Entradas 1-3 quedan INMUTABLES desde este registro (Methodology §3.5.2). |
 
 ---
 
@@ -88,6 +89,7 @@ ADR_F17_BIS_MASTER > ADR_F17_BIS_05 > NADR-F17BIS-20..24 > PHASE_17BIS_FASE5_EXE
 | `GF-{XX}` | Governance Finding | Conflicto normativo entre niveles de gobernanza |
 | `H-5.{N}-{X}` | Hallazgo derivado | Hallazgo descubierto durante la auditoría de otro DF en Fase 5 |
 | `GAP-5.{N}-{XX}` | Gap heredado de HITO | Gap pre-identificado durante auditorías/hitos previos de Fase 5 |
+| `O-{G}.{W}-{N}` | Observación | Condición forense fuera del scope normativo o correcta por diseño. Serie introducida en Wave 4.3 (`FASE_5_WAVE_4_3_EVIDENCE_RECORD.md` §1); registrada formalmente en v0.15.0 |
 
 ### 1.2 Estados de clasificación
 
@@ -107,6 +109,7 @@ ADR_F17_BIS_MASTER > ADR_F17_BIS_05 > NADR-F17BIS-20..24 > PHASE_17BIS_FASE5_EXE
 | `IMPLEMENTATION_REQUIRED` | Requiere implementación (scope por definir o acotado) |
 | `REVIEW_REQUIRED` | Requiere análisis adicional antes de decidir |
 | `PENDING_REVIEW` | Pendiente de análisis en Exit Review |
+| `OBSERVATION` | Condición forense documentada sin acción normativa requerida; se conserva para trazabilidad y re-verificación en Gates futuros |
 
 ### 1.3 Reglas de evidencia
 
@@ -143,8 +146,251 @@ ADR_F17_BIS_MASTER > ADR_F17_BIS_05 > NADR-F17BIS-20..24 > PHASE_17BIS_FASE5_EXE
 
 ## 2. ESTRUCTURA POR FINDING
 
-{Se agregan dinámicamente conforme se ejecutan los Gate Exit Reviews.
-Cada finding analizado recibe una sub-sección con la siguiente estructura.}
+### 1 O-4.4-1 — Timestamp no determinista en orchestrator de Fase 17
+
+| Campo | Valor |
+|-------|-------|
+| ID | O-4.4-1 |
+| Tipo | Observación (serie O-*) |
+| Estado | `OBSERVATION` |
+| Origen | Wave 4.4 / Task 4.4.1 |
+| Gate destino original | Gate 4 |
+| Estado previo | N/A |
+| Prioridad | Baja |
+| ¿Requiere implementación? | No — re-verificación en Gate 5 (Task 5.2.1) |
+| ¿Bloquea la certificación? | No |
+
+#### 1.1 Texto original del hallazgo
+
+> "`orchestrator.py:196 run_timestamp=time.time()` en benchmark de Fase 17, no en flujo de certificación. Verificar en Gate 5 si se propaga al reporte de certificación; si se propaga, remediar con inyección externa."
+
+#### 1.2 Reformulación corregida (si aplica)
+
+No requiere reformulación.
+
+#### 1.3 Archivos y documentos auditados
+
+| # | Archivo / Documento | Evidencia extraída |
+|---|---------------------|-------------------|
+| 1 | `core/benchmark/orchestrator.py:196` | `run_timestamp=time.time()` dentro de `SequentialBenchmarkOrchestrator.run_experiment()` |
+| 2 | Grep: `time.time()\|datetime.now()` en `core/benchmark/certification/` | 0 resultados en los 4 módulos (contract, preflight, evidence, post_run) |
+| 3 | `tools/evaluation/preflight_certification.py` | Timestamp inyectado externamente vía flag `--inject-timestamp`; sin reloj de sistema |
+
+#### 1.4 Análisis
+
+La condición original existe (reloj de sistema en `orchestrator.py:196`). No es violación normativa: el alcance de R32 es el *tooling de certificación*, y el orquestador es un componente de análisis comparativo de proveedores (Fase 17) que el flujo de certificación no importa ni consume. Impacto funcional real sobre la baseline: nulo.
+
+#### 1.5 Gaps objetivos confirmados (si aplica)
+
+No aplica.
+
+#### 1.6 Lo que NO es un gap
+
+| Aspecto | Veredicto | Justificación |
+|---------|-----------|---------------|
+| `run_timestamp` participando en hashes o identidades de certificación | ❌ No relacionado | Ninguna identidad (corpus, manifest, parameter, configuration) consume el timestamp del orquestador |
+| Uso de reloj de sistema dentro del tooling de certificación | ❌ Refutado | Grep con 0 resultados en `core/benchmark/certification/`; inyección externa verificada |
+
+#### 1.7 Impacto en la certificación
+
+| Dimensión | ¿Afecta? | Justificación |
+|-----------|----------|---------------|
+| Determinismo | ❌ | El timestamp no participa en hashes ni identidades de certificación |
+| Reproducibilidad | ❌ | El benchmark de Fase 17 es análisis exploratorio, no ejecución certificante |
+| Corrección funcional | ❌ | El flujo de certificación no importa este módulo |
+| Bloquea la certificación (Gate 5) | ❌ | Componente fuera del scope; re-verificación de propagación pendiente en Task 5.2.1 |
+
+#### 1.8 Sub-acciones identificadas (si aplica)
+
+| Sub-acción | Descripción | Estado | Scope |
+|------------|-------------|--------|-------|
+| O-4.4-1-A | Verificar en Gate 5 (Task 5.2.1) si el timestamp se propaga al reporte de certificación; si se propaga, remediar con inyección externa | Pendiente | Certificación |
+
+#### 1.9 Clasificación consolidada
+
+| Campo | Valor |
+|-------|-------|
+| Condición original existe | ✅ Sí |
+| Es violación arquitectónica | ❌ No |
+| Es violación de gobernanza | ❌ No |
+| Es problema técnico | ❌ No |
+| Pertenece a Fase 5 | ⚠️ Parcialmente (re-verificación en Gate 5) |
+| Bloquea la certificación | ❌ No |
+| Clasificación | `OBSERVATION` |
+| Prioridad | Baja |
+
+#### 1.10 Regla aplicada
+
+> **NADR-24 §5.8 R32 (Determinismo operacional):**
+> *"Las herramientas de certificación MUST ser deterministas: mismas condiciones de ejecución certificables → mismo resultado."*
+
+El tooling de certificación cumple R32 por construcción (timestamps inyectados, `sort_keys=True`, hashes sobre bytes canónicos). El reloj de sistema en `orchestrator.py` está fuera del alcance de la regla; por tanto no hay violación, solo trazabilidad para la re-verificación de Gate 5.
+
+### 2 O-4.4-2 — Bootstrap estadístico no determinista en reporter.py
+
+| Campo | Valor |
+|-------|-------|
+| ID | O-4.4-2 |
+| Tipo | Observación (serie O-*) |
+| Estado | `OBSERVATION` |
+| Origen | Wave 4.4 / Task 4.4.2 |
+| Gate destino original | Gate 4 |
+| Estado previo | N/A |
+| Prioridad | Baja |
+| ¿Requiere implementación? | No |
+| ¿Bloquea la certificación? | No |
+
+#### 2.1 Texto original del hallazgo
+
+> "`reporter.py:71 np.random.choice` es bootstrap del StatisticalComparator (análisis estadístico post-benchmark con intervalos de confianza), no forma parte del reporte de regresión de certificación. No-determinista por diseño, confinado al análisis de significancia."
+
+#### 2.2 Reformulación corregida (si aplica)
+
+No requiere reformulación.
+
+#### 2.3 Archivos y documentos auditados
+
+| # | Archivo / Documento | Evidencia extraída |
+|---|---------------------|-------------------|
+| 1 | `core/benchmark/reporter.py:71` | `np.random.choice` dentro de `StatisticalComparator._bootstrap_estimator_ci()` |
+| 2 | `core/benchmark/topology/regression/report.py` | `RegressionReport` y sus formatters sin bootstrap ni randomización |
+| 3 | Grep: `StatisticalComparator` en `tools/evaluation/run_regression.py` | 0 resultados: el runner de regresión no lo invoca |
+
+#### 2.4 Análisis
+
+La condición existe y es no-determinista por diseño. No es violación normativa: R32 gobierna el tooling de certificación, y `StatisticalComparator` es análisis de significancia post-benchmark (Fase 17) que el flujo `run_regression → RegressionEvaluationStrategy → build_regression_report` no consume. Impacto sobre la baseline: nulo.
+
+#### 2.5 Gaps objetivos confirmados (si aplica)
+
+No aplica.
+
+#### 2.6 Lo que NO es un gap
+
+| Aspecto | Veredicto | Justificación |
+|---------|-----------|---------------|
+| Bootstrap presente en el reporte de regresión de certificación | ❌ Refutado | `RegressionReport` y formatters no usan randomización |
+| No-determinismo alcanzando artefactos certificantes | ❌ No relacionado | El único consumidor es el análisis A/B de proveedores, fuera de certificación |
+
+#### 2.7 Impacto en la certificación
+
+| Dimensión | ¿Afecta? | Justificación |
+|-----------|----------|---------------|
+| Determinismo | ❌ | El bootstrap no participa en el flujo de certificación |
+| Reproducibilidad | ❌ | Análisis post-benchmark, no ejecución certificante |
+| Corrección funcional | ❌ | El flujo de certificación no importa `StatisticalComparator` |
+| Bloquea la certificación (Gate 5) | ❌ | Componente fuera del scope |
+
+#### 2.8 Sub-acciones identificadas (si aplica)
+
+No aplica.
+
+#### 2.9 Clasificación consolidada
+
+| Campo | Valor |
+|-------|-------|
+| Condición original existe | ✅ Sí |
+| Es violación arquitectónica | ❌ No |
+| Es violación de gobernanza | ❌ No |
+| Es problema técnico | ❌ No |
+| Pertenece a Fase 5 | ❌ No |
+| Bloquea la certificación | ❌ No |
+| Clasificación | `OBSERVATION` |
+| Prioridad | Baja |
+
+#### 2.10 Regla aplicada
+
+> **NADR-24 §5.8 R32 (Determinismo operacional):**
+> *"Las herramientas de certificación MUST ser deterministas: mismas condiciones de ejecución certificables → mismo resultado."*
+
+El tooling de certificación cumple R32. El no-determinismo del bootstrap es correcto por diseño en su scope (inferencia estadística con intervalos de confianza) y no toca artefactos certificantes.
+
+### 3 O-4.4-3 — Escritura no atómica en reportes de certificación
+
+| Campo | Valor |
+|-------|-------|
+| ID | O-4.4-3 |
+| Tipo | Observación (serie O-*) |
+| Estado | `OBSERVATION` |
+| Origen | Wave 4.4 / Task 4.4.3 |
+| Gate destino original | Gate 4 |
+| Estado previo | N/A |
+| Prioridad | Baja |
+| ¿Requiere implementación? | No (YAGNI) |
+| ¿Bloquea la certificación? | No |
+
+#### 3.1 Texto original del hallazgo
+
+> "`freeze_parameters.py`, `run_regression.py`, `run_df04_benchmark.py` usan `write_text` directo (no atómico a nivel de syscall). Si el proceso muere a mitad de escritura, el reporte puede quedar corrupto. No se migra a escritura atómica porque R34/R35 no la exigen para reportes de certificación y añadiría superficie de cambio sin beneficio normativo (YAGNI); la ventana de corrupción ante crash se cubre con POST-RUN VALIDATION (detecta incompletitud, R36-R37) más re-ejecución manual del operador."
+
+#### 3.2 Reformulación corregida (si aplica)
+
+No requiere reformulación.
+
+#### 3.3 Archivos y documentos auditados
+
+| # | Archivo / Documento | Evidencia extraída |
+|---|---------------------|-------------------|
+| 1 | `tools/evaluation/freeze_parameters.py:88` | `Path(...).write_text(...)` directo |
+| 2 | `tools/evaluation/run_regression.py:201-202` | `Path(...).write_text(...)` directo |
+| 3 | `tools/evaluation/run_df04_benchmark.py:257-258` | `Path(...).write_text(...)` directo |
+| 4 | `core/ast/registry.py:88-93` | `tempfile + os.replace` para oráculos sellados (atómico) |
+| 5 | `infra/fs/corpus_repository.py:44-55` | `tempfile + os.replace` para candidatos (atómico) |
+| 6 | `core/benchmark/certification/post_run.py` | `validate_post_run` con 5 checks detecta incompletitud (R36-R37) |
+
+#### 3.4 Análisis
+
+Gap forense confirmado: `write_text` es `open + write + close`, no un swap atómico de kernel; un crash a mitad de escritura puede dejar JSON truncado o inválido. No es violación normativa: R34 exige *recovery determinable* (cumplido vía POST-RUN VALIDATION) y R35 exige atomicidad física *solo donde el dominio la exige* (cumplido: oráculos y candidatos la tienen; reportes no). Migrar sería superficie de cambio sin beneficio normativo.
+
+#### 3.5 Gaps objetivos confirmados (si aplica)
+
+| # | Gap | Evidencia | Severidad |
+|---|-----|-----------|-----------|
+| G1 | `write_text` no es atómico a nivel de syscall en 3 entry points de reportes | Inspección de source code (filas 1-3 de §3.3) | Baja (cubierta por POST-RUN VALIDATION + re-ejecución) |
+
+#### 3.6 Lo que NO es un gap
+
+| Aspecto | Veredicto | Justificación |
+|---------|-----------|---------------|
+| Atomicidad física exigida por R34/R35 para reportes | ❌ Refutado | R35 la limita a donde el dominio la exige; reportes no califican |
+| Ventana de corrupción ante crash como riesgo no cubierto | ❌ No bloqueante | POST-RUN VALIDATION detecta incompletitud (R36-R37); operador re-ejecuta |
+| Ausencia de `tempfile + os.replace` en oráculos/candidatos | ❌ Refutado | Filas 4-5 de §3.3: ambos usan escritura atómica |
+
+#### 3.7 Impacto en la certificación
+
+| Dimensión | ¿Afecta? | Justificación |
+|-----------|----------|---------------|
+| Determinismo | ❌ | La atomicidad de escritura no altera el contenido del reporte |
+| Reproducibilidad | ⚠️ | Solo ante crash a mitad de escritura; detectable y recuperable |
+| Corrección funcional | ❌ | Reporte correcto si la escritura completa |
+| Bloquea la certificación (Gate 5) | ❌ | Recovery determinable cubre el riesgo |
+
+#### 3.8 Sub-acciones identificadas (si aplica)
+
+No aplica (decisión explícita de no actuar, YAGNI).
+
+#### 3.9 Clasificación consolidada
+
+| Campo | Valor |
+|-------|-------|
+| Condición original existe | ✅ Sí |
+| Es violación arquitectónica | ❌ No |
+| Es violación de gobernanza | ❌ No |
+| Es problema técnico | ⚠️ Parcialmente (gap forense real sin acción normativa) |
+| Pertenece a Fase 5 | ✅ Sí |
+| Bloquea la certificación | ❌ No |
+| Clasificación | `OBSERVATION` |
+| Prioridad | Baja |
+
+#### 3.10 Regla aplicada
+
+> **NADR-24 §5.8 R34 (Recovery determinable):**
+> *"El estado post-fallo MUST ser determinable: qué unidades evaluadas, qué artefactos en disco, si reutilizables, si re-ejecución reemplaza."*
+> **NADR-24 §5.8 R35 (Atomicidad física):**
+> *"Atomicidad física solo donde el dominio la exige."*
+
+El sistema cumple R34 (POST-RUN VALIDATION nombra violaciones por elemento) y R35 (atomicidad física presente exactamente donde el dominio la exige). La decisión de no migrar los reportes es conformidad, no deuda.
+
+
 
 ---
 
@@ -167,10 +413,27 @@ Cada finding analizado recibe una sub-sección con la siguiente estructura.}
 **Estado:** ✅ COMPLETED — Gate 3 cerrado con 10/10 Tasks DONE y 31/31 rules DONE.
 **Fecha de cierre:** 2026-09-11
 
-### 3.4 Gate 4 Exit Review — Certification Tooling & Execution Safety
+### 3.4 Gate 4 Exit Review (ejecutado 2026-09-13; evidencia de observaciones formalizada 2026-09-14)
 
 **Estado:** ✅ COMPLETED — Gate 4 cerrado con 13/13 Tasks DONE y 37/37 rules DONE.
-**Fecha:** 2026-09-11 (inicio), 2026-09-13 (cierre)
+
+**Árbol de decisión aplicado (observaciones formalizadas en §2):**
+
+| Finding | ¿Válido? | ¿Resoluble en Gate? | ¿Técnico? | Decisión | Motivo |
+|----|----------|-------------|-----------|----------|--------|
+| O-4.4-1 | ✅ Sí | ❌ No (fuera del scope de certificación) | ❌ No | `OBSERVATION` | R32 alcanza solo al tooling de certificación; sub-acción de re-verificación en Gate 5 |
+| O-4.4-2 | ✅ Sí | ❌ No (correcto por diseño en su scope) | ❌ No | `OBSERVATION` | No-determinismo confinado al análisis de significancia post-benchmark |
+| O-4.4-3 | ✅ Sí | ❌ No (YAGNI; R34/R35 cubiertos) | ⚠️ Parcial | `OBSERVATION` | Gap forense real sin acción normativa; recovery determinable cubre el riesgo |
+
+**Resumen:**
+- RESOLVED: 0
+- RECLASIFICADO → Gate futuro: 0
+- CLOSED (NAR): 0
+- CONVERTIDO EN GF: 0
+- OBSERVATION: 3 (O-4.4-1, O-4.4-2, O-4.4-3)
+- Nuevos hallazgos registrados: 0 (formalización de hallazgos ya identificados en Wave 4.4)
+
+*Nota de backfill (D7): el árbol completo del Gate 4 (GAP-5.0-03, DF-18, GAP-5.2-05, H-5.4-1, H-5.4-2, GF-01, GF-02, O-4.3-3) y las entradas §2 de los Gates 1-3 quedan pendientes de formalización antes del FROZEN del documento (criterio §6.1). Ruta conforme: entradas §2 propias o punteros a reportes consolidados según Methodology §3.5.4 (precedente: `FASE_5_WAVE_4_3_EVIDENCE_RECORD.md`).*
 
 ### 3.5 Gate 5 Exit Review — End-to-End Certification & Baseline Freeze
 
@@ -187,12 +450,14 @@ Cada finding analizado recibe una sub-sección con la siguiente estructura.}
 
 | Clasificación | Cantidad | DFs |
 |--------------|----------|-----|
-| `CLOSED (NAR)` | 0 | — |
-| `RESOLVED` | 0 | — |
-| `IMPLEMENTATION_REQUIRED` | 0 | — |
-| `RECLASSIFIED_FUTURE_PHASE` | 0 | — |
+| `CLOSED (NAR)` | 3 | H-5.1-6, H-5.1-8, H-5.2-2, H-5.2-5 |
+| `RESOLVED` | 11 | DF-04, DF-18, DF-19, GAP-5.0-03, GAP-5.2-05, H-5.1-1, H-5.1-2, H-5.1-3, H-5.1-4, H-5.1-5, H-5.1-7, H-5.2-3, H-5.2-4 |
+| `IMPLEMENTATION_REQUIRED` | 1 | H-5.2-1 |
+| `RECLASSIFIED_FUTURE_PHASE` | 4 | DF-01, DF-02, DF-03, H-5.1-11 |
 | `REVIEW_REQUIRED` | 0 | — |
-| `ACCEPTED_LIMITATION` | 0 | — |
+| `ACCEPTED_LIMITATION` | 7 | H-5.1-9, H-5.1-10, H-5.2-6, H-5.3-1, H-5.3-2, H-5.3-3, H-5.4-1, H-5.4-2 |
+| `Observación documentada` | 3 | O-4.3-3, O-4.4-1, O-4.4-2, O-4.4-3 |
+| `Governance Finding` | 2 | GF-01, GF-02 |
 
 ### 4.2 Tabla consolidada
 
@@ -585,6 +850,8 @@ se registrará en §2 durante el Gate 4 Exit Review.
 > - La ventana de corrupción ante crash se cubre con POST-RUN VALIDATION (R36-R37: detecta incompletitud) + inspección manual del disco + re-ejecución;
 > - Añadir atomicidad física a los reportes sería YAGNI: superficie de cambio sin beneficio normativo.
 > La evidencia forense formal se registrará en §2 durante el Gate 4 Exit Review.
+
+> **Nota de actualización (2026-09-14):** La evidencia forense formal de O-4.4-1, O-4.4-2 y O-4.4-3 ha sido registrada en §2 (subsecciones 2.X, 2.Y, 2.Z). El análisis de impacto en certificación está completo. Gate 4 Exit Review cerrado formalmente. Gate 5 habilitado para ejecución.
 
 ---
 

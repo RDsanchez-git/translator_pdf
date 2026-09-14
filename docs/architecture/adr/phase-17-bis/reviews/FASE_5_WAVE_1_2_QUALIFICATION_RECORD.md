@@ -13,9 +13,9 @@
 | Responsable | Usuario (curaduría humana experta) |
 | Método de verificación | Inspección visual de contenido + clasificación por traits |
 | Corpus canónico | `tests/corpus/canonical/pdf/` |
-| Identidades cualificadas | 7 |
-| Manifest hash | `62f0df16c6faecd6bac7662438f24c0a407e4c46f3271f894933456cc39bc0f1` |
-| Corpus version | `v1.0` |
+| Identidades cualificadas | 7 (6 sellados v1.0 + doc_08 v2.0; doc_06 en quarantine) |
+| Manifest hash | `5d2f47cb8d98b892...` |
+| Corpus version | `v2.0` |
 
 ## Clasificación de Traits por Documento
 
@@ -28,23 +28,24 @@
 | doc_05_graph | `native_pdf`, `multi_column`, `floating_figures` | Doble columna, figuras |
 | doc_06_johnstone | `scanned_noise`, `heavy_math` | Escaneado, matemático denso |
 | doc_07_pesaran | `native_pdf`, `heavy_math`, `nested_tables` | Econometría pura, 41 páginas, tablas |
+| doc_08_bilingual_cs | `native_pdf`, `multi_column`, `bilingual_mix` | Paper ACL doble columna, code-switching EN-ES genuino en Examples 4/5/6 y Table 3 |
 
 ## Cobertura del Catálogo Vigente (ExtractionChallengeTrait)
 
 | Trait | Documentos | Cobertura |
 |-------|------------|:---------:|
-| `native_pdf` | doc_01, doc_02, doc_04, doc_05, doc_07 | 5/7 |
-| `scanned_noise` | doc_03, doc_06 | 2/7 |
-| `multi_column` | doc_02, doc_05 | 2/7 |
-| `heavy_math` | doc_01, doc_02, doc_03, doc_04, doc_06, doc_07 | 6/7 |
+| `native_pdf` | doc_01, doc_02, doc_04, doc_05, doc_07 | 6/7 |
+| `scanned_noise` | doc_03 | 1/7 | (doc_06 en quarantine) |
+| `multi_column` | doc_02, doc_05, doc_08 | 3/7 |
+| `heavy_math` | doc_01, doc_02, doc_03, doc_04, doc_07 | 5/7 |
 | `nested_tables` | doc_04, doc_07 | 2/7 |
 | `floating_figures` | doc_04, doc_05 | 2/7 |
-| `bilingual_mix` | — | **0/7** ⚠️ |
+| `bilingual_mix` | — | doc_08 | 1/7 | 
 
 ## Déficit de Corpus
 
-- **Identidades actuales:** 7
+- **Identidades selladas actuales:** 7
 - **Objetivo mínimo (NADR-20 §5.5 R20):** 20
 - **Déficit:** 13 documentos
-- **Trait no cubierto:** `bilingual_mix`
+- **Trait cubierto:** `bilingual_mix` ✅ (doc_08)
 - **Estado:** Certificación bloqueada hasta alcanzar ≥20 identidades
