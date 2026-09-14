@@ -137,3 +137,5 @@ build/
 tests/corpus_backup_*/
 tests/corpus/canonical/pdf/
 tests/corpus/calibration_v1/pdf/
+# Handoffs operacionales: fuera del repo (decision de ownership 2026-09-14)
+docs/architecture/adr/phase-17-bis/handoff/
