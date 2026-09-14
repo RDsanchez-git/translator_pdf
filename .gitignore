@@ -135,3 +135,5 @@ build/
 .ruff_cache/
 # Backups operacionales MIG (no son artefactos de baseline)
 tests/corpus_backup_*/
+tests/corpus/canonical/pdf/
+tests/corpus/calibration_v1/pdf/
