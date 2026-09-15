@@ -173,8 +173,8 @@ El proyecto usa **dos taxonomías de exit codes** en scopes distintos:
 | `extraer_benchmark.py` | Dev tooling activo (consolida 8 fuentes del pipeline en `auditoria_bloque_ampliado.txt`); local ignorado |
 | `ARCHITECTURE_WORKSPACE.md`, `PROJECT_TREE.txt`, `P1..P7_PRODUCTION_PIPELINE_GRAPH.md` | Snapshots regenerables; local ignorado |
 | `auditoria_*.txt`, `baseline.txt`, `etapa_*.txt`, `pyright_report.*`, `resultados_pytest_*.txt` | Artefactos de proceso; local ignorado |
-| `reports/calibration/`, `reports/df04/`, `reports/sanity_validation/` | **EVIDENCIA TRACKEDA**: `parameter_freeze.json`, calibration/evaluation provenance records, benchmark DF-04, regresión sanity. El test de enforcement R24 (`test_repo_freeze_artifact_matches_domain_defaults`) lee `reports/calibration/parameter_freeze.json` del repo. No regenerar sin nueva parameter identity. |
-| Salidas transientes de `run_regression` y artefactos de proceso bajo `reports/` | Local ignorado (`.gitignore: reports/`). Nota: la línea `reports/` del `.gitignore` no destackea lo ya trackeado; el estado "tracked-but-ignored" de los subdirectorios de evidencia es funcional pero confuso (observación a registrar en el Findings Register). |
+| `reports/calibration/`, `reports/df04/`, `reports/sanity_validation/` | **EVIDENCIA DE GOBERNANZA — estado al 2026-09-14: untracked+ignored (H-5.5-8)**: `parameter_freeze.json`, calibration/evaluation provenance records, benchmark DF-04, regresión sanity. El test de enforcement R24 lee `parameter_freeze.json` del working tree; al no estar trackeado, un clone fresco no reproduce esa verificación ni audita la evidencia citada. Remediación H-5.5-8: trackear los tres subdirectorios (negación en `.gitignore`). |
+| Salidas transientes de `run_regression` y artefactos de proceso bajo `reports/` | Local ignorado (`.gitignore:99 reports/`); `reports/regression/` permanece ignorado tras la remediación. |
 | `docs/architecture/adr/phase-17-bis/handoff/` | Handoffs operacionales; local ignorado (commit `f748fd7`) |
 
 ### 2.5 Regla práctica
