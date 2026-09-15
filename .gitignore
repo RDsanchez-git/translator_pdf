@@ -96,7 +96,10 @@ pyright_report.json
 resultados_pytest_*.txt
 
 # Reportes generados
-reports/
+reports/*
+!reports/calibration/
+!reports/df04/
+!reports/sanity_validation/
 
 # =====================================================================
 # DATOS Y ARTEFACTOS DE BENCHMARK (NO COMMITEAR)
