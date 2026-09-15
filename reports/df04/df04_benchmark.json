@@ -1,0 +1,54 @@
+{
+  "corpus_version": "v1.0",
+  "total_documents": 6,
+  "avg_divergence": 0.08558498316640079,
+  "avg_divergence_pct": 8.558498316640078,
+  "max_divergence_pct": 22.62931034482759,
+  "criterion_threshold_pct": 1.0,
+  "criterion_met": false,
+  "criterion_decision": "Investigar causa raíz y documentar",
+  "documents": [
+    {
+      "document_id": "doc_01_single",
+      "zhang_shasha_score": 0.5571428571428572,
+      "apted_score": 0.4357142857142857,
+      "divergence": 0.12142857142857144,
+      "divergence_pct": 12.142857142857144
+    },
+    {
+      "document_id": "doc_02_double",
+      "zhang_shasha_score": 0.5258620689655172,
+      "apted_score": 0.2995689655172413,
+      "divergence": 0.2262931034482759,
+      "divergence_pct": 22.62931034482759
+    },
+    {
+      "document_id": "doc_03_math",
+      "zhang_shasha_score": 0.7962962962962963,
+      "apted_score": 0.8024691358024691,
+      "divergence": 0.006172839506172867,
+      "divergence_pct": 0.6172839506172867
+    },
+    {
+      "document_id": "doc_04_table",
+      "zhang_shasha_score": 0.7538461538461538,
+      "apted_score": 0.6230769230769231,
+      "divergence": 0.13076923076923075,
+      "divergence_pct": 13.076923076923075
+    },
+    {
+      "document_id": "doc_05_graph",
+      "zhang_shasha_score": 0.7692307692307692,
+      "apted_score": 0.7403846153846154,
+      "divergence": 0.028846153846153744,
+      "divergence_pct": 2.8846153846153744
+    },
+    {
+      "document_id": "doc_07_pesaran",
+      "zhang_shasha_score": 1.0,
+      "apted_score": 1.0,
+      "divergence": 0.0,
+      "divergence_pct": 0.0
+    }
+  ]
+}

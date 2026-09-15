@@ -1,0 +1,15 @@
+{
+  "calibration_provenance_reference": "2c26f93fe375130a209cd2d0f3687bc02fe993b167cc1585709cf0a3fec74ddd",
+  "configuration_identity": "b942fc95c0669b06800d6c4c350c9fbb32f92b0ebb75d9fe1059eea9194c8302",
+  "corpus_identity": "0fda76909289fe8777b8413f4178e2117d2961689437b66e4454c1a7a07a4c34",
+  "evaluation_kind": "SANITY_VALIDATION",
+  "frozen_parameters_identity": "6784117165d75005c9db8f4d126f54c11629a1325338e14810a093290ed83bf5",
+  "limitations": [
+    "H-5.3-1",
+    "H-5.3-2",
+    "H-5.3-3"
+  ],
+  "result": "SANITY_VALIDATION: corpus_verdict=HARD_FAIL; corpus_nss=0.6535949846158722; pass=1; warning=0; hard_fail=5",
+  "result_identity": "f97a3d43672dc5f74ff92a998505ecc92b5067999a4ecb631975e6436a8060ae",
+  "timestamp": "2026-09-11T04:07:57+00:00"
+}

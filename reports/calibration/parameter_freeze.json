@@ -1,0 +1,17 @@
+{
+  "configuration_identity": "b942fc95c0669b06800d6c4c350c9fbb32f92b0ebb75d9fe1059eea9194c8302",
+  "corpus_identity": "0fda76909289fe8777b8413f4178e2117d2961689437b66e4454c1a7a07a4c34",
+  "frozen_at": "2026-09-11T04:07:57+00:00",
+  "immutability_rule": "NADR-23 SS5.6 R25: toda nueva configuracion constituye una nueva parameter identity y requiere una nueva linea de certificacion.",
+  "parameter_identity": "6784117165d75005c9db8f4d126f54c11629a1325338e14810a093290ed83bf5",
+  "parameters": {
+    "cost_weights": [
+      5.0,
+      2.0,
+      1.0
+    ],
+    "nss_hard_fail": 0.8,
+    "nss_warning": 0.95,
+    "warning_threshold": 1
+  }
+}
