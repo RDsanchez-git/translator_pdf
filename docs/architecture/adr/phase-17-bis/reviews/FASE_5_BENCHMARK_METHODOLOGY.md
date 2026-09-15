@@ -1,9 +1,9 @@
 # FASE 5 BENCHMARK METHODOLOGY
 
 **Documento:** `docs/architecture/adr/phase-17-bis/FASE_5_BENCHMARK_METHODOLOGY.md`
-**Versión:** 1.0.1
-**Estado:** IN_PROGRESS (pasada 1 corregida por revisión; §7 pendiente)
-**Fecha de creación:** 2026-09-14
+**Versión:** 1.1.0
+**Estado:** IN_PROGRESS (Batch 1 cerrado; §7 pendiente)
+**Última actualización:** 2026-09-15
 **Última actualización:** 2026-09-14
 **Derivado de:** `PHASE_17BIS_FASE5_EXECUTION_PLAN.md` v1.3.5 (vigente en repo; living document)
 
@@ -12,6 +12,7 @@
 |---|---|---|
 | 1.0.0 | 2026-09-14 | Emisión pasada 1 (§1-§6 + §7 placeholder + §8 guardrails). |
 | 1.0.1 | 2026-09-14 | Correcciones de revisión: (1) §3.3/§3.4 gate de curaduría marcado como objetivo Batch 1, no comportamiento vigente; (2) §4.3 tabla de veredictos alineada con DoubleProtectionMechanism (precedencia CRITICAL); (3) §4.4 renombrado a invariantes de completitud (DoubleProtection real vive en §4.3); (4) §2.4 desglose tracked/transient de reports/; (5) §2.1 evidencia de tools = commit 0ae448f, main_corpus = Batch 2 pendiente; (6) §3.2 estado actual de códigos CANON-*/FREEZE-GT-001; (7) §3.5 lineage por documento; (8) header referenciado a Plan v1.3.5; (9) §6.4 wording de tipos de nodo alineado al Register; (10) §5.1 añade experiment_identity y result_identity. |
+| 1.1.0 | 2026-09-15 | **Cierre documental de Batch 1 (H-5.5-7 RESOLVED, commit <SHA-BATCH-1>):** el gate de curaduría pasa de objetivo a comportamiento vigente. (1) §3.3 paso 6 y §3.4 actualizados a comportamiento vigente; (2) §3.2 con códigos reales FREEZE-GT-001, FREEZE-GT-002 y FREEZE-W01; (3) nota explícita: el override --allow-uncurated cubre AMBOS códigos (GT-001 y GT-002) por igualdad con el precedente D2; (4) ruta del checklist derivada de --corpus-dir (`<corpus-dir>/curation_checklist.json`), sin literal hardcodeado (patrón GAP-5.0-03); (5) §2.1 evidencia de freeze_ground_truth.py actualizada; (6) §3.5 tabla de artefactos corregida (fila ground_truth malformada). Baseline: 729 passed / 5 skipped (724 + 5 tests del gate); pyright 0/0. |
 
 > **Este documento NO es:**
 > - Una enmienda a NADRs/ADRs (no redefine reglas)
@@ -123,7 +124,7 @@ El proyecto usa **dos taxonomías de exit codes** en scopes distintos:
 | Script | Rol | Evidencia |
 |--------|-----|-----------|
 | `tools/evaluation/generate_golden_draft.py` | Genera drafts de GT para documentos nuevos (skips idempotentes en sellados) | Wave 4.2 T4.2.2/4.2.3 — corazón del onboarding |
-| `tools/evaluation/freeze_ground_truth.py` | Sellado atómico (MIG-06, Zero Partial Sealing) | Wave 2.2 T2.2.1 |
+| `tools/evaluation/freeze_ground_truth.py` | Sellado atómico (MIG-06, Zero Partial Sealing) + gate de curaduría como precondición | Wave 2.2 T2.2.1 + Batch 1 (H-5.5-7, commit 9cbddf893d69ba1c157044c9ede1054794465073) |
 | `tools/evaluation/run_regression.py` | Runner de regresión contra oráculos sellados (taxonomía NADR-19, GF-01) | Wave 2.4 T2.4.5 |
 | `tools/evaluation/preflight_certification.py` | PREFLIGHT antes de cualquier RUN | Wave 4.1 T4.1.2 |
 | `tools/evaluation/freeze_parameters.py` | Parameter freeze + provenance records; soporta `--evaluation-kind FINAL_EVALUATION` para Gate 5 | Wave 3.3 T3.3.2/3.3.3 |
@@ -206,7 +207,11 @@ El proyecto usa **dos taxonomías de exit codes** en scopes distintos:
 | `ADD-DOC-001` (trait inválido) | 5 | Corregir trait en manifest |
 | `ADD-DOC-005` (SHA duplicado) | 5 | Verificar que no sea dup real |
 | `CANON-001` (node_id legacy) | 5.5 | Auto-corregido por `canonicalize_gt.py` |
-| `FREEZE-GT-001` (sellar sin `CURATED`) | 7 | Completar curaduría y registrar en checklist |
+| `FREEZE-GT-001` (checklist ausente o ilegible con drafts pendientes) | 5 | Crear `curation_checklist.json` vía verbo `curate` (Batch 2) o registrar la curaduría manualmente |
+| `FREEZE-GT-002` (draft sin entrada, con status ≠ CURATED, o sin report_ref) | 5 | Registrar curaduría con `status=CURATED` y `report_ref` al Curation Report |
+| `FREEZE-W01` (override `--allow-uncurated` activo) | — | Warning indexable; el sellado continúa (solo fuera de ejecución certificante) |
+
+> **Estado actual vs objetivo:** `FREEZE-GT-001`, `FREEZE-GT-002` y `FREEZE-W01` están implementados en `freeze_ground_truth.py` desde Batch 1 (H-5.5-7 RESOLVED, commit <SHA-BATCH-1>); el override `--allow-uncurated` cubre ambos códigos (GT-001 y GT-002). `canonicalize_gt.py` hoy aborta con `SystemExit` + mensaje ante colisión de node_ids y **no emite códigos `CANON-*` indexados**; los códigos `CANON-*` con línea `remediation:` (coherentes con el principio de §3.1) son objetivo del hardening de Batch 2. Hasta entonces, las filas `CANON-*` de esta tabla deben leerse como especificación objetivo.
 
 > **Estado actual vs objetivo:** `FREEZE-GT-001` es código futuro (Batch 1). `canonicalize_gt.py` hoy aborta con `SystemExit` + mensaje ante colisión de node_ids y **no emite códigos `CANON-*` indexados**; los códigos `CANON-*` con línea `remediation:` (coherentes con el principio de §3.1) son objetivo del hardening de Batch 2. Hasta entonces, la tabla de §3.2 debe leerse como especificación objetivo para esos dos códigos.
 
@@ -219,16 +224,21 @@ El proyecto usa **dos taxonomías de exit codes** en scopes distintos:
 | 3 | Generación de draft de GT | `generate_golden_draft.py` | Skips idempotentes en sellados |
 | 4 | Canonicalización de node_ids | `canonicalize_gt.py` | `CANON-*` → auto-corrección con linaje |
 | 5 | **Curaduría manual** (humano) | VS Code / editor | Registro en `curation_checklist.json` con `report_ref` al Curation Report |
-| 6 | Sellado atómico | `freeze_ground_truth.py` | Gate de curaduría como precondición: **OBJETIVO BATCH 1 (H-5.5-7, pendiente)**; hoy el sellado NO verifica checklist |
+| 6 | Sellado atómico | `freeze_ground_truth.py` | Gate de curaduría vigente (Batch 1): todo doc con `ground_truth_state=None` exige entrada `CURATED` con `report_ref` en `<corpus-dir>/curation_checklist.json`; aborta con `FREEZE-GT-001/002` (exit 2) salvo override `--allow-uncurated` (`FREEZE-W01`) |
 | 7 | Gobernanza (actualizar Register, Execution Plan, provenance) | Edit manual | Cross-refs a hallazgos derivados |
 
 ### 3.4 Gate de curaduría (operacional, no normativo)
 
-> **Estado: OBJETIVO DE BATCH 1 — NO es comportamiento vigente.** Hoy `freeze_ground_truth.py` **no** lee `curation_checklist.json` (el artefacto aún no existe); precisamente por eso ocurrió H-5.5-2. El gate operacional se materializa en Batch 1 (H-5.5-7, `IMPLEMENTATION_REQUIRED`) con override `--allow-uncurated`; el enforcement normativo en dominio (O3) queda diferido a Fase 6 (H-5.5-5). Esta sección describe el estado objetivo, no el actual.
+> **Estado: COMPORTAMIENTO VIGENTE desde Batch 1 (H-5.5-7 RESOLVED, commit <SHA-BATCH-1>, 2026-09-15).** Baseline 729 passed / 5 skipped (incluye los 5 tests del gate); pyright 0/0.
 
-**Precondición de sellado:** `freeze_ground_truth.py` verifica que todo documento con `ground_truth_state=None` tenga una entrada `CURATED` en `tests/corpus/canonical/curation_checklist.json` con `report_ref` al Curation Report.
+**Precondición de sellado:** `freeze_ground_truth.py` verifica que todo documento con `ground_truth_state=None` tenga una entrada `CURATED` en `<corpus-dir>/curation_checklist.json` con `report_ref` al Curation Report. El gate solo se evalúa si hay drafts pendientes: un corpus totalmente sellado sin checklist es no-op con exit 0 (idempotencia MIG-06, R33).
 
-**Limitación:** Este gate es **operacional** (vive en el tooling de sellado), no **normativo** (no vive en `SealGroundTruthUseCase` del dominio). Cualquier llamada directa a `freeze_ground_truth.py` que bypasee el gate es posible; el enforcement normativo (O3: check en autoridad de sellado, dominio) está diferido a Fase 6 (H-5.5-5).
+**Códigos indexables:**
+- `FREEZE-GT-001`: checklist ausente o ilegible con drafts pendientes → exit 2 con línea `remediation:`.
+- `FREEZE-GT-002`: draft sin entrada, con `status ≠ CURATED`, o con `report_ref` vacío → exit 2 con línea `remediation:`.
+- `FREEZE-W01`: override `--allow-uncurated` activo → warning indexable listando los doc_ids; el sellado continúa. Válido solo fuera de ejecución certificante (patrón D2/R26). El override cubre AMBOS códigos (GT-001 y GT-002).
+
+**Limitación:** Este gate es **operacional** (vive en el Imperative Shell de `freeze_ground_truth.py`), no **normativo** (no vive en `SealGroundTruthUseCase` del dominio). Cualquier código que invoque directamente el use case de sellado puede eludir el gate; el enforcement normativo (O3: check en la autoridad de sellado, dominio) está diferido a Fase 6 (H-5.5-5).
 
 **Override:** `--allow-uncurated` con warning indexable fuera de ejecución certificante (patrón D2/R26). Uso legítimo: re-sellado de corpus completo tras re-baseline v3.0.
 
@@ -236,9 +246,10 @@ El proyecto usa **dos taxonomías de exit codes** en scopes distintos:
 
 | Artefacto | Ruta | Propósito |
 |-----------|------|-----------|
-| `curation_checklist.json` | `tests/corpus/canonical/curation_checklist.json` | Registro de curaduría humana con `report_ref` al Curation Report |
-| `manifest.json` | `tests/corpus/canonical/manifest.json` | Manifest canónico con oracle_hash y ground_truth_state |
-| `canonicalization_lineage.json` (por documento) | `tests/corpus/canonical/{doc_id}_canonicalization_lineage.json` | Linaje de canonicalización por documento (doc_08/09/10). Nota: Wave 1.3 usó un único `canonicalization_lineage.json` en raíz (formato histórico, H-5.2-3); el onboarding vigente emite lineage por documento. || `ground_truth/*.json` | `tests/corpus/canonical/ground_truth/` | Oráculos AST V2 sellados |
+| `curation_checklist.json` | `<corpus-dir>/curation_checklist.json` (derivado de `--corpus-dir`; raíz canonical/, **no** `ground_truth/`, lección H-5.2-3) | Registro de curaduría humana con `report_ref` al Curation Report. Schema congelado: `{"<doc_id>": {"status": "PENDING"\|"CURATED", "report_ref": str\|null, "curated_at": str\|null}}` |
+| `manifest.json` | `<corpus-dir>/manifest.json` | Manifest canónico con oracle_hash y ground_truth_state |
+| `canonicalization_lineage.json` (por documento) | `<corpus-dir>/{doc_id}_canonicalization_lineage.json` | Linaje de canonicalización por documento (doc_08/09/10). Nota: Wave 1.3 usó un único `canonicalization_lineage.json` en raíz (formato histórico, H-5.2-3); el onboarding vigente emite lineage por documento. |
+| `ground_truth/*.json` | `<corpus-dir>/ground_truth/` | Oráculos AST V2 sellados |
 
 ---
 
