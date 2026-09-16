@@ -13,6 +13,7 @@
 | 1.0.0 | 2026-09-14 | Emisión pasada 1 (§1-§6 + §7 placeholder + §8 guardrails). |
 | 1.0.1 | 2026-09-14 | Correcciones de revisión: (1) §3.3/§3.4 gate de curaduría marcado como objetivo Batch 1, no comportamiento vigente; (2) §4.3 tabla de veredictos alineada con DoubleProtectionMechanism (precedencia CRITICAL); (3) §4.4 renombrado a invariantes de completitud (DoubleProtection real vive en §4.3); (4) §2.4 desglose tracked/transient de reports/; (5) §2.1 evidencia de tools = commit 0ae448f, main_corpus = Batch 2 pendiente; (6) §3.2 estado actual de códigos CANON-*/FREEZE-GT-001; (7) §3.5 lineage por documento; (8) header referenciado a Plan v1.3.5; (9) §6.4 wording de tipos de nodo alineado al Register; (10) §5.1 añade experiment_identity y result_identity. |
 | 1.1.0 | 2026-09-15 | **Cierre documental de Batch 1 (H-5.5-7 RESOLVED, commit <SHA-BATCH-1>):** el gate de curaduría pasa de objetivo a comportamiento vigente. (1) §3.3 paso 6 y §3.4 actualizados a comportamiento vigente; (2) §3.2 con códigos reales FREEZE-GT-001, FREEZE-GT-002 y FREEZE-W01; (3) nota explícita: el override --allow-uncurated cubre AMBOS códigos (GT-001 y GT-002) por igualdad con el precedente D2; (4) ruta del checklist derivada de --corpus-dir (`<corpus-dir>/curation_checklist.json`), sin literal hardcodeado (patrón GAP-5.0-03); (5) §2.1 evidencia de freeze_ground_truth.py actualizada; (6) §3.5 tabla de artefactos corregida (fila ground_truth malformada). Baseline: 729 passed / 5 skipped (724 + 5 tests del gate); pyright 0/0. |
+| 1.1.1 | 2026-09-15 | **Re-scope de Batch 2 (Register v0.21.0):** Batch 2a = `curate_gt.py` (escritor de `curation_checklist.json`) + hardening `CANON-*` en `canonicalize_gt.py`, antes del primer onboarding; Batch 2b = orquestador `main_corpus` diferido (trigger: ≥2 onboardings post-2a o error de secuenciación). Deltas: §2.1 (fila `main_corpus` → diferido; nueva fila `curate_gt.py`), §3.2 (`CANON-*` objetivo→reales tras hardening de 2a), §3.3 paso 5 (registro vía `curate_gt.py` desde 2a). Gobernanza: `curation_checklist.json` no es artefacto de baseline (va a `.gitignore`); el registro durable de la curaduría es el Curation Report. |
 
 > **Este documento NO es:**
 > - Una enmienda a NADRs/ADRs (no redefine reglas)
@@ -130,7 +131,8 @@ El proyecto usa **dos taxonomías de exit codes** en scopes distintos:
 | `tools/evaluation/freeze_parameters.py` | Parameter freeze + provenance records; soporta `--evaluation-kind FINAL_EVALUATION` para Gate 5 | Wave 3.3 T3.3.2/3.3.3 |
 | `tools/evaluation/sanitize_ground_truth_types.py` | Migración/corrección de GTs con protección de sellado (fuera del run certificante) | Wave 2.1 T2.1.2, Wave 4.3 T4.3.2 |
 | `tools/evaluation/bootstrap_corpus.py` | ⚠️ Solo bootstrap inicial del manifest (Wave 1.2). **PROHIBIDO para añadir documentos**: reconstruye desde cero y destruye entradas selladas | Wave 1.2 T1.2.3 |
-| `main_corpus` (verbos admit/draft/canonicalize/curate/seal/regress) | Orquestador delgado de onboarding/evaluación | **Batch 2 (pendiente)**; no es entry point existente |
+| `tools/evaluation/curate_gt.py` | Escritor de `curation_checklist.json` (schema `{status, report_ref, curated_at}` congelado por el lector de Batch 1); rechaza curar sellados (`[CURATE-003]`, NADR-21 §5.1 R5); serialización determinista excluida de identidad | **Batch 2a** (pre-onboarding); contrato congelado por el lector |
+| `main_corpus` (verbos admit/draft/canonicalize/curate/seal/regress) | Orquestador delgado de onboarding/evaluación | **Batch 2b (DIFERIDO por YAGNI)**; trigger: ≥2 onboardings post-2a o error de secuenciación operacional; no es entry point existente |
 
 **Regla:** Para añadir documentos y correr el benchmark tocás únicamente los entry points de Categoría A. Todo lo demás es confinado, muerto o ruido.
 
@@ -211,7 +213,7 @@ El proyecto usa **dos taxonomías de exit codes** en scopes distintos:
 | `FREEZE-GT-002` (draft sin entrada, con status ≠ CURATED, o sin report_ref) | 5 | Registrar curaduría con `status=CURATED` y `report_ref` al Curation Report |
 | `FREEZE-W01` (override `--allow-uncurated` activo) | — | Warning indexable; el sellado continúa (solo fuera de ejecución certificante) |
 
-> **Estado actual vs objetivo:** `FREEZE-GT-001`, `FREEZE-GT-002` y `FREEZE-W01` están implementados en `freeze_ground_truth.py` desde Batch 1 (H-5.5-7 RESOLVED, commit <SHA-BATCH-1>); el override `--allow-uncurated` cubre ambos códigos (GT-001 y GT-002). `canonicalize_gt.py` hoy aborta con `SystemExit` + mensaje ante colisión de node_ids y **no emite códigos `CANON-*` indexados**; los códigos `CANON-*` con línea `remediation:` (coherentes con el principio de §3.1) son objetivo del hardening de Batch 2. Hasta entonces, las filas `CANON-*` de esta tabla deben leerse como especificación objetivo.
+> **Estado actual vs objetivo:** `FREEZE-GT-001/002` y `FREEZE-W01` están implementados desde Batch 1. `canonicalize_gt.py` hoy aborta con `SystemExit` + mensaje ante colisión de node_ids y **no emite códigos `CANON-*` indexados**; los códigos `CANON-*` con línea `remediation:` (coherentes con el principio de §3.1) pasan de objetivo a reales tras el hardening de **Batch 2a**. Hasta entonces, las filas `CANON-*` de esta tabla deben leerse como especificación objetivo.
 
 > **Estado actual vs objetivo:** `FREEZE-GT-001` es código futuro (Batch 1). `canonicalize_gt.py` hoy aborta con `SystemExit` + mensaje ante colisión de node_ids y **no emite códigos `CANON-*` indexados**; los códigos `CANON-*` con línea `remediation:` (coherentes con el principio de §3.1) son objetivo del hardening de Batch 2. Hasta entonces, la tabla de §3.2 debe leerse como especificación objetivo para esos dos códigos.
 
@@ -223,7 +225,7 @@ El proyecto usa **dos taxonomías de exit codes** en scopes distintos:
 | 2 | Alta en manifest (traits válidos, sin dup de doc_id/SHA, bump de versión) | `add_document_to_corpus.py` | `ADD-DOC-*` → exit 2 si falla |
 | 3 | Generación de draft de GT | `generate_golden_draft.py` | Skips idempotentes en sellados |
 | 4 | Canonicalización de node_ids | `canonicalize_gt.py` | `CANON-*` → auto-corrección con linaje |
-| 5 | **Curaduría manual** (humano) | VS Code / editor | Registro en `curation_checklist.json` con `report_ref` al Curation Report |
+| 5 | **Curaduría manual** (humano) | VS Code / editor + `curate_gt.py` | Registro en `curation_checklist.json` con `report_ref` al Curation Report: edición manual aceptable hasta Batch 2a; desde 2a, vía `curate_gt.py` (`[CURATE-*]` → exit 2 si falla) |
 | 6 | Sellado atómico | `freeze_ground_truth.py` | Gate de curaduría vigente (Batch 1): todo doc con `ground_truth_state=None` exige entrada `CURATED` con `report_ref` en `<corpus-dir>/curation_checklist.json`; aborta con `FREEZE-GT-001/002` (exit 2) salvo override `--allow-uncurated` (`FREEZE-W01`) |
 | 7 | Gobernanza (actualizar Register, Execution Plan, provenance) | Edit manual | Cross-refs a hallazgos derivados |
 
