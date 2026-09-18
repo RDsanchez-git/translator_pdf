@@ -110,6 +110,7 @@ data/
 tests/corpus/benchmark_v1/
 # Archivos temporales de calibración
 tests/corpus/calibration_v1/candidates/*/tmp*
+tests/corpus/canonical/curation_checklist.json
 
 # =====================================================================
 # CÓDIGO ARCHIVADO (NO COMMITEAR)
