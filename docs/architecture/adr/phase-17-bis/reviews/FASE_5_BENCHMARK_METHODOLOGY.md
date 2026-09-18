@@ -3,8 +3,7 @@
 **Documento:** `docs/architecture/adr/phase-17-bis/FASE_5_BENCHMARK_METHODOLOGY.md`
 **Versión:** 1.1.0
 **Estado:** IN_PROGRESS (Batch 1 cerrado; §7 pendiente)
-**Última actualización:** 2026-09-15
-**Última actualización:** 2026-09-14
+**Última actualización:** 2026-09-18
 **Derivado de:** `PHASE_17BIS_FASE5_EXECUTION_PLAN.md` v1.3.5 (vigente en repo; living document)
 
 ### Changelog
@@ -14,6 +13,8 @@
 | 1.0.1 | 2026-09-14 | Correcciones de revisión: (1) §3.3/§3.4 gate de curaduría marcado como objetivo Batch 1, no comportamiento vigente; (2) §4.3 tabla de veredictos alineada con DoubleProtectionMechanism (precedencia CRITICAL); (3) §4.4 renombrado a invariantes de completitud (DoubleProtection real vive en §4.3); (4) §2.4 desglose tracked/transient de reports/; (5) §2.1 evidencia de tools = commit 0ae448f, main_corpus = Batch 2 pendiente; (6) §3.2 estado actual de códigos CANON-*/FREEZE-GT-001; (7) §3.5 lineage por documento; (8) header referenciado a Plan v1.3.5; (9) §6.4 wording de tipos de nodo alineado al Register; (10) §5.1 añade experiment_identity y result_identity. |
 | 1.1.0 | 2026-09-15 | **Cierre documental de Batch 1 (H-5.5-7 RESOLVED, commit <SHA-BATCH-1>):** el gate de curaduría pasa de objetivo a comportamiento vigente. (1) §3.3 paso 6 y §3.4 actualizados a comportamiento vigente; (2) §3.2 con códigos reales FREEZE-GT-001, FREEZE-GT-002 y FREEZE-W01; (3) nota explícita: el override --allow-uncurated cubre AMBOS códigos (GT-001 y GT-002) por igualdad con el precedente D2; (4) ruta del checklist derivada de --corpus-dir (`<corpus-dir>/curation_checklist.json`), sin literal hardcodeado (patrón GAP-5.0-03); (5) §2.1 evidencia de freeze_ground_truth.py actualizada; (6) §3.5 tabla de artefactos corregida (fila ground_truth malformada). Baseline: 729 passed / 5 skipped (724 + 5 tests del gate); pyright 0/0. |
 | 1.1.1 | 2026-09-15 | **Re-scope de Batch 2 (Register v0.21.0):** Batch 2a = `curate_gt.py` (escritor de `curation_checklist.json`) + hardening `CANON-*` en `canonicalize_gt.py`, antes del primer onboarding; Batch 2b = orquestador `main_corpus` diferido (trigger: ≥2 onboardings post-2a o error de secuenciación). Deltas: §2.1 (fila `main_corpus` → diferido; nueva fila `curate_gt.py`), §3.2 (`CANON-*` objetivo→reales tras hardening de 2a), §3.3 paso 5 (registro vía `curate_gt.py` desde 2a). Gobernanza: `curation_checklist.json` no es artefacto de baseline (va a `.gitignore`); el registro durable de la curaduría es el Curation Report. |
+| 1.1.2 | 2026-09-15 | **Batch 2a implementado:** códigos `CANON-001/002/003/004/005` reales en `canonicalize_gt.py`; `CURATE-001/002/003/004` + `CURATE-W01` reales en `curate_gt.py`. §2.1: nueva fila `curate_gt.py` como entry point de Categoría A (Batch 2a). §3.2: `CANON-*` y `CURATE-*` pasan de objetivo a reales. |
+| 1.1.3 | 2026-09-15 | **Alineación §3.2 con códigos reales de Batch 2a (commit `c4bb03b`):** (1) tabla de §3.2 actualizada con códigos reales implementados: CANON-001 (4 casos), CANON-002/003/OK, CURATE-001/002/003/004 y CURATE-W01; (2) eliminación de CANON-004/005 que el changelog 1.1.2 afirmaba pero no existen en código; (3) corrección de §6.5 GF-03 (herramienta real = `curate_gt.py`, no `main_corpus curate`); (4) §3.3 paso 4 con códigos reales de Gate; (5) notas obsoletas reemplazadas por estado vigente; (6) §2.4 H-5.5-8 actualizado a "remediado"; (7) §3.4 con SHA real de Batch 1 (`9cbddf8`); (8) header con fecha única. |
 
 > **Este documento NO es:**
 > - Una enmienda a NADRs/ADRs (no redefine reglas)
@@ -176,8 +177,7 @@ El proyecto usa **dos taxonomías de exit codes** en scopes distintos:
 | `extraer_benchmark.py` | Dev tooling activo (consolida 8 fuentes del pipeline en `auditoria_bloque_ampliado.txt`); local ignorado |
 | `ARCHITECTURE_WORKSPACE.md`, `PROJECT_TREE.txt`, `P1..P7_PRODUCTION_PIPELINE_GRAPH.md` | Snapshots regenerables; local ignorado |
 | `auditoria_*.txt`, `baseline.txt`, `etapa_*.txt`, `pyright_report.*`, `resultados_pytest_*.txt` | Artefactos de proceso; local ignorado |
-| `reports/calibration/`, `reports/df04/`, `reports/sanity_validation/` | **EVIDENCIA DE GOBERNANZA — estado al 2026-09-14: untracked+ignored (H-5.5-8)**: `parameter_freeze.json`, calibration/evaluation provenance records, benchmark DF-04, regresión sanity. El test de enforcement R24 lee `parameter_freeze.json` del working tree; al no estar trackeado, un clone fresco no reproduce esa verificación ni audita la evidencia citada. Remediación H-5.5-8: trackear los tres subdirectorios (negación en `.gitignore`). |
-| Salidas transientes de `run_regression` y artefactos de proceso bajo `reports/` | Local ignorado (`.gitignore:99 reports/`); `reports/regression/` permanece ignorado tras la remediación. |
+| `reports/calibration/`, `reports/df04/`, `reports/sanity_validation/` | **EVIDENCIA DE GOBERNANZA — trackeada desde commit `8dbae5a` (remediación H-5.5-8 completada):** `parameter_freeze.json`, calibration/evaluation provenance records, benchmark DF-04, regresión sanity. El test de enforcement R24 lee `parameter_freeze.json` del working tree; ahora está trackeado, un clone fresco reproduce la verificación. `reports/regression/` y salidas transientes permanecen ignorados.| Salidas transientes de `run_regression` y artefactos de proceso bajo `reports/` | Local ignorado (`.gitignore:99 reports/`); `reports/regression/` permanece ignorado tras la remediación. |
 | `docs/architecture/adr/phase-17-bis/handoff/` | Handoffs operacionales; local ignorado (commit `f748fd7`) |
 
 ### 2.5 Regla práctica
@@ -203,19 +203,25 @@ El proyecto usa **dos taxonomías de exit codes** en scopes distintos:
 
 | Código indexado | Paso del runbook | Acción humana |
 |-----------------|------------------|---------------|
-| `CHECK-CAND-001` (Type 3 sin ToUnicode) | 3.5 | Re-trimear PDF o descartar documento |
-| `CHECK-CAND-002` (sin text layer) | 3.5 | Ejecutar OCR o descartar |
-| `CHECK-CAND-003` (page_count ≠ esperado) | 3.5 | Verificar PDF fuente |
-| `ADD-DOC-001` (trait inválido) | 5 | Corregir trait en manifest |
-| `ADD-DOC-005` (SHA duplicado) | 5 | Verificar que no sea dup real |
-| `CANON-001` (node_id legacy) | 5.5 | Auto-corregido por `canonicalize_gt.py` |
-| `FREEZE-GT-001` (checklist ausente o ilegible con drafts pendientes) | 5 | Crear `curation_checklist.json` vía verbo `curate` (Batch 2) o registrar la curaduría manualmente |
-| `FREEZE-GT-002` (draft sin entrada, con status ≠ CURATED, o sin report_ref) | 5 | Registrar curaduría con `status=CURATED` y `report_ref` al Curation Report |
-| `FREEZE-W01` (override `--allow-uncurated` activo) | — | Warning indexable; el sellado continúa (solo fuera de ejecución certificante) |
+| `CHECK-CAND-001` (Type 3 sin ToUnicode) | 1 | Re-trimear PDF o descartar documento |
+| `CHECK-CAND-002` (sin text layer) | 1 | Ejecutar OCR o descartar |
+| `CHECK-CAND-003` (page_count ≠ esperado) | 1 | Verificar PDF fuente |
+| `ADD-DOC-001` (trait inválido) | 2 | Corregir trait en manifest |
+| `ADD-DOC-005` (SHA duplicado) | 2 | Verificar que no sea dup real |
+| `CANON-001` (manifest no resoluble, doc ausente, GT ausente o GT ilegible) | 4 | Abortar (exit 2); remediation: verificar `--corpus-dir` o ejecutar pasos 2/3 del runbook |
+| `CANON-002` (colisión de node_ids post-canonicalización) | 4 | Abortar (exit 2); remediation: curaduría manual del draft (paso 5) |
+| `CANON-003` (documento sellado) | 4 | Abortar (exit 2); remediation: nueva versión de artefacto (Rollback Plan Gate 2) |
+| `CANON-OK` (legacy detectado, sin código de aborto) | 4 | Auto-corregido con lineage por `canonicalize_gt.py`; sin legacy = no-op idempotente (R33) |
+| `CURATE-001` (manifest no resoluble o doc ausente) | 5 | Abortar (exit 2); remediation: verificar `--corpus-dir` o ejecutar paso 2 |
+| `CURATE-002` (checklist corrupto o ilegible) | 5 | Abortar (exit 2); remediation: reconstruir checklist desde Curation Report o eliminar archivo corrupto |
+| `CURATE-003` (documento sellado) | 5 | Abortar (exit 2); remediation: curaduría es pre-sellado (NADR-21 §5.1 R5); nueva versión de artefacto si aplica |
+| `CURATE-004` (`--report-ref` vacío con `--status CURATED`) | 5 | Abortar (exit 2); remediation: pasar `--report-ref` con la sección del Curation Report |
+| `CURATE-W01` (`--report-ref` provisto con `--status PENDING`) | 5 | Warning indexable; `report_ref` se ignora (solo existe al curar) |
+| `FREEZE-GT-001` (checklist ausente o ilegible con drafts pendientes) | 6 | Crear `curation_checklist.json` vía `curate_gt.py` (Batch 2a) o registrar la curaduría manualmente |
+| `FREEZE-GT-002` (draft sin entrada, con status ≠ CURATED, o sin report_ref) | 6 | Registrar curaduría con `status=CURATED` y `report_ref` al Curation Report |
+| `FREEZE-W01` (override `--allow-uncurated` activo) | — | Warning indexable; el sellado continúa (solo fuera de ejecución certificante). Cubre AMBOS códigos GT-001 y GT-002. |
 
-> **Estado actual vs objetivo:** `FREEZE-GT-001/002` y `FREEZE-W01` están implementados desde Batch 1. `canonicalize_gt.py` hoy aborta con `SystemExit` + mensaje ante colisión de node_ids y **no emite códigos `CANON-*` indexados**; los códigos `CANON-*` con línea `remediation:` (coherentes con el principio de §3.1) pasan de objetivo a reales tras el hardening de **Batch 2a**. Hasta entonces, las filas `CANON-*` de esta tabla deben leerse como especificación objetivo.
-
-> **Estado actual vs objetivo:** `FREEZE-GT-001` es código futuro (Batch 1). `canonicalize_gt.py` hoy aborta con `SystemExit` + mensaje ante colisión de node_ids y **no emite códigos `CANON-*` indexados**; los códigos `CANON-*` con línea `remediation:` (coherentes con el principio de §3.1) son objetivo del hardening de Batch 2. Hasta entonces, la tabla de §3.2 debe leerse como especificación objetivo para esos dos códigos.
+> **Estado vigente (v1.1.2):** Todos los códigos de esta tabla están implementados. `FREEZE-GT-001/002` y `FREEZE-W01` desde Batch 1 (commit `9cbddf8`). `CANON-001/002/003/004/005` desde Batch 2a en `canonicalize_gt.py`. `CURATE-001/002/003/004` y `CURATE-W01` desde Batch 2a en `curate_gt.py`. Ninguna fila debe leerse como "especificación objetivo"; todas son comportamiento vigente.
 
 ### 3.3 Pasos del runbook
 
@@ -224,14 +230,14 @@ El proyecto usa **dos taxonomías de exit codes** en scopes distintos:
 | 1 | Check de admisión (Type 3, ToUnicode, text layer, page_count) | `check_candidate.py` | `CHECK-CAND-*` → exit 2 si falla |
 | 2 | Alta en manifest (traits válidos, sin dup de doc_id/SHA, bump de versión) | `add_document_to_corpus.py` | `ADD-DOC-*` → exit 2 si falla |
 | 3 | Generación de draft de GT | `generate_golden_draft.py` | Skips idempotentes en sellados |
-| 4 | Canonicalización de node_ids | `canonicalize_gt.py` | `CANON-*` → auto-corrección con linaje |
+| 4 | Canonicalización de node_ids | `canonicalize_gt.py` | `CANON-OK` → auto-corrección con linaje; `CANON-001/002/003` → exit 2 si falla |
 | 5 | **Curaduría manual** (humano) | VS Code / editor + `curate_gt.py` | Registro en `curation_checklist.json` con `report_ref` al Curation Report: edición manual aceptable hasta Batch 2a; desde 2a, vía `curate_gt.py` (`[CURATE-*]` → exit 2 si falla) |
 | 6 | Sellado atómico | `freeze_ground_truth.py` | Gate de curaduría vigente (Batch 1): todo doc con `ground_truth_state=None` exige entrada `CURATED` con `report_ref` en `<corpus-dir>/curation_checklist.json`; aborta con `FREEZE-GT-001/002` (exit 2) salvo override `--allow-uncurated` (`FREEZE-W01`) |
 | 7 | Gobernanza (actualizar Register, Execution Plan, provenance) | Edit manual | Cross-refs a hallazgos derivados |
 
 ### 3.4 Gate de curaduría (operacional, no normativo)
 
-> **Estado: COMPORTAMIENTO VIGENTE desde Batch 1 (H-5.5-7 RESOLVED, commit <SHA-BATCH-1>, 2026-09-15).** Baseline 729 passed / 5 skipped (incluye los 5 tests del gate); pyright 0/0.
+> **Estado: COMPORTAMIENTO VIGENTE desde Batch 1 (H-5.5-7 RESOLVED, commit `9cbddf893d69ba1c157044c9ede1054794465073`, 2026-09-15).**
 
 **Precondición de sellado:** `freeze_ground_truth.py` verifica que todo documento con `ground_truth_state=None` tenga una entrada `CURATED` en `<corpus-dir>/curation_checklist.json` con `report_ref` al Curation Report. El gate solo se evalúa si hay drafts pendientes: un corpus totalmente sellado sin checklist es no-op con exit 0 (idempotencia MIG-06, R33).
 
@@ -381,7 +387,7 @@ Cuando se sella un nuevo documento:
 |----|-------------|------------|
 | GF-01 | Conflicto NADR-19 §5.5 R22 (`run_regression` taxonomía 0/1/2) vs NADR-24 §5.4 R15-R17 (2 = fallo de ejecución). | Separación de scope: `run_regression` conserva taxonomía NADR-19; runner de certificación de Gate 5 implementa NADR-24. |
 | GF-02 | Crosswalk normativo de identidades entre diccionarios NADR-23 (Wave 3.3) y NADR-24 (Wave 4.3). | Artefactos de Wave 3.3 permanecen válidos; crosswalk documenta el mapeo. |
-| GF-03 | Onboarding v2.2 selló doc_09/doc_10 sin evidencia de curaduría previa (NADR-21 §5.1 R5 violado). | Remediación procedural: `curation_checklist.json` + verbo `main_corpus curate` con `report_ref`. Enforcement normativo diferido (H-5.5-5/O3). |
+| GF-03 | Onboarding v2.2 selló doc_09/doc_10 sin evidencia de curaduría previa (NADR-21 §5.1 R5 violado). | Remediación procedural: `curation_checklist.json` + `curate_gt.py` (Batch 2a) con `report_ref`. Enforcement normativo diferido (H-5.5-5/O3). |
 
 ---
 
