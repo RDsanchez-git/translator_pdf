@@ -1,6 +1,6 @@
 {
-  "corpus_version": "v2.2",
-  "manifest_hash": "52c42353b153702eb5aef4562da9c0ded2d50791f09a61e0381016d0bf40cde4",
+  "corpus_version": "v3.9",
+  "manifest_hash": "727782fe0df26d9dd401830a54785b03df5fd059ebf83cc422cb58d8a3d19f7d",
   "documents": [
     {
       "document_id": "doc_01_single",
@@ -106,6 +106,148 @@
       "page_count": 3,
       "ground_truth_state": "sealed",
       "oracle_hash": "df0ca9817ef0e8f3b7f0ce80266549ba24017c00307644ccdf208191703bd228"
+    },
+    {
+      "document_id": "doc_13_fmi_graf_tablas",
+      "sha256": "8f1a9ad7c09ad81a2b822d19d4fb0752f1728ec26642583f1ab4e18e2c876a78",
+      "traits": [
+        "native_pdf",
+        "nested_tables",
+        "floating_figures"
+      ],
+      "page_count": 3,
+      "ground_truth_state": "sealed",
+      "oracle_hash": "a7ba5857ed5a995350acbd17a31110bc3c3552dce0bbce34c3b4ffdb0ead4190"
+    },
+    {
+      "document_id": "doc_11_fig",
+      "sha256": "cb9eaa3956d173394d73c36a74622643684d217f11052d960696d1e02c675840",
+      "traits": [
+        "native_pdf",
+        "floating_figures",
+        "heavy_math"
+      ],
+      "page_count": 3,
+      "ground_truth_state": "sealed",
+      "oracle_hash": "7c4d5b826c94d2b002e75058b53299cc9e7e318c57ef542ca425ab8ba7703759"
+    },
+    {
+      "document_id": "doc_12_multi_col",
+      "sha256": "2de743f869b3c28b9ea1524ed99106f644fbb90ab5c6789a5755e15d86133981",
+      "traits": [
+        "native_pdf",
+        "multi_column"
+      ],
+      "page_count": 3,
+      "ground_truth_state": "sealed",
+      "oracle_hash": "2648dd547a443222e295c1642d03998469e779f65ba12199f998b0d84d27fae7"
+    },
+    {
+      "document_id": "doc_14_fig_math",
+      "sha256": "05008eeb69f65d4bdc28979594eb7233ec0dd0cab39bfb5525479010c828ca0b",
+      "traits": [
+        "native_pdf",
+        "floating_figures",
+        "heavy_math"
+      ],
+      "page_count": 3,
+      "ground_truth_state": "sealed",
+      "oracle_hash": "a879d537c1b6b078b6dcd8bb86aafc4b42dcc0eb8cdca9739db87dfc5d1ad37f"
+    },
+    {
+      "document_id": "doc_15_table_fig_code",
+      "sha256": "806fce3fb5b73be32c76b07dee10931799446c59f286758ecc41c2575087f412",
+      "traits": [
+        "native_pdf"
+      ],
+      "page_count": 3,
+      "ground_truth_state": "sealed",
+      "oracle_hash": "b6078528b7f56d72dd30e94ad3079c7a12a4e11a900a838ac1c965609e11912f"
+    },
+    {
+      "document_id": "doc_16_fig_code",
+      "sha256": "c6ede7450dc46b70b690282a336536a9ac5e665cfb695718ae1c46c190daecf7",
+      "traits": [
+        "native_pdf",
+        "floating_figures"
+      ],
+      "page_count": 3,
+      "ground_truth_state": "sealed",
+      "oracle_hash": "40efdbaa86e64c24e631990766fbf31dec27732c0cc3513ce508c662add3abd1"
+    },
+    {
+      "document_id": "doc_17_table_code",
+      "sha256": "18e1f9799aee69555a56cb6db568a708815d6336095925ec0cb4b2d3d0d4c5ca",
+      "traits": [
+        "native_pdf"
+      ],
+      "page_count": 3,
+      "ground_truth_state": "sealed",
+      "oracle_hash": "401822652ea3facbd157b826d0c9c03bf0e62eb7207361792421616032b6a616"
+    },
+    {
+      "document_id": "doc_18_table_math_doble_col",
+      "sha256": "e40698bc958808b19d2b4b98f136869314e7419e6997ce8bd7c2f3ae89ad1358",
+      "traits": [
+        "native_pdf",
+        "multi_column",
+        "nested_tables",
+        "heavy_math"
+      ],
+      "page_count": 3,
+      "ground_truth_state": "sealed",
+      "oracle_hash": "c3997ac448c30799d026f8d24d8161ea5ae88ca36cd15feb895b0385e594e6c9"
+    },
+    {
+      "document_id": "doc_19_fig_table_doble_col",
+      "sha256": "ea79f2a20f5daa946bb28d5a4d9c44475db4b2f77db18261087a8381529da247",
+      "traits": [
+        "native_pdf",
+        "multi_column",
+        "floating_figures",
+        "nested_tables"
+      ],
+      "page_count": 3,
+      "ground_truth_state": "sealed",
+      "oracle_hash": "7697dd72a2dbd1efa4658a7ea86a7a9788c58f4048aca95ec76693f23d159ebe"
+    },
+    {
+      "document_id": "doc_20_doble_col_table",
+      "sha256": "0f284eee8dc990d705499005da917cd74ffcd55a45dfb57f0e1f5362d7b22f3e",
+      "traits": [
+        "native_pdf",
+        "multi_column",
+        "nested_tables"
+      ],
+      "page_count": 3,
+      "ground_truth_state": "sealed",
+      "oracle_hash": "f5dfba2edf9fcede4ba75b9418a12b022b61590c4867d53f6f58e8c3922c1712"
+    },
+    {
+      "document_id": "doc_21_heavy_math_table",
+      "sha256": "a74afc0248948117f80cbb0eb9fd926afdcd9596da47ade5205d1ff83b94e503",
+      "traits": [
+        "native_pdf",
+        "heavy_math",
+        "nested_tables"
+      ],
+      "page_count": 3,
+      "ground_truth_state": "sealed",
+      "oracle_hash": "86ec5f18b1657aa6b21b019604705055a909a974003000fc11f4dc76dc2fa901"
+    },
+    {
+      "document_id": "doc_22_table_fig_math",
+      "sha256": "14d8b559f1132828ed4c007509e786c0835377b290aa3dec7d4e40c99be3a2c3",
+      "traits": [
+        "native_pdf",
+        "multi_column",
+        "floating_figures",
+        "nested_tables",
+        "heavy_math"
+      ],
+      "page_count": 3,
+      "ground_truth_state": "sealed",
+      "oracle_hash": "cf2bd5d3bfcd664af1ea4bc5588043157ca6530572d1820d895a42e2ea5f3bee"
     }
   ]
 }

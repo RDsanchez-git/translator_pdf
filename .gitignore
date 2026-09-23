@@ -120,6 +120,13 @@ tools/benchmark_archive/
 tools/archive/
 tools/archive
 
+# PDFs sueltos en la raíz (basura de trabajo, NO corpus canónico)
+/doc_*.pdf
+/dummy_probe.pdf
+
+# HTML de visualización de GT (generado por view_gt_html.py, gitignored por runbook)
+reports/gt_views/
+
 # =====================================================================
 # ARTEFACTOS DE EGGS Y BUILD
 # =====================================================================

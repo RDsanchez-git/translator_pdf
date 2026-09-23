@@ -1,10 +1,10 @@
 # FASE_5_EXIT_REVIEW_EVIDENCE_LOG.md
 
 **Documento:** `docs/architecture/adr/phase-17-bis/reviews/FASE_5_EXIT_REVIEW_EVIDENCE_LOG.md`
-**Versión:** 0.15.0
-**Estado:** IN_PROGRESS
+**Versión:** 0.16.0
+**Estado:** IN_PROGRESS (Gate 1, 2, 3, 4 COMPLETED; Gate 5 PENDING)
 **Fecha:** 2026-09-05
-**Última actualización:** 2026-09-13  # ← MANTENER
+**Última actualización:** 2026-09-23
 **Derivado de:** `PHASE_17BIS_FASE5_EXECUTION_PLAN.md` v1.2.2 — Gates 1-5 Exit Reviews
 **Propósito:** Registro auditable de la evidencia forense que fundamenta cada decisión
 tomada durante los Gate Exit Reviews de Fase 5 (Baseline Certification). Cada finding
@@ -40,6 +40,7 @@ normativa y la clasificación final.
 | 0.13.0 | 2026-09-13 | **Wave 4.3 completada (4 Tasks DONE, 9 reglas nuevas en Gate 4):** (1) Task 4.3.1 DONE — Boundary integrity verificada mediante AUDIT forense (5 comandos) + 10 contract tests en `test_certification_boundary.py`; SealedOracle frozen (model_config frozen=True, test_pydantic_frozen_config), sin mutadores de instancia (test_no_instance_mutators), asignación bloqueada (test_assignment_raises ValidationError); LifecycleTransitionAuthority importada únicamente por `use_cases.py` (dominio) y `freeze_ground_truth.py` (sellado MIG-06, O-4.3-3); 3 adaptadores de `ground_truth_store.py` apuntan exclusivamente a `base_path/ground_truth`; tooling de certificación no importa puertos de escritura GT (TestCertificationModulesWithoutGtWritePorts en 4 módulos parametrizados); (2) Task 4.3.2 DONE — GAP-5.2-05 verificación formal de la protección implementada en Wave 2.1 (Task 2.1.2): cadena sanitize/use cases/override D2 verificada; `sanitize_ground_truth_types.py` verifica sellado antes de escribir (raise `SealedOracleOverwriteError`); `GenerateGoldenDraftUseCase` verifica estado antes de escribir; override `--allow-missing-manifest` explícito e indexable (fuera de ejecución certificante); GAP-5.2-05 estado actualizado de `RESOLVED (primaria)` a `RESOLVED` (verificación formal completada); (3) Task 4.3.3 DONE — Evidence completeness implementada: `core/benchmark/certification/evidence.py` con `CertificationEvidence` (7 elementos R29 + `evaluation_kind` + `result_identity`), `compute_corpus_content_identity` (SHA-256 de SHA-256 ordenados, fail-fast ante vacío NADR-20 R1), `serialize_evidence` determinista (sort_keys, indent fijo, ensure_ascii=False); GF-02 registrado: crosswalk normativo de identidades entre diccionarios NADR-23 (Wave 3.3) y NADR-24 (Wave 4.3); `corpus_identity` = compuesto de contenido (estable entre sellados, NADR-20 §5.1-§5.5), `manifest_identity` = `manifest_hash` (cambia al sellar, NADR-20 §5.6 R24/R26); artefactos de Wave 3.3 permanecen válidos (su `corpus_identity` per R18 = `manifest_identity` en NADR-24); (4) Task 4.3.4 DONE — POST-RUN VALIDATION implementada: `core/benchmark/certification/post_run.py` con `validate_post_run` (5 checks: provenance verifiable, per-document present, aggregate present, evidence elements, identity consistency); violaciones nombradas por elemento R29 (R30/R37); wiring con disco diferido a Gate 5 Task 5.2.1; (5) O-4.3-3 registrado: `freeze_ground_truth.py` importa `LifecycleTransitionAuthority` (entry point de sellado MIG-06; R28 prohíbe bypassear, no invocar; allowlist extendido con justificación); (6) Nuevo paquete `core/benchmark/certification/` expandido a 4 módulos (contract, preflight, evidence, post_run); 18 tests nuevos (10 boundary + 12 evidence - 4 overlap = 18 netos); baseline: 713 passed, 5 skipped; (7) Gate 4 Exit Review estado actualizado a IN PROGRESS (10/13 Tasks DONE, 31/37 rules DONE; Wave 4.4 pendiente). |
 | 0.14.0 | 2026-09-13 | **Wave 4.4 completada (3 Tasks DONE, 4 reglas), Gate 4 COMPLETED (13/13 tasks, 37/37 rules):** (1) Task 4.4.1 DONE — Determinismo operacional (R32) verificado: tooling de certificación determinista por construcción (timestamps inyectados externamente, `sort_keys=True` en serialización, hashes sobre bytes canónicos); O-4.4-1 registrado: `orchestrator.py:196 run_timestamp=time.time()` en benchmark de Fase 17, no en certificación; (2) Task 4.4.2 DONE — Idempotencia lógica (R33) verificada: cero operaciones append a archivos en tooling de certificación; escrituras usan `write_text`/`write_bytes` (overwrite); O-4.4-2 registrado: `reporter.py:71 np.random.choice` en bootstrap estadístico, no en reporte de certificación; (3) Task 4.4.3 DONE — Recovery determinable (R34-R35): estado post-fallo determinable vía `validate_post_run` (violaciones nombradas por elemento); atomicidad física solo donde el dominio la exige (`core/ast/registry.py`, `infra/fs/corpus_repository.py` usan `tempfile + os.replace`); O-4.4-3 registrado: `freeze_parameters.py`, `run_regression.py`, `run_df04_benchmark.py` usan `write_text` directo (no atómico a nivel de syscall); no se migra porque R34/R35 no la exigen para reportes y añadiría superficie de cambio sin beneficio normativo (YAGNI); ventana de corrupción cubierta por POST-RUN VALIDATION + re-ejecución manual; 7 tests nuevos (3 determinismo + 2 idempotencia + 2 recovery); baseline: 720 passed, 5 skipped (713 + 7); (4) Gate 4 → COMPLETED (13/13 Tasks, 37/37 rules); (5) Gate 5 habilitado. |
 | 0.15.0 | 2026-09-14 | **Primer poblado de §2 (evidencia forense formal):** (1) Entradas 1-3 registradas para O-4.4-1, O-4.4-2, O-4.4-3 con numeración posicional completa de plantilla ({N}.1-{N}.10); (2) Serie `O-*` y estado `OBSERVATION` registrados formalmente en §1.1/§1.2 (precedente Wave 4.3); réplica pendiente en Findings Register §1.1/§1.2; (3) §3.4 completado con árbol de decisión del Gate 4 para las observaciones formalizadas; (4) Backfill de evidencia de Gates 1-3 y resto de Gate 4 registrado como pendiente del criterio §6.1; (5) Entradas 1-3 quedan INMUTABLES desde este registro (Methodology §3.5.2). |
+| 0.16.0 | 2026-09-23 | **Cierre de Gate 1 con corpus v3.9 sellado (Batch 2a + Batch 3):** (1) §3.1 Gate 1 Exit Review → ✅ COMPLETED (18/18 Tasks DONE, Task 1.1.5 resuelta: déficit de 13 docs → 21 identidades selladas, manifest hash `727782fe0df26d9d...`); (2) §4.1 contadores actualizados: 15 RESOLVED (+2 Batch 1: H-5.5-7, H-5.5-8), 45 ACCEPTED_LIMITATION (+37 Batch 2a/3 + 4 onboarding v2.2), 6 RECLASSIFIED_FUTURE_PHASE (+2: H-5.5-5, H-5.5-6), 6 Observaciones (+2: O-5.3-1, O-5.4-1), 3 Governance Findings (+GF-03); (3) §5.2.14 nueva subsección: 8 hallazgos derivados del Batch 2a (doc_11-13: H-5.1-12 a H-5.1-18 + O-5.3-1); (4) §5.2.15 nueva subsección: 26 hallazgos derivados del Batch 3 (doc_14-22: H-5.1-19 a H-5.1-44 + O-5.4-1 + DF-06); (5) Gate 5 habilitado para FINAL EVALUATION sobre corpus v3.9. |
 
 ---
 
@@ -400,8 +401,18 @@ El sistema cumple R34 (POST-RUN VALIDATION nombra violaciones por elemento) y R3
 
 ### 3.1 Gate 1 Exit Review — Canonical Corpus & GT Qualification
 
-**Estado:** 🟡 IN PROGRESS — Waves 1.1, 1.2 y 1.3 completadas (17/18 Tasks DONE). Task 1.1.5 pendiente (déficit de 13 documentos bloquea Exit Criteria).
-**Fecha:** 2026-09-06 (inicio)
+**Estado:** ✅ COMPLETED — Gate 1 cerrado con 18/18 Tasks DONE y 57/57 rules DONE. Corpus v3.9 sellado con 21 identidades bajo Zero Partial Sealing (biyección N_PDF = N_GT = 21).
+**Fecha:** 2026-09-06 (inicio), 2026-09-23 (cierre definitivo con Batch 3)
+
+**Resumen de cierre:**
+- Task 1.1.5 (déficit de corpus) → DONE: 21 identidades selladas (objetivo NADR-20 §5.5 R20: 20 → **SUPERADO**)
+- Corpus version: v3.9
+- Manifest hash: `727782fe0df26d9dd401830a54785b03df5fd059ebf83cc422cb58d8a3d19f7d`
+- Zero Partial Sealing verificado: N_PDF = N_GT = 21
+- Documentos curados con gate O2 activo: 18/21 (85.7%)
+- Documentos tautológicos históricos: 3/21 (doc_07, doc_09, doc_10) — documentados como no-informativos
+- Documentos heterogéneos: 5/21 (doc_01-05) — política de interpretación documentada
+- Baseline de Capacidades de PyMuPDFProvider establecida: 30 limitaciones empíricas documentadas en 44 hallazgos derivados (H-5.1-9 a H-5.1-44)
 
 ### 3.2 Gate 2 Exit Review — GT Sealing & Canonical Evaluation Configuration
 
@@ -440,6 +451,15 @@ El sistema cumple R34 (POST-RUN VALIDATION nombra violaciones por elemento) y R3
 **Estado:** ⏳ PENDING — Gate 5 no ha iniciado.
 **Fecha:** —
 
+> **Nota de actualización (2026-09-23):** Gate 1 cerrado con corpus v3.9 sellado
+> (21 identidades, manifest hash `727782fe0df26d9d...`). Corpus listo para FINAL
+> EVALUATION en Gate 5 Wave 5.2 (Task 5.2.1). Los 44 hallazgos derivados
+> (H-5.1-9 a H-5.1-44) establecen la Baseline de Capacidades de PyMuPDFProvider
+> contra la cual se medirá el runtime de producción. Los 3 documentos tautológicos
+> (doc_07, doc_09, doc_10) están documentados como no-informativos; los 5 documentos
+> heterogéneos (doc_01-05) tienen política de interpretación documentada.
+> Gate 5 habilitado para ejecución.
+
 ---
 
 ## 4. TABLA CONSOLIDADA FINAL
@@ -448,16 +468,17 @@ El sistema cumple R34 (POST-RUN VALIDATION nombra violaciones por elemento) y R3
 
 ### 4.1 Resumen por clasificación
 
-| Clasificación | Cantidad | DFs |
+| Clasificación | Cantidad | IDs |
 |--------------|----------|-----|
-| `CLOSED (NAR)` | 3 | H-5.1-6, H-5.1-8, H-5.2-2, H-5.2-5 |
-| `RESOLVED` | 11 | DF-04, DF-18, DF-19, GAP-5.0-03, GAP-5.2-05, H-5.1-1, H-5.1-2, H-5.1-3, H-5.1-4, H-5.1-5, H-5.1-7, H-5.2-3, H-5.2-4 |
+| `CLOSED (NAR)` | 4 | H-5.1-6, H-5.1-8, H-5.2-2, H-5.2-5 |
+| `RESOLVED` | 15 | DF-04, DF-18, DF-19, GAP-5.0-03, GAP-5.2-05, H-5.1-1, H-5.1-2, H-5.1-3, H-5.1-4, H-5.1-5, H-5.1-7, H-5.2-3, H-5.2-4, H-5.5-7, H-5.5-8 |
 | `IMPLEMENTATION_REQUIRED` | 1 | H-5.2-1 |
-| `RECLASSIFIED_FUTURE_PHASE` | 4 | DF-01, DF-02, DF-03, H-5.1-11 |
+| `RECLASSIFIED_FUTURE_PHASE` | 6 | DF-01, DF-02, DF-03, H-5.1-11, H-5.5-5, H-5.5-6 |
 | `REVIEW_REQUIRED` | 0 | — |
-| `ACCEPTED_LIMITATION` | 7 | H-5.1-9, H-5.1-10, H-5.2-6, H-5.3-1, H-5.3-2, H-5.3-3, H-5.4-1, H-5.4-2 |
-| `Observación documentada` | 3 | O-4.3-3, O-4.4-1, O-4.4-2, O-4.4-3 |
-| `Governance Finding` | 2 | GF-01, GF-02 |
+| `ACCEPTED_LIMITATION` | 45 | H-5.1-9, H-5.1-10, H-5.2-6, H-5.3-1, H-5.3-2, H-5.3-3, H-5.4-1, H-5.4-2, GF-03, H-5.5-2, H-5.5-3, H-5.5-4, H-5.1-12 a H-5.1-44 (33 del Batch 2a/3) |
+| `Observación documentada` | 6 | O-4.3-3, O-4.4-1, O-4.4-2, O-4.4-3, O-5.3-1, O-5.4-1 |
+| `Governance Finding` | 3 | GF-01, GF-02, GF-03 |
+| `Carry-forward a Fase 6` | 1 | DF-06 (node_ids legacy) |
 
 ### 4.2 Tabla consolidada
 
@@ -852,6 +873,96 @@ se registrará en §2 durante el Gate 4 Exit Review.
 > La evidencia forense formal se registrará en §2 durante el Gate 4 Exit Review.
 
 > **Nota de actualización (2026-09-14):** La evidencia forense formal de O-4.4-1, O-4.4-2 y O-4.4-3 ha sido registrada en §2 (subsecciones 2.X, 2.Y, 2.Z). El análisis de impacto en certificación está completo. Gate 4 Exit Review cerrado formalmente. Gate 5 habilitado para ejecución.
+
+### 5.2.14 Hallazgos derivados del Batch 2a (doc_11-13) — referencia de trazabilidad
+
+Los siguientes hallazgos fueron identificados durante la curaduría del Batch 2a
+(2026-09-19) de los documentos doc_11_fig, doc_12_multi_col y doc_13_fmi_graf_tablas.
+Se registran aquí como referencia de trazabilidad. La evidencia forense formal
+(archivos auditados, análisis, gaps confirmados, regla aplicada) se registrará
+en §2 durante el backfill del Gate 1 Exit Review (criterio §6.1).
+
+| ID | Descripción | Estado preliminar | Gate destino | Fuente |
+|----|-------------|-------------------|--------------|--------|
+| H-5.1-12 | doc_11_fig: 17/44 nodos (38.6%) son ruido vectorial de Figura 20.2. PyMuPDF desarma gráficos vectoriales en bloques parásitos. | `ACCEPTED_LIMITATION` | Gate 1 Batch 2a | Curaduría doc_11 |
+| H-5.1-13 | doc_11_fig nodo p1_b5: cross-page bleed. El párrafo absorbió el header de pág. 271. | `ACCEPTED_LIMITATION` | Gate 1 Batch 2a | Curaduría doc_11 |
+| H-5.1-14 | doc_13_fmi: hiper-fragmentación por renglón. 31/44 nodos (70.5%) son líneas individuales. | `ACCEPTED_LIMITATION` | Gate 1 Batch 2a | Curaduría doc_13 |
+| H-5.1-15 | doc_13_fmi: destrucción total de estructura tabular. Tablas 2 y 3 colapsadas en 0 nodos `table_simple`/`table_complex`. | `ACCEPTED_LIMITATION` | Gate 1 Batch 2a | Curaduría doc_13 |
+| H-5.1-16 | doc_12_multi_col nodo p2_b3: error silencioso de codificación. "AI 5 Mind" en vez de "AI = Mind" por ToUnicode defectuoso. | `ACCEPTED_LIMITATION` | Gate 1 Batch 2a | Curaduría doc_12 |
+| H-5.1-17 | doc_12_multi_col: under-segmentation de subtítulos H2/H3 en doble columna (fusionados con primer renglón). | `ACCEPTED_LIMITATION` | Gate 1 Batch 2a | Curaduría doc_12 |
+| H-5.1-18 | doc_12_multi_col: over-segmentation por salto de columna. Oraciones continuas partidas. | `ACCEPTED_LIMITATION` | Gate 1 Batch 2a | Curaduría doc_12 |
+| O-5.3-1 | `NodeMetadata` no soporta campo `note`. Schema fijo impide clasificación estructural de footnotes. | `OBSERVATION` | Fase 6 | Curaduría doc_08 |
+
+> **Nota:** Los 7 hallazgos H-5.1-12 a H-5.1-18 se marcan como `ACCEPTED_LIMITATION`
+> porque documentan limitaciones empíricas de PyMuPDFProvider descubiertas durante
+> la curaduría del Batch 2a. Los Ground Truths son fieles a la salida del extractor
+> de producción actual, aunque no al contenido real del documento fuente.
+> La evidencia forense formal se registrará en §2 durante el backfill.
+>
+> O-5.3-1 se marca como `OBSERVATION` porque documenta una limitación del schema
+> de NodeMetadata (sin campo `note` para footnotes) que no es violación normativa
+> sino carry-forward a Fase 6 para evaluación de extensión del schema.
+
+### 5.2.15 Hallazgos derivados del Batch 3 (doc_14-22) — referencia de trazabilidad
+
+Los siguientes hallazgos fueron identificados durante la curaduría del Batch 3
+(2026-09-22 / 2026-09-23) de los 9 documentos adicionales que cerraron el déficit
+de corpus (doc_14_fig_math a doc_22_table_fig_math). Se registran aquí como
+referencia de trazabilidad. La evidencia forense formal se registrará en §2
+durante el backfill del Gate 1 Exit Review (criterio §6.1).
+
+**Batch 3 estableció la Baseline de Capacidades de PyMuPDFProvider con 26 hallazgos
+derivados que documentan 30 limitaciones empíricas del extractor.**
+
+| ID | Descripción | Estado preliminar | Gate destino | Fuente |
+|----|-------------|-------------------|--------------|--------|
+| H-5.1-19 | doc_14_fig_math: layout Tufte sin delimitar (margin keyword bleed en "rotation", "rotation matrix") | `ACCEPTED_LIMITATION` | Gate 1 Batch 3 | Curaduría doc_14 |
+| H-5.1-20 | doc_14_fig_math: corrupción de glifos TeX en delimitadores de matrices (`\x14`, `\x15`, `\x1a`, `\x1b`, `\x02`, `\x03`) | `ACCEPTED_LIMITATION` | Gate 1 Batch 3 | Curaduría doc_14 |
+| H-5.1-21 | doc_15/16/17: ceguera sistemática ante bloques de código Python (100% tipados como `paragraph`) | `ACCEPTED_LIMITATION` | Gate 1 Batch 3 | Curaduría doc_15/16/17 |
+| H-5.1-22 | doc_15_table_fig_code p1_b17: header bleed destructivo. Folio "837" soldado dentro de instrucción Python | `ACCEPTED_LIMITATION` | Gate 1 Batch 3 | Curaduría doc_15 |
+| H-5.1-23 | doc_15_table_fig_code: table shredding. Tabla 33-1 desmenuzada en 8 párrafos sin estructura | `ACCEPTED_LIMITATION` | Gate 1 Batch 3 | Curaduría doc_15 |
+| H-5.1-24 | doc_16_fig_code: ceguera ante celdas Jupyter interactivas. Prompt `In[N]:` no reconocido como metadata | `ACCEPTED_LIMITATION` | Gate 1 Batch 3 | Curaduría doc_16 |
+| H-5.1-25 | doc_16_fig_code: footer bleed transpágina. Folios 396/397 fusionados con código y captions | `ACCEPTED_LIMITATION` | Gate 1 Batch 3 | Curaduría doc_16 |
+| H-5.1-26 | doc_16_fig_code: sobre-segmentación de celdas Jupyter. Celda In[11] partida en 4 nodos | `ACCEPTED_LIMITATION` | Gate 1 Batch 3 | Curaduría doc_16 |
+| H-5.1-27 | doc_17_table_code: desarticulación sistemática de tablas de referencia (20/51 = 39.2%) | `ACCEPTED_LIMITATION` | Gate 1 Batch 3 | Curaduría doc_17 |
+| H-5.1-28 | doc_17_table_code: ceguera IPython con regex complejas (`findall(r'^[^AEIOU].*[^aeiou]$')`) | `ACCEPTED_LIMITATION` | Gate 1 Batch 3 | Curaduría doc_17 |
+| H-5.1-29 | doc_18_table_math: desmembramiento vertical columna por columna (118/152 = 77.6%) | `ACCEPTED_LIMITATION` | Gate 1 Batch 3 | Curaduría doc_18 |
+| H-5.1-30 | doc_18_table_math: inyección de capas fantasma ("Table 6.4 Panel Regrestion" con erratas) | `ACCEPTED_LIMITATION` | Gate 1 Batch 3 | Curaduría doc_18 |
+| H-5.1-31 | doc_18_table_math: corrupción de fuentes matemáticas IMF (ε como "8", $\bar{R}^2$ sin barra) | `ACCEPTED_LIMITATION` | Gate 1 Batch 3 | Curaduría doc_18 |
+| H-5.1-32 | doc_18_table_math: falsos headings reiterados en disclaimers institucionales (3 casos) | `ACCEPTED_LIMITATION` | Gate 1 Batch 3 | Curaduría doc_18 |
+| H-5.1-33 | doc_19_fig_table: inversión sistemática de jerarquía (6 cintillos como `heading`, 5 títulos como `paragraph`) | `ACCEPTED_LIMITATION` | Gate 1 Batch 3 | Curaduría doc_19 |
+| H-5.1-34 | doc_19_fig_table: doble patología tabular (Tabla 2 smashing + Tabla 3 shredding en mismo documento) | `ACCEPTED_LIMITATION` | Gate 1 Batch 3 | Curaduría doc_19 |
+| H-5.1-35 | doc_19_fig_table: omisión absoluta de figuras en visión (0 de 3 figuras detectadas) | `ACCEPTED_LIMITATION` | Gate 1 Batch 3 | Curaduría doc_19 |
+| H-5.1-36 | doc_20_doble_col: dualidad patológica en extracción tabular (smashing vs shredding alternado) | `ACCEPTED_LIMITATION` | Gate 1 Batch 3 | Curaduría doc_20 |
+| H-5.1-37 | doc_20_doble_col: epidemia de falsos positivos en HEADING (8 casos: CRediT, declaraciones, cintillos) | `ACCEPTED_LIMITATION` | Gate 1 Batch 3 | Curaduría doc_20 |
+| H-5.1-38 | doc_20_doble_col: colapso de listas con viñetas (list under-segmentation) | `ACCEPTED_LIMITATION` | Gate 1 Batch 3 | Curaduría doc_20 |
+| H-5.1-39 | doc_21_heavy_math: hiper-fragmentación matemática devastadora (41/73 = 56.2% pedazos de ecuaciones) | `ACCEPTED_LIMITATION` | Gate 1 Batch 3 | Curaduría doc_21 |
+| H-5.1-40 | doc_21_heavy_math: mutilación sistemática de signos radicales ($\sqrt{}$ se desprende del radicando) | `ACCEPTED_LIMITATION` | Gate 1 Batch 3 | Curaduría doc_21 |
+| H-5.1-41 | doc_21_heavy_math: infiltración transpágina extrema (header bleed fusionando ecuación + prosa + header) | `ACCEPTED_LIMITATION` | Gate 1 Batch 3 | Curaduría doc_21 |
+| H-5.1-42 | doc_22_table_fig_math: colapso monolítico extremo (Tabla 1: 47 covariables en un solo string de 242 palabras) | `ACCEPTED_LIMITATION` | Gate 1 Batch 3 | Curaduría doc_22 |
+| H-5.1-43 | doc_22_table_fig_math: desarticulación vertical de sumatorias dobles (Moran's I partida en 7 nodos) | `ACCEPTED_LIMITATION` | Gate 1 Batch 3 | Curaduría doc_22 |
+| H-5.1-44 | doc_22_table_fig_math: intercalación destructiva de notas al pie (Notas 3, 4, 5 fracturando oraciones) | `ACCEPTED_LIMITATION` | Gate 1 Batch 3 | Curaduría doc_22 |
+| O-5.4-1 | Enum `ExtractionChallengeTrait` no tiene trait `code`. Brecha de catalogación para doc_15/16/17. | `OBSERVATION` | Fase 6 | Curaduría Batch 3 |
+| DF-06 | Pipeline genera node_ids legacy `value='pX_bY'`. `BenchmarkParserBridge.extract_ast()` serializa `BlockId` con `str()`. | `CARRY_FORWARD_FASE_6` | Fase 6 | Curaduría Batch 3 |
+
+> **Nota:** Los 26 hallazgos H-5.1-19 a H-5.1-44 se marcan como `ACCEPTED_LIMITATION`
+> porque constituyen la Baseline de Capacidades de PyMuPDFProvider: evidencia empírica
+> de 30 limitaciones del extractor de producción actual. Los Ground Truths del Batch 3
+> son fieles a la salida del extractor (condición necesaria para Zero Partial Sealing),
+> aunque documentan degradaciones sistemáticas en 6 categorías de patología:
+> (1) ceguera de código (H-5.1-21, 24, 28), (2) destrucción tabular (H-5.1-23, 29, 42),
+> (3) hiper-fragmentación matemática (H-5.1-39, 40, 43), (4) inversiones de jerarquía
+> (H-5.1-33, 37), (5) colapso monolítico (H-5.1-42, 44), (6) corrupción de glifos
+> (H-5.1-20, 31). Todos son carry-forward a Fase 6 para mejora de extractor con
+> adaptadores de mayor fidelidad (Marker, Docling, Nougat).
+>
+> O-5.4-1 se marca como `OBSERVATION` porque documenta una brecha de catalogación
+> en el enum de traits (sin valor `code` para documentos con código fuente).
+>
+> DF-06 se marca como `CARRY_FORWARD_FASE_6` porque la causa raíz
+> (`BenchmarkParserBridge.extract_ast()` serializando `BlockId` con `str()` en vez
+> de `.value`) requiere fix en el pipeline de extracción, fuera del scope de Fase 5.
+> Actualmente mitigado por `canonicalize_gt.py` (Batch 2a, CANON-* codes).
 
 ---
 

@@ -141,3 +141,5 @@ Los tres hallazgos estan clasificados `ACCEPTED_LIMITATION` en FASE_5_DEFERRED_F
 ---
 
 **Nota de Gobernanza:** Este documento es el registro del parameter freeze y los provenance records de Gate 3. No tiene autoridad normativa. No redefine reglas de NADRs ni ADRs. Su proposito es embeber las identidades criptograficas reales materializadas por MIG-08 y proveer trazabilidad completa a los artefactos en disco.
+
+**Nota:** Los PDFs del corpus canónico no se distribuyen por restricciones de derechos de autor. La biyección N_PDF = N_GT se verifica localmente con los PDFs presentes. Desde un clone fresco, se puede verificar la integridad de los Ground Truths (JSON) y del manifest.json (SHA-256), pero no la biyección con los PDFs físicos.

@@ -1,0 +1,1208 @@
+[
+  {
+    "node_id": "p1_b0",
+    "sequence_id": 1,
+    "node_type": "heading",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 72.0,
+          "y0": 53.014984130859375,
+          "x1": 179.72998046875,
+          "y1": 70.9849853515625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "0",
+      "confidence": 1.0,
+      "layout_reading_order": 0,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "try Statement Clauses",
+      "heading_level": "unknown"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b1",
+    "sequence_id": 2,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 72.0,
+          "y0": 75.28556060791016,
+          "x1": 432.1221618652344,
+          "y1": 123.95993041992188,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "1",
+      "confidence": 1.0,
+      "layout_reading_order": 1,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "When you write a try statement, a variety of clauses can appear after the try header.\nTable 33-1 summarizes all the possible forms—you must use at least one. We’ve already\nmet some of these: as you know, except clauses catch exceptions, finally clauses run\non the way out, and else clauses run if no exceptions are encountered."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b2",
+    "sequence_id": 3,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 72.00100708007812,
+          "y0": 129.2455291748047,
+          "x1": 432.08648681640625,
+          "y1": 202.39987182617188,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "2",
+      "confidence": 1.0,
+      "layout_reading_order": 2,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Syntactically, there may be any number of except clauses, but you can code else only\nif there is at least one except, and there can be only one else and one finally. Through\nPython 2.4, the finally clause must appear alone (without else or except); the try/\nfinally is really a different statement. As of Python 2.5, however, a finally can appear\nin the same statement as except and else (more on the ordering rules later in this chapter\nwhen we meet the unified try statement)."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b3",
+    "sequence_id": 4,
+    "node_type": "caption",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 72.00103759765625,
+          "y0": 211.6428680419922,
+          "x1": 211.6990203857422,
+          "y1": 221.9568634033203,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "3",
+      "confidence": 1.0,
+      "layout_reading_order": 3,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Table 33-1. try statement clause forms"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b4",
+    "sequence_id": 5,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 78.0,
+          "y0": 228.70899963378906,
+          "x1": 239.42703247070312,
+          "y1": 239.49099731445312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "4",
+      "confidence": 1.0,
+      "layout_reading_order": 4,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Clause form\nInterpretation"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b5",
+    "sequence_id": 6,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 78.0,
+          "y0": 243.56800842285156,
+          "x1": 302.8049621582031,
+          "y1": 254.41299438476562,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "5",
+      "confidence": 1.0,
+      "layout_reading_order": 5,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "except:\nCatch all (or all other) exception types."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b6",
+    "sequence_id": 7,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 78.0,
+          "y0": 258.36798095703125,
+          "x1": 282.02398681640625,
+          "y1": 269.2129821777344,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "6",
+      "confidence": 1.0,
+      "layout_reading_order": 6,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "except name:\nCatch a specific exception only."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b7",
+    "sequence_id": 8,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 78.0,
+          "y0": 273.16796875,
+          "x1": 313.8929748535156,
+          "y1": 284.0129699707031,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "7",
+      "confidence": 1.0,
+      "layout_reading_order": 7,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "except name as value:\nCatch the listed exception and its instance."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b8",
+    "sequence_id": 9,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 78.0,
+          "y0": 287.96795654296875,
+          "x1": 290.4479675292969,
+          "y1": 298.8129577636719,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "8",
+      "confidence": 1.0,
+      "layout_reading_order": 8,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "except (name1, name2):\nCatch any of the listed exceptions."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b9",
+    "sequence_id": 10,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 78.0,
+          "y0": 302.7679443359375,
+          "x1": 314.7209777832031,
+          "y1": 313.6129455566406,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "9",
+      "confidence": 1.0,
+      "layout_reading_order": 9,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "except (name1, name2) as value:\nCatch any listed exception and its instance."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b10",
+    "sequence_id": 11,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 78.0,
+          "y0": 317.56793212890625,
+          "x1": 282.39300537109375,
+          "y1": 328.4129333496094,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "10",
+      "confidence": 1.0,
+      "layout_reading_order": 10,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "else:\nRun if no exceptions are raised."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b11",
+    "sequence_id": 12,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 78.0,
+          "y0": 332.36798095703125,
+          "x1": 269.8919372558594,
+          "y1": 343.2129211425781,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "11",
+      "confidence": 1.0,
+      "layout_reading_order": 11,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "finally:\nAlways perform this block."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b12",
+    "sequence_id": 13,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 72.0,
+          "y0": 358.0105895996094,
+          "x1": 432.00433349609375,
+          "y1": 381.9194030761719,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "12",
+      "confidence": 1.0,
+      "layout_reading_order": 12,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "We’ll explore the entries with the extra as value part when we meet the raise statement.\nThey provide access to the objects that are raised as exceptions."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b13",
+    "sequence_id": 14,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 72.0,
+          "y0": 387.4905700683594,
+          "x1": 303.69305419921875,
+          "y1": 399.1593933105469,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "13",
+      "confidence": 1.0,
+      "layout_reading_order": 13,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "The first and fourth entries in Table 33-1 are new here:"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b14",
+    "sequence_id": 15,
+    "node_type": "list",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 78.0,
+          "y0": 405.7305603027344,
+          "x1": 432.0002136230469,
+          "y1": 457.1398010253906,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "14",
+      "confidence": 1.0,
+      "layout_reading_order": 14,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "• except clauses that list no exception name (except:) catch all exceptions not pre-\nviously listed in the try statement.\n• except clauses that list a set of exceptions in parentheses (except (e1, e2, e3):)\ncatch any of the listed exceptions."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b15",
+    "sequence_id": 16,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 71.99899291992188,
+          "y0": 463.6905822753906,
+          "x1": 431.9382019042969,
+          "y1": 524.3193969726562,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "15",
+      "confidence": 1.0,
+      "layout_reading_order": 15,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Because Python looks for a match within a given try by inspecting the except clauses\nfrom top to bottom, the parenthesized version has the same effect as listing each ex-\nception in its own except clause, but you have to code the statement body only once.\nHere’s an example of multiple except clauses at work, which demonstrates just how\nspecific your handlers can be:"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b16",
+    "sequence_id": 17,
+    "node_type": "code",
+    "strategy": "keep_original",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 89.99899291992188,
+          "y0": 529.6046752929688,
+          "x1": 161.9720001220703,
+          "y1": 587.18115234375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "16",
+      "confidence": 1.0,
+      "layout_reading_order": 16,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "try:\n    action()\nexcept NameError:\n    ...\nexcept IndexError:\n    ..."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b17",
+    "sequence_id": 18,
+    "node_type": "composite_block",
+    "strategy": "keep_original",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 317.04901123046875,
+          "y0": 609.2130126953125,
+          "x1": 431.9879455566406,
+          "y1": 619.9949951171875,
+          "is_normalized": false
+        },
+        {
+          "x0": 90.0,
+          "y0": 53.99972152709961,
+          "x1": 281.9281311035156,
+          "y1": 111.57616424560547,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1,
+        2
+      ],
+      "provider_native_id": "17",
+      "confidence": 1.0,
+      "layout_reading_order": 17,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "The try/except/else Statement | 837 except KeyError:\n    ...\nexcept (AttributeError, TypeError, SyntaxError):\n    ...\nelse:\n    ..."
+    },
+    "control_plane": {
+      "merge_count": 2
+    },
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b1",
+    "sequence_id": 19,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 71.99998474121094,
+          "y0": 117.8616714477539,
+          "x1": 432.02606201171875,
+          "y1": 191.01705932617188,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "1",
+      "confidence": 1.0,
+      "layout_reading_order": 19,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "In this example, if an exception is raised while the call to the action function is running,\nPython returns to the try and searches for the first except that names the exception\nraised. It inspects the except clauses from top to bottom and left to right, and runs the\nstatements under the first one that matches. If none match, the exception is propagated\npast this try. Note that the else runs only when no exception occurs in action—it does\nnot run when an exception without a matching except is raised."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b2",
+    "sequence_id": 20,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 72.0009765625,
+          "y0": 196.3026580810547,
+          "x1": 399.6453857421875,
+          "y1": 208.25704956054688,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "2",
+      "confidence": 1.0,
+      "layout_reading_order": 20,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "If you really want a general “catch-all” clause, an empty except does the trick:"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b3",
+    "sequence_id": 21,
+    "node_type": "code",
+    "strategy": "keep_original",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 90.0009765625,
+          "y0": 213.25674438476562,
+          "x1": 295.9798278808594,
+          "y1": 309.21722412109375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "3",
+      "confidence": 1.0,
+      "layout_reading_order": 21,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "try:\n    action()\nexcept NameError:\n    ...                   # Handle NameError\nexcept IndexError:\n    ...                   # Handle IndexError\nexcept:\n    ...                   # Handle all other exceptions\nelse:\n    ...                   # Handle the no-exception case"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b4",
+    "sequence_id": 22,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 72.00094604492188,
+          "y0": 315.5027160644531,
+          "x1": 432.0470275878906,
+          "y1": 363.8915100097656,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "4",
+      "confidence": 1.0,
+      "layout_reading_order": 22,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "The empty except clause is a sort of wildcard feature—because it catches everything, it\nallows your handlers to be as general or specific as you like. In some scenarios, this\nform may be more convenient than listing all possible exceptions in a try. For example,\nthe following catches everything without listing anything:"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b5",
+    "sequence_id": 23,
+    "node_type": "code",
+    "strategy": "keep_original",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 90.00094604492188,
+          "y0": 369.1767883300781,
+          "x1": 293.6526184082031,
+          "y1": 407.56121826171875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "5",
+      "confidence": 1.0,
+      "layout_reading_order": 23,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "try:\n    action()\nexcept:\n    ...                   # Catch all possible exceptions"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b6",
+    "sequence_id": 24,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 72.00094604492188,
+          "y0": 413.8467102050781,
+          "x1": 432.14239501953125,
+          "y1": 498.9555358886719,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "6",
+      "confidence": 1.0,
+      "layout_reading_order": 24,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Empty excepts also raise some design issues, though. Although convenient, they may\ncatch unexpected system exceptions unrelated to your code, and they may inadver-\ntently intercept exceptions meant for another handler. For example, even system exit\ncalls in Python trigger exceptions, and you usually want these to pass. That said, this\nstructure may also catch genuine programming mistakes for you which you probably\nwant to see an error message. We’ll revisit this as a gotcha at the end of this part of the\nbook. For now, I’ll just say “use with care.”"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b7",
+    "sequence_id": 25,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 72.00094604492188,
+          "y0": 504.5267639160156,
+          "x1": 432.01763916015625,
+          "y1": 540.675537109375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "7",
+      "confidence": 1.0,
+      "layout_reading_order": 25,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Python 3.0 introduced an alternative that solves one of these problems—catching an\nexception named Exception has almost the same effect as an empty except, but ignores\nexceptions related to system exits:"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b8",
+    "sequence_id": 26,
+    "node_type": "code",
+    "strategy": "keep_original",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 90.00094604492188,
+          "y0": 545.9608154296875,
+          "x1": 334.9971008300781,
+          "y1": 584.3452758789062,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "8",
+      "confidence": 1.0,
+      "layout_reading_order": 26,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "try:\n    action()\nexcept Exception:\n    ...                   # Catch all possible exceptions, except exits"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b9",
+    "sequence_id": 27,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 72.00094604492188,
+          "y0": 608.130126953125,
+          "x1": 208.1919708251953,
+          "y1": 620.172119140625,
+          "is_normalized": false
+        },
+        {
+          "x0": 72.0,
+          "y0": 54.285621643066406,
+          "x1": 432.0841064453125,
+          "y1": 90.43440246582031,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2,
+        3
+      ],
+      "provider_native_id": "9",
+      "confidence": 1.0,
+      "layout_reading_order": 27,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "838 | Chapter 33: Exception Coding Details This has most of the same convenience of the empty except, but also most of the same\ndangers. We’ll explore how this form works its voodoo in the next chapter, when we\nstudy exception classes."
+    },
+    "control_plane": {
+      "merge_count": 2
+    },
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b2",
+    "sequence_id": 28,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 127.9990234375,
+          "y0": 110.47203063964844,
+          "x1": 390.0889892578125,
+          "y1": 240.17999267578125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "2",
+      "confidence": 1.0,
+      "layout_reading_order": 29,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Version skew note: Python 3.0 requires the except E as V: handler clause\nform listed in Table 33-1 and used in this book, rather than the older\nexcept E, V: form. The latter form is still available (but not\nrecommended) in Python 2.6: if used, it’s converted to the former. The\nchange was made to eliminate errors that occur when confusing the\nolder form with two alternate exceptions, properly coded in 2.6 as\nexcept (E1, E2):. Because 3.0 supports the as form only, commas in a\nhandler clause are always taken to mean a tuple, regardless of whether\nparentheses are used or not, and the values are interpreted as alternative\nexceptions to be caught. This change also modifies the scoping rules:\nwith the new as syntax, the variable V is deleted at the end of the\nexcept block."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b3",
+    "sequence_id": 29,
+    "node_type": "heading",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 71.9990234375,
+          "y0": 255.28500366210938,
+          "x1": 162.509033203125,
+          "y1": 273.2550048828125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "3",
+      "confidence": 1.0,
+      "layout_reading_order": 30,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "The try else Clause",
+      "heading_level": "unknown"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b4",
+    "sequence_id": 30,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 71.9990234375,
+          "y0": 277.55560302734375,
+          "x1": 432.04058837890625,
+          "y1": 325.94439697265625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "4",
+      "confidence": 1.0,
+      "layout_reading_order": 31,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "The purpose of the else clause is not always immediately obvious to Python newcom-\ners. Without it, though, there is no way to tell (without setting and checking Boolean\nflags) whether the flow of control has proceeded past a try statement because no ex-\nception was raised, or because an exception occurred and was handled:"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b5",
+    "sequence_id": 31,
+    "node_type": "code",
+    "strategy": "keep_original",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 89.99903869628906,
+          "y0": 331.22967529296875,
+          "x1": 242.22988891601562,
+          "y1": 378.76226806640625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "5",
+      "confidence": 1.0,
+      "layout_reading_order": 32,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "try:\n    ...run code...\nexcept IndexError:\n    ...handle exception...\n# Did we get here because the try failed or not?"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b6",
+    "sequence_id": 32,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 71.9990234375,
+          "y0": 385.49560546875,
+          "x1": 431.9990234375,
+          "y1": 421.6444396972656,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "6",
+      "confidence": 1.0,
+      "layout_reading_order": 33,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Much like the way else clauses in loops make the exit cause more apparent, the else\nclause provides syntax in a try that makes what has happened obvious and\nunambiguous:"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b7",
+    "sequence_id": 33,
+    "node_type": "code",
+    "strategy": "keep_original",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 89.9990234375,
+          "y0": 426.9297180175781,
+          "x1": 213.9525909423828,
+          "y1": 484.506103515625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "7",
+      "confidence": 1.0,
+      "layout_reading_order": 34,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "try:\n    ...run code...\nexcept IndexError:\n    ...handle exception...\nelse:\n    ...no exception occurred..."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b8",
+    "sequence_id": 34,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 71.9990234375,
+          "y0": 490.7915954589844,
+          "x1": 397.3586120605469,
+          "y1": 502.7460021972656,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "8",
+      "confidence": 1.0,
+      "layout_reading_order": 35,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "You can almost emulate an else clause by moving its code into the try block:"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b9",
+    "sequence_id": 35,
+    "node_type": "code",
+    "strategy": "keep_original",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 89.9990234375,
+          "y0": 507.7456970214844,
+          "x1": 213.9525909423828,
+          "y1": 555.72607421875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "9",
+      "confidence": 1.0,
+      "layout_reading_order": 36,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "try:\n    ...run code...\n    ...no exception occurred...\nexcept IndexError:\n    ...handle exception..."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b10",
+    "sequence_id": 36,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 71.9990234375,
+          "y0": 562.0115966796875,
+          "x1": 431.9900207519531,
+          "y1": 586.2059936523438,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "10",
+      "confidence": 1.0,
+      "layout_reading_order": 37,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "This can lead to incorrect exception classifications, though. If the “no exception oc-\ncurred” action triggers an IndexError, it will register as a failure of the try block and"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b11",
+    "sequence_id": 37,
+    "node_type": "paragraph",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 317.04901123046875,
+          "y0": 609.2130126953125,
+          "x1": 431.9879455566406,
+          "y1": 619.9949951171875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "11",
+      "confidence": 1.0,
+      "layout_reading_order": 38,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "The try/except/else Statement | 839"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  }
+]

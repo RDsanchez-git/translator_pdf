@@ -1,0 +1,1656 @@
+[
+  {
+    "node_id": "p1_b0",
+    "sequence_id": 1,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 72.0,
+          "y0": 52.29900360107422,
+          "x1": 151.48500061035156,
+          "y1": 66.4635009765625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "0",
+      "confidence": 1.0,
+      "layout_reading_order": 0,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Or Boolean values:"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b1",
+    "sequence_id": 2,
+    "node_type": "code",
+    "strategy": "keep_original",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 89.00149536132812,
+          "y0": 73.45000457763672,
+          "x1": 225.00148010253906,
+          "y1": 81.95000457763672,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "1",
+      "confidence": 1.0,
+      "layout_reading_order": 1,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "In[9]: monte.str.startswith('T')"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b2",
+    "sequence_id": 3,
+    "node_type": "code",
+    "strategy": "keep_original",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 89.00148010253906,
+          "y0": 89.6500015258789,
+          "x1": 169.75148010253906,
+          "y1": 159.35000610351562,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "2",
+      "confidence": 1.0,
+      "layout_reading_order": 2,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Out[9]: 0    False\n        1    False\n        2     True\n        3    False\n        4     True\n        5    False\n        dtype: bool"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b3",
+    "sequence_id": 4,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 71.9964828491211,
+          "y0": 164.4989776611328,
+          "x1": 352.6404724121094,
+          "y1": 178.66348266601562,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "3",
+      "confidence": 1.0,
+      "layout_reading_order": 3,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Still others return lists or other compound values for each element:"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b4",
+    "sequence_id": 5,
+    "node_type": "code",
+    "strategy": "keep_original",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 88.99598693847656,
+          "y0": 185.64999389648438,
+          "x1": 195.24598693847656,
+          "y1": 194.14999389648438,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "4",
+      "confidence": 1.0,
+      "layout_reading_order": 4,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "In[10]: monte.str.split()"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b5",
+    "sequence_id": 6,
+    "node_type": "code",
+    "strategy": "keep_original",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 88.9959945678711,
+          "y0": 201.84999084472656,
+          "x1": 220.74600219726562,
+          "y1": 271.54998779296875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "5",
+      "confidence": 1.0,
+      "layout_reading_order": 5,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Out[10]: 0    [Graham, Chapman]\n         1       [John, Cleese]\n         2     [Terry, Gilliam]\n         3         [Eric, Idle]\n         4       [Terry, Jones]\n         5     [Michael, Palin]\n         dtype: object"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b6",
+    "sequence_id": 7,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 72.00149536132812,
+          "y0": 276.698974609375,
+          "x1": 432.0044860839844,
+          "y1": 303.4634704589844,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "6",
+      "confidence": 1.0,
+      "layout_reading_order": 6,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "We’ll see further manipulations of this kind of series-of-lists object as we continue\nour discussion."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b7",
+    "sequence_id": 8,
+    "node_type": "heading",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 72.00015258789062,
+          "y0": 313.9820556640625,
+          "x1": 203.54141235351562,
+          "y1": 327.8309631347656,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "7",
+      "confidence": 1.0,
+      "layout_reading_order": 7,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Methods using regular expressions",
+      "heading_level": "unknown"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b8",
+    "sequence_id": 9,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 71.99739837646484,
+          "y0": 331.5909729003906,
+          "x1": 432.0049743652344,
+          "y1": 371.5487060546875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "8",
+      "confidence": 1.0,
+      "layout_reading_order": 8,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "In addition, there are several methods that accept regular expressions to examine the\ncontent of each string element, and follow some of the API conventions of Python’s\nbuilt-in re module (see Table 3-4)."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b9",
+    "sequence_id": 10,
+    "node_type": "caption",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 71.99691772460938,
+          "y0": 382.4352111816406,
+          "x1": 389.94683837890625,
+          "y1": 396.0552062988281,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "9",
+      "confidence": 1.0,
+      "layout_reading_order": 9,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Table 3-4. Mapping between Pandas methods and functions in Python’s re module"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b10",
+    "sequence_id": 11,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 75.60382843017578,
+          "y0": 401.3031921386719,
+          "x1": 158.8108367919922,
+          "y1": 412.085205078125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "10",
+      "confidence": 1.0,
+      "layout_reading_order": 10,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Method\nDescription"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b11",
+    "sequence_id": 12,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 75.60382843017578,
+          "y0": 415.3251953125,
+          "x1": 288.3554992675781,
+          "y1": 425.9902038574219,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "11",
+      "confidence": 1.0,
+      "layout_reading_order": 11,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "match()\nCall re.match() on each element, returning a Boolean."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b12",
+    "sequence_id": 13,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 75.59996795654297,
+          "y0": 429.78021240234375,
+          "x1": 333.8774719238281,
+          "y1": 440.4452209472656,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "12",
+      "confidence": 1.0,
+      "layout_reading_order": 12,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "extract()\nCall re.match() on each element, returning matched groups as strings."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b13",
+    "sequence_id": 14,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 75.5959701538086,
+          "y0": 444.2351989746094,
+          "x1": 238.00448608398438,
+          "y1": 454.90020751953125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "13",
+      "confidence": 1.0,
+      "layout_reading_order": 13,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "findall()\nCall re.findall() on each element."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b14",
+    "sequence_id": 15,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 75.60301208496094,
+          "y0": 458.1352233886719,
+          "x1": 277.5709533691406,
+          "y1": 468.80023193359375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "14",
+      "confidence": 1.0,
+      "layout_reading_order": 14,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "replace()\nReplace occurrences of pattern with some other string."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b15",
+    "sequence_id": 16,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 75.60199737548828,
+          "y0": 473.14520263671875,
+          "x1": 292.6054992675781,
+          "y1": 483.8102111816406,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "15",
+      "confidence": 1.0,
+      "layout_reading_order": 15,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "contains() Call re.search() on each element, returning a Boolean."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b16",
+    "sequence_id": 17,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 75.5999755859375,
+          "y0": 487.0451965332031,
+          "x1": 207.03799438476562,
+          "y1": 497.710205078125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "16",
+      "confidence": 1.0,
+      "layout_reading_order": 16,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "count()\nCount occurrences of pattern."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b17",
+    "sequence_id": 18,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 75.60199737548828,
+          "y0": 502.0552062988281,
+          "x1": 270.7350158691406,
+          "y1": 512.72021484375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "17",
+      "confidence": 1.0,
+      "layout_reading_order": 17,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "split()\nEquivalent to str.split(), but accepts regexps."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b18",
+    "sequence_id": 19,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 75.60002136230469,
+          "y0": 516.51025390625,
+          "x1": 274.9850158691406,
+          "y1": 527.1752319335938,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "18",
+      "confidence": 1.0,
+      "layout_reading_order": 18,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "rsplit()\nEquivalent to str.rsplit(), but accepts regexps."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b19",
+    "sequence_id": 20,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 71.99700927734375,
+          "y0": 540.6741943359375,
+          "x1": 432.00457763671875,
+          "y1": 580.0386962890625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "19",
+      "confidence": 1.0,
+      "layout_reading_order": 19,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "With these, you can do a wide range of interesting operations. For example, we can\nextract the first name from each by asking for a contiguous group of characters at the\nbeginning of each element:"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b20",
+    "sequence_id": 21,
+    "node_type": "composite_block",
+    "strategy": "keep_original",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 316.61846923828125,
+          "y0": 610.218017578125,
+          "x1": 431.99853515625,
+          "y1": 621.0,
+          "is_normalized": false
+        },
+        {
+          "x0": 89.0,
+          "y0": 54.849998474121094,
+          "x1": 259.0,
+          "y1": 63.349998474121094,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1,
+        2
+      ],
+      "provider_native_id": "20",
+      "confidence": 1.0,
+      "layout_reading_order": 20,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Vectorized String Operations \n| \n181 In[11]: monte.str.extract('([A-Za-z]+)')"
+    },
+    "control_plane": {
+      "merge_count": 2
+    },
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b1",
+    "sequence_id": 22,
+    "node_type": "code",
+    "strategy": "keep_original",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 89.0,
+          "y0": 71.05000305175781,
+          "x1": 182.5,
+          "y1": 140.75,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "1",
+      "confidence": 1.0,
+      "layout_reading_order": 22,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Out[11]: 0     Graham\n         1       John\n         2      Terry\n         3       Eric\n         4      Terry\n         5    Michael\n         dtype: object"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b2",
+    "sequence_id": 23,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 71.99507904052734,
+          "y0": 145.89898681640625,
+          "x1": 431.9981689453125,
+          "y1": 185.8567352294922,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "2",
+      "confidence": 1.0,
+      "layout_reading_order": 23,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Or we can do something more complicated, like finding all names that start and end\nwith a consonant, making use of the start-of-string (^) and end-of-string ($) regular\nexpression characters:"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b3",
+    "sequence_id": 24,
+    "node_type": "code",
+    "strategy": "keep_original",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 89.00411987304688,
+          "y0": 192.84324645996094,
+          "x1": 301.5041198730469,
+          "y1": 201.34324645996094,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "3",
+      "confidence": 1.0,
+      "layout_reading_order": 24,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "In[12]: monte.str.findall(r'^[^AEIOU].*[^aeiou]$')"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b4",
+    "sequence_id": 25,
+    "node_type": "code",
+    "strategy": "keep_original",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 89.00413513183594,
+          "y0": 209.04324340820312,
+          "x1": 216.50413513183594,
+          "y1": 278.74322509765625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "4",
+      "confidence": 1.0,
+      "layout_reading_order": 25,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Out[12]: 0    [Graham Chapman]\n         1                  []\n         2     [Terry Gilliam]\n         3                  []\n         4       [Terry Jones]\n         5     [Michael Palin]\n         dtype: object"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b5",
+    "sequence_id": 26,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 71.99920654296875,
+          "y0": 284.4854736328125,
+          "x1": 432.002197265625,
+          "y1": 311.2499694824219,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "5",
+      "confidence": 1.0,
+      "layout_reading_order": 26,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "The ability to concisely apply regular expressions across Series or DataFrame entries\nopens up many possibilities for analysis and cleaning of data."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b6",
+    "sequence_id": 27,
+    "node_type": "heading",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 72.00495910644531,
+          "y0": 321.7685546875,
+          "x1": 160.9938507080078,
+          "y1": 335.6174621582031,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "6",
+      "confidence": 1.0,
+      "layout_reading_order": 27,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Miscellaneous methods",
+      "heading_level": "unknown"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b7",
+    "sequence_id": 28,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 71.99583435058594,
+          "y0": 339.3774719238281,
+          "x1": 431.99591064453125,
+          "y1": 366.1419677734375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "7",
+      "confidence": 1.0,
+      "layout_reading_order": 28,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Finally, there are some miscellaneous methods that enable other convenient opera‐\ntions (see Table 3-5)."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b8",
+    "sequence_id": 29,
+    "node_type": "caption",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 72.0038070678711,
+          "y0": 377.0284729003906,
+          "x1": 225.89381408691406,
+          "y1": 390.6484680175781,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "8",
+      "confidence": 1.0,
+      "layout_reading_order": 29,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Table 3-5. Other Pandas string methods"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b9",
+    "sequence_id": 30,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 75.60279083251953,
+          "y0": 395.8964538574219,
+          "x1": 180.05979919433594,
+          "y1": 406.678466796875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "9",
+      "confidence": 1.0,
+      "layout_reading_order": 30,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Method\nDescription"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b10",
+    "sequence_id": 31,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 75.60279846191406,
+          "y0": 409.36346435546875,
+          "x1": 201.2790069580078,
+          "y1": 420.0284729003906,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "10",
+      "confidence": 1.0,
+      "layout_reading_order": 31,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "get()\nIndex each element"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b11",
+    "sequence_id": 32,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 75.5975112915039,
+          "y0": 423.8184814453125,
+          "x1": 198.53399658203125,
+          "y1": 434.4834899902344,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "11",
+      "confidence": 1.0,
+      "layout_reading_order": 32,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "slice()\nSlice each element"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b12",
+    "sequence_id": 33,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 75.59800720214844,
+          "y0": 438.2734680175781,
+          "x1": 279.8489990234375,
+          "y1": 448.9384765625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "12",
+      "confidence": 1.0,
+      "layout_reading_order": 33,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "slice_replace()\nReplace slice in each element with passed value"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b13",
+    "sequence_id": 34,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 75.60199737548828,
+          "y0": 452.7284851074219,
+          "x1": 201.36900329589844,
+          "y1": 463.39349365234375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "13",
+      "confidence": 1.0,
+      "layout_reading_order": 34,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "cat()\nConcatenate strings"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b14",
+    "sequence_id": 35,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 75.60250091552734,
+          "y0": 467.1834716796875,
+          "x1": 185.2050018310547,
+          "y1": 477.8484802246094,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "14",
+      "confidence": 1.0,
+      "layout_reading_order": 35,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "repeat()\nRepeat values"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b15",
+    "sequence_id": 36,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 75.59700012207031,
+          "y0": 481.6384582519531,
+          "x1": 229.3679962158203,
+          "y1": 492.303466796875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "15",
+      "confidence": 1.0,
+      "layout_reading_order": 36,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "normalize()\nReturn Unicode form of string"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b16",
+    "sequence_id": 37,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 75.60250854492188,
+          "y0": 496.0934753417969,
+          "x1": 292.9530029296875,
+          "y1": 506.75848388671875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "16",
+      "confidence": 1.0,
+      "layout_reading_order": 37,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "pad()\nAdd whitespace to left, right, or both sides of strings"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b17",
+    "sequence_id": 38,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 75.5989990234375,
+          "y0": 510.5484924316406,
+          "x1": 321.5999755859375,
+          "y1": 521.2135009765625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "17",
+      "confidence": 1.0,
+      "layout_reading_order": 38,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "wrap()\nSplit long strings into lines with length less than a given width"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b18",
+    "sequence_id": 39,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 75.60099792480469,
+          "y0": 525.5585327148438,
+          "x1": 332.718505859375,
+          "y1": 536.2235107421875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "18",
+      "confidence": 1.0,
+      "layout_reading_order": 39,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "join()\nJoin strings in each element of the Series with passed separator"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b19",
+    "sequence_id": 40,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 75.60150146484375,
+          "y0": 540.0134887695312,
+          "x1": 267.77099609375,
+          "y1": 550.678466796875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "19",
+      "confidence": 1.0,
+      "layout_reading_order": 40,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "get_dummies()\nExtract dummy variables as a DataFrame"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b20",
+    "sequence_id": 41,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 72.0,
+          "y0": 610.218017578125,
+          "x1": 228.1230010986328,
+          "y1": 621.0,
+          "is_normalized": false
+        },
+        {
+          "x0": 71.99703979492188,
+          "y0": 57.43550109863281,
+          "x1": 432.0047607421875,
+          "y1": 123.7040023803711,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2,
+        3
+      ],
+      "provider_native_id": "20",
+      "confidence": 1.0,
+      "layout_reading_order": 41,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "182 \n| \nChapter 3: Data Manipulation with Pandas Vectorized item access and slicing.    The get() and slice() operations, in particular,\nenable vectorized element access from each array. For example, we can get a slice of\nthe first three characters of each array using str.slice(0, 3). Note that this behav‐\nior is also available through Python’s normal indexing syntax—for example,\ndf.str.slice(0, 3) is equivalent to df.str[0:3]:"
+    },
+    "control_plane": {
+      "merge_count": 2
+    },
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b1",
+    "sequence_id": 42,
+    "node_type": "code",
+    "strategy": "keep_original",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 89.00091552734375,
+          "y0": 130.69052124023438,
+          "x1": 182.50091552734375,
+          "y1": 139.19052124023438,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "1",
+      "confidence": 1.0,
+      "layout_reading_order": 43,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "In[13]: monte.str[0:3]"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b2",
+    "sequence_id": 43,
+    "node_type": "code",
+    "strategy": "keep_original",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 89.00092315673828,
+          "y0": 146.89051818847656,
+          "x1": 182.50091552734375,
+          "y1": 216.5904998779297,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "2",
+      "confidence": 1.0,
+      "layout_reading_order": 44,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Out[13]: 0    Gra\n         1    Joh\n         2    Ter\n         3    Eri\n         4    Ter\n         5    Mic\n         dtype: object"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b3",
+    "sequence_id": 44,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 71.9989242553711,
+          "y0": 222.33273315429688,
+          "x1": 299.6073913574219,
+          "y1": 236.4972381591797,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "3",
+      "confidence": 1.0,
+      "layout_reading_order": 45,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Indexing via df.str.get(i) and df.str[i] is similar."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b4",
+    "sequence_id": 45,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 71.99891662597656,
+          "y0": 241.52598571777344,
+          "x1": 432.0012512207031,
+          "y1": 282.0769958496094,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "4",
+      "confidence": 1.0,
+      "layout_reading_order": 46,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "These get() and slice() methods also let you access elements of arrays returned by\nsplit(). For example, to extract the last name of each entry, we can combine\nsplit() and get():"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b5",
+    "sequence_id": 46,
+    "node_type": "code",
+    "strategy": "keep_original",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 89.00247192382812,
+          "y0": 289.0635070800781,
+          "x1": 246.25247192382812,
+          "y1": 297.5635070800781,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "5",
+      "confidence": 1.0,
+      "layout_reading_order": 47,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "In[14]: monte.str.split().str.get(-1)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b6",
+    "sequence_id": 47,
+    "node_type": "code",
+    "strategy": "keep_original",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 89.00247192382812,
+          "y0": 305.2635192871094,
+          "x1": 182.50247192382812,
+          "y1": 374.96356201171875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "6",
+      "confidence": 1.0,
+      "layout_reading_order": 48,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Out[14]: 0    Chapman\n         1     Cleese\n         2    Gilliam\n         3       Idle\n         4      Jones\n         5      Palin\n         dtype: object"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b7",
+    "sequence_id": 48,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 71.9979019165039,
+          "y0": 385.2490539550781,
+          "x1": 432.00384521484375,
+          "y1": 450.92431640625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "7",
+      "confidence": 1.0,
+      "layout_reading_order": 49,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Indicator variables.    Another method that requires a bit of extra explanation is the\nget_dummies() method. This is useful when your data has a column containing some\nsort of coded indicator. For example, we might have a dataset that contains informa‐\ntion in the form of codes, such as A=“born in America,” B=“born in the United King‐\ndom,” C=“likes cheese,” D=“likes spam”:"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b8",
+    "sequence_id": 49,
+    "node_type": "code",
+    "strategy": "keep_original",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 89.00187683105469,
+          "y0": 457.91082763671875,
+          "x1": 395.00189208984375,
+          "y1": 507.21087646484375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "8",
+      "confidence": 1.0,
+      "layout_reading_order": 50,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "In[15]:\nfull_monte = pd.DataFrame({'name': monte,\n                           'info': ['B|C|D', 'B|D', 'A|C', 'B|D', 'B|C',\n                           'B|C|D']})\nfull_monte"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b9",
+    "sequence_id": 50,
+    "node_type": "code",
+    "strategy": "keep_original",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 89.00189208984375,
+          "y0": 514.910888671875,
+          "x1": 229.25189208984375,
+          "y1": 584.6109619140625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "9",
+      "confidence": 1.0,
+      "layout_reading_order": 51,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Out[15]:     info            name\n         0  B|C|D  Graham Chapman\n         1    B|D     John Cleese\n         2    A|C   Terry Gilliam\n         3    B|D       Eric Idle\n         4    B|C     Terry Jones\n         5  B|C|D   Michael Palin"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b10",
+    "sequence_id": 51,
+    "node_type": "paragraph",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 316.6239013671875,
+          "y0": 610.218017578125,
+          "x1": 432.00396728515625,
+          "y1": 621.0,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "10",
+      "confidence": 1.0,
+      "layout_reading_order": 52,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Vectorized String Operations \n| \n183"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  }
+]

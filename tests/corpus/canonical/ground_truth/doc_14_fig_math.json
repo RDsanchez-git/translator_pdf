@@ -1,0 +1,2082 @@
+[
+  {
+    "node_id": "p1_b0",
+    "sequence_id": 1,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 60.04497528076172,
+          "y0": 106.1502456665039,
+          "x1": 478.4755859375,
+          "y1": 272.65093994140625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "0",
+      "confidence": 1.0,
+      "layout_reading_order": 0,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "90\nAnalytic Geometry\nFigure 3.13\nProjection onto an\naffine space.\n(a) original setting;\n(b) setting shifted\nby −x0 so that\nx −x0 can be\nprojected onto the\ndirection space U;\n(c) projection is\ntranslated back to\nx0 + πU(x −x0),\nwhich gives the final\northogonal\nprojection πL(x)."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b1",
+    "sequence_id": 2,
+    "node_type": "composite_block",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 225.4950714111328,
+          "y0": 162.7870635986328,
+          "x1": 231.4571075439453,
+          "y1": 171.73907470703125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "1",
+      "confidence": 1.0,
+      "layout_reading_order": 1,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "L"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b2",
+    "sequence_id": 3,
+    "node_type": "composite_block",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 184.5804443359375,
+          "y0": 176.7449188232422,
+          "x1": 193.52603149414062,
+          "y1": 186.3619384765625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "2",
+      "confidence": 1.0,
+      "layout_reading_order": 2,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "x0"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b3",
+    "sequence_id": 4,
+    "node_type": "composite_block",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 202.09559631347656,
+          "y0": 120.14759826660156,
+          "x1": 207.99496459960938,
+          "y1": 129.099609375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "3",
+      "confidence": 1.0,
+      "layout_reading_order": 3,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "x"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b4",
+    "sequence_id": 5,
+    "node_type": "composite_block",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 175.05612182617188,
+          "y0": 195.0265350341797,
+          "x1": 182.76463317871094,
+          "y1": 204.64410400390625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "4",
+      "confidence": 1.0,
+      "layout_reading_order": 4,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "b2"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b5",
+    "sequence_id": 6,
+    "node_type": "composite_block",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 150.09613037109375,
+          "y0": 223.5443878173828,
+          "x1": 216.2084197998047,
+          "y1": 233.16140747070312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "5",
+      "confidence": 1.0,
+      "layout_reading_order": 5,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "b1\n0"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b6",
+    "sequence_id": 7,
+    "node_type": "caption",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 175.35699462890625,
+          "y0": 236.7547607421875,
+          "x1": 215.072021484375,
+          "y1": 244.72486877441406,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "6",
+      "confidence": 1.0,
+      "layout_reading_order": 6,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "(a) Setting."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b7",
+    "sequence_id": 8,
+    "node_type": "composite_block",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 265.986328125,
+          "y0": 223.54432678222656,
+          "x1": 331.9837341308594,
+          "y1": 233.16134643554688,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "7",
+      "confidence": 1.0,
+      "layout_reading_order": 7,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "b1\n0"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b8",
+    "sequence_id": 9,
+    "node_type": "composite_block",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 286.2288818359375,
+          "y0": 160.51025390625,
+          "x1": 312.0157165527344,
+          "y1": 176.0419921875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "8",
+      "confidence": 1.0,
+      "layout_reading_order": 8,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "x −x0"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b9",
+    "sequence_id": 10,
+    "node_type": "composite_block",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 285.32049560546875,
+          "y0": 194.82977294921875,
+          "x1": 347.6315612792969,
+          "y1": 221.801513671875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "9",
+      "confidence": 1.0,
+      "layout_reading_order": 9,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "U = L −x0\nπU(x −x0)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b10",
+    "sequence_id": 11,
+    "node_type": "composite_block",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 290.4752197265625,
+          "y0": 194.91004943847656,
+          "x1": 298.1842346191406,
+          "y1": 204.52761840820312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "10",
+      "confidence": 1.0,
+      "layout_reading_order": 10,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "b2"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b11",
+    "sequence_id": 12,
+    "node_type": "caption",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 260.3039855957031,
+          "y0": 236.7537841796875,
+          "x1": 361.9007873535156,
+          "y1": 265.6458740234375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "11",
+      "confidence": 1.0,
+      "layout_reading_order": 11,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "(b) Reduce problem to pro-\njection πU onto vector sub-\nspace."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b12",
+    "sequence_id": 13,
+    "node_type": "composite_block",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 455.76092529296875,
+          "y0": 162.73085021972656,
+          "x1": 461.72296142578125,
+          "y1": 171.682861328125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "12",
+      "confidence": 1.0,
+      "layout_reading_order": 12,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "L"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b13",
+    "sequence_id": 14,
+    "node_type": "composite_block",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 416.64495849609375,
+          "y0": 176.74485778808594,
+          "x1": 425.5905456542969,
+          "y1": 186.36187744140625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "13",
+      "confidence": 1.0,
+      "layout_reading_order": 13,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "x0"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b14",
+    "sequence_id": 15,
+    "node_type": "composite_block",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 432.3609313964844,
+          "y0": 120.09138488769531,
+          "x1": 438.26031494140625,
+          "y1": 129.04339599609375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "14",
+      "confidence": 1.0,
+      "layout_reading_order": 14,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "x"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b15",
+    "sequence_id": 16,
+    "node_type": "composite_block",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 406.7649841308594,
+          "y0": 194.9703826904297,
+          "x1": 414.4734802246094,
+          "y1": 204.58795166015625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "15",
+      "confidence": 1.0,
+      "layout_reading_order": 15,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "b2"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b16",
+    "sequence_id": 17,
+    "node_type": "composite_block",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 381.8049621582031,
+          "y0": 223.5443878173828,
+          "x1": 447.2329406738281,
+          "y1": 233.16140747070312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "16",
+      "confidence": 1.0,
+      "layout_reading_order": 16,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "b1\n0"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b17",
+    "sequence_id": 18,
+    "node_type": "composite_block",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 427.26025390625,
+          "y0": 169.72850036621094,
+          "x1": 448.8721008300781,
+          "y1": 179.33929443359375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "17",
+      "confidence": 1.0,
+      "layout_reading_order": 17,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "πL(x)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b18",
+    "sequence_id": 19,
+    "node_type": "caption",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 375.5090026855469,
+          "y0": 236.7547607421875,
+          "x1": 478.47467041015625,
+          "y1": 256.01495361328125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "18",
+      "confidence": 1.0,
+      "layout_reading_order": 18,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "(c) Add support point back in\nto get affine projection πL."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b19",
+    "sequence_id": 20,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 143.7310028076172,
+          "y0": 310.26153564453125,
+          "x1": 478.4766845703125,
+          "y1": 336.7142639160156,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "19",
+      "confidence": 1.0,
+      "layout_reading_order": 19,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "These steps are illustrated in Figures 3.12(b) and (c). We immediately see\nthat u1 and u2 are orthogonal, i.e., u⊤\n1 u2 = 0."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b20",
+    "sequence_id": 21,
+    "node_type": "heading",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 215.00497436523438,
+          "y0": 372.8756408691406,
+          "x1": 407.2015686035156,
+          "y1": 383.7847595214844,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "20",
+      "confidence": 1.0,
+      "layout_reading_order": 20,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "3.8.4 Projection onto Affine Subspaces"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b21",
+    "sequence_id": 22,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 143.7309112548828,
+          "y0": 391.2425842285156,
+          "x1": 478.4784851074219,
+          "y1": 557.2192993164062,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "21",
+      "confidence": 1.0,
+      "layout_reading_order": 21,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Thus far, we discussed how to project a vector onto a lower-dimensional\nsubspace U. In the following, we provide a solution to projecting a vector\nonto an affine subspace.\nConsider the setting in Figure 3.13(a). We are given an affine space L =\nx0 + U, where b1, b2 are basis vectors of U. To determine the orthogonal\nprojection πL(x) of x onto L, we transform the problem into a problem\nthat we know how to solve: the projection onto a vector subspace. In\norder to get there, we subtract the support point x0 from x and from L,\nso that L −x0 = U is exactly the vector subspace U. We can now use the\northogonal projections onto a subspace we discussed in Section 3.8.2 and\nobtain the projection πU(x −x0), which is illustrated in Figure 3.13(b).\nThis projection can now be translated back into L by adding x0, such that\nwe obtain the orthogonal projection onto an affine space L as"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b22",
+    "sequence_id": 23,
+    "node_type": "display_equation",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 248.2029266357422,
+          "y0": 567.0211181640625,
+          "x1": 478.4759216308594,
+          "y1": 586.0196533203125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "22",
+      "confidence": 1.0,
+      "layout_reading_order": 22,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "πL(x) = x0 + πU(x −x0) ,\n(3.72)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b23",
+    "sequence_id": 24,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 143.73092651367188,
+          "y0": 587.7321166992188,
+          "x1": 478.4788818359375,
+          "y1": 645.6836547851562,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "23",
+      "confidence": 1.0,
+      "layout_reading_order": 23,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "where πU(·) is the orthogonal projection onto the subspace U, i.e., the\ndirection space of L; see Figure 3.13(c).\nFrom Figure 3.13, it is also evident that the distance of x from the affine\nspace L is identical to the distance of x −x0 from U, i.e.,"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b24",
+    "sequence_id": 25,
+    "node_type": "display_equation",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 173.6759796142578,
+          "y0": 647.3961181640625,
+          "x1": 478.4756164550781,
+          "y1": 682.3356323242188,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "24",
+      "confidence": 1.0,
+      "layout_reading_order": 24,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "d(x, L) = ∥x −πL(x)∥= ∥x −(x0 + πU(x −x0))∥\n(3.73a)\n= d(x −x0, πU(x −x0)) = d(x −x0, U) .\n(3.73b)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b25",
+    "sequence_id": 26,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 143.73101806640625,
+          "y0": 684.595458984375,
+          "x1": 478.4749450683594,
+          "y1": 708.0072631835938,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "25",
+      "confidence": 1.0,
+      "layout_reading_order": 25,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "We will use projections onto an affine subspace to derive the concept of\na separating hyperplane in Section 12.1."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b26",
+    "sequence_id": 27,
+    "node_type": "paragraph",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 146.2150115966797,
+          "y0": 727.3646850585938,
+          "x1": 478.4757080078125,
+          "y1": 735.6430053710938,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "26",
+      "confidence": 1.0,
+      "layout_reading_order": 26,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Draft (2024-01-15) of “Mathematics for Machine Learning”. Feedback: https://mml-book.com."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b0",
+    "sequence_id": 28,
+    "node_type": "paragraph",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 72.0,
+          "y0": 106.1502456665039,
+          "x1": 406.7444152832031,
+          "y1": 116.17221069335938,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "0",
+      "confidence": 1.0,
+      "layout_reading_order": 27,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "3.9 Rotations\n91"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b1",
+    "sequence_id": 29,
+    "node_type": "caption",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 418.6999816894531,
+          "y0": 127.85616302490234,
+          "x1": 488.4942321777344,
+          "y1": 198.5959014892578,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "1",
+      "confidence": 1.0,
+      "layout_reading_order": 28,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Figure 3.14 A\nrotation rotates\nobjects in a plane\nabout the origin. If\nthe rotation angle is\npositive, we rotate\ncounterclockwise."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b2",
+    "sequence_id": 30,
+    "node_type": "composite_block",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 287.00091552734375,
+          "y0": 164.4595489501953,
+          "x1": 310.694580078125,
+          "y1": 171.75889587402344,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "2",
+      "confidence": 1.0,
+      "layout_reading_order": 29,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Original"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b3",
+    "sequence_id": 31,
+    "node_type": "composite_block",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 178.89590454101562,
+          "y0": 175.3351287841797,
+          "x1": 231.67425537109375,
+          "y1": 184.2001495361328,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "3",
+      "confidence": 1.0,
+      "layout_reading_order": 30,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Rotated by 112.5◦"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b4",
+    "sequence_id": 32,
+    "node_type": "caption",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 418.70001220703125,
+          "y0": 315.1672058105469,
+          "x1": 490.4309997558594,
+          "y1": 406.8298645019531,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "4",
+      "confidence": 1.0,
+      "layout_reading_order": 31,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Figure 3.15 The\nrobotic arm needs to\nrotate its joints in\norder to pick up\nobjects or to place\nthem correctly.\nFigure taken\nfrom (Deisenroth\net al., 2015)."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b6",
+    "sequence_id": 33,
+    "node_type": "heading",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 204.7030029296875,
+          "y0": 480.23974609375,
+          "x1": 274.0412292480469,
+          "y1": 491.1488342285156,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "6",
+      "confidence": 1.0,
+      "layout_reading_order": 32,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "3.9 Rotations"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b7",
+    "sequence_id": 34,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 72.0,
+          "y0": 498.72857666015625,
+          "x1": 446.45989990234375,
+          "y1": 613.0043334960938,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "7",
+      "confidence": 1.0,
+      "layout_reading_order": 33,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Length and angle preservation, as discussed in Section 3.4, are the two\ncharacteristics of linear mappings with orthogonal transformation matri-\nces. In the following, we will have a closer look at specific orthogonal\ntransformation matrices, which describe rotations.\nA rotation is a linear mapping (more specifically, an automorphism of\nrotation\na Euclidean vector space) that rotates a plane by an angle θ about the\norigin, i.e., the origin is a fixed point. For a positive angle θ > 0, by com-\nmon convention, we rotate in a counterclockwise direction. An example is\nshown in Figure 3.14, where the transformation matrix is"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b8",
+    "sequence_id": 35,
+    "node_type": "display_equation",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 185.60400390625,
+          "y0": 623.17919921875,
+          "x1": 280.9530944824219,
+          "y1": 655.5067138671875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "8",
+      "confidence": 1.0,
+      "layout_reading_order": 34,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "R =\n\u0014−0.38\n−0.92\n0.92\n−0.38"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b9",
+    "sequence_id": 36,
+    "node_type": "display_equation",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 280.95294189453125,
+          "y0": 623.17919921875,
+          "x1": 406.74493408203125,
+          "y1": 641.0783081054688,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "9",
+      "confidence": 1.0,
+      "layout_reading_order": 35,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "\u0015\n.\n(3.74)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b10",
+    "sequence_id": 37,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 71.99993896484375,
+          "y0": 658.6925048828125,
+          "x1": 406.74566650390625,
+          "y1": 708.00732421875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "10",
+      "confidence": 1.0,
+      "layout_reading_order": 36,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Important application areas of rotations include computer graphics and\nrobotics. For example, in robotics, it is often important to know how to\nrotate the joints of a robotic arm in order to pick up or place an object,\nsee Figure 3.15."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b11",
+    "sequence_id": 38,
+    "node_type": "paragraph",
+    "strategy": "keep_original",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 71.99993896484375,
+          "y0": 727.36572265625,
+          "x1": 406.7442626953125,
+          "y1": 735.3358154296875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "11",
+      "confidence": 1.0,
+      "layout_reading_order": 37,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "©2024 M. P. Deisenroth, A. A. Faisal, C. S. Ong. Published by Cambridge University Press (2020)."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b0",
+    "sequence_id": 39,
+    "node_type": "paragraph",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 143.7310028076172,
+          "y0": 106.1502456665039,
+          "x1": 478.4755859375,
+          "y1": 116.17221069335938,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "0",
+      "confidence": 1.0,
+      "layout_reading_order": 38,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "92\nAnalytic Geometry"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b1",
+    "sequence_id": 40,
+    "node_type": "caption",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 60.04498291015625,
+          "y0": 127.85616302490234,
+          "x1": 131.25729370117188,
+          "y1": 156.7528839111328,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "1",
+      "confidence": 1.0,
+      "layout_reading_order": 39,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Figure 3.16\nRotation of the\nstandard basis in R2"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b2",
+    "sequence_id": 41,
+    "node_type": "caption",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 60.04498291015625,
+          "y0": 159.16912841796875,
+          "x1": 108.79966735839844,
+          "y1": 167.21388244628906,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "2",
+      "confidence": 1.0,
+      "layout_reading_order": 40,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "by an angle θ."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b3",
+    "sequence_id": 42,
+    "node_type": "composite_block",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 348.9837951660156,
+          "y0": 237.40379333496094,
+          "x1": 356.995849609375,
+          "y1": 246.47686767578125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "3",
+      "confidence": 1.0,
+      "layout_reading_order": 41,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "e1"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b4",
+    "sequence_id": 43,
+    "node_type": "composite_block",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 288.6277770996094,
+          "y0": 157.7261505126953,
+          "x1": 296.6390380859375,
+          "y1": 166.79922485351562,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "4",
+      "confidence": 1.0,
+      "layout_reading_order": 42,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "e2"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b5",
+    "sequence_id": 44,
+    "node_type": "composite_block",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 327.0278015136719,
+          "y0": 223.52859497070312,
+          "x1": 331.12091064453125,
+          "y1": 232.25587463378906,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "5",
+      "confidence": 1.0,
+      "layout_reading_order": 43,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "θ"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b6",
+    "sequence_id": 45,
+    "node_type": "composite_block",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 291.02783203125,
+          "y0": 204.32855224609375,
+          "x1": 295.1209411621094,
+          "y1": 213.0558319091797,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "6",
+      "confidence": 1.0,
+      "layout_reading_order": 44,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "θ"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b7",
+    "sequence_id": 46,
+    "node_type": "composite_block",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 209.23580932617188,
+          "y0": 127.73113250732422,
+          "x1": 298.3099060058594,
+          "y1": 143.70899963378906,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "7",
+      "confidence": 1.0,
+      "layout_reading_order": 45,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Φ(e2) = [−sin θ, cos θ]⊤"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b8",
+    "sequence_id": 47,
+    "node_type": "composite_block",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 336.17181396484375,
+          "y0": 175.8623046875,
+          "x1": 417.0035095214844,
+          "y1": 185.98965454101562,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "8",
+      "confidence": 1.0,
+      "layout_reading_order": 46,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Φ(e1) = [cos θ, sin θ]⊤"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b9",
+    "sequence_id": 48,
+    "node_type": "composite_block",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 383.0542297363281,
+          "y0": 237.12860107421875,
+          "x1": 400.28656005859375,
+          "y1": 246.13107299804688,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "9",
+      "confidence": 1.0,
+      "layout_reading_order": 47,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "cos θ"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b10",
+    "sequence_id": 49,
+    "node_type": "composite_block",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 304.6277770996094,
+          "y0": 188.32858276367188,
+          "x1": 320.8905029296875,
+          "y1": 197.3310546875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "10",
+      "confidence": 1.0,
+      "layout_reading_order": 48,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "sin θ"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b11",
+    "sequence_id": 50,
+    "node_type": "composite_block",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 244.33660888671875,
+          "y0": 237.12860107421875,
+          "x1": 268.84173583984375,
+          "y1": 252.3274383544922,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "11",
+      "confidence": 1.0,
+      "layout_reading_order": 49,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "−sin θ"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b12",
+    "sequence_id": 51,
+    "node_type": "composite_block",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 304.6277770996094,
+          "y0": 137.91897583007812,
+          "x1": 321.860107421875,
+          "y1": 146.92144775390625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "12",
+      "confidence": 1.0,
+      "layout_reading_order": 50,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "cos θ"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b13",
+    "sequence_id": 52,
+    "node_type": "heading",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 256.9590148925781,
+          "y0": 264.9439392089844,
+          "x1": 364.74713134765625,
+          "y1": 278.3497619628906,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "13",
+      "confidence": 1.0,
+      "layout_reading_order": 51,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "3.9.1 Rotations in R2"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b14",
+    "sequence_id": 53,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 143.73101806640625,
+          "y0": 282.7152099609375,
+          "x1": 317.1615905761719,
+          "y1": 307.2973327636719,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "14",
+      "confidence": 1.0,
+      "layout_reading_order": 52,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Consider the standard basis\n\u001a\ne1 =\n\u00141\n0"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b15",
+    "sequence_id": 54,
+    "node_type": "inline_equation",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 317.1610412597656,
+          "y0": 282.71527099609375,
+          "x1": 368.2865905761719,
+          "y1": 307.2973937988281,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "15",
+      "confidence": 1.0,
+      "layout_reading_order": 53,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "\u0015\n, e2 =\n\u00140\n1"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b16",
+    "sequence_id": 55,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 368.2870178222656,
+          "y0": 282.71533203125,
+          "x1": 478.47198486328125,
+          "y1": 300.6144714355469,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "16",
+      "confidence": 1.0,
+      "layout_reading_order": 54,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "\u0015\u001b\nof R2, which defines"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b17",
+    "sequence_id": 56,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 60.0450439453125,
+          "y0": 307.44329833984375,
+          "x1": 478.4812316894531,
+          "y1": 411.0364074707031,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "17",
+      "confidence": 1.0,
+      "layout_reading_order": 55,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "the standard coordinate system in R2. We aim to rotate this coordinate\nsystem by an angle θ as illustrated in Figure 3.16. Note that the rotated\nvectors are still linearly independent and, therefore, are a basis of R2. This\nmeans that the rotation performs a basis change.\nRotations Φ are linear mappings so that we can express them by a\nrotation matrix R(θ). Trigonometry (see Figure 3.16) allows us to de-\nrotation matrix\ntermine the coordinates of the rotated axes (the image of Φ) with respect\nto the standard basis in R2. We obtain"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b18",
+    "sequence_id": 57,
+    "node_type": "display_equation",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 221.2620391845703,
+          "y0": 417.5262756347656,
+          "x1": 289.7414245605469,
+          "y1": 442.10833740234375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "18",
+      "confidence": 1.0,
+      "layout_reading_order": 56,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Φ(e1) =\n\u0014cos θ\nsin θ"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b19",
+    "sequence_id": 58,
+    "node_type": "display_equation",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 290.049072265625,
+          "y0": 417.5262756347656,
+          "x1": 390.2674255371094,
+          "y1": 442.10833740234375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "19",
+      "confidence": 1.0,
+      "layout_reading_order": 57,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "\u0015\n,\nΦ(e2) =\n\u0014−sin θ\ncos θ"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b20",
+    "sequence_id": 59,
+    "node_type": "display_equation",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 390.5750732421875,
+          "y0": 417.5262756347656,
+          "x1": 478.47607421875,
+          "y1": 435.4254150390625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "20",
+      "confidence": 1.0,
+      "layout_reading_order": 58,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "\u0015\n.\n(3.75)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b21",
+    "sequence_id": 60,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 143.7310791015625,
+          "y0": 451.5516357421875,
+          "x1": 478.476806640625,
+          "y1": 475.3073425292969,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "21",
+      "confidence": 1.0,
+      "layout_reading_order": 59,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Therefore, the rotation matrix that performs the basis change into the\nrotated coordinates R(θ) is given as"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b22",
+    "sequence_id": 61,
+    "node_type": "display_equation",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 208.3800811767578,
+          "y0": 482.8412780761719,
+          "x1": 401.3304748535156,
+          "y1": 508.6743469238281,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "22",
+      "confidence": 1.0,
+      "layout_reading_order": 60,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "R(θ) =\n\u0002Φ(e1)\nΦ(e2)\n\u0003 =\n\u0014cos θ\n−sin θ\nsin θ\ncos θ"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b23",
+    "sequence_id": 62,
+    "node_type": "display_equation",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 401.6391296386719,
+          "y0": 484.09228515625,
+          "x1": 478.47613525390625,
+          "y1": 501.9914245605469,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "23",
+      "confidence": 1.0,
+      "layout_reading_order": 61,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "\u0015\n.\n(3.76)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b24",
+    "sequence_id": 63,
+    "node_type": "heading",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 256.9591369628906,
+          "y0": 534.1399536132812,
+          "x1": 364.74725341796875,
+          "y1": 547.5457763671875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "24",
+      "confidence": 1.0,
+      "layout_reading_order": 62,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "3.9.2 Rotations in R3"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b25",
+    "sequence_id": 64,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 143.73114013671875,
+          "y0": 551.0336303710938,
+          "x1": 478.4768371582031,
+          "y1": 708.0074462890625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "25",
+      "confidence": 1.0,
+      "layout_reading_order": 63,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "In contrast to the R2 case, in R3 we can rotate any two-dimensional plane\nabout a one-dimensional axis. The easiest way to specify the general rota-\ntion matrix is to specify how the images of the standard basis e1, e2, e3 are\nsupposed to be rotated, and making sure these images Re1, Re2, Re3 are\northonormal to each other. We can then obtain a general rotation matrix\nR by combining the images of the standard basis.\nTo have a meaningful rotation angle, we have to define what “coun-\nterclockwise” means when we operate in more than two dimensions. We\nuse the convention that a “counterclockwise” (planar) rotation about an\naxis refers to a rotation about an axis when we look at the axis “head on,\nfrom the end toward the origin”. In R3, there are therefore three (planar)\nrotations about the three standard basis vectors (see Figure 3.17):"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b26",
+    "sequence_id": 65,
+    "node_type": "paragraph",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 146.21514892578125,
+          "y0": 727.3648681640625,
+          "x1": 478.4758605957031,
+          "y1": 735.6431884765625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "26",
+      "confidence": 1.0,
+      "layout_reading_order": 64,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Draft (2024-01-15) of “Mathematics for Machine Learning”. Feedback: https://mml-book.com."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  }
+]

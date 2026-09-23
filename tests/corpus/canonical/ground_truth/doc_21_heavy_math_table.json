@@ -1,0 +1,2348 @@
+[
+  {
+    "node_id": "p1_b0",
+    "sequence_id": 1,
+    "node_type": "paragraph",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 85.03900146484375,
+          "y0": 65.37621307373047,
+          "x1": 321.7270202636719,
+          "y1": 73.3463134765625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "0",
+      "confidence": 1.0,
+      "layout_reading_order": 0,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "24\nOPENAI"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b1",
+    "sequence_id": 2,
+    "node_type": "caption",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 85.03900146484375,
+          "y0": 87.09459686279297,
+          "x1": 260.779296875,
+          "y1": 97.05719757080078,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "1",
+      "confidence": 1.0,
+      "layout_reading_order": 1,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Guide to the principal symbols (continued)."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b2",
+    "sequence_id": 3,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 85.03900146484375,
+          "y0": 104.5772933959961,
+          "x1": 472.1656494140625,
+          "y1": 114.5398941040039,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "2",
+      "confidence": 1.0,
+      "layout_reading_order": 2,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Symbol\nMeaning and role\nDefinition"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b3",
+    "sequence_id": 4,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 85.16400146484375,
+          "y0": 120.96702575683594,
+          "x1": 414.81353759765625,
+          "y1": 169.43295288085938,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "3",
+      "confidence": 1.0,
+      "layout_reading_order": 3,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "G[j], F [j]\nSupported residual part and separately retained\nflat residual at stage j. Flatness concerns every\nfixed Cartesian space-time derivative and every\npower of q."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b4",
+    "sequence_id": 5,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 427.572021484375,
+          "y0": 123.60433197021484,
+          "x1": 471.138427734375,
+          "y1": 133.56692504882812,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "4",
+      "confidence": 1.0,
+      "layout_reading_order": 4,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "(9.3), (9.5)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b5",
+    "sequence_id": 6,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 85.16403198242188,
+          "y0": 170.11978149414062,
+          "x1": 407.5801696777344,
+          "y1": 209.6216278076172,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "5",
+      "confidence": 1.0,
+      "layout_reading_order": 5,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "σj, Bj, C∗\nj\nStage decay parameters: σj = 1/5 + j/10,\nBj = 1/2 + σj, C∗\nj = 1 + σj. The latter two are\nwave and mean residual orders in powers of ε."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b6",
+    "sequence_id": 7,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 427.57196044921875,
+          "y0": 172.85939025878906,
+          "x1": 518.6400756835938,
+          "y1": 182.82199096679688,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "6",
+      "confidence": 1.0,
+      "layout_reading_order": 6,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "(9.8); Proposition 9.6"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b7",
+    "sequence_id": 8,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 85.16397094726562,
+          "y0": 211.27093505859375,
+          "x1": 406.2148742675781,
+          "y1": 258.0670471191406,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "7",
+      "confidence": 1.0,
+      "layout_reading_order": 7,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "χ(ajq), aj\nCutoffs and their increasing scale parameters\nused to sum the physical corrections on\nshrinking neighborhoods of q = 0. Cutoffs are\napplied to potentials before taking curls."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b8",
+    "sequence_id": 9,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 427.57196044921875,
+          "y0": 221.61146545410156,
+          "x1": 505.81817626953125,
+          "y1": 231.57406616210938,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "8",
+      "confidence": 1.0,
+      "layout_reading_order": 8,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Lemma 5.4; (9.21)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b9",
+    "sequence_id": 10,
+    "node_type": "heading",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 198.6060028076172,
+          "y0": 273.253662109375,
+          "x1": 413.8208312988281,
+          "y1": 287.1156311035156,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "9",
+      "confidence": 1.0,
+      "layout_reading_order": 9,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "4. Constructing the leading order flow"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b10",
+    "sequence_id": 11,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 84.58100128173828,
+          "y0": 295.598388671875,
+          "x1": 528.8656005859375,
+          "y1": 540.9926147460938,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "10",
+      "confidence": 1.0,
+      "layout_reading_order": 10,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "The concentrating flow of Section 3.1 requires an axisymmetric velocity with prescribed\ngrowth near the origin and a heat flow in the exterior. We construct its profiles E, U, Π,\nwhich define the leading velocity and pressure (u(0), p(0)) in (4.3). Incompressibility holds\nexactly. The leading tangential momentum residual is minus the cylindrical divergence of\nthe two-component stress with profile T0, defined in (4.11). This stress must vanish near the\naxis and in the exterior, leaving a cylindrical annulus on which the waves can act: an interval\nof the scaled radius X at each fixed axial parameter η.\nThe stress direction is also constrained. As explained in Section 3, it must admit the\npositive covariance representation of Proposition 7.5. Theorem 4.6 gives profiles satisfying\nthis condition, the required regularity and support conditions, and the exact heat exterior.\nTheir remaining momentum residual is treated in two stages: Section 5 adds higher-order\naxisymmetric corrections to form the background (uB, pB), and Section 7 supplies waves\nwhose leading covariance supplies the annular stress.\nWe first derive the stress from the profiles, then identify the five cumulative radial integrals\nin (4.15), whose preservation allows profiles on different radial intervals to be joined without\nchanging the prescribed exterior (Lemma 4.4).\nNext we describe the permitted stress\ndirections and state Theorem 4.6. We state the required construction results in Section 4.5\nand then prove the theorem in Section 4.6. The proofs of those construction results are in\nSections A to C."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b11",
+    "sequence_id": 12,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 84.58100128173828,
+          "y0": 549.3252563476562,
+          "x1": 528.32470703125,
+          "y1": 614.97314453125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "11",
+      "confidence": 1.0,
+      "layout_reading_order": 11,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "4.1. Similarity variables and radial integration of the residual. We begin by expressing\n(u(0), p(0)) and their derivatives in similarity coordinates, then recover the tangential stress by\nradial integration in Proposition 4.2. We use the right-handed cylindrical coordinates (r, θ, z),\nwith θ ∈R/(2πZ), and the exponents A, D from Section 3.1. Along with the relations (3.2),\nwe set d = 1 −η2, L = 1 −2hη2, and s = r2/2:"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b12",
+    "sequence_id": 13,
+    "node_type": "display_equation",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 169.61099243164062,
+          "y0": 619.3932495117188,
+          "x1": 269.0250244140625,
+          "y1": 633.3801879882812,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "12",
+      "confidence": 1.0,
+      "layout_reading_order": 12,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "τ = 1 −t,\nA = 1"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b13",
+    "sequence_id": 14,
+    "node_type": "display_equation",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 265.0400085449219,
+          "y0": 619.3932495117188,
+          "x1": 345.155029296875,
+          "y1": 635.6544189453125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "13",
+      "confidence": 1.0,
+      "layout_reading_order": 13,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "2 + h,\nD = 1"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b14",
+    "sequence_id": 15,
+    "node_type": "display_equation",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 341.1700134277344,
+          "y0": 619.3932495117188,
+          "x1": 438.6030578613281,
+          "y1": 635.507080078125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "14",
+      "confidence": 1.0,
+      "layout_reading_order": 14,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "2 −h,\n0 < h < 1"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b15",
+    "sequence_id": 16,
+    "node_type": "display_equation",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 434.6180114746094,
+          "y0": 621.58349609375,
+          "x1": 442.5252685546875,
+          "y1": 635.4253540039062,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "15",
+      "confidence": 1.0,
+      "layout_reading_order": 15,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "2,"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b16",
+    "sequence_id": 17,
+    "node_type": "display_equation",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 98.6920166015625,
+          "y0": 637.7532348632812,
+          "x1": 451.22308349609375,
+          "y1": 658.7861938476562,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "16",
+      "confidence": 1.0,
+      "layout_reading_order": 16,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "z = qDη,\nτ = q(1 −η2),\nd = 1 −η2,\nL = 1 −2hη2,\ns = r2"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b17",
+    "sequence_id": 18,
+    "node_type": "display_equation",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 444.4939880371094,
+          "y0": 639.4164428710938,
+          "x1": 508.98162841796875,
+          "y1": 665.3836059570312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "17",
+      "confidence": 1.0,
+      "layout_reading_order": 17,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "2 ,\nX = s"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b18",
+    "sequence_id": 19,
+    "node_type": "display_equation",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 504.3340148925781,
+          "y0": 646.9905395507812,
+          "x1": 513.4442749023438,
+          "y1": 665.1945190429688,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "18",
+      "confidence": 1.0,
+      "layout_reading_order": 18,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "q."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b19",
+    "sequence_id": 20,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 84.70099639892578,
+          "y0": 666.3795166015625,
+          "x1": 528.0518798828125,
+          "y1": 704.0781860351562,
+          "is_normalized": false
+        },
+        {
+          "x0": 219.08900451660156,
+          "y0": 65.37621307373047,
+          "x1": 526.9579467773438,
+          "y1": 73.3463134765625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1,
+        2
+      ],
+      "provider_native_id": "19",
+      "confidence": 1.0,
+      "layout_reading_order": 19,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "(4.1)\nThe coordinate identities in this subsection hold for 0 < h < 1/2; Theorem 4.6 will choose\nh < 1/100, as in Theorem 3.1. As noted in Section 3.1, for τ > 0 the similarity relations FINITE TIME BLOWUP FOR NAVIER–STOKES\n25"
+    },
+    "control_plane": {
+      "merge_count": 2
+    },
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b1",
+    "sequence_id": 21,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 84.58100128173828,
+          "y0": 83.14067077636719,
+          "x1": 528.3243408203125,
+          "y1": 164.6042022705078,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "1",
+      "confidence": 1.0,
+      "layout_reading_order": 21,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "determine a unique q > |z|1/D. Indeed, q −z2q2h is zero at that lower endpoint, tends to\ninfinity, and has derivative 1 −2hz2q2h−1 = L ≥1 −2h > 0 on the indicated interval. Thus\n|η| < 1; the parameter endpoints η = ±1 describe one-sided limits. Throughout the profile\nconstruction, we write DX f = X∂X f for differentiation in the logarithmic radial coordinate,\nwith η held fixed. To compute the residual of the field described in Section 3.1, we now\nderive the operators converting time and axial derivatives into derivatives in (X, η)."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b2",
+    "sequence_id": 22,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 85.03900146484375,
+          "y0": 172.0464324951172,
+          "x1": 312.8209533691406,
+          "y1": 183.03829956054688,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "2",
+      "confidence": 1.0,
+      "layout_reading_order": 22,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Lemma 4.1. For a smooth profile f and any real b,"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b3",
+    "sequence_id": 23,
+    "node_type": "display_equation",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 94.70800018310547,
+          "y0": 195.1714324951172,
+          "x1": 301.5146179199219,
+          "y1": 212.63552856445312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "3",
+      "confidence": 1.0,
+      "layout_reading_order": 23,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "∂t(qb f ) = qb−1Tb f,\n∂z(qb f ) = qb−DZb f,"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b4",
+    "sequence_id": 24,
+    "node_type": "display_equation",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 314.3840026855469,
+          "y0": 188.34820556640625,
+          "x1": 528.0518798828125,
+          "y1": 220.78756713867188,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "4",
+      "confidence": 1.0,
+      "layout_reading_order": 24,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "{︄\nTb f = L−1(−b f + Dη fη + DX f ),\nZb f = L−1(2bη f + d fη −2ηDX f ).\n(4.2)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b5",
+    "sequence_id": 25,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 85.03903198242188,
+          "y0": 226.4805450439453,
+          "x1": 484.4994812011719,
+          "y1": 242.23622131347656,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "5",
+      "confidence": 1.0,
+      "layout_reading_order": 25,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Proof. Differentiating the equation for q, followed by η = zq−D and X = s/q, gives"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b6",
+    "sequence_id": 26,
+    "node_type": "display_equation",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 175.3490447998047,
+          "y0": 245.84585571289062,
+          "x1": 436.7854919433594,
+          "y1": 273.9324951171875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "6",
+      "confidence": 1.0,
+      "layout_reading_order": 26,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "qt = −L−1,\nηt = Dη/(qL),\nXt = X/(qL),\nqz = 2ηq1−D/L,\nηz = d/(qDL),\nXz = −2ηX/(qDL)."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b7",
+    "sequence_id": 27,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 84.70099639892578,
+          "y0": 275.787109375,
+          "x1": 526.9627685546875,
+          "y1": 292.6031799316406,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "7",
+      "confidence": 1.0,
+      "layout_reading_order": 27,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "The middle entry in the second row uses L −2Dη2 = d. The chain rule proves the claim.\n□"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b8",
+    "sequence_id": 28,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 85.03900146484375,
+          "y0": 299.6586608886719,
+          "x1": 526.9642333984375,
+          "y1": 337.4341735839844,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "8",
+      "confidence": 1.0,
+      "layout_reading_order": 28,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "To construct the leading field of Section 3.1 smoothly across the axis, we factor out\nthe linear radial vanishing of its azimuthal component. We introduce a fixed amplitude\nnormalization C > 1 and a smooth scalar ϕ, and write"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b9",
+    "sequence_id": 29,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 99.30400085449219,
+          "y0": 335.043701171875,
+          "x1": 487.4449157714844,
+          "y1": 360.6390380859375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "9",
+      "confidence": 1.0,
+      "layout_reading_order": 29,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "u(0)\nθ\n= q−AE,\nu(0)\nz\n= q−AU,\nru(0)\nr\n= V0,\np(0) = q−2AΠ,\nE = C−1√"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b10",
+    "sequence_id": 30,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 84.70099639892578,
+          "y0": 346.0614318847656,
+          "x1": 528.0518188476562,
+          "y1": 398.37115478515625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "10",
+      "confidence": 1.0,
+      "layout_reading_order": 30,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "2X ϕ.\n(4.3)\nThe normalization C is chosen in the proof of Theorem 4.6. As in Section 3.1, E, U, V0, Π are\nfunctions of (X, η). The factor\n√"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b11",
+    "sequence_id": 31,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 85.03900146484375,
+          "y0": 386.38641357421875,
+          "x1": 526.961181640625,
+          "y1": 423.38763427734375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "11",
+      "confidence": 1.0,
+      "layout_reading_order": 31,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "2X accounts for the vanishing of the azimuthal velocity at\nthe axis; smoothness is imposed on ϕ. For the profiles constructed here, regularity at the\naxis in the sense of Definition 3.2 follows from the conditions"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b12",
+    "sequence_id": 32,
+    "node_type": "display_equation",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 126.95199584960938,
+          "y0": 418.7568054199219,
+          "x1": 158.52896118164062,
+          "y1": 440.6825256347656,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "12",
+      "confidence": 1.0,
+      "layout_reading_order": 32,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "E =\n√"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b13",
+    "sequence_id": 33,
+    "node_type": "display_equation",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 158.6649932861328,
+          "y0": 426.9049377441406,
+          "x1": 528.06640625,
+          "y1": 441.9604187011719,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "13",
+      "confidence": 1.0,
+      "layout_reading_order": 33,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "2X F,\nV0 = Xv0,\nF = ϕ/C, U, v0, Π ∈C∞([0, Xc] × [−1, 1])\n(4.4)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b14",
+    "sequence_id": 34,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 84.58100128173828,
+          "y0": 446.3870849609375,
+          "x1": 528.3275146484375,
+          "y1": 487.58941650390625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "14",
+      "confidence": 1.0,
+      "layout_reading_order": 34,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "for some Xc > 0. Smoothness on this closed rectangle means that all mixed X, η derivatives\nhave continuous one-sided extensions to its boundary. To see the Cartesian smoothness,\nwrite x1 = r cos θ, x2 = r sin θ, so that X = (x2\n1 + x2\n2)/(2q). Then"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b15",
+    "sequence_id": 35,
+    "node_type": "display_equation",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 173.083984375,
+          "y0": 487.9444580078125,
+          "x1": 216.968017578125,
+          "y1": 509.15234375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "15",
+      "confidence": 1.0,
+      "layout_reading_order": 35,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "u(0)\n1\n= v0"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b16",
+    "sequence_id": 36,
+    "node_type": "display_equation",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 206.9720001220703,
+          "y0": 487.9444274902344,
+          "x1": 355.0020446777344,
+          "y1": 513.91162109375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "16",
+      "confidence": 1.0,
+      "layout_reading_order": 36,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "2q x1 −q−A−1/2Fx2,\nu(0)\n2\n= v0"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b17",
+    "sequence_id": 37,
+    "node_type": "display_equation",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 345.0060119628906,
+          "y0": 492.2388000488281,
+          "x1": 439.0522766113281,
+          "y1": 513.91162109375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "17",
+      "confidence": 1.0,
+      "layout_reading_order": 37,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "2q x2 + q−A−1/2Fx1,"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b18",
+    "sequence_id": 38,
+    "node_type": "display_equation",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 173.08401489257812,
+          "y0": 507.50848388671875,
+          "x1": 528.0518798828125,
+          "y1": 535.8333129882812,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "18",
+      "confidence": 1.0,
+      "layout_reading_order": 38,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "u(0)\n3\n= q−AU,\np(0) = q−2AΠ.\n(4.5)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b19",
+    "sequence_id": 39,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 85.03900146484375,
+          "y0": 539.7020874023438,
+          "x1": 527.1792602539062,
+          "y1": 579.0536499023438,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "19",
+      "confidence": 1.0,
+      "layout_reading_order": 39,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Here all profiles are evaluated at (X, η), and q, η are smooth functions of (t, z) with q > 0 for\nt < 1. Thus the coefficients in (4.5) are smooth functions of (x1, x2, z, t). In particular, E itself\ncontains a\n√"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b20",
+    "sequence_id": 40,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 85.03900146484375,
+          "y0": 567.0841064453125,
+          "x1": 526.9659423828125,
+          "y1": 630.859619140625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "20",
+      "confidence": 1.0,
+      "layout_reading_order": 40,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "X factor; smoothness at X = 0 is imposed on F.\nWe choose E, U; incompressibility determines V0, and the leading radial momentum\nbalance determines Π once its axis value is fixed. For a smooth radial scalar, recall the radial\naverage from the notation paragraph at the end of Section 3; we specify its smooth extension\nto the axis by"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b21",
+    "sequence_id": 41,
+    "node_type": "display_equation",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 162.96099853515625,
+          "y0": 637.2525024414062,
+          "x1": 246.5865478515625,
+          "y1": 656.4342041015625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "21",
+      "confidence": 1.0,
+      "layout_reading_order": 41,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "AX( f )(X, η) = 1"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b22",
+    "sequence_id": 42,
+    "node_type": "display_equation",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 239.88299560546875,
+          "y0": 651.9324340820312,
+          "x1": 247.75936889648438,
+          "y1": 662.841552734375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "22",
+      "confidence": 1.0,
+      "layout_reading_order": 42,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "X"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b23",
+    "sequence_id": 43,
+    "node_type": "display_equation",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 251.28599548339844,
+          "y0": 636.0480346679688,
+          "x1": 267.21441650390625,
+          "y1": 648.0296020507812,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "23",
+      "confidence": 1.0,
+      "layout_reading_order": 43,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "∫︂X"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b24",
+    "sequence_id": 44,
+    "node_type": "display_equation",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 256.8769836425781,
+          "y0": 643.4307861328125,
+          "x1": 528.0567626953125,
+          "y1": 663.2963256835938,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "24",
+      "confidence": 1.0,
+      "layout_reading_order": 44,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0\nf (x, η) dx,\nAX( f )(0, η) = f (0, η).\n(4.6)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b0",
+    "sequence_id": 45,
+    "node_type": "paragraph",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 85.03900146484375,
+          "y0": 65.37621307373047,
+          "x1": 321.7270202636719,
+          "y1": 73.3463134765625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "0",
+      "confidence": 1.0,
+      "layout_reading_order": 45,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "26\nOPENAI"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b1",
+    "sequence_id": 46,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 84.70099639892578,
+          "y0": 87.24137878417969,
+          "x1": 528.767822265625,
+          "y1": 111.03862762451172,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "1",
+      "confidence": 1.0,
+      "layout_reading_order": 46,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "The incompressibility and centrifugal-pressure balances stated in Section 3.1 give the follow-\ning explicit profile identities:"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b2",
+    "sequence_id": 47,
+    "node_type": "display_equation",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 167.03199768066406,
+          "y0": 117.96141815185547,
+          "x1": 202.81436157226562,
+          "y1": 137.53338623046875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "2",
+      "confidence": 1.0,
+      "layout_reading_order": 47,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "V0 = X"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b3",
+    "sequence_id": 48,
+    "node_type": "display_equation",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 196.0449981689453,
+          "y0": 116.29821014404297,
+          "x1": 439.3640441894531,
+          "y1": 143.73953247070312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "3",
+      "confidence": 1.0,
+      "layout_reading_order": 48,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "L\n(︁\n2ηU −2DηAX(U) −d∂ηAX(U)\n)︁\n,\nΠX = E2"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b4",
+    "sequence_id": 49,
+    "node_type": "display_equation",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 427.0660095214844,
+          "y0": 125.53553009033203,
+          "x1": 528.0462646484375,
+          "y1": 143.9286346435547,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "4",
+      "confidence": 1.0,
+      "layout_reading_order": 49,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "2X.\n(4.7)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b5",
+    "sequence_id": 50,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 84.70099639892578,
+          "y0": 146.179443359375,
+          "x1": 526.9576416015625,
+          "y1": 175.9930419921875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "5",
+      "confidence": 1.0,
+      "layout_reading_order": 50,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "To see the first identity, use A + D = 1 in ∂s(ru(0)\nr ) + ∂zu(0)\nz\n= 0. It gives (V0)X = L−1(2AηU −\ndUη + 2ηXUX); integration with zero axis value gives the displayed formula. For the second"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b6",
+    "sequence_id": 51,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 85.03900146484375,
+          "y0": 169.85879516601562,
+          "x1": 401.6699523925781,
+          "y1": 194.92205810546875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "6",
+      "confidence": 1.0,
+      "layout_reading_order": 51,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "identity, the coefficients of ∂rp(0) and (u(0)\nθ )2/r are respectively\n√"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b7",
+    "sequence_id": 52,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 401.8059997558594,
+          "y0": 169.85879516601562,
+          "x1": 484.7779541015625,
+          "y1": 193.19752502441406,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "7",
+      "confidence": 1.0,
+      "layout_reading_order": 52,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "2XΠX and E2/\n√"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b8",
+    "sequence_id": 53,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 84.73400115966797,
+          "y0": 180.3434295654297,
+          "x1": 527.3894653320312,
+          "y1": 351.08416748046875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "8",
+      "confidence": 1.0,
+      "layout_reading_order": 53,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "2X, with\ncommon power q−2A−1/2. The remaining radial terms, and axial viscosity relative to radial\nviscosity in the tangential equations, carry an additional factor at least q2h. This viscosity\ncomparison explains the powers q2nh used in the background corrections of Section 3. Here\nthese are comparisons at fixed profile coordinates; physical derivative bounds will be proved\nseparately for the completed fields. The higher-order terms just identified are retained in the\nfull residual and treated in Section 5.\nWith incompressibility and the leading radial balance imposed, it remains to express the\ntangential residual as a radial stress divergence, as required in Section 3. We first integrate its\ninviscid terms, denoting the resulting scalar profiles by Qs, Ns, and then add the contribution\nfrom radial viscosity. The definitions below depend only on E, U, Π; Proposition 4.2 verifies\nthe resulting stress identity.\nFor profiles satisfying (4.7), with ϕ, U, Π smooth at the axis and ϕ > 0, we set"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b9",
+    "sequence_id": 54,
+    "node_type": "display_equation",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 195.6230010986328,
+          "y0": 351.6287841796875,
+          "x1": 229.3159637451172,
+          "y1": 373.55450439453125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "9",
+      "confidence": 1.0,
+      "layout_reading_order": 54,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "H =\n√"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b10",
+    "sequence_id": 55,
+    "node_type": "display_equation",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 229.45199584960938,
+          "y0": 355.2594299316406,
+          "x1": 315.2984619140625,
+          "y1": 373.7436218261719,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "10",
+      "confidence": 1.0,
+      "layout_reading_order": 55,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "2XE,\nF =\nE\n√"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b11",
+    "sequence_id": 56,
+    "node_type": "display_equation",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 309.7510070800781,
+          "y0": 361.62677001953125,
+          "x1": 416.93157958984375,
+          "y1": 382.9046325683594,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "11",
+      "confidence": 1.0,
+      "layout_reading_order": 56,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "2X\n,\nl = DX log H,"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b12",
+    "sequence_id": 57,
+    "node_type": "display_equation",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 173.61300659179688,
+          "y0": 371.9735107421875,
+          "x1": 528.0518798828125,
+          "y1": 398.5650329589844,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "12",
+      "confidence": 1.0,
+      "layout_reading_order": 57,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "W = 1 −2DηAX(U) −d∂ηAX(U),\nHc = Dη + dU.\n(4.8)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b13",
+    "sequence_id": 58,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 85.03900146484375,
+          "y0": 397.50677490234375,
+          "x1": 450.04095458984375,
+          "y1": 422.7843322753906,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "13",
+      "confidence": 1.0,
+      "layout_reading_order": 58,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Here H is the profile of angular momentum ru(0)\nθ , F removes the factor\n√"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b14",
+    "sequence_id": 59,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 85.03900146484375,
+          "y0": 407.992431640625,
+          "x1": 526.9620361328125,
+          "y1": 457.94464111328125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "14",
+      "confidence": 1.0,
+      "layout_reading_order": 59,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "2X from E, and\nl measures the logarithmic radial slope of H. The coefficients W, Hc collect the transport\nterms in (4.14). We define Qs, Ns by the following radial equations, selecting the solutions\nthat extend smoothly to X = 0:"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b15",
+    "sequence_id": 60,
+    "node_type": "display_equation",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 195.343994140625,
+          "y0": 462.97479248046875,
+          "x1": 416.7922058105469,
+          "y1": 476.12640380859375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "15",
+      "confidence": 1.0,
+      "layout_reading_order": 60,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "DXQs + (1 + l)Qs = Sq,\nDXNs + Ns = Sn,"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b16",
+    "sequence_id": 61,
+    "node_type": "display_equation",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 211.60093688964844,
+          "y0": 480.123779296875,
+          "x1": 396.2821960449219,
+          "y1": 493.6930236816406,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "16",
+      "confidence": 1.0,
+      "layout_reading_order": 61,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Sq = −Wl −h(1 −2ηU) −Hc(log E)η,"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b17",
+    "sequence_id": 62,
+    "node_type": "display_equation",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 210.8589324951172,
+          "y0": 497.27276611328125,
+          "x1": 400.44036865234375,
+          "y1": 527.4020385742188,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "17",
+      "confidence": 1.0,
+      "layout_reading_order": 62,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Sn = −WDXU −A(1 −2ηU)U −HcUη\n−dΠη + 4AηΠ + 2ηDXΠ."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b18",
+    "sequence_id": 63,
+    "node_type": "display_equation",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 507.14996337890625,
+          "y0": 490.2644958496094,
+          "x1": 528.0518188476562,
+          "y1": 501.1736145019531,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "18",
+      "confidence": 1.0,
+      "layout_reading_order": 63,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "(4.9)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b19",
+    "sequence_id": 64,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 84.70099639892578,
+          "y0": 532.6564331054688,
+          "x1": 526.9569702148438,
+          "y1": 557.5921630859375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "19",
+      "confidence": 1.0,
+      "layout_reading_order": 64,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "The integrating factors are XH and X, respectively. Thus the integration constants, which\nmay a priori depend on η, enter as"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b20",
+    "sequence_id": 65,
+    "node_type": "display_equation",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 120.71400451660156,
+          "y0": 561.89404296875,
+          "x1": 294.9496765136719,
+          "y1": 586.2044067382812,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "20",
+      "confidence": 1.0,
+      "layout_reading_order": 65,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Qs = CQ(η) + ∫︁X\n0 H(x, η)Sq(x, η) dx"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b21",
+    "sequence_id": 66,
+    "node_type": "display_equation",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 199.26300048828125,
+          "y0": 561.89404296875,
+          "x1": 462.463623046875,
+          "y1": 593.5401611328125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "21",
+      "confidence": 1.0,
+      "layout_reading_order": 66,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "XH(X, η)\n,\nNs = CN(η) + ∫︁X\n0 Sn(x, η) dx"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b22",
+    "sequence_id": 67,
+    "node_type": "display_equation",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 403.12799072265625,
+          "y0": 574.261474609375,
+          "x1": 528.0543823242188,
+          "y1": 592.4645385742188,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "22",
+      "confidence": 1.0,
+      "layout_reading_order": 67,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "X\n.\n(4.10)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b23",
+    "sequence_id": 68,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 84.70099639892578,
+          "y0": 597.1771240234375,
+          "x1": 526.9585571289062,
+          "y1": 636.0856323242188,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "23",
+      "confidence": 1.0,
+      "layout_reading_order": 68,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "The required smooth extensions select CQ = CN = 0. Indeed, H = 2Xϕ/C near the axis, a\nnonzero constant would produce an X−2 singularity in Qs, or an X−1 singularity in Ns. With\nboth constants zero, changing variables x = sX gives"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b24",
+    "sequence_id": 69,
+    "node_type": "display_equation",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 149.21800231933594,
+          "y0": 642.530517578125,
+          "x1": 213.3485565185547,
+          "y1": 669.1951904296875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "24",
+      "confidence": 1.0,
+      "layout_reading_order": 69,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Qs =\n1\nF(X, η)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b25",
+    "sequence_id": 70,
+    "node_type": "display_equation",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 216.61599731445312,
+          "y0": 641.4642333984375,
+          "x1": 230.55604553222656,
+          "y1": 653.3076171875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "25",
+      "confidence": 1.0,
+      "layout_reading_order": 70,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "∫︂1"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b26",
+    "sequence_id": 71,
+    "node_type": "display_equation",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 222.20700073242188,
+          "y0": 641.4642333984375,
+          "x1": 401.3060302734375,
+          "y1": 669.216552734375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "26",
+      "confidence": 1.0,
+      "layout_reading_order": 71,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0 sF(sX, η)Sq(sX, η) ds,\nNs =\n∫︂1"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b27",
+    "sequence_id": 72,
+    "node_type": "display_equation",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 392.95697021484375,
+          "y0": 648.8560791015625,
+          "x1": 463.0277404785156,
+          "y1": 669.216552734375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "27",
+      "confidence": 1.0,
+      "layout_reading_order": 72,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0 Sn(sX, η) ds."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b28",
+    "sequence_id": 73,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 84.70099639892578,
+          "y0": 673.4160766601562,
+          "x1": 526.9642333984375,
+          "y1": 699.63916015625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "28",
+      "confidence": 1.0,
+      "layout_reading_order": 73,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "The sources are smooth at X = 0, since l = 1 + XFX/F and (log E)η = Fη/F. These formulas\ngive the smooth extensions Qs(0, η) = Sq(0, η)/2 and Ns(0, η) = Sn(0, η). We define the two"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  }
+]

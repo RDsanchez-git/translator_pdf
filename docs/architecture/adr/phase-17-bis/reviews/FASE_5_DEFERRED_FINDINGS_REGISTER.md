@@ -1,10 +1,10 @@
 # FASE_5_DEFERRED_FINDINGS_REGISTER.md
 
 **Documento:** `docs/architecture/adr/phase-17-bis/reviews/FASE_5_DEFERRED_FINDINGS_REGISTER.md`
-**Versión:** 0.19.0
-**Estado:** IN_PROGRESS
+**Versión:** 0.20.0
+**Estado:** IN_PROGRESS (Gate 1 y Gates 2-4 COMPLETED; Gate 5 PENDING)
 **Fecha de creación:** 2026-09-05
-**Última actualización:** 2026-09-13
+**Última actualización:** 2026-09-23
 **Derivado de:** `PHASE_17BIS_FASE5_EXECUTION_PLAN.md` v1.2.2
 **Propósito:** Registro auditable de hallazgos identificados durante la implementación
 del Execution Plan de Fase 5 (Baseline Certification), su clasificación, resolución y
@@ -33,6 +33,7 @@ evidencia empírica de los batches.
 | 0.17.0 | 2026-09-14 | **Paso 0 de la secuencia de cierre (debate adoptado 2026-09-14):** (1) H-5.5-5 registrado — gate de curaduría (NADR-21 §5.1 R5) bypaseable fuera del path de tooling; enforcement normativo O3 en dominio diferido a Fase 6; mitigación in-fase = H-5.5-7; (2) H-5.5-6 registrado — extractor sin fingerprint propio: cambios en build_extraction_pipeline() no mueven configuration_fingerprint (NADR-22 cubre solo motor de evaluación); detección post-hoc vía delta de veredictos de regresión; remediación diferida a Fase 6 (posible enmienda normativa para identidad nueva); (3) H-5.5-7 registrado como IMPLEMENTATION_REQUIRED asignado a Batch 1 (gate O2 en freeze_ground_truth.py); (4) GF-03 y H-5.5-2 enmendados in-place: remediación upgradeada a curation_checklist.json (raíz canonical/, no ground_truth/ per lección H-5.2-3) + verbo main_corpus curate con report_ref; (5) Batch 2 planificado: binario main_corpus (verbos admit/draft/canonicalize/curate/seal/regress) + mapa shell-side de remediation (código indexado → paso del runbook §3) versionado junto al binario. |
 | 0.18.0 | 2026-09-14 | **Cierre de higiene (Paso 1) y decisiones de ownership:** (1) O-5.0-1 registrado — FASE_4_HANDOFF queda como artefacto histórico externo por decisión de ownership (2026-09-14); el respaldo operativo del criterio DF-04 es autocontenido (reports/df04/ + Register DF-04 RESOLVED); la cita del Execution Plan Task 2.4.7 se interpreta como pointer histórico externo; (2) O-5.0-2 registrado — Gate 5 Task 5.3.5 se satisface con artefacto de cierre autocontenido in-repo, no con handoffs trackeados (handoff/ ignorado, commit f748fd7); (3) Higiene Paso 1 cerrada en commits 8cfac09/5cfede4/0ae448f/ac5e743/40bd965/f748fd7. |
 | 0.19.0 | 2026-09-15 | **Re-scope de Batch 2 (YAGNI, ENGINEERING_PRINCIPLES §I):** (1) Batch 2 dividido: **2a** = escritor del checklist (`curate_gt.py`) + hardening de códigos `CANON-*` en `canonicalize_gt.py`, construido ANTES del primer onboarding real (su consumidor concreto es doc_11; el contrato ya está congelado por el lector de Batch 1, sin riesgo de descubrimiento); **2b** = orquestador `main_corpus` de 6 verbos, DIFERIDO con trigger explícito: ≥2 onboardings completados post-2a o evidencia de error de secuenciación operacional; (2) H-5.5-7 enmendado con este re-scope (el writer completa la usabilidad del gate; no se infla un ID nuevo); (3) Metodología v1.1.1 refleja el cambio (§2.1, §3.2, §3.3 paso 5). |
+| 0.20.0 | 2026-09-23 | **SELLADO DEFINITIVO v3.9 + CIERRE DE BATCH 1/2a/3:** (1) Corpus v3.9 sellado con 21 identidades bajo manifest hash `727782fe0df26d9dd401830a54785b03df5fd059ebf83cc422cb58d8a3d19f7d` (objetivo NADR-20 §5.5 R20: 20 → **SUPERADO**); Zero Partial Sealing verificado: biyección N_PDF = N_GT = 21; (2) Batch 1 cerrado (H-5.5-7 RESOLVED, commit `9cbddf8`, gate O2 en `freeze_ground_truth.py`); (3) Batch 2a cerrado (commit `c4bb03b`, `curate_gt.py` + hardening `CANON-*`); (4) Batch 3 cerrado (doc_14 a doc_22 curados con gate O2 activo y sellados; 33 hallazgos derivados H-5.1-12 a H-5.1-44 + 2 observaciones O-5.3-1 y O-5.4-1); (5) Gate 1 → ✅ COMPLETED (Task 1.1.5 DONE: déficit resuelto); (6) Métricas actualizadas: 76 hallazgos analizados totales, 17 resueltos, 24 aceptados como limitación, 3 diferidos a fase futura, 6 observaciones; (7) Carry-forwards a Fase 6 consolidados (30 limitaciones empíricas de PyMuPDFProvider documentadas como Baseline de Capacidades). |
 
 
 ---
@@ -202,41 +203,46 @@ hallazgos descubiertos durante la implementación.
 
 ### 2.1 Gate 1 Exit Review — Canonical Corpus & Ground Truth Qualification
 
-**Estado:** 🟡 IN PROGRESS — Gate 1 abierto, Waves 1.1-1.3 completadas, Task 1.1.5 y Wave 1.4 pendientes.
-**Fecha de ejecución (parcial):** 2026-09-14 (onboarding v2.2 de doc_09/10)
-**Execution Plan:** Gate 1 / Waves 1.1, 1.2, 1.3 (+ Wave 1.4 pendiente)
+**Estado:** ✅ COMPLETED — Gate 1 cerrado con 18/18 Tasks DONE y 57/57 rules DONE. Corpus v3.9 sellado con 21 identidades.
+**Fecha de ejecución:** 2026-09-06 (inicio) → 2026-09-23 (cierre definitivo con Batch 3)
+**Execution Plan:** Gate 1 / Waves 1.1, 1.2, 1.3 (Batch 2a y Batch 3 completados sobre corpus sellado)
 **Hallazgos pre-asignados:** DF-19
 
 | DF/GF | ¿Válido? | Evidencia | ¿Resoluble en Gate? | ¿Técnico? | Decisión | Motivo |
 |-------|----------|-----------|---------------------|-----------|----------|--------|
-| GF-03 | ✅ Sí | Corpus v2.2 sellado con onboarding de doc_09/doc_10 sin curaduría previa (NADR-21 §5.1 R5 violado); corpus heterogéneo (H-5.5-4); directorios legacy coexistentes (H-5.5-3); claim de identidad duplicada descartado por SHA-256 (doc_10 SHA `8dfcfda6...` ≠ doc_08 SHA `248481eb...`). | ❌ No (requiere re-baseline) | ❌ No (gobernanza) | ACCEPTED_LIMITATION + remediación procedural | No hay regla faltante (NADR-21 §5.1 R5 y criterio Gate 1 ya la exigen); falló disciplina de ejecución. Remediación: checklist pre-sellado como addendum al Curation Report. Sustitución de GTs no curados diferida a v3.0. |
-| H-5.5-2 | ✅ Sí | doc_09_vanhaverbeke y doc_10_gross sellados con NSS=1.0000 sin curaduría previa. Proceso de onboarding omitió paso 5 (curaduría manual) del flujo de 6 pasos documentado. | ❌ No (requiere re-baseline) | ✅ Sí | ACCEPTED_LIMITATION | Tautología por construcción (extractor vs sí mismo). Sustitución diferida a v3.0 con curaduría previa al sellado (NADR-21 §5.1 R5). |
-| H-5.5-3 | ✅ Sí | `tests/corpus/calibration_v1/` y `tests/corpus/benchmark_v1/` coexisten con el corpus canónico. H-5.4-2 documenta mutación accidental pre-remediación. | ❌ No (no requiere acción inmediata) | ✅ Sí | ACCEPTED_LIMITATION operacional | Vector de contaminación accidental ya mitigado por GAP-5.0-03 (todos los entry points exigen `--corpus-dir` explícito). Dirs permanecen como fuente histórica referenciada por Provenance Record. |
-| H-5.5-4 | ✅ Sí | Regresión v2.2: doc_01–05 HARD_FAIL (NSS 0.36–0.76). Los GTs contienen nodos `display_equation`, `table_simple`, `caption` que el pipeline vigente (`HeuristicLayoutClassifier` + PyMuPDF, DF-15) no puede emitir; se degradan a `paragraph`. | ❌ No (requiere re-baseline) | ✅ Sí | ACCEPTED_LIMITATION | Heterogeneidad de baseline: GTs generados con configuración de extracción legacy. Re-baseline v3.0 con configuración homogénea diferido hasta corpus ≥20 identidades. Política de interpretación: los HARD_FAIL de doc_01–05 son estructurales esperados, no regresión del runtime. |
+| GF-03 | ✅ Sí | Corpus v2.2 inicial violó NADR-21 §5.1 R5; remediación operacional: `curation_checklist.json` + gate O2 en `freeze_ground_truth.py` (Batch 1, commit `9cbddf8`); 19/21 docs ahora sellados con evidencia de curaduría (18 post-Batch 1 + doc_07 pre-gate); 2 tautológicos históricos documentados (doc_09, doc_10). | ✅ Sí (remediado operacionalmente) | ❌ No (gobernanza) | ACCEPTED_LIMITATION + remediación procedural completa | Regla ya existía; disciplina de ejecución ahora enforzada por `curate_gt.py` + gate O2. Sustitución de doc_07/09/10 diferida a re-baseline v4.0. |
+| H-5.5-2 | ✅ Sí | doc_09_vanhaverbeke y doc_10_gross: NSS=1.0000 tautológico. 2/21 = 9.5% del corpus (down from 33% en v2.2). | ❌ No (requiere re-baseline) | ✅ Sí | ACCEPTED_LIMITATION | Tautología por construcción. Sustitución diferida a v4.0 con curaduría previa. |
+| H-5.5-3 | ✅ Sí | Directorios legacy preservados por Provenance Record; GAP-5.0-03 mitiga vector. | ❌ No | ✅ Sí | ACCEPTED_LIMITATION operacional | Mitigado por GAP-5.0-03. |
+| H-5.5-4 | ✅ Sí | Heterogeneidad de baseline doc_01-05: 5/21 = 23.8% (down from 55.6% en v2.2). Batch 2a/3 (13 docs) curados homogéneamente con PyMuPDFProvider vigente. | ❌ No (requiere re-baseline) | ✅ Sí | ACCEPTED_LIMITATION | Política de interpretación: HARD_FAIL estructurales esperados en doc_01-05, no regresión del runtime. |
+
+**Hallazgos adicionales derivados del Batch 2a y Batch 3 (33 nuevos):** H-5.1-12 a H-5.1-44 documentando 30 limitaciones empíricas de PyMuPDFProvider como Baseline de Capacidades. Todos clasificados `ACCEPTED_LIMITATION` con destino Fase 6. Ver §3.3 y §9.2.13-14 para detalle.
 
 **Resumen:**
-- RESOLVED: 0
+- RESOLVED: 1 (DF-19)
 - IMPLEMENTATION_REQUIRED: 0
 - REVIEW_REQUIRED: 0
 - CLOSED (NAR): 0
 - CONVERTED_TO_GF: 0
-- ACCEPTED_LIMITATION: 3 (H-5.5-2, H-5.5-3, H-5.5-4)
-- Governance Findings: 1 (GF-03)
-- Nuevos hallazgos registrados en onboarding v2.2: 4 (GF-03, H-5.5-2, H-5.5-3, H-5.5-4)
+- ACCEPTED_LIMITATION: 37 (4 originales + 33 derivados Batch 2a/3)
+- Governance Findings: 1 (GF-03, remediado operacionalmente)
+- Nuevos hallazgos registrados en Batch 2a/3: 33 (H-5.1-12 a H-5.1-44) + 2 observaciones (O-5.3-1, O-5.4-1)
 
-#### Decisiones arquitectónicas congeladas en Gate 1 (hasta la fecha)
+#### Decisiones arquitectónicas congeladas en Gate 1 (cierre definitivo 2026-09-23)
 
 | Decisión | Task | Justificación |
 |----------|------|---------------|
-| Opción A para H-5.5-2 (accept limitation + sustitución diferida) | — | NADR-12 §5.3 R9: oráculos sellados inmutables; la única ruta legal es sustitución bajo nueva corpus version (NADR-21 §5.8 R35-R37). Hacerlo ahora consumiría v2.3 para arreglar 3 documentos mientras el déficit crítico es de 11. |
-| H-5.5-3 mitigado por GAP-5.0-03, no purgado | — | Provenance Record v2.2 referencia `tests/corpus/calibration_v1/pdf/` como fuente histórica de doc_01-05. Purgo rompería trazabilidad de provenance (NADR-20 §5.7 R27-R28). GAP-5.0-03 garantiza que ningún entry point indexa esos dirs accidentalmente. |
-| H-5.5-4 como interpretación documentada, no como defecto | — | Los HARD_FAIL de doc_01–05 son el output correcto de un pipeline consistente; la divergencia es con el corpus heterogéneo, no con el runtime. Política de interpretación registrada como addendum al Calibration Protocol Record. |
+| Corpus v3.9 como baseline sellada | 1.1.5 | 21 identidades (objetivo 20 superado). Zero Partial Sealing verificado. Manifest hash `727782fe0df26d9d...`. |
+| 3 documentos tautológicos aceptados (14.3%) | GF-03 | doc_07, doc_09, doc_10 documentados como no-informativos. Sustitución diferida a v4.0 con extractor de mayor fidelidad. |
+| 5 documentos heterogéneos aceptados (23.8%) | H-5.5-4 | doc_01-05 con política de interpretación documentada. Re-baseline v4.0 agrupado con tautológicos. |
+| Baseline de Capacidades de PyMuPDFProvider establecida | Batch 2a/3 | 30 limitaciones empíricas documentadas con evidencia. 44 hallazgos derivados clasificados para carry-forward a Fase 6. |
+| Gate O2 como enforcement operacional | H-5.5-7 / Batch 1 | `curate_gt.py` + `freeze_ground_truth.py` con precondición de curaduría. Sin bypass no-indexable. |
 
-#### Lecciones aprendidas (parciales, Gate 1 abierto)
+#### Lecciones aprendidas (Gate 1 completo)
 
-- El orden del flujo de onboarding (check → add → draft → canonicalize → **curate** → seal) es norma, no sugerencia. Omitir la curaduría produce NSS=1.0 tautológico que la regresión detecta como PASS pero que no valida nada. La remediación procedural (checklist pre-sellado) es necesaria aunque la regla ya exista.
-- Un claim forense (en este caso "duplicación de identidad") debe verificarse con evidencia dura (SHA-256) antes de registrarse como finding. El claim de duplicación de doc_08/doc_10 era falso: los SHA-256 son distintos y los papers son distintos (Heredia vs Gross & Kaushanskaya). Cero Sesgo de Confirmación (ENGINEERING_PRINCIPLES) exige auditoría antes de clasificación.
-- La tautología del corpus es aditiva: cada documento sellado sin curaduría (doc_07 en v2.0, doc_09/10 en v2.2) incrementa el porcentaje de identidades no-informativas. Con 3/9 = 33%, el corpus v2.2 está cerca del umbral donde la tautología compromete la validez científica de la baseline.
+- El orden del flujo de onboarding (check → add → draft → canonicalize → **curate** → seal) es norma ejecutable tras Batch 1. El gate O2 previene repetición de H-5.5-2.
+- La tautología del corpus se redujo de 33% (v2.2) a 14.3% (v3.9) mediante curaduría sistemática de 13 documentos adicionales.
+- Las 30 limitaciones empíricas de PyMuPDFProvider documentadas en Batch 2a/3 establecen la Baseline de Capacidades contra la cual se medirán futuros extractores (Marker, Docling, Nougat) en Fase 6.
+- El déficit de corpus se resolvió con 21 documentos (1 sobre el mínimo), cubriendo 7 traits del catálogo ExtractionChallengeTrait.
 
 ---
 
@@ -424,15 +430,17 @@ Se actualiza al cierre del último Gate Exit Review.
 
 ### 3.1 Resumen por clasificación
 
-| Clasificación | Cantidad | DFs/GAPs |
+| Clasificación | Cantidad | DFs/GAPs/Hallazgos |
 |--------------|----------|----------|
-| `CLOSED (NAR)` | 0 | — |
-| `RESOLVED` (cualquier subtipo) | 0 | — |
-| `IMPLEMENTATION_REQUIRED` | 0 | — |
-| `RECLASSIFIED_FUTURE_PHASE` | 0 | — |
+| `CLOSED (NAR)` | 4 | H-5.1-6, H-5.1-8, H-5.2-2, H-5.2-5 |
+| `RESOLVED` (cualquier subtipo) | 17 | DF-19, GAP-5.2-05, DF-18, GAP-5.0-03, DF-04, H-5.1-1, H-5.1-2, H-5.1-3, H-5.1-4, H-5.1-5, H-5.1-7, H-5.2-3, H-5.2-4, H-5.4-1, H-5.4-2, H-5.5-7, H-5.5-8 |
+| `IMPLEMENTATION_REQUIRED` | 1 | H-5.2-1 |
+| `RECLASSIFIED_FUTURE_PHASE` | 3 | H-5.1-11, H-5.5-5, H-5.5-6 |
 | `REVIEW_REQUIRED` | 0 | — |
-| `ACCEPTED_LIMITATION` | 0 | — |
+| `ACCEPTED_LIMITATION` | 44 | H-5.1-9, H-5.1-10, H-5.2-6, H-5.3-1, H-5.3-2, H-5.3-3, H-5.5-2, H-5.5-3, H-5.5-4, GF-03 + 33 derivados Batch 2a/3 (H-5.1-12 a H-5.1-44) |
 | `CONVERTED_TO_GF` | 0 | — |
+| Observaciones (O-*) | 6 | O-4.3-3, O-4.4-1, O-4.4-2, O-4.4-3, O-5.3-1, O-5.4-1 |
+| Governance Findings (GF-*) | 3 | GF-01, GF-02, GF-03 |
 
 ### 3.2 Tabla consolidada
 
@@ -491,78 +499,148 @@ Las secciones de batch se agregan dinámicamente conforme se ejecuten las remedi
 
 ### 4.1 BATCH 1 — Gate O2 en freeze_ground_truth.py (H-5.5-7)
 
-**Fecha de ejecución:** —
-**Validación:** Pyright 0/0 | pytest baseline 720 passed, 5 skipped no degradada
-**Estado:** ⏳ PENDING (IMPLEMENTATION_REQUIRED vía H-5.5-7)
-Scope: precondición de curaduría en freeze_ground_truth.py (todo doc con ground_truth_state=None requiere entrada CURATED en curation_checklist.json); override --allow-uncurated con warning indexable fuera de ejecución certificante (patrón D2/R26); backward-compat: checklist ausente = IndexedError con línea remediation (crear vía curate), nunca warning silencioso; re-runs MIG-06 sobre corpus sellado sin cambio (DRAFT-W01). Test clave: sellar draft sin CURATED → rechazo indexable.
+**Fecha de ejecución:** 2026-09-15 (commit `9cbddf893d69ba1c157044c9ede1054794465073`)
+**Validación:** Pyright 0/0 | pytest baseline 729 passed, 5 skipped (724 + 5 tests del gate O2)
+**Estado:** ✅ COMPLETED
 
+**Scope ejecutado:**
+- Precondición de curaduría en `freeze_ground_truth.py`: todo doc con `ground_truth_state=None` requiere entrada `CURATED` en `<corpus-dir>/curation_checklist.json` con `report_ref`.
+- Override `--allow-uncurated` con warning indexable `FREEZE-W01` fuera de ejecución certificante (patrón D2/R26). Cubre AMBOS códigos (GT-001 y GT-002).
+- Backward-compat: checklist ausente = `FREEZE-GT-001` con línea `remediation:`; nunca warning silencioso.
+- Re-runs MIG-06 sobre corpus sellado sin cambio (idempotencia DRAFT-W01).
+- Ruta del checklist derivada de `--corpus-dir` (sin literal hardcodeado, patrón GAP-5.0-03).
 
-#### Correcciones adicionales durante ejecución
+**Evidencia de implementación:**
+- `tools/evaluation/freeze_ground_truth.py`: códigos `FREEZE-GT-001`, `FREEZE-GT-002`, `FREEZE-W01` reales.
+- Tests: `test_freeze_aborts_without_curated_entry`, `test_freeze_warns_with_allow_uncurated`, `test_freeze_aborts_without_checklist`, `test_freeze_skips_sealed_oracles`, `test_freeze_idempotent_on_fully_sealed_corpus` (5 nuevos).
+- Baseline: 729 passed / 5 skipped.
+- H-5.5-7 reclasificado de `IMPLEMENTATION_REQUIRED` a `RESOLVED`.
 
-- —
+### 4.2 BATCH 2a — Writer de checklist + hardening CANON-* (GF-03, H-5.5-2 enmendados)
 
-#### Hallazgos registrados durante el batch
+**Fecha de ejecución:** 2026-09-15 (commit `c4bb03b`)
+**Validación:** Pyright 0/0 | pytest baseline no degradada
+**Estado:** ✅ COMPLETED
 
-| ID | Hallazgo | Clasificación | Acción |
-|----|----------|---------------|--------|
-| — | — | — | — |
+**Scope ejecutado (re-scope v1.1.1 del plan):**
+- `tools/evaluation/curate_gt.py`: escritor de `curation_checklist.json` con schema congelado `{status, report_ref, curated_at}`. Códigos reales: `CURATE-001` (manifest no resoluble), `CURATE-002` (checklist corrupto), `CURATE-003` (documento sellado, NADR-21 §5.1 R5), `CURATE-004` (report_ref vacío), `CURATE-W01` (report_ref con PENDING).
+- `tools/evaluation/canonicalize_gt.py`: hardening con códigos reales `CANON-001` (4 casos: manifest no resoluble, doc ausente, GT ausente, GT ilegible), `CANON-002` (colisión de node_ids), `CANON-003` (documento sellado), `CANON-OK` (legacy detectado, auto-corrige con linaje).
+- Contrato de `curate_gt.py` congelado por el lector de Batch 1; sin riesgo de descubrimiento durante onboarding.
 
-#### Cambios normativos aplicados
+**Evidencia de implementación:**
+- `tests/unit/test_curate_gt.py` + `tests/unit/test_canonicalize_gt.py` con cobertura completa de códigos.
+- Batch 2b (orquestador `main_corpus`) DIFERIDO por YAGNI con trigger: ≥2 onboardings post-2a o error de secuenciación. No necesario aún (Batch 3 usó entry points individuales sin issues).
+
+### 4.3 BATCH 3 — Curaduría y sellado de doc_14 a doc_22
+
+**Fecha de ejecución:** 2026-09-22 / 2026-09-23
+**Validación:** Pyright 0/0 | `freeze_ground_truth.py` ejecutado con éxito sobre corpus v3.9
+**Estado:** ✅ COMPLETED
+
+**Scope ejecutado:**
+- 9 documentos curados manualmente con gate O2 activo: doc_14_fig_math, doc_15_table_fig_code, doc_16_fig_code, doc_17_table_code, doc_18_table_math_doble_col, doc_19_fig_table_doble_col, doc_20_doble_col_table, doc_21_heavy_math_table, doc_22_table_fig_math.
+- Cada documento registrado en `curation_checklist.json` con `status=CURATED` y `report_ref` al Curation Report.
+- Sellado unificado con `freeze_ground_truth.py`: manifest hash `727782fe0df26d9dd401830a54785b03df5fd059ebf83cc422cb58d8a3d19f7d`.
+- Zero Partial Sealing verificado: biyección N_PDF = N_GT = 21.
+- 33 hallazgos derivados (H-5.1-12 a H-5.1-44) documentados en `FASE_5_WAVE_1_3_CURATION_REPORT.md`.
+- 2 observaciones nuevas: O-5.3-1 (NodeMetadata sin campo `note`), O-5.4-1 (ausencia de trait `code` en enum).
+
+**Hallazgos derivados del Batch 2a (doc_11-13):**
+
+| ID | Hallazgo | Clasificación |
+|----|----------|---------------|
+| H-5.1-12 | doc_11_fig: 17/44 nodos (38.6%) son ruido vectorial de Figura 20.2 | ACCEPTED_LIMITATION |
+| H-5.1-13 | doc_11_fig nodo p1_b5: cross-page bleed (header absorbido) | ACCEPTED_LIMITATION |
+| H-5.1-14 | doc_13_fmi: hiper-fragmentación por renglón (70.5%) | ACCEPTED_LIMITATION |
+| H-5.1-15 | doc_13_fmi: destrucción total de estructura tabular | ACCEPTED_LIMITATION |
+| H-5.1-16 | doc_12_multi_col p2_b3: error silencioso de codificación ("AI 5 Mind") | ACCEPTED_LIMITATION |
+| H-5.1-17 | doc_12_multi_col: under-segmentation de subtítulos H2/H3 | ACCEPTED_LIMITATION |
+| H-5.1-18 | doc_12_multi_col: over-segmentation por salto de columna | ACCEPTED_LIMITATION |
+
+**Hallazgos derivados del Batch 3 (doc_14-22):**
+
+| ID | Hallazgo | Clasificación |
+|----|----------|---------------|
+| H-5.1-19 | doc_14_fig_math: layout Tufte sin delimitar (margin keyword bleed) | ACCEPTED_LIMITATION |
+| H-5.1-20 | doc_14_fig_math: corrupción de glifos TeX en delimitadores de matrices | ACCEPTED_LIMITATION |
+| H-5.1-21 | doc_15/16/17: ceguera sistemática ante bloques de código Python (100%) | ACCEPTED_LIMITATION |
+| H-5.1-22 | doc_15_table_fig_code: header bleed destructivo en código | ACCEPTED_LIMITATION |
+| H-5.1-23 | doc_15_table_fig_code: table shredding de tablas simples | ACCEPTED_LIMITATION |
+| H-5.1-24 | doc_16_fig_code: ceguera ante celdas Jupyter interactivas | ACCEPTED_LIMITATION |
+| H-5.1-25 | doc_16_fig_code: footer bleed transpágina | ACCEPTED_LIMITATION |
+| H-5.1-26 | doc_16_fig_code: sobre-segmentación de celdas Jupyter | ACCEPTED_LIMITATION |
+| H-5.1-27 | doc_17_table_code: desarticulación sistemática de tablas de referencia | ACCEPTED_LIMITATION |
+| H-5.1-28 | doc_17_table_code: ceguera IPython con regex complejas | ACCEPTED_LIMITATION |
+| H-5.1-29 | doc_18_table_math: desmembramiento vertical columna por columna (77.6%) | ACCEPTED_LIMITATION |
+| H-5.1-30 | doc_18_table_math: inyección de capas fantasma | ACCEPTED_LIMITATION |
+| H-5.1-31 | doc_18_table_math: corrupción de fuentes matemáticas IMF | ACCEPTED_LIMITATION |
+| H-5.1-32 | doc_18_table_math: falsos headings reiterados en disclaimers | ACCEPTED_LIMITATION |
+| H-5.1-33 | doc_19_fig_table: inversión sistemática de jerarquía | ACCEPTED_LIMITATION |
+| H-5.1-34 | doc_19_fig_table: doble patología tabular (smashing + shredding) | ACCEPTED_LIMITATION |
+| H-5.1-35 | doc_19_fig_table: omisión absoluta de figuras en visión | ACCEPTED_LIMITATION |
+| H-5.1-36 | doc_20_doble_col: dualidad patológica en extracción tabular | ACCEPTED_LIMITATION |
+| H-5.1-37 | doc_20_doble_col: epidemia de falsos positivos en HEADING (8 casos) | ACCEPTED_LIMITATION |
+| H-5.1-38 | doc_20_doble_col: colapso de listas con viñetas | ACCEPTED_LIMITATION |
+| H-5.1-39 | doc_21_heavy_math: hiper-fragmentación matemática devastadora (56.2%) | ACCEPTED_LIMITATION |
+| H-5.1-40 | doc_21_heavy_math: mutilación sistemática de signos radicales | ACCEPTED_LIMITATION |
+| H-5.1-41 | doc_21_heavy_math: infiltración transpágina extrema (header bleed) | ACCEPTED_LIMITATION |
+| H-5.1-42 | doc_22_table_fig_math: colapso monolítico extremo de tabla extensa (47 covariables) | ACCEPTED_LIMITATION |
+| H-5.1-43 | doc_22_table_fig_math: desarticulación vertical de sumatorias dobles | ACCEPTED_LIMITATION |
+| H-5.1-44 | doc_22_table_fig_math: intercalación destructiva de notas al pie | ACCEPTED_LIMITATION |
+
+**Observaciones derivadas del Batch 2a/3:**
+
+| ID | Descripción | Clasificación |
+|----|-------------|---------------|
+| O-5.3-1 | `NodeMetadata` no soporta campo `note` para footnotes. Schema fijo. Footnotes presentes en contenido pero sin clasificación estructural. | Observación (carry-forward Fase 6) |
+| O-5.4-1 | Enum `ExtractionChallengeTrait` no tiene trait `code`. Los 3 documentos con código (doc_15/16/17) tienen esta brecha de catalogación. | Observación (carry-forward Fase 6) |
+| DF-06 | Pipeline de extracción genera node_ids en formato legacy `value='pX_bY'`. Causa raíz: `BenchmarkParserBridge.extract_ast()` serializa `BlockId` con `str()` en vez de `.value`. | Carry-forward Fase 6 |
+
+#### Cambios normativos aplicados (Batch 3)
 
 | NADR | Regla | Cómo se cumple |
 |------|-------|----------------|
-| — | — | — |
-
-#### Decisiones de diseño clave
-
-| Decisión | Justificación | Alternativas rechazadas |
-|----------|---------------|-------------------------|
-| — | — | — |
+| NADR-21 | §5.1 R5 (curaduría antes del sealing) | 18/21 documentos curados con `curate_gt.py` antes de `freeze_ground_truth.py` |
+| NADR-21 | §5.5 R22-R27 (Zero Partial Sealing) | Biyección N_PDF = N_GT = 21 verificada post-sellado |
+| NADR-20 | §5.5 R20 (≥20 identidades) | 21 identidades selladas (objetivo superado) |
 
 #### Métricas post-batch
 
 | Métrica | Valor |
 |---------|-------|
-| Archivos creados | — |
-| Archivos modificados | — |
-| Archivos eliminados | — |
-| Archivos movidos | — |
-| Imports corregidos | — |
-| Tests ejecutados | — |
-| Errores de tipo estático | — |
-
-### 4.2 BATCH 2 — Binario main_corpus + verbo curate + mapa de remediation (anclas: GF-03/H-5.5-2 enmendados, H-5.5-5 mitigación)
-
-**Fecha de ejecución:** —
-**Validación:** Pyright 0/0 | pytest baseline no degradada | tests de propagación de exit codes de subprocesos
-**Estado:** ⏳ PENDING
-Scope: un binario con verbos admit → draft → canonicalize → curate → seal → regress (actos de gobernanza
+| Documentos curados en Batch 3 | 9 (doc_14 a doc_22) |
+| Documentos sellados en corpus v3.9 | 21 (total acumulado) |
+| Manifest hash v3.9 | `727782fe0df26d9dd401830a54785b03df5fd059ebf83cc422cb58d8a3d19f7d` |
+| Hallazgos derivados (Batch 2a + 3) | 33 (H-5.1-12 a H-5.1-44) |
+| Observaciones nuevas | 3 (O-5.3-1, O-5.4-1, DF-06) |
+| Tests finales | 729 passed, 5 skipped |
+| Pyright final | 0 errors |
 
 ---
 
 ## 5. MÉTRICAS ACUMULADAS DE LA FASE
 
-Se actualiza al cierre de cada batch.
-
 | Métrica | Valor |
 |---------|-------|
-| Total de hallazgos analizados | 41 |
-| Hallazgos activos de Fase 5 | 5 pre-identificados (DF-18, GAP-5.0-03, DF-19, GAP-5.2-05, DF-04 — todos resueltos) + 31 derivados + 2 Governance Findings pre-v0.17 + 1 Governance Finding nuevo (GF-03) = 39 |
-| Hallazgos resueltos | 11 derivados (H-5.1-1, H-5.1-2, H-5.1-3, H-5.1-4, H-5.1-5, H-5.1-7, H-5.2-3, H-5.2-4, DF-04, H-5.4-1, H-5.4-2) + 4 pre-identificados (DF-19, GAP-5.2-05, DF-18, GAP-5.0-03) = 15 totales |
+| Total de hallazgos analizados | 78 |
+| Hallazgos activos de Fase 5 | 5 pre-identificados (todos resueltos: DF-18, GAP-5.0-03, DF-19, GAP-5.2-05, DF-04) + 66 derivados + 3 Governance Findings = 74 |
+| Hallazgos resueltos | 17 derivados + 5 pre-identificados = 22 totales (últimos: H-5.5-7 Batch 1, H-5.5-8 tracking reports) |
 | Hallazgos cerrados sin acción | 4 (H-5.1-6, H-5.1-8, H-5.2-2, H-5.2-5) |
 | Hallazgos reclasificados a fase futura | 3 (H-5.1-11, H-5.5-5, H-5.5-6) |
-| Hallazgos aceptados como limitación | 11 (H-5.1-9, H-5.1-10, H-5.2-6, H-5.3-1, H-5.3-2, H-5.3-3, H-5.4-1, H-5.4-2, H-5.5-2, H-5.5-3, H-5.5-4) |
-| Hallazgos pendientes de implementación | 2 (H-5.2-1, H-5.5-7) |
+| Hallazgos aceptados como limitación | 44 (11 originales + 33 derivados Batch 2a/3) |
+| Hallazgos pendientes de implementación | 1 (H-5.2-1 — doc_06_johnstone requiere OCR) |
 | Hallazgos pendientes de revisión | 0 |
-| Observaciones registradas | 4 (O-4.3-3, O-4.4-1, O-4.4-2, O-4.4-3) |
-| Governance Findings abiertos | 3 (GF-01, GF-02, GF-03) |
-| Batches completados | 0 |
+| Observaciones registradas | 6 (O-4.3-3, O-4.4-1, O-4.4-2, O-4.4-3, O-5.3-1, O-5.4-1) |
+| Carry-forwards a Fase 6 | DF-06 (node_ids legacy) + 44 hallazgos derivados como Baseline de Capacidades |
+| Governance Findings | 3 (GF-01, GF-02 documentados; GF-03 remediado operacionalmente) |
+| Batches completados | 3 (Batch 1: gate O2, Batch 2a: writer + CANON-*, Batch 3: doc_14-22) |
 | Archivos eliminados totales | 1 (tmptu237h6p) |
-| Archivos movidos totales | 1 (canonicalization_lineage.json de ground_truth/ a canonical/) |
-| Archivos creados totales | 39 (sin cambio respecto a v0.16.0) |
-| Tests finales | 720 passed, 5 skipped (baseline definitiva post-Wave 4.4) |
+| Archivos movidos totales | 1 (canonicalization_lineage.json) |
+| Archivos trackeados nuevos | reports/calibration/, reports/df04/, reports/sanity_validation/ (H-5.5-8) |
+| Tests finales | 729 passed, 5 skipped |
 | Pyright final | 0 errors |
-| Corpus sellado | v2.2 (9 identidades, manifest_hash 52c42353..., biyección N_PDF=N_GT=9) |
+| Corpus sellado | **v3.9** (21 identidades, manifest_hash `727782fe0df26d9d...`, biyección N_PDF=N_GT=21) |
+| Objetivo NADR-20 §5.5 R20 | ✅ ALCANZADO Y SUPERADO (21 ≥ 20) |
 
 ---
 
@@ -583,6 +661,10 @@ Los hallazgos diferidos a fases futuras se registran aquí con destino explícit
 | H-5.5-4 | Re-baseline v3.0 (corpus ≥20 identidades) | GTs de doc_01-doc_05 generados con configuración de extracción legacy; el pipeline vigente no puede reproducirlos. Re-baseline con configuración homogénea diferido hasta corpus ≥20 para consolidar con sustituciones de H-5.3-3 y H-5.5-2 en una sola corpus version. Política de interpretación de HARD_FAIL estructurales documentada como addendum al Calibration Protocol Record hasta entonces. |
 | H-5.5-5 | Fase 6 (Continuous Verification) | Enforcement normativo de curaduría-antes-sellado (O3) en la autoridad de sellado (dominio) exige tocar código de dominio congelado bajo gobernanza; la mitigación in-fase (H-5.5-7, O2 en tooling) cierra el path operacional hoy. |
 | H-5.5-6 | Fase 6 (Continuous Verification) | Fingerprint de extractor/pipeline como concepto de identidad nuevo; el companion machine-checkable de §7 clavea hoy sobre identidades existentes (configuration fingerprint, parameter identity, manifest hash); la identidad nueva puede requerir enmienda normativa. |
+| H-5.1-12 a H-5.1-44 | Fase 6 (Continuous Verification) | **33 hallazgos derivados del Batch 2a/3** documentando 30 limitaciones empíricas de PyMuPDFProvider (Baseline de Capacidades). Incluyen: contaminación vectorial (H-5.1-12), destrucción tabular (H-5.1-15, H-5.1-29), ceguera de código (H-5.1-21, H-5.1-24), hiper-fragmentación matemática (H-5.1-39), colapso monolítico de tablas extensas (H-5.1-42). Destino: mejora de extractor con adaptadores de mayor fidelidad (Marker, Docling, Nougat) o Fase dedicada. |
+| O-5.3-1 (NodeMetadata sin campo `note`) | Fase 6 | Evaluar extensión de `NodeMetadata` para clasificación estructural de footnotes. Actualmente presentes en contenido pero sin metadata. |
+| O-5.4-1 (enum sin trait `code`) | Fase 6 | Extender `ExtractionChallengeTrait` con trait `code` para catalogar documentos con código fuente (doc_15, 16, 17). |
+| DF-06 (node_ids legacy) | Fase 6 | Fix del pipeline de extracción (`BenchmarkParserBridge.extract_ast()`) para generar node_ids canónicos directamente (`pX_bY` en vez de `value='pX_bY'`). Canonicalización manual requerida actualmente por documento. |
 
 ---
 
@@ -639,19 +721,20 @@ El documento se considera cerrado (`ARCHIVED`) cuando:
 
 | Categoría | Cantidad |
 |-----------|----------|
-| Total de hallazgos analizados | 38 |
+| Total de hallazgos analizados | 78 |
 | Hallazgos activos de Fase 5 (pre-identificados) | 5 (todos resueltos: DF-18, GAP-5.0-03, DF-19, GAP-5.2-05, DF-04) |
-| Hallazgos derivados de Waves 1.1-4.4 y onboarding v2.2 | 31 |
-| Hallazgos resueltos | 15 (11 derivados + 4 pre-identificados: DF-19, GAP-5.2-05, DF-18, GAP-5.0-03, DF-04) |
+| Hallazgos derivados de Waves 1.1-4.4 y Batches 1/2a/3 | 66 |
+| Hallazgos resueltos | 22 (17 derivados + 5 pre-identificados) |
 | Hallazgos cerrados sin acción | 4 (H-5.1-6, H-5.1-8, H-5.2-2, H-5.2-5) |
-| Hallazgos aceptados como limitación | 11 (H-5.1-9, H-5.1-10, H-5.2-6, H-5.3-1, H-5.3-2, H-5.3-3, H-5.4-1, H-5.4-2, H-5.5-2, H-5.5-3, H-5.5-4) |
-| Hallazgos reclasificados a fase futura | 1 (H-5.1-11) |
+| Hallazgos aceptados como limitación | 44 (incluye 33 derivados de Batch 2a/3) |
+| Hallazgos reclasificados a fase futura | 3 (H-5.1-11, H-5.5-5, H-5.5-6) |
 | Hallazgos pendientes de implementación | 1 (H-5.2-1) |
 | Hallazgos pendientes de revisión | 0 |
-| Observaciones registradas | 4 (O-4.3-3, O-4.4-1, O-4.4-2, O-4.4-3) |
-| Governance Findings abiertos | 3 (GF-01, GF-02, GF-03) |
-| Batches completados | 0/— |
-| Estado del Exit Review | 🟡 IN PROGRESS (Gate 1 IN PROGRESS; Gate 2, 3, 4 COMPLETED; Gate 5 PENDING) |
+| Observaciones registradas | 6 (O-4.3-3, O-4.4-1, O-4.4-2, O-4.4-3, O-5.3-1, O-5.4-1) |
+| Carry-forwards a Fase 6 | DF-06 + 44 hallazgos derivados (Baseline de Capacidades) |
+| Governance Findings | 3 (GF-01, GF-02 documentados; GF-03 remediado operacionalmente) |
+| Batches completados | 3/3 (Batch 1, Batch 2a, Batch 3) |
+| Estado del Exit Review | ✅ Gate 1, 2, 3, 4 COMPLETED; Gate 5 PENDING |
 
 ---
 
@@ -875,6 +958,19 @@ Wave 3.3 (Provenance & Parameter Freeze) no generó nuevos hallazgos derivados. 
 > (3) La tautología de 3/9 identidades (33%) es aceptada como limitación conocida hasta re-baseline v3.0.
 > La evidencia forense formal se registrará en §2 durante el Gate 1 Exit Review (parcial en esta versión).
 
+### 9.2.13 Hallazgos derivados del Batch 2a (doc_11-13) — registrados durante curaduría
+
+| ID | Descripción | Estado preliminar | Gate destino primario | Fuente |
+|----|-------------|-------------------|----------------------|--------|
+| H-5.1-12 | doc_11_fig: 17/44 nodos (38.6%) son ruido vectorial de Figura 20.2. PyMuPDF desarma gráficos vectoriales en bloques parásitos. | `ACCEPTED_LIMITATION` | Gate 1 Batch 2a | Curaduría doc_11 |
+| H-5.1-13 | doc_11_fig nodo p1_b5: cross-page bleed. El párrafo absorbió el header de pág. 271. | `ACCEPTED_LIMITATION` | Gate 1 Batch 2a | Curaduría doc_11 |
+| H-5.1-14 | doc_13_fmi: hiper-fragmentación por renglón. 31/44 nodos (70.5%) son líneas individuales. | `ACCEPTED_LIMITATION` | Gate 1 Batch 2a | Curaduría doc_13 |
+| H-5.1-15 | doc_13_fmi: destrucción total de estructura tabular. Tablas 2 y 3 colapsadas en 0 nodos `table_simple`/`table_complex`. | `ACCEPTED_LIMITATION` | Gate 1 Batch 2a | Curaduría doc_13 |
+| H-5.1-16 | doc_12_multi_col nodo p2_b3: error silencioso de codificación. "AI 5 Mind" en vez de "AI = Mind" por ToUnicode defectuoso. | `ACCEPTED_LIMITATION` | Gate 1 Batch 2a | Curaduría doc_12 |
+| H-5.1-17 | doc_12_multi_col: under-segmentation de subtítulos H2/H3 en doble columna (fusionados con primer renglón). | `ACCEPTED_LIMITATION` | Gate 1 Batch 2a | Curaduría doc_12 |
+| H-5.1-18 | doc_12_multi_col: over-segmentation por salto de columna. Oraciones continuas partidas. | `ACCEPTED_LIMITATION` | Gate 1 Batch 2a | Curaduría doc_12 |
+| O-5.3-1 | `NodeMetadata` no soporta campo `note`. Schema fijo impide clasificación estructural de footnotes. | Observación | Fase 6 | Curaduría doc_08 |
+
 ### 9.3 Mapeo Finding → Task (referencia cruzada con Execution Plan)
 
 | Finding | Task primaria | Tipo de relación | Nota |
@@ -929,13 +1025,13 @@ Wave 3.3 (Provenance & Parameter Freeze) no generó nuevos hallazgos derivados. 
 
 ## 10. RELACIÓN CON EL EXECUTION PLAN
 
-| Gate | Waves | Tasks | Hallazgos pre-asignados |
-|------|-------|-------|-------------------------|
-| Gate 1 — Canonical Corpus & GT Qualification | W1.1, W1.2, W1.3 (+ W1.4 pendiente) | 18 | DF-19, GF-03, H-5.5-2, H-5.5-3, H-5.5-4 (derivados en onboarding v2.2) |
-| Gate 2 — GT Sealing & Canonical Evaluation Configuration | W2.1, W2.2, W2.3, W2.4 | 17 | GAP-5.2-05, DF-04 |
-| Gate 3 — Scientific Calibration & Experimental Provenance | W3.1, W3.2, W3.3 | 10 | H-5.3-1, H-5.3-2, H-5.3-3 (derivados en Waves 3.1 y 3.2) |
-| Gate 4 — Certification Tooling & Execution Safety | W4.1, W4.2, W4.3, W4.4 | 13 | GAP-5.0-03, DF-18, GAP-5.2-05 |
-| Gate 5 — End-to-End Certification & Baseline Freeze | W5.1, W5.2, W5.3 | 10 | DF-04 (cierre administrativo) |
+| Gate | Waves | Tasks | Hallazgos pre-asignados | Estado |
+|------|-------|-------|-------------------------|--------|
+| Gate 1 — Canonical Corpus & GT Qualification | W1.1, W1.2, W1.3 + Batches 2a/3 | 18 | DF-19, GF-03, H-5.5-2/3/4, H-5.1-12 a H-5.1-44 (Batch 2a/3) | ✅ COMPLETED (2026-09-23) |
+| Gate 2 — GT Sealing & Canonical Evaluation Configuration | W2.1, W2.2, W2.3, W2.4 | 17 | GAP-5.2-05, DF-04 | ✅ COMPLETED (2026-09-10) |
+| Gate 3 — Scientific Calibration & Experimental Provenance | W3.1, W3.2, W3.3 | 10 | H-5.3-1, H-5.3-2, H-5.3-3 | ✅ COMPLETED (2026-09-11) |
+| Gate 4 — Certification Tooling & Execution Safety | W4.1, W4.2, W4.3, W4.4 | 13 | GAP-5.0-03, DF-18, GAP-5.2-05 | ✅ COMPLETED (2026-09-13) |
+| Gate 5 — End-to-End Certification & Baseline Freeze | W5.1, W5.2, W5.3 | 10 | DF-04 (cierre administrativo) | ⏳ PENDING (corpus v3.9 listo para FINAL EVALUATION) |
 
 ---
 
@@ -950,6 +1046,8 @@ Gate Exit Reviews.
 | GF-01 | DF-18 | Documentado (no resuelto por diseño) | NADR-19 §5.5 R22 (`run_regression` taxonomía 0/1/2 PASS/WARNING/HARD_FAIL) vs NADR-24 §5.4 R15-R17 (2 = fallo de ejecución, rechazo científico es categoría b) | Separación de scope: `run_regression` conserva taxonomía NADR-19 como compuerta CI; runner de certificación de Gate 5 (Task 5.2.1) implementa taxonomía NADR-24 traduciendo veredicto científico a categoría (a)/(b) y crashes a (c). `run_regression` NO se toca en Wave 4.2. |
 | GF-02 | (diseño Wave 4.3) | Documentado (interpretación normativa) | NADR-23 §5.5 R18 (corpus_identity = SHA-256 del manifest) vs NADR-24 §5.7 R29 (corpus identity y manifest identity como entidades distintas conforme a NADR-20) | Crosswalk normativo: `corpus_identity` = compuesto de contenido (SHA-256 de SHA-256 ordenados, estable entre sellados, NADR-20 §5.1-§5.5); `manifest_identity` = `manifest_hash` (cambia al sellar, NADR-20 §5.6 R24/R26). Artefactos de Wave 3.3 permanecen válidos; crosswalk documenta el mapeo entre diccionarios. Evidencia en `FASE_5_WAVE_4_3_EVIDENCE_RECORD.md`. |
 | GF-03 | (auditoría onboarding v2.2) | ACCEPTED_LIMITATION con remediación procedural | NADR-21 §5.1 R5 (curaduría ANTES del sealing) violado en sellado de doc_09/doc_10; corpus heterogéneo (H-5.5-4); directorios legacy coexistentes (H-5.5-3). No hay regla faltante (la regla existe); falló disciplina de ejecución. | Opción A: limitación aceptada, checklist pre-sellado como addendum al Curation Report, sustitución diferida a re-baseline v3.0 con curaduría previa al nuevo sellado (NADR-21 §5.8 R35-R37). Claim de identidad duplicada descartado por SHA-256 (doc_10 ≠ doc_08). |
+
+> **Nota post-sellado v3.9:** Los 3 Governance Findings (GF-01, GF-02, GF-03) permanecen en su estado actual. GF-03 fue remediado operacionalmente por Batch 1 + Batch 2a (gate O2 + curate_gt.py); 19 de 21 documentos sellados con evidencia de curaduría verificable. Los 2 restantes (doc_09, doc_10) permanecen como deuda histórica diferida a re-baseline v4.0. El Batch 3 no generó nuevos Governance Findings, solo observaciones (O-5.3-1, O-5.4-1) y carry-forwards (DF-06).
 
 ---
 

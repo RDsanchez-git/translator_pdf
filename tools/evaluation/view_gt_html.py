@@ -123,13 +123,17 @@ def main() -> None:
 
     gt_path = args.corpus_dir / 'ground_truth' / f'{args.doc_id}.json'
     if not gt_path.exists():
-        print(f'ERROR: GT no encontrado: {gt_path}')
-        return
+        import sys
+        print(f'[VIEW-GT-001] GT no encontrado: {gt_path}. '
+            f'remediation: ejecutar generate_golden_draft primero.')
+        sys.exit(2)
 
     nodes = json.loads(gt_path.read_text(encoding='utf-8'))
     html_content = render_gt_html(nodes, args.doc_id)
 
-    output_path = gt_path.with_suffix('.html')
+    output_dir = Path('reports/gt_views')
+    output_dir.mkdir(parents=True, exist_ok=True)
+    output_path = output_dir / f'{args.doc_id}.html'
     output_path.write_text(html_content, encoding='utf-8')
     print(f'HTML generado: {output_path}')
 

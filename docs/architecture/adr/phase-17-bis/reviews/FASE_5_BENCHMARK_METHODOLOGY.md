@@ -1,9 +1,9 @@
 # FASE 5 BENCHMARK METHODOLOGY
 
 **Documento:** `docs/architecture/adr/phase-17-bis/FASE_5_BENCHMARK_METHODOLOGY.md`
-**Versión:** 1.1.0
-**Estado:** IN_PROGRESS (Batch 1 cerrado; §7 pendiente)
-**Última actualización:** 2026-09-18
+**Versión:** 1.2.0
+**Estado:** COMPLETE (Batch 1 cerrado; §7 inaugurado con sellado v3.9)
+**Última actualización:** 2026-09-23
 **Derivado de:** `PHASE_17BIS_FASE5_EXECUTION_PLAN.md` v1.3.5 (vigente en repo; living document)
 
 ### Changelog
@@ -15,6 +15,7 @@
 | 1.1.1 | 2026-09-15 | **Re-scope de Batch 2 (Register v0.21.0):** Batch 2a = `curate_gt.py` (escritor de `curation_checklist.json`) + hardening `CANON-*` en `canonicalize_gt.py`, antes del primer onboarding; Batch 2b = orquestador `main_corpus` diferido (trigger: ≥2 onboardings post-2a o error de secuenciación). Deltas: §2.1 (fila `main_corpus` → diferido; nueva fila `curate_gt.py`), §3.2 (`CANON-*` objetivo→reales tras hardening de 2a), §3.3 paso 5 (registro vía `curate_gt.py` desde 2a). Gobernanza: `curation_checklist.json` no es artefacto de baseline (va a `.gitignore`); el registro durable de la curaduría es el Curation Report. |
 | 1.1.2 | 2026-09-15 | **Batch 2a implementado:** códigos `CANON-001/002/003/004/005` reales en `canonicalize_gt.py`; `CURATE-001/002/003/004` + `CURATE-W01` reales en `curate_gt.py`. §2.1: nueva fila `curate_gt.py` como entry point de Categoría A (Batch 2a). §3.2: `CANON-*` y `CURATE-*` pasan de objetivo a reales. |
 | 1.1.3 | 2026-09-15 | **Alineación §3.2 con códigos reales de Batch 2a (commit `c4bb03b`):** (1) tabla de §3.2 actualizada con códigos reales implementados: CANON-001 (4 casos), CANON-002/003/OK, CURATE-001/002/003/004 y CURATE-W01; (2) eliminación de CANON-004/005 que el changelog 1.1.2 afirmaba pero no existen en código; (3) corrección de §6.5 GF-03; (4) §3.3 paso 4 con códigos reales de Gate; (5) notas obsoletas reemplazadas por estado vigente; (6) §2.4 H-5.5-8 actualizado a "remediado"; (7) §3.4 con SHA real de Batch 1 (`9cbddf8`); (8) header con fecha única. |
+| 1.2.0 | 2026-09-23 | **SELLADO DEFINITIVO del corpus v3.9.** (1) §4.2: tautología actualizada a 3/21 (14.3%); (2) §6.1: nota sobre 30+ hallazgos adicionales de Batch 2a/3; (3) §6.2 H-5.3-1: calibración ahora ejecutable (N=21 ≥ 20); (4) §6.4: re-baseline v3.0 completado, HARD_FAIL estructurales 5/21; (5) §6.5 GF-03: remediación procedural completa 19/21; (6) §7: fila inaugural con manifest hash `727782fe0df26d9d...`. Corpus: 21 identidades selladas, Zero Partial Sealing cumplido, biyección N_PDF = N_GT = 21. |
 
 > **Este documento NO es:**
 > - Una enmienda a NADRs/ADRs (no redefine reglas)
@@ -134,6 +135,7 @@ El proyecto usa **dos taxonomías de exit codes** en scopes distintos:
 | `tools/evaluation/bootstrap_corpus.py` | ⚠️ Solo bootstrap inicial del manifest (Wave 1.2). **PROHIBIDO para añadir documentos**: reconstruye desde cero y destruye entradas selladas | Wave 1.2 T1.2.3 |
 | `tools/evaluation/curate_gt.py` | Escritor de `curation_checklist.json` (schema `{status, report_ref, curated_at}` congelado por el lector de Batch 1); rechaza curar sellados (`[CURATE-003]`, NADR-21 §5.1 R5); serialización determinista excluida de identidad | **Batch 2a** (pre-onboarding); contrato congelado por el lector |
 | `main_corpus` (verbos admit/draft/canonicalize/curate/seal/regress) | Orquestador delgado de onboarding/evaluación | **Batch 2b (DIFERIDO por YAGNI)**; trigger: ≥2 onboardings post-2a o error de secuenciación operacional; no es entry point existente |
+| `tools/evaluation/view_gt_html.py` | Genera HTML legible del GT para facilitar la curaduría manual (visualización, no mutación) | Batch 2a; herramienta de apoyo al Paso 5 |
 
 **Regla:** Para añadir documentos y correr el benchmark tocás únicamente los entry points de Categoría A. Todo lo demás es confinado, muerto o ruido.
 
@@ -231,7 +233,7 @@ El proyecto usa **dos taxonomías de exit codes** en scopes distintos:
 | 2 | Alta en manifest (traits válidos, sin dup de doc_id/SHA, bump de versión) | `add_document_to_corpus.py` | `ADD-DOC-*` → exit 2 si falla |
 | 3 | Generación de draft de GT | `generate_golden_draft.py` | Skips idempotentes en sellados |
 | 4 | Canonicalización de node_ids | `canonicalize_gt.py` | `CANON-OK` → auto-corrección con linaje; `CANON-001/002/003` → exit 2 si falla |
-| 5 | **Curaduría manual** (humano) | VS Code / editor + `curate_gt.py` | Registro en `curation_checklist.json` con `report_ref` al Curation Report: edición manual aceptable hasta Batch 2a; desde 2a, vía `curate_gt.py` (`[CURATE-*]` → exit 2 si falla) |
+| 5 | **Curaduría manual** (humano) |  VS Code / editor + `view_gt_html.py` + `curate_gt.py` |  Visualizar el GT con `view_gt_html.py` para comparar contra el PDF; editar el JSON en VS Code| Registro en `curation_checklist.json` con `report_ref` al Curation Report: edición manual aceptable hasta Batch 2a; desde 2a, vía `curate_gt.py` (`[CURATE-*]` → exit 2 si falla) |
 | 6 | Sellado atómico | `freeze_ground_truth.py` | Gate de curaduría vigente (Batch 1): todo doc con `ground_truth_state=None` exige entrada `CURATED` con `report_ref` en `<corpus-dir>/curation_checklist.json`; aborta con `FREEZE-GT-001/002` (exit 2) salvo override `--allow-uncurated` (`FREEZE-W01`) |
 | 7 | Gobernanza (actualizar Register, Execution Plan, provenance) | Edit manual | Cross-refs a hallazgos derivados |
 
@@ -275,13 +277,19 @@ El proyecto usa **dos taxonomías de exit codes** en scopes distintos:
 
 **NSS=1.0000 con estructuras degradadas = no-informativo, no éxito.**
 
-Si un documento tiene NSS=1.0000 pero el GT contiene estructuras degradadas (tablas como paragraphs, ecuaciones fragmentadas, labels de gráficos como texto plano), el PASS es **tautológico**: el extractor se comparó contra sí mismo, no contra una curaduría independiente. Ejemplos:
+Si un documento tiene NSS=1.0000 pero el GT contiene estructuras degradadas (tablas como paragraphs, ecuaciones fragmentadas, labels de gráficos como texto plano), el PASS es **tautológico**: el extractor se comparó contra sí mismo, no contra una curaduría independiente.
 
-- **doc_07_pesaran** (H-5.3-3): GT no editado en curaduría; fuentes Type 3 sin ToUnicode; tablas visibles no extraídas.
-- **doc_09_vanhaverbeke** (H-5.5-2): sellado sin curaduría previa; NSS=1.0 tautológico.
-- **doc_10_gross** (H-5.5-2): sellado sin curaduría previa; NSS=1.0 tautológico.
+**Documentos tautológicos en corpus v3.9 (3 de 21 = 14.3%):**
 
-**Acción:** Marcar como no-informativo para validación; curaduría real diferida a re-baseline v3.0 (corpus ≥20 identidades).
+| Documento | Causa | Impacto |
+|-----------|-------|---------|
+| doc_07_pesaran (H-5.3-3) | GT no editado en curaduría; fuentes Type 3 sin ToUnicode; tablas visibles no extraídas. | NSS=1.0 tautológico |
+| doc_09_vanhaverbeke (H-5.5-2) | Sellado sin curaduría previa (pre-gate Batch 1). | NSS=1.0 tautológico |
+| doc_10_gross (H-5.5-2) | Sellado sin curaduría previa (pre-gate Batch 1). | NSS=1.0 tautológico |
+
+**Documentos curados con gate activo (18 de 21 = 85.7%):** doc_01-05 (curaduría Wave 1.3), doc_08 (curaduría Wave 1.3 con Batch 1), doc_11-22 (curaduría Batch 2a/3 con gate O2 activo).
+
+**Acción:** Los 3 documentos tautológicos se marcan como no-informativos para validación de extractor. Sustitución diferida a re-baseline v4.0 con extractor de mayor fidelidad (Marker, Nougat).
 
 ### 4.3 Interpretación de veredictos (DoubleProtectionMechanism, worst-wins)
 
@@ -360,12 +368,15 @@ Cuando se sella un nuevo documento:
 | H-5.1-11 | Propuesta de patrón "Detect & Placeholder": PyMuPDF degrada silenciosamente tablas/figuras/ecuaciones al extraerlas como texto plano. Fuera del scope de Fase 17-BIS (ADR §4). | Diferido a Fase 18 (Advanced Local Runtime) o fase dedicada de mejora de extracción. |
 | H-5.3-2 | Divergencia masiva entre runtime de producción y GTs curados: 5/6 documentos HARD_FAIL, 106 Critical FN totales, corpus NSS 0.6536. Confirma problema estructural del extractor, no paramétrico. | Refuerza decisión de no calibrar con N=6. |
 
+> **Nota (v1.2.0):** La curaduría de Batch 2a (doc_11-13) y Batch 3 (doc_14-22) documentó **30+ hallazgos adicionales** (H-5.1-12 a H-5.1-44) que expanden empíricamente la Baseline de Capacidades de PyMuPDFProvider. Los hallazgos más severos incluyen: hiper-fragmentación matemática devastadora (56.2% de nodos en doc_21), colapso monolítico de tablas extensas (doc_22: 47 covariables en un solo string), ceguera sistemática ante código Python (100% en doc_15/16/17), desmembramiento tabular vertical (77.6% en doc_18), y mutilación de signos radicales por diferencias de línea base TeX (doc_21). Catálogo completo en `FASE_5_WAVE_1_3_CURATION_REPORT.md` §Limitaciones Documentadas (30 debilidades empíricas).
+
 ### 6.2 Limitaciones de calibración estadística
 
 | Hallazgo | Descripción | Impacto |
 |----------|-------------|---------|
 | H-5.3-1 | Calibración estadística no ejecutable con 6 documentos (N=6 < 20, NADR-23 R12 prohíbe presumir robustez estadística). Defaults actuales son evidence-informed por diseño, NO calibrados empíricamente. | Recalibración pendiente para corpus ≥20 con curvas precision-recall + bootstrap CI + human verdicts + learning curves. |
 | H-5.3-3 | GT de doc_07_pesaran no editado en curaduría: NSS=1.0000 es tautología (extractor contra sí mismo). Documento contiene tablas que PyMuPDF no extrae (fuentes Type 3). | Curaduría real diferida con ampliación de corpus. |
+| H-5.3-1 | Con 21 documentos sellados (corpus v3.9), la calibración estadística es ahora **ejecutable** (N=21 ≥ 20, cumpliendo NADR-23 R12). Los defaults actuales (0.80/0.95) siguen siendo evidence-informed por diseño. | Recalibración con curvas precision-recall + bootstrap CI + human verdicts + learning curves habilitada para Gate 5. No es bloqueante para el sellado. |
 
 ### 6.3 Limitaciones de tooling experimental
 
@@ -379,6 +390,13 @@ Cuando se sella un nuevo documento:
 |----------|-------------|---------|
 | H-5.5-2 | doc_09_vanhaverbeke y doc_10_gross sellados con NSS=1.0000 sin curaduría previa: tautología por construcción. | Sustitución diferida a re-baseline v3.0 (corpus ≥20) agrupada con H-5.3-3. |
 | H-5.5-4 | Heterogeneidad de baseline: los GTs de doc_01-doc_05 registran nodos de ecuación, tabla y caption (términos descriptivos del Register; los tipos concretos son los valores de `ContentNodeType` presentes en esos GTs sellados) que el runtime PyMuPDF vigente no puede reproducir (degrada a `paragraph`). Regresión v2.2: 5/9 HARD_FAIL. | Re-baseline v3.0 diferido hasta corpus ≥20 identidades. Política de interpretación: HARD_FAIL estructurales esperados, no regresión del runtime. |
+### 6.4 Limitaciones de onboarding y baseline
+
+| Hallazgo | Descripción | Impacto |
+|----------|-------------|---------|
+| H-5.5-2 | doc_09_vanhaverbeke y doc_10_gross sellados con NSS=1.0000 sin curaduría previa: tautología por construcción. | 2 de 21 documentos (9.5%). Sustitución diferida a re-baseline v4.0 con extractor de mayor fidelidad. |
+| H-5.5-4 | Heterogeneidad de baseline: los GTs de doc_01-05 registran nodos de ecuación, tabla y caption que el runtime PyMuPDF vigente no puede reproducir (degrada a `paragraph`). Con corpus v3.9 (21 docs), los HARD_FAIL estructurales afectan a 5/21 documentos (23.8%), down from 5/9 (55.6%) en v2.2. | HARD_FAIL estructurales esperados en doc_01-05, no regresión del runtime. Los 16 documentos restantes (curados con PyMuPDF) producen veredictos informativos. |
+| H-5.5-9 (nuevo) | Batch 3 (doc_14-22) documentó patologías extremas de PyMuPDF: 41 hallazgos derivados (H-5.1-9 a H-5.1-44) que cubren 30 debilidades empíricas. El corpus v3.9 funciona como stress test comprehensivo del extractor. | Baseline de Capacidades de PyMuPDFProvider establecida con evidencia empírica. Los hallazgos son carry-forward a Fase 6 para mejora de extractor. |
 
 
 ### 6.5 Governance Findings abiertos
@@ -387,15 +405,34 @@ Cuando se sella un nuevo documento:
 |----|-------------|------------|
 | GF-01 | Conflicto NADR-19 §5.5 R22 (`run_regression` taxonomía 0/1/2) vs NADR-24 §5.4 R15-R17 (2 = fallo de ejecución). | Separación de scope: `run_regression` conserva taxonomía NADR-19; runner de certificación de Gate 5 implementa NADR-24. |
 | GF-02 | Crosswalk normativo de identidades entre diccionarios NADR-23 (Wave 3.3) y NADR-24 (Wave 4.3). | Artefactos de Wave 3.3 permanecen válidos; crosswalk documenta el mapeo. |
-| GF-03 | Onboarding v2.2 selló doc_09/doc_10 sin evidencia de curaduría previa (NADR-21 §5.1 R5 violado). | Remediación procedural: `curation_checklist.json` + `curate_gt.py` (Batch 2a) con `report_ref`. Enforcement normativo diferido (H-5.5-5/O3). |
+| GF-03 | Onboarding v2.2 selló doc_09/doc_10 sin evidencia de curaduría previa (NADR-21 §5.1 R5 violado). **Remediación procedural completa:** `curation_checklist.json` + `curate_gt.py` (Batch 2a) con `report_ref` operativos desde commit `c4bb03b`. 19 de 21 documentos sellados con evidencia de curaduría (gate O2 activo). Solo doc_09 y doc_10 permanecen como deuda histórica (sellados pre-gate). | Remediado para todo onboarding post-Batch 2a. Deuda histórica de doc_09/doc_10 diferida a re-baseline v4.0. Enforcement normativo en dominio diferido (H-5.5-5/O3, Fase 6). |
+
 
 ---
 
-## 7. REGISTRO DE IMPACTO DE CAMBIOS (pendiente de pasada 2)
+## 7. REGISTRO DE IMPACTO DE CAMBIOS
 
-*Sección pendiente. Se completará en pasada 2 tras implementación de Batch 1 (gate O2) y Batch 2 (`main_corpus` con verbos).*
+### 7.1 Fila inaugural: Sellado del corpus v3.9 (2026-09-23)
 
-**Regla de anclaje (C3):** cualquier cambio en `build_extraction_pipeline()`, normalización o matching policy **exige** nueva fila con el delta de:
+| Campo | Valor |
+|-------|-------|
+| **Fecha** | 2026-09-23 |
+| **Evento** | Sellado definitivo del corpus canónico v3.9 (Batch 3 completo) |
+| **Corpus version** | v3.9 |
+| **Manifest hash (baseline_identity)** | `727782fe0df26d9dd401830a54785b03df5fd059ebf83cc422cb58d8a3d19f7d` |
+| **Identidades selladas** | 21 (objetivo NADR-20 §5.5 R20: 20 → **ALCANZADO Y SUPERADO**) |
+| **Zero Partial Sealing** | ✅ Cumplido. Biyección N_PDF = N_GT = 21. |
+| **Documentos tautológicos** | 3/21 (doc_07, doc_09, doc_10) — 14.3% |
+| **Documentos curados con gate activo** | 18/21 — 85.7% |
+| **configuration_fingerprint** | Sin cambio (mismo motor de evaluación) |
+| **parameter_identity** | Sin cambio (thresholds 0.80/0.95 vigentes) |
+| **Delta de veredicto de regresión** | Pendiente de primer run post-sellado con corpus v3.9 |
+| **Hallazgos documentados** | 44 hallazgos derivados (H-5.1-9 a H-5.1-44), 30 limitaciones empíricas de PyMuPDFProvider |
+| **Próximo hito** | Gate 5: ejecución de `run_regression.py` contra corpus v3.9 sellado + recalibración de thresholds (H-5.3-1 habilitada) |
+
+### 7.2 Regla de anclaje (C3)
+
+Cualquier cambio en `build_extraction_pipeline()`, normalización o matching policy **exige** nueva fila con el delta de:
 
 - `configuration_fingerprint` si cambia config de evaluación (NADR-22 §5.6 R19-R21).
 - `parameter_identity` si cambian thresholds/pesos (NADR-23 §5.6).

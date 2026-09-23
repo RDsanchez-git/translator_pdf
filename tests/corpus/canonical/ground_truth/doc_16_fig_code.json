@@ -1,0 +1,791 @@
+[
+  {
+    "node_id": "p1_b0",
+    "sequence_id": 1,
+    "node_type": "code",
+    "strategy": "keep_original",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 89.0,
+          "y0": 54.849998474121094,
+          "x1": 378.0,
+          "y1": 73.54999542236328,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "0",
+      "confidence": 1.0,
+      "layout_reading_order": 0,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "return self._gauss_basis(X[:, :, np.newaxis], self.centers_,\n                                 self.width_, axis=1)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b1",
+    "sequence_id": 2,
+    "node_type": "code",
+    "strategy": "keep_original",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 89.00001525878906,
+          "y0": 85.44999694824219,
+          "x1": 297.25,
+          "y1": 124.54999542236328,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "1",
+      "confidence": 1.0,
+      "layout_reading_order": 1,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "gauss_model = make_pipeline(GaussianFeatures(20),\n                            LinearRegression())\ngauss_model.fit(x[:, np.newaxis], y)\nyfit = gauss_model.predict(xfit[:, np.newaxis])"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b2",
+    "sequence_id": 3,
+    "node_type": "code",
+    "strategy": "keep_original",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 89.00001525878906,
+          "y0": 136.45001220703125,
+          "x1": 174.00001525878906,
+          "y1": 165.35000610351562,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "2",
+      "confidence": 1.0,
+      "layout_reading_order": 2,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "plt.scatter(x, y)\nplt.plot(xfit, yfit)\nplt.xlim(0, 10);"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b4",
+    "sequence_id": 4,
+    "node_type": "caption",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 72.00251770019531,
+          "y0": 348.85943603515625,
+          "x1": 394.908935546875,
+          "y1": 363.1604309082031,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "4",
+      "confidence": 1.0,
+      "layout_reading_order": 3,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Figure 5-46. A Gaussian basis function fit computed with a custom transformer"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b5",
+    "sequence_id": 5,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 71.9965591430664,
+          "y0": 373.595947265625,
+          "x1": 432.00244140625,
+          "y1": 425.5604553222656,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "5",
+      "confidence": 1.0,
+      "layout_reading_order": 4,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "We put this example here just to make clear that there is nothing magic about poly‐\nnomial basis functions: if you have some sort of intuition into the generating process\nof your data that makes you think one basis or another might be appropriate, you can\nuse them as well."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b6",
+    "sequence_id": 6,
+    "node_type": "heading",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 71.99834442138672,
+          "y0": 434.0077819824219,
+          "x1": 148.3093719482422,
+          "y1": 452.9002380371094,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "6",
+      "confidence": 1.0,
+      "layout_reading_order": 5,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Regularization",
+      "heading_level": "unknown"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b7",
+    "sequence_id": 7,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 71.99536895751953,
+          "y0": 456.80499267578125,
+          "x1": 432.0028381347656,
+          "y1": 521.3695068359375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "7",
+      "confidence": 1.0,
+      "layout_reading_order": 6,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "The introduction of basis functions into our linear regression makes the model much\nmore flexible, but it also can very quickly lead to overfitting (refer back to “Hyper‐\nparameters and Model Validation” on page 359 for a discussion of this). For example,\nif we choose too many Gaussian basis functions, we end up with results that don’t\nlook so good (Figure 5-47):"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b8",
+    "sequence_id": 8,
+    "node_type": "code",
+    "strategy": "keep_original",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 89.00096130371094,
+          "y0": 528.3560180664062,
+          "x1": 305.7509765625,
+          "y1": 557.2560424804688,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "8",
+      "confidence": 1.0,
+      "layout_reading_order": 7,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "In[10]: model = make_pipeline(GaussianFeatures(30),\n                              LinearRegression())\n        model.fit(x[:, np.newaxis], y)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b9",
+    "sequence_id": 9,
+    "node_type": "code",
+    "strategy": "keep_original",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 89.0009765625,
+          "y0": 569.1560668945312,
+          "x1": 335.5009765625,
+          "y1": 587.8560791015625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "9",
+      "confidence": 1.0,
+      "layout_reading_order": 8,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "plt.scatter(x, y)\n        plt.plot(xfit, model.predict(xfit[:, np.newaxis]))"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b10",
+    "sequence_id": 10,
+    "node_type": "composite_block",
+    "strategy": "keep_original",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 71.99897766113281,
+          "y0": 610.218017578125,
+          "x1": 187.61297607421875,
+          "y1": 621.0,
+          "is_normalized": false
+        },
+        {
+          "x0": 89.0,
+          "y0": 65.04999542236328,
+          "x1": 208.0,
+          "y1": 83.75,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1,
+        2
+      ],
+      "provider_native_id": "10",
+      "confidence": 1.0,
+      "layout_reading_order": 9,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "396 \n| \nChapter 5: Machine Learning plt.xlim(0, 10)\n        plt.ylim(-1.5, 1.5);"
+    },
+    "control_plane": {
+      "merge_count": 2
+    },
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b2",
+    "sequence_id": 11,
+    "node_type": "caption",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 72.00399780273438,
+          "y0": 267.2594299316406,
+          "x1": 373.133544921875,
+          "y1": 281.5604248046875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "2",
+      "confidence": 1.0,
+      "layout_reading_order": 11,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Figure 5-47. An overly complex basis function model that overfits the data"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b3",
+    "sequence_id": 12,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 71.99504089355469,
+          "y0": 291.9959411621094,
+          "x1": 432.0041198730469,
+          "y1": 343.96044921875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "3",
+      "confidence": 1.0,
+      "layout_reading_order": 12,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "With the data projected to the 30-dimensional basis, the model has far too much flex‐\nibility and goes to extreme values between locations where it is constrained by data.\nWe can see the reason for this if we plot the coefficients of the Gaussian bases with\nrespect to their locations (Figure 5-48):"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b4",
+    "sequence_id": 13,
+    "node_type": "code",
+    "strategy": "keep_original",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 88.99950408935547,
+          "y0": 350.94696044921875,
+          "x1": 360.99951171875,
+          "y1": 410.447021484375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "4",
+      "confidence": 1.0,
+      "layout_reading_order": 13,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "In[11]: def basis_plot(model, title=None):\n            fig, ax = plt.subplots(2, sharex=True)\n            model.fit(x[:, np.newaxis], y)\n            ax[0].scatter(x, y)\n            ax[0].plot(xfit, model.predict(xfit[:, np.newaxis]))\n            ax[0].set(xlabel='x', ylabel='y', ylim=(-1.5, 1.5))"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b5",
+    "sequence_id": 14,
+    "node_type": "code",
+    "strategy": "keep_original",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 88.99951171875,
+          "y0": 422.3470458984375,
+          "x1": 250.49951171875,
+          "y1": 441.04705810546875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "5",
+      "confidence": 1.0,
+      "layout_reading_order": 14,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "if title:\n                ax[0].set_title(title)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b6",
+    "sequence_id": 15,
+    "node_type": "code",
+    "strategy": "keep_original",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 88.99949645996094,
+          "y0": 452.94708251953125,
+          "x1": 301.49951171875,
+          "y1": 502.24713134765625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "6",
+      "confidence": 1.0,
+      "layout_reading_order": 15,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "ax[1].plot(model.steps[0][1].centers_,\n                       model.steps[1][1].coef_)\n            ax[1].set(xlabel='basis location',\n                      ylabel='coefficient',\n                      xlim=(0, 10))"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b7",
+    "sequence_id": 16,
+    "node_type": "code",
+    "strategy": "keep_original",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 88.99948120117188,
+          "y0": 514.1471557617188,
+          "x1": 390.74945068359375,
+          "y1": 532.84716796875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "7",
+      "confidence": 1.0,
+      "layout_reading_order": 16,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "model = make_pipeline(GaussianFeatures(30), LinearRegression())\n        basis_plot(model)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b8",
+    "sequence_id": 17,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 319.92657470703125,
+          "y0": 610.218017578125,
+          "x1": 432.00360107421875,
+          "y1": 621.0,
+          "is_normalized": false
+        },
+        {
+          "x0": 72.0,
+          "y0": 237.85885620117188,
+          "x1": 391.5464782714844,
+          "y1": 252.15985107421875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2,
+        3
+      ],
+      "provider_native_id": "8",
+      "confidence": 1.0,
+      "layout_reading_order": 17,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "In Depth: Linear Regression \n| \n397 Figure 5-48. The coefficients of the Gaussian bases in the overly complex model"
+    },
+    "control_plane": {
+      "merge_count": 2
+    },
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b2",
+    "sequence_id": 18,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 71.99569702148438,
+          "y0": 262.5953674316406,
+          "x1": 432.0047302246094,
+          "y1": 339.7598876953125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "2",
+      "confidence": 1.0,
+      "layout_reading_order": 19,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "The lower panel in Figure 5-48 shows the amplitude of the basis function at each\nlocation. This is typical overfitting behavior when basis functions overlap: the coeffi‐\ncients of adjacent basis functions blow up and cancel each other out. We know that\nsuch behavior is problematic, and it would be nice if we could limit such spikes\nexplicitly in the model by penalizing large values of the model parameters. Such a\npenalty is known as regularization, and comes in several forms."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b3",
+    "sequence_id": 19,
+    "node_type": "heading",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 72.00338745117188,
+          "y0": 349.6773681640625,
+          "x1": 208.92010498046875,
+          "y1": 367.55804443359375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "3",
+      "confidence": 1.0,
+      "layout_reading_order": 20,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Ridge regression (L2 regularization)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b4",
+    "sequence_id": 20,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 71.99827575683594,
+          "y0": 370.7564697265625,
+          "x1": 432.0013122558594,
+          "y1": 424.5574951171875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "4",
+      "confidence": 1.0,
+      "layout_reading_order": 21,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Perhaps the most common form of regularization is known as ridge regression or L2\nregularization, sometimes also called Tikhonov regularization. This proceeds by penal‐\nizing the sum of squares (2-norms) of the model coefficients; in this case, the penalty\non the model fit would be:"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b5",
+    "sequence_id": 21,
+    "node_type": "display_equation",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 87.00228118896484,
+          "y0": 437.4940185546875,
+          "x1": 142.5382843017578,
+          "y1": 456.3900146484375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "5",
+      "confidence": 1.0,
+      "layout_reading_order": 22,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "P = α∑n = 1\nN\nθn\n2"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b6",
+    "sequence_id": 22,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 71.99507904052734,
+          "y0": 468.8564758300781,
+          "x1": 431.99810791015625,
+          "y1": 496.35076904296875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "6",
+      "confidence": 1.0,
+      "layout_reading_order": 23,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "where α is a free parameter that controls the strength of the penalty. This type of\npenalized model is built into Scikit-Learn with the Ridge estimator (Figure 5-49):"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b7",
+    "sequence_id": 23,
+    "node_type": "code",
+    "strategy": "keep_original",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 88.99609375,
+          "y0": 503.3372497558594,
+          "x1": 382.2461242675781,
+          "y1": 532.2372436523438,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "7",
+      "confidence": 1.0,
+      "layout_reading_order": 24,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "In[12]: from sklearn.linear_model import Ridge\n        model = make_pipeline(GaussianFeatures(30), Ridge(alpha=0.1))\n        basis_plot(model, title='Ridge Regression')"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b8",
+    "sequence_id": 24,
+    "node_type": "paragraph",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 71.99813842773438,
+          "y0": 610.218017578125,
+          "x1": 187.6121368408203,
+          "y1": 621.0,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "8",
+      "confidence": 1.0,
+      "layout_reading_order": 25,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "398 \n| \nChapter 5: Machine Learning"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  }
+]

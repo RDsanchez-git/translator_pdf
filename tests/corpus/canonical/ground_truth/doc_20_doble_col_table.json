@@ -1,0 +1,2288 @@
+[
+  {
+    "node_id": "p1_b0",
+    "sequence_id": 1,
+    "node_type": "paragraph",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 37.58700180053711,
+          "y0": 29.628124237060547,
+          "x1": 82.18289947509766,
+          "y1": 43.745182037353516,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "0",
+      "confidence": 1.0,
+      "layout_reading_order": 0,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "K. Hastuti et al.",
+      "heading_level": "unknown"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b1",
+    "sequence_id": 2,
+    "node_type": "heading",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 37.58700180053711,
+          "y0": 50.16108322143555,
+          "x1": 159.47756958007812,
+          "y1": 64.27814483642578,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "1",
+      "confidence": 1.0,
+      "layout_reading_order": 1,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "4.4. Implications for digital heritage",
+      "heading_level": "unknown"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b2",
+    "sequence_id": 3,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 37.58700180053711,
+          "y0": 71.02106475830078,
+          "x1": 291.9885559082031,
+          "y1": 199.982177734375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "2",
+      "confidence": 1.0,
+      "layout_reading_order": 2,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "In addition to improving accuracy and F1, the integrated pipeline \nhas broader implications for digital heritage applications. First, the Top-\n3 accuracies above 0.5 across pamor, dhapur, and tangguh indicate that \nthe system can function effectively as a decision-support tool. Even \nwhen top-1 predictions are uncertain, ranked outputs provide curators \nwith plausible candidate sets for triage, cataloguing, and provenance \nassessment. This is especially valuable in heritage contexts, where \nexpert resources are limited and inter-expert agreement is not always \nguaranteed (Foka & Griffin, 2024). Importantly, we position the pro-\nposed model as assistive rather than substitutive: it is intended to \nsupport expert workflows by narrowing plausible categories, while final \ninterpretation and attribution remain with human experts."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b3",
+    "sequence_id": 4,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 37.58700180053711,
+          "y0": 196.30506896972656,
+          "x1": 291.9885559082031,
+          "y1": 335.7071533203125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "3",
+      "confidence": 1.0,
+      "layout_reading_order": 3,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Second, the reproducible preprocessing–augmentation–architecture \nworkflow addresses reproducibility and fairness objectives, as empha-\nsized in the Introduction. By enforcing standardized backgrounds, con-\nsistent orientation, balanced class distributions, and architecture tai-\nlored to the elongated blade geometry, the pipeline reduces noise and \nbias in model training. This structured approach offers a transferable \ntemplate for other domains in which subtle textures and complex \nmorphologies must be recognized under data scarcity, such as textiles, \nceramics, and biomedical imaging. In this context, ethical and cultural \ngovernance is inseparable from technical reproducibility: keris images \nare culturally significant materials that remain under custodial author-\nity, and any reuse or sharing must follow permission-based agreements \nconsistent with curatorial and heritage protocols."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b4",
+    "sequence_id": 5,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 37.58700180053711,
+          "y0": 332.03009033203125,
+          "x1": 291.9885559082031,
+          "y1": 492.3131408691406,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "4",
+      "confidence": 1.0,
+      "layout_reading_order": 4,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Third, the compact 512 × 512 design and lightweight classifier \nhead make the system suitable for deployment on mobile and edge \ndevices in the future. This design choice aligns with the focus of the \nresume pipeline on deployment readiness and resource efficiency. Com-\nparable initiatives in intelligent systems suggest that such portability \ncan democratize access to AI, enabling community-level engagement \nwith cultural heritage while reducing dependence on centralized, high-\nperformance infrastructure (Merizzi et al., 2024; Wang & Zhu, 2022). \nTogether, these implications extend the contribution of KerisRDNet \nbeyond academic benchmarks toward practical integration for digital \nheritage preservation and dissemination. Where expert disagreements \nare unavoidable in fine-grained attribution, our data curation process \nreflects this reality by reconciling labels through expert discussion \nand verification and excluding unresolved cases, thereby avoiding the \npropagation of uncertain ground truth into downstream models."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b5",
+    "sequence_id": 6,
+    "node_type": "heading",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 37.58700180053711,
+          "y0": 499.03509521484375,
+          "x1": 158.7139434814453,
+          "y1": 513.1521606445312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "5",
+      "confidence": 1.0,
+      "layout_reading_order": 5,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "4.5. Generalizability and challenges"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b6",
+    "sequence_id": 7,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 37.58700180053711,
+          "y0": 519.8961181640625,
+          "x1": 291.9885559082031,
+          "y1": 648.857177734375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "6",
+      "confidence": 1.0,
+      "layout_reading_order": 6,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Although the proposed pipeline achieved consistent improvements \nacross both fine- and coarse-grained tasks, several challenges remain. \nConfusion persisted in visually adjacent classes, reflecting the intrinsic \ndifficulty of discriminating subtle morphological or textural differences, \neven for experts. Although the dataset was carefully curated and aug-\nmented, it remained modest in size, which limited the model’s exposure \nto the full diversity of keris artifacts. Robustness to domain shifts, such \nas variations in lighting, imaging hardware, or surface degradation, \nwas not directly evaluated. Preprocessing and augmentation reduce but \ncannot fully eliminate these risks, indicating that broader digitization \ncampaigns and cross-institutional validation are required to ensure \nwide applicability."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b7",
+    "sequence_id": 8,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 37.58700180053711,
+          "y0": 645.1800537109375,
+          "x1": 291.9885559082031,
+          "y1": 742.8201293945312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "7",
+      "confidence": 1.0,
+      "layout_reading_order": 7,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Despite these constraints, this study positions keris recognition \nas a proxy for fine-grained classification in low-data, high-variability \nregimes. This perspective highlights that the challenges observed here \nare not unique to cultural heritage but resonate with other intelligent \nsystem applications under similar conditions. Therefore, future work \nshould pursue multi-task learning that jointly models pamor, dhapur, \nand tangguh, explore interpretable attention mechanisms to enhance \ntransparency for curators, and investigate self-supervised or transfer \nlearning to strengthen generalization under data scarcity. Federated"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b8",
+    "sequence_id": 9,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 306.60400390625,
+          "y0": 50.16108322143555,
+          "x1": 561.0055541992188,
+          "y1": 95.66614532470703,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "8",
+      "confidence": 1.0,
+      "layout_reading_order": 8,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "and cross-institutional approaches may also enable scaling while re-\nspecting custodial restrictions. These directions point toward more \nrobust, interpretable, and ethically responsible intelligent systems for \ncultural heritage and related fields."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b9",
+    "sequence_id": 10,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 306.60400390625,
+          "y0": 92.01508331298828,
+          "x1": 561.0055541992188,
+          "y1": 231.68316650390625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "9",
+      "confidence": 1.0,
+      "layout_reading_order": 9,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "To support reproducibility, we provide a public repository contain-\ning the implementation and configuration files for the preprocessing, \naugmentation, training, and evaluation pipeline, including runnable \nscripts that export the main quantitative results (e.g., CSV metrics \nsummaries and confusion matrices) for table reproduction. Due to cul-\ntural custodianship and governance constraints, the full dataset cannot \nbe publicly released; the repository therefore documents the required \nlocal data layout and provides an optional small anonymized sample \nsubset where permitted by the custodians. Where allowed, trained \nweights are also provided via the repository. Third-party tools and \ntheir licenses/terms (including rembg and YOLOv8/ultralytics) \nare listed in a dedicated third-party notices file in the repository. \nRepository: https://github.com/masaboe/Keris-RDIN."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b10",
+    "sequence_id": 11,
+    "node_type": "heading",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 306.60400390625,
+          "y0": 238.5141143798828,
+          "x1": 425.998779296875,
+          "y1": 252.63116455078125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "10",
+      "confidence": 1.0,
+      "layout_reading_order": 10,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "5. Limitations and future work"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b11",
+    "sequence_id": 12,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 306.60400390625,
+          "y0": 259.45208740234375,
+          "x1": 561.0055541992188,
+          "y1": 377.2472229003906,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "11",
+      "confidence": 1.0,
+      "layout_reading_order": 11,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "This study also highlights several areas for improvement that frame \ndirections for future research. Although mask-aware augmentation in-\ncreased the dataset balance, the underlying corpus remained modest \nand could not capture the full diversity of keris artifacts or the range \nof degradations found in real-world collections. Residual ambiguities in \nvisually adjacent classes, particularly among sibling pamor motifs and \nmorphologically similar dhapur motifs, continue to pose challenges. \nIn addition, the decision process of KerisRDNet remains difficult to \ninterpret for non-technical users, and dataset sharing is constrained \nby cultural custodianship, which limits the opportunities for external \nbenchmarking."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b12",
+    "sequence_id": 13,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 306.60400390625,
+          "y0": 374.5450744628906,
+          "x1": 561.0055541992188,
+          "y1": 451.4381408691406,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "12",
+      "confidence": 1.0,
+      "layout_reading_order": 12,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "In addition, robustness under explicit curator- or acquisition-setting \ndomain shifts was not evaluated in this study through held-out\nacquisition-source splits or controlled perturbation experiments (e.g.,\nlighting or sensor changes). Curator-held-out evaluation and calibration \nassessment under such shifts (e.g., ECE/Brier) are therefore identified \nas important directions for future cross-institutional validation when \nacquisition-source annotations become available."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b13",
+    "sequence_id": 14,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 318.5589904785156,
+          "y0": 447.7870788574219,
+          "x1": 557.2150268554688,
+          "y1": 461.9041442871094,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "13",
+      "confidence": 1.0,
+      "layout_reading_order": 13,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Future work can address these challenges in three main directions."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b14",
+    "sequence_id": 15,
+    "node_type": "list",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 320.1549987792969,
+          "y0": 466.5430908203125,
+          "x1": 561.0055541992188,
+          "y1": 605.8192138671875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "14",
+      "confidence": 1.0,
+      "layout_reading_order": 14,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "• Methodological: Multi-task learning frameworks that jointly\nmodel pamor, dhapur, and tangguh could leverage shared features \nacross categories, while interpretable attention-based visualiza-\ntion would improve transparency for curators.\n• Architectural: Benchmarking KerisRDNet against transformer-\nbased models such as ViT or Swin may reveal complementary \nstrengths in capturing long-range dependencies and subtle surface \npatterns.\n• Scalability and sustainability: Efficiency analyses are needed to \nassess trade-offs between accuracy and computational cost, and \nfederated or cross-institutional learning strategies offer a path-\nway to scaling without compromising data ownership or cultural \nsensitivities."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b15",
+    "sequence_id": 16,
+    "node_type": "heading",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 306.60400390625,
+          "y0": 613.5980834960938,
+          "x1": 359.93798828125,
+          "y1": 627.7151489257812,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "15",
+      "confidence": 1.0,
+      "layout_reading_order": 15,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "6. Conclusion"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b16",
+    "sequence_id": 17,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 306.60400390625,
+          "y0": 634.5360717773438,
+          "x1": 561.0055541992188,
+          "y1": 711.4291381835938,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "16",
+      "confidence": 1.0,
+      "layout_reading_order": 16,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "This study presents a domain-specific deep learning pipeline for \nkeris classification as a case of fine-grained cultural heritage recogni-\ntion. The pipeline combined standardized preprocessing, mask-aware \naugmentation, and the proposed KerisRDNet architecture tailored with \nIRD blocks and a squeeze-and-excitation mechanism. Together, these \ncomponents stabilized the inputs, mitigated the imbalance, and im-\nproved the discriminative capacity where the generic backbones failed."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b17",
+    "sequence_id": 18,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 306.60400390625,
+          "y0": 707.778076171875,
+          "x1": 561.0055541992188,
+          "y1": 742.8201293945312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "17",
+      "confidence": 1.0,
+      "layout_reading_order": 17,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Across pamor (27 classes), dhapur (42 classes), and tangguh (5 \nclasses), the pipeline achieved directionally consistent gains across \nresamplings, supported by paired analyses, interpreted conservatively"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b18",
+    "sequence_id": 19,
+    "node_type": "paragraph",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 409.32000732421875,
+          "y0": 33.65346145629883,
+          "x1": 560.1505737304688,
+          "y1": 44.08295822143555,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "18",
+      "confidence": 1.0,
+      "layout_reading_order": 18,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Machine Learning with Applications 24 (2026) 100852",
+      "heading_level": "unknown"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b19",
+    "sequence_id": 20,
+    "node_type": "paragraph",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 294.41998291015625,
+          "y0": 754.4534301757812,
+          "x1": 303.467529296875,
+          "y1": 764.8829345703125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "19",
+      "confidence": 1.0,
+      "layout_reading_order": 19,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "12"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b0",
+    "sequence_id": 21,
+    "node_type": "paragraph",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 37.58700180053711,
+          "y0": 29.628124237060547,
+          "x1": 82.18289947509766,
+          "y1": 43.745182037353516,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "0",
+      "confidence": 1.0,
+      "layout_reading_order": 20,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "K. Hastuti et al.",
+      "heading_level": "unknown"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b1",
+    "sequence_id": 22,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 37.58700180053711,
+          "y0": 50.16108322143555,
+          "x1": 291.9885559082031,
+          "y1": 107.79114532470703,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "1",
+      "confidence": 1.0,
+      "layout_reading_order": 21,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "given 𝑛= 3, raising the macro-F1 well above near-zero baselines and \ndelivering Top-3 accuracies above 0.5. These outcomes demonstrate \nthe practical value of the proposed model as a decision-support tool \nfor curators, reducing reliance on manual expertise while preserving \nhuman oversight."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b2",
+    "sequence_id": 23,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 37.58700180053711,
+          "y0": 105.38709259033203,
+          "x1": 291.9885559082031,
+          "y1": 183.82623291015625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "2",
+      "confidence": 1.0,
+      "layout_reading_order": 22,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Beyond keris, the workflow offers a transferable strategy for low-\ndata fine-grained recognition tasks, balancing accuracy, reproducibil-\nity, and deployment efficiency under the evaluated experimental set-\nting. By aligning domain-specific engineering with rigorous evaluation, \nKerisRDNet contributes both a functional tool for cultural preservation \nand a generalizable approach for fine-grained classification under data \nscarcity."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b3",
+    "sequence_id": 24,
+    "node_type": "heading",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 37.58700180053711,
+          "y0": 197.4251251220703,
+          "x1": 199.5121307373047,
+          "y1": 211.54217529296875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "3",
+      "confidence": 1.0,
+      "layout_reading_order": 23,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "CRediT authorship contribution statement",
+      "heading_level": "unknown"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b4",
+    "sequence_id": 25,
+    "node_type": "paragraph",
+    "strategy": "keep_original",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 37.58700180053711,
+          "y0": 222.1040802001953,
+          "x1": 291.9885559082031,
+          "y1": 257.9781494140625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "4",
+      "confidence": 1.0,
+      "layout_reading_order": 24,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Khafiizh Hastuti: Conceptualization, Supervision. Erwin Yudi Hi-\ndayat: Data curation, Writing – original draft. Abu Salam: Software, \nWriting – review & editing. Usman Sudibyo: Visualization.",
+      "heading_level": "unknown"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b5",
+    "sequence_id": 26,
+    "node_type": "heading",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 37.58700180053711,
+          "y0": 270.6280822753906,
+          "x1": 166.1470947265625,
+          "y1": 284.7451477050781,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "5",
+      "confidence": 1.0,
+      "layout_reading_order": 25,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Declaration of competing interest",
+      "heading_level": "unknown"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b6",
+    "sequence_id": 27,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 37.58700180053711,
+          "y0": 295.3080749511719,
+          "x1": 291.9885559082031,
+          "y1": 331.1821594238281,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "6",
+      "confidence": 1.0,
+      "layout_reading_order": 26,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "The authors declare that they have no known competing finan-\ncial interests or personal relationships that could have appeared to \ninfluence the work reported in this paper.",
+      "heading_level": "unknown"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b7",
+    "sequence_id": 28,
+    "node_type": "heading",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 37.58700180053711,
+          "y0": 349.05059814453125,
+          "x1": 107.21387481689453,
+          "y1": 357.02069091796875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "7",
+      "confidence": 1.0,
+      "layout_reading_order": 27,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Acknowledgments",
+      "heading_level": "unknown"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b8",
+    "sequence_id": 29,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 37.58700180053711,
+          "y0": 368.5110778808594,
+          "x1": 291.9885559082031,
+          "y1": 437.0201416015625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "8",
+      "confidence": 1.0,
+      "layout_reading_order": 28,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "This research was supported by the Applied Research Scheme-\nModel Output Program, funded by the Directorate of Research and \nCommunity Service, Directorate General of Research and Develop-\nment Strengthening, Ministry of Research, Technology, and Higher \nEducation of the Republic of Indonesia, under Research Contract No. \n028/LL6/PL/AL.A41/2025, dated June 5, 2025."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b9",
+    "sequence_id": 30,
+    "node_type": "heading",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 37.58700180053711,
+          "y0": 449.6700744628906,
+          "x1": 188.84844970703125,
+          "y1": 463.7871398925781,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "9",
+      "confidence": 1.0,
+      "layout_reading_order": 29,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Appendix A. Dataset class distributions",
+      "heading_level": "unknown"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b10",
+    "sequence_id": 31,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 37.58700180053711,
+          "y0": 475.1850891113281,
+          "x1": 291.9885559082031,
+          "y1": 521.9371337890625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "10",
+      "confidence": 1.0,
+      "layout_reading_order": 30,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "This appendix reports the per-class distributions for the three tasks. \n‘‘Augmented Train’’ reflects the training size after mask-aware augmen-\ntation and class balancing. The validation and test sets were held out \nand unaugmented (see Table A.2)."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b11",
+    "sequence_id": 32,
+    "node_type": "heading",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 37.58700180053711,
+          "y0": 534.5870971679688,
+          "x1": 282.3522644042969,
+          "y1": 548.7041625976562,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "11",
+      "confidence": 1.0,
+      "layout_reading_order": 31,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Appendix B. Incremental ablation of preprocessing components",
+      "heading_level": "unknown"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b12",
+    "sequence_id": 33,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 37.58700180053711,
+          "y0": 579.7390747070312,
+          "x1": 288.67138671875,
+          "y1": 741.3881225585938,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "12",
+      "confidence": 1.0,
+      "layout_reading_order": 32,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Table A.1\nPer-class distribution for pamor classification (27 classes).\n Class\nLabel\nTrain\nAugmented train\nValidation/Test \n Adeg\n0\n92\n276\n14/14\n \n Beras Wutah\n1\n15\n117\n2/2\n \n Blarak Sineret\n2\n7\n117\n1/1\n \n Bonang Serenteng\n3\n7\n117\n1/1\n \n Dwiwarna\n4\n8\n117\n1/1\n \n Ganggeng Kanyut\n5\n12\n117\n1/2\n \n Keleng\n6\n6\n117\n1/1\n \n Kulit Semangka\n7\n5\n117\n1/1\n \n Lar Gangsir\n8\n7\n117\n1/1\n \n Melati Rinonce\n9\n8\n117\n1/1\n \n Motif Ngulit Semangka\n10\n14\n117\n2/2\n \n Nggajih\n11\n8\n117\n1/1\n \n Nunggak Semi\n12\n10\n117\n2/1\n \n \n(continued on next page)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b13",
+    "sequence_id": 34,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 306.60400390625,
+          "y0": 49.36408615112305,
+          "x1": 556.4725952148438,
+          "y1": 197.62115478515625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "13",
+      "confidence": 1.0,
+      "layout_reading_order": 33,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Table A.1 (continued).\n Class\nLabel\nTrain\nAugmented train\nValidation/Test \n Pedaringan Kebak\n13\n58\n174\n9/8\n \n Pengawak Wojo\n14\n6\n117\n1/1\n \n Pulo Tirto\n15\n9\n117\n1/2\n \n Ron Gendhuru\n16\n8\n117\n1/1\n \n Sanak\n17\n5\n117\n1/1\n \n Tirto Tumetes\n18\n15\n117\n3/2\n \n Triman\n19\n117\n351\n17/18\n \n Tunggak Semi\n20\n50\n150\n7/8\n \n Udan Mas\n21\n6\n117\n1/1\n \n Uler Lulut\n22\n8\n117\n1/1\n \n Untu Walang\n23\n6\n117\n1/1\n \n Wahyu Tumurun\n24\n8\n117\n1/2\n \n Wengkon\n25\n69\n207\n11/10\n \n Wos Wutah\n26\n10\n117\n2/1"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b14",
+    "sequence_id": 35,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 306.60400390625,
+          "y0": 208.9671173095703,
+          "x1": 556.4725952148438,
+          "y1": 606.7381591796875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "14",
+      "confidence": 1.0,
+      "layout_reading_order": 34,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Table A.2\nPer-class distribution for dhapur classification (42 classes).\n Class\nLabel\nTrain\nAugmented train\nValidation/Test \n Bethok\n0\n6\n69\n2/2\n \n Brojol\n1\n69\n207\n23/23\n \n Carang Soka\n2\n5\n69\n2/2\n \n Carita Keprabon\n3\n4\n69\n2/1\n \n Carubuk\n4\n7\n96\n3/2\n \n Damar Murup\n5\n5\n69\n1/2\n \n Jalak\n6\n4\n69\n2/1\n \n Jalak Dinding\n7\n4\n69\n1/1\n \n Jalak Ngore\n8\n16\n69\n5/5\n \n Jalak Nyucup Madu\n9\n4\n69\n1/1\n \n Jalak Sangu Tumpeng\n10\n10\n69\n3/4\n \n Jalak Tilam Sari\n11\n21\n69\n7/7\n \n Jalak Tilam Upih\n12\n4\n69\n2/1\n \n Jangkung\n13\n7\n69\n2/3\n \n Karno Tinanding\n14\n4\n69\n1/1\n \n Kebo Lajer\n15\n10\n69\n3/3\n \n Kebo Teki\n16\n4\n69\n1/2\n \n Megantoro\n17\n4\n69\n2/1\n \n Naga\n18\n4\n69\n1/2\n \n Naga Liman\n19\n4\n69\n1/1\n \n Naga Siluman\n20\n10\n69\n3/3\n \n Naga Temanten\n21\n3\n69\n1/1\n \n Nogososro\n22\n20\n69\n6/7\n \n Pandawa\n23\n5\n69\n2/1\n \n Pandawa Cinarita\n24\n7\n69\n2/3\n \n Pandawa Singo\n25\n6\n69\n2/2\n \n Panji Anom\n26\n4\n69\n1/1\n \n Parungsari\n27\n20\n69\n6/7\n \n Pasopati\n28\n13\n69\n4/5\n \n Pulang Geni\n29\n5\n69\n2/1\n \n Sabuk Inten\n30\n13\n69\n5/4\n \n Sempana\n31\n23\n69\n8/8\n \n Sempaner\n32\n11\n69\n4/4\n \n Sengkelat\n33\n12\n69\n4/4\n \n Sepaner\n34\n4\n69\n2/1\n \n Sepokal\n35\n6\n69\n2/2\n \n Singo\n36\n5\n69\n2/1\n \n Singo Barong\n37\n32\n69\n11/11\n \n Sinom\n38\n8\n69\n3/3\n \n Sinom Robyong\n39\n4\n69\n1/2\n \n Tilam Sari\n40\n11\n69\n4/4\n \n Tilam Upih\n41\n67\n201\n22/22"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b15",
+    "sequence_id": 36,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 306.60400390625,
+          "y0": 621.9691162109375,
+          "x1": 556.4725952148438,
+          "y1": 702.7281494140625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "15",
+      "confidence": 1.0,
+      "layout_reading_order": 35,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Table A.3\nPer-class distribution for tangguh classification (5 classes).\n Class\nTrain\nAugmented train\nValidation\nTest \n Era Baru\n47\n198\n6\n6\n \n Kamardhikan\n56\n132\n7\n7\n \n Madura\n54\n162\n7\n7\n \n Majapahit\n44\n168\n5\n6\n \n Mataram\n66\n141\n8\n8"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b16",
+    "sequence_id": 37,
+    "node_type": "paragraph",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 409.32000732421875,
+          "y0": 33.65346145629883,
+          "x1": 560.1505737304688,
+          "y1": 44.08295822143555,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "16",
+      "confidence": 1.0,
+      "layout_reading_order": 36,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Machine Learning with Applications 24 (2026) 100852",
+      "heading_level": "unknown"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b17",
+    "sequence_id": 38,
+    "node_type": "paragraph",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 294.41998291015625,
+          "y0": 754.4534301757812,
+          "x1": 303.467529296875,
+          "y1": 764.8829345703125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "17",
+      "confidence": 1.0,
+      "layout_reading_order": 37,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "13"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b0",
+    "sequence_id": 39,
+    "node_type": "paragraph",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 37.58700180053711,
+          "y0": 29.628124237060547,
+          "x1": 82.18289947509766,
+          "y1": 43.745182037353516,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "0",
+      "confidence": 1.0,
+      "layout_reading_order": 38,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "K. Hastuti et al.",
+      "heading_level": "unknown"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b1",
+    "sequence_id": 40,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 141.6060028076172,
+          "y0": 49.36408615112305,
+          "x1": 452.4545593261719,
+          "y1": 104.44013214111328,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "1",
+      "confidence": 1.0,
+      "layout_reading_order": 39,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Table B.1\nPamor (27 classes): preprocessing ablation (Models 1–5).\n ID\nModel configuration\nLoss\nAcc\nPrec\nRec\nF1\nAUC  \n (5)\nModified InceptionResNetV2 +\nmask-aware augmentation"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b2",
+    "sequence_id": 41,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 268.9169921875,
+          "y0": 81.75507354736328,
+          "x1": 452.4545593261719,
+          "y1": 95.87213897705078,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "2",
+      "confidence": 1.0,
+      "layout_reading_order": 40,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0.6216\n0.3023\n0.4146\n0.1977\n0.2677\n0.8131"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b3",
+    "sequence_id": 42,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 141.6060028076172,
+          "y0": 98.89112091064453,
+          "x1": 255.60360717773438,
+          "y1": 130.1441650390625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "3",
+      "confidence": 1.0,
+      "layout_reading_order": 41,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "(4)\nBackground homogenization +\norientation normalization +\nYOLO blade cropping"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b4",
+    "sequence_id": 43,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 268.9169921875,
+          "y0": 98.89112091064453,
+          "x1": 452.4545593261719,
+          "y1": 113.00818634033203,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "4",
+      "confidence": 1.0,
+      "layout_reading_order": 42,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0.7587\n0.1628\n0.3333\n0.0116\n0.0225\n0.6569"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b5",
+    "sequence_id": 44,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 141.6060028076172,
+          "y0": 124.59510040283203,
+          "x1": 255.66856384277344,
+          "y1": 155.84716796875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "5",
+      "confidence": 1.0,
+      "layout_reading_order": 43,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "(3)\nBackground homogenization +\norientation normalization (no \nYOLO cropping)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b6",
+    "sequence_id": 45,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 268.9169921875,
+          "y0": 124.59510040283203,
+          "x1": 452.4545593261719,
+          "y1": 138.712158203125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "6",
+      "confidence": 1.0,
+      "layout_reading_order": 44,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0.7902\n0.0581\n0.0661\n0.0841\n0.0418\n0.5144"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b7",
+    "sequence_id": 46,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 141.6060028076172,
+          "y0": 150.29811096191406,
+          "x1": 251.89756774902344,
+          "y1": 171.64697265625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "7",
+      "confidence": 1.0,
+      "layout_reading_order": 45,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "(2)\nBackground homogenization \nonly"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b8",
+    "sequence_id": 47,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 268.9169921875,
+          "y0": 150.29811096191406,
+          "x1": 452.4545593261719,
+          "y1": 164.4151611328125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "8",
+      "confidence": 1.0,
+      "layout_reading_order": 46,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0.8082\n0.0116\n0.0008\n0.0185\n0.0016\n0.4887"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b9",
+    "sequence_id": 48,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 141.6060028076172,
+          "y0": 167.43409729003906,
+          "x1": 452.4545593261719,
+          "y1": 181.5511474609375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "9",
+      "confidence": 1.0,
+      "layout_reading_order": 47,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "(1)\nNo preprocessing (baseline)\n0.7836\n0.0232\n0.0247\n0.0041\n0.0071\n0.4628"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b10",
+    "sequence_id": 49,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 141.6060028076172,
+          "y0": 197.8781280517578,
+          "x1": 452.4545593261719,
+          "y1": 252.95416259765625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "10",
+      "confidence": 1.0,
+      "layout_reading_order": 48,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Table B.2\nDhapur (42 classes): preprocessing ablation (Models 1–5).\n ID\nModel configuration\nLoss\nAcc\nPrec\nRec\nF1\nAUC\n \n (5)\nModified InceptionResNetV2 +\nmask-aware augmentation"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b11",
+    "sequence_id": 50,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 256.6099853515625,
+          "y0": 230.2691192626953,
+          "x1": 452.4545593261719,
+          "y1": 244.38616943359375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "11",
+      "confidence": 1.0,
+      "layout_reading_order": 49,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0.620513\n0.320988\n0.428571\n0.203704\n0.276151\n0.853249"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b12",
+    "sequence_id": 51,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 141.6060028076172,
+          "y0": 247.4051055908203,
+          "x1": 249.4506072998047,
+          "y1": 278.65814208984375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "12",
+      "confidence": 1.0,
+      "layout_reading_order": 50,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "(4)\nBackground homogenization +\norientation normalization +\nYOLO blade cropping"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b13",
+    "sequence_id": 52,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 256.6099853515625,
+          "y0": 247.4051055908203,
+          "x1": 452.4545593261719,
+          "y1": 261.52215576171875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "13",
+      "confidence": 1.0,
+      "layout_reading_order": 51,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0.616361\n0.283951\n0.486486\n0.111111\n0.180905\n0.846352"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b14",
+    "sequence_id": 53,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 141.6060028076172,
+          "y0": 273.10906982421875,
+          "x1": 249.5145721435547,
+          "y1": 304.36114501953125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "14",
+      "confidence": 1.0,
+      "layout_reading_order": 52,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "(3)\nBackground homogenization +\norientation normalization (no \nYOLO cropping)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b15",
+    "sequence_id": 54,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 256.6099853515625,
+          "y0": 273.10906982421875,
+          "x1": 452.4545593261719,
+          "y1": 287.22613525390625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "15",
+      "confidence": 1.0,
+      "layout_reading_order": 53,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0.768100\n0.191400\n0.375000\n0.055600\n0.096700\n0.778300"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b16",
+    "sequence_id": 55,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 141.6060028076172,
+          "y0": 298.81207275390625,
+          "x1": 245.74356079101562,
+          "y1": 320.1609802246094,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "16",
+      "confidence": 1.0,
+      "layout_reading_order": 54,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "(2)\nBackground homogenization \nonly"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b17",
+    "sequence_id": 56,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 256.6099853515625,
+          "y0": 298.81207275390625,
+          "x1": 452.4545593261719,
+          "y1": 312.92913818359375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "17",
+      "confidence": 1.0,
+      "layout_reading_order": 55,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0.879900\n0.043200\n0.006900\n0.030300\n0.009100\n0.605100"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b18",
+    "sequence_id": 57,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 141.6060028076172,
+          "y0": 315.9480895996094,
+          "x1": 452.4545593261719,
+          "y1": 330.0651550292969,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "18",
+      "confidence": 1.0,
+      "layout_reading_order": 56,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "(1)\nNo preprocessing (baseline)\n0.892800\n0.037000\n0.004100\n0.030600\n0.007200\n0.554100"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b19",
+    "sequence_id": 58,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 73.99400329589844,
+          "y0": 346.39208984375,
+          "x1": 520.0655517578125,
+          "y1": 401.4681396484375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "19",
+      "confidence": 1.0,
+      "layout_reading_order": 57,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Table B.3\nTangguh (5 classes): preprocessing ablation (Models 1–5).\n ID\nModel configuration\nLoss\nAcc\nPrec\nRec\nF1\nAUC  \n (5)\nModified InceptionResNetV2 +\nmask-aware augmentation"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b20",
+    "sequence_id": 59,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 239.9409942626953,
+          "y0": 378.7830810546875,
+          "x1": 520.0655517578125,
+          "y1": 392.900146484375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "20",
+      "confidence": 1.0,
+      "layout_reading_order": 58,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0.3067\n0.6471\n0.6897\n0.5882\n0.6349\n0.8055"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b21",
+    "sequence_id": 60,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 73.99400329589844,
+          "y0": 395.9190979003906,
+          "x1": 207.3096160888672,
+          "y1": 427.1721496582031,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "21",
+      "confidence": 1.0,
+      "layout_reading_order": 59,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "(4)\nBackground homogenization +\norientation normalization +\nYOLO blade cropping"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b22",
+    "sequence_id": 61,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 239.9409942626953,
+          "y0": 395.9190979003906,
+          "x1": 520.0655517578125,
+          "y1": 410.0361633300781,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "22",
+      "confidence": 1.0,
+      "layout_reading_order": 60,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0.2159\n0.4706\n0.6111\n0.3235\n0.4231\n0.7650"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b23",
+    "sequence_id": 62,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 73.99400329589844,
+          "y0": 421.6230773925781,
+          "x1": 207.37457275390625,
+          "y1": 452.8751525878906,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "23",
+      "confidence": 1.0,
+      "layout_reading_order": 61,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "(3)\nBackground homogenization +\norientation normalization (no \nYOLO cropping)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b24",
+    "sequence_id": 63,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 239.9409942626953,
+          "y0": 421.6230773925781,
+          "x1": 520.0655517578125,
+          "y1": 435.7401428222656,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "24",
+      "confidence": 1.0,
+      "layout_reading_order": 62,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0.2581\n0.2941\n0.1826\n0.2726\n0.2082\n0.5360"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b25",
+    "sequence_id": 64,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 73.99400329589844,
+          "y0": 447.3260803222656,
+          "x1": 203.60256958007812,
+          "y1": 468.6749572753906,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "25",
+      "confidence": 1.0,
+      "layout_reading_order": 63,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "(2)\nBackground homogenization \nonly"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b26",
+    "sequence_id": 65,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 239.9409942626953,
+          "y0": 447.3260803222656,
+          "x1": 520.0655517578125,
+          "y1": 461.4431457519531,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "26",
+      "confidence": 1.0,
+      "layout_reading_order": 64,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0.2582\n0.2353\n0.1500\n0.2357\n0.1817\n0.5748"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b27",
+    "sequence_id": 66,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 73.99400329589844,
+          "y0": 464.46209716796875,
+          "x1": 520.0655517578125,
+          "y1": 478.57916259765625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "27",
+      "confidence": 1.0,
+      "layout_reading_order": 65,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "(1)\nNo preprocessing (baseline)\n0.3163\n0.2353\n0.1950\n0.2250\n0.2049\n0.6481"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b28",
+    "sequence_id": 67,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 115.60299682617188,
+          "y0": 489.9250793457031,
+          "x1": 478.4565734863281,
+          "y1": 553.5691528320312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "28",
+      "confidence": 1.0,
+      "layout_reading_order": 66,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Table C.1\nPamor (27 classes): paired cross-metric statistical validation (Accuracy, Precision, Recall, macro-F1, ROC–AUC).\n Comparison\nMetrics\nt-stat\np (t)\np (Wilcoxon)\nCohen’s 𝑑𝑧\nMean 𝛥 \n Aug-only vs Backbone\n5-metric avg\n−2.934\n0.043\n0.063\n1.31\n+0.070  \n IRD-only vs Backbone\n5-metric avg\n−1.919\n0.127\n0.063\n0.86\n+0.112  \n KerisRDNet (IRD+Aug) vs Backbone\n5-metric avg\n−7.247\n0.0019\n0.063\n3.24\n+0.274"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b29",
+    "sequence_id": 68,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 115.60299682617188,
+          "y0": 569.8950805664062,
+          "x1": 480.7809143066406,
+          "y1": 633.5391845703125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "29",
+      "confidence": 1.0,
+      "layout_reading_order": 67,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Table C.2\nDhapur (42 classes): paired cross-metric statistical validation (Accuracy, Precision, Recall, macro-F1, ROC–AUC).\n Comparison\nMetrics\nt-stat\np (t)\np (Wilcoxon)\nCohen’s 𝑑𝑧\nMean 𝛥 \n Aug-only vs Backbone\n5-metric avg\n−16.302\n0.000083\n0.063\n7.29\n+0.228  \n IRD-only vs Backbone\n5-metric avg\n−4.264\n0.0130\n0.063\n1.91\n+0.273  \n KerisRDNet (IRD+Aug) vs Backbone\n5-metric avg\n−8.437\n0.0011\n0.063\n3.77\n+0.308"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b30",
+    "sequence_id": 69,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 115.60299682617188,
+          "y0": 649.8660888671875,
+          "x1": 479.3149108886719,
+          "y1": 713.5101318359375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "30",
+      "confidence": 1.0,
+      "layout_reading_order": 68,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Table C.3\nTangguh (5 classes): paired cross-metric statistical validation (Accuracy, Precision, Recall, macro-F1, ROC–AUC).\n Comparison\nMetrics\nt-stat\np (t)\np (Wilcoxon)\nCohen’s 𝑑𝑧\nMean 𝛥 \n Aug-only vs Backbone\n5-metric avg\n0.145\n0.892\n1.000\n≈0\n−0.003  \n IRD-only vs Backbone\n5-metric avg\n−1.625\n0.180\n0.068\n0.73\n+0.046  \n KerisRDNet (IRD+Aug) vs Backbone\n5-metric avg\n−4.913\n0.0080\n0.063\n2.20\n+0.200"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b31",
+    "sequence_id": 70,
+    "node_type": "paragraph",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 409.32000732421875,
+          "y0": 33.65346145629883,
+          "x1": 560.1505737304688,
+          "y1": 44.08295822143555,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "31",
+      "confidence": 1.0,
+      "layout_reading_order": 69,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Machine Learning with Applications 24 (2026) 100852",
+      "heading_level": "unknown"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b32",
+    "sequence_id": 71,
+    "node_type": "paragraph",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 294.41998291015625,
+          "y0": 754.4534301757812,
+          "x1": 303.467529296875,
+          "y1": 764.8829345703125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "32",
+      "confidence": 1.0,
+      "layout_reading_order": 70,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "14"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  }
+]

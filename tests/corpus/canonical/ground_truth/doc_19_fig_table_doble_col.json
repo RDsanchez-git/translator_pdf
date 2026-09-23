@@ -1,0 +1,1320 @@
+[
+  {
+    "node_id": "p1_b0",
+    "sequence_id": 1,
+    "node_type": "paragraph",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 37.58700180053711,
+          "y0": 29.628124237060547,
+          "x1": 82.18289947509766,
+          "y1": 43.745182037353516,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "0",
+      "confidence": 1.0,
+      "layout_reading_order": 0,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "K. Hastuti et al.",
+      "heading_level": "unknown"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b2",
+    "sequence_id": 2,
+    "node_type": "caption",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 37.58700180053711,
+          "y0": 450.0180969238281,
+          "x1": 557.6851196289062,
+          "y1": 464.1351623535156,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "2",
+      "confidence": 1.0,
+      "layout_reading_order": 1,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Fig. 1. Proposed pipeline for keris classification, including data acquisition, preprocessing, dataset splitting, augmentation, and final classification with KerisRDNet."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b3",
+    "sequence_id": 3,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 37.58700180053711,
+          "y0": 482.8260803222656,
+          "x1": 291.9885559082031,
+          "y1": 645.1541748046875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "3",
+      "confidence": 1.0,
+      "layout_reading_order": 2,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "The best checkpoint achieved precision 0.998, recall 1.000, mAP50\n0.994, and mAP50–95 0.961 on the validation set (Table 2). During infer-\nence, we applied non-maximum suppression (IoU = 0.50) and retained \nonly the top-1 detection per image (max_det= 1), thereby removing \nany overlapping proposals. A symmetric 3% margin was added before \ncropping to avoid truncating the blade tip or guard, and the crop \nwas resized to 512 × 512. Detections with low confidence, abnormal \naspect ratios (outside [0.10, 10.0]), or blade areas < 1% of the canvas \nwere filtered out. Together with a final QA step that excluded failed \nsegmentations and undersized masks, these procedures homogenized \nthe visual domain, enforced consistent orientation and background, \nand concentrated learning on diagnostically salient blade regions and \ntheir pamor textures. After this stage, the dataset was partitioned into \ntraining, validation, and testing sets using a stratified artifact-level split \nto prevent leakage, as detailed in Section 2.7."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b4",
+    "sequence_id": 4,
+    "node_type": "heading",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 37.58700180053711,
+          "y0": 653.7180786132812,
+          "x1": 108.14642333984375,
+          "y1": 667.8351440429688,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "4",
+      "confidence": 1.0,
+      "layout_reading_order": 3,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "2.3. Dataset splitting"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b5",
+    "sequence_id": 5,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 37.58700180053711,
+          "y0": 675.7710571289062,
+          "x1": 291.9885559082031,
+          "y1": 742.8201293945312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "5",
+      "confidence": 1.0,
+      "layout_reading_order": 4,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "After preprocessing, the dataset was divided into training, valida-\ntion, and testing partitions. The splits were stratified by class while \ngrouping all images of the same physical artifact to prevent leakage \nacross the sets. We adopted a 70%/15%/15% ratio, consistent across \nthe three classification tasks (pamor, dhapur, and tangguh), as sum-\nmarized in Table 1. This stratification ensured that minority classes"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b6",
+    "sequence_id": 6,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 306.60400390625,
+          "y0": 482.0290832519531,
+          "x1": 556.4725952148438,
+          "y1": 622.7840576171875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "6",
+      "confidence": 1.0,
+      "layout_reading_order": 5,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Table 2\nYOLOv8 blade detector training hyperparameters.\n Parameter\nValue\nDescription\n \n Variant\nYOLOv8x\nHigh capacity for thin edges and curved blades.  \n Epochs\n300\nSufficient cycles to learn complex contours.\n \n Image size\n512\nPreserves detail while fitting batch size 32.\n \n Batch size\n32\nBalances stability and memory efficiency.\n \n Optimizer\nAdamW\nDecoupled weight decay improved generalization. \n Initial LR\n5 × 10−4\nConservative start to avoid divergence.\n \n Final LR\n0.01\nCosine decay to 1% of the initial rate.\n \n Dropout\n0.10\nLight regularization against overfitting.\n \n Patience\n30\nEarly stop if validation stalls.\n \n Seed\n42\nEnsures reproducibility across the runs.\n \n AMP\nTrue\nMixed precision for speed and lower VRAM.\n \n Workers\n4\nParallel data loading for a stable throughput."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b7",
+    "sequence_id": 7,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 306.60400390625,
+          "y0": 645.156005859375,
+          "x1": 561.0055541992188,
+          "y1": 680.1690673828125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "7",
+      "confidence": 1.0,
+      "layout_reading_order": 6,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "were proportionally represented while preserving artifact-level inde-\npendence between sets. Further details of the splitting protocol and its \nrole in ensuring leakage-free evaluation are provided in Section 2.7."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b8",
+    "sequence_id": 8,
+    "node_type": "heading",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 306.60400390625,
+          "y0": 686.9230346679688,
+          "x1": 387.65106201171875,
+          "y1": 701.0401000976562,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "8",
+      "confidence": 1.0,
+      "layout_reading_order": 7,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "2.4. Data augmentation"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b9",
+    "sequence_id": 9,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 306.60400390625,
+          "y0": 707.8070068359375,
+          "x1": 561.0055541992188,
+          "y1": 742.820068359375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "9",
+      "confidence": 1.0,
+      "layout_reading_order": 8,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "To mitigate class imbalance and enhance generalization, we de-\nsigned a mask-aware augmentation pipeline that preserved a uniform \nwhite background and restricted photometric perturbations to the blade"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b10",
+    "sequence_id": 10,
+    "node_type": "paragraph",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 409.32000732421875,
+          "y0": 33.65340042114258,
+          "x1": 560.1505737304688,
+          "y1": 44.0828971862793,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "10",
+      "confidence": 1.0,
+      "layout_reading_order": 9,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Machine Learning with Applications 24 (2026) 100852",
+      "heading_level": "unknown"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b11",
+    "sequence_id": 11,
+    "node_type": "paragraph",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 296.21002197265625,
+          "y0": 754.453369140625,
+          "x1": 301.6678771972656,
+          "y1": 764.8828735351562,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "11",
+      "confidence": 1.0,
+      "layout_reading_order": 10,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "3"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b0",
+    "sequence_id": 12,
+    "node_type": "paragraph",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 37.58700180053711,
+          "y0": 29.628124237060547,
+          "x1": 82.18289947509766,
+          "y1": 43.745182037353516,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "0",
+      "confidence": 1.0,
+      "layout_reading_order": 11,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "K. Hastuti et al.",
+      "heading_level": "unknown"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b2",
+    "sequence_id": 13,
+    "node_type": "caption",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 122.98300170898438,
+          "y0": 443.3940734863281,
+          "x1": 472.2974853515625,
+          "y1": 457.5111389160156,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "2",
+      "confidence": 1.0,
+      "layout_reading_order": 12,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Fig. 2. Representative YOLOv8x detections of keris blades from the validation set, used for ROI extraction."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b3",
+    "sequence_id": 14,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 37.58700180053711,
+          "y0": 476.20208740234375,
+          "x1": 288.67529296875,
+          "y1": 501.64013671875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "3",
+      "confidence": 1.0,
+      "layout_reading_order": 13,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "regions only. This strategy ensured that no spurious cues from non-\nblade areas were exploited during learning."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b4",
+    "sequence_id": 15,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 37.58700180053711,
+          "y0": 500.5640869140625,
+          "x1": 291.9885559082031,
+          "y1": 661.8531494140625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "4",
+      "confidence": 1.0,
+      "layout_reading_order": 14,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Augmentation began with pre-masking: binary blade masks were \nderived via near-white thresholding and were refined morphologically. \nThe geometric transformations included horizontal flips (𝑝= 0.5), small \nshift-scale-rotate operations (𝑝≈0.7, within ±6% shift/scale and ±5◦ ro-\ntation), and light perspective distortions (𝑝≈0.2). Photometric variants \napplied exclusively to blade pixels comprised brightness/contrast ad-\njustments (±20%), Gaussian blur (𝑘= 3), and Gaussian noise (variance \n10–50). Gaussian noise was selected as a conservative perturbation to \nemulate sensor-level variability. Other noise models (e.g., impulse or \nmultiplicative noise) were not pursued to avoid introducing unrealis-\ntic artifacts that could distort fine-grained blade textures. After each \nperturbation, the background was reset to a pure white background \nto prevent color leakage. Random scaling and coarse dropout were \ndeliberately excluded to maintain morphological fidelity."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b5",
+    "sequence_id": 16,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 37.58700180053711,
+          "y0": 660.778076171875,
+          "x1": 291.9885559082031,
+          "y1": 742.8201293945312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "5",
+      "confidence": 1.0,
+      "layout_reading_order": 15,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "To balance the representation across classes, each original image \ngenerated at least two augmented variants, with additional oversam-\npling of minority categories until parity with the largest class was \nachieved. This procedure produced balanced datasets with realistic \nvariations in blade appearance while maintaining domain consistency \nthrough constant white backgrounds. Representative examples are \nshown in Fig. 3."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b6",
+    "sequence_id": 17,
+    "node_type": "heading",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 306.60400390625,
+          "y0": 476.20208740234375,
+          "x1": 386.4808349609375,
+          "y1": 490.31915283203125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "6",
+      "confidence": 1.0,
+      "layout_reading_order": 16,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "2.5. Model architecture"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b7",
+    "sequence_id": 18,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 306.60400390625,
+          "y0": 506.3560791015625,
+          "x1": 561.0055541992188,
+          "y1": 589.3921508789062,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "7",
+      "confidence": 1.0,
+      "layout_reading_order": 17,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "The proposed architecture, KerisRDNet, extends InceptionResNetV2 \npretrained on ImageNet by incorporating two IRD blocks. The convo-\nlutional layers of the backbone were frozen during the initial training \nphase, while the IRD blocks were designed to capture the elongated \ngeometry and fine pamor textures of the keris blades by enlarging \nthe receptive fields without additional pooling and improving the \nmultiscale sensitivity."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b8",
+    "sequence_id": 19,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 306.60400390625,
+          "y0": 588.8131103515625,
+          "x1": 561.0055541992188,
+          "y1": 683.336181640625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "8",
+      "confidence": 1.0,
+      "layout_reading_order": 18,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Each IRD block applied four parallel depthwise-separable convo-\nlutions, 1 × 1 (dilation 1), 3 × 3 (dilation 2), 3 × 3 (dilation 3), and \n5 × 5 (dilation 4), with pre-activation (BatchNorm, ReLU) in each \nbranch. The outputs were concatenated, followed by dropout (𝑝=\n0.2), residual scaling (×0.1), and a skip connection with an optional \n1 × 1 projection when the channels differed. A squeeze-and-excitation \nmodule (reduction ratio 16) recalibrated the channel weights, further \nenhancing the discriminative capacity."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b9",
+    "sequence_id": 20,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 306.60400390625,
+          "y0": 682.757080078125,
+          "x1": 561.0055541992188,
+          "y1": 742.8201293945312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "9",
+      "confidence": 1.0,
+      "layout_reading_order": 19,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "The KerisRDNet classifier head comprised GlobalAveragePooling, \nDense(512)–BatchNorm–ReLU–Dropout(0.5), Dense(256)–BatchNorm–\nReLU–Dropout(0.5), and a task-specific softmax output. The internal \ndesign of an IRD block is shown in Fig. 4, and the stage-wise tensor \nmap is presented in Table 3."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b10",
+    "sequence_id": 21,
+    "node_type": "paragraph",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 409.32000732421875,
+          "y0": 33.65346145629883,
+          "x1": 560.1505737304688,
+          "y1": 44.08295822143555,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "10",
+      "confidence": 1.0,
+      "layout_reading_order": 20,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Machine Learning with Applications 24 (2026) 100852",
+      "heading_level": "unknown"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b11",
+    "sequence_id": 22,
+    "node_type": "paragraph",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 296.21002197265625,
+          "y0": 754.4534301757812,
+          "x1": 301.6678771972656,
+          "y1": 764.8829345703125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "11",
+      "confidence": 1.0,
+      "layout_reading_order": 21,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "4"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b0",
+    "sequence_id": 23,
+    "node_type": "paragraph",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 37.58700180053711,
+          "y0": 29.628124237060547,
+          "x1": 82.18289947509766,
+          "y1": 43.745182037353516,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "0",
+      "confidence": 1.0,
+      "layout_reading_order": 22,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "K. Hastuti et al.",
+      "heading_level": "unknown"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b2",
+    "sequence_id": 24,
+    "node_type": "caption",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 37.58700180053711,
+          "y0": 460.8180847167969,
+          "x1": 561.0055541992188,
+          "y1": 484.4991455078125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "2",
+      "confidence": 1.0,
+      "layout_reading_order": 23,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Fig. 3. Representative augmentation examples: (A) raw keris photographs; (B, C, D) mask-aware augmented outputs for pamor, dhapur, and tangguh. Geometric \ntransforms were limited and photometric perturbations were restricted to blade regions, with backgrounds enforced as pure white."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b3",
+    "sequence_id": 25,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 37.58700180053711,
+          "y0": 492.40509033203125,
+          "x1": 291.9885559082031,
+          "y1": 565.5441284179688,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "3",
+      "confidence": 1.0,
+      "layout_reading_order": 24,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Table 3\nStage-wise tensor map of KerisRDNet (input 512 × 512 × 3). The architecture \nextends InceptionResNetV2 with two IRD blocks before the classifier head.\n Stage\nOperation\nTensor (H×W×C) \n Input\n–\n512 × 512 × 3\n \n Backbone output\nInceptionResNetV2 (frozen, \nstride 32)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b4",
+    "sequence_id": 26,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 234.3249969482422,
+          "y0": 542.860107421875,
+          "x1": 287.45556640625,
+          "y1": 556.9771728515625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "4",
+      "confidence": 1.0,
+      "layout_reading_order": 25,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "≈16 × 16 × 1536"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b5",
+    "sequence_id": 27,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 37.58700180053711,
+          "y0": 559.9951171875,
+          "x1": 200.1725616455078,
+          "y1": 582.68017578125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "5",
+      "confidence": 1.0,
+      "layout_reading_order": 26,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "IRD block #1a\nInception–Residual–Dilated, \nfilters = 768"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b6",
+    "sequence_id": 28,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 234.3249969482422,
+          "y0": 559.9951171875,
+          "x1": 287.45556640625,
+          "y1": 574.1121826171875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "6",
+      "confidence": 1.0,
+      "layout_reading_order": 27,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "16 × 16 × 768"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b7",
+    "sequence_id": 29,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 37.58700180053711,
+          "y0": 577.131103515625,
+          "x1": 287.45556640625,
+          "y1": 616.9521484375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "7",
+      "confidence": 1.0,
+      "layout_reading_order": 28,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "IRD block #2\nSame as IRD #1\n16 × 16 × 768\n \n Pooling\nGlobalAveragePooling2D\n768\n \n FC1\nDense 512 + BN + Dropout \n0.5 (ReLU)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b8",
+    "sequence_id": 30,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 234.3249969482422,
+          "y0": 594.26708984375,
+          "x1": 287.45556640625,
+          "y1": 608.3841552734375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "8",
+      "confidence": 1.0,
+      "layout_reading_order": 29,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "512"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b9",
+    "sequence_id": 31,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 37.58700180053711,
+          "y0": 611.403076171875,
+          "x1": 202.26856994628906,
+          "y1": 634.087158203125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "9",
+      "confidence": 1.0,
+      "layout_reading_order": 30,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "FC2\nDense 256 + BN + Dropout \n0.5 (ReLU)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b10",
+    "sequence_id": 32,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 234.3249969482422,
+          "y0": 611.403076171875,
+          "x1": 287.45556640625,
+          "y1": 625.5201416015625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "10",
+      "confidence": 1.0,
+      "layout_reading_order": 31,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "256"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b11",
+    "sequence_id": 33,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 37.58700180053711,
+          "y0": 628.5380859375,
+          "x1": 287.45556640625,
+          "y1": 642.6551513671875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "11",
+      "confidence": 1.0,
+      "layout_reading_order": 32,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Output\nDense 𝑛 (Softmax)\n𝑛∈{27, 42, 5}"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b12",
+    "sequence_id": 34,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 37.58700180053711,
+          "y0": 642.8421020507812,
+          "x1": 291.9885559082031,
+          "y1": 672.7589721679688,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "12",
+      "confidence": 1.0,
+      "layout_reading_order": 33,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "a IRD block: four separable branches (dilations 1, 2, 3, 4), concatenation → dropout →\nresidual scaling; skip connection with optional 1 × 1 projection; SE module (reduction \n16)."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b13",
+    "sequence_id": 35,
+    "node_type": "heading",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 37.58700180053711,
+          "y0": 693.0540771484375,
+          "x1": 118.26033020019531,
+          "y1": 707.171142578125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "13",
+      "confidence": 1.0,
+      "layout_reading_order": 34,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "2.6. Training procedure"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b14",
+    "sequence_id": 36,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 37.58700180053711,
+          "y0": 717.8161010742188,
+          "x1": 291.9885559082031,
+          "y1": 742.8201293945312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "14",
+      "confidence": 1.0,
+      "layout_reading_order": 35,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "As part of the modeling stage, KerisRDNet was trained using the \nfollowing optimization setup: We used TensorFlow/Keras with mixed"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b15",
+    "sequence_id": 37,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 306.60400390625,
+          "y0": 493.20208740234375,
+          "x1": 561.0055541992188,
+          "y1": 687.3761596679688,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "15",
+      "confidence": 1.0,
+      "layout_reading_order": 36,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "precision and applied gradient clipping of 1.0. Models were optimized \nwith Adam under an exponential learning-rate decay, initialized at \n5×10−5 and decayed by 4% every 105 steps. Focal loss (𝛼= 0.25, 𝛾= 2.0) \nwith class weights proportional to the label frequencies was employed \nto address the class imbalance. Training ran for up to 100 epochs with \na batch size of 8, early stopping (patience 8), and ReduceLROnPlateau \n(factor 0.5, patience 4) while monitoring validation macro-F1. The \nbest model was checkpointed using the validation macro-F1. Random \nseeds were fixed across Python, NumPy, and the framework to ensure \nreproducibility. All experiments were repeated with three stratified \nresamplings of the train/validation split while keeping the held-out test \nset fixed, and results were reported on that fixed test set. Experiments \nwere conducted on Ubuntu 22.04.3 LTS (kernel 5.4.0–155) with 2×\nAMD EPYC 7742 CPUs (256 threads) and 1.0 TiB RAM. Training used \na single NVIDIA A100-SXM GPU (40 GB class; single-GPU allocation) \nwith driver 525.147.05 and CUDA 12.2 (nvcc 12.2.140). The imple-\nmentation used Python 3.10.12, TensorFlow 2.20.0 (tf-keras 2.20.1) for \nKerisRDNet, and PyTorch 2.0.1+cu117 for PyTorch-based baselines."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b16",
+    "sequence_id": 38,
+    "node_type": "heading",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 306.60400390625,
+          "y0": 696.0130615234375,
+          "x1": 389.06878662109375,
+          "y1": 710.130126953125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "16",
+      "confidence": 1.0,
+      "layout_reading_order": 37,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "2.7. Evaluation protocol"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b17",
+    "sequence_id": 39,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 306.60400390625,
+          "y0": 718.112060546875,
+          "x1": 561.0055541992188,
+          "y1": 742.8201293945312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "17",
+      "confidence": 1.0,
+      "layout_reading_order": 38,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "The evaluation stage of the pipeline comprised three components: \n(i) protocol, which defines how the models were trained and validated;"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b18",
+    "sequence_id": 40,
+    "node_type": "paragraph",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 409.32000732421875,
+          "y0": 33.65346145629883,
+          "x1": 560.1505737304688,
+          "y1": 44.08295822143555,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "18",
+      "confidence": 1.0,
+      "layout_reading_order": 39,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Machine Learning with Applications 24 (2026) 100852",
+      "heading_level": "unknown"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b19",
+    "sequence_id": 41,
+    "node_type": "paragraph",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 296.21002197265625,
+          "y0": 754.4534301757812,
+          "x1": 301.6678771972656,
+          "y1": 764.8829345703125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "19",
+      "confidence": 1.0,
+      "layout_reading_order": 40,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "5"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  }
+]
