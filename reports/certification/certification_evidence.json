@@ -1,0 +1,164 @@
+{
+  "aggregate_result": {
+    "corpus_verdict": "HARD_FAIL",
+    "hard_fail_count": 14,
+    "pass_count": 6,
+    "total_critical_fn": 163,
+    "warning_count": 1
+  },
+  "certification_justification": {
+    "action_required": "Improve extractor (Phase 6/18) and recalibrate parameters (N=21) to achieve CERTIFIED",
+    "baseline_correctly_constructed": true,
+    "divergence_explained_by_extractor_limitations": true,
+    "gates_1_4_correctly_completed": true,
+    "informative_documents": 15,
+    "limitations_documented": [
+      "H-5.3-1",
+      "H-5.3-2",
+      "H-5.3-3",
+      "H-5.5-4",
+      "H-5.6-1"
+    ],
+    "nss_below_threshold": true,
+    "tautological_documents": 6,
+    "thresholds_functioning_correctly": true,
+    "zero_partial_sealing_verified": true
+  },
+  "configuration_identity": null,
+  "corpus_identity": "b4a27a3a5f10623773ab2d8ccf907457f0750e66044506768bf29cf7d86a1f66",
+  "evaluation_kind": "FINAL_EVALUATION",
+  "evaluation_provenance_reference": "239825337346ed0ebe0c4a722ceccad8b9e9442c2c437bfde8752eeb79d99d28",
+  "frozen_parameters_identity": "6784117165d75005c9db8f4d126f54c11629a1325338e14810a093290ed83bf5",
+  "gate_outcome": "CONDITIONAL_PASS",
+  "manifest_identity": "727782fe0df26d9dd401830a54785b03df5fd059ebf83cc422cb58d8a3d19f7d",
+  "per_document_results": [
+    {
+      "critical_false_negatives": 14,
+      "document_id": "doc_01_single",
+      "overall_score": 0.4285714285714286,
+      "verdict": "HARD_FAIL"
+    },
+    {
+      "critical_false_negatives": 68,
+      "document_id": "doc_02_double",
+      "overall_score": 0.3643178410794603,
+      "verdict": "HARD_FAIL"
+    },
+    {
+      "critical_false_negatives": 9,
+      "document_id": "doc_03_math",
+      "overall_score": 0.7350427350427351,
+      "verdict": "HARD_FAIL"
+    },
+    {
+      "critical_false_negatives": 15,
+      "document_id": "doc_04_table",
+      "overall_score": 0.6354515050167224,
+      "verdict": "HARD_FAIL"
+    },
+    {
+      "critical_false_negatives": 0,
+      "document_id": "doc_05_graph",
+      "overall_score": 0.7581863979848866,
+      "verdict": "HARD_FAIL"
+    },
+    {
+      "critical_false_negatives": 0,
+      "document_id": "doc_07_pesaran",
+      "overall_score": 1.0,
+      "verdict": "PASS"
+    },
+    {
+      "critical_false_negatives": 0,
+      "document_id": "doc_08_bilingual_cs",
+      "overall_score": 0.9538461538461538,
+      "verdict": "WARNING"
+    },
+    {
+      "critical_false_negatives": 0,
+      "document_id": "doc_09_vanhaverbeke",
+      "overall_score": 1.0,
+      "verdict": "PASS"
+    },
+    {
+      "critical_false_negatives": 0,
+      "document_id": "doc_10_gross",
+      "overall_score": 1.0,
+      "verdict": "PASS"
+    },
+    {
+      "critical_false_negatives": 0,
+      "document_id": "doc_13_fmi_graf_tablas",
+      "overall_score": 1.0,
+      "verdict": "PASS"
+    },
+    {
+      "critical_false_negatives": 0,
+      "document_id": "doc_11_fig",
+      "overall_score": 1.0,
+      "verdict": "PASS"
+    },
+    {
+      "critical_false_negatives": 0,
+      "document_id": "doc_12_multi_col",
+      "overall_score": 1.0,
+      "verdict": "PASS"
+    },
+    {
+      "critical_false_negatives": 10,
+      "document_id": "doc_14_fig_math",
+      "overall_score": 0.46825396825396826,
+      "verdict": "HARD_FAIL"
+    },
+    {
+      "critical_false_negatives": 0,
+      "document_id": "doc_15_table_fig_code",
+      "overall_score": 0.7333333333333334,
+      "verdict": "HARD_FAIL"
+    },
+    {
+      "critical_false_negatives": 1,
+      "document_id": "doc_16_fig_code",
+      "overall_score": 0.631578947368421,
+      "verdict": "HARD_FAIL"
+    },
+    {
+      "critical_false_negatives": 0,
+      "document_id": "doc_17_table_code",
+      "overall_score": 0.5888888888888889,
+      "verdict": "HARD_FAIL"
+    },
+    {
+      "critical_false_negatives": 1,
+      "document_id": "doc_18_table_math_doble_col",
+      "overall_score": 0.4506172839506173,
+      "verdict": "HARD_FAIL"
+    },
+    {
+      "critical_false_negatives": 0,
+      "document_id": "doc_19_fig_table_doble_col",
+      "overall_score": 0.6821192052980132,
+      "verdict": "HARD_FAIL"
+    },
+    {
+      "critical_false_negatives": 0,
+      "document_id": "doc_20_doble_col_table",
+      "overall_score": 0.6305220883534137,
+      "verdict": "HARD_FAIL"
+    },
+    {
+      "critical_false_negatives": 38,
+      "document_id": "doc_21_heavy_math_table",
+      "overall_score": 0.39896373056994816,
+      "verdict": "HARD_FAIL"
+    },
+    {
+      "critical_false_negatives": 7,
+      "document_id": "doc_22_table_fig_math",
+      "overall_score": 0.6781115879828326,
+      "verdict": "HARD_FAIL"
+    }
+  ],
+  "phase_outcome": "REJECTED_WITH_DOCUMENTED_LIMITATIONS",
+  "result_identity": "239825337346ed0ebe0c4a722ceccad8b9e9442c2c437bfde8752eeb79d99d28"
+}

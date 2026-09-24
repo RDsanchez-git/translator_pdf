@@ -1,0 +1,3081 @@
+{
+  "corpus_nss": 0.7208478616924202,
+  "corpus_verdict": "HARD_FAIL",
+  "corpus_version": "v3.9",
+  "documents": [
+    {
+      "critical_false_negatives": 14,
+      "criticality_signal": "ABSOLUTE_FAIL",
+      "document_id": "doc_01_single",
+      "info_false_negatives": 0,
+      "metrics": [
+        {
+          "diagnostics": {
+            "global_ted": 104.0,
+            "normalization": {
+              "total_candidate_constructive_cost": 70.0,
+              "total_gt_destructive_cost": 112.0,
+              "worst_case_bound": 182.0
+            },
+            "overflow_triggered": false,
+            "total_windows_evaluated": 2
+          },
+          "metric_name": "normalized_structural_score",
+          "primary_score": 0.4285714285714286
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_composite_block",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 3,
+            "false_positives": 1,
+            "precision": 0.5,
+            "recall": 0.25,
+            "true_positives": 1
+          },
+          "metric_name": "f1_score_heading",
+          "primary_score": 0.3333333333333333
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 14,
+            "false_positives": 30,
+            "precision": 0.09090909090909091,
+            "recall": 0.17647058823529413,
+            "true_positives": 3
+          },
+          "metric_name": "f1_score_paragraph",
+          "primary_score": 0.12000000000000001
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 14,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_display_equation",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_inline_equation",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_table_simple",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_table_complex",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_image",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_caption",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_code",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_list",
+          "primary_score": 0.0
+        }
+      ],
+      "overall_score": 0.4285714285714286,
+      "verdict": "HARD_FAIL",
+      "warning_false_negatives": 17
+    },
+    {
+      "critical_false_negatives": 68,
+      "criticality_signal": "ABSOLUTE_FAIL",
+      "document_id": "doc_02_double",
+      "info_false_negatives": 1,
+      "metrics": [
+        {
+          "diagnostics": {
+            "global_ted": 424.0,
+            "normalization": {
+              "total_candidate_constructive_cost": 232.0,
+              "total_gt_destructive_cost": 435.0,
+              "worst_case_bound": 667.0
+            },
+            "overflow_triggered": false,
+            "total_windows_evaluated": 2
+          },
+          "metric_name": "normalized_structural_score",
+          "primary_score": 0.3643178410794603
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_composite_block",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 3,
+            "false_positives": 10,
+            "precision": 0.09090909090909091,
+            "recall": 0.25,
+            "true_positives": 1
+          },
+          "metric_name": "f1_score_heading",
+          "primary_score": 0.13333333333333333
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 38,
+            "false_positives": 100,
+            "precision": 0.047619047619047616,
+            "recall": 0.11627906976744186,
+            "true_positives": 5
+          },
+          "metric_name": "f1_score_paragraph",
+          "primary_score": 0.06756756756756757
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 68,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_display_equation",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_inline_equation",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_table_simple",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_table_complex",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_image",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 1,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_caption",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_code",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_list",
+          "primary_score": 0.0
+        }
+      ],
+      "overall_score": 0.3643178410794603,
+      "verdict": "HARD_FAIL",
+      "warning_false_negatives": 41
+    },
+    {
+      "critical_false_negatives": 9,
+      "criticality_signal": "ABSOLUTE_FAIL",
+      "document_id": "doc_03_math",
+      "info_false_negatives": 0,
+      "metrics": [
+        {
+          "diagnostics": {
+            "global_ted": 93.0,
+            "normalization": {
+              "total_candidate_constructive_cost": 162.0,
+              "total_gt_destructive_cost": 189.0,
+              "worst_case_bound": 351.0
+            },
+            "overflow_triggered": false,
+            "total_windows_evaluated": 1
+          },
+          "metric_name": "normalized_structural_score",
+          "primary_score": 0.7350427350427351
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_composite_block",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 2,
+            "false_positives": 2,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_heading",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 22,
+            "false_positives": 31,
+            "precision": 0.6075949367088608,
+            "recall": 0.6857142857142857,
+            "true_positives": 48
+          },
+          "metric_name": "f1_score_paragraph",
+          "primary_score": 0.6442953020134229
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 9,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_display_equation",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_inline_equation",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_table_simple",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_table_complex",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_image",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_caption",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_code",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_list",
+          "primary_score": 0.0
+        }
+      ],
+      "overall_score": 0.7350427350427351,
+      "verdict": "HARD_FAIL",
+      "warning_false_negatives": 24
+    },
+    {
+      "critical_false_negatives": 15,
+      "criticality_signal": "ABSOLUTE_FAIL",
+      "document_id": "doc_04_table",
+      "info_false_negatives": 6,
+      "metrics": [
+        {
+          "diagnostics": {
+            "global_ted": 109.0,
+            "normalization": {
+              "total_candidate_constructive_cost": 130.0,
+              "total_gt_destructive_cost": 169.0,
+              "worst_case_bound": 299.0
+            },
+            "overflow_triggered": false,
+            "total_windows_evaluated": 1
+          },
+          "metric_name": "normalized_structural_score",
+          "primary_score": 0.6354515050167224
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_composite_block",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 1,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_heading",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 10,
+            "false_positives": 32,
+            "precision": 0.5076923076923077,
+            "recall": 0.7674418604651163,
+            "true_positives": 33
+          },
+          "metric_name": "f1_score_paragraph",
+          "primary_score": 0.611111111111111
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 3,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_display_equation",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_inline_equation",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 12,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_table_simple",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_table_complex",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_image",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 6,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_caption",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_code",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_list",
+          "primary_score": 0.0
+        }
+      ],
+      "overall_score": 0.6354515050167224,
+      "verdict": "HARD_FAIL",
+      "warning_false_negatives": 11
+    },
+    {
+      "critical_false_negatives": 0,
+      "criticality_signal": "ABSOLUTE_FAIL",
+      "document_id": "doc_05_graph",
+      "info_false_negatives": 19,
+      "metrics": [
+        {
+          "diagnostics": {
+            "global_ted": 96.0,
+            "normalization": {
+              "total_candidate_constructive_cost": 208.0,
+              "total_gt_destructive_cost": 189.0,
+              "worst_case_bound": 397.0
+            },
+            "overflow_triggered": false,
+            "total_windows_evaluated": 1
+          },
+          "metric_name": "normalized_structural_score",
+          "primary_score": 0.7581863979848866
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_composite_block",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 1,
+            "false_positives": 7,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_heading",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 28,
+            "false_positives": 41,
+            "precision": 0.5773195876288659,
+            "recall": 0.6666666666666666,
+            "true_positives": 56
+          },
+          "metric_name": "f1_score_paragraph",
+          "primary_score": 0.6187845303867403
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_display_equation",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_inline_equation",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_table_simple",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_table_complex",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_image",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 19,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_caption",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_code",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_list",
+          "primary_score": 0.0
+        }
+      ],
+      "overall_score": 0.7581863979848866,
+      "verdict": "HARD_FAIL",
+      "warning_false_negatives": 29
+    },
+    {
+      "critical_false_negatives": 0,
+      "criticality_signal": "PASS",
+      "document_id": "doc_07_pesaran",
+      "info_false_negatives": 0,
+      "metrics": [
+        {
+          "diagnostics": {
+            "global_ted": 0.0,
+            "normalization": {
+              "total_candidate_constructive_cost": 42.0,
+              "total_gt_destructive_cost": 42.0,
+              "worst_case_bound": 84.0
+            },
+            "overflow_triggered": false,
+            "total_windows_evaluated": 5
+          },
+          "metric_name": "normalized_structural_score",
+          "primary_score": 1.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_composite_block",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "true_positives": 4
+          },
+          "metric_name": "f1_score_heading",
+          "primary_score": 1.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "true_positives": 17
+          },
+          "metric_name": "f1_score_paragraph",
+          "primary_score": 1.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_display_equation",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_inline_equation",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_table_simple",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_table_complex",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_image",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_caption",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_code",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_list",
+          "primary_score": 0.0
+        }
+      ],
+      "overall_score": 1.0,
+      "verdict": "PASS",
+      "warning_false_negatives": 0
+    },
+    {
+      "critical_false_negatives": 0,
+      "criticality_signal": "WARNING",
+      "document_id": "doc_08_bilingual_cs",
+      "info_false_negatives": 0,
+      "metrics": [
+        {
+          "diagnostics": {
+            "global_ted": 12.0,
+            "normalization": {
+              "total_candidate_constructive_cost": 132.0,
+              "total_gt_destructive_cost": 128.0,
+              "worst_case_bound": 260.0
+            },
+            "overflow_triggered": false,
+            "total_windows_evaluated": 3
+          },
+          "metric_name": "normalized_structural_score",
+          "primary_score": 0.9538461538461538
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_composite_block",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 2,
+            "false_positives": 0,
+            "precision": 1.0,
+            "recall": 0.5,
+            "true_positives": 2
+          },
+          "metric_name": "f1_score_heading",
+          "primary_score": 0.6666666666666666
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 2,
+            "false_positives": 6,
+            "precision": 0.90625,
+            "recall": 0.9666666666666667,
+            "true_positives": 58
+          },
+          "metric_name": "f1_score_paragraph",
+          "primary_score": 0.9354838709677419
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_display_equation",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_inline_equation",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_table_simple",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_table_complex",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_image",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_caption",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_code",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_list",
+          "primary_score": 0.0
+        }
+      ],
+      "overall_score": 0.9538461538461538,
+      "verdict": "WARNING",
+      "warning_false_negatives": 4
+    },
+    {
+      "critical_false_negatives": 0,
+      "criticality_signal": "PASS",
+      "document_id": "doc_09_vanhaverbeke",
+      "info_false_negatives": 0,
+      "metrics": [
+        {
+          "diagnostics": {
+            "global_ted": 0.0,
+            "normalization": {
+              "total_candidate_constructive_cost": 38.0,
+              "total_gt_destructive_cost": 38.0,
+              "worst_case_bound": 76.0
+            },
+            "overflow_triggered": false,
+            "total_windows_evaluated": 4
+          },
+          "metric_name": "normalized_structural_score",
+          "primary_score": 1.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_composite_block",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "true_positives": 3
+          },
+          "metric_name": "f1_score_heading",
+          "primary_score": 1.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "true_positives": 16
+          },
+          "metric_name": "f1_score_paragraph",
+          "primary_score": 1.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_display_equation",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_inline_equation",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_table_simple",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_table_complex",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_image",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_caption",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_code",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_list",
+          "primary_score": 0.0
+        }
+      ],
+      "overall_score": 1.0,
+      "verdict": "PASS",
+      "warning_false_negatives": 0
+    },
+    {
+      "critical_false_negatives": 0,
+      "criticality_signal": "PASS",
+      "document_id": "doc_10_gross",
+      "info_false_negatives": 0,
+      "metrics": [
+        {
+          "diagnostics": {
+            "global_ted": 0.0,
+            "normalization": {
+              "total_candidate_constructive_cost": 46.0,
+              "total_gt_destructive_cost": 46.0,
+              "worst_case_bound": 92.0
+            },
+            "overflow_triggered": false,
+            "total_windows_evaluated": 6
+          },
+          "metric_name": "normalized_structural_score",
+          "primary_score": 1.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_composite_block",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "true_positives": 5
+          },
+          "metric_name": "f1_score_heading",
+          "primary_score": 1.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "true_positives": 18
+          },
+          "metric_name": "f1_score_paragraph",
+          "primary_score": 1.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_display_equation",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_inline_equation",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_table_simple",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_table_complex",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_image",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_caption",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_code",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_list",
+          "primary_score": 0.0
+        }
+      ],
+      "overall_score": 1.0,
+      "verdict": "PASS",
+      "warning_false_negatives": 0
+    },
+    {
+      "critical_false_negatives": 0,
+      "criticality_signal": "PASS",
+      "document_id": "doc_13_fmi_graf_tablas",
+      "info_false_negatives": 0,
+      "metrics": [
+        {
+          "diagnostics": {
+            "global_ted": 0.0,
+            "normalization": {
+              "total_candidate_constructive_cost": 88.0,
+              "total_gt_destructive_cost": 88.0,
+              "worst_case_bound": 176.0
+            },
+            "overflow_triggered": false,
+            "total_windows_evaluated": 6
+          },
+          "metric_name": "normalized_structural_score",
+          "primary_score": 1.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_composite_block",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "true_positives": 5
+          },
+          "metric_name": "f1_score_heading",
+          "primary_score": 1.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "true_positives": 39
+          },
+          "metric_name": "f1_score_paragraph",
+          "primary_score": 1.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_display_equation",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_inline_equation",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_table_simple",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_table_complex",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_image",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_caption",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_code",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_list",
+          "primary_score": 0.0
+        }
+      ],
+      "overall_score": 1.0,
+      "verdict": "PASS",
+      "warning_false_negatives": 0
+    },
+    {
+      "critical_false_negatives": 0,
+      "criticality_signal": "PASS",
+      "document_id": "doc_11_fig",
+      "info_false_negatives": 0,
+      "metrics": [
+        {
+          "diagnostics": {
+            "global_ted": 0.0,
+            "normalization": {
+              "total_candidate_constructive_cost": 88.0,
+              "total_gt_destructive_cost": 88.0,
+              "worst_case_bound": 176.0
+            },
+            "overflow_triggered": false,
+            "total_windows_evaluated": 1
+          },
+          "metric_name": "normalized_structural_score",
+          "primary_score": 1.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_composite_block",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_heading",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "true_positives": 44
+          },
+          "metric_name": "f1_score_paragraph",
+          "primary_score": 1.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_display_equation",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_inline_equation",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_table_simple",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_table_complex",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_image",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_caption",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_code",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_list",
+          "primary_score": 0.0
+        }
+      ],
+      "overall_score": 1.0,
+      "verdict": "PASS",
+      "warning_false_negatives": 0
+    },
+    {
+      "critical_false_negatives": 0,
+      "criticality_signal": "PASS",
+      "document_id": "doc_12_multi_col",
+      "info_false_negatives": 0,
+      "metrics": [
+        {
+          "diagnostics": {
+            "global_ted": 0.0,
+            "normalization": {
+              "total_candidate_constructive_cost": 72.0,
+              "total_gt_destructive_cost": 72.0,
+              "worst_case_bound": 144.0
+            },
+            "overflow_triggered": false,
+            "total_windows_evaluated": 3
+          },
+          "metric_name": "normalized_structural_score",
+          "primary_score": 1.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_composite_block",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "true_positives": 2
+          },
+          "metric_name": "f1_score_heading",
+          "primary_score": 1.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "true_positives": 34
+          },
+          "metric_name": "f1_score_paragraph",
+          "primary_score": 1.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_display_equation",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_inline_equation",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_table_simple",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_table_complex",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_image",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_caption",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_code",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_list",
+          "primary_score": 0.0
+        }
+      ],
+      "overall_score": 1.0,
+      "verdict": "PASS",
+      "warning_false_negatives": 0
+    },
+    {
+      "critical_false_negatives": 10,
+      "criticality_signal": "ABSOLUTE_FAIL",
+      "document_id": "doc_14_fig_math",
+      "info_false_negatives": 38,
+      "metrics": [
+        {
+          "diagnostics": {
+            "global_ted": 134.0,
+            "normalization": {
+              "total_candidate_constructive_cost": 130.0,
+              "total_gt_destructive_cost": 122.0,
+              "worst_case_bound": 252.0
+            },
+            "overflow_triggered": false,
+            "total_windows_evaluated": 1
+          },
+          "metric_name": "normalized_structural_score",
+          "primary_score": 0.46825396825396826
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 31,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_composite_block",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 4,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_heading",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 52,
+            "precision": 0.2,
+            "recall": 1.0,
+            "true_positives": 13
+          },
+          "metric_name": "f1_score_paragraph",
+          "primary_score": 0.33333333333333337
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 9,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_display_equation",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 1,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_inline_equation",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_table_simple",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_table_complex",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_image",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 7,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_caption",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_code",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_list",
+          "primary_score": 0.0
+        }
+      ],
+      "overall_score": 0.46825396825396826,
+      "verdict": "HARD_FAIL",
+      "warning_false_negatives": 4
+    },
+    {
+      "critical_false_negatives": 0,
+      "criticality_signal": "ABSOLUTE_FAIL",
+      "document_id": "doc_15_table_fig_code",
+      "info_false_negatives": 11,
+      "metrics": [
+        {
+          "diagnostics": {
+            "global_ted": 36.0,
+            "normalization": {
+              "total_candidate_constructive_cost": 73.0,
+              "total_gt_destructive_cost": 62.0,
+              "worst_case_bound": 135.0
+            },
+            "overflow_triggered": false,
+            "total_windows_evaluated": 3
+          },
+          "metric_name": "normalized_structural_score",
+          "primary_score": 0.7333333333333334
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 10,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_composite_block",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "true_positives": 2
+          },
+          "metric_name": "f1_score_heading",
+          "primary_score": 1.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 18,
+            "precision": 0.47058823529411764,
+            "recall": 1.0,
+            "true_positives": 16
+          },
+          "metric_name": "f1_score_paragraph",
+          "primary_score": 0.6399999999999999
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_display_equation",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_inline_equation",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_table_simple",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_table_complex",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_image",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 1,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_caption",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 7,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_code",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "true_positives": 1
+          },
+          "metric_name": "f1_score_list",
+          "primary_score": 1.0
+        }
+      ],
+      "overall_score": 0.7333333333333334,
+      "verdict": "HARD_FAIL",
+      "warning_false_negatives": 7
+    },
+    {
+      "critical_false_negatives": 1,
+      "criticality_signal": "ABSOLUTE_FAIL",
+      "document_id": "doc_16_fig_code",
+      "info_false_negatives": 4,
+      "metrics": [
+        {
+          "diagnostics": {
+            "global_ted": 35.0,
+            "normalization": {
+              "total_candidate_constructive_cost": 48.0,
+              "total_gt_destructive_cost": 47.0,
+              "worst_case_bound": 95.0
+            },
+            "overflow_triggered": false,
+            "total_windows_evaluated": 2
+          },
+          "metric_name": "normalized_structural_score",
+          "primary_score": 0.631578947368421
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 2,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_composite_block",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 1,
+            "false_positives": 0,
+            "precision": 1.0,
+            "recall": 0.5,
+            "true_positives": 1
+          },
+          "metric_name": "f1_score_heading",
+          "primary_score": 0.6666666666666666
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 16,
+            "precision": 0.30434782608695654,
+            "recall": 1.0,
+            "true_positives": 7
+          },
+          "metric_name": "f1_score_paragraph",
+          "primary_score": 0.4666666666666667
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 1,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_display_equation",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_inline_equation",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_table_simple",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_table_complex",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_image",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 2,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_caption",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 10,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_code",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_list",
+          "primary_score": 0.0
+        }
+      ],
+      "overall_score": 0.631578947368421,
+      "verdict": "HARD_FAIL",
+      "warning_false_negatives": 11
+    },
+    {
+      "critical_false_negatives": 0,
+      "criticality_signal": "ABSOLUTE_FAIL",
+      "document_id": "doc_17_table_code",
+      "info_false_negatives": 24,
+      "metrics": [
+        {
+          "diagnostics": {
+            "global_ted": 74.0,
+            "normalization": {
+              "total_candidate_constructive_cost": 102.0,
+              "total_gt_destructive_cost": 78.0,
+              "worst_case_bound": 180.0
+            },
+            "overflow_triggered": false,
+            "total_windows_evaluated": 3
+          },
+          "metric_name": "normalized_structural_score",
+          "primary_score": 0.5888888888888889
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 22,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_composite_block",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "true_positives": 2
+          },
+          "metric_name": "f1_score_heading",
+          "primary_score": 1.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 37,
+            "precision": 0.24489795918367346,
+            "recall": 1.0,
+            "true_positives": 12
+          },
+          "metric_name": "f1_score_paragraph",
+          "primary_score": 0.39344262295081966
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_display_equation",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_inline_equation",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_table_simple",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_table_complex",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_image",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 2,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_caption",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 13,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_code",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_list",
+          "primary_score": 0.0
+        }
+      ],
+      "overall_score": 0.5888888888888889,
+      "verdict": "HARD_FAIL",
+      "warning_false_negatives": 13
+    },
+    {
+      "critical_false_negatives": 1,
+      "criticality_signal": "ABSOLUTE_FAIL",
+      "document_id": "doc_18_table_math_doble_col",
+      "info_false_negatives": 125,
+      "metrics": [
+        {
+          "diagnostics": {
+            "global_ted": 267.0,
+            "normalization": {
+              "total_candidate_constructive_cost": 304.0,
+              "total_gt_destructive_cost": 182.0,
+              "worst_case_bound": 486.0
+            },
+            "overflow_triggered": false,
+            "total_windows_evaluated": 3
+          },
+          "metric_name": "normalized_structural_score",
+          "primary_score": 0.4506172839506173
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 123,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_composite_block",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 1,
+            "false_positives": 5,
+            "precision": 0.2857142857142857,
+            "recall": 0.6666666666666666,
+            "true_positives": 2
+          },
+          "metric_name": "f1_score_heading",
+          "primary_score": 0.4
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 5,
+            "false_positives": 127,
+            "precision": 0.12413793103448276,
+            "recall": 0.782608695652174,
+            "true_positives": 18
+          },
+          "metric_name": "f1_score_paragraph",
+          "primary_score": 0.21428571428571427
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 1,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_display_equation",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_inline_equation",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_table_simple",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_table_complex",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_image",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 2,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_caption",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_code",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_list",
+          "primary_score": 0.0
+        }
+      ],
+      "overall_score": 0.4506172839506173,
+      "verdict": "HARD_FAIL",
+      "warning_false_negatives": 6
+    },
+    {
+      "critical_false_negatives": 0,
+      "criticality_signal": "ABSOLUTE_FAIL",
+      "document_id": "doc_19_fig_table_doble_col",
+      "info_false_negatives": 13,
+      "metrics": [
+        {
+          "diagnostics": {
+            "global_ted": 48.0,
+            "normalization": {
+              "total_candidate_constructive_cost": 82.0,
+              "total_gt_destructive_cost": 69.0,
+              "worst_case_bound": 151.0
+            },
+            "overflow_triggered": false,
+            "total_windows_evaluated": 1
+          },
+          "metric_name": "normalized_structural_score",
+          "primary_score": 0.6821192052980132
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 10,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_composite_block",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 5,
+            "false_positives": 6,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_heading",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 6,
+            "false_positives": 18,
+            "precision": 0.4857142857142857,
+            "recall": 0.7391304347826086,
+            "true_positives": 17
+          },
+          "metric_name": "f1_score_paragraph",
+          "primary_score": 0.5862068965517241
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_display_equation",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_inline_equation",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_table_simple",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_table_complex",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_image",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 3,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_caption",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_code",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_list",
+          "primary_score": 0.0
+        }
+      ],
+      "overall_score": 0.6821192052980132,
+      "verdict": "HARD_FAIL",
+      "warning_false_negatives": 11
+    },
+    {
+      "critical_false_negatives": 0,
+      "criticality_signal": "ABSOLUTE_FAIL",
+      "document_id": "doc_20_doble_col_table",
+      "info_false_negatives": 35,
+      "metrics": [
+        {
+          "diagnostics": {
+            "global_ted": 92.0,
+            "normalization": {
+              "total_candidate_constructive_cost": 142.0,
+              "total_gt_destructive_cost": 107.0,
+              "worst_case_bound": 249.0
+            },
+            "overflow_triggered": false,
+            "total_windows_evaluated": 7
+          },
+          "metric_name": "normalized_structural_score",
+          "primary_score": 0.6305220883534137
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 34,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_composite_block",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 3,
+            "false_positives": 8,
+            "precision": 0.42857142857142855,
+            "recall": 0.6666666666666666,
+            "true_positives": 6
+          },
+          "metric_name": "f1_score_heading",
+          "primary_score": 0.5217391304347826
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 8,
+            "false_positives": 38,
+            "precision": 0.3333333333333333,
+            "recall": 0.7037037037037037,
+            "true_positives": 19
+          },
+          "metric_name": "f1_score_paragraph",
+          "primary_score": 0.4523809523809524
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_display_equation",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_inline_equation",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_table_simple",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_table_complex",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_image",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_caption",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_code",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 1,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_list",
+          "primary_score": 0.0
+        }
+      ],
+      "overall_score": 0.6305220883534137,
+      "verdict": "HARD_FAIL",
+      "warning_false_negatives": 11
+    },
+    {
+      "critical_false_negatives": 38,
+      "criticality_signal": "ABSOLUTE_FAIL",
+      "document_id": "doc_21_heavy_math_table",
+      "info_false_negatives": 20,
+      "metrics": [
+        {
+          "diagnostics": {
+            "global_ted": 232.0,
+            "normalization": {
+              "total_candidate_constructive_cost": 146.0,
+              "total_gt_destructive_cost": 240.0,
+              "worst_case_bound": 386.0
+            },
+            "overflow_triggered": false,
+            "total_windows_evaluated": 1
+          },
+          "metric_name": "normalized_structural_score",
+          "primary_score": 0.39896373056994816
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 19,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_composite_block",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 1,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_heading",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 59,
+            "precision": 0.1917808219178082,
+            "recall": 1.0,
+            "true_positives": 14
+          },
+          "metric_name": "f1_score_paragraph",
+          "primary_score": 0.3218390804597701
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 38,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_display_equation",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_inline_equation",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_table_simple",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_table_complex",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_image",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 1,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_caption",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_code",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_list",
+          "primary_score": 0.0
+        }
+      ],
+      "overall_score": 0.39896373056994816,
+      "verdict": "HARD_FAIL",
+      "warning_false_negatives": 1
+    },
+    {
+      "critical_false_negatives": 7,
+      "criticality_signal": "ABSOLUTE_FAIL",
+      "document_id": "doc_22_table_fig_math",
+      "info_false_negatives": 12,
+      "metrics": [
+        {
+          "diagnostics": {
+            "global_ted": 75.0,
+            "normalization": {
+              "total_candidate_constructive_cost": 112.0,
+              "total_gt_destructive_cost": 121.0,
+              "worst_case_bound": 233.0
+            },
+            "overflow_triggered": false,
+            "total_windows_evaluated": 1
+          },
+          "metric_name": "normalized_structural_score",
+          "primary_score": 0.6781115879828326
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 3,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_composite_block",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 2,
+            "false_positives": 6,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_heading",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 6,
+            "false_positives": 21,
+            "precision": 0.58,
+            "recall": 0.8285714285714286,
+            "true_positives": 29
+          },
+          "metric_name": "f1_score_paragraph",
+          "primary_score": 0.6823529411764706
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 7,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_display_equation",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_inline_equation",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_table_simple",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_table_complex",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_image",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 9,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_caption",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_code",
+          "primary_score": 0.0
+        },
+        {
+          "diagnostics": {
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_positives": 0
+          },
+          "metric_name": "f1_score_list",
+          "primary_score": 0.0
+        }
+      ],
+      "overall_score": 0.6781115879828326,
+      "verdict": "HARD_FAIL",
+      "warning_false_negatives": 8
+    }
+  ],
+  "generated_at": "2026-09-23T21:10:48.201647+00:00",
+  "hard_fail_count": 14,
+  "pass_count": 6,
+  "total_critical_false_negatives": 163,
+  "total_documents": 21,
+  "total_info_false_negatives": 308,
+  "total_warning_false_negatives": 198,
+  "warning_count": 1
+}
