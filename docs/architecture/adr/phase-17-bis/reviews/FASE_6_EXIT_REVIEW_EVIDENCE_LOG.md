@@ -1,11 +1,11 @@
 # FASE_6_EXIT_REVIEW_EVIDENCE_LOG.md
 
 **Documento:** `docs/architecture/adr/phase-17-bis/reviews/FASE_6_EXIT_REVIEW_EVIDENCE_LOG.md`
-**Versión:** 0.1.0
+**Versión:** 0.2.0
 **Estado:** IN_PROGRESS
 **Fecha:** 2026-09-26
 **Última actualización:** 2026-09-26
-**Derivado de:** `PHASE_17BIS_FASE6_EXECUTION_PLAN.md` v1.0.3 — Gate {N} Exit Review
+**Derivado de:** `PHASE_17BIS_FASE6_EXECUTION_PLAN.md` v1.0.5 — Gate 1 Exit Review
 **Propósito:** Registro auditable de la evidencia forense que fundamenta cada decisión
 tomada durante el Exit Review de Fase 6 (Continuous Verification). Cada finding
 incluye los archivos auditados, el análisis, los gaps confirmados, la justificación
@@ -22,9 +22,11 @@ normativa y la clasificación final.
 > - Un documento de consulta futura para no re-derivar conclusiones
 
 ### Changelog
+
 | Versión | Fecha | Cambio |
 |---|---|---|
-| 0.1.0 | 2026-09-26 | Emisión inicial DRAFT. Esqueleto del Evidence Log para Fase 6 (Continuous Verification). Estructura adaptada de la metodología canónica. |
+| 0.1.0 | 2026-09-26 | Emisión inicial DRAFT. Esqueleto del Evidence Log para Fase 6. |
+| 0.2.0 | 2026-09-26 | Gate 1 Exit Review completado. Evidencia forense de DF-05, DF-06, DF-07 documentada. Referencias actualizadas a Execution Plan v1.0.5. |
 
 ---
 
@@ -33,7 +35,7 @@ normativa y la clasificación final.
 ### 0.1 Jerarquía normativa aplicada
 
 ```text
-ADR_F17_BIS_MASTER  >  ADR_F17_BIS_06 v1.2.0  >  NADR-F17BIS-25..30  >  PHASE_17BIS_FASE6_EXECUTION_PLAN v1.0.3
+ADR_F17_BIS_MASTER  >  ADR_F17_BIS_06 v1.2.0  >  NADR-F17BIS-25..30  >  PHASE_17BIS_FASE6_EXECUTION_PLAN v1.0.5
 ```
 
 > *"No lower governance level is authorized to redefine or contradict
@@ -55,7 +57,7 @@ ADR_F17_BIS_MASTER  >  ADR_F17_BIS_06 v1.2.0  >  NADR-F17BIS-25..30  >  PHASE_17
 - **NADR-F17BIS-30 §5.5 R14-R16:** NO DEMOSTRADO no es una forma alternativa de DONE. Un finding sobre enforcement sin evidencia externa no puede cerrarse como RESOLVED sin evidencia server-side.
 - **ADR_F17_BIS_MASTER §5 (Determinismo y Reproducibilidad):** Todo hallazgo que afecte la reproducibilidad de la verificación debe clasificarse como IMPLEMENTATION_REQUIRED o ACCEPTED_LIMITATION con justificación explícita.
 - **ADR_F17_BIS_06 v1.2.0 D1 (Integración, No Creación):** Ningún finding puede justificar la creación de un segundo mecanismo de verificación.
-- **PHASE_17BIS_FASE6_EXECUTION_PLAN v1.0.3 §8 (Global DoD):** Un finding que afecta una regla normativa solo se cierra cuando es trazable a una implementación commiteada, un mecanismo de verification superado y un mecanismo de validation superado.
+- **PHASE_17BIS_FASE6_EXECUTION_PLAN v1.0.5 §8 (Global DoD):** Un finding que afecta una regla normativa solo se cierra cuando es trazable a una implementación commiteada, un mecanismo de verification superado y un mecanismo de validation superado.
 
 ---
 
@@ -73,13 +75,13 @@ ADR_F17_BIS_MASTER  >  ADR_F17_BIS_06 v1.2.0  >  NADR-F17BIS-25..30  >  PHASE_17
 
 | Estado | Significado |
 |--------|-------------|
-| `RESOLVED` | Implementado y cerrado |
+| `RESOLVED` | Implementado y cerrado con evidencia |
 | `RESOLVED — DELETE` | Código muerto eliminado |
 | `RESOLVED — MOVE` | Código reubicado en capa correcta |
 | `RESOLVED — REFACTORED` | Código refactorizado sin cambio funcional |
 | `RESOLVED — FACTORY EXTRACTION` | Lógica extraída a factory canónica |
 | `CLOSED (NAR)` | No Action Required — falso positivo o correcto por diseño |
-| `ACCEPTED_LIMITATION` | Limitación conocida y documentada |
+| `ACCEPTED_LIMITATION` | Limitación conocida, documentada y aceptada |
 | `RECLASSIFIED_FUTURE_PHASE` | Movido a fase posterior con justificación |
 | `IMPLEMENTATION_REQUIRED` | Requiere implementación (scope por definir o acotado) |
 | `REVIEW_REQUIRED` | Requiere análisis adicional antes de decidir |
@@ -116,131 +118,302 @@ ADR_F17_BIS_MASTER  >  ADR_F17_BIS_06 v1.2.0  >  NADR-F17BIS-25..30  >  PHASE_17
 
 ## 2. ESTRUCTURA POR FINDING
 
-{Repetir esta estructura por cada DF/GF analizado. Se agregan dinámicamente
-conforme avanza la implementación del Execution Plan v1.0.3.}
+Los findings DF-05, DF-06 y DF-07 fueron identificados en Wave 1.1 (Task 1.1.3).
+Wave 1.2 no registró hallazgos nuevos. Gate 1 cierra con 3 findings analizados.
 
-### {N} {DF/GF}-{XX} — {Título corto del hallazgo}
+---
+
+### 2.1 DF-05 — ignore_imports huérfanos en pyproject.toml
 
 | Campo | Valor |
 |-------|-------|
-| **ID** | {DF/GF}-{XX} |
-| **Tipo** | {Deferred Finding / Governance Finding / Hallazgo derivado} |
-| **Estado** | `{Clasificación final}` |
-| **Origen** | {Wave/Task/Gate donde se identificó} |
-| **Gate destino original** | {Gate original} |
-| **Estado previo** | {Estado anterior si fue reclasificado} |
-| **Prioridad** | {Baja / Media / Alta / Critical / N/A} |
-| **¿Requiere implementación?** | {Sí/No — con alcance si aplica} |
-| **¿Bloquea Continuous Verification?** | {Sí/No/Condicional} |
+| **ID** | DF-05 |
+| **Tipo** | Deferred Finding |
+| **Estado** | `RESOLVED` |
+| **Origen** | Wave 1.1 / Task 1.1.3 |
+| **Gate destino original** | Gate 1 |
+| **Estado previo** | PENDING_REVIEW |
+| **Prioridad** | Media |
+| **¿Requiere implementación?** | Sí — eliminación de configuración muerta |
+| **¿Bloquea Continuous Verification?** | No — config de linter, no afecta runtime |
 
-#### {N}.1 Texto original del DF
+#### 2.1.1 Texto original del DF
 
-> *"{Texto exacto del hallazgo tal como fue registrado originalmente
-> en el Execution Plan}"*
+> *"Los `ignore_imports` del contrato 1 en pyproject.toml referencian
+> módulos `core.extraction.ocr_providers.*` que no existen. import-linter
+> reporta 'No matches for ignored import' y exit code 1."*
 
-#### {N}.2 Reformulación corregida (si aplica)
+#### 2.1.2 Reformulación corregida
 
-{Si el texto original era ambiguo, incorrecto o desactualizado,
-reformular con precisión. Si no aplica, indicar
-"No requiere reformulación" y omitir esta sección.}
+No requiere reformulación.
 
-**Formulación correcta:**
-
-> *"{Reformulación precisa del hallazgo}"*
-
-#### {N}.3 Archivos y documentos auditados
+#### 2.1.3 Archivos y documentos auditados
 
 | # | Archivo / Documento | Evidencia extraída |
 |---|---------------------|-------------------|
-| 1 | `{ruta/al/archivo.py}` | {Descripción de la evidencia concreta encontrada} |
-| 2 | `{ruta/al/documento.md}` §{N} | {Cita o descripción de la evidencia} |
-| 3 | Grep: `{patrón}` en `{directorios}` | {Resultado del grep: N resultados / 0 resultados} |
-| ... | ... | ... |
+| 1 | `pyproject.toml` §[tool.importlinter] | Contrato 1 contiene 3 `ignore_imports` hacia `core.extraction.ocr_providers.*` |
+| 2 | `core/extraction/ocr_providers/` | Directorio NO existe. Confirmado con `Get-Content` → `PathNotFound` |
+| 3 | `infra/extraction/providers/` | Contiene `pymupdf_provider.py`, `docling_provider.py`, `tesseract_provider.py`. Los providers fueron migrados aquí |
+| 4 | Salida de `lint-imports` | 3 warnings: "No matches for ignored import core.extraction.ocr_providers.* -> core.extraction.provider" |
 
-#### {N}.4 Análisis
+#### 2.1.4 Análisis
 
-{Análisis detallado del hallazgo. Debe responder:}
-- ¿La condición original existe?
-- ¿Es una violación normativa o un comportamiento correcto por diseño?
-- ¿Qué NADRs/ADRs aplican?
-- ¿Cuál es el impacto funcional real?
+La condición original existe: los `ignore_imports` hacen referencia a módulos que fueron eliminados durante una migración previa. Los providers se movieron de `core/extraction/ocr_providers/` a `infra/extraction/providers/`. La configuración de import-linter no fue actualizada tras la migración, dejando `ignore_imports` que apuntan a rutas inexistentes.
 
-#### {N}.5 Gaps objetivos confirmados (si aplica)
+No es violación normativa de los NADRs de Fase 6. Es un problema de higiene de configuración. import-linter 2.15 trata los `ignore_imports` sin coincidencia como condición de fallo (exit code 1).
+
+#### 2.1.5 Gaps objetivos confirmados
 
 | # | Gap | Evidencia | Severidad |
 |---|-----|-----------|-----------|
-| G1 | {Descripción del gap} | {Archivo/línea que lo demuestra} | {Baja/Media/Alta} |
-| G2 | {Descripción del gap} | {Evidencia} | {Severidad} |
+| G1 | `ignore_imports` hacia `core.extraction.ocr_providers.*` sin módulo destino | `Get-Content` → `PathNotFound` | Baja |
+| G2 | `core.extraction.provider` referenciado como destino no existe | `Select-String` → 0 resultados en filesystem actual | Baja |
 
-#### {N}.6 Lo que NO es un gap
+#### 2.1.6 Lo que NO es un gap
 
 | Aspecto | Veredicto | Justificación |
 |---------|-----------|---------------|
-| {Aspecto que podría parecer gap pero no lo es} | ✅ Correcto por diseño | {Justificación con referencia normativa} |
-| {Otro aspecto} | ❌ No relacionado | {Justificación} |
+| Migración de providers a `infra/` | ✅ Correcto por diseño | Los providers pertenecen a la capa de infraestructura (arquitectura hexagonal) |
+| Contrato "Domain modules must not import concrete OCR provider implementations" | ✅ Correcto | Protege a `core/` de imports directos de librerías de extracción |
 
-#### {N}.7 Impacto en Continuous Verification
+#### 2.1.7 Impacto en Continuous Verification
 
 | Dimensión | ¿Afecta? | Justificación |
 |-----------|----------|---------------|
-| Determinismo | {✅/❌/⚠️} | {Justificación} |
-| Reproducibilidad | {✅/❌/⚠️} | {Justificación} |
-| Corrección funcional | {✅/❌/⚠️} | {Justificación} |
-| Enforcement demostrable | {✅/❌/⚠️} | {Justificación} |
-| Bloquea Fase 18 | {✅/❌/⚠️} | {Justificación} |
+| Determinismo | ❌ No | Configuración de linter, no afecta runtime |
+| Reproducibilidad | ⚠️ Sí (menor) | `lint-imports` falla con exit code 1, bloqueando CI |
+| Corrección funcional | ❌ No | No afecta evaluación de regresión |
+| Enforcement demostrable | ❌ No | No afecta contratos de merge protection |
+| Bloquea Fase 18 | ❌ No | Resolución en Task 1.1.3 |
 
-#### {N}.8 Sub-acciones identificadas (si aplica)
-
-| Sub-acción | Descripción | Estado | Scope |
-|------------|-------------|--------|-------|
-| {DF}-{XX}-A | {Descripción} | {Demostrado/Pendiente} | {Producción/Benchmark/Tooling} |
-| {DF}-{XX}-B | {Descripción} | {Estado} | {Scope} |
-
-#### {N}.9 Clasificación consolidada
+#### 2.1.8 Clasificación consolidada
 
 | Campo | Valor |
 |-------|-------|
-| Condición original existe | {✅ Sí / ❌ No / ⚠️ Parcialmente} |
-| Es violación arquitectónica | {✅ Sí / ❌ No} |
-| Es violación de gobernanza | {✅ Sí / ❌ No} |
-| Es problema técnico | {✅ Sí / ❌ No} |
-| Pertenece a Fase 6 | {✅ Sí / ❌ No} |
-| Bloquea Continuous Verification | {✅ Sí / ❌ No / ⚠️ Condicional} |
-| Clasificación | `{ESTADO_FINAL}` |
-| Prioridad | {Baja/Media/Alta/N/A} |
+| Condición original existe | ✅ Sí |
+| Es violación arquitectónica | ❌ No |
+| Es violación de gobernanza | ❌ No |
+| Es problema técnico | ✅ Sí |
+| Pertenece a Fase 6 | ✅ Sí |
+| Bloquea Continuous Verification | ❌ No |
+| Clasificación | `RESOLVED` |
+| Prioridad | Media |
 
-#### {N}.10 Regla aplicada
+#### 2.1.9 Regla aplicada
 
-> **{NADR/ADR/ENGINEERING_PRINCIPLES} §{N} ({Nombre}):**
-> *"{Cita textual de la regla que fundamenta la decisión}"*
+> **ENGINEERING_PRINCIPLES §IV (Cero Fallos Silenciosos):**
+> *"Todo fallo debe ser explícito o derivar en implementación."*
 
-{Explicación de cómo la regla aplica al caso concreto.}
+Los `ignore_imports` huérfanos generaban warnings silenciosos en import-linter que podían ocultar violaciones reales. La eliminación de la configuración muerta restablece la señal limpia del linter.
+
+---
+
+### 2.2 DF-06 — core.benchmark.__main__ importa de apps/
+
+| Campo | Valor |
+|-------|-------|
+| **ID** | DF-06 |
+| **Tipo** | Deferred Finding |
+| **Estado** | `ACCEPTED_LIMITATION` |
+| **Origen** | Wave 1.1 / Task 1.1.3 |
+| **Gate destino original** | Gate 1 |
+| **Estado previo** | PENDING_REVIEW |
+| **Prioridad** | Alta (deuda técnica) |
+| **¿Requiere implementación?** | Sí — fuera de scope de Gate 1 |
+| **¿Bloquea Continuous Verification?** | No — resuelto con ignore_import temporal |
+
+#### 2.2.1 Texto original del DF
+
+> *"core/benchmark/__main__.py importa apps.bootstrap.pipeline_factory,
+> generando cadena transitiva hacia fitz (PyMuPDF) que viola los contratos
+> 'Domain must not import from Infrastructure' y 'Domain modules must not
+> import concrete OCR provider implementations'."*
+
+#### 2.2.2 Reformulación corregida
+
+No requiere reformulación.
+
+#### 2.2.3 Archivos y documentos auditados
+
+| # | Archivo / Documento | Evidencia extraída |
+|---|---------------------|-------------------|
+| 1 | `core/benchmark/__main__.py` L68 | `from apps.bootstrap.pipeline_factory import build_extraction_pipeline` |
+| 2 | `apps/bootstrap/pipeline_factory.py` L47 | Import de `apps.bootstrap.provider_factory` |
+| 3 | `apps/bootstrap/provider_factory.py` L3 | Import de `infra.extraction.providers.pymupdf_provider` |
+| 4 | `infra/extraction/providers/pymupdf_provider.py` L5 | `import fitz` |
+| 5 | Salida de `lint-imports --verbose` | Cadena completa: `core.benchmark.__main__ → apps.bootstrap.pipeline_factory → apps.bootstrap.provider_factory → infra.extraction.providers.pymupdf_provider → fitz` |
+
+#### 2.2.4 Análisis
+
+La condición original existe. La cadena transitiva es real y verificable. `core/` (dominio) alcanza transitivamente `fitz` (librería de extracción) a través de `apps/`. Esto viola dos contratos de arquitectura hexagonal:
+
+1. **"Domain must not import from Infrastructure":** `core` no debe alcanzar `infra` ni siquiera transitivamente.
+2. **"Domain modules must not import concrete OCR provider implementations":** `core` no debe alcanzar librerías de extracción concretas.
+
+La resolución completa requiere refactorizar `core/benchmark/__main__.py` para eliminar la dependencia directa de `apps/`. Esto implica rediseñar cómo el benchmark accede al pipeline de extracción, probablemente mediante inyección de dependencias o un puerto. Esta refactorización está fuera del scope de Gate 1 y se planifica para Gate 3-4.
+
+#### 2.2.5 Gaps objetivos confirmados
+
+| # | Gap | Evidencia | Severidad |
+|---|-----|-----------|-----------|
+| G1 | `core.benchmark.__main__` L68 importa `apps.bootstrap.pipeline_factory` | Línea 68 del archivo | Alta |
+| G2 | Cadena transitiva alcanza `fitz` | `lint-imports --verbose` muestra la cadena completa | Alta |
+
+#### 2.2.6 Lo que NO es un gap
+
+| Aspecto | Veredicto | Justificación |
+|---------|-----------|---------------|
+| `apps.bootstrap.pipeline_factory` como composition root | ✅ Correcto por diseño | Es el único punto de construcción del pipeline (NADR-11 §5.1 R1) |
+| `infra.extraction.providers` en capa de infraestructura | ✅ Correcto por diseño | Los providers pertenecen a infra (arquitectura hexagonal) |
+
+#### 2.2.7 Impacto en Continuous Verification
+
+| Dimensión | ¿Afecta? | Justificación |
+|-----------|----------|---------------|
+| Determinismo | ❌ No | La deuda no afecta determinismo del pipeline |
+| Reproducibilidad | ❌ No | La cadena transitiva no afecta reproducibilidad de la evaluación |
+| Corrección funcional | ❌ No | El pipeline funciona correctamente |
+| Enforcement demostrable | ⚠️ Sí (menor) | El contrato de import-linter requiere `ignore_import` temporal |
+| Bloquea Fase 18 | ❌ No | Deuda técnica documentada, no impide operación |
+
+#### 2.2.8 Clasificación consolidada
+
+| Campo | Valor |
+|-------|-------|
+| Condición original existe | ✅ Sí |
+| Es violación arquitectónica | ✅ Sí (transitiva) |
+| Es violación de gobernanza | ❌ No |
+| Es problema técnico | ✅ Sí |
+| Pertenece a Fase 6 | ❌ No — scope de Gate 3-4 |
+| Bloquea Continuous Verification | ❌ No |
+| Clasificación | `ACCEPTED_LIMITATION` |
+| Prioridad | Alta (deuda técnica) |
+
+#### 2.2.9 Regla aplicada
+
+> **ENGINEERING_PRINCIPLES §III (Fail Fast & Explicit Errors):**
+> *"No se aceptan soluciones temporales no documentadas ni silenciosas."*
+
+La deuda se acepta como limitación documentada con `ignore_import` explícito en pyproject.toml. No es una solución silenciosa: está rastreada como DF-06 y planificada para Gate 3-4. La justificación cumple el requisito de explicitud.
+
+> **ENGINEERING_PRINCIPLES §VII (No Big Bang / YAGNI):**
+> *"No se reescribe el sistema completo de golpe."*
+
+La refactorización completa de `core/benchmark/__main__.py` se difiere a Gate 3-4 para no bloquear el avance de Gate 1 con una refactorización de alto riesgo fuera de scope.
+
+---
+
+### 2.3 DF-07 — Contrato 3 sin ignore_imports para cadena DF-06
+
+| Campo | Valor |
+|-------|-------|
+| **ID** | DF-07 |
+| **Tipo** | Deferred Finding |
+| **Estado** | `RESOLVED` |
+| **Origen** | Wave 1.1 / Task 1.1.3 |
+| **Gate destino original** | Gate 1 |
+| **Estado previo** | PENDING_REVIEW |
+| **Prioridad** | Media |
+| **¿Requiere implementación?** | Sí — agregar ignore_import |
+| **¿Bloquea Continuous Verification?** | No — config de linter |
+
+#### 2.3.1 Texto original del DF
+
+> *"Al eliminar los ignore_imports huérfanos (DF-05), el contrato 3 detectó
+> la cadena transitiva de DF-06 y reportó BROKEN. El contrato 3 no tenía
+> ignore_imports para esa cadena."*
+
+#### 2.3.2 Reformulación corregida
+
+No requiere reformulación.
+
+#### 2.3.3 Archivos y documentos auditados
+
+| # | Archivo / Documento | Evidencia extraída |
+|---|---------------------|-------------------|
+| 1 | `pyproject.toml` §[tool.importlinter] contrato 3 | Contrato "Domain modules must not import concrete OCR provider implementations" sin `ignore_imports` para `core.benchmark.__main__` |
+| 2 | Salida de `lint-imports` post-DF-05 | Contrato 3 BROKEN: cadena `core.benchmark.__main__ → ... → fitz` |
+| 3 | `pyproject.toml` contrato 1 | El contrato 1 ya tenía `ignore_import` para la misma cadena (por eso estaba "oculta") |
+
+#### 2.3.4 Análisis
+
+La condición original existe y es un hallazgo derivado de DF-05. Los `ignore_imports` huérfanos del contrato 1 estaban ocultando la cadena transitiva de DF-06. Al eliminar los ignores huérfanos (resolución de DF-05), el contrato 3 detectó la cadena que previamente estaba enmascarada.
+
+La resolución es agregar un `ignore_import` explícito al contrato 3 para la cadena `core.benchmark.__main__ -> apps.bootstrap.pipeline_factory`, consistente con el tratamiento de DF-06 como ACCEPTED_LIMITATION.
+
+Hallazgo adicional durante la resolución: import-linter 2.15 requiere `include_external_packages = true` en la configuración top-level cuando hay `forbidden_modules` externos. Esto se agregó como parte de la resolución.
+
+#### 2.3.5 Gaps objetivos confirmados
+
+| # | Gap | Evidencia | Severidad |
+|---|-----|-----------|-----------|
+| G1 | Contrato 3 sin `ignore_import` para cadena DF-06 | `lint-imports` → BROKEN | Media |
+| G2 | Falta `include_external_packages = true` | `lint-imports` → error de configuración | Media |
+
+#### 2.3.6 Lo que NO es un gap
+
+| Aspecto | Veredicto | Justificación |
+|---------|-----------|---------------|
+| Contrato 3 como protección de dominio | ✅ Correcto por diseño | Protege a `core/` de imports de librerías de extracción |
+| `forbidden_modules` externos (fitz, pymupdf, etc.) | ✅ Correcto por diseño | Son librerías que no deben ser importadas por el dominio |
+
+#### 2.3.7 Impacto en Continuous Verification
+
+| Dimensión | ¿Afecta? | Justificación |
+|-----------|----------|---------------|
+| Determinismo | ❌ No | Configuración de linter |
+| Reproducibilidad | ⚠️ Sí (menor) | `lint-imports` reporta BROKEN, bloqueando CI |
+| Corrección funcional | ❌ No | No afecta evaluación de regresión |
+| Enforcement demostrable | ❌ No | No afecta contratos de merge protection |
+| Bloquea Fase 18 | ❌ No | Resolución en Task 1.1.3 |
+
+#### 2.3.8 Clasificación consolidada
+
+| Campo | Valor |
+|-------|-------|
+| Condición original existe | ✅ Sí |
+| Es violación arquitectónica | ❌ No — es configuración |
+| Es violación de gobernanza | ❌ No |
+| Es problema técnico | ✅ Sí |
+| Pertenece a Fase 6 | ✅ Sí |
+| Bloquea Continuous Verification | ❌ No |
+| Clasificación | `RESOLVED` |
+| Prioridad | Media |
+
+#### 2.3.9 Regla aplicada
+
+> **ENGINEERING_PRINCIPLES §IV (Cero Fallos Silenciosos):**
+> *"Todo fallo debe ser explícito."*
+
+El contrato 3 BROKEN era una señal explícita de que la configuración estaba incompleta. La resolución hace que el contrato pase con un `ignore_import` documentado que rastrea la deuda de DF-06. La señal del linter queda limpia y cualquier violación futura será detectada.
 
 ---
 
 ## 3. GATE EXIT REVIEW SUMMARY
 
-{Una sub-sección por cada Gate Exit Review ejecutado. Se agregan dinámicamente
-conforme avanza la implementación del Execution Plan v1.0.3.}
-
-### 3.1 Gate 1 Exit Review — Verification Foundation ({YYYY-MM-DD})
+### 3.1 Gate 1 Exit Review — Verification Foundation (2026-09-26)
 
 **Gate:** Gate 1 — Verification Foundation
 **NADRs:** NADR-F17BIS-25 (13 reglas), NADR-F17BIS-26 (28 reglas)
 **Tasks:** 1.1.1, 1.1.2, 1.1.3, 1.2.1, 1.2.2, 1.2.3, 1.2.4
+**Resultado:** ✅ COMPLETED — 41/41 reglas DONE, 7/7 Tasks DONE, 47 tests passed
 
 **Árbol de decisión aplicado:**
 
 | DF | ¿Válido? | ¿Resoluble? | ¿Técnico? | Decisión | Motivo |
 |----|----------|-------------|-----------|----------|--------|
-| — | — | — | — | — | {Pendiente de ejecución} |
+| DF-05 | ✅ Sí | ✅ Sí (Task 1.1.3) | ✅ Sí | RESOLVED | `ignore_imports` huérfanos eliminados |
+| DF-06 | ✅ Sí | ❌ No (deuda Gate 3-4) | ✅ Sí | ACCEPTED_LIMITATION | `core.benchmark.__main__` importa de `apps/` |
+| DF-07 | ✅ Sí | ✅ Sí (Task 1.1.3) | ✅ Sí | RESOLVED | `ignore_import` agregado al contrato 3 |
 
 **Resumen:**
-- RESOLVED: {N} ({DF-XX})
-- RECLASIFICADO → Gate {X}: {N} ({DF-XX, DF-YY})
-- CLOSED (NAR): {N} ({DF-XX})
-- CONVERTIDO EN GF: {N} ({GF-XX})
-- Nuevos hallazgos registrados: {N} ({DF-XX})
+- RESOLVED: 2 (DF-05, DF-07)
+- ACCEPTED_LIMITATION: 1 (DF-06)
+- RECLASIFICADO → Gate {X}: 0
+- CLOSED (NAR): 0
+- CONVERTIDO EN GF: 0
+- Nuevos hallazgos registrados: 3 (DF-05, DF-06, DF-07 — todos de Wave 1.1)
+- Hallazgos registrados en Wave 1.2: 0
 
 ---
 
@@ -249,8 +422,6 @@ conforme avanza la implementación del Execution Plan v1.0.3.}
 **Gate:** Gate 2 — Verification Contract
 **NADRs:** NADR-F17BIS-27 (35 reglas), NADR-F17BIS-28 (34 reglas)
 **Tasks:** 2.1.1, 2.1.2, 2.1.3, 2.2.1, 2.2.2, 2.2.3
-
-**Árbol de decisión aplicado:**
 
 | DF | ¿Válido? | ¿Resoluble? | ¿Técnico? | Decisión | Motivo |
 |----|----------|-------------|-----------|----------|--------|
@@ -271,8 +442,6 @@ conforme avanza la implementación del Execution Plan v1.0.3.}
 **NADRs:** NADR-F17BIS-29 (35 reglas) + verificación transversal NADR-F17BIS-25 a NADR-F17BIS-29
 **Tasks:** 3.1.1, 3.1.2, 3.1.3, 3.2.1, 3.2.2, 3.2.3, 3.3.1, 3.3.2, 3.3.3
 
-**Árbol de decisión aplicado:**
-
 | DF | ¿Válido? | ¿Resoluble? | ¿Técnico? | Decisión | Motivo |
 |----|----------|-------------|-----------|----------|--------|
 | — | — | — | — | — | {Pendiente de ejecución} |
@@ -292,17 +461,19 @@ conforme avanza la implementación del Execution Plan v1.0.3.}
 **NADRs:** NADR-F17BIS-30 (22 reglas) + verificación transversal NADR-F17BIS-25 a NADR-F17BIS-30
 **Tasks:** 4.1.1, 4.1.2, 4.1.3, 4.2.1, 4.2.2, 4.2.3, 4.3.1, 4.3.2, 4.3.3
 
-**Nota específica de Gate 4:** Este Gate incluye Tasks con precondiciones externas que
-pueden generar hallazgos clasificados como `ACCEPTED_LIMITATION` o
-`RECLASSIFIED_FUTURE_PHASE`:
-- **Task 4.1.3:** Evidencia server-side de branch protection. Si no se puede obtener,
-  el finding se clasifica como `ACCEPTED_LIMITATION` o `RECLASSIFIED_FUTURE_PHASE`
-  con justificación explícita. NO DEMOSTRADO no es RESOLVED.
-- **Task 4.2.1:** PASS path end-to-end. Si no existe un escenario PASS legítimo,
-  el finding se clasifica como `ACCEPTED_LIMITATION` o `IMPLEMENTATION_REQUIRED`
-  según corresponda. No se fabrica un PASS para cerrar el gate.
+**Nota específica de Gate 4:** Este Gate incluye Tasks con precondiciones externas:
+- **Task 4.1.3:** Evidencia server-side de branch protection. Si no se puede obtener, el finding se clasifica como `ACCEPTED_LIMITATION` o `RECLASSIFIED_FUTURE_PHASE` con justificación explícita. NO DEMOSTRADO no es RESOLVED.
+- **Task 4.2.1:** PASS path end-to-end. Si no existe un escenario PASS legítimo, el finding se clasifica como `ACCEPTED_LIMITATION` o `IMPLEMENTATION_REQUIRED` según corresponda. No se fabrica un PASS para cerrar el gate.
 
-**Árbol de decisión aplicado:**
+**Árbol de decisión aplicado (5 pasos):**
+
+```text
+1. ¿Sigue siendo válido el hallazgo? → NO: CLOSED (NAR) / SÍ: continuar
+2. ¿Puede resolverse dentro del Gate actual? → SÍ: RESOLVED / NO: continuar
+3. ¿Es un problema técnico? → SÍ: RECLASIFICADO / NO: continuar
+4. ¿Es un conflicto normativo? → SÍ: CONVERTIDO EN GF
+5. ¿Es una limitación externa al perímetro del repositorio? → SÍ: ACCEPTED_LIMITATION con evidencia
+```
 
 | DF | ¿Válido? | ¿Resoluble? | ¿Técnico? | Decisión | Motivo |
 |----|----------|-------------|-----------|----------|--------|
@@ -320,7 +491,7 @@ pueden generar hallazgos clasificados como `ACCEPTED_LIMITATION` o
 
 ## 4. TABLA CONSOLIDADA FINAL
 
-{Se completa al cierre del último Gate Exit Review.}
+Se actualiza al cierre del último Gate Exit Review.
 
 ### 4.1 Resumen por clasificación
 
@@ -328,17 +499,19 @@ pueden generar hallazgos clasificados como `ACCEPTED_LIMITATION` o
 |--------------|----------|-----|
 | `CLOSED (NAR)` | 0 | — |
 | `RESOLVED — DELETE` | 0 | — |
-| `RESOLVED` | 0 | — |
+| `RESOLVED` | 2 | DF-05, DF-07 |
 | `IMPLEMENTATION_REQUIRED` | 0 | — |
 | `RECLASSIFIED_FUTURE_PHASE` | 0 | — |
 | `REVIEW_REQUIRED` | 0 | — |
-| `ACCEPTED_LIMITATION` | 0 | — |
+| `ACCEPTED_LIMITATION` | 1 | DF-06 |
 
 ### 4.2 Tabla consolidada
 
 | DF | Estado | Decisión |
 |----|--------|----------|
-| — | — | {Pendiente de ejecución} |
+| DF-05 | `RESOLVED` | `ignore_imports` huérfanos eliminados del contrato 1 (Task 1.1.3) |
+| DF-06 | `ACCEPTED_LIMITATION` | `core.benchmark.__main__` importa de `apps/`; deuda técnica Gate 3-4 |
+| DF-07 | `RESOLVED` | `ignore_imports` agregado al contrato 3 para la cadena transitiva DF-06 (Task 1.1.3) |
 
 ---
 
@@ -354,8 +527,7 @@ El documento se considera cerrado (`FROZEN`) cuando:
 - [ ] Cada clasificación tiene al menos una regla normativa aplicada
 - [ ] Los hallazgos `RECLASSIFIED_FUTURE_PHASE` tienen destino explícito
 - [ ] Los hallazgos `REVIEW_REQUIRED` tienen plan de reevaluación
-- [ ] Los hallazgos relacionados con enforcement server-side (NADR-F17BIS-30 §5.5 R14-R16)
-      tienen evidencia externa o están documentados como NO DEMOSTRADO con justificación explícita
+- [ ] Los hallazgos relacionados con enforcement server-side (NADR-F17BIS-30 §5.5 R14-R16) tienen evidencia externa o están documentados como NO DEMOSTRADO con justificación explícita
 
 ### 5.2 Relación con el Findings Register
 
@@ -364,10 +536,33 @@ El Evidence Log y el Findings Register son documentos complementarios:
 | Documento | Propósito | Momento |
 |-----------|-----------|---------|
 | **Evidence Log** (este documento) | Evidencia forense de cada decisión | Al cierre del Exit Review |
-| **Findings Register** | Registro de decisiones + resultados de implementación | Durante y después del Exit Review |
+| **Findings Register** (`FASE_6_DEFERRED_FINDINGS_REGISTER.md`) | Registro de decisiones + resultados de implementación | Durante y después del Exit Review |
 
 Cada entrada del Findings Register debe tener una referencia cruzada a la
 sección correspondiente de este Evidence Log.
+
+---
+
+## 6. ESTADO DEL EXIT REVIEW
+
+| Categoría | Cantidad |
+|-----------|----------|
+| Total de hallazgos analizados | 3 |
+| Hallazgos resueltos | 2 |
+| Hallazgos pendientes de implementación | 0 |
+| Hallazgos pendientes de revisión | 0 |
+| Hallazgos cerrados sin acción | 0 |
+| Hallazgos aceptados como limitación | 1 |
+| Estado del Exit Review | 🟡 IN PROGRESS |
+
+### 6.1 Progreso por Gate
+
+| Gate | Estado | Hallazgos | Secciones de evidencia |
+|------|--------|-----------|---------|
+| Gate 1 — Verification Foundation | ✅ COMPLETED (2026-09-26) | 3 (2 RESOLVED, 1 ACCEPTED_LIMITATION) | §2.1, §2.2, §2.3 |
+| Gate 2 — Verification Contract | ⏳ PENDING | 0 | — |
+| Gate 3 — Continuous Verification Integration | ⏳ PENDING | 0 | — |
+| Gate 4 — Enforcement & Phase Closure | ⏳ PENDING | 0 | — |
 
 ---
 

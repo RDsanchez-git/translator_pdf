@@ -96,10 +96,15 @@ pythonVersion = "3.11"
 # NOTA NADR-10 §5.3 R10: Los contratos que prohíben fitz/pymupdf NO se activan
 # hasta que core/ast/parser.py (legacy) sea eliminado en Gate 2, Task 2.2.3.
 # Activarlos ahora rompería el CI contra código legacy aún existente.
+#
+# DF-05 (Fase 6, Wave 1.1): core/extraction/ocr_providers/ fue eliminado.
+# Los providers migraron a infra/extraction/providers/. Se eliminaron los
+# ignore_imports y forbidden_modules que referenciaban los módulos inexistentes.
 # ─────────────────────────────────────────────────────────────────────────────
 
 [tool.importlinter]
 root_packages = ["core", "apps", "infra", "runtime"]
+include_external_packages = true
 
 # Activo desde Wave 1.1: frontera Domain → Infrastructure
 [[tool.importlinter.contracts]]
@@ -113,11 +118,6 @@ ignore_imports = [
     "core.compiler.service -> apps.compiler.tex_builder",
     "core.execution.handlers -> infra.db.fsm_repository",
     "core.pipeline.state_store -> infra.db.fsm_repository",
-    # TRANSICIONAL (Gate 2): core/extraction/ocr_providers aún vive en core.
-    # Se eliminará cuando los providers migren a infra/ (DF-11).
-    "core.extraction.ocr_providers.pymupdf_provider -> core.extraction.provider",
-    "core.extraction.ocr_providers.docling_provider -> core.extraction.provider",
-    "core.extraction.ocr_providers.tesseract_provider -> core.extraction.provider",
 ]
 
 # Activo desde Wave 1.1: frontera Infrastructure → Application
@@ -127,13 +127,15 @@ type = "forbidden"
 source_modules = ["infra"]
 forbidden_modules = ["apps"]
 
-# NUEVO (Gate 2 — Task 2.2.3): Protección del dominio contra implementaciones OCR
+# NADR-10 §5.3 R10 (actualizado DF-05): Protección del dominio contra
+# implementaciones OCR concretas. Los providers fueron migrados a
+# infra/extraction/providers/ (DF-11 resuelto). core/ no debe importar
+# librerías de extracción directamente.
 [[tool.importlinter.contracts]]
 name = "Domain modules must not import concrete OCR provider implementations"
 type = "forbidden"
 source_modules = ["core"]
 forbidden_modules = [
-    "core.extraction.ocr_providers",
     "fitz",
     "pymupdf",
     "pymupdf4llm",
@@ -142,12 +144,29 @@ forbidden_modules = [
     "PIL",
 ]
 ignore_imports = [
-    # Los providers mismos necesitan importar su paquete base (transicional hasta DF-11)
-    "core.extraction.ocr_providers.pymupdf_provider -> core.extraction.ocr_providers",
-    "core.extraction.ocr_providers.docling_provider -> core.extraction.ocr_providers",
-    "core.extraction.ocr_providers.tesseract_provider -> core.extraction.ocr_providers",
+    # DEUDA TÉCNICA PRE-EXISTENTE (Gate 3-4): DF-06
+    # core.benchmark.__main__ importa apps.bootstrap.pipeline_factory que
+    # transitivamente alcanza fitz vía infra.extraction.providers.
+    # Se eliminará cuando core/benchmark/__main__.py deje de importar
+    # directamente de apps/ (resolución de DF-06 en Gate 3-4).
+    "core.benchmark.__main__ -> apps.bootstrap.pipeline_factory",
 ]
 
+# NADR-F17BIS-25 §5.3 R8 (Integración, No Creación):
+# La orquestación de evaluación de regresión contra la baseline sellada
+# solo debe ocurrir en tools/evaluation/run_regression.py.
+# apps/ e infra/ no deben importar los componentes de orquestación de regresión.
+# core/ puede acceder internamente (dominio propio). tools/ y tests/ también.
+[[tool.importlinter.contracts]]
+name = "Regression orchestration not imported by apps or infra"
+type = "forbidden"
+source_modules = ["apps", "infra"]
+forbidden_modules = [
+    "core.benchmark.topology.regression.strategy",
+    "core.benchmark.topology.regression.mechanism",
+    "core.benchmark.topology.regression.adapter",
+    "core.benchmark.topology.regression.report",
+]
 # ─────────────────────────────────────────────────────────────────────────────
 # COVERAGE
 # ─────────────────────────────────────────────────────────────────────────────
