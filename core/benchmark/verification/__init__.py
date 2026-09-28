@@ -1,0 +1,1 @@
+"""Bounded context de semántica operacional de Continuous Verification (NADR-F17BIS-27)."""

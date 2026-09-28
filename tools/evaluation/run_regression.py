@@ -51,6 +51,7 @@ from core.benchmark.topology.regression import (
     MarkdownRegressionReportFormatter,
     RegressionAdapter,
     RegressionEvaluationStrategy,
+    RegressionReport,
     RegressionVerdict,
     build_regression_report,
 )
@@ -79,13 +80,26 @@ from core.benchmark.corpus.integrity import (
 from core.benchmark.ground_truth.completeness import BaselineCompletenessVerifier
 from core.benchmark.ground_truth.errors import IncompleteBaselineError
 
-# Exit codes (NADR-19 §5.5 R22)
-EXIT_PASS = 0
-EXIT_WARNING = 1
-EXIT_HARD_FAIL = 2
-# NADR-F17BIS-26 §5.6 R25: fallo de integridad de la baseline NO es regresión.
-# Exit code separado de los resultados de evaluación (0, 1, 2).
-EXIT_BASELINE_INTEGRITY_FAILURE = 3
+from core.benchmark.verification.outcome import (
+    VerificationOutcome,
+    resolve_operational_outcome,
+)
+
+import subprocess
+
+from core.benchmark.topology.criticality.costs import DEFAULT_CRITICALITY_WEIGHTS
+from core.benchmark.topology.criticality.models import NodeCriticality
+from core.benchmark.verification.identity_chain import (
+    SCHEMA_VERSION,
+    build_identity_chain,
+    build_result_identity,
+)
+from core.benchmark.verification.report import (
+    ContinuousVerificationReport,
+    EvaluationArtifacts,
+    JsonContinuousVerificationReportFormatter,
+)
+
 
 def _iter_pdf_chunks(pdf_path: Path, chunk_size: int = 8 * 1024 * 1024) -> Iterator[bytes]:
     """Itera sobre chunks de un PDF para cálculo de hash en streaming.
@@ -270,70 +284,82 @@ def parse_args() -> argparse.Namespace:
     )
     return parser.parse_args()
 
+def _get_subject_identity() -> str | None:
+    """Obtiene el commit SHA del production pipeline (NADR-28 §5.1 R3).
 
-def main() -> None:
-    """Entry point principal."""
-    args = parse_args()
+    Imperative Shell: I/O de subprocess. Fallback a None si git no está
+    accesible (limitación observable, NADR-28 §5.5 R29).
 
-    corpus_dir: Path = args.corpus_dir
-    pdf_dir: Path = args.pdf_dir
-    output_dir: Path = args.output_dir
-    inject_timestamp: bool = args.inject_timestamp
-
-    # ── Verificación de precondiciones de la baseline (NADR-26 §5.6 R23-R25) ──
-    # Si la baseline no puede demostrar identidad, integridad o completitud,
-    # se termina con EXIT_BASELINE_INTEGRITY_FAILURE (3).
-    # Este exit code es distinto de los resultados de evaluación (0, 1, 2)
-    # porque un fallo de integridad NO es una regresión del production pipeline.
+    Returns:
+        Commit SHA o None si git no está accesible.
+    """
     try:
-        # ── Paso 1: Cargar manifiesto ────────────────────────────────────
-        corpus_loader = LocalFileSystemCorpusLoader(base_path=corpus_dir)
-        raw_dto = corpus_loader.load_raw_manifest()
-        declared_manifest_hash = raw_dto.manifest_hash
-        load_manifest_uc = LoadCorpusManifestUseCase(reader=corpus_loader)
-        manifest = load_manifest_uc.execute()
-
-        # ── Paso 1b: Verificar materialización (Task 1.2.1) ─────────────
-        verify_baseline_materialized(pdf_dir, manifest)
-
-        # ── Paso 1c: Verificar integridad física (Task 1.2.2) ───────────
-        verify_baseline_physical_integrity(manifest, declared_manifest_hash, pdf_dir)
-
-        # Calcular manifest_doc_ids (necesario para Paso 1d y Paso 2)
-        manifest_doc_ids = frozenset(d.document_id for d in manifest.documents)
-
-        # ── Paso 1d: Completitud biyectiva de PDFs (Task 1.2.3) ─────────
-        pdf_doc_ids = frozenset(
-            p.stem for p in pdf_dir.glob("*.pdf") if p.is_file()
+        result = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+            check=False,
         )
-        pdf_completeness_errors = BaselineCompletenessVerifier.verify_pdf_ids(
-            manifest_doc_ids=manifest_doc_ids,
-            pdf_doc_ids=pdf_doc_ids,
-        )
-        if pdf_completeness_errors:
-            raise IncompleteBaselineError(
-                "PDF completeness violations: " + "; ".join(pdf_completeness_errors)
-            )
+        if result.returncode == 0 and result.stdout.strip():
+            return result.stdout.strip()
+        return None
+    except (OSError, subprocess.TimeoutExpired):
+        return None
 
-        # ── Paso 2: Completitud biyectiva de GTs (existente) ────────────
-        artifact_adapter = LocalFileSystemGroundTruthArtifactAdapter(base_path=corpus_dir)
-        artifact_doc_ids = frozenset(artifact_adapter.list_artifact_ids())
-        adapter = RegressionAdapter()
-        adapter.verify_completeness(manifest_doc_ids, artifact_doc_ids)
 
-        # ── Paso 2b: Legibilidad de Ground Truths (Task 1.2.3) ──────────
-        gt_reader = LocalFileSystemGroundTruthReader(base_path=corpus_dir)
-        load_gt_uc = LoadGroundTruthUseCase(reader=gt_reader)
-        verify_ground_truth_preconditions(load_gt_uc, manifest)
+def _build_report_filename(execution_id: str, timestamp_shell: str) -> str:
+    """Construye el filename único del reporte (NADR-28 §5.4 R21).
 
-    except (BaselineIntegrityError, IncompleteBaselineError, FileNotFoundError) as e:
-        # NADR-F17BIS-26 §5.6 R24-R25: Un fallo de integridad de la baseline
-        # se distingue semánticamente de una divergencia del production pipeline.
-        # No se interpreta como regresión científica.
-        print(f"BASELINE_INTEGRITY_FAILURE: {e}", file=sys.stderr)
-        sys.exit(EXIT_BASELINE_INTEGRITY_FAILURE)
+    execution_id[:16] es un prefix corto para legibilidad; el hash
+    completo está en el contenido del reporte (identity_chain.execution_id).
 
-    # ── Paso 3: Construir pipeline de evaluación ──────────────────
+    Args:
+        execution_id: Hash de la identidad de ejecución.
+        timestamp_shell: Timestamp UTC generado por el Imperative Shell.
+
+    Returns:
+        Filename único.
+    """
+    return f"regression_report_{execution_id[:16]}_{timestamp_shell}.json"
+
+
+def _build_timestamp_shell() -> str:
+    """Genera timestamp UTC para filename (Imperative Shell).
+
+    Formato ISO 8601 con guiones (HH-MM-SS) para cross-platform
+    (Windows no permite ':' en filenames).
+
+    Este timestamp NO va en el contenido del reporte (respeta
+    NADR-19 §5.7 R29); solo se usa para unicidad del filename
+    (NADR-28 §5.4 R21).
+    """
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H-%M-%SZ")
+
+
+def _run_evaluation(
+    corpus_dir: Path,
+    pdf_dir: Path,
+    output_dir: Path,
+    inject_timestamp: bool,
+    manifest: CorpusManifest,
+) -> EvaluationArtifacts:
+    """Ejecuta Pasos 3-5: pipeline, evaluación, construcción de reporte.
+
+    NO escribe archivos (eso lo hace main() como Imperative Shell).
+    Retorna EvaluationArtifacts con el RegressionReport, config_fingerprint
+    y cost_weights para que main() construya el ContinuousVerificationReport
+    y escriba JSON + Markdown.
+
+    Imperative Shell: orquesta I/O de lectura (PDFs, GTs). Cualquier
+    excepción no controlada se propaga al caller para ser traducida a
+    EXECUTION_FAILURE.
+
+    Returns:
+        EvaluationArtifacts con regression_report, config_fingerprint,
+        y cost_weights.
+    """
+    # ── Paso 3: Construir pipeline de evaluación ─────────────────────
     cost_context = CriticalityAwareCostContext()
     ted_evaluator = create_topology_evaluator(cost_context=cost_context)
 
@@ -347,8 +373,7 @@ def main() -> None:
         ted_evaluator=ted_evaluator,
         recall_evaluators=recall_evaluators,
     )
-    
-    # NADR-22 §5.6 R19: Configuracion canonica + fingerprint
+
     config = build_canonical_engine_configuration(
         matching_policy=matching_policy,
         cost_context=cost_context,
@@ -360,30 +385,28 @@ def main() -> None:
     gt_reader = LocalFileSystemGroundTruthReader(base_path=corpus_dir)
     load_gt_uc = LoadGroundTruthUseCase(reader=gt_reader)
 
-    # ── Paso 4: Evaluar cada documento ────────────────────────────
+    adapter = RegressionAdapter()
+
+    # ── Paso 4: Evaluar cada documento ───────────────────────────────
     document_reports = []
     for doc_metadata in manifest.documents:
         doc_id = doc_metadata.document_id
 
-        # 4a. Cargar oráculo
         nodes = load_gt_uc.execute(doc_id)
         oracle = hydrate_ground_truth(
             document_id=doc_id,
             nodes=nodes,
             state=GroundTruthLifecycleState.SEALED,
         )
-        assert isinstance(oracle, SealedOracle)  # Garantizado por state=SEALED
+        assert isinstance(oracle, SealedOracle)
 
-        # 4b. Verificaciones por documento
         adapter.verify_document_identity(oracle, doc_metadata)
         adapter.verify_sealed_state(doc_metadata)
         adapter.verify_oracle_integrity(oracle, doc_metadata)
 
-        # 4c. Generar runtime AST
         pdf_path = pdf_dir / f"{doc_id}.pdf"
         runtime_ast = extraction_pipeline.parse(str(pdf_path))
 
-        # 4d. Evaluar
         eval_report = strategy.evaluate_regression(
             document_id=doc_id,
             candidate_ast=runtime_ast,
@@ -391,7 +414,7 @@ def main() -> None:
         )
         document_reports.append(eval_report)
 
-    # ── Paso 5: Construir reporte de corpus ────────────────────────
+    # ── Paso 5: Construir reporte de corpus ──────────────────────────
     generated_at = (
         datetime.now(timezone.utc).isoformat() if inject_timestamp else None
     )
@@ -402,26 +425,164 @@ def main() -> None:
         configuration_fingerprint=config_fingerprint,
     )
 
-    # ── Paso 6: Escribir reportes ─────────────────────────────────
-    output_dir.mkdir(parents=True, exist_ok=True)
+    # ── Paso 7: Retornar artefactos (la escritura JSON la hace main) ─
+    return EvaluationArtifacts(
+        regression_report=regression_report,
+        config_fingerprint=config_fingerprint,
+        cost_weights=cost_context.weights,
+    )
 
-    json_formatter = JsonRegressionReportFormatter()
-    md_formatter = MarkdownRegressionReportFormatter()
 
-    json_path = output_dir / "regression_report.json"
-    md_path = output_dir / "regression_report.md"
+def main() -> None:
+    """Entry point principal."""
+    args = parse_args()
 
-    json_path.write_text(json_formatter.format(regression_report), encoding="utf-8")
-    md_path.write_text(md_formatter.format(regression_report), encoding="utf-8")
+    corpus_dir: Path = args.corpus_dir
+    pdf_dir: Path = args.pdf_dir
+    output_dir: Path = args.output_dir
+    inject_timestamp: bool = args.inject_timestamp
 
-    # ── Paso 7: Exit code (NADR-19 §5.5 R22) ──────────────────────
-    verdict = regression_report.corpus_verdict
-    if verdict is RegressionVerdict.HARD_FAIL:
-        sys.exit(EXIT_HARD_FAIL)
-    elif verdict is RegressionVerdict.WARNING:
-        sys.exit(EXIT_WARNING)
+    # ── Estado operacional (NADR-27 §5.1 R1) ─────────────────────────
+    baseline_failed = False
+    execution_failed = False
+    scientific_verdict: RegressionVerdict | None = None
+    reason = ""
+
+    # ── Estado para identity chain ───────────────────────────────────
+    regression_report: RegressionReport | None = None
+    config_fingerprint: str | None = None
+    cost_weights: dict[NodeCriticality, float] | None = None
+    declared_manifest_hash = ""
+    manifest: CorpusManifest | None = None
+
+    # ── Pasos 1-2b: Precondiciones de baseline (Gate 1) ──────────────
+    try:
+        corpus_loader = LocalFileSystemCorpusLoader(base_path=corpus_dir)
+        raw_dto = corpus_loader.load_raw_manifest()
+        declared_manifest_hash = raw_dto.manifest_hash
+        load_manifest_uc = LoadCorpusManifestUseCase(reader=corpus_loader)
+        manifest = load_manifest_uc.execute()
+
+        verify_baseline_materialized(pdf_dir, manifest)
+        verify_baseline_physical_integrity(manifest, declared_manifest_hash, pdf_dir)
+
+        manifest_doc_ids = frozenset(d.document_id for d in manifest.documents)
+
+        pdf_doc_ids = frozenset(
+            p.stem for p in pdf_dir.glob("*.pdf") if p.is_file()
+        )
+        pdf_completeness_errors = BaselineCompletenessVerifier.verify_pdf_ids(
+            manifest_doc_ids=manifest_doc_ids,
+            pdf_doc_ids=pdf_doc_ids,
+        )
+        if pdf_completeness_errors:
+            raise IncompleteBaselineError(
+                "PDF completeness violations: " + "; ".join(pdf_completeness_errors)
+            )
+
+        artifact_adapter = LocalFileSystemGroundTruthArtifactAdapter(base_path=corpus_dir)
+        artifact_doc_ids = frozenset(artifact_adapter.list_artifact_ids())
+        adapter = RegressionAdapter()
+        adapter.verify_completeness(manifest_doc_ids, artifact_doc_ids)
+
+        gt_reader = LocalFileSystemGroundTruthReader(base_path=corpus_dir)
+        load_gt_uc = LoadGroundTruthUseCase(reader=gt_reader)
+        verify_ground_truth_preconditions(load_gt_uc, manifest)
+
+    except (BaselineIntegrityError, IncompleteBaselineError, FileNotFoundError) as e:
+        baseline_failed = True
+        reason = str(e)
+
+    # ── Pasos 3-7: Evaluación (Task 2.1.3 catch-all) ─────────────────
+    if not baseline_failed and manifest is not None:
+        try:
+            artifacts = _run_evaluation(
+                corpus_dir, pdf_dir, output_dir, inject_timestamp, manifest
+            )
+            regression_report = artifacts.regression_report
+            config_fingerprint = artifacts.config_fingerprint
+            cost_weights = artifacts.cost_weights
+            scientific_verdict = regression_report.corpus_verdict
+        except Exception as e:
+            execution_failed = True
+            reason = str(e)
+
+    # ── Resolución operacional (NADR-27 §5.3 R11-R15) ────────────────
+    result = resolve_operational_outcome(
+        baseline_integrity_failed=baseline_failed,
+        execution_failed=execution_failed,
+        scientific_verdict=scientific_verdict,
+        reason=reason,
+    )
+
+    # ── Construir result_identity (NADR-28 §5.2 R13) ─────────────────
+    if regression_report is not None:
+        regression_json = JsonRegressionReportFormatter().format(regression_report)
     else:
-        sys.exit(EXIT_PASS)
+        regression_json = None
+
+    result_identity = build_result_identity(
+        outcome_value=result.outcome.value,
+        scientific_verdict_value=(
+            result.scientific_verdict.value
+            if result.scientific_verdict is not None
+            else None
+        ),
+        regression_report_json=regression_json,
+    )
+
+    # ── Construir identity chain (NADR-28 §5.1 R6) ───────────────────
+    subject_identity = _get_subject_identity()
+
+    configuration_identity = (
+        config_fingerprint if config_fingerprint is not None else "NONE"
+    )
+    chain_cost_weights = (
+        cost_weights if cost_weights is not None else dict(DEFAULT_CRITICALITY_WEIGHTS)
+    )
+    baseline_identity = declared_manifest_hash if declared_manifest_hash else "UNAVAILABLE"
+
+    identity_chain = build_identity_chain(
+        baseline_identity=baseline_identity,
+        subject_identity=subject_identity,
+        configuration_identity=configuration_identity,
+        cost_weights=chain_cost_weights,
+        result_identity=result_identity,
+    )
+
+    # ── Construir ContinuousVerificationReport (NADR-28 §5.3 R14) ────
+    cv_report = ContinuousVerificationReport(
+        schema_version=SCHEMA_VERSION,
+        identity_chain=identity_chain,
+        operational_result=result,
+        regression_report=regression_report,
+    )
+
+    # ── Persistir con filename único (NADR-28 §5.4 R21) ──────────────
+    output_dir.mkdir(parents=True, exist_ok=True)
+    timestamp_shell = _build_timestamp_shell()
+    filename = _build_report_filename(identity_chain.execution_id, timestamp_shell)
+    json_path = output_dir / filename
+
+    cv_formatter = JsonContinuousVerificationReportFormatter()
+    json_path.write_text(cv_formatter.format(cv_report), encoding="utf-8")
+
+        # ── Escribir Markdown (para humanos, filename fijo) ────────────────
+    # Solo si hay regression_report (PASS/REGRESSION).
+    # Para BASELINE_INTEGRITY_FAILURE/EXECUTION_FAILURE no hay contenido
+    # científico que reportar en Markdown.
+    if regression_report is not None:
+        md_path = output_dir / "regression_report.md"
+        md_path.write_text(
+            MarkdownRegressionReportFormatter().format(regression_report),
+            encoding="utf-8",
+        )
+
+    # ── Salida operacional (NADR-27 §5.6 R31) ────────────────────────
+    if result.outcome is not VerificationOutcome.PASS:
+        print(f"{result.outcome.value}: {result.reason}", file=sys.stderr)
+
+    sys.exit(result.exit_code)
 
 
 if __name__ == "__main__":

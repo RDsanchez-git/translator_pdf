@@ -1,11 +1,11 @@
 # FASE_6_DEFERRED_FINDINGS_REGISTER.md
 
 **Documento:** `docs/architecture/adr/phase-17-bis/reviews/FASE_6_DEFERRED_FINDINGS_REGISTER.md`
-**Versión:** 0.4.0
+**Versión:** 0.6.0
 **Estado:** IN_PROGRESS
 **Fecha de creación:** 2026-09-25
 **Última actualización:** 2026-09-26
-**Derivado de:** `PHASE_17BIS_FASE6_EXECUTION_PLAN.md` v1.0.5
+**Derivado de:** `PHASE_17BIS_FASE6_EXECUTION_PLAN.md` v1.0.7
 **Propósito:** Registro auditable de hallazgos identificados durante la implementación
 del Execution Plan de Fase 6 (Continuous Verification), su clasificación, resolución
 y evidencia empírica de los batches.
@@ -16,7 +16,7 @@ y evidencia empírica de los batches.
 
 ### 0.1 Jerarquía normativa aplicada
 
-ADR_F17_BIS_MASTER > ADR_F17_BIS_06 v1.2.0 > NADR-F17BIS-25..30 > PHASE_17BIS_FASE6_EXECUTION_PLAN v1.0.5
+ADR_F17_BIS_MASTER > ADR_F17_BIS_06 v1.2.0 > NADR-F17BIS-25..30 > PHASE_17BIS_FASE6_EXECUTION_PLAN v1.0.7
 
 > *"No lower governance level is authorized to redefine or contradict
 > decisions established by an upper level."*
@@ -37,7 +37,7 @@ ADR_F17_BIS_MASTER > ADR_F17_BIS_06 v1.2.0 > NADR-F17BIS-25..30 > PHASE_17BIS_FA
 - **NADR-F17BIS-30 §5.5 R14-R16:** NO DEMOSTRADO no es una forma alternativa de DONE. Un finding sobre enforcement sin evidencia externa no puede cerrarse como RESOLVED sin evidencia server-side.
 - **ADR_F17_BIS_MASTER §5 (Determinismo y Reproducibilidad):** Todo hallazgo que afecte la reproducibilidad de la verificación debe clasificarse como IMPLEMENTATION_REQUIRED o ACCEPTED_LIMITATION con justificación explícita.
 - **ADR_F17_BIS_06 v1.2.0 D1 (Integración, No Creación):** Ningún finding puede justificar la creación de un segundo mecanismo de verificación.
-- **PHASE_17BIS_FASE6_EXECUTION_PLAN v1.0.5 §8 (Global DoD):** Un finding que afecta una regla normativa solo se cierra cuando es trazable a una implementación commiteada, un mecanismo de verification superado y un mecanismo de validation superado.
+- **PHASE_17BIS_FASE6_EXECUTION_PLAN v1.0.7 §8 (Global DoD):** Un finding que afecta una regla normativa solo se cierra cuando es trazable a una implementación commiteada, un mecanismo de verification superado y un mecanismo de validation superado.
 
 ---
 
@@ -87,7 +87,7 @@ ADR_F17_BIS_MASTER > ADR_F17_BIS_06 v1.2.0 > NADR-F17BIS-25..30 > PHASE_17BIS_FA
 ### 1.5 Relación con el Execution Plan
 
 Este registro es la **autoridad única** para el ciclo de vida de hallazgos.
-El Execution Plan (`PHASE_17BIS_FASE6_EXECUTION_PLAN.md` v1.0.5) referencia
+El Execution Plan (`PHASE_17BIS_FASE6_EXECUTION_PLAN.md` v1.0.7) referencia
 hallazgos por ID pero no los clasifica ni los resuelve.
 
 Execution Plan (Task)
@@ -121,17 +121,18 @@ Commits / Tests (evidencia)
 
 | DF | ¿Válido? | ¿Resoluble? | ¿Técnico? | Decisión | Motivo |
 |----|----------|-------------|-----------|----------|--------|
+| DF-01 | ✅ Sí | ✅ Sí (resuelto en Task 1.1.3) | ✅ Sí | RESOLVED | Contrato OCR providers roto por `include_external_packages`; resuelto con `ignore_imports` para cadena transitiva DF-06 |
 | DF-05 | ✅ Sí | ✅ Sí (resuelto en Task 1.1.3) | ✅ Sí | RESOLVED | `ignore_imports` huérfanos eliminados del contrato 1 |
 | DF-06 | ✅ Sí | ❌ No (deuda Gate 3-4) | ✅ Sí | ACCEPTED_LIMITATION | `core.benchmark.__main__` importa de `apps/`; se resolverá en Gate 3-4 |
 | DF-07 | ✅ Sí | ✅ Sí (resuelto en Task 1.1.3) | ✅ Sí | RESOLVED | `ignore_imports` agregado al contrato 3 para la cadena transitiva DF-06 |
 
 **Resumen Gate 1 (Wave 1.1 + Wave 1.2):**
-- RESOLVED: 2 (DF-05, DF-07)
+- RESOLVED: 3 (DF-01, DF-05, DF-07)
 - ACCEPTED_LIMITATION: 1 (DF-06)
 - RECLASIFICADO → Gate {X}: 0
 - CLOSED (NAR): 0
 - CONVERTIDO EN GF: 0
-- Nuevos hallazgos registrados: 3 (DF-05, DF-06, DF-07 — todos de Wave 1.1)
+- Nuevos hallazgos registrados: 4 (DF-01, DF-05, DF-06, DF-07 — todos de Wave 1.1)
 - Hallazgos registrados en Wave 1.2: 0
 - Revisiones tardías documentadas: 0
 
@@ -169,42 +170,102 @@ Commits / Tests (evidencia)
 
 ---
 
-### 2.2 Gate 2 Exit Review — Verification Contract ({YYYY-MM-DD})
+### 2.2 Gate 2 Exit Review — Verification Contract (2026-09-29)
 
 **Gate:** Gate 2 — Verification Contract
 **NADRs:** NADR-F17BIS-27 (35 reglas), NADR-F17BIS-28 (34 reglas)
 **Tasks:** 2.1.1, 2.1.2, 2.1.3, 2.2.1, 2.2.2, 2.2.3
+**Estado:** ✅ COMPLETED (Wave 2.1 + Wave 2.2)
+**Resultado:** 69/69 reglas DONE, 6/6 Tasks DONE, 835 tests passed (suite completa), pyright 0 errors, import-linter 4/4 KEPT.
 
 **Árbol de decisión aplicado:**
 
-```text
 1. ¿Sigue siendo válido el hallazgo? → NO: CLOSED (NAR) / SÍ: continuar
 2. ¿Puede resolverse dentro del Gate actual? → SÍ: RESOLVED / NO: continuar
 3. ¿Es un problema técnico? → SÍ: RECLASIFICADO / NO: continuar
 4. ¿Es un conflicto normativo? → SÍ: CONVERTIDO EN GF
-```
 
 | DF | ¿Válido? | ¿Resoluble? | ¿Técnico? | Decisión | Motivo |
 |----|----------|-------------|-----------|----------|--------|
-| — | — | — | — | — | {Pendiente de ejecución} |
+| — | — | — | — | — | Sin hallazgos en Gate 2 |
 
-**Resumen:**
-- RESOLVED: {N} ({DF-XX})
-- RECLASIFICADO → Gate {X}: {N} ({DF-XX, DF-YY})
-- CLOSED (NAR): {N} ({DF-XX})
-- CONVERTIDO EN GF: {N} ({GF-XX})
-- Nuevos hallazgos registrados: {N} ({DF-XX})
-- Revisiones tardías documentadas: {N} ({DF-XX})
+**Resumen Gate 2 (Wave 2.1 + Wave 2.2):**
+- RESOLVED: 0
+- ACCEPTED_LIMITATION: 0
+- RECLASIFICADO → Gate {X}: 0
+- CLOSED (NAR): 0
+- CONVERTIDO EN GF: 0
+- Nuevos hallazgos registrados: 0
+- Hallazgos registrados en Wave 2.1: 0
+- Hallazgos registrados en Wave 2.2: 0
+- Revisiones tardías documentadas: 0
 
-#### Decisiones arquitectónicas congeladas en Gate 2 (si aplica)
+#### Decisiones arquitectónicas congeladas en Gate 2
+
+**Wave 2.1:**
 
 | Decisión | Task | Justificación |
 |----------|------|---------------|
-| — | — | {Pendiente de ejecución} |
+| Bounded context `core/benchmark/verification/` separado de `topology/regression/` | 2.1.1 | NADR-27 §5.1 R1 exige separación científico/operacional. NADR-19 (científico) y NADR-27 (operacional) son bounded contexts distintos |
+| `exit_code` como `@property` calculado en `ContinuousVerificationResult` | 2.1.2 | DRY: única fuente de verdad. Previene divergencia entre outcome y exit_code |
+| `resolve_operational_outcome()` usa booleanos, no `Exception` | 2.1.2 | Functional Core puro (ENGINEERING_PRINCIPLES §II). No acopla el dominio a tipos de runtime |
+| Extracción de `_run_evaluation()` + try/except → EXECUTION_FAILURE | 2.1.3 | NADR-27 §5.6 R34: excepción no controlada no es resultado científico válido |
+| Única fuente de verdad para exit codes en `outcome.py` | 2.1.3 | ENGINEERING_PRINCIPLES §IV: elimina duplicación de constantes EXIT_* |
 
-#### Lecciones aprendidas (si aplica)
+**Wave 2.2:**
 
-- {Pendiente de ejecución}
+| Decisión | Task | Justificación |
+|----------|------|---------------|
+| `IdentityChain` en bounded context `verification/`, no en `topology/regression/provenance.py` | 2.2.1 | Separación de bounded contexts NADR-28 (composición) vs NADR-23 (calculadores). Reutilización de calculadores existentes (ENGINEERING_PRINCIPLES §I) |
+| `execution_id` = hash determinista de inputs (no UUID) | 2.2.1 | NADR-28 §5.2 R8: reproducibilidad. UUID aleatorio violaría determinismo |
+| `result_identity` calculado DESPUÉS del reporte (evita circularidad) | 2.2.1 | Orden de construcción: execution_id no depende de result_identity; result_identity no depende de execution_id |
+| `regression_report` opcional en `ContinuousVerificationReport` | 2.2.2 | NADR-27 §5.2 R8, R9: fallos operacionales no tienen resultado científico |
+| `build_result_identity()` acepta `regression_report_json: str \| None` | 2.2.3 | Evolución de diseño: outcomes sin regression_report (BASELINE_INTEGRITY_FAILURE, EXECUTION_FAILURE) |
+| Filename único `regression_report_{exec_id[:16]}_{timestamp}.json` sin `latest.json` (Opción C) | 2.2.3 | NADR-28 §5.4 R21: evitar sobrescritura de evidencia histórica. `latest.json` contradice el espíritu de R21 |
+| `EvaluationArtifacts` dataclass en lugar de tuple | 2.2.3 | Tupla de 3 elementos posicionales es frágil. Dataclass es legible y extensible |
+| Escritura de Markdown movida de `_run_evaluation()` a `main()` | 2.2.3 | ENGINEERING_PRINCIPLES §II: Imperative Shell centraliza I/O. Permite testear `main()` sin mocks internos |
+
+#### Lecciones aprendidas
+
+**Wave 2.1:**
+
+- El test de determinismo para funciones puras es documentación del contrato,
+  no verificación robusta. Su valor es documentar R29/R33 explícitamente.
+  La garantía real de determinismo proviene de que la función es pura por
+  construcción (sin I/O, sin estado, sin random, sin time).
+- La duplicación de constantes entre módulos crea riesgo de divergencia
+  silenciosa. Debe haber una única fuente de verdad, verificada con test AST.
+- `except Exception` no captura `SystemExit` ni `KeyboardInterrupt` (son
+  subclases de `BaseException`). Esto es correcto para el catch-all de
+  EXECUTION_FAILURE: el `sys.exit()` del Paso 7 se propaga correctamente.
+- Pyright requiere inicialización de variables que se asignan dentro de
+  bloques try. Usar `manifest: CorpusManifest | None = None` y verificar
+  `manifest is not None` antes de usarlo.
+- Un test de integración que mockea una función debe asegurar que las
+  precondiciones pasen para que el mock se ejecute. Si el manifest_hash
+  no coincide, `verify_baseline_physical_integrity` lanza antes del mock.
+
+**Wave 2.2:**
+
+- La firma de una función puede necesitar evolución entre Tasks. `build_result_identity()`
+  se diseñó con `regression_report_json` obligatorio en Task 2.2.1, pero Task 2.2.3
+  identificó que outcomes sin evaluación (BASELINE_INTEGRITY_FAILURE, EXECUTION_FAILURE)
+  requieren que sea opcional. Esto es evolución de diseño, no bug. Los tests de la
+  Task original deben actualizarse cuando la firma cambia.
+- Una tupla de 2 elementos es aceptable, pero si se necesita un tercer elemento,
+  un dataclass es más SOTA que una tupla de 3 posicionales. La legibilidad y
+  extensibilidad justifican el cambio.
+- Los tests de entry point que mockean componentes individuales son frágiles
+  ante cambios en el flujo interno. Mockear `_run_evaluation()` directamente
+  es más robusto y aísla la lógica del entry point de los detalles internos.
+- `mkdir(exist_ok=True)` es necesario en helpers de tests que pueden ejecutarse
+  múltiples veces en el mismo `tmp_path`.
+- La escritura de Markdown y JSON debe estar en `main()` (Imperative Shell),
+  no en `_run_evaluation()`. Esto permite que `_run_evaluation()` sea más pura
+  y que los tests mockeen sin perder la capacidad de verificar I/O.
+- Al renombrar funciones privadas a públicas (`_serialize_evaluation_report` →
+  `serialize_evaluation_report`), actualizar todas las llamadas internas y
+  agregar al `__all__` del módulo. Esto mantiene la encapsulación explícita.
 
 ---
 
@@ -302,7 +363,7 @@ Se actualiza al cierre del último Gate Exit Review.
 |--------------|----------|-----|
 | `CLOSED (NAR)` | 0 | — |
 | `RESOLVED — DELETE` | 0 | — |
-| `RESOLVED` | 2 | DF-05, DF-07 |
+| `RESOLVED` | 3 | DF-01, DF-05, DF-07 |
 | `IMPLEMENTATION_REQUIRED` | 0 | — |
 | `RECLASSIFIED_FUTURE_PHASE` | 0 | — |
 | `REVIEW_REQUIRED` | 0 | — |
@@ -312,6 +373,7 @@ Se actualiza al cierre del último Gate Exit Review.
 
 | DF | Estado | Decisión |
 |----|--------|----------|
+| DF-01 | `RESOLVED` | Contrato OCR providers roto por `include_external_packages`; resuelto con `ignore_imports` para cadena transitiva DF-06 (Task 1.1.3) |
 | DF-05 | `RESOLVED` | `ignore_imports` huérfanos eliminados del contrato 1 (Task 1.1.3) |
 | DF-06 | `ACCEPTED_LIMITATION` | `core.benchmark.__main__` importa de `apps/`; deuda técnica Gate 3-4 |
 | DF-07 | `RESOLVED` | `ignore_imports` agregado al contrato 3 para la cadena transitiva DF-06 (Task 1.1.3) |
@@ -373,8 +435,8 @@ Se actualiza al cierre de cada batch.
 
 | Métrica | Valor |
 |---------|-------|
-| Total de hallazgos analizados | 3 |
-| Hallazgos resueltos | 2 |
+| Total de hallazgos analizados | 4 |
+| Hallazgos resueltos | 3 |
 | Hallazgos cerrados sin acción | 0 |
 | Hallazgos reclasificados a fase futura | 0 |
 | Hallazgos pendientes de implementación | 0 |
@@ -383,10 +445,19 @@ Se actualiza al cierre de cada batch.
 | Batches completados | 0 |
 | Archivos eliminados totales | 0 |
 | Archivos movidos totales | 0 |
-| Archivos creados totales | 9 |
-| Archivos modificados totales | 3 |
-| Tests finales | 47 passed, 0 skipped |
+| Archivos creados totales | 19 |
+| Archivos modificados totales | 8 |
+| Tests finales | 835 passed, 5 skipped |
 | Pyright final | 0 errors |
+
+**Nota:** Los "19 archivos creados" corresponden a:
+- Gate 1 (9): `test_verification_boundary.py`, `test_verification_pipeline_connection.py`, `core/benchmark/corpus/integrity.py`, `test_baseline_integrity.py`, `test_baseline_physical_integrity.py`, `test_baseline_pdf_completeness.py`, `test_baseline_gt_preconditions.py`, `test_baseline_integrity_semantics.py`, `test_baseline_integrity_exit_code.py`
+- Wave 2.1 (4): `core/benchmark/verification/__init__.py`, `core/benchmark/verification/outcome.py`, `test_verification_outcome.py`, `test_execution_failure_exit_code.py`
+- Wave 2.2 (6): `core/benchmark/verification/identity_chain.py`, `test_identity_chain.py`, `core/benchmark/verification/report.py`, `test_verification_report.py`, `test_subject_identity.py`, `test_cv_report_persistence.py`
+
+Los "8 archivos modificados" corresponden a: `run_regression.py`, `completeness.py`, `pyproject.toml`, `test_verification_boundary.py`, `test_baseline_integrity_exit_code.py`, `core/benchmark/topology/regression/report.py`, `test_regression_entry_point.py`, `test_identity_chain.py`.
+
+Los "835 tests" son la suite completa del proyecto (incluye tests preexistentes de Fases anteriores). Tests nuevos de Fase 6: 47 (Gate 1) + 30 (Wave 2.1) + 38 (Wave 2.2) = 115.
 
 ---
 
@@ -398,7 +469,7 @@ Se actualiza al cierre de cada batch.
 
 ### 6.1 Candidatos pre-identificados (no constituyen hallazgos registrados)
 
-Los siguientes son escenarios anticipados por el Execution Plan v1.0.5 que **podrían** generar hallazgos diferidos. No se registran como hallazgos hasta que se materialicen durante la implementación:
+Los siguientes son escenarios anticipados por el Execution Plan v1.0.7 que **podrían** generar hallazgos diferidos. No se registran como hallazgos hasta que se materialicen durante la implementación:
 
 | Escenario anticipado | Posible destino | Condición de activación |
 |---------------------|-----------------|------------------------|
@@ -432,7 +503,7 @@ El documento se considera cerrado (`ARCHIVED`) cuando:
 Adicionalmente, para Fase 6:
 5. Los hallazgos relacionados con enforcement (NADR-F17BIS-30) tienen evidencia server-side o están documentados como NO DEMOSTRADO con justificación explícita.
 6. Los hallazgos relacionados con el PASS path (Task 4.2.1) tienen evidencia de ejecución legítima o están documentados como ACCEPTED_LIMITATION.
-7. Ningún hallazgo se cierra como RESOLVED si afecta una regla normativa sin cumplir los criterios de trazabilidad del Global DoD (PHASE_17BIS_FASE6_EXECUTION_PLAN v1.0.5 §8).
+7. Ningún hallazgo se cierra como RESOLVED si afecta una regla normativa sin cumplir los criterios de trazabilidad del Global DoD (PHASE_17BIS_FASE6_EXECUTION_PLAN v1.0.7 §8).
 
 ---
 
@@ -440,8 +511,8 @@ Adicionalmente, para Fase 6:
 
 | Categoría | Cantidad |
 |-----------|----------|
-| Total de hallazgos analizados | 3 |
-| Hallazgos resueltos | 2 |
+| Total de hallazgos analizados | 4 |
+| Hallazgos resueltos | 3 |
 | Hallazgos pendientes de implementación | 0 |
 | Hallazgos pendientes de revisión | 0 |
 | Hallazgos cerrados sin acción | 0 |
@@ -453,8 +524,8 @@ Adicionalmente, para Fase 6:
 
 | Gate | Estado | Hallazgos | Batches |
 |------|--------|-----------|---------|
-| Gate 1 — Verification Foundation | ✅ COMPLETED (2026-09-26) | 3 (2 RESOLVED, 1 ACCEPTED_LIMITATION) | 0 |
-| Gate 2 — Verification Contract | ⏳ PENDING | 0 | 0 |
+| Gate 1 — Verification Foundation | ✅ COMPLETED (2026-09-26) | 4 (3 RESOLVED, 1 ACCEPTED_LIMITATION) | 0 |
+| Gate 2 — Verification Contract | ✅ COMPLETED (2026-09-29) | 0 | 0 |
 | Gate 3 — Continuous Verification Integration | ⏳ PENDING | 0 | 0 |
 | Gate 4 — Enforcement & Phase Closure | ⏳ PENDING | 0 | 0 |
 

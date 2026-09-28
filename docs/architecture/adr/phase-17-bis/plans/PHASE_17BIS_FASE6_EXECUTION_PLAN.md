@@ -1,10 +1,10 @@
-# PHASE 17-BIS FASE 6 EXECUTION PLAN v1.0.4
+# PHASE 17-BIS FASE 6 EXECUTION PLAN v1.0.7
 ## Implementation Execution Plan & Rule-Centric Traceability Matrix
 
-**Version:** 1.0.5
+**Version:** 1.0.7
 **Status:** DRAFT
 **Date:** 2026-09-26
-**Supersedes:** v1.0.4
+**Supersedes:** v1.0.6
 **Derived From:** 6 NADRs FROZEN (NADR-F17BIS-25 a NADR-F17BIS-30) + METHODOLOGY_FOR_ORDERED_PIPELINE_CHANGES.md v1.3.0
 **Governance Bridge:** Este documento es la **única fuente de verdad** para la secuenciación operativa y el seguimiento de cumplimiento de Fase 6 (Continuous Verification). Los NADRs permanecen inmutables como reglas constitucionales; este plan materializa la asignación temporal de sus reglas a tareas concretas y registra el progreso de la implementación.
 
@@ -18,6 +18,8 @@
 | 1.0.3 | 2026-09-25 | Adaptación a metodología canónica: §1.4 simplificado, tablas con "Rules Implemented", Traceability Appendix con formato canónico de 4 columnas. |
 | 1.0.4 | 2026-09-26 | Wave 1.1 completada: Tasks 1.1.1, 1.1.2, 1.1.3 → DONE. 13 reglas de NADR-F17BIS-25 → DONE. Gate 1 → IN PROGRESS. |
 | 1.0.5 | 2026-09-26 | Wave 1.2 completada: Tasks 1.2.1-1.2.4 → DONE. 28 reglas de NADR-F17BIS-26 → DONE. Gate 1 → COMPLETED (41/41 reglas, 7/7 Tasks). Gate 1 Exit Review: PASS. |
+| 1.0.6 | 2026-09-26 | Wave 2.1 completada: Tasks 2.1.1-2.1.3 → DONE. 35 reglas de NADR-F17BIS-27 → DONE. Gate 2 → IN PROGRESS. |
+| 1.0.7 | 2026-09-26 | Wave 2.2 completada: Tasks 2.2.1-2.2.3 → DONE. 34 reglas de NADR-F17BIS-28 → DONE. Gate 2 → COMPLETED (69/69 reglas, 6/6 Tasks). Gate 2 Exit Review: PASS. |
 
 ---
 
@@ -215,31 +217,31 @@ Antes de declarar el Gate como COMPLETED, se ejecuta el proceso de Revisión Pos
 **Objective:** Eliminar la ambigüedad semántica y hacer que cada ejecución produzca evidencia reconstruible. El resultado de Continuous Verification debe ser inequívoco y la identity chain completa.
 **Execution Mode:** Secuencial (Wave 2.1 antes que Wave 2.2)
 **Rollback Plan:** Revertir commits de Wave 2.1 y 2.2. La semántica anterior se restaura.
-**Gate Status:** ⏳ PENDING
+**Gate Status:** ✅ COMPLETED
 
 ### 3.1 Wave 2.1 — Outcome & Failure Semantics (NADR-F17BIS-27)
 
-**Wave Status:** ⏳ PENDING
-**Fecha de inicio:** —
-**Fecha de cierre:** —
+**Wave Status:** ✅ COMPLETED
+**Fecha de inicio:** 2026-09-26
+**Fecha de cierre:** 2026-09-26
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **2.1.1** | Implementar y normalizar la taxonomía de resultados de Continuous Verification. Separar resultado científico de estado operacional. | NADR-F17BIS-27 §5.1 R1-R5; §5.2 R6-R10 | High | Gate 1 | TODO |
-| **2.1.2** | Implementar la separación entre scientific verdict y operational/integrity failure. Precedencia de evaluación. Conformance/Regression/Divergence. | NADR-F17BIS-27 §5.3 R11-R15; §5.4 R16-R23 | High | 2.1.1 | TODO |
-| **2.1.3** | Normalizar exit-code propagation y precedence. Criticalidad y política de evaluación. | NADR-F17BIS-27 §5.5 R24-R28; §5.6 R29-R35 | High | 2.1.2 | TODO |
+| **2.1.1** | Implementar y normalizar la taxonomía de resultados de Continuous Verification. Separar resultado científico de estado operacional. | NADR-F17BIS-27 §5.1 R1-R5; §5.2 R6-R10 | High | Gate 1 | DONE |
+| **2.1.2** | Implementar la separación entre scientific verdict y operational/integrity failure. Precedencia de evaluación. Conformance/Regression/Divergence. | NADR-F17BIS-27 §5.3 R11-R15; §5.4 R16-R23 | High | 2.1.1 | DONE |
+| **2.1.3** | Normalizar exit-code propagation y precedence. Criticalidad y política de evaluación. | NADR-F17BIS-27 §5.5 R24-R28; §5.6 R29-R35 | High | 2.1.2 | DONE |
 
 #### Notas de implementación — Task 2.1.1
 
-> {Pendiente de implementación}
+> Creado `core/benchmark/verification/outcome.py` con `VerificationOutcome` enum de 4 estados mutuamente distinguibles (PASS, REGRESSION, BASELINE_INTEGRITY_FAILURE, EXECUTION_FAILURE). Funciones puras: `map_scientific_verdict()` (NADR-19 → NADR-27) y `outcome_to_exit_code()` (traducción determinista). Separación de bounded contexts: `topology/regression/` para NADR-19 (científico), `verification/` para NADR-27 (operacional). Creado `tests/unit/test_verification_outcome.py` con 18 tests: taxonomía R6-R7, mapeo científico/operacional R1, exit codes R29-R33, invariantes R8-R10, test de determinismo (documentación del contrato, no verificación robusta). Resultado: 18/18 tests passed, pyright 0 errors. Cobertura: NADR-F17BIS-27 §5.1 R1, §5.2 R6-R10.
 
 #### Notas de implementación — Task 2.1.2
 
-> {Pendiente de implementación}
+> Agregado `ContinuousVerificationResult` dataclass con `exit_code` como `@property` calculado (DRY, única fuente de verdad). Agregada `resolve_operational_outcome()` que formaliza la precedencia R11-R15: baseline_integrity > execution > scientific. R15 documentado explícitamente: `scientific_verdict=None` produce EXECUTION_FAILURE, no PASS (previene "sin evaluación = sin regresión"). R16-R23 (Conformance/Regression) documentados en docstring sin implementar Conformance (YAGNI). 9 tests nuevos de precedencia e invariantes. Resultado: 27/27 tests passed, pyright 0 errors. Cobertura: NADR-F17BIS-27 §5.3 R11-R15, §5.4 R16-R23.
 
 #### Notas de implementación — Task 2.1.3
 
-> {Pendiente de implementación}
+> Refactorizado `run_regression.py`: eliminadas 4 constantes EXIT_* locales, importadas desde `core.benchmark.verification.outcome` (única fuente de verdad). Extraída función `_run_evaluation()` para Pasos 3-7. Agregado try/except que produce EXIT_EXECUTION_FAILURE = 4 ante excepciones no controladas (resuelve colisión de exit code 1). Paso 7 refactorizado para usar `resolve_operational_outcome()`. Test AST `TestNoLocalExitCodesInEntryPoint` verifica que no hay constantes EXIT_* locales. Creado `test_execution_failure_exit_code.py` con 2 tests (exit 4, no colisión con WARNING). Actualizado import en `test_baseline_integrity_exit_code.py`. Resultado: 77/77 tests passed, pyright 0 errors, import-linter 4/4 KEPT. Cobertura: NADR-F17BIS-27 §5.5 R24-R28, §5.6 R29-R35.
 
 #### Hallazgos identificados en esta Wave
 
@@ -249,27 +251,28 @@ Antes de declarar el Gate como COMPLETED, se ejecuta el proceso de Revisión Pos
 
 ### 3.2 Wave 2.2 — Evidence, Identity & Reproducibility (NADR-F17BIS-28)
 
-**Wave Status:** ⏳ PENDING
-**Fecha de inicio:** —
-**Fecha de cierre:** —
+**Wave Status:** ✅ COMPLETED
+**Fecha de inicio:** 2026-09-29
+**Fecha de cierre:** 2026-09-29
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **2.2.1** | Completar la identity chain de ejecución. Determinismo de identidad. | NADR-F17BIS-28 §5.1 R1-R7; §5.2 R8-R13 | High | 2.1.3 | TODO |
-| **2.2.2** | Persistir evidencia determinista con identity chain completa. | NADR-F17BIS-28 §5.3 R14-R19 | Medium | 2.2.1 | TODO |
-| **2.2.3** | Validar reproducibilidad y distinguishability histórica. Inmutabilidad y trazabilidad. | NADR-F17BIS-28 §5.4 R20-R24; §5.5 R25-R30; §5.6 R31-R34 | Medium | 2.2.2 | TODO |
+| **2.2.1** | Completar la identity chain de ejecución. Determinismo de identidad. | NADR-F17BIS-28 §5.1 R1-R7; §5.2 R8-R13 | High | 2.1.3 | DONE |
+| **2.2.2** | Persistir evidencia determinista con identity chain completa. | NADR-F17BIS-28 §5.3 R14-R19; §5.6 R31-R34 | Medium | 2.2.1 | DONE |
+| **2.2.3** | Validar reproducibilidad y distinguishability histórica. Inmutabilidad y trazabilidad. | NADR-F17BIS-28 §5.4 R20-R24; §5.5 R25-R30 | Medium | 2.2.2 | DONE |
 
 #### Notas de implementación — Task 2.2.1
 
-> {Pendiente de implementación}
+> Creado `core/benchmark/verification/identity_chain.py` con `IdentityChain` dataclass frozen y funciones puras de composición: `build_parameter_identity()` (reutiliza `FrozenParameters` + `ParameterIdentityCalculator` de NADR-23, ENGINEERING_PRINCIPLES §I), `build_execution_id()` (hash determinista de baseline + subject + config + params, NO incluye result para evitar circularidad), `build_result_identity()` (hash del resultado operacional + científico), `build_identity_chain()` (compone todo y agrega limitations observables R29). Separación de bounded contexts: `topology/regression/provenance.py` tiene los calculadores (NADR-23), `verification/identity_chain.py` tiene la composición (NADR-28). Creado `tests/unit/test_identity_chain.py` con 12 tests: determinismo R8, composición R6, limitations R29. Resultado: 12/12 tests passed, pyright 0 errors. Cobertura: NADR-F17BIS-28 §5.1 R1-R7, §5.2 R8-R13.
 
 #### Notas de implementación — Task 2.2.2
 
-> {Pendiente de implementación}
+> Creado `core/benchmark/verification/report.py` con `ContinuousVerificationReport` dataclass (wrapper que compone `RegressionReport` + `ContinuousVerificationResult` + `IdentityChain` + `schema_version`), `ContinuousVerificationReportFormatter` protocolo, y `JsonContinuousVerificationReportFormatter`. El formatter serializa identity chain completa y resuelve GAP-6.3-02 (`configuration_fingerprint` ahora se incluye). Renombradas funciones privadas `_serialize_evaluation_report` y `_serialize_metric` a públicas en `regression/report.py` (encapsulación). Modificado `build_result_identity()` en `identity_chain.py` para aceptar `regression_report_json` opcional (evolución de diseño: outcomes sin regression_report). Creado `tests/unit/test_verification_report.py` con 13 tests: schema_version R24, identity_chain R15, operational_result R16, regression_report R17, configuration_fingerprint GAP-6.3-02, determinismo R8, R31 (resultado ≠ condiciones). Resultado: 13/13 tests passed, pyright 0 errors. Cobertura: NADR-F17BIS-28 §5.3 R14-R19, §5.6 R31-R34.
 
 #### Notas de implementación — Task 2.2.3
 
-> {Pendiente de implementación}
+> Integración completa en `run_regression.py`: (1) agregadas funciones helper `_get_subject_identity()` (git SHA via subprocess con fallback None, Imperative Shell), `_build_report_filename()` (filename único con execution_id[:16] + timestamp_shell), `_build_timestamp_shell()` (UTC ISO 8601 con guiones para cross-platform); (2) modificado `_run_evaluation()` para retornar `EvaluationArtifacts` (dataclass con regression_report + config_fingerprint + cost_weights); (3) `main()` construye `result_identity`, `IdentityChain`, `ContinuousVerificationReport`, y escribe JSON con filename único (R21: no sobrescribe evidencia histórica) + Markdown con filename fijo (para humanos). Decisiones: sin `latest.json` (Opción C, evita tensión conceptual con R21), `build_result_identity` acepta `regression_report_json=None` para outcomes sin evaluación. Creados `tests/unit/test_subject_identity.py` (5 tests: git disponible, git error, OSError, timeout, stdout vacío) y `tests/integration/test_cv_report_persistence.py` (7 tests: filename único, identity chain en JSON, reproducibilidad de execution_id). Actualizado `tests/integration/test_regression_entry_point.py` (9 tests reescritos para mockear `_run_evaluation` y funciones de Task 2.2.3). Resultado: 835/835 tests passed (suite completa), pyright 0 errors, import-linter 4/4 KEPT. Cobertura: NADR-F17BIS-28 §5.4 R20-R24, §5.5 R25-R30.
+> **Evolución de diseño:** Se usó `EvaluationArtifacts` dataclass en lugar de `tuple[RegressionReport, str]` para mayor claridad y legibilidad. El dataclass encapsula `regression_report`, `config_fingerprint` y `cost_weights` como retorno de `_run_evaluation()`.
 
 #### Hallazgos identificados en esta Wave
 
@@ -290,20 +293,22 @@ Todas las reglas de NADR-F17BIS-27 y NADR-F17BIS-28 referenciadas en este Gate d
 
 ### 3.4 Gate 2 Exit Review
 
+Antes de declarar el Gate como COMPLETED, se ejecuta el proceso de Revisión Post-Implementación definido en METHODOLOGY_FOR_ORDERED_PIPELINE_CHANGES.md §6.6.
+
 **Checklist de cierre:**
 
 | # | Verificación | Estado |
 |---|-------------|--------|
-| 1 | Todas las Tasks del Gate en estado DONE | ⏳ |
-| 2 | Todas las reglas del Gate en estado DONE en §10 | ⏳ |
-| 3 | Gate Exit Criteria satisfechos | ⏳ |
-| 4 | Hallazgos identificados derivados al Findings Register | ⏳ |
-| 5 | Pyright: 0 errors, 0 warnings | ⏳ |
-| 6 | Tests: suite completa en verde | ⏳ |
-| 7 | Notas de implementación completas para todas las Tasks | ⏳ |
+| 1 | Todas las Tasks del Gate en estado DONE | ✅ 6/6 |
+| 2 | Todas las reglas del Gate en estado DONE en §10 | ✅ 69/69 |
+| 3 | Gate Exit Criteria satisfechos | ✅ |
+| 4 | Hallazgos identificados derivados al Findings Register | ✅ Sin hallazgos nuevos |
+| 5 | Pyright: 0 errors, 0 warnings | ✅ |
+| 6 | Tests: suite completa en verde | ✅ 835 tests |
+| 7 | Notas de implementación completas para todas las Tasks | ✅ |
 
-**Veredicto del Gate:** —
-**Fecha de verificación:** —
+**Veredicto del Gate:** ✅ PASS
+**Fecha de verificación:** 2026-09-26
 
 ---
 
@@ -577,11 +582,11 @@ Se actualiza al cierre de cada Gate.
 
 | Gate | Fecha de cierre | Rules DONE / Total | Tasks DONE / Total | Hallazgos derivados | Observaciones |
 |------|----------------|-------------------|-------------------|-------------------|---------------|
-| Gate 1 | 2026-09-26 | 41/41 | 7/7 | 3 (DF-05, DF-06, DF-07) | Verification Foundation — PASS |
-| Gate 2 | — | 0/69 | 0/6 | 0 | Verification Contract |
+| Gate 1 | 2026-09-26 | 41/41 | 7/7 | 4 (DF-01, DF-05, DF-06, DF-07) | Verification Foundation — PASS |
+| Gate 2 | 2026-09-29 | 69/69 | 6/6 | 0 | Verification Contract — PASS |
 | Gate 3 | — | 0/35 | 0/9 | 0 | Continuous Verification Integration |
 | Gate 4 | — | 0/22 | 0/9 | 0 | Enforcement & Phase Closure |
-| **TOTAL** | — | **41/167** | **7/31** | **3** | — |
+| **TOTAL** | — | **110/167** | **13/31** | **4** | — |
 
 ---
 
@@ -622,10 +627,10 @@ Los contadores se **derivan computacionalmente** del Traceability Appendix (§10
 | Gate | Tasks DONE | Rules DONE | Rules DEFERRED | Rules PENDING | Gate Status |
 |---|---|---|---|---|---|
 | Gate 1 | 7 | 41 | 0 | 0 | ✅ COMPLETED |
-| Gate 2 | 0 | 0 | 0 | 69 | ⏳ PENDING |
+| Gate 2 | 6 | 69 | 0 | 0 | ✅ COMPLETED |
 | Gate 3 | 0 | 0 | 0 | 35 | ⏳ PENDING |
 | Gate 4 | 0 | 0 | 0 | 22 | ⏳ PENDING |
-| **TOTAL** | **7** | **41** | **0** | **126** | 🟡 IN PROGRESS |
+| **TOTAL** | **13** | **110** | **0** | **57** | 🟡 IN PROGRESS |
 
 **Regla de actualización:** Cada vez que una Task pase a `DONE`:
 1. Se actualiza el `Status` de la Task en la tabla de Wave correspondiente (§2-§5)
@@ -692,18 +697,75 @@ Los contadores se **derivan computacionalmente** del Traceability Appendix (§10
 
 | Rule | Derived Status | Evidence | Implementation Notes |
 |---|---|---|---|
-| NADR-F17BIS-27 §5.1 R1-R5 | PENDING | Wave 2.1 / Task 2.1.1 | — |
-| NADR-F17BIS-27 §5.2 R6-R10 | PENDING | Wave 2.1 / Task 2.1.1 | — |
-| NADR-F17BIS-27 §5.3 R11-R15 | PENDING | Wave 2.1 / Task 2.1.2 | — |
-| NADR-F17BIS-27 §5.4 R16-R23 | PENDING | Wave 2.1 / Task 2.1.2 | — |
-| NADR-F17BIS-27 §5.5 R24-R28 | PENDING | Wave 2.1 / Task 2.1.3 | — |
-| NADR-F17BIS-27 §5.6 R29-R35 | PENDING | Wave 2.1 / Task 2.1.3; Wave 3.2 / Task 3.2.3; Wave 3.3 / Task 3.3.3 | — |
-| NADR-F17BIS-28 §5.1 R1-R7 | PENDING | Wave 2.2 / Task 2.2.1; Wave 3.3 / Task 3.3.3 | — |
-| NADR-F17BIS-28 §5.2 R8-R13 | PENDING | Wave 2.2 / Task 2.2.1 | — |
-| NADR-F17BIS-28 §5.3 R14-R19 | PENDING | Wave 2.2 / Task 2.2.2 | — |
-| NADR-F17BIS-28 §5.4 R20-R24 | PENDING | Wave 2.2 / Task 2.2.3 | — |
-| NADR-F17BIS-28 §5.5 R25-R30 | PENDING | Wave 2.2 / Task 2.2.3 | — |
-| NADR-F17BIS-28 §5.6 R31-R34 | PENDING | Wave 2.2 / Task 2.2.3 | — |
+| NADR-F17BIS-27 §5.1 R1 | DONE | Wave 2.1 / Task 2.1.1 | VerificationOutcome enum separa operacional de RegressionVerdict |
+| NADR-F17BIS-27 §5.1 R2 | DONE | Wave 2.1 / Task 2.1.1 | map_scientific_verdict() requiere precondiciones satisfechas |
+| NADR-F17BIS-27 §5.1 R3 | DONE | Wave 2.1 / Task 2.1.1 | Fallo de ejecución no es ausencia de divergencia |
+| NADR-F17BIS-27 §5.1 R4 | DONE | Wave 2.1 / Task 2.1.1 | BaselineIntegrityError ≠ RegressionError (Gate 1 Task 1.2.4) |
+| NADR-F17BIS-27 §5.1 R5 | DONE | Wave 2.1 / Task 2.1.1 | Divergencia científica ≠ fallo de integridad |
+| NADR-F17BIS-27 §5.2 R6 | DONE | Wave 2.1 / Task 2.1.1 | Taxonomía 4 estados: PASS, REGRESSION, BASELINE_INTEGRITY_FAILURE, EXECUTION_FAILURE |
+| NADR-F17BIS-27 §5.2 R7 | DONE | Wave 2.1 / Task 2.1.1 | Estados mutuamente distinguibles (test explícito) |
+| NADR-F17BIS-27 §5.2 R8 | DONE | Wave 2.1 / Task 2.1.1 | BASELINE_INTEGRITY_FAILURE no lleva scientific_verdict |
+| NADR-F17BIS-27 §5.2 R9 | DONE | Wave 2.1 / Task 2.1.1 | EXECUTION_FAILURE no lleva scientific_verdict |
+| NADR-F17BIS-27 §5.2 R10 | DONE | Wave 2.1 / Task 2.1.1 | EXECUTION_FAILURE ≠ REGRESSION (enum distinto) |
+| NADR-F17BIS-27 §5.3 R11 | DONE | Wave 2.1 / Task 2.1.2 | resolve_operational_outcome: baseline tiene precedencia |
+| NADR-F17BIS-27 §5.3 R12 | DONE | Wave 2.1 / Task 2.1.2 | Evaluación completa antes de resultado científico |
+| NADR-F17BIS-27 §5.3 R13 | DONE | Wave 2.1 / Task 2.1.2 | Fallo de precondición detiene evaluación (fail-fast) |
+| NADR-F17BIS-27 §5.3 R14 | DONE | Wave 2.1 / Task 2.1.2 | execution_failed conserva distinción de divergencia |
+| NADR-F17BIS-27 §5.3 R15 | DONE | Wave 2.1 / Task 2.1.2 | scientific_verdict=None produce EXECUTION_FAILURE, no PASS |
+| NADR-F17BIS-27 §5.4 R16 | DONE | Wave 2.1 / Task 2.1.2 | Documentado: Conformance y Regression distintos |
+| NADR-F17BIS-27 §5.4 R17 | DONE | Wave 2.1 / Task 2.1.2 | Documentado (gobernanza, no código) |
+| NADR-F17BIS-27 §5.4 R18 | DONE | Wave 2.1 / Task 2.1.2 | Documentado (gobernanza, no código) |
+| NADR-F17BIS-27 §5.4 R19 | DONE | Wave 2.1 / Task 2.1.2 | Documentado (gobernanza, no código) |
+| NADR-F17BIS-27 §5.4 R20 | DONE | Wave 2.1 / Task 2.1.2 | Taxonomía permite representar dimensiones independientemente |
+| NADR-F17BIS-27 §5.4 R21 | DONE | Wave 2.1 / Task 2.1.2 | Documentado: REGRESSION=PASS no implica CONFORMANCE=PASS |
+| NADR-F17BIS-27 §5.4 R22 | DONE | Wave 2.1 / Task 2.1.2 | Documentado: CONFORMANCE=FAIL no implica REGRESSION=FAIL |
+| NADR-F17BIS-27 §5.4 R23 | DONE | Wave 2.1 / Task 2.1.2 | Documentado: recalibración requiere gobernanza explícita |
+| NADR-F17BIS-27 §5.5 R24 | DONE | Wave 2.1 / Task 2.1.3 | resolve_operational_outcome preserva precedencia crítica |
+| NADR-F17BIS-27 §5.5 R25 | DONE | Wave 2.1 / Task 2.1.3 | HARD_FAIL (exit 2) ≠ EXECUTION_FAILURE (exit 4) |
+| NADR-F17BIS-27 §5.5 R26 | DONE | Wave 2.1 / Task 2.1.3 | Métricas conservan políticas (thresholds inmutables) |
+| NADR-F17BIS-27 §5.5 R27 | DONE | Wave 2.1 / Task 2.1.3 | No se modifican thresholds silenciosamente |
+| NADR-F17BIS-27 §5.5 R28 | DONE | Wave 2.1 / Task 2.1.3 | Recalibración requiere gobernanza explícita |
+| NADR-F17BIS-27 §5.6 R29 | DONE | Wave 2.1 / Task 2.1.3 | Exit codes 0-4 deterministas |
+| NADR-F17BIS-27 §5.6 R30 | DONE | Wave 2.1 / Task 2.1.3 | Exit codes mutuamente distintos; sin colisión WARNING=1 |
+| NADR-F17BIS-27 §5.6 R31 | DONE | Wave 2.1 / Task 2.1.3 | main() preserva distinción en stderr |
+| NADR-F17BIS-27 §5.6 R32 | DONE | Wave 2.1 / Task 2.1.3 | sys.exit(result.exit_code) propaga sin reinterpretar |
+| NADR-F17BIS-27 §5.6 R33 | DONE | Wave 2.1 / Task 2.1.3 | outcome_to_exit_code() es traducción determinista |
+| NADR-F17BIS-27 §5.6 R34 | DONE | Wave 2.1 / Task 2.1.3 | Catch-all except Exception → EXECUTION_FAILURE |
+| NADR-F17BIS-27 §5.6 R35 | DONE | Wave 2.1 / Task 2.1.2 | scientific_verdict=None ≠ PASS (R15) |
+| NADR-F17BIS-28 §5.1 R1 | DONE | Wave 2.2 / Task 2.2.1 | execution_id determinista via build_execution_id() |
+| NADR-F17BIS-28 §5.1 R2 | DONE | Wave 2.2 / Task 2.2.2 | baseline_identity persistida en identity_chain |
+| NADR-F17BIS-28 §5.1 R3 | DONE | Wave 2.2 / Task 2.2.3 | subject_identity via git SHA con fallback None |
+| NADR-F17BIS-28 §5.1 R4 | DONE | Wave 2.2 / Task 2.2.1 | configuration_identity via ConfigurationFingerprintCalculator |
+| NADR-F17BIS-28 §5.1 R5 | DONE | Wave 2.2 / Task 2.2.1 | parameter_identity via ParameterIdentityCalculator + FrozenParameters |
+| NADR-F17BIS-28 §5.1 R6 | DONE | Wave 2.2 / Task 2.2.1 | build_identity_chain() compone toda la cadena |
+| NADR-F17BIS-28 §5.1 R7 | DONE | Wave 2.2 / Task 2.2.1 | limitations observable si falta componente |
+| NADR-F17BIS-28 §5.2 R8 | DONE | Wave 2.2 / Task 2.2.1 | execution_id determinista (mismas entradas → mismo hash) |
+| NADR-F17BIS-28 §5.2 R9 | DONE | Wave 2.2 / Task 2.2.1 | Sin información incidental en identidades |
+| NADR-F17BIS-28 §5.2 R10 | DONE | Wave 2.2 / Task 2.2.1 | Ejecuciones equivalentes → identidades comparables |
+| NADR-F17BIS-28 §5.2 R11 | DONE | Wave 2.2 / Task 2.2.1 | execution_id ≠ baseline_identity (hash distinto) |
+| NADR-F17BIS-28 §5.2 R12 | DONE | Wave 2.2 / Task 2.2.1 | baseline_identity ≠ result_identity |
+| NADR-F17BIS-28 §5.2 R13 | DONE | Wave 2.2 / Task 2.2.1 | result_identity calculado sobre report+outcome, no sustituye entradas |
+| NADR-F17BIS-28 §5.3 R14 | DONE | Wave 2.2 / Task 2.2.2 | ContinuousVerificationReport persiste evidencia completa |
+| NADR-F17BIS-28 §5.3 R15 | DONE | Wave 2.2 / Task 2.2.2 | identity_chain en JSON incluye baseline + subject |
+| NADR-F17BIS-28 §5.3 R16 | DONE | Wave 2.2 / Task 2.2.2 | operational_result con outcome conforme a NADR-27 |
+| NADR-F17BIS-28 §5.3 R17 | DONE | Wave 2.2 / Task 2.2.2 | configuration_fingerprint serializado (GAP-6.3-02 resuelto) |
+| NADR-F17BIS-28 §5.3 R18 | DONE | Wave 2.2 / Task 2.2.3 | Sin información efímera en filename único |
+| NADR-F17BIS-28 §5.3 R19 | DONE | Wave 2.2 / Task 2.2.3 | Evidencia completa en disco, no depende de runtime |
+| NADR-F17BIS-28 §5.4 R20 | DONE | Wave 2.2 / Task 2.2.3 | Evidencia trazable post-ejecución (filename incluye execution_id) |
+| NADR-F17BIS-28 §5.4 R21 | DONE | Wave 2.2 / Task 2.2.3 | Filename único por ejecución, no sobreescribe |
+| NADR-F17BIS-28 §5.4 R22 | DONE | Wave 2.2 / Task 2.2.3 | Ejecuciones sucesivas distinguibles por timestamp_shell |
+| NADR-F17BIS-28 §5.4 R23 | DONE | Wave 2.2 / Task 2.2.3 | Identity chain inmutable una vez persistida |
+| NADR-F17BIS-28 §5.4 R24 | DONE | Wave 2.2 / Task 2.2.2 | schema_version = "cv-1.0.0" permite migraciones futuras |
+| NADR-F17BIS-28 §5.5 R25 | DONE | Wave 2.2 / Task 2.2.3 | Condiciones reconstruibles desde evidence |
+| NADR-F17BIS-28 §5.5 R26 | DONE | Wave 2.2 / Task 2.2.3 | Reproducibilidad ≠ repetición (identity chain completa) |
+| NADR-F17BIS-28 §5.5 R27 | DONE | Wave 2.2 / Task 2.2.3 | baseline_identity permite verificar compatibilidad |
+| NADR-F17BIS-28 §5.5 R28 | DONE | Wave 2.2 / Task 2.2.3 | configuration_identity + parameter_identity permiten reproducir |
+| NADR-F17BIS-28 §5.5 R29 | DONE | Wave 2.2 / Task 2.2.1 | limitations field observable cuando subject_identity=None |
+| NADR-F17BIS-28 §5.5 R30 | DONE | Wave 2.2 / Task 2.2.3 | Coincidencia numérica sin identity chain no es equivalencia |
+| NADR-F17BIS-28 §5.6 R31 | DONE | Wave 2.2 / Task 2.2.2 | JSON distingue operational_result de identity_chain |
+| NADR-F17BIS-28 §5.6 R32 | DONE | Wave 2.2 / Task 2.2.2 | Evidencia por tipo de outcome (con/sin regression_report) |
+| NADR-F17BIS-28 §5.6 R33 | DONE | Wave 2.2 / Task 2.2.2 | Persistencia no modifica significado del outcome |
+| NADR-F17BIS-28 §5.6 R34 | DONE | Gate 1 + Wave 2.1 | Ejecución inválida produce EXECUTION_FAILURE, no PASS |
 
 ### 10.3 Gate 3 — Rules Audit Board
 

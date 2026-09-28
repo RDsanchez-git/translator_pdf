@@ -238,3 +238,30 @@ class TestNoParallelVerificationMechanism:
             f"mechanisms. Only tools/evaluation/run_regression.py may "
             f"orchestrate regression evaluation against the sealed baseline."
         )
+
+@pytest.mark.integration
+class TestNoLocalExitCodesInEntryPoint:
+    """ENGINEERING_PRINCIPLES §IV: única fuente de verdad para exit codes."""
+
+    def test_run_regression_does_not_define_exit_codes_locally(self) -> None:
+        """Las constantes EXIT_* MUST importarse de core.benchmark.verification.outcome.
+
+        Esto previene divergencia silenciosa entre run_regression.py y
+        outcome.py (dos fuentes de verdad).
+        """
+        source = REGRESSION_ENTRY_POINT.read_text(encoding="utf-8")
+        tree = ast.parse(source, filename=str(REGRESSION_ENTRY_POINT))
+
+        local_exit_definitions = []
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Assign):
+                for target in node.targets:
+                    if isinstance(target, ast.Name) and target.id.startswith("EXIT_"):
+                        local_exit_definitions.append(target.id)
+
+        assert not local_exit_definitions, (
+            f"run_regression.py defines EXIT_* constants locally: "
+            f"{local_exit_definitions}. These MUST be imported from "
+            f"core.benchmark.verification.outcome to maintain a single "
+            f"source of truth (ENGINEERING_PRINCIPLES §IV)."
+        )

@@ -1,11 +1,11 @@
 # FASE_6_EXIT_REVIEW_EVIDENCE_LOG.md
 
 **Documento:** `docs/architecture/adr/phase-17-bis/reviews/FASE_6_EXIT_REVIEW_EVIDENCE_LOG.md`
-**Versión:** 0.2.0
+**Versión:** 0.4.0
 **Estado:** IN_PROGRESS
 **Fecha:** 2026-09-26
 **Última actualización:** 2026-09-26
-**Derivado de:** `PHASE_17BIS_FASE6_EXECUTION_PLAN.md` v1.0.5 — Gate 1 Exit Review
+**Derivado de:** `PHASE_17BIS_FASE6_EXECUTION_PLAN.md` v1.0.7 — Gate 2 Exit Review
 **Propósito:** Registro auditable de la evidencia forense que fundamenta cada decisión
 tomada durante el Exit Review de Fase 6 (Continuous Verification). Cada finding
 incluye los archivos auditados, el análisis, los gaps confirmados, la justificación
@@ -27,6 +27,9 @@ normativa y la clasificación final.
 |---|---|---|
 | 0.1.0 | 2026-09-26 | Emisión inicial DRAFT. Esqueleto del Evidence Log para Fase 6. |
 | 0.2.0 | 2026-09-26 | Gate 1 Exit Review completado. Evidencia forense de DF-05, DF-06, DF-07 documentada. Referencias actualizadas a Execution Plan v1.0.5. |
+| 0.3.0 | 2026-09-26 | Wave 2.1 completada (Tasks 2.1.1-2.1.3). Sin hallazgos nuevos registrados. Gate 2 → IN PROGRESS. Referencias actualizadas a Execution Plan v1.0.6. |
+| 0.4.0 | 2026-09-26 | Wave 2.2 completada (Tasks 2.2.1-2.2.3). Sin hallazgos nuevos registrados. Gate 2 → COMPLETED (69/69 reglas, 6/6 Tasks). Referencias actualizadas a Execution Plan v1.0.7. |
+
 
 ---
 
@@ -35,7 +38,7 @@ normativa y la clasificación final.
 ### 0.1 Jerarquía normativa aplicada
 
 ```text
-ADR_F17_BIS_MASTER  >  ADR_F17_BIS_06 v1.2.0  >  NADR-F17BIS-25..30  >  PHASE_17BIS_FASE6_EXECUTION_PLAN v1.0.5
+ADR_F17_BIS_MASTER  >  ADR_F17_BIS_06 v1.2.0  >  NADR-F17BIS-25..30  >  PHASE_17BIS_FASE6_EXECUTION_PLAN v1.0.7
 ```
 
 > *"No lower governance level is authorized to redefine or contradict
@@ -57,7 +60,7 @@ ADR_F17_BIS_MASTER  >  ADR_F17_BIS_06 v1.2.0  >  NADR-F17BIS-25..30  >  PHASE_17
 - **NADR-F17BIS-30 §5.5 R14-R16:** NO DEMOSTRADO no es una forma alternativa de DONE. Un finding sobre enforcement sin evidencia externa no puede cerrarse como RESOLVED sin evidencia server-side.
 - **ADR_F17_BIS_MASTER §5 (Determinismo y Reproducibilidad):** Todo hallazgo que afecte la reproducibilidad de la verificación debe clasificarse como IMPLEMENTATION_REQUIRED o ACCEPTED_LIMITATION con justificación explícita.
 - **ADR_F17_BIS_06 v1.2.0 D1 (Integración, No Creación):** Ningún finding puede justificar la creación de un segundo mecanismo de verificación.
-- **PHASE_17BIS_FASE6_EXECUTION_PLAN v1.0.5 §8 (Global DoD):** Un finding que afecta una regla normativa solo se cierra cuando es trazable a una implementación commiteada, un mecanismo de verification superado y un mecanismo de validation superado.
+- **PHASE_17BIS_FASE6_EXECUTION_PLAN v1.0.7 §8 (Global DoD):** Un finding que afecta una regla normativa solo se cierra cuando es trazable a una implementación commiteada, un mecanismo de verification superado y un mecanismo de validation superado.
 
 ---
 
@@ -118,8 +121,98 @@ ADR_F17_BIS_MASTER  >  ADR_F17_BIS_06 v1.2.0  >  NADR-F17BIS-25..30  >  PHASE_17
 
 ## 2. ESTRUCTURA POR FINDING
 
-Los findings DF-05, DF-06 y DF-07 fueron identificados en Wave 1.1 (Task 1.1.3).
-Wave 1.2 no registró hallazgos nuevos. Gate 1 cierra con 3 findings analizados.
+Los findings DF-01, DF-05, DF-06 y DF-07 fueron identificados en Wave 1.1 (Task 1.1.3).
+Wave 1.2 no registró hallazgos nuevos. Gate 1 cierra con 4 findings analizados.
+
+Wave 2.1 (Tasks 2.1.1, 2.1.2, 2.1.3) no registró hallazgos nuevos. La evidencia
+de implementación de Wave 2.1 está documentada en las Notas de Implementación
+del Execution Plan v1.0.7, no en este Evidence Log (que registra únicamente
+evidencia forense de findings).
+
+---
+
+### 2.0 DF-01 — Contrato OCR providers roto por include_external_packages
+
+| Campo | Valor |
+|-------|-------|
+| **ID** | DF-01 |
+| **Tipo** | Deferred Finding |
+| **Estado** | `RESOLVED` |
+| **Origen** | Wave 1.1 / Task 1.1.3 |
+| **Gate destino original** | Gate 1 |
+| **Estado previo** | PENDING_REVIEW |
+| **Prioridad** | Alta |
+| **¿Requiere implementación?** | Sí — agregar `include_external_packages = true` |
+| **¿Bloquea Continuous Verification?** | Sí — `lint-imports` falla con exit code 1 |
+
+#### 2.0.1 Texto original del DF
+
+> *"El contrato 'Domain must not import from Infrastructure' falla porque
+> `forbidden_modules` incluye librerías externas (fitz, pymupdf, docling, PIL)
+> pero import-linter 2.15 requiere `include_external_packages = true` en la
+> configuración top-level para evaluar estos módulos."*
+
+#### 2.0.2 Reformulación corregida
+
+No requiere reformulación.
+
+#### 2.0.3 Archivos y documentos auditados
+
+| # | Archivo / Documento | Evidencia extraída |
+|---|---------------------|-------------------|
+| 1 | `pyproject.toml` §[tool.importlinter] | Configuración top-level sin `include_external_packages` |
+| 2 | Contrato 1 `forbidden_modules` | Lista: `fitz`, `pymupdf`, `docling`, `PIL` |
+| 3 | Salida de `lint-imports` | Error: "External packages not included in analysis" |
+| 4 | Documentación import-linter 2.15 | Requiere `include_external_packages = true` para `forbidden_modules` externos |
+
+#### 2.0.4 Análisis
+
+La condición original existe. import-linter 2.x cambió el comportamiento respecto a 1.x: ahora requiere `include_external_packages = true` explícito cuando `forbidden_modules` incluye librerías externas al proyecto. Sin esta configuración, el linter no analiza imports de librerías externas y reporta error de configuración.
+
+No es violación normativa de los NADRs de Fase 6. Es un problema de migración de herramienta (import-linter 1.x → 2.x).
+
+#### 2.0.5 Gaps objetivos confirmados
+
+| # | Gap | Evidencia | Severidad |
+|---|-----|-----------|-----------|
+| G1 | Falta `include_external_packages = true` en configuración top-level | `lint-imports` error | Alta |
+
+#### 2.0.6 Lo que NO es un gap
+
+| Aspecto | Veredicto | Justificación |
+|---------|-----------|---------------|
+| `forbidden_modules` incluye librerías externas | ✅ Correcto por diseño | Protege a `core/` de imports directos de librerías de extracción |
+| Contrato "Domain must not import from Infrastructure" | ✅ Correcto | Protege arquitectura hexagonal |
+
+#### 2.0.7 Impacto en Continuous Verification
+
+| Dimensión | ¿Afecta? | Justificación |
+|-----------|----------|---------------|
+| Determinismo | ❌ No | Configuración de linter |
+| Reproducibilidad | ⚠️ Sí (menor) | `lint-imports` falla, bloqueando CI |
+| Corrección funcional | ❌ No | No afecta evaluación de regresión |
+| Enforcement demostrable | ❌ No | No afecta contratos de merge protection |
+| Bloquea Fase 18 | ❌ No | Resolución en Task 1.1.3 |
+
+#### 2.0.8 Clasificación consolidada
+
+| Campo | Valor |
+|-------|-------|
+| Condición original existe | ✅ Sí |
+| Es violación arquitectónica | ❌ No |
+| Es violación de gobernanza | ❌ No |
+| Es problema técnico | ✅ Sí |
+| Pertenece a Fase 6 | ✅ Sí |
+| Bloquea Continuous Verification | ✅ Sí (bloquea CI) |
+| Clasificación | `RESOLVED` |
+| Prioridad | Alta |
+
+#### 2.0.9 Regla aplicada
+
+> **ENGINEERING_PRINCIPLES §IV (Cero Fallos Silenciosos):**
+> *"Todo fallo debe ser explícito o derivar en implementación."*
+
+La falta de `include_external_packages = true` causaba que `lint-imports` fallara con error de configuración, bloqueando CI. La resolución hace que el linter funcione correctamente y detecte violaciones reales.
 
 ---
 
@@ -402,37 +495,47 @@ El contrato 3 BROKEN era una señal explícita de que la configuración estaba i
 
 | DF | ¿Válido? | ¿Resoluble? | ¿Técnico? | Decisión | Motivo |
 |----|----------|-------------|-----------|----------|--------|
+| DF-01 | ✅ Sí | ✅ Sí (Task 1.1.3) | ✅ Sí | RESOLVED | Falta `include_external_packages = true` en configuración top-level |
 | DF-05 | ✅ Sí | ✅ Sí (Task 1.1.3) | ✅ Sí | RESOLVED | `ignore_imports` huérfanos eliminados |
 | DF-06 | ✅ Sí | ❌ No (deuda Gate 3-4) | ✅ Sí | ACCEPTED_LIMITATION | `core.benchmark.__main__` importa de `apps/` |
 | DF-07 | ✅ Sí | ✅ Sí (Task 1.1.3) | ✅ Sí | RESOLVED | `ignore_import` agregado al contrato 3 |
 
 **Resumen:**
-- RESOLVED: 2 (DF-05, DF-07)
+- RESOLVED: 3 (DF-01, DF-05, DF-07)
 - ACCEPTED_LIMITATION: 1 (DF-06)
 - RECLASIFICADO → Gate {X}: 0
 - CLOSED (NAR): 0
 - CONVERTIDO EN GF: 0
-- Nuevos hallazgos registrados: 3 (DF-05, DF-06, DF-07 — todos de Wave 1.1)
+- Nuevos hallazgos registrados: 4 (DF-01, DF-05, DF-06, DF-07 — todos de Wave 1.1)
 - Hallazgos registrados en Wave 1.2: 0
 
 ---
 
-### 3.2 Gate 2 Exit Review — Verification Contract ({YYYY-MM-DD})
+### 3.2 Gate 2 Exit Review — Verification Contract (2026-09-29)
 
 **Gate:** Gate 2 — Verification Contract
 **NADRs:** NADR-F17BIS-27 (35 reglas), NADR-F17BIS-28 (34 reglas)
 **Tasks:** 2.1.1, 2.1.2, 2.1.3, 2.2.1, 2.2.2, 2.2.3
+**Resultado:** ✅ COMPLETED — 69/69 reglas DONE, 6/6 Tasks DONE, 835 tests passed (suite completa)
+
+**Árbol de decisión aplicado:**
 
 | DF | ¿Válido? | ¿Resoluble? | ¿Técnico? | Decisión | Motivo |
 |----|----------|-------------|-----------|----------|--------|
-| — | — | — | — | — | {Pendiente de ejecución} |
+| — | — | — | — | — | Sin hallazgos en Gate 2 |
 
 **Resumen:**
-- RESOLVED: {N} ({DF-XX})
-- RECLASIFICADO → Gate {X}: {N} ({DF-XX, DF-YY})
-- CLOSED (NAR): {N} ({DF-XX})
-- CONVERTIDO EN GF: {N} ({GF-XX})
-- Nuevos hallazgos registrados: {N} ({DF-XX})
+- RESOLVED: 0
+- RECLASIFICADO → Gate {X}: 0
+- CLOSED (NAR): 0
+- CONVERTIDO EN GF: 0
+- Nuevos hallazgos registrados: 0 (ni en Wave 2.1 ni en Wave 2.2)
+
+**Nota:** Gate 2 implementó la taxonomía operacional (NADR-27, Wave 2.1) y la
+identity chain completa con evidencia persistente (NADR-28, Wave 2.2) sin
+identificar hallazgos que requieran evidencia forense. Las decisiones
+arquitectónicas congeladas están documentadas en el Findings Register v0.6.0
+§2.2, y las notas de implementación en el Execution Plan v1.0.7 §3.1 y §3.2.
 
 ---
 
@@ -499,7 +602,7 @@ Se actualiza al cierre del último Gate Exit Review.
 |--------------|----------|-----|
 | `CLOSED (NAR)` | 0 | — |
 | `RESOLVED — DELETE` | 0 | — |
-| `RESOLVED` | 2 | DF-05, DF-07 |
+| `RESOLVED` | 3 | DF-01, DF-05, DF-07 |
 | `IMPLEMENTATION_REQUIRED` | 0 | — |
 | `RECLASSIFIED_FUTURE_PHASE` | 0 | — |
 | `REVIEW_REQUIRED` | 0 | — |
@@ -509,6 +612,7 @@ Se actualiza al cierre del último Gate Exit Review.
 
 | DF | Estado | Decisión |
 |----|--------|----------|
+| DF-01 | `RESOLVED` | Falta `include_external_packages = true` en configuración top-level (Task 1.1.3) |
 | DF-05 | `RESOLVED` | `ignore_imports` huérfanos eliminados del contrato 1 (Task 1.1.3) |
 | DF-06 | `ACCEPTED_LIMITATION` | `core.benchmark.__main__` importa de `apps/`; deuda técnica Gate 3-4 |
 | DF-07 | `RESOLVED` | `ignore_imports` agregado al contrato 3 para la cadena transitiva DF-06 (Task 1.1.3) |
@@ -547,8 +651,8 @@ sección correspondiente de este Evidence Log.
 
 | Categoría | Cantidad |
 |-----------|----------|
-| Total de hallazgos analizados | 3 |
-| Hallazgos resueltos | 2 |
+| Total de hallazgos analizados | 4 |
+| Hallazgos resueltos | 3 |
 | Hallazgos pendientes de implementación | 0 |
 | Hallazgos pendientes de revisión | 0 |
 | Hallazgos cerrados sin acción | 0 |
@@ -559,8 +663,8 @@ sección correspondiente de este Evidence Log.
 
 | Gate | Estado | Hallazgos | Secciones de evidencia |
 |------|--------|-----------|---------|
-| Gate 1 — Verification Foundation | ✅ COMPLETED (2026-09-26) | 3 (2 RESOLVED, 1 ACCEPTED_LIMITATION) | §2.1, §2.2, §2.3 |
-| Gate 2 — Verification Contract | ⏳ PENDING | 0 | — |
+| Gate 1 — Verification Foundation | ✅ COMPLETED (2026-09-26) | 4 (3 RESOLVED, 1 ACCEPTED_LIMITATION) | §2.0, §2.1, §2.2, §2.3 |
+| Gate 2 — Verification Contract | ✅ COMPLETED (2026-09-29) | 0 | — |
 | Gate 3 — Continuous Verification Integration | ⏳ PENDING | 0 | — |
 | Gate 4 — Enforcement & Phase Closure | ⏳ PENDING | 0 | — |
 

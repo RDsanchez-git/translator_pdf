@@ -181,7 +181,7 @@ class JsonRegressionReportFormatter(RegressionReportFormatter):
             "total_info_false_negatives": report.total_info_false_negatives,
             "generated_at": report.generated_at,
             "documents": [
-                _serialize_evaluation_report(r)
+                serialize_evaluation_report(r)
                 for r in report.document_reports
             ],
         }
@@ -246,7 +246,7 @@ class MarkdownRegressionReportFormatter(RegressionReportFormatter):
 # =====================================================================
 
 
-def _serialize_evaluation_report(
+def serialize_evaluation_report(
     report: RegressionEvaluationReport,
 ) -> dict[str, object]:
     """Serializa un reporte por documento a dict con tipos primitivos."""
@@ -259,12 +259,12 @@ def _serialize_evaluation_report(
         "warning_false_negatives": report.warning_false_negatives,
         "info_false_negatives": report.info_false_negatives,
         "metrics": [
-            _serialize_metric(m) for m in report.metrics
+            serialize_metric(m) for m in report.metrics
         ],
     }
 
 
-def _serialize_metric(metric: MetricScoreDTO) -> dict[str, object]:
+def serialize_metric(metric: MetricScoreDTO) -> dict[str, object]:
     """Serializa una métrica a dict con tipos primitivos.
 
     ENGINEERING_PRINCIPLES §III: tipado explícito dict[str, object].
@@ -276,3 +276,13 @@ def _serialize_metric(metric: MetricScoreDTO) -> dict[str, object]:
     if metric.diagnostics is not None:
         result["diagnostics"] = dataclasses.asdict(metric.diagnostics)
     return result
+
+__all__ = [
+    "RegressionReport",
+    "build_regression_report",
+    "RegressionReportFormatter",
+    "JsonRegressionReportFormatter",
+    "MarkdownRegressionReportFormatter",
+    "serialize_evaluation_report",
+    "serialize_metric",
+]

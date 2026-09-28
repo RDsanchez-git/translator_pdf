@@ -16,6 +16,7 @@ import pytest
 from core.benchmark.corpus.integrity import ManifestHashMismatchError
 
 
+
 @pytest.mark.integration
 class TestBaselineIntegrityExitCode:
     """NADR-F17BIS-26 §5.6 R25: Exit code 3 para fallo de integridad."""
@@ -30,10 +31,8 @@ class TestBaselineIntegrityExitCode:
         Sin manifest.json, el test pasaría por FileNotFoundError, no por
         ManifestHashMismatchError.
         """
-        from tools.evaluation.run_regression import (
-            EXIT_BASELINE_INTEGRITY_FAILURE,
-            main,
-        )
+        from core.benchmark.verification.outcome import EXIT_BASELINE_INTEGRITY_FAILURE
+        from tools.evaluation.run_regression import main
 
         corpus_dir = tmp_path / "corpus"
         corpus_dir.mkdir()
