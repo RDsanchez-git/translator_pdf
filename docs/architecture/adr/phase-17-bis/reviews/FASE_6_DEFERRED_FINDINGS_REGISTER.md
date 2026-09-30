@@ -1,11 +1,11 @@
 # FASE_6_DEFERRED_FINDINGS_REGISTER.md
 
 **Documento:** `docs/architecture/adr/phase-17-bis/reviews/FASE_6_DEFERRED_FINDINGS_REGISTER.md`
-**Versión:** 0.9.0
+**Versión:** 0.10.0
 **Estado:** IN_PROGRESS
 **Fecha de creación:** 2026-09-25
 **Última actualización:** 2026-09-30
-**Derivado de:** `PHASE_17BIS_FASE6_EXECUTION_PLAN.md` v1.0.10
+**Derivado de:** `PHASE_17BIS_FASE6_EXECUTION_PLAN.md` v1.0.11
 **Propósito:** Registro auditable de hallazgos identificados durante la implementación
 del Execution Plan de Fase 6 (Continuous Verification), su clasificación, resolución
 y evidencia empírica de los batches.
@@ -16,7 +16,7 @@ y evidencia empírica de los batches.
 
 ### 0.1 Jerarquía normativa aplicada
 
-ADR_F17_BIS_MASTER > ADR_F17_BIS_06 v1.2.0 > NADR-F17BIS-25..30 > PHASE_17BIS_FASE6_EXECUTION_PLAN v1.0.10
+ADR_F17_BIS_MASTER > ADR_F17_BIS_06 v1.2.0 > NADR-F17BIS-25..30 > PHASE_17BIS_FASE6_EXECUTION_PLAN v1.0.11
 
 > *"No lower governance level is authorized to redefine or contradict
 > decisions established by an upper level."*
@@ -37,7 +37,7 @@ ADR_F17_BIS_MASTER > ADR_F17_BIS_06 v1.2.0 > NADR-F17BIS-25..30 > PHASE_17BIS_FA
 - **NADR-F17BIS-30 §5.5 R14-R16:** NO DEMOSTRADO no es una forma alternativa de DONE. Un finding sobre enforcement sin evidencia externa no puede cerrarse como RESOLVED sin evidencia server-side.
 - **ADR_F17_BIS_MASTER §5 (Determinismo y Reproducibilidad):** Todo hallazgo que afecte la reproducibilidad de la verificación debe clasificarse como IMPLEMENTATION_REQUIRED o ACCEPTED_LIMITATION con justificación explícita.
 - **ADR_F17_BIS_06 v1.2.0 D1 (Integración, No Creación):** Ningún finding puede justificar la creación de un segundo mecanismo de verificación.
-- **PHASE_17BIS_FASE6_EXECUTION_PLAN v1.0.10 §8 (Global DoD):** Un finding que afecta una regla normativa solo se cierra cuando es trazable a una implementación commiteada, un mecanismo de verification superado y un mecanismo de validation superado.
+- **PHASE_17BIS_FASE6_EXECUTION_PLAN v1.0.11 §8 (Global DoD):** Un finding que afecta una regla normativa solo se cierra cuando es trazable a una implementación commiteada, un mecanismo de verification superado y un mecanismo de validation superado.
 
 ---
 
@@ -87,7 +87,7 @@ ADR_F17_BIS_MASTER > ADR_F17_BIS_06 v1.2.0 > NADR-F17BIS-25..30 > PHASE_17BIS_FA
 ### 1.5 Relación con el Execution Plan
 
 Este registro es la **autoridad única** para el ciclo de vida de hallazgos.
-El Execution Plan (`PHASE_17BIS_FASE6_EXECUTION_PLAN.md` v1.0.10) referencia
+El Execution Plan (`PHASE_17BIS_FASE6_EXECUTION_PLAN.md` v1.0.11) referencia
 hallazgos por ID pero no los clasifica ni los resuelve.
 
 Execution Plan (Task)
@@ -408,48 +408,180 @@ Commits / Tests (evidencia)
 - **Simplificar tests ante estructuras serializadas complejas.** La versión inicial de `test_smoke_pass_does_not_imply_full_verification` intentaba comparar con `data["regression_report"]["documents"]` (lista de dicts no hashables). Simplificar a verificar `len(coverage) < EXPECTED_FULL_COVERAGE_SIZE` es más robusto y verifica la propiedad fundamental que R22 exige.
 ---
 
-### 2.4 Gate 4 Exit Review — Enforcement & Phase Closure ({YYYY-MM-DD})
+### 2.4 Gate 4 Exit Review — Enforcement & Phase Closure (2026-09-30)
 
 **Gate:** Gate 4 — Enforcement & Phase Closure
 **NADRs:** NADR-F17BIS-30 (22 reglas) + verificación transversal NADR-F17BIS-25 a NADR-F17BIS-30
-**Tasks:** 4.1.1, 4.1.2, 4.1.3, 4.2.1, 4.2.2, 4.2.3, 4.3.1, 4.3.2, 4.3.3
-
-**Nota específica de Gate 4:** Este Gate incluye Tasks con precondiciones externas:
-- **Task 4.1.3:** Evidencia server-side de branch protection. Si no se puede obtener, el finding se clasifica como `ACCEPTED_LIMITATION` o `RECLASSIFIED_FUTURE_PHASE` con justificación explícita. NO DEMOSTRADO no es RESOLVED.
-- **Task 4.2.1:** PASS path end-to-end. Si no existe un escenario PASS legítimo, el finding se clasifica como `ACCEPTED_LIMITATION` o `IMPLEMENTATION_REQUIRED` según corresponda. No se fabrica un PASS para cerrar el gate.
+**Tasks:** 4.1.1, 4.1.2, 4.1.3 (Wave 4.1), 4.2.1, 4.2.2, 4.2.3 (Wave 4.2), 4.3.1, 4.3.2, 4.3.3 (Wave 4.3)
+**Estado:** ✅ COMPLETED (CONDITIONAL PASS) — 8/9 Tasks DONE, 1 BLOCKED (4.2.1)
+**Resultado:** 22/22 reglas NADR-30 DONE, 930 tests passed (suite completa), pyright 0 errors, import-linter 4/4 KEPT. MIG-01/MIG-04 ejecutados con evidencia server-side (Task 4.1.3 RESOLVED, no NO DEMOSTRADO).
 
 **Árbol de decisión aplicado:**
 
-```text
 1. ¿Sigue siendo válido el hallazgo? → NO: CLOSED (NAR) / SÍ: continuar
 2. ¿Puede resolverse dentro del Gate actual? → SÍ: RESOLVED / NO: continuar
 3. ¿Es un problema técnico? → SÍ: RECLASIFICADO / NO: continuar
 4. ¿Es un conflicto normativo? → SÍ: CONVERTIDO EN GF
 5. ¿Es una limitación externa al perímetro del repositorio? → SÍ: ACCEPTED_LIMITATION con evidencia
-```
 
 | DF | ¿Válido? | ¿Resoluble? | ¿Técnico? | Decisión | Motivo |
 |----|----------|-------------|-----------|----------|--------|
-| — | — | — | — | — | {Pendiente de ejecución} |
+| DF-06 | ✅ Sí | ❌ No (fuera de scope de Fase 6) | ✅ Sí | RECLASSIFIED_FUTURE_PHASE | Refactor de composición de `core.benchmark.__main__`; no encaja en Gate 4 (enforcement) ni en Fase 18 (runtime); destino: fase futura no faseada |
+| DF-09 | ✅ Sí | ❌ No (condicionado a estado basal) | ✅ Sí | ACCEPTED_LIMITATION | Enforcement de merge de CV diferido condicionalmente (checks CV informativos hasta cláusula 6.1 del contrato) |
+| DF-10 | ✅ Sí | ❌ No (requiere mejora de extractor o recalibración) | ✅ Sí | RECLASSIFIED_FUTURE_PHASE | PASS path no demostrable: FULL y SMOKE producen HARD_FAIL legítimo (NSS 0.7208 < 0.80) |
+| DF-11 | ✅ Sí | ✅ Sí (resuelto en Task 4.2.3) | ✅ Sí | RESOLVED | Except de Pasos 1-2b extendido a OSError + ValueError; manifest corrupto ⇒ exit 3 con evidencia |
 
-**Resumen:**
-- RESOLVED: {N} ({DF-XX})
-- RECLASIFICADO → Gate {X}: {N} ({DF-XX, DF-YY})
-- CLOSED (NAR): {N} ({DF-XX})
-- CONVERTIDO EN GF: {N} ({GF-XX})
-- ACCEPTED_LIMITATION: {N} ({DF-XX})
-- Nuevos hallazgos registrados: {N} ({DF-XX})
-- Revisiones tardías documentadas: {N} ({DF-XX})
+**Resumen Gate 4:**
+- RESOLVED: 1 (DF-11)
+- ACCEPTED_LIMITATION: 1 (DF-09)
+- RECLASSIFIED_FUTURE_PHASE: 2 (DF-06 reclasificado desde Gate 1, DF-10 nuevo)
+- CLOSED (NAR): 0
+- CONVERTIDO EN GF: 0
+- Nuevos hallazgos registrados: 3 (DF-09, DF-10, DF-11) + 1 reclasificado (DF-06)
+- Revisiones tardías documentadas: 0
 
-#### Decisiones arquitectónicas congeladas en Gate 4 (si aplica)
+#### DF-09 — Enforcement de merge de Continuous Verification diferido condicionalmente
+
+| Campo | Valor |
+|-------|-------|
+| **ID** | DF-09 |
+| **Tipo** | Deferred Finding — Limitación operativa de enforcement |
+| **Estado** | `ACCEPTED_LIMITATION` |
+| **Origen** | Wave 4.1 / Tasks 4.1.1-4.1.2 |
+| **Gate destino** | Gate 4 |
+| **Prioridad** | Media |
+| **¿Bloquea Continuous Verification?** | No — la verificación ejecuta y evidencia; lo diferido es el bloqueo de merge por regresión estructural |
+
+**Texto del hallazgo:**
+
+> Con branch protection activa, el único required check es
+> "Static Analysis (pyright + import-linter)". Los checks de Continuous
+> Verification (`regression-gates` SMOKE, `cv-full-profile` FULL) son
+> informativos porque el estado basal del extractor es HARD_FAIL (exit 2):
+> promoverlos a required hoy congelaría `main` con un rojo permanente que no
+> distingue regresiones nuevas del estado basal (teatro de enforcement).
+> Consecuencia: una regresión estructural que no rompa static-analysis no
+> bloquea integración hoy.
+
+**Evidencia forense:**
+- ENFORCEMENT_CONTRACT.md §3 (tabla de checks y estados), §4 (trade-off sin eufemismos), §6.1 (cláusula de activación)
+- Ejecución empírica 2026-09-30: FULL y SMOKE ⇒ exit 2 contra corpus canónico
+- Branch protection activa con único required check (screenshots en `reports/evidence/`)
+- Nota: el hueco de push directo originalmente documentado quedó **cerrado** por la activación de required status checks (un commit nuevo sin checks pasados es rechazado); ver parche post-MIG-01 del contrato §4.2/§6.3
+
+**Resolución (diferida, no cerrada):**
+- Cláusula 6.1: promoción de checks CV a required cuando el estado basal sea PASS (exit 0 en FULL) o exista recalibración gobernada de thresholds (DC-6.6)
+- Cláusula 6.3: migración opcional a PRs obligatorios + ruleset
+- Comportamiento al promocionar declarado: WARNING (exit 1) también bloqueará; wrapper WARNING→0 prohibido por NADR-27 §5.6 R32
+
+**Regla aplicada:**
+
+> **NADR-F17BIS-30 §5.3 R7-R10:** relación resultado → integración declarada y
+> verificable; activación operativa condicionada y documentada.
+> **ENGINEERING_PRINCIPLES §IV:** limitación documentada sin eufemismos, no silenciosa.
+
+#### DF-10 — PASS path end-to-end no demostrable con estado basal del extractor
+
+| Campo | Valor |
+|-------|-------|
+| **ID** | DF-10 |
+| **Tipo** | Deferred Finding — Precondición externa no satisfecha |
+| **Estado** | `RECLASSIFIED_FUTURE_PHASE` |
+| **Origen** | Wave 4.2 / Task 4.2.1 (BLOCKED) |
+| **Gate destino** | Gate 4 (Task 4.2.1 BLOCKED) |
+| **Prioridad** | Alta |
+| **¿Bloquea Continuous Verification?** | No — bloquea el cierre completo del Gate 4 (CONDITIONAL PASS) |
+
+**Texto del hallazgo:**
+
+> Task 4.2.1 requiere una ejecución legítima del verification subject que
+> produzca PASS contra la baseline sellada. Verificación empírica 2026-09-30:
+> `--profile FULL` y `--profile SMOKE` producen exit code 2 (HARD_FAIL /
+> REGRESSION) en ambos perfiles (NSS 0.7208 < threshold 0.80, 163 Critical FN).
+> No existe escenario PASS legítimo.
+
+**Evidencia forense:**
+- Ejecuciones empíricas: FULL exit 2, SMOKE exit 2 (stderr: `REGRESSION:`)
+- Estado basal documentado desde Fase 5: NSS 0.7208, 163 Critical FN
+- Alternativas descartadas: recalibrar thresholds (fuera de scope, DC-6.6 del ADR Maestro); fabricar PASS con fixtures (viola NADR-26 §5.5 R20-R22); mockear pipeline (viola ENGINEERING_PRINCIPLES §IV)
+
+**Destino:** fase futura no faseada de mejora de fidelidad de extracción, o recalibración gobernada de thresholds (DC-6.6). **NO** Fase 17 (congelada y completada: PyMuPDF elegido por benchmark) ni Fase 18 (Advanced Local Runtime: asincronía/memoria/batching, no fidelidad de extracción).
+
+**Regla aplicada:**
+
+> **Execution Plan v1.0.11 §5.2:** "No se fabrica un PASS para cerrar el gate."
+> **NADR-F17BIS-27 §5.1 R1-R5:** el veredicto científico HARD_FAIL es correcto
+> para el estado actual del extractor; no es un fallo del control.
+
+#### DF-11 — Manifest corrupto escapaba del except de Pasos 1-2b
+
+| Campo | Valor |
+|-------|-------|
+| **ID** | DF-11 |
+| **Tipo** | Deferred Finding — Hueco en manejo de errores |
+| **Estado** | `RESOLVED` |
+| **Origen** | Wave 4.2 / Task 4.2.3 (detección durante diseño) |
+| **Gate destino** | Gate 4 |
+| **Prioridad** | Alta |
+| **¿Bloquea Continuous Verification?** | Sí (potencial): producía exit 1 por excepción no controlada sin evidencia |
+
+**Texto del hallazgo:**
+
+> El catch-all de EXECUTION_FAILURE (Task 2.1.3) envuelve `_run_evaluation()`
+> (Pasos 3-7), no los Pasos 1-2b. Una `pydantic.ValidationError` o
+> `json.JSONDecodeError` al cargar el manifest escapaba del except de
+> precondiciones ⇒ traceback, exit 1 de Python, sin CV report persistido.
+> Esto contradecía empíricamente NADR-27 §5.6 R34 (marcada DONE desde Wave 2.1)
+> y reintroducía colisión con WARNING (R30).
+
+**Evidencia forense:**
+- Código: `except (BaselineIntegrityError, IncompleteBaselineError, FileNotFoundError)` en Pasos 1-2b de `run_regression.py` (pre-fix)
+- `pydantic.ValidationError` ⊂ `ValueError`; `json.JSONDecodeError` ⊂ `ValueError`
+- Precedente de patrón correcto: `verify_ground_truth_preconditions` (Gate 1, Task 1.2.3) ya usa `except (OSError, ValueError)`
+
+**Resolución:**
+- Except de Pasos 1-2b extendido a `(BaselineIntegrityError, IncompleteBaselineError, OSError, ValueError)` con comentario de trazabilidad (DF-11, NADR-27 §5.6 R34, NADR-28 §5.3 R14)
+- `FileNotFoundError` ⊂ `OSError`: sin cambio de comportamiento para casos existentes
+- 2 tests nuevos en `test_cv_failure_path.py` (`TestCorruptManifestPath`): JSON inválido y schema inválido ⇒ exit 3 + CV report persistido con clave `regression_report` ausente
+- Catch-all exit 4 permanece para lo realmente inesperado fuera de precondiciones
+
+**Regla aplicada:**
+
+> **NADR-F17BIS-27 §5.6 R34:** excepción no controlada ⇒ EXECUTION_FAILURE, no
+> exit 1 sin evidencia. **NADR-F17BIS-28 §5.3 R14:** evidencia siempre persistida.
+> Decisión de no diferir: una regla marcada DONE no puede tener contraejemplos
+> vivos al momento del traceability closure (Task 4.3.3).
+
+#### Reclasificación de DF-06 (desde Gate 1)
+
+| Campo | Valor previo | Valor nuevo |
+|-------|-------------|-------------|
+| Estado | `ACCEPTED_LIMITATION` (destino Gate 3-4) | `RECLASSIFIED_FUTURE_PHASE` |
+| Destino | Gate 3-4 | Fase futura no faseada (refactor de composición del benchmark) |
+
+**Justificación:** Gate 3 cerró sin resolver DF-06 (scope de Gate 3 era perfiles + CI, no refactor del benchmark). En Gate 4 se verificó que el refactor de `core/benchmark/__main__.py` (inyección de dependencias o puerto de extracción) **no encaja** en Fase 18 (Advanced Local Runtime: asincronía, memoria, batching) ni en el scope de enforcement de Gate 4. Resolverlo ahora introduciría riesgo innecesario sin beneficio para NADR-30. El `ignore_import` documentado en `pyproject.toml` permanece como mitigación explícita y trazable (contrato import-linter contrato 3).
+
+#### Decisiones arquitectónicas congeladas en Gate 4
 
 | Decisión | Task | Justificación |
 |----------|------|---------------|
-| — | — | {Pendiente de ejecución} |
+| Opción B transicional: `static-analysis` required, checks CV informativos | 4.1.1 | Evita teatro de enforcement con rojo basal permanente; activación condicionada documentada (cláusula 6.1) |
+| Classic branch protection rule en transición, no ruleset | 4.1.1 | Ruleset con required checks rechaza push directo por chicken-and-egg; rompe el flujo sin aportar enforcement real al maintainer |
+| Desviación de MIG-01 documentada: required check = "Static Analysis (pyright + import-linter)", no `regression-gates` | 4.1.3 | Coherente con Opción B; el texto original de MIG-01 predata la decisión del contrato §3 |
+| Bypass de administradores: §9 del contrato declara ambos casos condicionalmente | 4.1.3 | Sin override no registrado; cualquier uso futuro de bypass debe registrarse como finding |
+| DF-11 resuelto en Gate 4, no diferido | 4.2.3 | NADR-27 §5.6 R34 marcada DONE desde Wave 2.1; diferir el hueco haría que Task 4.3.3 certifique una regla con contraejemplo demostrado |
+| Fix de imports `helpers.*` → `tests.helpers.*` en 3 tests de Fase 16, en vez de excluirlos | 4.3.2 | Excluir tests del pipeline por un import roto es burocracia, no ingeniería; fix de 2 líneas por archivo devuelve los tests a la suite |
+| DF-06 y DF-10 reclasificados a fase futura no faseada | 4.3.3 | Ni Fase 17 (congelada) ni Fase 18 (runtime) son destino correcto; honestidad de trazabilidad |
 
-#### Lecciones aprendidas (si aplica)
+#### Lecciones aprendidas — Gate 4
 
-- {Pendiente de ejecución}
+- **GitHub lista status checks por el nombre reportado (`name:` del job), no por el ID.** Buscar `static-analysis` en el selector de branch protection no devuelve resultados; el nombre real es "Static Analysis (pyright + import-linter)".
+- **Con required status checks activos, el push directo de commits nuevos a `main` queda rechazado** (el commit aún no tiene checks pasados). La afirmación previa de que las classic rules "no muerden el push directo" era incorrecta; el flujo operativo pasa a rama → PR → merge, y eso cierra el hueco de entrada sin checks.
+- **Un gate con rojo basal permanente es teatro de enforcement.** Promover checks CV a required con estado basal HARD_FAIL produciría un gate que bloquea todo sin distinguir regresiones nuevas; la cláusula de activación condicionada es la forma honesta de tener enforcement útil.
+- **GitHub no tiene granularidad por exit code.** Al promocionar checks, WARNING (exit 1) también bloqueará merges; declararlo antes evita sorpresas y prohíbe wrappers que violarían NADR-27 §5.6 R32.
+- **Las reglas marcadas DONE no pueden tener contraejemplos vivos.** DF-11 demostró un hueco empírico en NADR-27 §5.6 R34; resolverlo en el mismo Gate que lo detecta evita certificar trazabilidad falsa en el closure.
+- **NO DEMOSTRADO se evita cuando existe camino alternativo de evidencia.** Sin `gh` CLI, el screenshot de la UI de GitHub es evidencia server-side válida para NADR-30 §5.5 R14-R16.
+- **La letra chica de la UI es evidencia normativa.** El texto de "Require status checks" en GitHub corrige una suposición arquitectónica previa (refinamiento 6); leer la documentación del mecanismo antes de declarar huecos es parte del análisis forense.
 
 ---
 
@@ -463,11 +595,11 @@ Se actualiza al cierre del último Gate Exit Review.
 |--------------|----------|-----|
 | `CLOSED (NAR)` | 0 | — |
 | `RESOLVED — DELETE` | 0 | — |
-| `RESOLVED` | 4 | DF-01, DF-05, DF-07, DF-08 |
+| `RESOLVED` | 5 | DF-01, DF-05, DF-07, DF-08, DF-11 |
 | `IMPLEMENTATION_REQUIRED` | 0 | — |
-| `RECLASSIFIED_FUTURE_PHASE` | 0 | — |
+| `RECLASSIFIED_FUTURE_PHASE` | 2 | DF-06, DF-10 |
 | `REVIEW_REQUIRED` | 0 | — |
-| `ACCEPTED_LIMITATION` | 1 | DF-06 |
+| `ACCEPTED_LIMITATION` | 1 | DF-09 |
 
 ### 3.2 Tabla consolidada
 
@@ -475,9 +607,12 @@ Se actualiza al cierre del último Gate Exit Review.
 |----|--------|----------|
 | DF-01 | `RESOLVED` | Contrato OCR providers roto por `include_external_packages`; resuelto con `ignore_imports` para cadena transitiva DF-06 (Task 1.1.3) |
 | DF-05 | `RESOLVED` | `ignore_imports` huérfanos eliminados del contrato 1 (Task 1.1.3) |
-| DF-06 | `ACCEPTED_LIMITATION` | `core.benchmark.__main__` importa de `apps/`; deuda técnica diferida a Gate 4 (MIG-01) |
+| DF-06 | `RECLASSIFIED_FUTURE_PHASE` | Refactor de composición de `core.benchmark.__main__`; destino: fase futura no faseada (antes ACCEPTED_LIMITATION con destino Gate 3-4; Gate 3 cerró sin resolverlo; Gate 4 verifica que no encaja en Fase 18) |
 | DF-07 | `RESOLVED` | `ignore_imports` agregado al contrato 3 para la cadena transitiva DF-06 (Task 1.1.3) |
 | DF-08 | `RESOLVED` | PDF orphan `doc_06_johnstone.pdf` movido de `tests/corpus/canonical/pdf/` a `tests/corpus/archive/`; baseline sellada invariante (Wave 3.3, Task 3.3.1) |
+| DF-09 | `ACCEPTED_LIMITATION` | Enforcement de merge de CV diferido condicionalmente: checks CV informativos hasta cláusula 6.1 del ENFORCEMENT_CONTRACT (Wave 4.1) |
+| DF-10 | `RECLASSIFIED_FUTURE_PHASE` | PASS path no demostrable con estado basal del extractor (NSS 0.7208 < 0.80); destino: mejora de fidelidad o recalibración gobernada DC-6.6 (Wave 4.2, Task 4.2.1 BLOCKED) |
+| DF-11 | `RESOLVED` | Except de Pasos 1-2b extendido a OSError + ValueError; manifest corrupto ⇒ exit 3 con evidencia persistida (Wave 4.2, Task 4.2.3) |
 
 ---
 
@@ -536,49 +671,28 @@ Se actualiza al cierre de cada batch.
 
 | Métrica | Valor |
 |---------|-------|
-| Total de hallazgos analizados | 5 |
-| Hallazgos resueltos | 4 |
+| Total de hallazgos analizados | 8 |
+| Hallazgos resueltos | 5 |
 | Hallazgos cerrados sin acción | 0 |
-| Hallazgos reclasificados a fase futura | 0 |
+| Hallazgos reclasificados a fase futura | 2 |
 | Hallazgos pendientes de implementación | 0 |
 | Hallazgos pendientes de revisión | 0 |
 | Hallazgos aceptados como limitación | 1 |
 | Batches completados | 0 |
 | Archivos eliminados totales | 0 |
 | Archivos movidos totales | 1 |
-| Archivos creados totales | 25 |
-| Archivos modificados totales | 13 |
-| Tests finales | 906 passed, 5 skipped |
+| Archivos creados totales | 33 |
+| Archivos modificados totales | 16 |
+| Tests finales | 930 passed, 5 skipped |
 | Pyright final | 0 errors |
 
 **Nota sobre "Archivos movidos totales: 1":** Corresponde a `doc_06_johnstone.pdf` movido de `tests/corpus/canonical/pdf/` a `tests/corpus/archive/` (DF-08, Wave 3.3).
 
-**Nota sobre "Archivos creados totales: 25":** Se agregan `tests/corpus/archive/README.md` y `tests/integration/test_cv_profile_validation.py` a los 23 archivos creados previos.
+**Nota sobre "Archivos creados totales: 33":** A los 25 previos se agregan en Gate 4 (8): `plans/FASE_6_ENFORCEMENT_CONTRACT.md`, `tests/helpers/cv_execution.py`, `tests/unit/test_enforcement_contract.py`, `tests/integration/test_cv_regression_path.py`, `tests/integration/test_cv_failure_path.py`, `handoff/FASE_6_HANDOFF.md`, `reports/evidence/branch-protection-main.png`, `reports/evidence/branch-protection-main-detail.png`. El artefacto `reports/evidence/branch-protection-pr-gate.png` se agregará en el commit del PR de cierre (evidencia MIG-04 de efectividad operativa).
 
-Los "25 archivos creados" corresponden a:
-- Gate 1 (9): `test_verification_boundary.py`, `test_verification_pipeline_connection.py`, `core/benchmark/corpus/integrity.py`, `test_baseline_integrity.py`, `test_baseline_physical_integrity.py`, `test_baseline_pdf_completeness.py`, `test_baseline_gt_preconditions.py`, `test_baseline_integrity_semantics.py`, `test_baseline_integrity_exit_code.py`
-- Wave 2.1 (4): `core/benchmark/verification/__init__.py`, `core/benchmark/verification/outcome.py`, `test_verification_outcome.py`, `test_execution_failure_exit_code.py`
-- Wave 2.2 (6): `core/benchmark/verification/identity_chain.py`, `test_identity_chain.py`, `core/benchmark/verification/report.py`, `test_verification_report.py`, `test_subject_identity.py`, `test_cv_report_persistence.py`
-- Wave 3.1 (2): `core/benchmark/verification/profiles.py`, `test_verification_profiles.py`
-- Wave 3.2 (2): `.github/workflows/continuous-verification.yml`, `test_cv_workflow_contract.py`
-- Wave 3.3 (2): `tests/corpus/archive/README.md`, `test_cv_profile_validation.py`
+**Nota sobre "Archivos modificados totales: 16":** A los 13 previos se agregan en Gate 4 (3): `tests/integration/test_translation_semantics.py`, `tests/integration/test_translation_structure.py`, `tests/integration/test_translation_technical.py` (fix de imports `helpers.*` → `tests.helpers.*`). `run_regression.py` y `pyproject.toml` ya estaban contabilizados por Gates previos.
 
-Los "13 archivos modificados" corresponden a:
-1. `run_regression.py` (Gate 1 + Wave 2.1 + Wave 2.2 + Wave 3.1)
-2. `completeness.py` (Gate 1)
-3. `pyproject.toml` (Gate 1 + Wave 3.3 marker e2e)
-4. `test_verification_boundary.py` (Gate 1 + Wave 2.1)
-5. `test_baseline_integrity_exit_code.py` (Gate 1 + Wave 2.1)
-6. `core/benchmark/topology/regression/report.py` (Wave 2.2)
-7. `test_regression_entry_point.py` (Wave 2.2 + Wave 3.1)
-8. `test_identity_chain.py` (Wave 2.2 + Wave 3.1)
-9. `core/benchmark/verification/identity_chain.py` (Wave 3.1)
-10. `core/benchmark/verification/report.py` (Wave 3.1)
-11. `test_verification_report.py` (Wave 3.1)
-12. `test_cv_report_persistence.py` (Wave 3.1)
-13. `.github/workflows/ci.yml` (Wave 3.2)
-
-Los "906 tests" son la suite completa del proyecto (incluye tests preexistentes de Fases anteriores). Tests nuevos de Fase 6: 47 (Gate 1) + 30 (Wave 2.1) + 38 (Wave 2.2) + 36 (Wave 3.1) + 22 (Wave 3.2) + 13 (Wave 3.3 e2e) = 186.
+Los "930 tests" son la suite completa del proyecto (incluye tests preexistentes de Fases anteriores). Tests nuevos de Fase 6: 47 (Gate 1) + 30 (Wave 2.1) + 38 (Wave 2.2) + 36 (Wave 3.1) + 22 (Wave 3.2) + 13 (Wave 3.3 e2e) + 24 (Gate 4: 12 contrato + 6 regression path + 6 failure path) = 210.
 
 ---
 
@@ -586,18 +700,19 @@ Los "906 tests" son la suite completa del proyecto (incluye tests preexistentes 
 
 | Hallazgo | Destino | Justificación |
 |----------|---------|---------------|
-| DF-06 | `ACCEPTED_LIMITATION` | `core.benchmark.__main__` importa de `apps/`; deuda técnica diferida a Gate 4 (MIG-01) |
+| DF-06 | Fase futura no faseada | Refactor de composición de `core.benchmark.__main__` (inyección de dependencias o puerto de extracción); no encaja en Fase 18 (runtime) ni en scope de enforcement de Gate 4 |
+| DF-10 | Fase futura no faseada, o recalibración gobernada DC-6.6 | PASS path no demostrable con estado basal del extractor; requiere mejora de fidelidad de extracción o decisión de gobernanza sobre thresholds |
 
-### 6.1 Candidatos pre-identificados (no constituyen hallazgos registrados)
+**Vinculación operativa:** DF-09 (ACCEPTED_LIMITATION) no se difiere: permanece en Fase 6 con cláusula de activación propia (ENFORCEMENT_CONTRACT §6.1/§6.3). Su cierre operativo ocurre cuando DF-10 se resuelva (estado basal PASS) o exista recalibración gobernada.
 
-Los siguientes son escenarios anticipados por el Execution Plan v1.0.10 que **podrían** generar hallazgos diferidos. No se registran como hallazgos hasta que se materialicen durante la implementación:
+### 6.1 Candidatos pre-identificados (resolución de anticipaciones)
 
-| Escenario anticipado | Posible destino | Condición de activación |
-|---------------------|-----------------|------------------------|
-| Evidencia server-side de branch protection no obtenible (Task 4.1.3) | ACCEPTED_LIMITATION o RECLASSIFIED_FUTURE_PHASE | Si la configuración server-side no es accesible desde el perímetro del repositorio |
-| PASS path no demostrable (Task 4.2.1) | ACCEPTED_LIMITATION o IMPLEMENTATION_REQUIRED | Si no existe una ejecución legítima del verification subject que produzca PASS contra la baseline sellada |
-| Mecanismo de materialización de PDFs requiere infraestructura externa (Task 1.2.1, MIG-02) | RECLASSIFIED_FUTURE_PHASE o ACCEPTED_LIMITATION | Si la materialización requiere recursos fuera del alcance de Fase 6 |
-| Recalibración de thresholds para operatividad del gate | DEFERRED — post Fase 17-BIS | Si la operatividad del gate requiere ajuste de thresholds (DC-6.6, fuera de scope de Fase 6) |
+| Escenario anticipado | Materializado | Resolución |
+|---------------------|:---:|---|
+| Evidencia server-side de branch protection no obtenible (Task 4.1.3) | ❌ No | MIG-01 ejecutado con screenshot de UI como evidencia válida (Task 4.1.3 RESOLVED); `gh` CLI ausente no impidió la evidencia |
+| PASS path no demostrable (Task 4.2.1) | ✅ Sí | DF-10 (RECLASSIFIED_FUTURE_PHASE); Task 4.2.1 BLOCKED; Gate 4 CONDITIONAL PASS |
+| Mecanismo de materialización de PDFs requiere infraestructura externa (MIG-02) | ❌ No | Corpus trackeado en git; el checkout materializa los PDFs (MIG-02 DONE) |
+| Recalibración de thresholds para operatividad del gate | ⏳ Activo | Vinculado a DF-09/DF-10; decisión de gobernanza post-Fase 6 (DC-6.6) |
 
 ---
 
@@ -624,7 +739,7 @@ El documento se considera cerrado (`ARCHIVED`) cuando:
 Adicionalmente, para Fase 6:
 5. Los hallazgos relacionados con enforcement (NADR-F17BIS-30) tienen evidencia server-side o están documentados como NO DEMOSTRADO con justificación explícita.
 6. Los hallazgos relacionados con el PASS path (Task 4.2.1) tienen evidencia de ejecución legítima o están documentados como ACCEPTED_LIMITATION.
-7. Ningún hallazgo se cierra como RESOLVED si afecta una regla normativa sin cumplir los criterios de trazabilidad del Global DoD (PHASE_17BIS_FASE6_EXECUTION_PLAN v1.0.10 §8).
+7. Ningún hallazgo se cierra como RESOLVED si afecta una regla normativa sin cumplir los criterios de trazabilidad del Global DoD (PHASE_17BIS_FASE6_EXECUTION_PLAN v1.0.11 §8).
 
 ---
 
@@ -632,23 +747,24 @@ Adicionalmente, para Fase 6:
 
 | Categoría | Cantidad |
 |-----------|----------|
-| Total de hallazgos analizados | 5 |
-| Hallazgos resueltos | 4 |
+| Total de hallazgos analizados | 8 |
+| Hallazgos resueltos | 5 |
 | Hallazgos pendientes de implementación | 0 |
 | Hallazgos pendientes de revisión | 0 |
 | Hallazgos cerrados sin acción | 0 |
 | Hallazgos aceptados como limitación | 1 |
+| Hallazgos reclasificados a fase futura | 2 |
 | Batches completados | 0/{Total} |
-| Estado del Exit Review | 🟡 IN PROGRESS |
+| Estado del Exit Review | ✅ COMPLETED (Gate 4 CONDITIONAL PASS; documento pasa a `ARCHIVED` tras el merge del commit de cierre de Fase 6) |
 
 ### 8.1 Progreso por Gate
 
 | Gate | Estado | Hallazgos | Batches |
 |------|--------|-----------|---------|
-| Gate 1 — Verification Foundation | ✅ COMPLETED (2026-09-26) | 4 (3 RESOLVED, 1 ACCEPTED_LIMITATION) | 0 |
+| Gate 1 — Verification Foundation | ✅ COMPLETED (2026-09-26) | 4 (3 RESOLVED, 1 ACCEPTED_LIMITATION→reclasificado en Gate 4) | 0 |
 | Gate 2 — Verification Contract | ✅ COMPLETED (2026-09-29) | 0 | 0 |
 | Gate 3 — Continuous Verification Integration | ✅ COMPLETED (2026-09-30) | 1 (DF-08 RESOLVED) | 0 |
-| Gate 4 — Enforcement & Phase Closure | ⏳ PENDING | 0 | 0 |
+| Gate 4 — Enforcement & Phase Closure | ✅ CONDITIONAL PASS (2026-09-30) | 4 (DF-11 RESOLVED, DF-09 ACCEPTED_LIMITATION, DF-10 RECLASSIFIED, DF-06 reclasificado) | 0 |
 
 ---
 

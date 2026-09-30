@@ -1,11 +1,11 @@
 # FASE_6_EXIT_REVIEW_EVIDENCE_LOG.md
 
 **Documento:** `docs/architecture/adr/phase-17-bis/reviews/FASE_6_EXIT_REVIEW_EVIDENCE_LOG.md`
-**Versión:** 0.7.0
+**Versión:** 0.8.0
 **Estado:** IN_PROGRESS
 **Fecha:** 2026-09-30
 **Última actualización:** 2026-09-30
-**Derivado de:** `PHASE_17BIS_FASE6_EXECUTION_PLAN.md` v1.0.10 — Gate 3 Exit Review (COMPLETED: Waves 3.1 + 3.2 + 3.3)
+**Derivado de:** `PHASE_17BIS_FASE6_EXECUTION_PLAN.md` v1.0.11 — Gate 4 Exit Review (COMPLETED: CONDITIONAL PASS)
 **Propósito:** Registro auditable de la evidencia forense que fundamenta cada decisión
 tomada durante el Exit Review de Fase 6 (Continuous Verification). Cada finding
 incluye los archivos auditados, el análisis, los gaps confirmados, la justificación
@@ -32,7 +32,7 @@ normativa y la clasificación final.
 | 0.5.0 | 2026-09-30 | Wave 3.1 completada (Tasks 3.1.1-3.1.3). Sin hallazgos nuevos registrados. Gate 3 → IN PROGRESS (31/35 reglas NADR-29 DONE). Referencias actualizadas a Execution Plan v1.0.8. |
 | 0.6.0 | 2026-09-30 | Wave 3.2 completada (Tasks 3.2.1-3.2.3). Sin hallazgos nuevos registrados. GAP-6.3-01 (P0) resuelto: CI invoca el verification entry point real. Gate 3 → IN PROGRESS (35/35 reglas NADR-29 DONE, Wave 3.3 validación end-to-end pendiente). Referencias actualizadas a Execution Plan v1.0.9. |
 | 0.7.0 | 2026-09-30 | Wave 3.3 completada (Tasks 3.3.1-3.3.3). DF-08 identificado y resuelto: PDF orphan `doc_06_johnstone.pdf` movido a `tests/corpus/archive/`. Baseline sellada invariante. Gate 3 → COMPLETED (35/35 reglas NADR-29, 9/9 Tasks). Referencias actualizadas a Execution Plan v1.0.10. |
-
+| 0.8.0 | 2026-09-30 | Gate 4 Exit Review completado (CONDITIONAL PASS). Evidencia forense de DF-09, DF-10, DF-11 registrada; DF-06 reclasificado a RECLASSIFIED_FUTURE_PHASE con evidencia de no-encaje en Fase 18. Task 4.1.3 RESOLVED con evidencia server-side (MIG-01/MIG-04). Referencias actualizadas a Execution Plan v1.0.11 y Findings Register v0.10.0. |
 
 ---
 
@@ -41,7 +41,7 @@ normativa y la clasificación final.
 ### 0.1 Jerarquía normativa aplicada
 
 ```text
-ADR_F17_BIS_MASTER  >  ADR_F17_BIS_06 v1.2.0  >  NADR-F17BIS-25..30  >  PHASE_17BIS_FASE6_EXECUTION_PLAN v1.0.10
+ADR_F17_BIS_MASTER  >  ADR_F17_BIS_06 v1.2.0  >  NADR-F17BIS-25..30  >  PHASE_17BIS_FASE6_EXECUTION_PLAN v1.0.11
 ```
 
 > *"No lower governance level is authorized to redefine or contradict
@@ -63,7 +63,7 @@ ADR_F17_BIS_MASTER  >  ADR_F17_BIS_06 v1.2.0  >  NADR-F17BIS-25..30  >  PHASE_17
 - **NADR-F17BIS-30 §5.5 R14-R16:** NO DEMOSTRADO no es una forma alternativa de DONE. Un finding sobre enforcement sin evidencia externa no puede cerrarse como RESOLVED sin evidencia server-side.
 - **ADR_F17_BIS_MASTER §5 (Determinismo y Reproducibilidad):** Todo hallazgo que afecte la reproducibilidad de la verificación debe clasificarse como IMPLEMENTATION_REQUIRED o ACCEPTED_LIMITATION con justificación explícita.
 - **ADR_F17_BIS_06 v1.2.0 D1 (Integración, No Creación):** Ningún finding puede justificar la creación de un segundo mecanismo de verificación.
-- **PHASE_17BIS_FASE6_EXECUTION_PLAN v1.0.10 §8 (Global DoD):** Un finding que afecta una regla normativa solo se cierra cuando es trazable a una implementación commiteada, un mecanismo de verification superado y un mecanismo de validation superado.
+- **PHASE_17BIS_FASE6_EXECUTION_PLAN v1.0.11 §8 (Global DoD):** Un finding que afecta una regla normativa solo se cierra cuando es trazable a una implementación commiteada, un mecanismo de verification superado y un mecanismo de validation superado.
 
 ---
 
@@ -129,13 +129,22 @@ Wave 1.2 no registró hallazgos nuevos. Gate 1 cierra con 4 findings analizados.
 
 Wave 2.1 (Tasks 2.1.1, 2.1.2, 2.1.3) y Wave 2.2 (Tasks 2.2.1, 2.2.2, 2.2.3)
 no registraron hallazgos nuevos. La evidencia de implementación está documentada
-en las Notas de Implementación del Execution Plan v1.0.10 (§3.1, §3.2), no en
+en las Notas de Implementación del Execution Plan v1.0.11 (§3.1, §3.2), no en
 este Evidence Log (que registra únicamente evidencia forense de findings).
 
 Wave 3.1 (Tasks 3.1.1-3.1.3) y Wave 3.2 (Tasks 3.2.1-3.2.3) no registraron
 hallazgos nuevos. Wave 3.3 (Task 3.3.1) registró DF-08: PDF orphan en el
 directorio canonical, resuelto moviendo el archivo a `tests/corpus/archive/`.
 Gate 3 cierra con 1 finding analizado (DF-08 RESOLVED).
+
+Wave 4.1 registró DF-09 (enforcement de merge de CV diferido condicionalmente).
+Wave 4.2 registró DF-10 (PASS path no demostrable con estado basal del extractor,
+Task 4.2.1 BLOCKED) y DF-11 (manifest corrupto escapaba del except de Pasos 1-2b,
+resuelto en la misma Wave). Gate 4 reclasificó DF-06 (de ACCEPTED_LIMITATION a
+RECLASSIFIED_FUTURE_PHASE) tras verificar que el refactor de composición del
+benchmark no encaja en Gate 4 ni en Fase 18. Gate 4 cierra con 4 findings
+analizados (DF-09, DF-10, DF-11 nuevos; DF-06 reclasificado) y veredicto
+CONDITIONAL PASS.
 
 ---
 
@@ -315,7 +324,7 @@ Los `ignore_imports` huérfanos generaban warnings silenciosos en import-linter 
 |-------|-------|
 | **ID** | DF-06 |
 | **Tipo** | Deferred Finding |
-| **Estado** | `ACCEPTED_LIMITATION` |
+| **Estado** | `RECLASSIFIED_FUTURE_PHASE` (reclasificado en Gate 4; previamente `ACCEPTED_LIMITATION` en Gate 1) |
 | **Origen** | Wave 1.1 / Task 1.1.3 |
 | **Gate destino original** | Gate 1 |
 | **Estado previo** | PENDING_REVIEW |
@@ -401,6 +410,25 @@ La deuda se acepta como limitación documentada con `ignore_import` explícito e
 > *"No se reescribe el sistema completo de golpe."*
 
 La refactorización completa de `core/benchmark/__main__.py` se difiere a Gate 3-4 para no bloquear el avance de Gate 1 con una refactorización de alto riesgo fuera de scope.
+
+#### 2.2.10 Reclasificación en Gate 4 (2026-09-30)
+
+**Estado previo:** `ACCEPTED_LIMITATION` con destino "Gate 3-4".
+**Estado nuevo:** `RECLASSIFIED_FUTURE_PHASE` con destino "fase futura no faseada (refactor de composición del benchmark)".
+
+**Evidencia de la reclasificación:**
+- Gate 3 cerró sin resolver DF-06: su scope era perfiles de ejecución e integración CI, no refactor del benchmark (Execution Plan v1.0.10 §4).
+- Gate 4 verificó contra ROADMAP_ARQUITECTONICO_LP que Fase 18 (Advanced Local Runtime) tiene entregables de asincronía pura, memory efficiency/streaming y backpressure/batching: **no incluye** rediseño de composición de `core/benchmark/__main__.py`. Fase 17 está congelada y completada (PyMuPDF elegido por benchmark estadístico).
+- Resolver el refactor dentro de Gate 4 (scope: enforcement de merge, NADR-30) introduciría riesgo en el entry point del benchmark sin beneficio para ninguna regla de NADR-30.
+
+**Mitigación vigente:** `ignore_import` explícito y documentado en el contrato 3 de `pyproject.toml`; el contrato permanece KEPT (4/4) en todas las verificaciones de Gate 4. La deuda es visible, trazable y no silenciosa (ENGINEERING_PRINCIPLES §III).
+
+**Regla aplicada:**
+
+> **ENGINEERING_PRINCIPLES §VII (No Big Bang / YAGNI):** no se reescribe composición
+> fuera de su fase natural. **METHODOLOGY §3.5.2:** los hallazgos diferidos deben
+> tener destino explícito; "Gate 3-4" dejó de ser un destino válido al cerrar ambos
+> Gates sin resolución, y se sustituye por destino honesto.
 
 ---
 
@@ -625,6 +653,301 @@ topológica real.
 
 ---
 
+### 2.5 DF-09 — Enforcement de merge de Continuous Verification diferido condicionalmente (Wave 4.1)
+
+| Campo | Valor |
+|-------|-------|
+| **ID** | DF-09 |
+| **Tipo** | Deferred Finding — Limitación operativa de enforcement |
+| **Estado** | `ACCEPTED_LIMITATION` |
+| **Origen** | Wave 4.1 / Tasks 4.1.1-4.1.2 |
+| **Gate destino original** | Gate 4 |
+| **Estado previo** | PENDING_REVIEW |
+| **Prioridad** | Media |
+| **¿Requiere implementación?** | No inmediata — activación condicionada (cláusula 6.1 del contrato) |
+| **¿Bloquea Continuous Verification?** | No — la verificación ejecuta y evidencia; lo diferido es el bloqueo de merge por regresión estructural |
+
+#### 2.5.1 Texto original del DF
+
+> *"Con branch protection activa, el único required check es static-analysis.
+> regression-gates (SMOKE) y cv-full-profile (FULL) son informativos porque el
+> estado basal del extractor es HARD_FAIL (exit 2): promoverlos a required hoy
+> congelaría main con un rojo permanente que no distingue regresiones nuevas
+> del estado basal. Una regresión estructural que no rompa static-analysis no
+> bloquea integración hoy."*
+
+#### 2.5.2 Reformulación corregida
+
+No requiere reformulación. Se precisa el alcance: el hueco de push directo
+originalmente considerado parte de este finding quedó **cerrado** por la
+activación de required status checks (un commit nuevo sin checks pasados es
+rechazado); DF-09 cubre exclusivamente el diferimiento del bloqueo por
+regresión estructural (checks CV informativos).
+
+#### 2.5.3 Archivos y documentos auditados
+
+| # | Archivo / Documento | Evidencia extraída |
+|---|---------------------|-------------------|
+| 1 | `plans/FASE_6_ENFORCEMENT_CONTRACT.md` §3 | Tabla de checks: `static-analysis` REQUIRED; `regression-gates` y `cv-full-profile` informativos |
+| 2 | `plans/FASE_6_ENFORCEMENT_CONTRACT.md` §4 y §6.1 | Trade-off sin eufemismos; cláusula de activación (basal PASS o recalibración gobernada DC-6.6); WARNING bloqueará al promocionar; wrapper prohibido (NADR-27 §5.6 R32) |
+| 3 | `reports/evidence/branch-protection-main.png` y `-detail.png` | Regla activa sobre `main` con único required check "Static Analysis (pyright + import-linter)" |
+| 4 | Salidas de ejecución FULL y SMOKE (2026-09-30) | exit code 2 en ambos perfiles (rojo basal confirmado empíricamente) |
+| 5 | `.github/workflows/ci.yml` y `continuous-verification.yml` | Jobs CV existentes y operativos; producen artifacts con `if: always()` |
+| 6 | Texto de UI GitHub "Require status checks to pass before merging" | Commits sin checks pasados son rechazados: hueco de push directo cerrado |
+
+#### 2.5.4 Análisis
+
+La condición existe y es una **decisión de diseño documentada**, no un defecto
+oculto: con estado basal HARD_FAIL, promover checks CV a required produciría un
+gate que bloquea el 100% de los merges sin distinguir regresiones nuevas
+(teatro de enforcement, que termina bypasseado por frustración: peor que no
+tener gate). La alternativa de gate relativo (bloquear solo si empeora el basal)
+fue evaluada y rechazada: cambia la semántica de veredicto de NADR-19/NADR-27
+sin gobernanza que lo autorice (cláusula de jerarquía normativa del ADR Maestro)
+e introduce comparación entre ejecuciones que complica reproducibilidad (NADR-28).
+
+#### 2.5.5 Gaps objetivos confirmados
+
+| # | Gap | Evidencia | Severidad |
+|---|-----|-----------|-----------|
+| G1 | Checks CV no bloquean merge hoy | Contrato §3 + branch protection detail | Media (regresión estructural no gateada) |
+| G2 | ~~Hueco de push directo~~ | **CERRADO** por required status checks (UI text + rechazo de commits sin checks) | — |
+
+#### 2.5.6 Lo que NO es un gap
+
+| Aspecto | Veredicto | Justificación |
+|---------|-----------|---------------|
+| Branch protection activa con required check | ✅ Correcto | MIG-01/MIG-04 con evidencia server-side; entrada sin checks rechazada |
+| `static-analysis` como required | ✅ Correcto | Basal verde, determinista, rápido; bloquea errores de tipo y violaciones de arquitectura |
+| Checks CV operativos e informativos | ✅ Correcto | Ejecutan, evidencian y artifactean; su promoción está condicionada y fechada por cláusula |
+| Declaración del trade-off en contrato | ✅ Correcto | ENGINEERING_PRINCIPLES §IV: limitación explícita, no silenciosa |
+
+#### 2.5.7 Impacto en Continuous Verification
+
+| Dimensión | ¿Afecta? | Justificación |
+|-----------|----------|---------------|
+| Determinismo | ❌ No | Configuración de enforcement, no del mecanismo de verificación |
+| Reproducibilidad | ❌ No | Evidencia completa persistida en todos los paths |
+| Corrección funcional | ❌ No | CV detecta y clasifica correctamente (paths REGRESSION y FAILURE verificados) |
+| Enforcement demostrable | ⚠️ Sí (parcial) | Bloqueo de merge activo para static-analysis; diferido para checks CV |
+| Bloquea Fase 18 | ❌ No | Activación condicionada documentada; no impide operación |
+
+#### 2.5.8 Clasificación consolidada
+
+| Campo | Valor |
+|-------|-------|
+| Condición original existe | ✅ Sí |
+| Es violación arquitectónica | ❌ No |
+| Es violación de gobernanza | ❌ No (decisión dentro de jerarquía: contrato deriva de NADR-30 y documenta desviación operativa) |
+| Es problema técnico | ✅ Sí (operativo) |
+| Pertenece a Fase 6 | ✅ Sí |
+| Bloquea Continuous Verification | ❌ No |
+| Clasificación | `ACCEPTED_LIMITATION` |
+| Prioridad | Media |
+
+#### 2.5.9 Regla aplicada
+
+> **NADR-F17BIS-30 §5.3 R7-R10:** la relación resultado → integración está
+> declarada y es verificable; su activación operativa para checks CV queda
+> condicionada a cláusula 6.1 y documentada como limitación.
+> **ENGINEERING_PRINCIPLES §IV (Cero Fallos Silenciosos):** la limitación consta
+> en contrato, Findings Register y Exit Review; no hay enforcement fantasma.
+
+---
+
+### 2.6 DF-10 — PASS path end-to-end no demostrable con estado basal del extractor (Wave 4.2)
+
+| Campo | Valor |
+|-------|-------|
+| **ID** | DF-10 |
+| **Tipo** | Deferred Finding — Precondición externa no satisfecha |
+| **Estado** | `RECLASSIFIED_FUTURE_PHASE` |
+| **Origen** | Wave 4.2 / Task 4.2.1 (BLOCKED) |
+| **Gate destino original** | Gate 4 |
+| **Estado previo** | PENDING_REVIEW |
+| **Prioridad** | Alta |
+| **¿Requiere implementación?** | Sí, pero fuera de Fase 6 (mejora de extractor o recalibración gobernada) |
+| **¿Bloquea Continuous Verification?** | No — bloquea el cierre completo de Gate 4 (CONDITIONAL PASS) |
+
+#### 2.6.1 Texto original del DF
+
+> *"Task 4.2.1 requiere una ejecución legítima del verification subject que
+> produzca PASS contra la baseline sellada. FULL y SMOKE producen exit code 2
+> (HARD_FAIL / REGRESSION) en ambos perfiles. No existe escenario PASS legítimo."*
+
+#### 2.6.2 Reformulación corregida
+
+No requiere reformulación.
+
+#### 2.6.3 Archivos y documentos auditados
+
+| # | Archivo / Documento | Evidencia extraída |
+|---|---------------------|-------------------|
+| 1 | Salida de `run_regression.py --profile FULL` (2026-09-30) | exit code 2; stderr `REGRESSION:` |
+| 2 | Salida de `run_regression.py --profile SMOKE` (2026-09-30) | exit code 2; stderr `REGRESSION:` |
+| 3 | CV reports persistidos (`reports/full-check/`, `reports/smoke-check/`) | `corpus_verdict: HARD_FAIL`; `scientific_verdict: HARD_FAIL` |
+| 4 | Estado basal documentado desde Fase 5 | NSS 0.7208 < threshold 0.80; 163 Critical FN |
+| 5 | ADR_F17_BIS_MASTER §6 / DC-6.6 | Recalibración de thresholds es decisión de gobernanza separada, fuera de scope de Fase 6 |
+| 6 | ROADMAP_ARQUITECTONICO_LP | Fase 17 congelada/completada; Fase 18 = Advanced Local Runtime (no fidelidad de extracción) |
+| 7 | NADR-F17BIS-26 §5.5 R20-R22 | Fixtures o mini-corpus sintéticos no son baseline canónica: fabricar PASS los violaría |
+
+#### 2.6.4 Análisis
+
+La precondición de Task 4.2.1 (ejecución legítima PASS) es **verificable y falsa**
+con el estado actual del extractor. El veredicto HARD_FAIL es científicamente
+correcto (NADR-19 DoubleProtectionMechanism: NSS < 0.80 o ≥1 Critical FN ⇒
+HARD_FAIL): el control detecta divergencias topológicas reales del pipeline
+(doble columna, tablas anidadas, figuras, math), las mismas que producen texto
+ilegible para traducción. Las tres vías para obtener PASS fueron descartadas
+con justificación normativa: recalibrar (DC-6.6, fuera de scope), fabricar con
+fixtures (NADR-26 §5.5 R20-R22), mockear (ENGINEERING_PRINCIPLES §IV).
+
+#### 2.6.5 Gaps objetivos confirmados
+
+| # | Gap | Evidencia | Severidad |
+|---|-----|-----------|-----------|
+| G1 | No existe ejecución legítima PASS contra baseline sellada | Exit 2 en FULL y SMOKE; NSS 0.7208 | Alta (impide validar path PASS → integration allowed) |
+
+#### 2.6.6 Lo que NO es un gap
+
+| Aspecto | Veredicto | Justificación |
+|---------|-----------|---------------|
+| Veredicto HARD_FAIL basal | ✅ Correcto por diseño | NADR-19: el control funciona y detecta divergencia real |
+| Paths REGRESSION y FAILURE | ✅ Correctos | Verificados end-to-end en Tasks 4.2.2 y 4.2.3 (exit 2 y exit 3 con evidencia) |
+| Exit codes y evidencia en HARD_FAIL | ✅ Correctos | CV report completo con identity chain y regression_report |
+
+#### 2.6.7 Impacto en Continuous Verification
+
+| Dimensión | ¿Afecta? | Justificación |
+|-----------|----------|---------------|
+| Determinismo | ❌ No | El veredicto es determinista para el estado basal |
+| Reproducibilidad | ❌ No | Evidencia reproducible con identity chain completa |
+| Corrección funcional | ❌ No | El control clasifica correctamente |
+| Enforcement demostrable | ⚠️ Sí (parcial) | El path "PASS → integration allowed" no pudo ejercitarse en vivo |
+| Bloquea Fase 18 | ❌ No | Destino explícito fuera de Fase 6 |
+
+#### 2.6.8 Clasificación consolidada
+
+| Campo | Valor |
+|-------|-------|
+| Condición original existe | ✅ Sí |
+| Es violación arquitectónica | ❌ No |
+| Es violación de gobernanza | ❌ No |
+| Es problema técnico | ✅ Sí (del extractor, no del control) |
+| Pertenece a Fase 6 | ❌ No — resolución fuera de scope |
+| Bloquea Continuous Verification | ❌ No (bloquea cierre completo del Gate) |
+| Clasificación | `RECLASSIFIED_FUTURE_PHASE` |
+| Prioridad | Alta |
+| **Destino** | Fase futura no faseada de mejora de fidelidad de extracción, o recalibración gobernada de thresholds (DC-6.6). NO Fase 17 (congelada) ni Fase 18 (runtime) |
+
+#### 2.6.9 Regla aplicada
+
+> **Execution Plan v1.0.11 §5.2:** "No se fabrica un PASS para cerrar el gate."
+> **NADR-F17BIS-27 §5.1 R1-R5:** el veredicto científico es independiente del
+> estado operacional; HARD_FAIL basal no es un fallo del control.
+> **NADR-F17BIS-30 §5.5 R14-R16 (por analogía):** un path no demostrado no se
+> declara validado; se documenta como BLOCKED con finding derivado.
+
+---
+
+### 2.7 DF-11 — Manifest corrupto escapaba del except de Pasos 1-2b (Wave 4.2)
+
+| Campo | Valor |
+|-------|-------|
+| **ID** | DF-11 |
+| **Tipo** | Deferred Finding — Hueco en manejo de errores |
+| **Estado** | `RESOLVED` |
+| **Origen** | Wave 4.2 / Task 4.2.3 (detección durante diseño de tests) |
+| **Gate destino original** | Gate 4 |
+| **Estado previo** | PENDING_REVIEW |
+| **Prioridad** | Alta |
+| **¿Requiere implementación?** | Sí — fix acotado en `run_regression.py` |
+| **¿Bloquea Continuous Verification?** | Sí (potencial): exit 1 por excepción no controlada sin evidencia persistida |
+
+#### 2.7.1 Texto original del DF
+
+> *"El catch-all de EXECUTION_FAILURE (Task 2.1.3) envuelve `_run_evaluation()`
+> (Pasos 3-7), no los Pasos 1-2b. Una `pydantic.ValidationError` o
+> `json.JSONDecodeError` al cargar el manifest escapaba del except de
+> precondiciones ⇒ traceback, exit 1 de Python, sin CV report persistido."*
+
+#### 2.7.2 Reformulación corregida
+
+No requiere reformulación.
+
+#### 2.7.3 Archivos y documentos auditados
+
+| # | Archivo / Documento | Evidencia extraída |
+|---|---------------------|-------------------|
+| 1 | `tools/evaluation/run_regression.py` (pre-fix) | `except (BaselineIntegrityError, IncompleteBaselineError, FileNotFoundError)` en Pasos 1-2b |
+| 2 | Jerarquía de excepciones Python | `pydantic.ValidationError` ⊂ `ValueError`; `json.JSONDecodeError` ⊂ `ValueError`; ninguna ⊂ del tuple pre-fix |
+| 3 | `run_regression.py` (pre-fix) Pasos 3-7 | Catch-all `except Exception` → EXIT_EXECUTION_FAILURE: no cubre Pasos 1-2b |
+| 4 | `verify_ground_truth_preconditions` (Gate 1, Task 1.2.3) | Precedente del patrón correcto: `except (OSError, ValueError)` |
+| 5 | `tests/integration/test_cv_failure_path.py` (post-fix) | `TestCorruptManifestPath`: JSON inválido y schema inválido ⇒ exit 3 + CV report |
+| 6 | Traceability Appendix §10.2 | NADR-27 §5.6 R34 marcada DONE desde Wave 2.1: el hueco era contraejemplo vivo de una regla DONE |
+
+#### 2.7.4 Análisis
+
+La condición existe y es un hueco de cobertura del manejo de errores, no un
+defecto de semántica: las precondiciones de baseline (Pasos 1-2b) tenían un
+catch más estrecho que el resto del flujo. Con manifest corrupto, el proceso
+moría con traceback y exit 1 (colisionando con WARNING, NADR-27 §5.6 R30) y sin
+evidencia persistida (NADR-28 §5.3 R14). Diferir el fix habría hecho que Task
+4.3.3 (traceability closure) certificara como DONE una regla con contraejemplo
+demostrado: inaceptable bajo ENGINEERING_PRINCIPLES §IV.
+
+#### 2.7.5 Gaps objetivos confirmados
+
+| # | Gap | Evidencia | Severidad |
+|---|-----|-----------|-----------|
+| G1 | Catch de Pasos 1-2b sin `OSError`/`ValueError` | Código pre-fix + reproducción con manifest corrupto | Alta |
+
+#### 2.7.6 Lo que NO es un gap
+
+| Aspecto | Veredicto | Justificación |
+|---------|-----------|---------------|
+| Catch-all de Pasos 3-7 → exit 4 | ✅ Correcto | Cubre evaluación; no era el hueco |
+| Exit codes 0/1/2/3/4 y su precedencia | ✅ Correctos | Sin cambios por el fix |
+| `FileNotFoundError` como caso de exit 3 | ✅ Correcto | Queda cubierto por `OSError` (superclase), sin cambio de comportamiento |
+
+#### 2.7.7 Impacto en Continuous Verification
+
+| Dimensión | ¿Afecta? | Justificación |
+|-----------|----------|---------------|
+| Determinismo | ❌ No | El fix no introduce estado ni aleatoriedad |
+| Reproducibilidad | ⚠️ Sí (pre-fix) | Sin evidencia persistida no hay reproducibilidad del fallo; corregido |
+| Corrección funcional | ✅ Sí (pre-fix) | Exit 1 ambiguo y sin evidencia; corregido a exit 3 con evidencia |
+| Enforcement demostrable | ❌ No | El exit code correcto propaga a CI sin reinterpretar |
+| Bloquea Fase 18 | ❌ No | Resuelto en Gate 4 |
+
+#### 2.7.8 Clasificación consolidada
+
+| Campo | Valor |
+|-------|-------|
+| Condición original existe | ✅ Sí |
+| Es violación arquitectónica | ❌ No |
+| Es violación de gobernanza | ❌ No |
+| Es problema técnico | ✅ Sí |
+| Pertenece a Fase 6 | ✅ Sí |
+| Bloquea Continuous Verification | ✅ Sí (potencial, pre-fix) |
+| Clasificación | `RESOLVED` |
+| Prioridad | Alta |
+
+#### 2.7.9 Regla aplicada y resolución
+
+> **NADR-F17BIS-27 §5.6 R34:** excepción no controlada ⇒ EXECUTION_FAILURE con
+> evidencia; un crash con exit 1 en precondiciones violaba tanto R34 como R30
+> (colisión con WARNING). **NADR-F17BIS-28 §5.3 R14:** toda ejecución persiste
+> evidencia.
+
+**Resolución:** except de Pasos 1-2b extendido a
+`(BaselineIntegrityError, IncompleteBaselineError, OSError, ValueError)` con
+comentario de trazabilidad (DF-11, R34, R14). Evidencia post-fix: 6/6 tests de
+`test_cv_failure_path.py` passed (incluidos 2 de `TestCorruptManifestPath`);
+suite completa 930 passed, 5 skipped; pyright 0 errors; import-linter 4/4 KEPT.
+
+---
+
 ## 3. GATE EXIT REVIEW SUMMARY
 
 ### 3.1 Gate 1 Exit Review — Verification Foundation (2026-09-26)
@@ -750,37 +1073,45 @@ corpus canónico real (21 documentos del manifest v3.9):
 
 ---
 
-### 3.4 Gate 4 Exit Review — Enforcement & Phase Closure ({YYYY-MM-DD})
+### 3.4 Gate 4 Exit Review — Enforcement & Phase Closure (2026-09-30)
 
 **Gate:** Gate 4 — Enforcement & Phase Closure
 **NADRs:** NADR-F17BIS-30 (22 reglas) + verificación transversal NADR-F17BIS-25 a NADR-F17BIS-30
-**Tasks:** 4.1.1, 4.1.2, 4.1.3, 4.2.1, 4.2.2, 4.2.3, 4.3.1, 4.3.2, 4.3.3
-
-**Nota específica de Gate 4:** Este Gate incluye Tasks con precondiciones externas:
-- **Task 4.1.3:** Evidencia server-side de branch protection. Si no se puede obtener, el finding se clasifica como `ACCEPTED_LIMITATION` o `RECLASSIFIED_FUTURE_PHASE` con justificación explícita. NO DEMOSTRADO no es RESOLVED.
-- **Task 4.2.1:** PASS path end-to-end. Si no existe un escenario PASS legítimo, el finding se clasifica como `ACCEPTED_LIMITATION` o `IMPLEMENTATION_REQUIRED` según corresponda. No se fabrica un PASS para cerrar el gate.
+**Tasks:** 4.1.1-4.1.3, 4.2.1-4.2.3, 4.3.1-4.3.3
+**Resultado:** ✅ COMPLETED — **CONDITIONAL PASS**: 22/22 reglas DONE, 8/9 Tasks DONE, 1 BLOCKED (4.2.1 → DF-10). 930 tests passed (suite completa), pyright 0 errors, import-linter 4/4 KEPT. MIG-01/MIG-04 con evidencia server-side (Task 4.1.3 RESOLVED).
 
 **Árbol de decisión aplicado (5 pasos):**
 
-```text
-1. ¿Sigue siendo válido el hallazgo? → NO: CLOSED (NAR) / SÍ: continuar
-2. ¿Puede resolverse dentro del Gate actual? → SÍ: RESOLVED / NO: continuar
-3. ¿Es un problema técnico? → SÍ: RECLASIFICADO / NO: continuar
-4. ¿Es un conflicto normativo? → SÍ: CONVERTIDO EN GF
-5. ¿Es una limitación externa al perímetro del repositorio? → SÍ: ACCEPTED_LIMITATION con evidencia
-```
-
-| DF | ¿Válido? | ¿Resoluble? | ¿Técnico? | Decisión | Motivo |
-|----|----------|-------------|-----------|----------|--------|
-| — | — | — | — | — | {Pendiente de ejecución} |
+| DF | ¿Válido? | ¿Resoluble? | ¿Técnico? | ¿Limitación externa? | Decisión | Motivo |
+|----|----------|-------------|-----------|---------------------|----------|--------|
+| DF-06 | ✅ Sí | ❌ No (fuera de scope Fase 6) | ✅ Sí | ❌ | RECLASSIFIED_FUTURE_PHASE | Refactor de composición del benchmark; no encaja en Gate 4 ni en Fase 18 |
+| DF-09 | ✅ Sí | ❌ No (condicionado a basal PASS o DC-6.6) | ✅ Sí | ❌ | ACCEPTED_LIMITATION | Checks CV informativos hasta cláusula 6.1 del contrato |
+| DF-10 | ✅ Sí | ❌ No (requiere mejora de extractor o recalibración) | ✅ Sí | ❌ | RECLASSIFIED_FUTURE_PHASE | PASS path no demostrable: HARD_FAIL basal legítimo en FULL y SMOKE |
+| DF-11 | ✅ Sí | ✅ Sí (Task 4.2.3) | ✅ Sí | ❌ | RESOLVED | Except de Pasos 1-2b extendido a OSError + ValueError |
 
 **Resumen:**
-- RESOLVED: {N} ({DF-XX})
-- RECLASIFICADO → Gate {X}: {N} ({DF-XX, DF-YY})
-- CLOSED (NAR): {N} ({DF-XX})
-- CONVERTIDO EN GF: {N} ({GF-XX})
-- ACCEPTED_LIMITATION: {N} ({DF-XX})
-- Nuevos hallazgos registrados: {N} ({DF-XX})
+- RESOLVED: 1 (DF-11)
+- RECLASIFICADO → fase futura: 2 (DF-06, DF-10)
+- CLOSED (NAR): 0
+- CONVERTIDO EN GF: 0
+- ACCEPTED_LIMITATION: 1 (DF-09)
+- Nuevos hallazgos registrados: 3 (DF-09, DF-10, DF-11) + 1 reclasificado (DF-06)
+
+**Justificación del CONDITIONAL PASS:** Task 4.2.1 queda BLOCKED porque el estado
+basal del extractor produce HARD_FAIL legítimo (NSS 0.7208 < 0.80, 163 Critical
+FN); no existe PASS legítimo sin recalibración gobernada (DC-6.6) ni fabricación
+de fixtures (NADR-26 §5.5 R20-R22). DF-09 documenta el diferimiento condicional
+del enforcement de merge de CV. DoD Nivel B del ADR Maestro: satisfecho en
+implementación local, verificación estática, corpus materializado y evidencia
+server-side de enforcement; parcialmente satisfecho en PASS path end-to-end y en
+bloqueo de merge por regresión estructural. Ambos con destino explícito.
+
+**Nota:** Las decisiones arquitectónicas congeladas y lecciones aprendidas de
+Gate 4 están documentadas en el Findings Register v0.10.0 §2.4; las notas de
+implementación en el Execution Plan v1.0.11 §5.1-§5.3. La evidencia binaria
+server-side vive en `docs/architecture/adr/phase-17-bis/reports/evidence/`
+(`branch-protection-main.png`, `branch-protection-main-detail.png`, y
+`branch-protection-pr-gate.png` al merge del PR de cierre).
 
 ---
 
@@ -794,11 +1125,11 @@ Se actualiza al cierre del último Gate Exit Review.
 |--------------|----------|-----|
 | `CLOSED (NAR)` | 0 | — |
 | `RESOLVED — DELETE` | 0 | — |
-| `RESOLVED` | 4 | DF-01, DF-05, DF-07, DF-08 |
+| `RESOLVED` | 5 | DF-01, DF-05, DF-07, DF-08, DF-11 |
 | `IMPLEMENTATION_REQUIRED` | 0 | — |
-| `RECLASSIFIED_FUTURE_PHASE` | 0 | — |
+| `RECLASSIFIED_FUTURE_PHASE` | 2 | DF-06, DF-10 |
 | `REVIEW_REQUIRED` | 0 | — |
-| `ACCEPTED_LIMITATION` | 1 | DF-06 |
+| `ACCEPTED_LIMITATION` | 1 | DF-09 |
 
 ### 4.2 Tabla consolidada
 
@@ -806,9 +1137,12 @@ Se actualiza al cierre del último Gate Exit Review.
 |----|--------|----------|
 | DF-01 | `RESOLVED` | Falta `include_external_packages = true` en configuración top-level (Task 1.1.3) |
 | DF-05 | `RESOLVED` | `ignore_imports` huérfanos eliminados del contrato 1 (Task 1.1.3) |
-| DF-06 | `ACCEPTED_LIMITATION` | `core.benchmark.__main__` importa de `apps/`; deuda técnica diferida a Gate 4 (MIG-01) |
+| DF-06 | `RECLASSIFIED_FUTURE_PHASE` | Refactor de composición de `core.benchmark.__main__`; destino: fase futura no faseada (reclasificado en Gate 4; ver §2.2.10) |
 | DF-07 | `RESOLVED` | `ignore_imports` agregado al contrato 3 para la cadena transitiva DF-06 (Task 1.1.3) |
-| DF-08 | `RESOLVED` | PDF orphan `doc_06_johnstone.pdf` movido de `tests/corpus/canonical/pdf/` a `tests/corpus/archive/`; baseline sellada invariante (Wave 3.3, Task 3.3.1) |
+| DF-08 | `RESOLVED` | PDF orphan movido a `tests/corpus/archive/`; baseline sellada invariante (Wave 3.3) |
+| DF-09 | `ACCEPTED_LIMITATION` | Enforcement de merge de CV diferido condicionalmente; activación por cláusula 6.1/6.3 del contrato (Wave 4.1) |
+| DF-10 | `RECLASSIFIED_FUTURE_PHASE` | PASS path no demostrable con estado basal del extractor; destino: mejora de fidelidad o recalibración DC-6.6 (Wave 4.2, Task 4.2.1 BLOCKED) |
+| DF-11 | `RESOLVED` | Except de Pasos 1-2b extendido a OSError + ValueError; manifest corrupto ⇒ exit 3 con evidencia (Wave 4.2) |
 
 ---
 
@@ -818,13 +1152,17 @@ Se actualiza al cierre del último Gate Exit Review.
 
 El documento se considera cerrado (`FROZEN`) cuando:
 
-- [ ] Todos los hallazgos del Execution Plan tienen evidencia forense registrada
-- [ ] Ningún hallazgo está en estado `PENDING_REVIEW`
-- [ ] La tabla consolidada final está completa
-- [ ] Cada clasificación tiene al menos una regla normativa aplicada
-- [ ] Los hallazgos `RECLASSIFIED_FUTURE_PHASE` tienen destino explícito
-- [ ] Los hallazgos `REVIEW_REQUIRED` tienen plan de reevaluación
-- [ ] Los hallazgos relacionados con enforcement server-side (NADR-F17BIS-30 §5.5 R14-R16) tienen evidencia externa o están documentados como NO DEMOSTRADO con justificación explícita
+- [x] Todos los hallazgos del Execution Plan tienen evidencia forense registrada
+- [x] Ningún hallazgo está en estado `PENDING_REVIEW`
+- [x] La tabla consolidada final está completa
+- [x] Cada clasificación tiene al menos una regla normativa aplicada
+- [x] Los hallazgos `RECLASSIFIED_FUTURE_PHASE` tienen destino explícito (DF-06: fase futura no faseada; DF-10: mejora de fidelidad o DC-6.6)
+- [x] Los hallazgos `REVIEW_REQUIRED` tienen plan de reevaluación (N/A: ninguno en ese estado)
+- [x] Los hallazgos relacionados con enforcement server-side (NADR-F17BIS-30 §5.5 R14-R16) tienen evidencia externa o están documentados como NO DEMOSTRADO con justificación explícita (evidencia externa obtenida: screenshots MIG-01/MIG-04; Task 4.1.3 RESOLVED)
+
+**Freeze efectivo:** el documento pasa a `FROZEN` al merge del commit atómico de
+cierre de Fase 6 (rama `gate-4-closure` → PR → main). Hasta ese momento permanece
+`IN_PROGRESS` por protocolo.
 
 ### 5.2 Relación con el Findings Register
 
@@ -844,22 +1182,23 @@ sección correspondiente de este Evidence Log.
 
 | Categoría | Cantidad |
 |-----------|----------|
-| Total de hallazgos analizados | 5 |
-| Hallazgos resueltos | 4 |
+| Total de hallazgos analizados | 8 |
+| Hallazgos resueltos | 5 |
 | Hallazgos pendientes de implementación | 0 |
 | Hallazgos pendientes de revisión | 0 |
 | Hallazgos cerrados sin acción | 0 |
 | Hallazgos aceptados como limitación | 1 |
-| Estado del Exit Review | 🟡 IN PROGRESS |
+| Hallazgos reclasificados a fase futura | 2 |
+| Estado del Exit Review | ✅ COMPLETED (Gate 4 CONDITIONAL PASS; FROZEN al merge del commit de cierre) |
 
 ### 6.1 Progreso por Gate
 
 | Gate | Estado | Hallazgos | Secciones de evidencia |
 |------|--------|-----------|---------|
-| Gate 1 — Verification Foundation | ✅ COMPLETED (2026-09-26) | 4 (3 RESOLVED, 1 ACCEPTED_LIMITATION) | §2.0, §2.1, §2.2, §2.3 |
+| Gate 1 — Verification Foundation | ✅ COMPLETED (2026-09-26) | 4 (3 RESOLVED, 1 ACCEPTED_LIMITATION→reclasificado en Gate 4) | §2.0, §2.1, §2.2, §2.3 |
 | Gate 2 — Verification Contract | ✅ COMPLETED (2026-09-29) | 0 | — |
 | Gate 3 — Continuous Verification Integration | ✅ COMPLETED (2026-09-30) | 1 (DF-08 RESOLVED) | §2.4 |
-| Gate 4 — Enforcement & Phase Closure | ⏳ PENDING | 0 | — |
+| Gate 4 — Enforcement & Phase Closure | ✅ CONDITIONAL PASS (2026-09-30) | 4 (DF-11 RESOLVED, DF-09 ACCEPTED_LIMITATION, DF-10 RECLASSIFIED, DF-06 reclasificado) | §2.5, §2.6, §2.7 (+ §2.2.10) |
 
 ---
 
@@ -868,3 +1207,4 @@ del Exit Review de Fase 6. No tiene autoridad normativa. No redefine reglas
 de NADRs ni ADRs. Su único propósito es documentar la evidencia que fundamenta
 cada clasificación del Findings Register, para que futuras sesiones o fases
 no tengan que re-derivar conclusiones.
+

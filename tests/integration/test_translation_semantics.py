@@ -18,7 +18,7 @@ from infra.db.document_repository import SQLiteDocumentRepository
 from core.execution.handlers import DocumentCommandHandler
 from core.pipeline.state_store import FSMStateStore
 from apps.bootstrap.pipeline_factory import build_extraction_pipeline
-from helpers.fakes import FakeChunker, FakeDispatcher
+from tests.helpers.fakes import FakeChunker, FakeDispatcher
 from core.validation.estimators import ExactBPEEstimator
 
 
