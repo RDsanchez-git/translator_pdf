@@ -1,4 +1,4 @@
-"""Tests de ContinuousVerificationReport (NADR-F17BIS-28 §5.3, §5.6)."""
+"""Tests de ContinuousVerificationReport (NADR-F17BIS-28 §5.3, §5.6, NADR-F17BIS-29 §5.2)."""
 from __future__ import annotations
 
 import json
@@ -71,7 +71,8 @@ def _build_sample_identity_chain() -> IdentityChain:
         subject_identity="commit123",
         configuration_identity="c" * 64,
         cost_weights=weights,
-        result_identity="d" * 64,
+        profile_identity="d" * 64,
+        result_identity="e" * 64,
     )
 
 
@@ -84,21 +85,28 @@ def _build_sample_cv_result() -> ContinuousVerificationResult:
     )
 
 
+def _build_sample_coverage() -> tuple[str, ...]:
+    """Helper: construye coverage de prueba (ordenado)."""
+    return ("doc_01", "doc_02", "doc_03")
+
+
 @pytest.mark.unit
 class TestContinuousVerificationReport:
     """NADR-F17BIS-28 §5.3 R14: reporte compuesto."""
 
     def test_report_has_all_components(self) -> None:
-        """R14: Reporte tiene schema, identity, result, regression."""
+        """R14: Reporte tiene schema, identity, result, regression, coverage."""
         report = ContinuousVerificationReport(
             schema_version=SCHEMA_VERSION,
             identity_chain=_build_sample_identity_chain(),
             operational_result=_build_sample_cv_result(),
+            coverage=_build_sample_coverage(),
             regression_report=_build_sample_regression_report(),
         )
         assert report.schema_version == SCHEMA_VERSION
         assert report.identity_chain is not None
         assert report.operational_result is not None
+        assert report.coverage == ("doc_01", "doc_02", "doc_03")
         assert report.regression_report is not None
 
     def test_report_is_frozen(self) -> None:
@@ -107,6 +115,7 @@ class TestContinuousVerificationReport:
             schema_version=SCHEMA_VERSION,
             identity_chain=_build_sample_identity_chain(),
             operational_result=_build_sample_cv_result(),
+            coverage=_build_sample_coverage(),
             regression_report=_build_sample_regression_report(),
         )
         with pytest.raises(AttributeError):
@@ -123,6 +132,7 @@ class TestContinuousVerificationReport:
             schema_version=SCHEMA_VERSION,
             identity_chain=_build_sample_identity_chain(),
             operational_result=result,
+            coverage=(),  # Sin evaluación → coverage vacío
             regression_report=None,
         )
         assert report.regression_report is None
@@ -138,6 +148,7 @@ class TestJsonFormatter:
             schema_version=SCHEMA_VERSION,
             identity_chain=_build_sample_identity_chain(),
             operational_result=_build_sample_cv_result(),
+            coverage=_build_sample_coverage(),
             regression_report=_build_sample_regression_report(),
         )
         formatter = JsonContinuousVerificationReportFormatter()
@@ -145,11 +156,12 @@ class TestJsonFormatter:
         assert output["schema_version"] == SCHEMA_VERSION
 
     def test_json_contains_identity_chain(self) -> None:
-        """R15: identity chain está en el JSON."""
+        """R15: identity chain está en el JSON (incluyendo profile_identity)."""
         report = ContinuousVerificationReport(
             schema_version=SCHEMA_VERSION,
             identity_chain=_build_sample_identity_chain(),
             operational_result=_build_sample_cv_result(),
+            coverage=_build_sample_coverage(),
             regression_report=_build_sample_regression_report(),
         )
         formatter = JsonContinuousVerificationReportFormatter()
@@ -160,6 +172,7 @@ class TestJsonFormatter:
         assert "subject_identity" in chain
         assert "configuration_identity" in chain
         assert "parameter_identity" in chain
+        assert "profile_identity" in chain  # NUEVO: NADR-29 §5.6 R28
         assert "result_identity" in chain
         assert "limitations" in chain
 
@@ -169,6 +182,7 @@ class TestJsonFormatter:
             schema_version=SCHEMA_VERSION,
             identity_chain=_build_sample_identity_chain(),
             operational_result=_build_sample_cv_result(),
+            coverage=_build_sample_coverage(),
             regression_report=_build_sample_regression_report(),
         )
         formatter = JsonContinuousVerificationReportFormatter()
@@ -184,6 +198,7 @@ class TestJsonFormatter:
             schema_version=SCHEMA_VERSION,
             identity_chain=_build_sample_identity_chain(),
             operational_result=_build_sample_cv_result(),
+            coverage=_build_sample_coverage(),
             regression_report=_build_sample_regression_report(),
         )
         formatter = JsonContinuousVerificationReportFormatter()
@@ -199,6 +214,7 @@ class TestJsonFormatter:
             schema_version=SCHEMA_VERSION,
             identity_chain=_build_sample_identity_chain(),
             operational_result=_build_sample_cv_result(),
+            coverage=_build_sample_coverage(),
             regression_report=_build_sample_regression_report(
                 config_fingerprint="abc123" * 10 + "abcd"
             ),
@@ -214,6 +230,7 @@ class TestJsonFormatter:
             schema_version=SCHEMA_VERSION,
             identity_chain=_build_sample_identity_chain(),
             operational_result=_build_sample_cv_result(),
+            coverage=_build_sample_coverage(),
             regression_report=_build_sample_regression_report(
                 config_fingerprint=None
             ),
@@ -228,6 +245,7 @@ class TestJsonFormatter:
             schema_version=SCHEMA_VERSION,
             identity_chain=_build_sample_identity_chain(),
             operational_result=_build_sample_cv_result(),
+            coverage=_build_sample_coverage(),
             regression_report=_build_sample_regression_report(),
         )
         formatter = JsonContinuousVerificationReportFormatter()
@@ -241,6 +259,7 @@ class TestJsonFormatter:
             schema_version=SCHEMA_VERSION,
             identity_chain=_build_sample_identity_chain(),
             operational_result=_build_sample_cv_result(),
+            coverage=_build_sample_coverage(),
             regression_report=_build_sample_regression_report(),
         )
         formatter = JsonContinuousVerificationReportFormatter()
@@ -254,6 +273,7 @@ class TestJsonFormatter:
             schema_version=SCHEMA_VERSION,
             identity_chain=_build_sample_identity_chain(),
             operational_result=_build_sample_cv_result(),
+            coverage=_build_sample_coverage(),
             regression_report=_build_sample_regression_report(),
         )
         formatter = JsonContinuousVerificationReportFormatter()
@@ -276,8 +296,99 @@ class TestJsonFormatter:
             schema_version=SCHEMA_VERSION,
             identity_chain=_build_sample_identity_chain(),
             operational_result=result,
+            coverage=(),
             regression_report=None,
         )
         formatter = JsonContinuousVerificationReportFormatter()
         data = json.loads(formatter.format(report))
         assert "regression_report" not in data
+
+
+@pytest.mark.unit
+class TestCoverageField:
+    """NADR-F17BIS-29 §5.2 R8-R13: coverage declarada explícitamente."""
+
+    def test_json_contains_coverage(self) -> None:
+        """R8: Coverage está en el JSON."""
+        report = ContinuousVerificationReport(
+            schema_version=SCHEMA_VERSION,
+            identity_chain=_build_sample_identity_chain(),
+            operational_result=_build_sample_cv_result(),
+            coverage=("doc_01", "doc_02", "doc_03"),
+            regression_report=_build_sample_regression_report(),
+        )
+        formatter = JsonContinuousVerificationReportFormatter()
+        output = json.loads(formatter.format(report))
+        assert "coverage" in output
+        assert set(output["coverage"]) == {"doc_01", "doc_02", "doc_03"}
+
+    def test_coverage_is_sorted_list(self) -> None:
+        """R9: Coverage es lista ordenada para determinismo JSON."""
+        report = ContinuousVerificationReport(
+            schema_version=SCHEMA_VERSION,
+            identity_chain=_build_sample_identity_chain(),
+            operational_result=_build_sample_cv_result(),
+            coverage=("doc_03", "doc_01", "doc_02"),  # tuple ordenado por caller
+            regression_report=_build_sample_regression_report(),
+        )
+        formatter = JsonContinuousVerificationReportFormatter()
+        output = json.loads(formatter.format(report))
+        # El formatter serializa tal cual se pasó (tuple ya ordenado)
+        assert output["coverage"] == ["doc_03", "doc_01", "doc_02"]
+
+    def test_coverage_with_empty_tuple(self) -> None:
+        """R19: Coverage puede ser vacío (ej. baseline failure)."""
+        result = ContinuousVerificationResult(
+            outcome=VerificationOutcome.BASELINE_INTEGRITY_FAILURE,
+            scientific_verdict=None,
+            reason="baseline corrupt",
+        )
+        report = ContinuousVerificationReport(
+            schema_version=SCHEMA_VERSION,
+            identity_chain=_build_sample_identity_chain(),
+            operational_result=result,
+            coverage=(),
+            regression_report=None,
+        )
+        formatter = JsonContinuousVerificationReportFormatter()
+        output = json.loads(formatter.format(report))
+        assert output["coverage"] == []
+
+    def test_coverage_is_list_in_json(self) -> None:
+        """El formatter convierte tuple → list para JSON serialización."""
+        report = ContinuousVerificationReport(
+            schema_version=SCHEMA_VERSION,
+            identity_chain=_build_sample_identity_chain(),
+            operational_result=_build_sample_cv_result(),
+            coverage=("doc_01", "doc_02"),
+            regression_report=_build_sample_regression_report(),
+        )
+        formatter = JsonContinuousVerificationReportFormatter()
+        output = json.loads(formatter.format(report))
+        assert isinstance(output["coverage"], list)
+
+    def test_coverage_distinguishes_profiles(self) -> None:
+        """NADR-29 §5.2 R11: Diferencia de cobertura observable en evidencia."""
+        # Full profile: cobertura completa
+        full_report = ContinuousVerificationReport(
+            schema_version=SCHEMA_VERSION,
+            identity_chain=_build_sample_identity_chain(),
+            operational_result=_build_sample_cv_result(),
+            coverage=("doc_01", "doc_02", "doc_03", "doc_04", "doc_05"),
+            regression_report=_build_sample_regression_report(),
+        )
+        # Smoke profile: cobertura parcial
+        smoke_report = ContinuousVerificationReport(
+            schema_version=SCHEMA_VERSION,
+            identity_chain=_build_sample_identity_chain(),
+            operational_result=_build_sample_cv_result(),
+            coverage=("doc_01", "doc_04"),
+            regression_report=_build_sample_regression_report(),
+        )
+        formatter = JsonContinuousVerificationReportFormatter()
+        full_output = json.loads(formatter.format(full_report))
+        smoke_output = json.loads(formatter.format(smoke_report))
+
+        # Las coberturas son diferentes y distinguibles
+        assert full_output["coverage"] != smoke_output["coverage"]
+        assert len(full_output["coverage"]) > len(smoke_output["coverage"])

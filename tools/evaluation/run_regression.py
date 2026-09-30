@@ -9,6 +9,10 @@ NADR-F17BIS-19 §5.5:
        y emisión de veredicto.
 - R22: Exit code diferenciado: 0 = PASS, 1 = WARNING, 2 = HARD_FAIL.
 
+NADR-F17BIS-29 §5.1:
+- R1-R3: Perfil de ejecución explícito con cobertura declarada.
+- R24-R27: Mismo verification entry point para todos los perfiles.
+
 Diseño:
 - Functional Core: la lógica de orquestación es pura (sin estado).
 - Imperative Shell: el I/O se empuja a los bordes (file system, sys.exit).
@@ -25,7 +29,9 @@ Optimización de verificación:
 from __future__ import annotations
 
 import argparse
+import subprocess
 import sys
+from collections.abc import Iterator
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -36,15 +42,28 @@ from bootstrap.topology import (
     create_topology_evaluator,
 )
 from core.ast.enums import ContentNodeType
+from core.benchmark.corpus.integrity import (
+    BaselineIntegrityError,
+    GTUnreadableError,
+    PdfMissingError,
+    verify_manifest_hash,
+    verify_pdf_hash,
+)
+from core.benchmark.corpus.models import CorpusManifest
 from core.benchmark.corpus.use_cases import LoadCorpusManifestUseCase
+from core.benchmark.ground_truth.completeness import BaselineCompletenessVerifier
+from core.benchmark.ground_truth.errors import IncompleteBaselineError
 from core.benchmark.ground_truth.models import (
     GroundTruthLifecycleState,
     SealedOracle,
     hydrate_ground_truth,
 )
 from core.benchmark.ground_truth.use_cases import LoadGroundTruthUseCase
-from core.benchmark.topology.criticality.costs import CriticalityAwareCostContext
-from core.benchmark.topology.regression.configuration import ConfigurationFingerprintCalculator
+from core.benchmark.topology.criticality.costs import (
+    CriticalityAwareCostContext,
+    DEFAULT_CRITICALITY_WEIGHTS,
+)
+from core.benchmark.topology.criticality.models import NodeCriticality
 from core.benchmark.topology.evaluators.recall import EntityRecallEvaluator
 from core.benchmark.topology.regression import (
     JsonRegressionReportFormatter,
@@ -55,49 +74,33 @@ from core.benchmark.topology.regression import (
     RegressionVerdict,
     build_regression_report,
 )
-from infra.fs.corpus_repository import LocalFileSystemCorpusLoader
-from infra.fs.ground_truth_store import (
-    LocalFileSystemGroundTruthArtifactAdapter,
-    LocalFileSystemGroundTruthReader,
+from core.benchmark.topology.regression.configuration import (
+    ConfigurationFingerprintCalculator,
 )
-
-from core.benchmark.corpus.models import CorpusManifest
-
-from collections.abc import Iterator
-
-from core.benchmark.corpus.integrity import (
-    PdfMissingError,
-    verify_manifest_hash,
-    verify_pdf_hash,
-    BaselineIntegrityError,
+from core.benchmark.verification.identity_chain import (
+    SCHEMA_VERSION,
+    build_identity_chain,
+    build_profile_identity,
+    build_result_identity,
 )
-from core.shared.crypto import compute_sha256_stream
-
-
-from core.benchmark.corpus.integrity import (
-    GTUnreadableError
-)
-from core.benchmark.ground_truth.completeness import BaselineCompletenessVerifier
-from core.benchmark.ground_truth.errors import IncompleteBaselineError
-
 from core.benchmark.verification.outcome import (
     VerificationOutcome,
     resolve_operational_outcome,
 )
-
-import subprocess
-
-from core.benchmark.topology.criticality.costs import DEFAULT_CRITICALITY_WEIGHTS
-from core.benchmark.topology.criticality.models import NodeCriticality
-from core.benchmark.verification.identity_chain import (
-    SCHEMA_VERSION,
-    build_identity_chain,
-    build_result_identity,
+from core.benchmark.verification.profiles import (
+    VerificationProfile,
+    get_profile_document_ids,
 )
 from core.benchmark.verification.report import (
     ContinuousVerificationReport,
     EvaluationArtifacts,
     JsonContinuousVerificationReportFormatter,
+)
+from core.shared.crypto import compute_sha256_stream
+from infra.fs.corpus_repository import LocalFileSystemCorpusLoader
+from infra.fs.ground_truth_store import (
+    LocalFileSystemGroundTruthArtifactAdapter,
+    LocalFileSystemGroundTruthReader,
 )
 
 
@@ -262,27 +265,33 @@ def parse_args() -> argparse.Namespace:
         "--corpus-dir",
         type=Path,
         required=True,
-        help="Directorio del corpus canónico (contiene manifest.json y ground_truth/).",
+        help="Directorio del corpus canónico.",
     )
     parser.add_argument(
         "--pdf-dir",
         type=Path,
         required=True,
-        help="Directorio que contiene los PDFs del corpus.",
+        help="Directorio de PDFs del corpus.",
     )
     parser.add_argument(
         "--output-dir",
         type=Path,
         default=Path("reports/regression"),
-        help="Directorio de destino para los reportes (default: reports/regression).",
+        help="Directorio de salida para reportes.",
     )
     parser.add_argument(
         "--inject-timestamp",
         action="store_true",
-        default=False,
-        help="Inyectar timestamp UTC en el reporte (rompe determinismo estricto).",
+        help="Inyectar timestamp en el reporte (NADR-19 §5.7 R29).",
+    )
+    parser.add_argument(
+        "--profile",
+        choices=["FULL", "SMOKE"],
+        default="FULL",
+        help="Perfil de ejecución (NADR-29 §5.1 R1). FULL evalúa todo el corpus, SMOKE evalúa subset representativo.",
     )
     return parser.parse_args()
+
 
 def _get_subject_identity() -> str | None:
     """Obtiene el commit SHA del production pipeline (NADR-28 §5.1 R3).
@@ -343,6 +352,8 @@ def _run_evaluation(
     output_dir: Path,
     inject_timestamp: bool,
     manifest: CorpusManifest,
+    declared_manifest_hash: str,
+    profile: VerificationProfile,
 ) -> EvaluationArtifacts:
     """Ejecuta Pasos 3-5: pipeline, evaluación, construcción de reporte.
 
@@ -350,6 +361,10 @@ def _run_evaluation(
     Retorna EvaluationArtifacts con el RegressionReport, config_fingerprint
     y cost_weights para que main() construya el ContinuousVerificationReport
     y escriba JSON + Markdown.
+
+    NADR-29 §5.1 R3: Filtra documentos por perfil de ejecución antes
+    de evaluar. Todos los perfiles usan el mismo mecanismo de evaluación
+    (NADR-29 §5.5 R24-R27).
 
     Imperative Shell: orquesta I/O de lectura (PDFs, GTs). Cualquier
     excepción no controlada se propaga al caller para ser traducida a
@@ -387,9 +402,16 @@ def _run_evaluation(
 
     adapter = RegressionAdapter()
 
-    # ── Paso 4: Evaluar cada documento ───────────────────────────────
+    # ── Paso 3b: Filtrar documentos por perfil (NADR-29 §5.1 R3) ────
+    profile_document_ids = get_profile_document_ids(profile, manifest)
+    filtered_documents = [
+        doc for doc in manifest.documents
+        if doc.document_id in profile_document_ids
+    ]
+
+    # ── Paso 4: Evaluar cada documento del perfil ────────────────────
     document_reports = []
-    for doc_metadata in manifest.documents:
+    for doc_metadata in filtered_documents:
         doc_id = doc_metadata.document_id
 
         nodes = load_gt_uc.execute(doc_id)
@@ -441,6 +463,7 @@ def main() -> None:
     pdf_dir: Path = args.pdf_dir
     output_dir: Path = args.output_dir
     inject_timestamp: bool = args.inject_timestamp
+    profile = VerificationProfile(args.profile)
 
     # ── Estado operacional (NADR-27 §5.1 R1) ─────────────────────────
     baseline_failed = False
@@ -497,7 +520,13 @@ def main() -> None:
     if not baseline_failed and manifest is not None:
         try:
             artifacts = _run_evaluation(
-                corpus_dir, pdf_dir, output_dir, inject_timestamp, manifest
+                corpus_dir=corpus_dir,
+                pdf_dir=pdf_dir,
+                output_dir=output_dir,
+                inject_timestamp=inject_timestamp,
+                manifest=manifest,
+                declared_manifest_hash=declared_manifest_hash,
+                profile=profile,
             )
             regression_report = artifacts.regression_report
             config_fingerprint = artifacts.config_fingerprint
@@ -531,7 +560,18 @@ def main() -> None:
         regression_report_json=regression_json,
     )
 
-    # ── Construir identity chain (NADR-28 §5.1 R6) ───────────────────
+    # ── Construir profile_identity (NADR-29 §5.6 R28-R31) ────────────
+    if manifest is not None:
+        profile_document_ids = get_profile_document_ids(profile, manifest)
+    else:
+        profile_document_ids = frozenset()
+
+    profile_identity = build_profile_identity(
+        profile_name=profile.value,
+        document_ids=profile_document_ids,
+    )
+
+    # ── Construir identity chain (NADR-28 §5.1 R6, NADR-29 §5.6 R28) ─
     subject_identity = _get_subject_identity()
 
     configuration_identity = (
@@ -547,6 +587,7 @@ def main() -> None:
         subject_identity=subject_identity,
         configuration_identity=configuration_identity,
         cost_weights=chain_cost_weights,
+        profile_identity=profile_identity,
         result_identity=result_identity,
     )
 
@@ -555,6 +596,7 @@ def main() -> None:
         schema_version=SCHEMA_VERSION,
         identity_chain=identity_chain,
         operational_result=result,
+        coverage=tuple(sorted(profile_document_ids)),  # ← conversión a tuple ordenado
         regression_report=regression_report,
     )
 
@@ -567,7 +609,7 @@ def main() -> None:
     cv_formatter = JsonContinuousVerificationReportFormatter()
     json_path.write_text(cv_formatter.format(cv_report), encoding="utf-8")
 
-        # ── Escribir Markdown (para humanos, filename fijo) ────────────────
+    # ── Escribir Markdown (para humanos, filename fijo) ────────────────
     # Solo si hay regression_report (PASS/REGRESSION).
     # Para BASELINE_INTEGRITY_FAILURE/EXECUTION_FAILURE no hay contenido
     # científico que reportar en Markdown.

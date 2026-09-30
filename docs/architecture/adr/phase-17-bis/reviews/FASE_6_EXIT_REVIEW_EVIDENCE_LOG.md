@@ -1,11 +1,11 @@
 # FASE_6_EXIT_REVIEW_EVIDENCE_LOG.md
 
 **Documento:** `docs/architecture/adr/phase-17-bis/reviews/FASE_6_EXIT_REVIEW_EVIDENCE_LOG.md`
-**Versión:** 0.4.0
+**Versión:** 0.7.0
 **Estado:** IN_PROGRESS
-**Fecha:** 2026-09-26
-**Última actualización:** 2026-09-26
-**Derivado de:** `PHASE_17BIS_FASE6_EXECUTION_PLAN.md` v1.0.7 — Gate 2 Exit Review
+**Fecha:** 2026-09-30
+**Última actualización:** 2026-09-30
+**Derivado de:** `PHASE_17BIS_FASE6_EXECUTION_PLAN.md` v1.0.10 — Gate 3 Exit Review (COMPLETED: Waves 3.1 + 3.2 + 3.3)
 **Propósito:** Registro auditable de la evidencia forense que fundamenta cada decisión
 tomada durante el Exit Review de Fase 6 (Continuous Verification). Cada finding
 incluye los archivos auditados, el análisis, los gaps confirmados, la justificación
@@ -29,6 +29,9 @@ normativa y la clasificación final.
 | 0.2.0 | 2026-09-26 | Gate 1 Exit Review completado. Evidencia forense de DF-05, DF-06, DF-07 documentada. Referencias actualizadas a Execution Plan v1.0.5. |
 | 0.3.0 | 2026-09-26 | Wave 2.1 completada (Tasks 2.1.1-2.1.3). Sin hallazgos nuevos registrados. Gate 2 → IN PROGRESS. Referencias actualizadas a Execution Plan v1.0.6. |
 | 0.4.0 | 2026-09-26 | Wave 2.2 completada (Tasks 2.2.1-2.2.3). Sin hallazgos nuevos registrados. Gate 2 → COMPLETED (69/69 reglas, 6/6 Tasks). Referencias actualizadas a Execution Plan v1.0.7. |
+| 0.5.0 | 2026-09-30 | Wave 3.1 completada (Tasks 3.1.1-3.1.3). Sin hallazgos nuevos registrados. Gate 3 → IN PROGRESS (31/35 reglas NADR-29 DONE). Referencias actualizadas a Execution Plan v1.0.8. |
+| 0.6.0 | 2026-09-30 | Wave 3.2 completada (Tasks 3.2.1-3.2.3). Sin hallazgos nuevos registrados. GAP-6.3-01 (P0) resuelto: CI invoca el verification entry point real. Gate 3 → IN PROGRESS (35/35 reglas NADR-29 DONE, Wave 3.3 validación end-to-end pendiente). Referencias actualizadas a Execution Plan v1.0.9. |
+| 0.7.0 | 2026-09-30 | Wave 3.3 completada (Tasks 3.3.1-3.3.3). DF-08 identificado y resuelto: PDF orphan `doc_06_johnstone.pdf` movido a `tests/corpus/archive/`. Baseline sellada invariante. Gate 3 → COMPLETED (35/35 reglas NADR-29, 9/9 Tasks). Referencias actualizadas a Execution Plan v1.0.10. |
 
 
 ---
@@ -38,7 +41,7 @@ normativa y la clasificación final.
 ### 0.1 Jerarquía normativa aplicada
 
 ```text
-ADR_F17_BIS_MASTER  >  ADR_F17_BIS_06 v1.2.0  >  NADR-F17BIS-25..30  >  PHASE_17BIS_FASE6_EXECUTION_PLAN v1.0.7
+ADR_F17_BIS_MASTER  >  ADR_F17_BIS_06 v1.2.0  >  NADR-F17BIS-25..30  >  PHASE_17BIS_FASE6_EXECUTION_PLAN v1.0.10
 ```
 
 > *"No lower governance level is authorized to redefine or contradict
@@ -60,7 +63,7 @@ ADR_F17_BIS_MASTER  >  ADR_F17_BIS_06 v1.2.0  >  NADR-F17BIS-25..30  >  PHASE_17
 - **NADR-F17BIS-30 §5.5 R14-R16:** NO DEMOSTRADO no es una forma alternativa de DONE. Un finding sobre enforcement sin evidencia externa no puede cerrarse como RESOLVED sin evidencia server-side.
 - **ADR_F17_BIS_MASTER §5 (Determinismo y Reproducibilidad):** Todo hallazgo que afecte la reproducibilidad de la verificación debe clasificarse como IMPLEMENTATION_REQUIRED o ACCEPTED_LIMITATION con justificación explícita.
 - **ADR_F17_BIS_06 v1.2.0 D1 (Integración, No Creación):** Ningún finding puede justificar la creación de un segundo mecanismo de verificación.
-- **PHASE_17BIS_FASE6_EXECUTION_PLAN v1.0.7 §8 (Global DoD):** Un finding que afecta una regla normativa solo se cierra cuando es trazable a una implementación commiteada, un mecanismo de verification superado y un mecanismo de validation superado.
+- **PHASE_17BIS_FASE6_EXECUTION_PLAN v1.0.10 §8 (Global DoD):** Un finding que afecta una regla normativa solo se cierra cuando es trazable a una implementación commiteada, un mecanismo de verification superado y un mecanismo de validation superado.
 
 ---
 
@@ -124,10 +127,15 @@ ADR_F17_BIS_MASTER  >  ADR_F17_BIS_06 v1.2.0  >  NADR-F17BIS-25..30  >  PHASE_17
 Los findings DF-01, DF-05, DF-06 y DF-07 fueron identificados en Wave 1.1 (Task 1.1.3).
 Wave 1.2 no registró hallazgos nuevos. Gate 1 cierra con 4 findings analizados.
 
-Wave 2.1 (Tasks 2.1.1, 2.1.2, 2.1.3) no registró hallazgos nuevos. La evidencia
-de implementación de Wave 2.1 está documentada en las Notas de Implementación
-del Execution Plan v1.0.7, no en este Evidence Log (que registra únicamente
-evidencia forense de findings).
+Wave 2.1 (Tasks 2.1.1, 2.1.2, 2.1.3) y Wave 2.2 (Tasks 2.2.1, 2.2.2, 2.2.3)
+no registraron hallazgos nuevos. La evidencia de implementación está documentada
+en las Notas de Implementación del Execution Plan v1.0.10 (§3.1, §3.2), no en
+este Evidence Log (que registra únicamente evidencia forense de findings).
+
+Wave 3.1 (Tasks 3.1.1-3.1.3) y Wave 3.2 (Tasks 3.2.1-3.2.3) no registraron
+hallazgos nuevos. Wave 3.3 (Task 3.3.1) registró DF-08: PDF orphan en el
+directorio canonical, resuelto moviendo el archivo a `tests/corpus/archive/`.
+Gate 3 cierra con 1 finding analizado (DF-08 RESOLVED).
 
 ---
 
@@ -343,7 +351,7 @@ La condición original existe. La cadena transitiva es real y verificable. `core
 1. **"Domain must not import from Infrastructure":** `core` no debe alcanzar `infra` ni siquiera transitivamente.
 2. **"Domain modules must not import concrete OCR provider implementations":** `core` no debe alcanzar librerías de extracción concretas.
 
-La resolución completa requiere refactorizar `core/benchmark/__main__.py` para eliminar la dependencia directa de `apps/`. Esto implica rediseñar cómo el benchmark accede al pipeline de extracción, probablemente mediante inyección de dependencias o un puerto. Esta refactorización está fuera del scope de Gate 1 y se planifica para Gate 3-4.
+La resolución completa requiere refactorizar `core/benchmark/__main__.py` para eliminar la dependencia directa de `apps/`. Esto implica rediseñar cómo el benchmark accede al pipeline de extracción, probablemente mediante inyección de dependencias o un puerto. Esta refactorización está fuera del scope de Gate 1 y Gate 3, y se planifica para Gate 4.
 
 #### 2.2.5 Gaps objetivos confirmados
 
@@ -482,6 +490,141 @@ El contrato 3 BROKEN era una señal explícita de que la configuración estaba i
 
 ---
 
+### 2.4 DF-08 — PDF orphan en directorio canonical (Wave 3.3)
+
+| Campo | Valor |
+|-------|-------|
+| **ID** | DF-08 |
+| **Tipo** | Deferred Finding — Hallazgo de gobernanza del corpus |
+| **Estado** | `RESOLVED` |
+| **Origen** | Wave 3.3 / Task 3.3.1 |
+| **Gate destino original** | Gate 3 |
+| **Estado previo** | PENDING_REVIEW |
+| **Prioridad** | Alta |
+| **¿Requiere implementación?** | Sí — mover PDF orphan a archive |
+| **¿Bloquea Continuous Verification?** | Sí — exit 3 (BASELINE_INTEGRITY_FAILURE) en toda ejecución |
+
+#### 2.4.1 Texto original del DF
+
+> *"tests/corpus/canonical/pdf/ contiene doc_06_johnstone.pdf que no está
+> listado en manifest.json v3.9. BaselineCompletenessVerifier.verify_pdf_ids()
+> falla con 'Orphan PDF (not in manifest): doc_06_johnstone' y exit code 3
+> en toda ejecución del entry point de Continuous Verification, tanto en
+> tests locales e2e como en CI."*
+
+#### 2.4.2 Reformulación corregida
+
+No requiere reformulación.
+
+#### 2.4.3 Archivos y documentos auditados
+
+| # | Archivo / Documento | Evidencia extraída |
+|---|---------------------|-------------------|
+| 1 | `tests/corpus/canonical/manifest.json` | Lista 21 documentos. `doc_06_johnstone` NO está listado |
+| 2 | `tests/corpus/canonical/pdf/doc_06_johnstone.pdf` | Archivo existe (Test-Path: True), 563,435 bytes |
+| 3 | `tests/corpus/canonical/ground_truth/doc_06_johnstone.json` | Archivo NO existe (Test-Path: False) |
+| 4 | `manifest_hash` del DTO | `727782fe0df26d9dd401830a54785b03df5fd059ebf83cc422cb58d8a3d19f7d` (21 documentos) |
+| 5 | Salida de `run_regression.py` (tests e2e) | `BASELINE_INTEGRITY_FAILURE: PDF completeness violations: Orphan PDF (not in manifest): doc_06_johnstone` |
+| 6 | `BaselineCompletenessVerifier.verify_pdf_ids()` | Requiere biyección perfecta manifest ↔ PDFs (NADR-26 §5.3 R11-R12) |
+| 7 | Documentación histórica de Fase 5 | Múltiples referencias a `doc_06_johnstone` en HITO_6.2, FASE_5_EXECUTION_PLAN, FASE_5_DEFERRED_FINDINGS_REGISTER |
+| 8 | Tests que dependen del directorio pdf/ | Verificación previa: ningún test cuenta archivos en `canonical/pdf/` (solo tests de stress standalone no incluidos en suite) |
+| 9 | `tools/evaluation/` | Verificación previa: ningún script asume presencia de `doc_06_johnstone` |
+
+#### 2.4.4 Análisis
+
+La condición original existe y es verificable empíricamente:
+- El manifest v3.9 lista 21 documentos con Ground Truth sellado
+- El directorio `tests/corpus/canonical/pdf/` contenía 22 PDFs (1 orphan)
+- El Ground Truth correspondiente a `doc_06_johnstone` NO existe (no fue sellado en Fase 5)
+- `BaselineCompletenessVerifier.verify_pdf_ids()` implementa NADR-26 §5.3 R11-R12: biyección perfecta manifest ↔ PDFs. Detecta el orphan y falla fail-fast con exit 3.
+
+El PDF es orphan por diseño: en Fase 5 el documento se curó pero no se selló su Ground Truth correspondiente. Sin GT sellado, no puede incluirse en el manifest canónico. La documentación histórica de Fase 5 referencia `doc_06_johnstone` como documento del corpus en curación, pero el sellado no se completó.
+
+No es violación de NADRs de Fase 6 por la implementación: la defensa en profundidad funciona correctamente (detecta la inconsistencia fail-fast con mensaje explícito). Es un problema de gobernanza del corpus que se resuelve moviendo el archivo fuera del directorio canónico.
+
+Verificaciones previas al movimiento (empíricas):
+1. Ningún test en `tests/unit/` ni `tests/integration/` depende de los 22 PDFs
+2. Ningún script en `tools/evaluation/` asume presencia de `doc_06_johnstone`
+3. El `manifest_hash` se calcula sobre el contenido del `manifest.json`, no sobre los PDFs del directorio → mover el PDF no altera el hash
+4. `Test-Path` confirmó que el PDF existe y el GT no existe
+
+#### 2.4.5 Gaps objetivos confirmados
+
+| # | Gap | Evidencia | Severidad |
+|---|-----|-----------|-----------|
+| G1 | PDF orphan en directorio canonical | Test-Path: existe en `pdf/`, no en manifest | Alta (bloquea toda ejecución) |
+| G2 | Ground Truth no sellado para doc_06 | Test-Path: no existe en `ground_truth/` | Media (limitación de Fase 5, aceptada) |
+
+#### 2.4.6 Lo que NO es un gap
+
+| Aspecto | Veredicto | Justificación |
+|---------|-----------|---------------|
+| Manifest v3.9 con 21 documentos | ✅ Correcto | Refleja los documentos con GT sellado |
+| `BaselineCompletenessVerifier.verify_pdf_ids()` | ✅ Correcto | Implementa NADR-26 §5.3 R11-R12 correctamente |
+| Exit code 3 para orphan | ✅ Correcto | NADR-26 §5.6 R25: fallo de integridad ≠ regresión |
+| manifest_hash invariante | ✅ Correcto | Hash calculado sobre `manifest.json`, no sobre PDFs |
+| Documentación histórica de Fase 5 | ✅ Correcto | Referencia al documento en curación, no implica sellado |
+
+#### 2.4.7 Impacto en Continuous Verification
+
+| Dimensión | ¿Afecta? | Justificación |
+|-----------|----------|---------------|
+| Determinismo | ❌ No | El hash del manifest es determinista e invariante |
+| Reproducibilidad | ⚠️ Sí (antes de resolver) | Bloquea ejecución; resuelto con movimiento del PDF |
+| Corrección funcional | ❌ No | La defensa fail-fast funciona correctamente |
+| Enforcement demostrable | ❌ No | No afecta contratos de merge protection |
+| Bloquea Fase 18 | ❌ No | Resolución simple: mover PDF |
+
+#### 2.4.8 Clasificación consolidada
+
+| Campo | Valor |
+|-------|-------|
+| Condición original existe | ✅ Sí |
+| Es violación arquitectónica | ❌ No (defensa funciona correctamente) |
+| Es violación de gobernanza | ✅ Sí (higiene del corpus canonical) |
+| Es problema técnico | ✅ Sí |
+| Pertenece a Fase 6 | ✅ Sí (detección por defensa de Fase 6) |
+| Bloquea Continuous Verification | ✅ Sí (exit 3 en toda ejecución) |
+| Clasificación | `RESOLVED` |
+| Prioridad | Alta |
+
+#### 2.4.9 Regla aplicada
+
+> **NADR-F17BIS-26 §5.3 R11-R12:**
+> *"La baseline canónica MUST presentar biyección perfecta entre los
+> documentos listados en el manifest y los artefactos materializados en
+> el entorno de ejecución."*
+
+El PDF orphan violaba esta biyección. La resolución (mover el PDF fuera del
+directorio canonical) restablece la biyección sin modificar la baseline sellada
+(manifest v3.9 y su hash `727782fe...19f7d` permanecen invariados).
+
+> **ENGINEERING_PRINCIPLES §IV (Cero Fallos Silenciosos):**
+> *"Todo fallo debe ser explícito o derivar en implementación."*
+
+La detección fail-fast con exit 3 y mensaje explícito ("Orphan PDF:
+doc_06_johnstone") cumplió correctamente este principio. No hubo fallo
+silencioso. El assert contra BASELINE_INTEGRITY_FAILURE en los tests e2e
+distinguió correctamente un problema de baseline de una divergencia
+topológica real.
+
+#### 2.4.10 Resolución y evidencia post-movimiento
+
+**Acción ejecutada:**
+- `doc_06_johnstone.pdf` movido de `tests/corpus/canonical/pdf/` a `tests/corpus/archive/`
+- Creado `tests/corpus/archive/README.md` documentando el archivo
+
+**Evidencia post-movimiento:**
+- `manifest_hash` idéntico: `727782fe0df26d9dd401830a54785b03df5fd059ebf83cc422cb58d8a3d19f7d`
+- Tests e2e: 13/13 passed (antes del movimiento: 8 FAILED con exit 3)
+- Suite completa: 906 passed, 5 skipped
+- Import-linter: 4/4 KEPT
+- Pyright: 0 errors
+
+**Nota sobre el movimiento:** Durante la ejecución inicial de `Move-Item`, el destino `tests/corpus/archive/` no existía como directorio, y PowerShell interpretó el destino como nuevo nombre del archivo. El archivo fue renombrado a `archive` en `tests/corpus/`. Se corrigió con `Rename-Item` + `New-Item -ItemType Directory` + `Move-Item` al directorio correcto. Verificación post-corrección: el PDF está en `tests/corpus/archive/doc_06_johnstone.pdf` y NO está en `tests/corpus/canonical/pdf/`.
+
+---
+
 ## 3. GATE EXIT REVIEW SUMMARY
 
 ### 3.1 Gate 1 Exit Review — Verification Foundation (2026-09-26)
@@ -539,22 +682,71 @@ arquitectónicas congeladas están documentadas en el Findings Register v0.6.0
 
 ---
 
-### 3.3 Gate 3 Exit Review — Continuous Verification Integration ({YYYY-MM-DD})
+### 3.3 Gate 3 Exit Review — Continuous Verification Integration (2026-09-30)
 
 **Gate:** Gate 3 — Continuous Verification Integration
 **NADRs:** NADR-F17BIS-29 (35 reglas) + verificación transversal NADR-F17BIS-25 a NADR-F17BIS-29
 **Tasks:** 3.1.1, 3.1.2, 3.1.3, 3.2.1, 3.2.2, 3.2.3, 3.3.1, 3.3.2, 3.3.3
+**Resultado:** ✅ COMPLETED — 35/35 reglas DONE, 9/9 Tasks DONE, 906 tests passed (suite completa, incluye 13 e2e)
+
+**Árbol de decisión aplicado:**
 
 | DF | ¿Válido? | ¿Resoluble? | ¿Técnico? | Decisión | Motivo |
 |----|----------|-------------|-----------|----------|--------|
-| — | — | — | — | — | {Pendiente de ejecución} |
+| DF-08 | ✅ Sí | ✅ Sí (Task 3.3.1) | ✅ Sí | RESOLVED | PDF orphan movido a `tests/corpus/archive/`; baseline sellada invariante |
 
 **Resumen:**
-- RESOLVED: {N} ({DF-XX})
-- RECLASIFICADO → Gate {X}: {N} ({DF-XX, DF-YY})
-- CLOSED (NAR): {N} ({DF-XX})
-- CONVERTIDO EN GF: {N} ({GF-XX})
-- Nuevos hallazgos registrados: {N} ({DF-XX})
+- RESOLVED: 1 (DF-08)
+- RECLASIFICADO → Gate {X}: 0
+- CLOSED (NAR): 0
+- CONVERTIDO EN GF: 0
+- Nuevos hallazgos registrados: 1 (DF-08 en Wave 3.3)
+
+**Nota:** Waves 3.1 y 3.2 implementaron los perfiles de ejecución (FULL y SMOKE)
+con `profile_identity` en la identity chain, `coverage` en el reporte, y la
+integración completa de CI (resolviendo GAP-6.3-01 P0), sin identificar
+hallazgos. Wave 3.3 validó end-to-end contra el corpus canónico real y detectó
+DF-08 (PDF orphan), resuelto en la misma Task. Las decisiones arquitectónicas
+congeladas están documentadas en el Findings Register v0.9.0 §2.3, y las
+notas de implementación en el Execution Plan v1.0.10 §4.1, §4.2 y §4.3.
+
+**Decisiones de diseño destacadas (documentadas en Findings Register):**
+
+1. **Wave 3.1:** La selección del perfil SMOKE usa lista hardcoded de 5 documentos
+   representativos en lugar de criterio por traits, basado en auditoría forense
+   del corpus canonical que reveló que el criterio inicial producía solo 2
+   documentos calificantes.
+
+2. **Wave 3.2:** NO renombrar `regression-gates` a legacy para preservar branch
+   protection existente (MIG-01 de Gate 4 actualizará después). FULL sin
+   pull_request trigger (costo ~4 min por PR degrada experiencia; SMOKE ~1 min
+   cubre PRs). Invocación como módulo (`python -m`) resuelve imports absolutos
+   sin PYTHONPATH. `if: always()` en upload-artifact crítico para debugging de
+   EXECUTION_FAILURE y BASELINE_INTEGRITY_FAILURE.
+
+3. **Wave 3.3:** Marker `@pytest.mark.e2e` para tests lentos (~25s total).
+   Veredicto científico válido sin asumir HARD_FAIL (robusto ante mejora futura
+   de baseline). Assert contra fallos operacionales como defensa en profundidad.
+   PDF orphan movido a archive/ (no eliminado) para preservar trazabilidad
+   histórica del corpus.
+
+**GAP-6.3-01 (P0) resuelto:** El job `regression-gates` ahora invoca
+`python -m tools.evaluation.run_regression --profile SMOKE` en lugar de
+`pytest -m "regression"` (que seleccionaba 0 tests). El workflow separado
+`continuous-verification.yml` ejecuta el perfil FULL en push [main] +
+workflow_dispatch. Esto cumple NADR-25 §5.2 R5-R7 y NADR-29 §5.5 R27
+(entry point no omitido).
+
+**Validación end-to-end (Wave 3.3):** Los 13 tests e2e verificaron contra el
+corpus canónico real (21 documentos del manifest v3.9):
+- FULL produce veredicto científico válido (REGRESSION: NSS ~0.72 < threshold 0.80)
+- FULL coverage = 21 documentos
+- SMOKE coverage = 5 documentos específicos
+- smoke ⊂ full (subconjunto estricto)
+- execution_id diferente entre perfiles (NADR-29 §5.6 R31)
+- profile_identity diferente entre perfiles (NADR-29 §5.6 R28-R29)
+- Determinismo de execution_id en dos ejecuciones equivalentes (NADR-28 §5.2 R8)
+- exit code consistente con veredicto científico (NADR-27 §5.6 R29-R35)
 
 ---
 
@@ -602,7 +794,7 @@ Se actualiza al cierre del último Gate Exit Review.
 |--------------|----------|-----|
 | `CLOSED (NAR)` | 0 | — |
 | `RESOLVED — DELETE` | 0 | — |
-| `RESOLVED` | 3 | DF-01, DF-05, DF-07 |
+| `RESOLVED` | 4 | DF-01, DF-05, DF-07, DF-08 |
 | `IMPLEMENTATION_REQUIRED` | 0 | — |
 | `RECLASSIFIED_FUTURE_PHASE` | 0 | — |
 | `REVIEW_REQUIRED` | 0 | — |
@@ -614,8 +806,9 @@ Se actualiza al cierre del último Gate Exit Review.
 |----|--------|----------|
 | DF-01 | `RESOLVED` | Falta `include_external_packages = true` en configuración top-level (Task 1.1.3) |
 | DF-05 | `RESOLVED` | `ignore_imports` huérfanos eliminados del contrato 1 (Task 1.1.3) |
-| DF-06 | `ACCEPTED_LIMITATION` | `core.benchmark.__main__` importa de `apps/`; deuda técnica Gate 3-4 |
+| DF-06 | `ACCEPTED_LIMITATION` | `core.benchmark.__main__` importa de `apps/`; deuda técnica diferida a Gate 4 (MIG-01) |
 | DF-07 | `RESOLVED` | `ignore_imports` agregado al contrato 3 para la cadena transitiva DF-06 (Task 1.1.3) |
+| DF-08 | `RESOLVED` | PDF orphan `doc_06_johnstone.pdf` movido de `tests/corpus/canonical/pdf/` a `tests/corpus/archive/`; baseline sellada invariante (Wave 3.3, Task 3.3.1) |
 
 ---
 
@@ -651,8 +844,8 @@ sección correspondiente de este Evidence Log.
 
 | Categoría | Cantidad |
 |-----------|----------|
-| Total de hallazgos analizados | 4 |
-| Hallazgos resueltos | 3 |
+| Total de hallazgos analizados | 5 |
+| Hallazgos resueltos | 4 |
 | Hallazgos pendientes de implementación | 0 |
 | Hallazgos pendientes de revisión | 0 |
 | Hallazgos cerrados sin acción | 0 |
@@ -665,7 +858,7 @@ sección correspondiente de este Evidence Log.
 |------|--------|-----------|---------|
 | Gate 1 — Verification Foundation | ✅ COMPLETED (2026-09-26) | 4 (3 RESOLVED, 1 ACCEPTED_LIMITATION) | §2.0, §2.1, §2.2, §2.3 |
 | Gate 2 — Verification Contract | ✅ COMPLETED (2026-09-29) | 0 | — |
-| Gate 3 — Continuous Verification Integration | ⏳ PENDING | 0 | — |
+| Gate 3 — Continuous Verification Integration | ✅ COMPLETED (2026-09-30) | 1 (DF-08 RESOLVED) | §2.4 |
 | Gate 4 — Enforcement & Phase Closure | ⏳ PENDING | 0 | — |
 
 ---

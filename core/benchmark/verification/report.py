@@ -53,6 +53,7 @@ class ContinuousVerificationReport:
     schema_version: str
     identity_chain: IdentityChain
     operational_result: ContinuousVerificationResult
+    coverage: tuple[str, ...]
     regression_report: RegressionReport | None = None
 
 
@@ -112,6 +113,7 @@ class JsonContinuousVerificationReportFormatter(
                 "exit_code": report.operational_result.exit_code,
                 "reason": report.operational_result.reason,
             },
+            "coverage": list(report.coverage),  # ← NUEVO
         }
 
         if report.regression_report is not None:

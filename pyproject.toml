@@ -76,6 +76,7 @@ markers = [
     "integration: Integration tests requiring real PDFs",
     "unit: Pure unit tests with no I/O",
     "smoke: Smoke tests for CI fast-path",
+    "e2e: Tests end-to-end de validación (lentos, ejecutar bajo demanda)",
 ]
 
 # ─────────────────────────────────────────────────────────────────────────────

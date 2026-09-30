@@ -53,6 +53,7 @@ class IdentityChain:
     subject_identity: str | None  # commit_sha o None
     configuration_identity: str  # config_fingerprint
     parameter_identity: str  # hash de FrozenParameters
+    profile_identity: str # ← (NADR-29 §5.6 R28-R31)
     result_identity: str | None  # hash del resultado, None si no se completó
     limitations: tuple[str, ...]  # limitaciones observables (R29)
 
@@ -65,6 +66,7 @@ class IdentityChain:
             "subject_identity": self.subject_identity,
             "configuration_identity": self.configuration_identity,
             "parameter_identity": self.parameter_identity,
+            "profile_identity": self.profile_identity,
             "result_identity": self.result_identity,
             "limitations": list(self.limitations),
         }
@@ -118,6 +120,7 @@ def build_execution_id(
     subject_identity: str | None,
     configuration_identity: str,
     parameter_identity: str,
+    profile_identity: str,
 ) -> str:
     """Construye execution_id determinista (NADR-28 §5.1 R1, §5.2 R8).
 
@@ -143,7 +146,8 @@ def build_execution_id(
         f"{baseline_identity}|"
         f"{subject_identity if subject_identity is not None else 'NONE'}|"
         f"{configuration_identity}|"
-        f"{parameter_identity}"
+        f"{parameter_identity}|"
+        f"{profile_identity}"
     )
     return compute_sha256(payload.encode("utf-8"))
 
@@ -182,6 +186,7 @@ def build_identity_chain(
     subject_identity: str | None,
     configuration_identity: str,
     cost_weights: dict[NodeCriticality, float],
+    profile_identity: str,
     warning_threshold: int = 1,
     nss_hard_fail: float | None = None,
     nss_warning: float | None = None,
@@ -217,6 +222,7 @@ def build_identity_chain(
         subject_identity=subject_identity,
         configuration_identity=configuration_identity,
         parameter_identity=parameter_identity,
+        profile_identity=profile_identity,
     )
 
     # Construir limitaciones observables (NADR-28 §5.5 R29)
@@ -233,6 +239,16 @@ def build_identity_chain(
         subject_identity=subject_identity,
         configuration_identity=configuration_identity,
         parameter_identity=parameter_identity,
+        profile_identity=profile_identity,  
         result_identity=result_identity,
         limitations=tuple(limitations),
     )
+
+def build_profile_identity(
+    profile_name: str,
+    document_ids: frozenset[str],
+) -> str:
+    """Construye profile_identity determinista (NADR-29 §5.6 R28-R31)."""
+    sorted_ids = sorted(document_ids)
+    payload = f"{profile_name}|{','.join(sorted_ids)}"
+    return compute_sha256(payload.encode("utf-8"))

@@ -1,11 +1,11 @@
 # FASE_6_DEFERRED_FINDINGS_REGISTER.md
 
 **Documento:** `docs/architecture/adr/phase-17-bis/reviews/FASE_6_DEFERRED_FINDINGS_REGISTER.md`
-**Versión:** 0.6.0
+**Versión:** 0.9.0
 **Estado:** IN_PROGRESS
 **Fecha de creación:** 2026-09-25
-**Última actualización:** 2026-09-26
-**Derivado de:** `PHASE_17BIS_FASE6_EXECUTION_PLAN.md` v1.0.7
+**Última actualización:** 2026-09-30
+**Derivado de:** `PHASE_17BIS_FASE6_EXECUTION_PLAN.md` v1.0.10
 **Propósito:** Registro auditable de hallazgos identificados durante la implementación
 del Execution Plan de Fase 6 (Continuous Verification), su clasificación, resolución
 y evidencia empírica de los batches.
@@ -16,7 +16,7 @@ y evidencia empírica de los batches.
 
 ### 0.1 Jerarquía normativa aplicada
 
-ADR_F17_BIS_MASTER > ADR_F17_BIS_06 v1.2.0 > NADR-F17BIS-25..30 > PHASE_17BIS_FASE6_EXECUTION_PLAN v1.0.7
+ADR_F17_BIS_MASTER > ADR_F17_BIS_06 v1.2.0 > NADR-F17BIS-25..30 > PHASE_17BIS_FASE6_EXECUTION_PLAN v1.0.10
 
 > *"No lower governance level is authorized to redefine or contradict
 > decisions established by an upper level."*
@@ -37,7 +37,7 @@ ADR_F17_BIS_MASTER > ADR_F17_BIS_06 v1.2.0 > NADR-F17BIS-25..30 > PHASE_17BIS_FA
 - **NADR-F17BIS-30 §5.5 R14-R16:** NO DEMOSTRADO no es una forma alternativa de DONE. Un finding sobre enforcement sin evidencia externa no puede cerrarse como RESOLVED sin evidencia server-side.
 - **ADR_F17_BIS_MASTER §5 (Determinismo y Reproducibilidad):** Todo hallazgo que afecte la reproducibilidad de la verificación debe clasificarse como IMPLEMENTATION_REQUIRED o ACCEPTED_LIMITATION con justificación explícita.
 - **ADR_F17_BIS_06 v1.2.0 D1 (Integración, No Creación):** Ningún finding puede justificar la creación de un segundo mecanismo de verificación.
-- **PHASE_17BIS_FASE6_EXECUTION_PLAN v1.0.7 §8 (Global DoD):** Un finding que afecta una regla normativa solo se cierra cuando es trazable a una implementación commiteada, un mecanismo de verification superado y un mecanismo de validation superado.
+- **PHASE_17BIS_FASE6_EXECUTION_PLAN v1.0.10 §8 (Global DoD):** Un finding que afecta una regla normativa solo se cierra cuando es trazable a una implementación commiteada, un mecanismo de verification superado y un mecanismo de validation superado.
 
 ---
 
@@ -87,7 +87,7 @@ ADR_F17_BIS_MASTER > ADR_F17_BIS_06 v1.2.0 > NADR-F17BIS-25..30 > PHASE_17BIS_FA
 ### 1.5 Relación con el Execution Plan
 
 Este registro es la **autoridad única** para el ciclo de vida de hallazgos.
-El Execution Plan (`PHASE_17BIS_FASE6_EXECUTION_PLAN.md` v1.0.7) referencia
+El Execution Plan (`PHASE_17BIS_FASE6_EXECUTION_PLAN.md` v1.0.10) referencia
 hallazgos por ID pero no los clasifica ni los resuelve.
 
 Execution Plan (Task)
@@ -269,43 +269,143 @@ Commits / Tests (evidencia)
 
 ---
 
-### 2.3 Gate 3 Exit Review — Continuous Verification Integration ({YYYY-MM-DD})
+### 2.3 Gate 3 Exit Review — Continuous Verification Integration (2026-09-30)
 
 **Gate:** Gate 3 — Continuous Verification Integration
 **NADRs:** NADR-F17BIS-29 (35 reglas) + verificación transversal NADR-F17BIS-25 a NADR-F17BIS-29
-**Tasks:** 3.1.1, 3.1.2, 3.1.3, 3.2.1, 3.2.2, 3.2.3, 3.3.1, 3.3.2, 3.3.3
+**Tasks:** 3.1.1, 3.1.2, 3.1.3 (Wave 3.1), 3.2.1, 3.2.2, 3.2.3 (Wave 3.2), 3.3.1, 3.3.2, 3.3.3 (Wave 3.3)
+**Estado:** ✅ COMPLETED (Waves 3.1 + 3.2 + 3.3)
+**Resultado:** 35/35 reglas NADR-29 DONE, 9/9 Tasks DONE, 906 tests passed (suite completa, incluye 13 e2e), pyright 0 errors, import-linter 4/4 KEPT. GAP-6.3-01 (P0) resuelto.
 
 **Árbol de decisión aplicado:**
 
-```text
 1. ¿Sigue siendo válido el hallazgo? → NO: CLOSED (NAR) / SÍ: continuar
 2. ¿Puede resolverse dentro del Gate actual? → SÍ: RESOLVED / NO: continuar
 3. ¿Es un problema técnico? → SÍ: RECLASIFICADO / NO: continuar
 4. ¿Es un conflicto normativo? → SÍ: CONVERTIDO EN GF
-```
 
 | DF | ¿Válido? | ¿Resoluble? | ¿Técnico? | Decisión | Motivo |
 |----|----------|-------------|-----------|----------|--------|
-| — | — | — | — | — | {Pendiente de ejecución} |
+| DF-08 | ✅ Sí | ✅ Sí (resuelto en Task 3.3.1) | ✅ Sí | RESOLVED | PDF orphan `doc_06_johnstone.pdf` en `canonical/pdf/` sin entrada en manifest v3.9; movido a `tests/corpus/archive/` |
 
-**Resumen:**
-- RESOLVED: {N} ({DF-XX})
-- RECLASIFICADO → Gate {X}: {N} ({DF-XX, DF-YY})
-- CLOSED (NAR): {N} ({DF-XX})
-- CONVERTIDO EN GF: {N} ({GF-XX})
-- Nuevos hallazgos registrados: {N} ({DF-XX})
-- Revisiones tardías documentadas: {N} ({DF-XX})
+**Resumen Gate 3 (Waves 3.1 + 3.2 + 3.3):**
+- RESOLVED: 1 (DF-08)
+- ACCEPTED_LIMITATION: 0
+- RECLASIFICADO → Gate {X}: 0
+- CLOSED (NAR): 0
+- CONVERTIDO EN GF: 0
+- Nuevos hallazgos registrados: 1 (DF-08 en Wave 3.3)
+- Hallazgos registrados en Wave 3.1: 0
+- Hallazgos registrados en Wave 3.2: 0
+- Hallazgos registrados en Wave 3.3: 1 (DF-08)
+- Revisiones tardías documentadas: 0
 
-#### Decisiones arquitectónicas congeladas en Gate 3 (si aplica)
+#### DF-08 — PDF orphan en directorio canonical (Wave 3.3)
+
+| Campo | Valor |
+|-------|-------|
+| **ID** | DF-08 |
+| **Tipo** | Deferred Finding — Hallazgo de gobernanza del corpus |
+| **Estado** | `RESOLVED` |
+| **Origen** | Wave 3.3 / Task 3.3.1 (durante ejecución e2e de validación de perfiles) |
+| **Gate destino** | Gate 3 (Continuous Verification Integration) |
+| **Prioridad** | Alta (bloqueaba tests e2e y CI) |
+| **¿Bloquea Continuous Verification?** | Sí — `verify_pdf_ids()` fallaba con `IncompleteBaselineError` (exit 3) |
+
+**Texto del hallazgo:**
+
+> `tests/corpus/canonical/pdf/` contiene `doc_06_johnstone.pdf` que NO está
+> listado en `manifest.json` v3.9. Esto viola NADR-F17BIS-26 §5.3 R11-R12
+> (biyección perfecta manifest ↔ PDFs), causando `IncompleteBaselineError`
+> con mensaje "Orphan PDF (not in manifest): doc_06_johnstone" y exit code 3
+> (BASELINE_INTEGRITY_FAILURE) en toda ejecución del entry point de
+> Continuous Verification, tanto en tests locales e2e como en CI.
+
+**Evidencia forense:**
+- `manifest.json` v3.9 lista 21 documentos (hash `727782fe0df26d9dd401830a54785b03df5fd059ebf83cc422cb58d8a3d19f7d`)
+- `tests/corpus/canonical/pdf/` contenía 22 PDFs (incluyendo `doc_06_johnstone.pdf`)
+- `tests/corpus/canonical/ground_truth/` contiene 21 JSONs (sin `doc_06_johnstone.json`)
+- `BaselineCompletenessVerifier.verify_pdf_ids()` requiere biyección perfecta
+- Error observado: `BASELINE_INTEGRITY_FAILURE: PDF completeness violations: Orphan PDF (not in manifest): doc_06_johnstone`
+- El Ground Truth correspondiente NO fue sellado en Fase 5 (limitación aceptada de esa fase)
+
+**Resolución:**
+- `doc_06_johnstone.pdf` movido a `tests/corpus/archive/`
+- Creado `tests/corpus/archive/README.md` documentando el archivo
+- Manifest v3.9 y su hash permanecen invariados (la baseline sellada no se modifica)
+- Verificación post-movimiento: manifest_hash idéntico, tests e2e verdes, suite completa verde
+
+**Impacto en baseline sellada:** NINGUNO. El `manifest_hash` se calcula sobre el contenido de `manifest.json`, no sobre los PDFs del directorio. Mover el PDF no altera la baseline sellada ni su identidad.
+
+**Regla aplicada:**
+
+> **NADR-F17BIS-26 §5.3 R11-R12:** "La baseline canónica MUST presentar
+> biyección perfecta entre los documentos listados en el manifest y los
+> artefactos materializados en el entorno de ejecución."
+
+> **ENGINEERING_PRINCIPLES §IV (Cero Fallos Silenciosos):** La detección
+> fail-fast con exit 3 y mensaje explícito cumplió correctamente este
+> principio. No hubo fallo silencioso: el assert contra BASELINE_INTEGRITY_FAILURE
+> en los tests e2e distinguió correctamente problema de pipeline de
+> divergencia topológica real.
+
+#### Decisiones arquitectónicas congeladas en Wave 3.1
 
 | Decisión | Task | Justificación |
 |----------|------|---------------|
-| — | — | {Pendiente de ejecución} |
+| `VerificationProfile` enum en bounded context `verification/` | 3.1.1 | Consistente con Wave 2.1-2.2 (verification/outcome.py, verification/identity_chain.py) |
+| Lista hardcoded de 5 docs para SMOKE en lugar de criterio por traits | 3.1.2 | El criterio por traits producía solo 2 documentos calificantes en el corpus actual; auditoría forense previa al diseño habría evitado esto |
+| `profile_identity` incluido en `execution_id` (no solo en IdentityChain) | 3.1.3 | NADR-29 §5.6 R31: ejecuciones bajo perfiles diferentes producen execution_ids diferentes |
+| `coverage: tuple[str, ...]` ordenado en reporte | 3.1.3 | `tuple` más explícito sobre ordenamiento determinista que `frozenset` |
+| `--profile` flag en `run_regression.py` con filtrado en `_run_evaluation()` | 3.1.3 | Mecanismo común (NADR-29 §5.5 R24-R27): mismas verificaciones, misma semántica, diferente cobertura |
 
-#### Lecciones aprendidas (si aplica)
+#### Decisiones arquitectónicas congeladas en Wave 3.2
 
-- {Pendiente de ejecución}
+| Decisión | Task | Justificación |
+|----------|------|---------------|
+| NO renombrar `regression-gates` a legacy | 3.2.1 | Preserva branch protection existente. Renombrado se hará en Gate 4 (MIG-01) cuando se actualice la configuración server-side |
+| FULL sin pull_request trigger | 3.2.2 | Costo ~4 min por PR degrada experiencia de desarrollo. SMOKE (~1 min) cubre PRs (NADR-29 §5.4 R18) |
+| Sin static-analysis en CV workflow | 3.2.2 | Separación de responsabilidades. Ambos workflows corren en paralelo |
+| `python -m tools.evaluation.run_regression` | 3.2.1 | Invocación como módulo resuelve imports absolutos sin PYTHONPATH |
+| Output dirs separados | 3.2.1, 3.2.2 | `reports/continuous-verification/` (FULL) vs `reports/continuous-verification-smoke/` (SMOKE) |
+| Reemplazo total de `pytest -m "regression"` | 3.2.1 | El comando anterior seleccionaba 0 tests. No tiene sentido mantenerlo junto al nuevo |
+| `if: always()` en upload-artifact | 3.2.1, 3.2.2 | Crítico para debugging de EXECUTION_FAILURE y BASELINE_INTEGRITY_FAILURE |
+| Verificación de mutación del corpus | 3.2.1, 3.2.2 | NADR-26 §5.4 R16-R19: `git diff tests/corpus/canonical/` |
 
+#### Decisiones arquitectónicas congeladas en Wave 3.3
+
+| Decisión | Task | Justificación |
+|----------|------|---------------|
+| Marker `@pytest.mark.e2e` para tests lentos | 3.3.1 | ~25s de ejecución total; ejecutables bajo demanda sin ralentizar suite estándar |
+| Veredicto científico válido sin asumir HARD_FAIL | 3.3.1 | Robusto ante mejora futura de baseline (Fase 18). El corpus actual produce REGRESSION (NSS ~0.72 < threshold 0.80), pero el test no acopla a ese estado específico |
+| Assert contra fallos operacionales | 3.3.1 | Defensa en profundidad: distingue problema de pipeline de divergencia topológica real |
+| PDF orphan movido a archive/ (no eliminado) | 3.3.1 | Preserva trazabilidad histórica del corpus. Reversible si se sella GT en el futuro |
+| Sin fixture para tests e2e | 3.3.1 | El assert contra BASELINE_INTEGRITY_FAILURE es la defensa correcta. Un fixture sería redundante |
+
+#### Lecciones aprendidas — Wave 3.1
+
+- **Auditar datos reales antes de diseñar criterios.** La propuesta inicial de criterio por traits para SMOKE (`traits ⊆ {native_pdf}` + `page_count <= 5`) producía solo 2 documentos calificantes en el corpus actual. Una auditoría forense previa al diseño habría evitado este error. La lista hardcoded con justificación explícita es SOTA para este corpus específico.
+- **Evolución de firmas entre Tasks es esperada, no un bug.** `build_execution_id()` se diseñó sin `profile_identity` en Wave 2.2 (Task 2.2.1), pero Wave 3.1 (Task 3.1.3) requirió agregarlo para cumplir NADR-29 §5.6 R31. Los tests de la Task original deben actualizarse cuando la firma cambia.
+- **Combinar propuestas SOTA produce mejores resultados que elegir una sola.** Ni la primera ni la segunda propuesta de Task 3.1.3 eran completas por sí solas. La combinación (tests exhaustivos de una + CLI de la otra) produjo el resultado SOTA de grado producción.
+- **`tuple[str, ...]` es preferible a `frozenset[str]` cuando el ordenamiento debe ser explícito.** Aunque `frozenset` es semánticamente correcto para un conjunto de document_ids, el ordenamiento determinista en JSON serializado requiere `tuple` ordenado.
+- **Corrección de tipo Pyright `frozenset[Unknown]`.** Cuando se asigna `frozenset()` vacío en un branch condicional, Pyright infiere `frozenset[Unknown]`. La anotación explícita `profile_document_ids: frozenset[str]` resuelve el error de tipo.
+
+#### Lecciones aprendidas — Wave 3.2
+
+- **Branch protection es una dependencia implícita.** Renombrar jobs existentes sin considerar branch protection rompe CI hasta que MIG-01 actualice la configuración. Decisión pragmática: modificar contenido, no nombre.
+- **Costo de CI impacta experiencia de desarrollo.** FULL (~4 min) en PRs es excesivo. SMOKE (~1 min) cumple NADR-29 §5.4 R18 (detección rápida).
+- **Verificación de mutación del corpus es esencial.** `git diff tests/corpus/canonical/` es complemento necesario a `git diff tests/fixtures/` (oráculos).
+- **Invocación como módulo (`python -m`) es obligatoria para scripts con imports absolutos.** Ejecutar `python tools/evaluation/run_regression.py` directamente causa `ModuleNotFoundError` porque Python agrega `tools/evaluation/` al PYTHONPATH, no el directorio raíz.
+- **`if: always()` en upload-artifact es crítico para debugging.** Sin esto, los artifacts de evidencia no se suben cuando el job falla, impidiendo diagnosticar EXECUTION_FAILURE y BASELINE_INTEGRITY_FAILURE.
+- **Tests de contrato de workflow son más robustos que yamllint.** Verificar la estructura semántica (invocación correcta, persist-credentials, upload-artifact) es más valioso que solo validar sintaxis YAML.
+
+#### Lecciones aprendidas — Wave 3.3
+
+- **La curación del corpus puede dejar artefactos orphans.** Fase 5 curó `doc_06_johnstone` pero no selló su Ground Truth. El PDF quedó en `canonical/pdf/` sin entrada en el manifest. La verificación de biyección `verify_pdf_ids()` (NADR-26 §5.3 R11-R12) detecta este tipo de inconsistencias fail-fast.
+- **Mover un PDF fuera del directorio canonical NO modifica la baseline sellada.** El `manifest_hash` se calcula sobre el contenido de `manifest.json`, no sobre los PDFs del directorio. Esto permite limpieza de orphans sin re-sellar.
+- **`Move-Item` de PowerShell interpreta destinos inexistentes como nuevo nombre de archivo.** Si el directorio destino no existe, `Move-Item -Destination "path/archive/"` renombra el archivo a `archive` en lugar de moverlo al directorio. Siempre crear el directorio destino antes con `New-Item -ItemType Directory`.
+- **Tests e2e contra el pipeline real detectan problemas de gobernanza del corpus que los tests unitarios no ven.** El assert contra BASELINE_INTEGRITY_FAILURE en `_assert_scientific_verdict` distinguió correctamente un problema de baseline de una divergencia topológica real.
+- **Simplificar tests ante estructuras serializadas complejas.** La versión inicial de `test_smoke_pass_does_not_imply_full_verification` intentaba comparar con `data["regression_report"]["documents"]` (lista de dicts no hashables). Simplificar a verificar `len(coverage) < EXPECTED_FULL_COVERAGE_SIZE` es más robusto y verifica la propiedad fundamental que R22 exige.
 ---
 
 ### 2.4 Gate 4 Exit Review — Enforcement & Phase Closure ({YYYY-MM-DD})
@@ -363,7 +463,7 @@ Se actualiza al cierre del último Gate Exit Review.
 |--------------|----------|-----|
 | `CLOSED (NAR)` | 0 | — |
 | `RESOLVED — DELETE` | 0 | — |
-| `RESOLVED` | 3 | DF-01, DF-05, DF-07 |
+| `RESOLVED` | 4 | DF-01, DF-05, DF-07, DF-08 |
 | `IMPLEMENTATION_REQUIRED` | 0 | — |
 | `RECLASSIFIED_FUTURE_PHASE` | 0 | — |
 | `REVIEW_REQUIRED` | 0 | — |
@@ -375,8 +475,9 @@ Se actualiza al cierre del último Gate Exit Review.
 |----|--------|----------|
 | DF-01 | `RESOLVED` | Contrato OCR providers roto por `include_external_packages`; resuelto con `ignore_imports` para cadena transitiva DF-06 (Task 1.1.3) |
 | DF-05 | `RESOLVED` | `ignore_imports` huérfanos eliminados del contrato 1 (Task 1.1.3) |
-| DF-06 | `ACCEPTED_LIMITATION` | `core.benchmark.__main__` importa de `apps/`; deuda técnica Gate 3-4 |
+| DF-06 | `ACCEPTED_LIMITATION` | `core.benchmark.__main__` importa de `apps/`; deuda técnica diferida a Gate 4 (MIG-01) |
 | DF-07 | `RESOLVED` | `ignore_imports` agregado al contrato 3 para la cadena transitiva DF-06 (Task 1.1.3) |
+| DF-08 | `RESOLVED` | PDF orphan `doc_06_johnstone.pdf` movido de `tests/corpus/canonical/pdf/` a `tests/corpus/archive/`; baseline sellada invariante (Wave 3.3, Task 3.3.1) |
 
 ---
 
@@ -435,8 +536,8 @@ Se actualiza al cierre de cada batch.
 
 | Métrica | Valor |
 |---------|-------|
-| Total de hallazgos analizados | 4 |
-| Hallazgos resueltos | 3 |
+| Total de hallazgos analizados | 5 |
+| Hallazgos resueltos | 4 |
 | Hallazgos cerrados sin acción | 0 |
 | Hallazgos reclasificados a fase futura | 0 |
 | Hallazgos pendientes de implementación | 0 |
@@ -444,20 +545,40 @@ Se actualiza al cierre de cada batch.
 | Hallazgos aceptados como limitación | 1 |
 | Batches completados | 0 |
 | Archivos eliminados totales | 0 |
-| Archivos movidos totales | 0 |
-| Archivos creados totales | 19 |
-| Archivos modificados totales | 8 |
-| Tests finales | 835 passed, 5 skipped |
+| Archivos movidos totales | 1 |
+| Archivos creados totales | 25 |
+| Archivos modificados totales | 13 |
+| Tests finales | 906 passed, 5 skipped |
 | Pyright final | 0 errors |
 
-**Nota:** Los "19 archivos creados" corresponden a:
+**Nota sobre "Archivos movidos totales: 1":** Corresponde a `doc_06_johnstone.pdf` movido de `tests/corpus/canonical/pdf/` a `tests/corpus/archive/` (DF-08, Wave 3.3).
+
+**Nota sobre "Archivos creados totales: 25":** Se agregan `tests/corpus/archive/README.md` y `tests/integration/test_cv_profile_validation.py` a los 23 archivos creados previos.
+
+Los "25 archivos creados" corresponden a:
 - Gate 1 (9): `test_verification_boundary.py`, `test_verification_pipeline_connection.py`, `core/benchmark/corpus/integrity.py`, `test_baseline_integrity.py`, `test_baseline_physical_integrity.py`, `test_baseline_pdf_completeness.py`, `test_baseline_gt_preconditions.py`, `test_baseline_integrity_semantics.py`, `test_baseline_integrity_exit_code.py`
 - Wave 2.1 (4): `core/benchmark/verification/__init__.py`, `core/benchmark/verification/outcome.py`, `test_verification_outcome.py`, `test_execution_failure_exit_code.py`
 - Wave 2.2 (6): `core/benchmark/verification/identity_chain.py`, `test_identity_chain.py`, `core/benchmark/verification/report.py`, `test_verification_report.py`, `test_subject_identity.py`, `test_cv_report_persistence.py`
+- Wave 3.1 (2): `core/benchmark/verification/profiles.py`, `test_verification_profiles.py`
+- Wave 3.2 (2): `.github/workflows/continuous-verification.yml`, `test_cv_workflow_contract.py`
+- Wave 3.3 (2): `tests/corpus/archive/README.md`, `test_cv_profile_validation.py`
 
-Los "8 archivos modificados" corresponden a: `run_regression.py`, `completeness.py`, `pyproject.toml`, `test_verification_boundary.py`, `test_baseline_integrity_exit_code.py`, `core/benchmark/topology/regression/report.py`, `test_regression_entry_point.py`, `test_identity_chain.py`.
+Los "13 archivos modificados" corresponden a:
+1. `run_regression.py` (Gate 1 + Wave 2.1 + Wave 2.2 + Wave 3.1)
+2. `completeness.py` (Gate 1)
+3. `pyproject.toml` (Gate 1 + Wave 3.3 marker e2e)
+4. `test_verification_boundary.py` (Gate 1 + Wave 2.1)
+5. `test_baseline_integrity_exit_code.py` (Gate 1 + Wave 2.1)
+6. `core/benchmark/topology/regression/report.py` (Wave 2.2)
+7. `test_regression_entry_point.py` (Wave 2.2 + Wave 3.1)
+8. `test_identity_chain.py` (Wave 2.2 + Wave 3.1)
+9. `core/benchmark/verification/identity_chain.py` (Wave 3.1)
+10. `core/benchmark/verification/report.py` (Wave 3.1)
+11. `test_verification_report.py` (Wave 3.1)
+12. `test_cv_report_persistence.py` (Wave 3.1)
+13. `.github/workflows/ci.yml` (Wave 3.2)
 
-Los "835 tests" son la suite completa del proyecto (incluye tests preexistentes de Fases anteriores). Tests nuevos de Fase 6: 47 (Gate 1) + 30 (Wave 2.1) + 38 (Wave 2.2) = 115.
+Los "906 tests" son la suite completa del proyecto (incluye tests preexistentes de Fases anteriores). Tests nuevos de Fase 6: 47 (Gate 1) + 30 (Wave 2.1) + 38 (Wave 2.2) + 36 (Wave 3.1) + 22 (Wave 3.2) + 13 (Wave 3.3 e2e) = 186.
 
 ---
 
@@ -465,11 +586,11 @@ Los "835 tests" son la suite completa del proyecto (incluye tests preexistentes 
 
 | Hallazgo | Destino | Justificación |
 |----------|---------|---------------|
-| DF-06 | Gate 3-4 (Fase 17-BIS) | `core.benchmark.__main__` importa de `apps/`; requiere refactorización del benchmark para eliminar dependencia de `apps/` |
+| DF-06 | `ACCEPTED_LIMITATION` | `core.benchmark.__main__` importa de `apps/`; deuda técnica diferida a Gate 4 (MIG-01) |
 
 ### 6.1 Candidatos pre-identificados (no constituyen hallazgos registrados)
 
-Los siguientes son escenarios anticipados por el Execution Plan v1.0.7 que **podrían** generar hallazgos diferidos. No se registran como hallazgos hasta que se materialicen durante la implementación:
+Los siguientes son escenarios anticipados por el Execution Plan v1.0.10 que **podrían** generar hallazgos diferidos. No se registran como hallazgos hasta que se materialicen durante la implementación:
 
 | Escenario anticipado | Posible destino | Condición de activación |
 |---------------------|-----------------|------------------------|
@@ -503,7 +624,7 @@ El documento se considera cerrado (`ARCHIVED`) cuando:
 Adicionalmente, para Fase 6:
 5. Los hallazgos relacionados con enforcement (NADR-F17BIS-30) tienen evidencia server-side o están documentados como NO DEMOSTRADO con justificación explícita.
 6. Los hallazgos relacionados con el PASS path (Task 4.2.1) tienen evidencia de ejecución legítima o están documentados como ACCEPTED_LIMITATION.
-7. Ningún hallazgo se cierra como RESOLVED si afecta una regla normativa sin cumplir los criterios de trazabilidad del Global DoD (PHASE_17BIS_FASE6_EXECUTION_PLAN v1.0.7 §8).
+7. Ningún hallazgo se cierra como RESOLVED si afecta una regla normativa sin cumplir los criterios de trazabilidad del Global DoD (PHASE_17BIS_FASE6_EXECUTION_PLAN v1.0.10 §8).
 
 ---
 
@@ -511,8 +632,8 @@ Adicionalmente, para Fase 6:
 
 | Categoría | Cantidad |
 |-----------|----------|
-| Total de hallazgos analizados | 4 |
-| Hallazgos resueltos | 3 |
+| Total de hallazgos analizados | 5 |
+| Hallazgos resueltos | 4 |
 | Hallazgos pendientes de implementación | 0 |
 | Hallazgos pendientes de revisión | 0 |
 | Hallazgos cerrados sin acción | 0 |
@@ -526,7 +647,7 @@ Adicionalmente, para Fase 6:
 |------|--------|-----------|---------|
 | Gate 1 — Verification Foundation | ✅ COMPLETED (2026-09-26) | 4 (3 RESOLVED, 1 ACCEPTED_LIMITATION) | 0 |
 | Gate 2 — Verification Contract | ✅ COMPLETED (2026-09-29) | 0 | 0 |
-| Gate 3 — Continuous Verification Integration | ⏳ PENDING | 0 | 0 |
+| Gate 3 — Continuous Verification Integration | ✅ COMPLETED (2026-09-30) | 1 (DF-08 RESOLVED) | 0 |
 | Gate 4 — Enforcement & Phase Closure | ⏳ PENDING | 0 | 0 |
 
 ---

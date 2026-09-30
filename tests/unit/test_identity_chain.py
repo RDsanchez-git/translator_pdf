@@ -1,7 +1,8 @@
-"""Tests de IdentityChain (NADR-F17BIS-28 §5.1, §5.2).
+"""Tests de IdentityChain (NADR-F17BIS-28 §5.1, §5.2, NADR-F17BIS-29 §5.6).
 
 Tests unitarios para las funciones de construcción de identity chain.
-Verifican determinismo, composición y limitaciones observables.
+Verifican determinismo, composición, limitaciones observables,
+y distinguibilidad por perfil de ejecución.
 """
 from __future__ import annotations
 
@@ -13,6 +14,7 @@ from core.benchmark.verification.identity_chain import (
     build_execution_id,
     build_identity_chain,
     build_parameter_identity,
+    build_profile_identity,
     build_result_identity,
 )
 
@@ -53,14 +55,13 @@ class TestBuildParameterIdentity:
             NodeCriticality.WARNING: 2.0,
             NodeCriticality.INFO: 1.0,
         }
-        # Ejecutar múltiples veces
         results = [build_parameter_identity(weights) for _ in range(10)]
         assert len(set(results)) == 1
 
 
 @pytest.mark.unit
 class TestBuildExecutionId:
-    """NADR-F17BIS-28 §5.1 R1, §5.2 R8: execution_id determinista."""
+    """NADR-F17BIS-28 §5.1 R1, §5.2 R8, NADR-F17BIS-29 §5.6 R31."""
 
     def test_deterministic_for_same_inputs(self) -> None:
         """R8: Mismos inputs → mismo execution_id."""
@@ -69,12 +70,14 @@ class TestBuildExecutionId:
             subject_identity="commit123",
             configuration_identity="b" * 64,
             parameter_identity="c" * 64,
+            profile_identity="d" * 64,
         )
         second = build_execution_id(
             baseline_identity="a" * 64,
             subject_identity="commit123",
             configuration_identity="b" * 64,
             parameter_identity="c" * 64,
+            profile_identity="d" * 64,
         )
         assert first == second
 
@@ -85,6 +88,7 @@ class TestBuildExecutionId:
             subject_identity=None,
             configuration_identity="b" * 64,
             parameter_identity="c" * 64,
+            profile_identity="d" * 64,
         )
         assert isinstance(exec_id, str)
         assert len(exec_id) == 64
@@ -96,14 +100,34 @@ class TestBuildExecutionId:
             subject_identity="commit123",
             configuration_identity="b" * 64,
             parameter_identity="c" * 64,
+            profile_identity="d" * 64,
         )
         id_b = build_execution_id(
             baseline_identity="x" * 64,
             subject_identity="commit123",
             configuration_identity="b" * 64,
             parameter_identity="c" * 64,
+            profile_identity="d" * 64,
         )
         assert id_a != id_b
+
+    def test_different_profile_produces_different_execution_id(self) -> None:
+        """NADR-29 §5.6 R31: Perfiles diferentes → execution_id diferente."""
+        id_full = build_execution_id(
+            baseline_identity="a" * 64,
+            subject_identity="commit123",
+            configuration_identity="b" * 64,
+            parameter_identity="c" * 64,
+            profile_identity="full_hash" + "0" * 55,
+        )
+        id_smoke = build_execution_id(
+            baseline_identity="a" * 64,
+            subject_identity="commit123",
+            configuration_identity="b" * 64,
+            parameter_identity="c" * 64,
+            profile_identity="smoke_hash" + "0" * 55,
+        )
+        assert id_full != id_smoke
 
 
 @pytest.mark.unit
@@ -147,10 +171,10 @@ class TestBuildResultIdentity:
 
 @pytest.mark.unit
 class TestBuildIdentityChain:
-    """NADR-F17BIS-28 §5.1 R6, §5.5 R29: identity chain completa."""
+    """NADR-F17BIS-28 §5.1 R6, §5.5 R29, NADR-F17BIS-29 §5.6 R28-R31."""
 
     def test_complete_chain_has_all_components(self) -> None:
-        """R6: Cadena completa Execution → Subject → Baseline → Config → Params → Result."""
+        """R6: Cadena completa Execution → Subject → Baseline → Config → Params → Profile → Result."""
         weights = {
             NodeCriticality.CRITICAL: 5.0,
             NodeCriticality.WARNING: 2.0,
@@ -161,15 +185,17 @@ class TestBuildIdentityChain:
             subject_identity="commit123",
             configuration_identity="b" * 64,
             cost_weights=weights,
-            result_identity="c" * 64,
+            profile_identity="d" * 64,
+            result_identity="e" * 64,
         )
         assert chain.schema_version == SCHEMA_VERSION
         assert chain.baseline_identity == "a" * 64
         assert chain.subject_identity == "commit123"
         assert chain.configuration_identity == "b" * 64
         assert chain.parameter_identity  # Calculado
+        assert chain.profile_identity == "d" * 64
         assert chain.execution_id  # Calculado
-        assert chain.result_identity == "c" * 64
+        assert chain.result_identity == "e" * 64
         assert chain.limitations == ()
 
     def test_missing_subject_identity_adds_limitation(self) -> None:
@@ -184,7 +210,8 @@ class TestBuildIdentityChain:
             subject_identity=None,
             configuration_identity="b" * 64,
             cost_weights=weights,
-            result_identity="c" * 64,
+            profile_identity="d" * 64,
+            result_identity="e" * 64,
         )
         assert chain.subject_identity is None
         assert any("subject_identity unavailable" in lim for lim in chain.limitations)
@@ -201,6 +228,7 @@ class TestBuildIdentityChain:
             subject_identity="commit123",
             configuration_identity="b" * 64,
             cost_weights=weights,
+            profile_identity="d" * 64,
             result_identity=None,
         )
         assert chain.result_identity is None
@@ -218,10 +246,99 @@ class TestBuildIdentityChain:
             subject_identity="commit123",
             configuration_identity="b" * 64,
             cost_weights=weights,
-            result_identity="c" * 64,
+            profile_identity="d" * 64,
+            result_identity="e" * 64,
         )
         mapping = chain.to_mapping()
         assert mapping["schema_version"] == SCHEMA_VERSION
         assert mapping["baseline_identity"] == "a" * 64
         assert mapping["subject_identity"] == "commit123"
+        assert mapping["profile_identity"] == "d" * 64
         assert isinstance(mapping["limitations"], list)
+
+    def test_different_profiles_produce_different_execution_ids(self) -> None:
+        """NADR-29 §5.6 R31: Perfiles diferentes → execution_ids diferentes."""
+        weights = {
+            NodeCriticality.CRITICAL: 5.0,
+            NodeCriticality.WARNING: 2.0,
+            NodeCriticality.INFO: 1.0,
+        }
+        chain_full = build_identity_chain(
+            baseline_identity="a" * 64,
+            subject_identity="commit123",
+            configuration_identity="b" * 64,
+            cost_weights=weights,
+            profile_identity="full_hash" + "0" * 55,
+            result_identity="e" * 64,
+        )
+        chain_smoke = build_identity_chain(
+            baseline_identity="a" * 64,
+            subject_identity="commit123",
+            configuration_identity="b" * 64,
+            cost_weights=weights,
+            profile_identity="smoke_hash" + "0" * 55,
+            result_identity="e" * 64,
+        )
+        assert chain_full.execution_id != chain_smoke.execution_id
+
+
+@pytest.mark.unit
+class TestBuildProfileIdentity:
+    """NADR-F17BIS-29 §5.6 R28-R31."""
+
+    def test_deterministic_for_same_inputs(self) -> None:
+        """R28: Mismos inputs → mismo profile_identity."""
+        first = build_profile_identity(
+            profile_name="FULL",
+            document_ids=frozenset({"doc_01", "doc_02", "doc_03"}),
+        )
+        second = build_profile_identity(
+            profile_name="FULL",
+            document_ids=frozenset({"doc_01", "doc_02", "doc_03"}),
+        )
+        assert first == second
+
+    def test_different_profile_name_produces_different_identity(self) -> None:
+        """R31: Perfiles diferentes → identidad diferente."""
+        full_id = build_profile_identity(
+            profile_name="FULL",
+            document_ids=frozenset({"doc_01", "doc_02", "doc_03"}),
+        )
+        smoke_id = build_profile_identity(
+            profile_name="SMOKE",
+            document_ids=frozenset({"doc_01", "doc_02", "doc_03"}),
+        )
+        assert full_id != smoke_id
+
+    def test_different_document_ids_produces_different_identity(self) -> None:
+        """R30: Coberturas diferentes → identidad diferente."""
+        id_a = build_profile_identity(
+            profile_name="SMOKE",
+            document_ids=frozenset({"doc_01", "doc_02"}),
+        )
+        id_b = build_profile_identity(
+            profile_name="SMOKE",
+            document_ids=frozenset({"doc_01", "doc_03"}),
+        )
+        assert id_a != id_b
+
+    def test_document_order_does_not_affect_identity(self) -> None:
+        """frozenset no depende del orden (determinismo garantizado)."""
+        id_a = build_profile_identity(
+            profile_name="SMOKE",
+            document_ids=frozenset({"doc_01", "doc_02", "doc_03"}),
+        )
+        id_b = build_profile_identity(
+            profile_name="SMOKE",
+            document_ids=frozenset({"doc_03", "doc_01", "doc_02"}),
+        )
+        assert id_a == id_b
+
+    def test_empty_document_ids_produces_valid_hash(self) -> None:
+        """Edge case: manifest vacío produce hash válido."""
+        result = build_profile_identity(
+            profile_name="SMOKE",
+            document_ids=frozenset(),
+        )
+        assert isinstance(result, str)
+        assert len(result) == 64

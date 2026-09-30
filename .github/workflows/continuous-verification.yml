@@ -1,0 +1,61 @@
+name: Continuous Verification — Full Profile
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.11"
+
+jobs:
+  cv-full-profile:
+    name: Continuous Verification — Full Profile
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # El corpus es Read-Only: la evaluación no puede mutar la baseline
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: "pip"
+          cache-dependency-path: pyproject.toml
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          pip install .[dev]
+          pip list
+
+      - name: Run Continuous Verification (Full Profile)
+        run: |
+          python -m tools.evaluation.run_regression \
+            --corpus-dir tests/corpus/canonical \
+            --pdf-dir tests/corpus/canonical/pdf \
+            --output-dir reports/continuous-verification \
+            --profile FULL
+        env:
+          CORPUS_READONLY: "true"
+
+      - name: Verify canonical corpus was not mutated
+        run: |
+          git diff --exit-code tests/corpus/canonical/ || {
+            echo "ERROR: El corpus canónico fue modificado durante la ejecución."
+            echo "Esto viola NADR-F17BIS-26 §5.4 R16-R19. La baseline es inmutable."
+            exit 1
+          }
+
+      - name: Upload evidence artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cv-full-profile-evidence
+          path: reports/continuous-verification/
