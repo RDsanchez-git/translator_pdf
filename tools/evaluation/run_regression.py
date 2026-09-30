@@ -512,7 +512,15 @@ def main() -> None:
         load_gt_uc = LoadGroundTruthUseCase(reader=gt_reader)
         verify_ground_truth_preconditions(load_gt_uc, manifest)
 
-    except (BaselineIntegrityError, IncompleteBaselineError, FileNotFoundError) as e:
+    except (BaselineIntegrityError, IncompleteBaselineError, OSError, ValueError) as e:
+        # OSError cubre FileNotFoundError (materialización) y errores de I/O.
+        # ValueError cubre json.JSONDecodeError y pydantic.ValidationError
+        # (manifest corrupto o con schema inválido): una referencia ilegible
+        # es fallo de integridad de la baseline, no un crash silencioso
+        # (DF-11; NADR-27 §5.6 R34; NADR-28 §5.3 R14). Mismo patrón ya
+        # validado en verify_ground_truth_preconditions (Gate 1, Task 1.2.3).
+        # El catch-all de EXECUTION_FAILURE (exit 4) permanece para lo
+        # realmente inesperado fuera de las precondiciones de baseline.
         baseline_failed = True
         reason = str(e)
 

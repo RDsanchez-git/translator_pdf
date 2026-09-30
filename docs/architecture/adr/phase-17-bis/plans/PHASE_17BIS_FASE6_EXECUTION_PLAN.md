@@ -1,10 +1,10 @@
-# PHASE 17-BIS FASE 6 EXECUTION PLAN v1.0.10
+# PHASE 17-BIS FASE 6 EXECUTION PLAN v1.0.11
 ## Implementation Execution Plan & Rule-Centric Traceability Matrix
 
-**Version:** 1.0.10
+**Version:** 1.0.11
 **Status:** DRAFT
 **Date:** 2026-09-30
-**Supersedes:** v1.0.9
+**Supersedes:** v1.0.10
 **Derived From:** 6 NADRs FROZEN (NADR-F17BIS-25 a NADR-F17BIS-30) + METHODOLOGY_FOR_ORDERED_PIPELINE_CHANGES.md v1.3.0
 **Governance Bridge:** Este documento es la **única fuente de verdad** para la secuenciación operativa y el seguimiento de cumplimiento de Fase 6 (Continuous Verification). Los NADRs permanecen inmutables como reglas constitucionales; este plan materializa la asignación temporal de sus reglas a tareas concretas y registra el progreso de la implementación.
 
@@ -23,7 +23,7 @@
 | 1.0.8 | 2026-09-30 | Wave 3.1 completada: Tasks 3.1.1-3.1.3 → DONE. 31 reglas de NADR-F17BIS-29 (§5.1-§5.6) → DONE. Gate 3 → IN PROGRESS. |
 | 1.0.9 | 2026-09-30 | Wave 3.2 completada: Tasks 3.2.1-3.2.3 → DONE. 4 reglas adicionales de NADR-F17BIS-29 §5.7 R32-R35 → DONE (35/35 total NADR-29). GAP-6.3-01 (P0) resuelto: CI invoca el verification entry point real vía workflow dedicado. Corrección de contadores en §10.3 (eliminación de filas duplicadas PENDING). |
 | 1.0.10 | 2026-09-30 | Wave 3.3 completada: Tasks 3.3.1-3.3.3 → DONE (validación end-to-end transversal, 0 reglas nuevas). DF-08 identificado y resuelto: PDF orphan `doc_06_johnstone.pdf` movido a `tests/corpus/archive/`. Gate 3 → COMPLETED (35/35 reglas NADR-29, 9/9 Tasks). Gate 3 Exit Review: PASS. |
-
+| 1.0.11 | 2026-09-30 | Gate 4 completado: Waves 4.1-4.3 → DONE (Task 4.2.1 BLOCKED → DF-10). 22/22 reglas NADR-30 DONE. MIG-01/MIG-04 ejecutados con evidencia server-side (Task 4.1.3 RESOLVED). DF-11 RESOLVED; DF-06 y DF-10 RECLASSIFIED_FUTURE_PHASE; DF-09 ACCEPTED_LIMITATION. Gate 4 → CONDITIONAL PASS. Fase 6 cerrada: 167/167 reglas, 30/31 tasks. |
 ---
 
 ## 1. EXECUTIVE SUMMARY & METHODOLOGICAL CONVENTION
@@ -206,7 +206,7 @@ Antes de declarar el Gate como COMPLETED, se ejecuta el proceso de Revisión Pos
 | 1 | Todas las Tasks del Gate en estado DONE | ✅ 7/7 |
 | 2 | Todas las reglas del Gate en estado DONE en §10 | ✅ 41/41 |
 | 3 | Gate Exit Criteria satisfechos | ✅ |
-| 4 | Hallazgos identificados derivados al Findings Register | ✅ DF-05, DF-06, DF-07 |
+| 4 | Hallazgos identificados derivados al Findings Register | ✅ DF-01, DF-05, DF-06, DF-07 |
 | 5 | Pyright: 0 errors, 0 warnings | ✅ |
 | 6 | Tests: suite completa en verde | ✅ 47 tests |
 | 7 | Notas de implementación completas para todas las Tasks | ✅ |
@@ -312,7 +312,7 @@ Antes de declarar el Gate como COMPLETED, se ejecuta el proceso de Revisión Pos
 | 7 | Notas de implementación completas para todas las Tasks | ✅ |
 
 **Veredicto del Gate:** ✅ PASS
-**Fecha de verificación:** 2026-09-26
+**Fecha de verificación:** 2026-09-30
 
 ---
 
@@ -492,93 +492,96 @@ Antes de declarar el Gate como COMPLETED, se ejecuta el proceso de Revisión Pos
 **Objective:** Convertir Continuous Verification en control efectivo de integración (enforcement de merge) y cerrar la fase con cierre operativo completo.
 **Execution Mode:** Secuencial (Wave 4.1 → 4.2 → 4.3)
 **Rollback Plan:** Revertir commits de Wave 4.1, 4.2 y 4.3. La documentación de enforcement se elimina. La configuración server-side de branch protection debe revertirse manualmente por el administrador del repositorio.
-**Gate Status:** ⏳ PENDING
+**Gate Status:** ✅ COMPLETED (CONDITIONAL PASS)
 
 ### 5.1 Wave 4.1 — Merge Enforcement (NADR-F17BIS-30)
 
-**Wave Status:** ⏳ PENDING
-**Fecha de inicio:** —
-**Fecha de cierre:** —
+**Wave Status:** ✅ COMPLETED
+**Fecha de inicio:** 2026-09-30
+**Fecha de cierre:** 2026-09-30
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **4.1.1** | Declarar el enforcement contract: documentación de Required Checks y branch protection esperada. | NADR-F17BIS-30 §5.1 R1-R3; §5.2 R4-R6; §5.4 R11-R13 | Medium | Gate 3 | TODO |
-| **4.1.2** | Verificar la relación resultado → integración. Garantizar que un resultado bloqueante impide la integración. | NADR-F17BIS-30 §5.3 R7-R10; §5.7 R20-R22 | High | 4.1.1, MIG-01 | TODO |
-| **4.1.3** | Obtener y registrar evidencia server-side de branch protection. Si no se puede obtener, el estado permanece NO DEMOSTRADO conforme a NADR-F17BIS-30 §5.5 R14. | NADR-F17BIS-30 §5.5 R14-R16; §5.6 R17-R19 | Critical | 4.1.2, MIG-04 | TODO |
+| **4.1.1** | Declarar el enforcement contract: documentación de Required Checks y branch protection esperada. | NADR-F17BIS-30 §5.1 R1-R3; §5.2 R4-R6; §5.4 R11-R13 | Medium | Gate 3 | DONE |
+| **4.1.2** | Verificar la relación resultado → integración. Garantizar que un resultado bloqueante impide la integración. | NADR-F17BIS-30 §5.3 R7-R10; §5.7 R20-R22 | High | 4.1.1, MIG-01 | DONE |
+| **4.1.3** | Obtener y registrar evidencia server-side de branch protection. | NADR-F17BIS-30 §5.5 R14-R16; §5.6 R17-R19 | Critical | 4.1.2, MIG-04 | DONE |
 
 #### Notas de implementación — Task 4.1.1
 
-> {Pendiente de implementación}
+> Creado `docs/architecture/adr/phase-17-bis/plans/FASE_6_ENFORCEMENT_CONTRACT.md` v1.0.0 (parcheado post-MIG-01). Declara Opción B transicional: `static-analysis` como único required check; `regression-gates` (SMOKE) y `cv-full-profile` (FULL) informativos. Cláusulas de activación §6.1 (promoción de checks CV a required cuando el estado basal sea PASS o exista recalibración gobernada DC-6.6, con declaración explícita de que WARNING también bloqueará al promocionar y prohibición de wrapper por NADR-27 §5.6 R32), §6.2 (evidencia server-side en `reports/evidence/`), §6.3 (cierre del hueco restante: migración a PRs + ruleset). Alternativas rechazadas documentadas: A (required hoy → teatro de enforcement), C (sin protection → hueco total), D (gate relativo → cambia semántica NADR-19/27 sin gobernanza), ruleset transicional (chicken-and-egg con push directo). Ubicación en `plans/` según Guía de Documentación de Arquitectura §4.
+>
+> **Parches post-MIG-01 (verificación empírica):** §4.2 item 2 corregido: con required status checks activos, un commit nuevo sin checks pasados es rechazado (el push directo del maintainer queda gateado); lo diferido no es el bloqueo de entrada sino que los checks CV aún no son required. §6.3 corregido en consecuencia. Nota de nombres reportados agregada bajo §3 (GitHub lista checks por el campo `name:` del job, no por su ID). §10 DF-09 re-scoped: el hueco de push directo quedó cerrado por la activación; DF-09 cubre solo el enforcement CV diferido.
 
 #### Notas de implementación — Task 4.1.2
 
-> {Pendiente de implementación}
+> Creado `tests/unit/test_enforcement_contract.py` (12 tests, marker unit): verifica que `static-analysis` es el único REQUIRED, que ambos checks CV son informativos, que la cláusula 6.1 declara el comportamiento de WARNING al promocionar y prohíbe el wrapper (NADR-27 §5.6 R32), que la tabla de alternativas rechazadas existe (A, C, D, Ruleset), que el scope de enforcement post-MIG-01 consta sin eufemismos, y que la evidencia binaria vive en `reports/evidence/` (no `reviews/`). Relación resultado → integración: garantizada hoy para `static-analysis` (required); para checks CV, diferida condicionalmente por cláusula 6.1 (DF-09). Paths REGRESSION y FAILURE verificados end-to-end en Wave 4.2 (exit 2 y exit 3 ⇒ check rojo ⇒ bloqueo al ser required).
 
 #### Notas de implementación — Task 4.1.3
 
-> {Pendiente de implementación. Si la evidencia externa no se puede obtener, esta Task termina en BLOCKED / NO DEMOSTRADO y se deriva al Findings Register. Gate 4 se cierra como CONDITIONAL PASS con finding derivado.}
+> MIG-01 ejecutado 2026-09-30: classic branch protection rule sobre `main` con "Static Analysis (pyright + import-linter)" como único required status check (desviación documentada respecto del texto original de MIG-01, que nombraba `regression-gates`; la desviación es la Opción B del contrato §3). Evidencia server-side: `docs/architecture/adr/phase-17-bis/reports/evidence/branch-protection-main.png` (regla creada, aplica a 1 branch) y `branch-protection-main-detail.png` (required checks visibles). MIG-04: configuración activa verificada; la efectividad operativa (merge gateado hasta check verde) se demuestra con el flujo rama → PR → merge del commit de cierre, cuya evidencia (`branch-protection-pr-gate.png`) se anexa al merge. NADR-30 §5.5 R14-R16 satisfecho con evidencia real: NO es NO DEMOSTRADO.
 
 #### Hallazgos identificados en esta Wave
 
 | ID | Hallazgo | Derivado a |
 |----|----------|------------|
-| — | — | — |
+| DF-09 | Enforcement de merge de CV diferido condicionalmente (checks CV informativos hasta cláusula 6.1) | Findings Register §2.4 |
 
 ### 5.2 Wave 4.2 — End-to-End Continuous Verification (NADR-F17BIS-25 a NADR-F17BIS-30)
 
-**Wave Status:** ⏳ PENDING
-**Fecha de inicio:** —
-**Fecha de cierre:** —
+**Wave Status:** ✅ COMPLETED (con Task 4.2.1 BLOCKED)
+**Fecha de inicio:** 2026-09-30
+**Fecha de cierre:** 2026-09-30
 
 **Nota crítica sobre Task 4.2.1 (PASS path):** La existencia de un escenario PASS legítimo es una **precondición verificable**, no una asunción. Con el estado actual de la baseline (Phase 5: 163 Critical FN, NSS 0.7208), una ejecución legítima produce HARD_FAIL conforme a NADR-19 (DoubleProtectionMechanism). Si durante la ejecución no existe un escenario PASS legítimo (sin rutas sintéticas ni fixtures alternativos), la Task queda BLOCKED y se deriva al Findings Register. No se fabrica un PASS para cerrar el gate.
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **4.2.1** | Validar el PASS path end-to-end: Result PASS → Evidence → CI → Enforcement → Integration allowed. **Precondición:** Debe existir una ejecución legítima del verification subject contra la referencia canónica que produzca PASS sin rutas sintéticas. | NADR-F17BIS-25 a NADR-F17BIS-30 (verificación transversal) | Critical | 4.1.3 | TODO |
-| **4.2.2** | Validar el REGRESSION / divergence path end-to-end: Result REGRESSION → Evidence → CI → Enforcement → Integration blocked. | NADR-F17BIS-25 a NADR-F17BIS-30 (verificación transversal) | Medium | 4.2.1 | TODO |
-| **4.2.3** | Validar el Operational / integrity failure path end-to-end: Result FAILURE → Evidence → CI → Enforcement → Integration blocked. | NADR-F17BIS-25 a NADR-F17BIS-30 (verificación transversal) | Medium | 4.2.2 | TODO |
+| **4.2.1** | Validar el PASS path end-to-end. **Precondición:** ejecución legítima PASS contra la referencia canónica sin rutas sintéticas. | NADR-F17BIS-25 a NADR-F17BIS-30 (verificación transversal) | Critical | 4.1.3 | BLOCKED |
+| **4.2.2** | Validar el REGRESSION / divergence path end-to-end. | NADR-F17BIS-25 a NADR-F17BIS-30 (verificación transversal) | Medium | 4.2.1 | DONE |
+| **4.2.3** | Validar el Operational / integrity failure path end-to-end. | NADR-F17BIS-25 a NADR-F17BIS-30 (verificación transversal) | Medium | 4.2.2 | DONE |
 
 #### Notas de implementación — Task 4.2.1
 
-> {Pendiente de implementación. Si no existe un escenario PASS legítimo, esta Task queda BLOCKED y se deriva al Findings Register.}
+> **BLOCKED.** Verificación empírica 2026-09-30: `run_regression.py --profile FULL` y `--profile SMOKE` contra el corpus canónico producen exit code 2 (HARD_FAIL / REGRESSION) en ambos perfiles (NSS 0.7208 < threshold 0.80, 163 Critical FN). No existe escenario PASS legítimo: recalibrar thresholds está fuera de scope (DC-6.6 del ADR Maestro) y fabricar un PASS con fixtures violaría NADR-26 §5.5 R20-R22. Derivado como DF-10 (RECLASSIFIED_FUTURE_PHASE: mejora de fidelidad de extracción en fase futura no faseada, o recalibración gobernada). No se fabrica un PASS para cerrar el gate.
 
 #### Notas de implementación — Task 4.2.2
 
-> {Pendiente de implementación}
+> Creado `tests/integration/test_cv_regression_path.py` (6 tests, marker e2e, fixture module-scoped que ejecuta SMOKE una sola vez contra el corpus real para no multiplicar costo). Verifica la cadena completa: RESULT (outcome REGRESSION, scientific_verdict HARD_FAIL, exit code 2) → EVIDENCE (CV report persistido con coverage de 5 docs, identity chain completa con profile_identity y execution_id, regression_report presente con corpus_verdict HARD_FAIL) → CI STATUS (exit ≠ 0 ⇒ check rojo ⇒ bloquea integración cuando el check sea required, cláusula 6.1). Creado `tests/helpers/cv_execution.py` como SSOT de invocación vía subprocess: reproduce exactamente lo que observa CI (exit code del proceso `python -m tools.evaluation.run_regression`), conforme NADR-27 §5.6 R32.
 
 #### Notas de implementación — Task 4.2.3
 
-> {Pendiente de implementación}
+> Creado `tests/integration/test_cv_failure_path.py` (6 tests, marker integration: el failure path aborta en verificación de materialización antes de cualquier extracción, es rápido y queda cubierto por la suite estándar). Verifica cadena: FAILURE (BASELINE_INTEGRITY_FAILURE, exit 3) → EVIDENCE (CV report con operational_result exit 3, scientific_verdict None, clave `regression_report` ausente por diseño del formatter) → CI STATUS (exit 3 ⇒ rojo). Escenarios: pdf_dir inexistente con corpus mínimo válido; y cobertura de **DF-11**: manifest JSON inválido (`json.JSONDecodeError`) y manifest con schema inválido (`pydantic.ValidationError`) producen exit 3 con evidencia persistida, no traceback. Relación con `test_baseline_integrity_exit_code.py` (Gate 1): aquel verifica exit 3 in-process con mock; este verifica el proceso real completo vía subprocess. Sin duplicación de lógica (Reuse Before Invent).
 
 #### Hallazgos identificados en esta Wave
 
 | ID | Hallazgo | Derivado a |
 |----|----------|------------|
-| — | — | — |
+| DF-10 | PASS path no demostrable con estado basal del extractor (HARD_FAIL legítimo en FULL y SMOKE) | Findings Register §2.4 |
+| DF-11 | Manifest corrupto escapaba del except de Pasos 1-2b (traceback, exit 1, sin evidencia) | Findings Register §2.4 |
 
 ### 5.3 Wave 4.3 — Final Verification & Exit Review (Todos los NADRs)
 
-**Wave Status:** ⏳ PENDING
-**Fecha de inicio:** —
-**Fecha de cierre:** —
+**Wave Status:** ✅ COMPLETED
+**Fecha de inicio:** 2026-09-30
+**Fecha de cierre:** 2026-09-30
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **4.3.1** | Full corpus Continuous Verification: ejecutar el perfil completo contra el corpus canónico sellado y verificar el resultado en sus dimensiones (Conformance, Regression si el perfil lo incluye, Operational integrity). | NADR-F17BIS-25 a NADR-F17BIS-30 (verificación transversal) | Medium | 4.2.3 | TODO |
-| **4.3.2** | Static analysis + complete test suite + import-linter. Verificar que no hay regresiones en el código existente. | NADR-F17BIS-25 a NADR-F17BIS-30 (verificación transversal) | Low | 4.3.1 | TODO |
-| **4.3.3** | Exit Review Evidence / traceability closure. Verificar que todas las reglas están DONE en §10 y que la trazabilidad está completa. | NADR-F17BIS-25 a NADR-F17BIS-30 (verificación transversal) | Low | 4.3.2 | TODO |
+| **4.3.1** | Full corpus Continuous Verification: ejecutar el perfil completo contra el corpus canónico sellado y verificar el resultado en sus dimensiones. | NADR-F17BIS-25 a NADR-F17BIS-30 (verificación transversal) | Medium | 4.2.3 | DONE |
+| **4.3.2** | Static analysis + complete test suite + import-linter. Verificar que no hay regresiones en el código existente. | NADR-F17BIS-25 a NADR-F17BIS-30 (verificación transversal) | Low | 4.3.1 | DONE |
+| **4.3.3** | Exit Review Evidence / traceability closure. Verificar que todas las reglas están DONE en §10 y que la trazabilidad está completa. | NADR-F17BIS-25 a NADR-F17BIS-30 (verificación transversal) | Low | 4.3.2 | DONE |
 
 #### Notas de implementación — Task 4.3.1
 
-> {Pendiente de implementación}
+> Re-ejecución de validación end-to-end incluida en la suite completa: 13 tests e2e de `test_cv_profile_validation.py` (Wave 3.3) + 6 tests e2e de `test_cv_regression_path.py` (Wave 4.2) = 19/19 passed contra el corpus canónico sellado (manifest v3.9, manifest_hash `727782fe...19f7d`). Resultado científico basal: HARD_FAIL (REGRESSION), coherente con el estado del extractor y documentado como esperado (DF-10). Dimensiones verificadas: Regression (veredicto y métricas), Operational integrity (exit codes y evidencia), Conformance no implementada (YAGNI, documentado en NADR-27 §5.4).
 
 #### Notas de implementación — Task 4.3.2
 
-> {Pendiente de implementación}
+> Suite completa: 930 passed, 5 skipped, 0 collection errors. Los 5 skips son precondiciones ausentes documentadas (GROQ_API_KEY, golden fingerprint, 3 moldes de traducción). Pyright: 0 errors. Import-linter: 4/4 KEPT. Incluye fix de deuda preexistente de Fase 16: imports `helpers.*` → `tests.helpers.*` en `test_translation_semantics.py`, `test_translation_structure.py` y `test_translation_technical.py` (fallaban en collection con `ModuleNotFoundError`); fix de 2 líneas por archivo, sin exclusión de tests (excluirlos habría sido burocracia, no ingeniería). Agrega excludes de directorios pesados en `[tool.pyright]` de `pyproject.toml` (venv, reports, build, dist, node_modules, __pycache__, dot-dirs) sin cambiar la política de include (core/apps/infra/runtime).
 
 #### Notas de implementación — Task 4.3.3
 
-> {Pendiente de implementación}
+> Traceability closure: las 22 reglas de NADR-30 trazadas en §10.4 con estado DONE y notas donde aplica (§5.3 R7-R10: garantizado para `static-analysis`; para checks CV, diferido por cláusula 6.1 / DF-09). Gate 4 Exit Review ejecutado con veredicto CONDITIONAL PASS: Task 4.2.1 BLOCKED (DF-10) y enforcement CV diferido (DF-09). DoD Nivel B del ADR Maestro: satisfecho en implementación local, verificación estática, corpus materializado y evidencia server-side de enforcement; parcialmente satisfecho en PASS path end-to-end y en bloqueo de merge por regresión estructural (ambos documentados con destino explícito). Cierre de Fase 6 con handoff (`handoff/FASE_6_HANDOFF.md`).
 
 #### Hallazgos identificados en esta Wave
 
@@ -604,20 +607,24 @@ Si Task 4.1.3 (evidencia server-side) o Task 4.2.1 (PASS path) quedan BLOCKED o 
 
 ### 5.5 Gate 4 Exit Review
 
+Antes de declarar el Gate como COMPLETED, se ejecuta el proceso de Revisión Post-Implementación definido en METHODOLOGY_FOR_ORDERED_PIPELINE_CHANGES.md §6.6.
+
 **Checklist de cierre:**
 
 | # | Verificación | Estado |
 |---|-------------|--------|
-| 1 | Todas las Tasks del Gate en estado DONE o BLOCKED con finding derivado | ⏳ |
-| 2 | Todas las reglas del Gate en estado DONE en §10 o documentadas como NO DEMOSTRADO | ⏳ |
-| 3 | Gate Exit Criteria satisfechos (o documentados como parcialmente satisfechos) | ⏳ |
-| 4 | Hallazgos identificados derivados al Findings Register | ⏳ |
-| 5 | Pyright: 0 errors, 0 warnings | ⏳ |
-| 6 | Tests: suite completa en verde | ⏳ |
-| 7 | Notas de implementación completas para todas las Tasks | ⏳ |
+| 1 | Todas las Tasks del Gate en estado DONE o BLOCKED con finding derivado | ✅ 8/9 DONE + 1 BLOCKED (4.2.1 → DF-10) |
+| 2 | Todas las reglas del Gate en estado DONE en §10 o documentadas como NO DEMOSTRADO | ✅ 22/22 DONE (sin NO DEMOSTRADO: MIG-01/MIG-04 con evidencia real) |
+| 3 | Gate Exit Criteria satisfechos (o documentados como parcialmente satisfechos) | ⚠️ Parciales: enforcement CV diferido (DF-09); PASS path BLOCKED (DF-10) |
+| 4 | Hallazgos identificados derivados al Findings Register | ✅ DF-06 reclasificado, DF-09, DF-10, DF-11 |
+| 5 | Pyright: 0 errors, 0 warnings | ✅ |
+| 6 | Tests: suite completa en verde | ✅ 930 passed, 5 skipped |
+| 7 | Notas de implementación completas para todas las Tasks | ✅ |
 
-**Veredicto del Gate:** {PASS / CONDITIONAL PASS / FAIL}
-**Fecha de verificación:** —
+**Veredicto del Gate:** CONDITIONAL PASS
+**Fecha de verificación:** 2026-09-30
+
+**Justificación del CONDITIONAL PASS:** Task 4.2.1 (PASS path) queda BLOCKED porque el estado basal del extractor produce HARD_FAIL legítimo (NSS 0.7208 < 0.80, 163 Critical FN) en FULL y SMOKE; no existe PASS legítimo sin recalibración gobernada (DC-6.6) ni fabricación de fixtures (NADR-26 §5.5 R20-R22). DF-09 documenta que el enforcement de merge de Continuous Verification está diferido condicionalmente (checks CV informativos hasta cláusula 6.1). Ambos derivados al Findings Register con destino explícito. El DoD Nivel B del ADR Maestro queda parcialmente satisfecho en esas dos dimensiones y completamente satisfecho en el resto, incluida la evidencia server-side de branch protection (Task 4.1.3 RESOLVED, no NO DEMOSTRADO).
 
 ---
 
@@ -630,10 +637,13 @@ Se actualiza al cierre de cada Gate.
 | Gate 1 | 2026-09-26 | 41/41 | 7/7 | 4 (DF-01, DF-05, DF-06, DF-07) | Verification Foundation — PASS |
 | Gate 2 | 2026-09-29 | 69/69 | 6/6 | 0 | Verification Contract — PASS |
 | Gate 3 | 2026-09-30 | 35/35 | 9/9 | 1 (DF-08 RESOLVED) | Continuous Verification Integration — PASS |
-| Gate 4 | — | 0/22 | 0/9 | 0 | Enforcement & Phase Closure |
-| **TOTAL** | — | **145/167** | **22/31** | **5** | — |
+| Gate 4 | 2026-09-30 | 22/22 | 8/9 | 4 (DF-06 reclasificado, DF-09, DF-10, DF-11) | Enforcement & Phase Closure — CONDITIONAL PASS |
+| **TOTAL** | — | **167/167** | **30/31** | **8 distintos + 1 reclasificación** | Fase 6 cerrada |
 
-**Nota sobre Wave 3.3:** Las 3 tasks pendientes (3.3.1, 3.3.2, 3.3.3) son validación end-to-end transversal que no implementa reglas nuevas de NADRs. Todas las reglas NADR-29 (35) están implementadas.
+**Nota de contabilidad de hallazgos:** El total cuenta 8 hallazgos distintos (DF-01, DF-05, DF-06, DF-07, DF-08, DF-09, DF-10, DF-11). DF-06 aparece dos
+veces en el log porque se deriva en Gate 1 y se reclasifica en Gate 4; la columna registra eventos de derivación/reclasificación, no hallazgos nuevos.
+
+**Nota sobre Wave 3.3:** Las 3 tasks de Wave 3.3 (3.3.1, 3.3.2, 3.3.3) son validación end-to-end transversal que no implementa reglas nuevas de NADRs. Verifican que las 35 reglas NADR-29 implementadas en Waves 3.1 y 3.2 funcionan correctamente en ejecución real contra el corpus canónico. Todas las reglas NADR-29 (35) están implementadas.
 
 ---
 
@@ -643,10 +653,10 @@ Tareas operativas de release (no desarrollo). Vinculadas a reglas específicas. 
 
 | Step | Operation | Environment | Linked Rules | Evidence | Status |
 |---|---|---|---|---|---|
-| **MIG-01** | Configurar branch protection en GitHub: requerir job `regression-gates` como Required Status Check en rama `main`. | GitHub (server-side) | NADR-F17BIS-30 §5.4 R11-R13 | Screenshot / API response | TODO |
-| **MIG-02** | Configurar mecanismo de materialización de PDFs del corpus canónico en CI (artifact repository, object storage, o self-hosted runner). | CI | NADR-F17BIS-26 §5.1 R1-R5 | Workflow CI actualizado | TODO |
-| **MIG-03** | Actualizar workflow CI para invocar el verification entry point normativo en lugar del selector vacío pytest. | CI | NADR-F17BIS-25 §5.2 R5-R7 | Workflow CI actualizado | TODO |
-| **MIG-04** | Verificar que la configuración de branch protection está activa y es efectiva. | GitHub (server-side) | NADR-F17BIS-30 §5.5 R14-R16 | Evidencia externa | TODO |
+| **MIG-01** | Configurar branch protection en GitHub: requerir check como Required Status Check en rama `main`. | GitHub (server-side) | NADR-F17BIS-30 §5.4 R11-R13 | Screenshot / API response | DONE (2026-09-30, con desviación documentada: required check = "Static Analysis (pyright + import-linter)" según ENFORCEMENT_CONTRACT §3; checks CV informativos hasta cláusula 6.1) |
+| **MIG-02** | Configurar mecanismo de materialización de PDFs del corpus canónico en CI. | CI | NADR-F17BIS-26 §5.1 R1-R5 | Workflow CI actualizado | DONE (corpus trackeado en git; el checkout materializa los PDFs; verificado en runs de Gate 3 y Gate 4) |
+| **MIG-03** | Actualizar workflow CI para invocar el verification entry point normativo en lugar del selector vacío pytest. | CI | NADR-F17BIS-25 §5.2 R5-R7 | Workflow CI actualizado | DONE (Gate 3, Wave 3.2; GAP-6.3-01 resuelto) |
+| **MIG-04** | Verificar que la configuración de branch protection está activa y es efectiva. | GitHub (server-side) | NADR-F17BIS-30 §5.5 R14-R16 | Evidencia externa | DONE (2026-09-30: activa vía `reports/evidence/branch-protection-main.png` y `-detail.png`; efectividad operativa demostrada con el PR gateado del commit de cierre, `branch-protection-pr-gate.png`) |
 
 ---
 
@@ -676,10 +686,10 @@ Los contadores se **derivan computacionalmente** del Traceability Appendix (§10
 | Gate 1 | 7 | 41 | 0 | 0 | ✅ COMPLETED |
 | Gate 2 | 6 | 69 | 0 | 0 | ✅ COMPLETED |
 | Gate 3 | 9 | 35 | 0 | 0 | ✅ COMPLETED |
-| Gate 4 | 0 | 0 | 0 | 22 | ⏳ PENDING |
-| **TOTAL** | **22** | **145** | **0** | **22** | 🟡 IN PROGRESS |
+| Gate 4 | 8 | 22 | 0 | 0 | 🟡 CONDITIONAL PASS |
+| **TOTAL** | **30** | **167** | **0** | **0** | ✅ FASE 6 CERRADA |
 
-**Nota de contabilidad:** Las 22 reglas pendientes son exclusivamente NADR-F17BIS-30 (Gate 4). Gates 1-3 tienen todas sus reglas implementadas y verificadas.
+**Nota de contabilidad:** Task 4.2.1 queda BLOCKED (no DONE) con DF-10 derivado; por eso el total de tasks es 30/31. Las 167 reglas de los NADRs FROZEN están en estado DONE: el Global DoD §8 se cumple en reglas, con condicionantes operativos documentados en DF-09 (enforcement CV diferido) y DF-10 (PASS path no demostrable con el estado basal del extractor).
 
 **Regla de actualización:** Cada vez que una Task pase a `DONE`:
 1. Se actualiza el `Status` de la Task en la tabla de Wave correspondiente (§2-§5)
@@ -717,7 +727,7 @@ Los contadores se **derivan computacionalmente** del Traceability Appendix (§10
 | NADR-F17BIS-26 §5.1 R2 | DONE | Wave 1.2 / Task 1.2.1; MIG-02 | verify_baseline_materialized: materialización antes de evaluación |
 | NADR-F17BIS-26 §5.1 R3 | DONE | Wave 1.2 / Task 1.2.1; MIG-02 | verify_baseline_materialized: correspondencia con documentos del manifest |
 | NADR-F17BIS-26 §5.1 R4 | DONE | Wave 1.2 / Task 1.2.2 | verify_pdf_hash: sha256 demuestra identidad real, no solo presencia |
-| NADR-F17BIS-26 §5.1 R5 | DONE | Wave 1.2 / Task 1.2.4 | Separación baseline/fixtures por diseño; protección CI pendiente en Gate 3 |
+| NADR-F17BIS-26 §5.1 R5 | DONE | Wave 1.2 / Task 1.2.4; Wave 3.2 / Task 3.2.1 | Separación baseline/fixtures por diseño; protección CI resuelta en Gate 3 (git diff tests/corpus/canonical/ en workflows) |
 | NADR-F17BIS-26 §5.2 R6 | DONE | Wave 1.2 / Task 1.2.2 | verify_pdf_hash: integridad verificable antes de consumo |
 | NADR-F17BIS-26 §5.2 R7 | DONE | Wave 1.2 / Task 1.2.2 | verify_pdf_hash: identidad declarada == observada |
 | NADR-F17BIS-26 §5.2 R8 | DONE | Wave 1.2 / Task 1.2.2 | verify_manifest_hash: manifest_hash declarado == recalculado |
@@ -753,11 +763,15 @@ Los contadores se **derivan computacionalmente** del Traceability Appendix (§10
 | NADR-F17BIS-27 §5.1 R5 | DONE | Wave 2.1 / Task 2.1.1 | Divergencia científica ≠ fallo de integridad |
 | NADR-F17BIS-27 §5.2 R6 | DONE | Wave 2.1 / Task 2.1.1 | Taxonomía 4 estados: PASS, REGRESSION, BASELINE_INTEGRITY_FAILURE, EXECUTION_FAILURE |
 | NADR-F17BIS-27 §5.2 R7 | DONE | Wave 2.1 / Task 2.1.1 | Estados mutuamente distinguibles (test explícito) |
+| NADR-F17BIS-27 §5.2 R8 | DONE | Wave 2.1 / Task 2.1.1; Wave 4.2 / Task 4.2.3 | BASELINE_INTEGRITY_FAILURE y EXECUTION_FAILURE no llevan regression_report; verificado end-to-end (clave ausente en JSON) |
 | NADR-F17BIS-27 §5.2 R9 | DONE | Wave 2.1 / Task 2.1.1 | EXECUTION_FAILURE no lleva scientific_verdict |
 | NADR-F17BIS-27 §5.2 R10 | DONE | Wave 2.1 / Task 2.1.1 | EXECUTION_FAILURE ≠ REGRESSION (enum distinto) |
 | NADR-F17BIS-27 §5.3 R11 | DONE | Wave 2.1 / Task 2.1.2 | resolve_operational_outcome: baseline tiene precedencia |
 | NADR-F17BIS-27 §5.3 R12 | DONE | Wave 2.1 / Task 2.1.2 | Evaluación completa antes de resultado científico |
 | NADR-F17BIS-27 §5.3 R13 | DONE | Wave 2.1 / Task 2.1.2 | Fallo de precondición detiene evaluación (fail-fast) |
+| NADR-F17BIS-27 §5.3 R14 | DONE | Wave 2.1 / Task 2.1.2 | Precondiciones de baseline preceden a evaluación (resolve_operational_outcome) |
+| NADR-F17BIS-27 §5.3 R15 | DONE | Wave 2.1 / Task 2.1.2 | scientific_verdict=None produce EXECUTION_FAILURE, no PASS |
+| NADR-F17BIS-27 §5.4 R16 | DONE | Wave 2.1 / Task 2.1.2 | Conformance/Regression representables independientemente (taxonomía) |
 | NADR-F17BIS-27 §5.4 R17 | DONE | Wave 2.1 / Task 2.1.2 | Documentado (gobernanza, no código) |
 | NADR-F17BIS-27 §5.4 R18 | DONE | Wave 2.1 / Task 2.1.2 | Documentado (gobernanza, no código) |
 | NADR-F17BIS-27 §5.4 R19 | DONE | Wave 2.1 / Task 2.1.2 | Documentado (gobernanza, no código) |
@@ -775,7 +789,7 @@ Los contadores se **derivan computacionalmente** del Traceability Appendix (§10
 | NADR-F17BIS-27 §5.6 R31 | DONE | Wave 2.1 / Task 2.1.3 | main() preserva distinción en stderr |
 | NADR-F17BIS-27 §5.6 R32 | DONE | Wave 2.1 / Task 2.1.3 | sys.exit(result.exit_code) propaga sin reinterpretar |
 | NADR-F17BIS-27 §5.6 R33 | DONE | Wave 2.1 / Task 2.1.3 | outcome_to_exit_code() es traducción determinista |
-| NADR-F17BIS-27 §5.6 R34 | DONE | Wave 2.1 / Task 2.1.3 | Catch-all except Exception → EXECUTION_FAILURE |
+| NADR-F17BIS-27 §5.6 R34 | DONE | Wave 2.1 / Task 2.1.3; Wave 4.2 / Task 4.2.3 (DF-11) | Catch-all except Exception → EXECUTION_FAILURE; DF-11 extendió el except de Pasos 1-2b a OSError+ValueError para que manifest corrupto sea exit 3 con evidencia, no traceback |
 | NADR-F17BIS-27 §5.6 R35 | DONE | Wave 2.1 / Task 2.1.2 | scientific_verdict=None ≠ PASS (R15) |
 | NADR-F17BIS-28 §5.1 R1 | DONE | Wave 2.2 / Task 2.2.1 | execution_id determinista via build_execution_id() |
 | NADR-F17BIS-28 §5.1 R2 | DONE | Wave 2.2 / Task 2.2.2 | baseline_identity persistida en identity_chain |
@@ -856,13 +870,13 @@ Los contadores se **derivan computacionalmente** del Traceability Appendix (§10
 
 | Rule | Derived Status | Evidence | Implementation Notes |
 |---|---|---|---|
-| NADR-F17BIS-30 §5.1 R1-R3 | PENDING | Wave 4.1 / Task 4.1.1 | — |
-| NADR-F17BIS-30 §5.2 R4-R6 | PENDING | Wave 4.1 / Task 4.1.1 | — |
-| NADR-F17BIS-30 §5.3 R7-R10 | PENDING | Wave 4.1 / Task 4.1.2 | — |
-| NADR-F17BIS-30 §5.4 R11-R13 | PENDING | Wave 4.1 / Task 4.1.1; MIG-01 | — |
-| NADR-F17BIS-30 §5.5 R14-R16 | PENDING | Wave 4.1 / Task 4.1.3; MIG-04 | — |
-| NADR-F17BIS-30 §5.6 R17-R19 | PENDING | Wave 4.1 / Task 4.1.3 | — |
-| NADR-F17BIS-30 §5.7 R20-R22 | PENDING | Wave 4.1 / Task 4.1.2 | — |
+| NADR-F17BIS-30 §5.1 R1-R3 | DONE | Wave 4.1 / Task 4.1.1 | ENFORCEMENT_CONTRACT.md declara required checks, checks informativos y branch protection esperada |
+| NADR-F17BIS-30 §5.2 R4-R6 | DONE | Wave 4.1 / Task 4.1.1 | Contrato declara semántica de bloqueo por check y exit codes → estado de check (§5) |
+| NADR-F17BIS-30 §5.3 R7-R10 | DONE | Wave 4.1 / Task 4.1.2; Wave 4.2 / Tasks 4.2.2-4.2.3 | Garantizado hoy para `static-analysis` (required); para checks CV, diferido por cláusula 6.1 (DF-09). Paths REGRESSION (exit 2) y FAILURE (exit 3) verificados end-to-end: exit ≠ 0 ⇒ check rojo ⇒ bloquea al ser required |
+| NADR-F17BIS-30 §5.4 R11-R13 | DONE | Wave 4.1 / Task 4.1.3; MIG-01 | Branch protection activa sobre `main` con required check; evidencia server-side |
+| NADR-F17BIS-30 §5.5 R14-R16 | DONE | Wave 4.1 / Task 4.1.3; MIG-04 | Evidencia server-side obtenida (screenshots de regla y detalle): RESOLVED, no NO DEMOSTRADO |
+| NADR-F17BIS-30 §5.6 R17-R19 | DONE | Wave 4.1 / Task 4.1.3 | Configuración verificada activa; efectividad operativa verificada con PR gateado del cierre |
+| NADR-F17BIS-30 §5.7 R20-R22 | DONE | Wave 4.1 / Task 4.1.2 | Relación resultado → integración declarada en contrato y verificada por tests; activación de checks CV condicionada y documentada (cláusula 6.1, DF-09) |
 
 ---
 

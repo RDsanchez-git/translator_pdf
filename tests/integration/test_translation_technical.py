@@ -4,8 +4,8 @@ import json
 import sqlite3
 from core.pipeline.job import TranslationJob
 from core.pipeline.orchestrator import TranslationPipeline
-from helpers.fakes import FakeChunker, FakeDispatcher
-from helpers.markdown_inspector import MarkdownInspector
+from tests.helpers.fakes import FakeChunker, FakeDispatcher
+from tests.helpers.markdown_inspector import MarkdownInspector
 from infra.db.fsm_repository import FSMRepository
 from core.execution.handlers import DocumentCommandHandler
 from core.pipeline.state_store import FSMStateStore

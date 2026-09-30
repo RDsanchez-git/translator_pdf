@@ -85,7 +85,20 @@ markers = [
 
 [tool.pyright]
 include = ["core", "apps", "infra", "runtime"]
-exclude = ["tests", "tools", "graveyard", "experiments"]
+exclude = [
+  "tests",
+  "tools",
+  "graveyard",
+  "experiments",
+  "venv",
+  ".venv",
+  "reports",
+  "build",
+  "dist",
+  "**/node_modules",
+  "**/__pycache__",
+  "**/.*"
+]
 typeCheckingMode = "strict"
 reportMissingImports = true
 reportMissingTypeStubs = false
