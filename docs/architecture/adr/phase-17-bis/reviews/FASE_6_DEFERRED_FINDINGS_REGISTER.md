@@ -2,7 +2,7 @@
 
 **Documento:** `docs/architecture/adr/phase-17-bis/reviews/FASE_6_DEFERRED_FINDINGS_REGISTER.md`
 **Versión:** 0.10.1
-**Estado:** IN_PROGRESS
+**Estado:** ARCHIVED
 **Fecha de creación:** 2026-09-25
 **Última actualización:** 2026-09-30
 **Derivado de:** `PHASE_17BIS_FASE6_EXECUTION_PLAN.md` v1.0.11

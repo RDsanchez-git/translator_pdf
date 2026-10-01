@@ -2,7 +2,7 @@
 ## Implementation Execution Plan & Rule-Centric Traceability Matrix
 
 **Version:** 1.0.11
-**Status:** DRAFT
+**Status:** FROZEN
 **Date:** 2026-09-30
 **Supersedes:** v1.0.10
 **Derived From:** 6 NADRs FROZEN (NADR-F17BIS-25 a NADR-F17BIS-30) + METHODOLOGY_FOR_ORDERED_PIPELINE_CHANGES.md v1.3.0
@@ -23,7 +23,7 @@
 | 1.0.8 | 2026-09-30 | Wave 3.1 completada: Tasks 3.1.1-3.1.3 → DONE. 31 reglas de NADR-F17BIS-29 (§5.1-§5.6) → DONE. Gate 3 → IN PROGRESS. |
 | 1.0.9 | 2026-09-30 | Wave 3.2 completada: Tasks 3.2.1-3.2.3 → DONE. 4 reglas adicionales de NADR-F17BIS-29 §5.7 R32-R35 → DONE (35/35 total NADR-29). GAP-6.3-01 (P0) resuelto: CI invoca el verification entry point real vía workflow dedicado. Corrección de contadores en §10.3 (eliminación de filas duplicadas PENDING). |
 | 1.0.10 | 2026-09-30 | Wave 3.3 completada: Tasks 3.3.1-3.3.3 → DONE (validación end-to-end transversal, 0 reglas nuevas). DF-08 identificado y resuelto: PDF orphan `doc_06_johnstone.pdf` movido a `tests/corpus/archive/`. Gate 3 → COMPLETED (35/35 reglas NADR-29, 9/9 Tasks). Gate 3 Exit Review: PASS. |
-| 1.0.11 | 2026-09-30 | Gate 4 completado: Waves 4.1-4.3 → DONE (Task 4.2.1 BLOCKED → DF-10). 22/22 reglas NADR-30 DONE. MIG-01/MIG-04 ejecutados con evidencia server-side (Task 4.1.3 RESOLVED). DF-11 RESOLVED; DF-06 y DF-10 RECLASSIFIED_FUTURE_PHASE; DF-09 ACCEPTED_LIMITATION. Gate 4 → CONDITIONAL PASS. Fase 6 cerrada: 167/167 reglas, 30/31 tasks. |
+| 1.0.11 | 2026-09-30 | Gate 4 completado: Waves 4.1-4.3 → DONE (Task 4.2.1 BLOCKED → DF-10). 22/22 reglas NADR-30 DONE. MIG-01/MIG-04 ejecutados con evidencia server-side (Task 4.1.3 RESOLVED). DF-11 RESOLVED; DF-06 y DF-10 RECLASSIFIED_FUTURE_PHASE; DF-09 ACCEPTED_LIMITATION. Gate 4 → CONDITIONAL PASS. Fase 6 cerrada: 167/167 reglas, 30/31 tasks. | **Estado → FROZEN al merge del PR de reconciliación documental v1.0.11.** |
 ---
 
 ## 1. EXECUTIVE SUMMARY & METHODOLOGICAL CONVENTION
