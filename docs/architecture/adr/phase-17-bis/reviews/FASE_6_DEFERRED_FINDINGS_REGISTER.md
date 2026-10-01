@@ -1,7 +1,7 @@
 # FASE_6_DEFERRED_FINDINGS_REGISTER.md
 
 **Documento:** `docs/architecture/adr/phase-17-bis/reviews/FASE_6_DEFERRED_FINDINGS_REGISTER.md`
-**Versión:** 0.10.0
+**Versión:** 0.10.1
 **Estado:** IN_PROGRESS
 **Fecha de creación:** 2026-09-25
 **Última actualización:** 2026-09-30
@@ -66,6 +66,27 @@ ADR_F17_BIS_MASTER > ADR_F17_BIS_06 v1.2.0 > NADR-F17BIS-25..30 > PHASE_17BIS_FA
 | `IMPLEMENTATION_REQUIRED` | Requiere implementación (scope por definir o acotado) |
 | `REVIEW_REQUIRED` | Requiere análisis adicional antes de decidir |
 | `DEFERRED — FASE {X}` | Diferido a fase específica con ADR pendiente |
+
+**Regla semántica de clasificación (v0.10.1):**
+
+- `ACCEPTED_LIMITATION`: la limitación se acepta como condición operativa del
+  sistema entregado. Su retiro no constituye trabajo de ingeniería comprometido
+  dentro de esta fase; depende de un cambio de estado o de una cláusula de
+  activación ya documentada. El sistema opera con la limitación y la declara.
+- `RECLASSIFIED_FUTURE_PHASE`: la resolución del hallazgo requiere trabajo de
+  ingeniería o decisión de gobernanza asignado a una fase futura. El hallazgo no
+  se acepta como condición permanente: se difiere con destino explícito y
+  condición de cierre.
+- **Criterio discriminante (vía principal de resolución):**
+  ¿El hallazgo tiene trabajo de resolución asignado a una fase futura?
+  → `RECLASSIFIED_FUTURE_PHASE` (caso DF-10: mejora de fidelidad del extractor
+  o decisión gobernada DC-6.6).
+  ¿Su retiro depende únicamente de un cambio de estado o de una cláusula ya
+  documentada, sin trabajo asignado al hallazgo?
+  → `ACCEPTED_LIMITATION` (caso DF-09: el basal PASS activa la cláusula 6.1 sin
+  desarrollo comprometido bajo este hallazgo).
+- Se recomienda propagar esta definición a `6_METH_DEFERRED_FINDINGS_REGISTER`
+  en la próxima revisión de metodología.
 
 ### 1.3 Reglas de evidencia
 
@@ -336,6 +357,11 @@ Commits / Tests (evidencia)
 - Verificación post-movimiento: manifest_hash idéntico, tests e2e verdes, suite completa verde
 
 **Impacto en baseline sellada:** NINGUNO. El `manifest_hash` se calcula sobre el contenido de `manifest.json`, no sobre los PDFs del directorio. Mover el PDF no altera la baseline sellada ni su identidad.
+**Precisión terminológica (v0.10.1):** "baseline sellada invariante" refiere al
+conjunto sellado (manifest v3.9, 21 GTs, manifest_hash 727782fe...19f7d). El
+cambio físico consistió en extraer del perímetro canónico un artefacto que nunca
+perteneció a ese conjunto sellado (intruso), restaurando la biyección
+(NADR-26 §5.3 R11-R12). El conjunto sellado no fue mutado, aumentado ni re-sellado.
 
 **Regla aplicada:**
 
@@ -474,6 +500,13 @@ Commits / Tests (evidencia)
 - Cláusula 6.3: migración opcional a PRs obligatorios + ruleset
 - Comportamiento al promocionar declarado: WARNING (exit 1) también bloqueará; wrapper WARNING→0 prohibido por NADR-27 §5.6 R32
 
+**Precisión terminológica (v0.10.1):** la limitación queda aceptada y vigente
+desde el cierre de Gate 4; lo diferido es su *retiro*, condicionado a las
+cláusulas 6.1/6.3 del ENFORCEMENT_CONTRACT (cambio de estado o configuración
+documentada). No hay trabajo futuro comprometido dentro de Fase 6 bajo este
+hallazgo. Conforme a la regla semántica de §1.2 (v0.10.1), este es el caso
+canónico de ACCEPTED_LIMITATION.
+
 **Regla aplicada:**
 
 > **NADR-F17BIS-30 §5.3 R7-R10:** relación resultado → integración declarada y
@@ -506,6 +539,10 @@ Commits / Tests (evidencia)
 - Alternativas descartadas: recalibrar thresholds (fuera de scope, DC-6.6 del ADR Maestro); fabricar PASS con fixtures (viola NADR-26 §5.5 R20-R22); mockear pipeline (viola ENGINEERING_PRINCIPLES §IV)
 
 **Destino:** fase futura no faseada de mejora de fidelidad de extracción, o recalibración gobernada de thresholds (DC-6.6). **NO** Fase 17 (congelada y completada: PyMuPDF elegido por benchmark) ni Fase 18 (Advanced Local Runtime: asincronía/memoria/batching, no fidelidad de extracción).
+**Nota de clasificación (v0.10.1):** conforme a la regla semántica de §1.2, la
+vía principal de resolución es trabajo de ingeniería en fase futura (fidelidad
+del extractor) o decisión de gobernanza DC-6.6 ⇒ RECLASSIFIED_FUTURE_PHASE. Ver
+erratum de §7.3 criterio 6.
 
 **Regla aplicada:**
 
@@ -620,48 +657,23 @@ Se actualiza al cierre del último Gate Exit Review.
 
 {Una sub-sección por cada batch ejecutado. Se agregan dinámicamente conforme avanza la implementación.}
 
-### 4.1 BATCH 1 — {NOMBRE DEL BATCH} ({Completado/Pendiente})
+### 4.1 Batches en Fase 6: ninguno planificado
 
-**Fecha de ejecución:** {YYYY-MM-DD}
-**Validación:** Pyright {N} errors | pytest {X} passed, {Y} skipped
+**Estado:** N/A — no se planificaron ni requirieron batches de implementación.
 
-| DF ID | Estado Final | Acción Ejecutada | Archivos Afectados | Validación |
-|-------|--------------|------------------|-------------------|------------|
-| — | — | {Pendiente de ejecución} | — | — |
+**Justificación:** todos los hallazgos RESOLVED se resolvieron dentro de su
+Wave/Task de origen, antes del Exit Review de su Gate: DF-01, DF-05, DF-07
+(Task 1.1.3), DF-08 (Task 3.3.1), DF-11 (Task 4.2.3). El mecanismo de batches
+("la implementación se agrupa en batches posteriores al Exit Review") aplica a
+hallazgos cuya implementación se difiere más allá del Exit Review; en Fase 6 no
+existió ninguno. DF-06, DF-09 y DF-10 no son batches: son diferimientos y
+limitaciones sin implementación comprometida en esta fase.
 
-#### Correcciones adicionales durante ejecución
+**Efecto sobre §7.2 criterio 3 ("todos los batches planificados están
+completados"):** el criterio se satisface porque el conjunto de batches
+planificados es vacío (planificados = 0, completados = 0).
 
-- {Pendiente de ejecución}
 
-#### Hallazgos registrados durante el batch
-
-| ID | Hallazgo | Clasificación | Acción |
-|----|----------|---------------|--------|
-| — | — | — | {Pendiente de ejecución} |
-
-#### Cambios normativos aplicados
-
-| NADR | Regla | Cómo se cumple |
-|------|-------|----------------|
-| — | — | {Pendiente de ejecución} |
-
-#### Decisiones de diseño clave
-
-| Decisión | Justificación | Alternativas rechazadas |
-|----------|---------------|------------------------|
-| — | — | {Pendiente de ejecución} |
-
-#### Métricas post-batch
-
-| Métrica | Valor |
-|---------|-------|
-| Archivos creados | 0 |
-| Archivos modificados | 0 |
-| Archivos eliminados | 0 |
-| Archivos movidos | 0 |
-| Imports corregidos | 0 |
-| Tests ejecutados | 0 passed, 0 skipped |
-| Errores de tipo estático | 0 |
 
 ---
 
@@ -738,7 +750,20 @@ El documento se considera cerrado (`ARCHIVED`) cuando:
 
 Adicionalmente, para Fase 6:
 5. Los hallazgos relacionados con enforcement (NADR-F17BIS-30) tienen evidencia server-side o están documentados como NO DEMOSTRADO con justificación explícita.
-6. Los hallazgos relacionados con el PASS path (Task 4.2.1) tienen evidencia de ejecución legítima o están documentados como ACCEPTED_LIMITATION.
+6. Los hallazgos relacionados con el PASS path (Task 4.2.1) tienen evidencia de
+   ejecución legítima, o están documentados como ACCEPTED_LIMITATION, o como
+   RECLASSIFIED_FUTURE_PHASE con destino explícito y condición de cierre
+   (consistente con §1.2 y §7.2 criterio 4).
+
+   *Erratum v0.10.1:* la redacción original contemplaba únicamente
+   ACCEPTED_LIMITATION porque precedía a la regla semántica de §1.2 y no
+   consideraba RECLASSIFIED_FUTURE_PHASE, estado ya definido en §1.2 y gobernado
+   por §7.2 criterio 4. Esta enmienda resuelve una inconsistencia interna de este
+   documento (que no tiene autoridad normativa): no modifica Gate Exit Criteria,
+   NADRs ni Execution Plan. Ningún nivel superior exige ACCEPTED_LIMITATION para
+   DF-10 (Execution Plan §5.2/§5.4 solo exige BLOCKED + finding derivado +
+   CONDITIONAL PASS). DF-10 conserva su clasificación: su vía principal de
+   resolución es trabajo de ingeniería en fase futura.
 7. Ningún hallazgo se cierra como RESOLVED si afecta una regla normativa sin cumplir los criterios de trazabilidad del Global DoD (PHASE_17BIS_FASE6_EXECUTION_PLAN v1.0.11 §8).
 
 ---
