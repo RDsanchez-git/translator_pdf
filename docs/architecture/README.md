@@ -20,7 +20,7 @@ docs/
         ├── phase-16/
         ├── phase-17/
         ├── phase-17-bis/
-        │   ├── README.md                 (Índice y mapa de gobernanza de la fase)
+        │   |
         │   ├── ADR/                      (Constitución y Capacidades)
         │   │   ├── ADR_F17_BIS_MASTER.md
         │   │   └── ADR_F17_BIS_01_...
@@ -99,10 +99,11 @@ La documentación arquitectónica existe para habilitar y respaldar la implement
 ## 7. Metodología Obligatoria para la escritura de la documentación necesaria a cada gobernanza
 
 - `docs\architecture\1_METHODOLOGY_FOR_ORDERED_PIPELINE_CHANGES.md` ➔ Metodología General para cambios ordenados en el pipeline del Traductor
-- `` 
-- `docs\architecture\3_METH_ADR_PHASES.md` ➔ Metodología General para la construcción de las Fases en cuestión definida en el ADR_Master.
-- `docs\architecture\4_METH_NADR.md` ➔ Plantilla Canónica para el armado de los NADRs de las Fases.
+- `docs\architecture\2_METH_ADR_MASTER.md ` ➔ Metodología General para la construcción del ADR MASTER de cada Fase.
+- `docs\architecture\1.2_METH_FOR_FORENSIC_HITOs.md` ➔ Metodología General para la construcción de los HITOS de auditoría forense necesarios para los documentos
+- `docs\architecture\3_METH_ADR_PHASES.md` ➔ Metodología General para la construcción de las Fases en cuestión definida en el ADR_Master
+- `docs\architecture\4_METH_NADR.md` ➔ Plantilla Canónica para el armado de los NADRs de las Fases
 - `docs\architecture\5_METH_EXECUTION_PLAN.md` ➔ Metodología General para la construcción del Plan de Ejecución de una Fase en específico.
-- `docs\architecture\6_METH_DEFERRED_FINDINGS_REGISTER_FASE_{X}.md` ➔ Metodología General para el regristro de la auditoría técnica de los DFs/GFs obtenido en la Fase.
-- `docs\architecture\6_METH_EXIT_REVIEW_EVIDENCE_LOG_FASE_{X}.md` ➔ Metodología General para la construcción de la evidencia y resultado de los DFs/Gfs obtenidos en la Fase.
-- `docs\architecture\7_METH_HANDOFF_FASE_{X}md` ➔ Metodología General para la construcción de los handoff una vez finalizada la implementación de una Fase en particular.
+- `docs\architecture\6_METH_DEFERRED_FINDINGS_REGISTER_FASE_{X}.md` ➔ Metodología General para el regristro de la auditoría técnica de los DFs/GFs obtenido en la Fase
+- `docs\architecture\6_METH_EXIT_REVIEW_EVIDENCE_LOG_FASE_{X}.md` ➔ Metodología General para la construcción de la evidencia y resultado de los DFs/Gfs obtenidos en la Fase
+- `docs\architecture\7_METH_HANDOFF_FASE_{X}md` ➔ Metodología General para la construcción de los handoff una vez finalizada la implementación de una Fase en particular
