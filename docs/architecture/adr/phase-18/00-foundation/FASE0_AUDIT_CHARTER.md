@@ -2,10 +2,10 @@
 ## Charter de la Compuerta de Auditoría (Fase 0) — Fase 18 (Advanced Local Runtime)
 
 * **Versión:** 1.0.0
-* **Estado:** PROPOSED (preregistro congelado al aprobación del Board en kickoff; ver §2)
-* **Fecha:** {FECHA}
+* **Estado:** FROZEN (preregistro de Fase 0; congelado por aprobación del Board en kickoff)
+* **Fecha:** 2026-10-01
 * **Autoridad:** Architecture Board
-* **Aprobación Board:** pendiente (se registra con la confirmación del owner en el PR de kickoff, antes del merge)
+* **Aprobación Board:** 2026-10-01 (comment de aprobación DC-06a del owner en PR #{N}; merge #{SHA})
 * **Ubicación:** `docs/architecture/adr/phase-18/00-foundation/FASE0_AUDIT_CHARTER.md`
 * **Derivado de:** ROADMAP_ARQUITECTONICO_LP v3.0 (§IV Fase 18), ADR_F17_BIS_MASTER (§9 jerarquía),
   2_METH_ADR_MASTER v1.0.1 (§2 DoR, §7 compuerta de auditoría), METHODOLOGY_FOR_ORDERED_PIPELINE_CHANGES v1.4.0
@@ -35,10 +35,10 @@ idempotencia, preservando invariantes científicas y de identidad.
 
 ## 2. GOBERNANZA DEL KICKOFF (DC-06a / DC-06b)
 
-* **DC-06a (significado del hito):** pendiente de decisión de Board en kickoff.
-  Resolución propuesta: pivot normativo aprobado por Board (opción A, precedente
-  F17-BIS), documentado aquí y en §1 del futuro ADR_F18_MASTER. El hito no
-  significa "producto completo" mientras existan F19–F21.
+* **DC-06a (significado del hito):** RESUELTA en kickoff por decisión de Board
+  (2026-10-01, comment en PR #{N}): Opción A — pivot normativo documentado aquí
+  y en §1 del futuro ADR_F18_MASTER. El hito no significa "producto completo"
+  mientras existan F19–F21.
 * **DC-06b (técnicas prescritas por ROADMAP v3.0):** abierto, evidence-driven.
   Si la Fase 0 **no demuestra beneficio suficiente según el criterio
   preregistrado (§9)** para una técnica prescriptiva (p.ej. async puro sin
