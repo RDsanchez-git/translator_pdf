@@ -651,6 +651,13 @@ topológica real.
 
 **Nota sobre el movimiento:** Durante la ejecución inicial de `Move-Item`, el destino `tests/corpus/archive/` no existía como directorio, y PowerShell interpretó el destino como nuevo nombre del archivo. El archivo fue renombrado a `archive` en `tests/corpus/`. Se corrigió con `Rename-Item` + `New-Item -ItemType Directory` + `Move-Item` al directorio correcto. Verificación post-corrección: el PDF está en `tests/corpus/archive/doc_06_johnstone.pdf` y NO está en `tests/corpus/canonical/pdf/`.
 
+**Precisión terminológica (v0.8.1):** el forense demuestra que el conjunto
+sellado (manifest v3.9, 21 GTs, manifest_hash 727782fe...19f7d) no fue mutado,
+aumentado ni re-sellado. Lo que cambió fue el perímetro físico que debía ser
+conforme con la baseline: se extrajo de él un artefacto intruso
+(`doc_06_johnstone.pdf`) que nunca perteneció al conjunto sellado, restaurando
+la biyección (NADR-26 §5.3 R11-R12).
+
 ---
 
 ### 2.5 DF-09 — Enforcement de merge de Continuous Verification diferido condicionalmente (Wave 4.1)
@@ -848,6 +855,13 @@ fixtures (NADR-26 §5.5 R20-R22), mockear (ENGINEERING_PRINCIPLES §IV).
 > **NADR-F17BIS-30 §5.5 R14-R16 (por analogía):** un path no demostrado no se
 > declara validado; se documenta como BLOCKED con finding derivado.
 
+**Precisión factual (v0.8.1):** la limitación opera desde el cierre de Gate 4;
+lo diferido es su retiro, condicionado a las cláusulas 6.1/6.3 del
+ENFORCEMENT_CONTRACT (evidencia: contrato §3-§6 y branch protection activa con
+static-analysis required).
+**Referencia de clasificación:** conforme a la regla semántica de Findings
+Register v0.10.1 §1.2. La evidencia de esta entrada permanece sin cambios.
+
 ---
 
 ### 2.7 DF-11 — Manifest corrupto escapaba del except de Pasos 1-2b (Wave 4.2)
@@ -945,6 +959,11 @@ demostrado: inaceptable bajo ENGINEERING_PRINCIPLES §IV.
 comentario de trazabilidad (DF-11, R34, R14). Evidencia post-fix: 6/6 tests de
 `test_cv_failure_path.py` passed (incluidos 2 de `TestCorruptManifestPath`);
 suite completa 930 passed, 5 skipped; pyright 0 errors; import-linter 4/4 KEPT.
+
+**Referencia de clasificación (v0.8.1):** DF-10 conserva
+`RECLASSIFIED_FUTURE_PHASE`, conforme a la regla semántica definida en Findings
+Register v0.10.1 §1.2 y al erratum de su §7.3 criterio 6. La evidencia de esta
+entrada permanece sin cambios.
 
 ---
 
