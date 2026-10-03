@@ -1,0 +1,4873 @@
+[
+  {
+    "node_id": "p1_b1",
+    "sequence_id": 1,
+    "node_type": "heading",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 456.760009765625,
+          "y0": 42.21003723144531,
+          "x1": 537.6349487304688,
+          "y1": 54.10003662109375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "1",
+      "confidence": 1.0,
+      "layout_reading_order": 0,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Empirical Results",
+      "heading_level": "unknown"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b2",
+    "sequence_id": 2,
+    "node_type": "caption",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 81.280029296875,
+          "y0": 87.81007385253906,
+          "x1": 285.9415588378906,
+          "y1": 99.7000732421875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "2",
+      "confidence": 1.0,
+      "layout_reading_order": 1,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Table 6.5. Panel Regression: Level Equation"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b3",
+    "sequence_id": 3,
+    "node_type": "caption",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 81.16002655029297,
+          "y0": 101.6160888671875,
+          "x1": 176.92373657226562,
+          "y1": 108.78009033203125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "3",
+      "confidence": 1.0,
+      "layout_reading_order": 2,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "(Dependent variable, NFA/GDP)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b4",
+    "sequence_id": 4,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 90.88002014160156,
+          "y0": 133.70709228515625,
+          "x1": 129.04734802246094,
+          "y1": 151.15008544921875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "4",
+      "confidence": 1.0,
+      "layout_reading_order": 3,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Explanatory\nVariable"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b5",
+    "sequence_id": 5,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 91.36002349853516,
+          "y0": 161.787109375,
+          "x1": 167.87908935546875,
+          "y1": 170.110107421875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "5",
+      "confidence": 1.0,
+      "layout_reading_order": 4,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Government debt/GDP"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b6",
+    "sequence_id": 6,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 91.60003662109375,
+          "y0": 184.82708740234375,
+          "x1": 149.68927001953125,
+          "y1": 193.15008544921875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "6",
+      "confidence": 1.0,
+      "layout_reading_order": 5,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Dependency ratio"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b7",
+    "sequence_id": 7,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 91.72003936767578,
+          "y0": 207.7470703125,
+          "x1": 142.8555145263672,
+          "y1": 216.070068359375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "7",
+      "confidence": 1.0,
+      "layout_reading_order": 6,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Relative income"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b8",
+    "sequence_id": 8,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 91.48002624511719,
+          "y0": 230.7860565185547,
+          "x1": 136.95372009277344,
+          "y1": 238.99005126953125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "8",
+      "confidence": 1.0,
+      "layout_reading_order": 7,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Capital/output"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b9",
+    "sequence_id": 9,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 91.48002624511719,
+          "y0": 253.82603454589844,
+          "x1": 120.46821594238281,
+          "y1": 262.030029296875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "9",
+      "confidence": 1.0,
+      "layout_reading_order": 8,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Constant"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b10",
+    "sequence_id": 10,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 91.72003936767578,
+          "y0": 276.592041015625,
+          "x1": 107.11849975585938,
+          "y1": 284.9500427246094,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "10",
+      "confidence": 1.0,
+      "layout_reading_order": 9,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "D.W."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b11",
+    "sequence_id": 11,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 91.72003936767578,
+          "y0": 290.5080261230469,
+          "x1": 99.47470092773438,
+          "y1": 297.5400390625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "11",
+      "confidence": 1.0,
+      "layout_reading_order": 10,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "R2"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b12",
+    "sequence_id": 12,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 91.96005249023438,
+          "y0": 304.9460144042969,
+          "x1": 156.10232543945312,
+          "y1": 322.1500244140625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "12",
+      "confidence": 1.0,
+      "layout_reading_order": 11,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Panel unit root test\n[p-value]"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b13",
+    "sequence_id": 13,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 188.56005859375,
+          "y0": 133.70703125,
+          "x1": 209.03919982910156,
+          "y1": 151.1500244140625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "13",
+      "confidence": 1.0,
+      "layout_reading_order": 12,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Fixed\nEffects"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b14",
+    "sequence_id": 14,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 191.20005798339844,
+          "y0": 161.78704833984375,
+          "x1": 215.1890411376953,
+          "y1": 179.23004150390625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "14",
+      "confidence": 1.0,
+      "layout_reading_order": 13,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "-0.57**\n(0.05)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b15",
+    "sequence_id": 15,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 191.20005798339844,
+          "y0": 184.8270263671875,
+          "x1": 211.3065643310547,
+          "y1": 202.1500244140625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "15",
+      "confidence": 1.0,
+      "layout_reading_order": 14,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "-0.45\n(0.33)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b16",
+    "sequence_id": 16,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 193.36004638671875,
+          "y0": 207.74700927734375,
+          "x1": 215.4418182373047,
+          "y1": 225.07000732421875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "16",
+      "confidence": 1.0,
+      "layout_reading_order": 15,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0.53**\n(0.20)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b17",
+    "sequence_id": 17,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 199.7200469970703,
+          "y0": 231.14697265625,
+          "x1": 206.65005493164062,
+          "y1": 239.469970703125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "17",
+      "confidence": 1.0,
+      "layout_reading_order": 16,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "—"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b18",
+    "sequence_id": 18,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 199.7200469970703,
+          "y0": 254.18695068359375,
+          "x1": 206.65005493164062,
+          "y1": 262.50994873046875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "18",
+      "confidence": 1.0,
+      "layout_reading_order": 17,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "—"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b19",
+    "sequence_id": 19,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 195.8800506591797,
+          "y0": 276.7469482421875,
+          "x1": 208.9886474609375,
+          "y1": 285.0699462890625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "19",
+      "confidence": 1.0,
+      "layout_reading_order": 18,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0.36"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b20",
+    "sequence_id": 20,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 196.0000457763672,
+          "y0": 290.78692626953125,
+          "x1": 209.15318298339844,
+          "y1": 299.10992431640625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "20",
+      "confidence": 1.0,
+      "layout_reading_order": 19,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0.78"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b21",
+    "sequence_id": 21,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 195.8800506591797,
+          "y0": 313.7069396972656,
+          "x1": 209.00942993164062,
+          "y1": 322.0299377441406,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "21",
+      "confidence": 1.0,
+      "layout_reading_order": 20,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0.14"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b22",
+    "sequence_id": 22,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 226.48004150390625,
+          "y0": 133.82696533203125,
+          "x1": 270.7330627441406,
+          "y1": 151.26995849609375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "22",
+      "confidence": 1.0,
+      "layout_reading_order": 21,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Ordinary\nLeast Squares"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b23",
+    "sequence_id": 23,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 242.9200439453125,
+          "y0": 161.906982421875,
+          "x1": 266.906005859375,
+          "y1": 179.22998046875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "23",
+      "confidence": 1.0,
+      "layout_reading_order": 22,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "-0.28**\n(0.05)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b24",
+    "sequence_id": 24,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 243.0400390625,
+          "y0": 184.82696533203125,
+          "x1": 263.7012023925781,
+          "y1": 202.14996337890625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "24",
+      "confidence": 1.0,
+      "layout_reading_order": 23,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "-0.37*\n(0.20)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b25",
+    "sequence_id": 25,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 245.0800323486328,
+          "y0": 207.866943359375,
+          "x1": 267.2075500488281,
+          "y1": 225.18994140625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "25",
+      "confidence": 1.0,
+      "layout_reading_order": 24,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0.66**\n(0.08)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b26",
+    "sequence_id": 26,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 250.60003662109375,
+          "y0": 231.14697265625,
+          "x1": 257.530029296875,
+          "y1": 239.469970703125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "26",
+      "confidence": 1.0,
+      "layout_reading_order": 25,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "—"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b27",
+    "sequence_id": 27,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 239.20004272460938,
+          "y0": 253.70697021484375,
+          "x1": 263.3253479003906,
+          "y1": 271.14996337890625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "27",
+      "confidence": 1.0,
+      "layout_reading_order": 26,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "-38.4**\n(6.4)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b28",
+    "sequence_id": 28,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 247.60003662109375,
+          "y0": 276.866943359375,
+          "x1": 260.79473876953125,
+          "y1": 285.18994140625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "28",
+      "confidence": 1.0,
+      "layout_reading_order": 27,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0.26"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b29",
+    "sequence_id": 29,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 247.72003173828125,
+          "y0": 290.90692138671875,
+          "x1": 260.6029052734375,
+          "y1": 299.22991943359375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "29",
+      "confidence": 1.0,
+      "layout_reading_order": 28,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0.23"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b30",
+    "sequence_id": 30,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 247.72003173828125,
+          "y0": 313.9468994140625,
+          "x1": 260.5999450683594,
+          "y1": 322.2698974609375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "30",
+      "confidence": 1.0,
+      "layout_reading_order": 29,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0.01"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b31",
+    "sequence_id": 31,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 284.6800537109375,
+          "y0": 133.7069091796875,
+          "x1": 311.05859375,
+          "y1": 151.14990234375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "31",
+      "confidence": 1.0,
+      "layout_reading_order": 30,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Random\nEffects"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b32",
+    "sequence_id": 32,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 285.52008056640625,
+          "y0": 161.78692626953125,
+          "x1": 309.5274658203125,
+          "y1": 179.10992431640625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "32",
+      "confidence": 1.0,
+      "layout_reading_order": 31,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "-0.56**\n(0.04)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b33",
+    "sequence_id": 33,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 285.52008056640625,
+          "y0": 184.826904296875,
+          "x1": 305.6265869140625,
+          "y1": 202.14990234375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "33",
+      "confidence": 1.0,
+      "layout_reading_order": 32,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "-0.40\n(0.30)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b34",
+    "sequence_id": 34,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 287.56005859375,
+          "y0": 207.74688720703125,
+          "x1": 309.8608093261719,
+          "y1": 225.06988525390625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "34",
+      "confidence": 1.0,
+      "layout_reading_order": 33,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0.53**\n(0.17)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b35",
+    "sequence_id": 35,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 293.0800476074219,
+          "y0": 231.1468505859375,
+          "x1": 300.0100402832031,
+          "y1": 239.4698486328125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "35",
+      "confidence": 1.0,
+      "layout_reading_order": 34,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "—"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b36",
+    "sequence_id": 36,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 281.6800537109375,
+          "y0": 253.70684814453125,
+          "x1": 301.9844970703125,
+          "y1": 271.02984619140625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "36",
+      "confidence": 1.0,
+      "layout_reading_order": 35,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "-16.0\n(12.1)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b37",
+    "sequence_id": 37,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 293.9200439453125,
+          "y0": 277.2268371582031,
+          "x1": 300.85003662109375,
+          "y1": 285.5498352050781,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "37",
+      "confidence": 1.0,
+      "layout_reading_order": 36,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "—"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b38",
+    "sequence_id": 38,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 290.2000427246094,
+          "y0": 290.7868347167969,
+          "x1": 303.52252197265625,
+          "y1": 299.1098327636719,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "38",
+      "confidence": 1.0,
+      "layout_reading_order": 37,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0.77"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b39",
+    "sequence_id": 39,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 294.5200500488281,
+          "y0": 314.18682861328125,
+          "x1": 301.4500427246094,
+          "y1": 322.50982666015625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "39",
+      "confidence": 1.0,
+      "layout_reading_order": 38,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "—"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b40",
+    "sequence_id": 40,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 337.24005126953125,
+          "y0": 133.70684814453125,
+          "x1": 357.7192077636719,
+          "y1": 151.14984130859375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "40",
+      "confidence": 1.0,
+      "layout_reading_order": 39,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Fixed\nEffects"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b41",
+    "sequence_id": 41,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 335.800048828125,
+          "y0": 161.786865234375,
+          "x1": 359.5633850097656,
+          "y1": 179.10986328125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "41",
+      "confidence": 1.0,
+      "layout_reading_order": 40,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "-0.41**\n(0.04)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b42",
+    "sequence_id": 42,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 335.9200134277344,
+          "y0": 184.82684326171875,
+          "x1": 356.0054931640625,
+          "y1": 202.14984130859375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "42",
+      "confidence": 1.0,
+      "layout_reading_order": 41,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "-0.16\n(0.30)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b43",
+    "sequence_id": 43,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 337.84002685546875,
+          "y0": 207.746826171875,
+          "x1": 356.9403076171875,
+          "y1": 225.06982421875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "43",
+      "confidence": 1.0,
+      "layout_reading_order": 42,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0.69*\n(0.18)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b44",
+    "sequence_id": 44,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 335.9200134277344,
+          "y0": 230.66680908203125,
+          "x1": 360.0141906738281,
+          "y1": 247.98980712890625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "44",
+      "confidence": 1.0,
+      "layout_reading_order": 43,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "-0.37**\n(0.04)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b45",
+    "sequence_id": 45,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 343.8399963378906,
+          "y0": 254.18682861328125,
+          "x1": 350.7699890136719,
+          "y1": 262.50982666015625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "45",
+      "confidence": 1.0,
+      "layout_reading_order": 44,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "—"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b46",
+    "sequence_id": 46,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 343.9599914550781,
+          "y0": 277.226806640625,
+          "x1": 350.8899841308594,
+          "y1": 285.5498046875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "46",
+      "confidence": 1.0,
+      "layout_reading_order": 45,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "—"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b47",
+    "sequence_id": 47,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 340.6000061035156,
+          "y0": 290.78680419921875,
+          "x1": 353.77691650390625,
+          "y1": 299.10980224609375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "47",
+      "confidence": 1.0,
+      "layout_reading_order": 46,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0.82"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b48",
+    "sequence_id": 48,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 340.6000061035156,
+          "y0": 313.7068176269531,
+          "x1": 353.7294006347656,
+          "y1": 322.0298156738281,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "48",
+      "confidence": 1.0,
+      "layout_reading_order": 47,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0.44"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b49",
+    "sequence_id": 49,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 374.44000244140625,
+          "y0": 133.706787109375,
+          "x1": 414.1756286621094,
+          "y1": 151.1497802734375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "49",
+      "confidence": 1.0,
+      "layout_reading_order": 48,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Instrumental\nVariables"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b50",
+    "sequence_id": 50,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 386.9200134277344,
+          "y0": 161.78680419921875,
+          "x1": 407.5751647949219,
+          "y1": 179.10980224609375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "50",
+      "confidence": 1.0,
+      "layout_reading_order": 49,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "-0.49*\n(0.23)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b51",
+    "sequence_id": 51,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 386.9200134277344,
+          "y0": 184.706787109375,
+          "x1": 410.9086608886719,
+          "y1": 202.02978515625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "51",
+      "confidence": 1.0,
+      "layout_reading_order": 50,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "-1.29**\n(0.56)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b52",
+    "sequence_id": 52,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 387.03997802734375,
+          "y0": 207.62677001953125,
+          "x1": 407.1254577636719,
+          "y1": 225.06976318359375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "52",
+      "confidence": 1.0,
+      "layout_reading_order": 51,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "-0.72\n(0.76)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b53",
+    "sequence_id": 53,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 391.6000061035156,
+          "y0": 231.146728515625,
+          "x1": 398.5299987792969,
+          "y1": 239.4697265625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "53",
+      "confidence": 1.0,
+      "layout_reading_order": 52,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "—"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b54",
+    "sequence_id": 54,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 391.6000061035156,
+          "y0": 254.18670654296875,
+          "x1": 398.5299987792969,
+          "y1": 262.50970458984375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "54",
+      "confidence": 1.0,
+      "layout_reading_order": 53,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "—"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b55",
+    "sequence_id": 55,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 391.84002685546875,
+          "y0": 277.2266845703125,
+          "x1": 398.77001953125,
+          "y1": 285.5496826171875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "55",
+      "confidence": 1.0,
+      "layout_reading_order": 54,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "—"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b56",
+    "sequence_id": 56,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 391.84002685546875,
+          "y0": 291.1466979980469,
+          "x1": 398.77001953125,
+          "y1": 299.4696960449219,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "56",
+      "confidence": 1.0,
+      "layout_reading_order": 55,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "—"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b57",
+    "sequence_id": 57,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 391.84002685546875,
+          "y0": 314.15167236328125,
+          "x1": 398.77001953125,
+          "y1": 322.5096740722656,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "57",
+      "confidence": 1.0,
+      "layout_reading_order": 56,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "—"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b58",
+    "sequence_id": 58,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 99.04000854492188,
+          "y0": 333.7076721191406,
+          "x1": 418.037841796875,
+          "y1": 340.73968505859375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "58",
+      "confidence": 1.0,
+      "layout_reading_order": 57,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Notes: *(**) denotes significance at the 10 (5) percent level; the standard errors are indicative only; number of"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b59",
+    "sequence_id": 59,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 91.84001159667969,
+          "y0": 342.6236877441406,
+          "x1": 419.1407775878906,
+          "y1": 349.73968505859375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "59",
+      "confidence": 1.0,
+      "layout_reading_order": 58,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "countries (N) = 21; number of time periods (T) = 23; mean of dependent variable (NFA/GDP): -7.27; standard error"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b60",
+    "sequence_id": 60,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 91.84001159667969,
+          "y0": 351.7076721191406,
+          "x1": 173.11700439453125,
+          "y1": 358.73968505859375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "60",
+      "confidence": 1.0,
+      "layout_reading_order": 59,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "of dependent variable: 32.48."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b61",
+    "sequence_id": 61,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 73.84001159667969,
+          "y0": 398.4996643066406,
+          "x1": 295.1677551269531,
+          "y1": 628.77978515625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "61",
+      "confidence": 1.0,
+      "layout_reading_order": 60,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "The explanatory variables in the levels specifica-\ntion are basically those from the cross-sectional re-\ngression estimated above, namely, the dependency\nratio, the capital stock and relative income variables,\nand fiscal policy.43 Corresponding to our use of the\nstock of net foreign assets as the dependent variable,\nwe use the stock of government debt to represent fis-\ncal effects. The results from estimating this levels re-\ngression are shown in Table 6.5.\nThe first column shows the estimates when coun-\ntry specific dummies (or fixed effects) are included.\nThe second column shows the result of an OLS re-\ngression with a constant that is common across coun-\ntries. The third column is the random effects esti-\nmate.44 The slope coefficients are almost identical\nacross the random and fixed effects specifications.\nThe hypothesis that all the constant terms are the\nsame is, however, rejected (critical value 60.1). The\nmodel estimated using the first difference estimator\n(shown in column 5) suggests that the fixed effect\nspecification is still an appropriate specification."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b62",
+    "sequence_id": 62,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 318.6399841308594,
+          "y0": 398.3797912597656,
+          "x1": 538.8873291015625,
+          "y1": 628.7799072265625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "62",
+      "confidence": 1.0,
+      "layout_reading_order": 61,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "The results again show a much larger impact of\nfiscal policy in this specification compared with the\ncross-sectional regression earlier. An increase in\ngovernment debt of 1 percentage point of GDP is as-\nsociated with a reduction in the NFA-to-GDP ratio of\nabout 0.6 of a percentage point,45 in line with the\nlong-run impact of fiscal policy in the partial adjust-\nment equation. The relationship between the level of\ngovernment debt and the net foreign asset position is\nstronger possibly because the government debt vari-\nable may be better capturing the long-run impact of\nfiscal policy.\nDemographics again have a negative although not\nsignificant impact on the NFA ratio in this specifica-\ntion.46 Relative income has a positive influence on\nthe current account, while the capital-output ratio\nhas a negative influence in the fixed effects regres-\nsions, leading us to prefer column 1 over column 4.\nAgain, the latter results may be caused either by the\nScandinavian countries or by the collinearity be-\ntween the capital-output ratio and relative income."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b63",
+    "sequence_id": 63,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 74.44003295898438,
+          "y0": 660.9302978515625,
+          "x1": 294.14898681640625,
+          "y1": 707.1199340820312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "63",
+      "confidence": 1.0,
+      "layout_reading_order": 62,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "43As the time that series properties of the squared variables may\nbe integrated are not obvious, we estimate the levels equation in-\ncluding the income and capital stock variables in linear form.\n44A Hausman test (with critical value 3.46) fails to reject the\nrandom effects model in favor of the fixed effects model."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b64",
+    "sequence_id": 64,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 320.2000427246094,
+          "y0": 651.9302978515625,
+          "x1": 538.8783569335938,
+          "y1": 707.1199340820312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "64",
+      "confidence": 1.0,
+      "layout_reading_order": 63,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "45Masson, Kremers, and Home (1994) find coefficients of 0.3,\n0.5, and 0.7, respectively, in Germany, Japan, and the United\nStates for the effect of government debt on NFA.\n46Under a cointegration interpretation, note that the t-statistics\nfrom the levels regression have nonstandard limiting distributions\nand, hence, are only indicative."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b65",
+    "sequence_id": 65,
+    "node_type": "paragraph",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 559.0264282226562,
+          "y0": 728.9453125,
+          "x1": 577.0408325195312,
+          "y1": 743.1773071289062,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "65",
+      "confidence": 1.0,
+      "layout_reading_order": 64,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "45"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p1_b66",
+    "sequence_id": 66,
+    "node_type": "paragraph",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 156.5599822998047,
+          "y0": 762.30908203125,
+          "x1": 438.719482421875,
+          "y1": 779.3909912109375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        1
+      ],
+      "provider_native_id": "66",
+      "confidence": 1.0,
+      "layout_reading_order": 65,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "©International Monetary Fund. Not for Redistribution",
+      "heading_level": "unknown"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b1",
+    "sequence_id": 67,
+    "node_type": "paragraph",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 73.47998809814453,
+          "y0": 42.33003234863281,
+          "x1": 417.53533935546875,
+          "y1": 54.22003173828125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "1",
+      "confidence": 1.0,
+      "layout_reading_order": 66,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "VI \nSAVING-INVESTMENT BALANCES IN INDUSTRIAL COUNTRIES",
+      "heading_level": "unknown"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b2",
+    "sequence_id": 68,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 112.95999145507812,
+          "y0": 133.8270263671875,
+          "x1": 150.64730834960938,
+          "y1": 151.27001953125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "2",
+      "confidence": 1.0,
+      "layout_reading_order": 67,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Explanatory\nVariable"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b3",
+    "sequence_id": 69,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 91.47998809814453,
+          "y0": 161.90704345703125,
+          "x1": 140.1279296875,
+          "y1": 179.11004638671875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "3",
+      "confidence": 1.0,
+      "layout_reading_order": 68,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Lagged change\nin NFA/GDP"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b4",
+    "sequence_id": 70,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 91.47998809814453,
+          "y0": 184.8270263671875,
+          "x1": 165.37046813964844,
+          "y1": 202.1500244140625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "4",
+      "confidence": 1.0,
+      "layout_reading_order": 69,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Change in government\ndebt/GDP"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b5",
+    "sequence_id": 71,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 91.8399887084961,
+          "y0": 207.74700927734375,
+          "x1": 178.61651611328125,
+          "y1": 216.07000732421875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "5",
+      "confidence": 1.0,
+      "layout_reading_order": 70,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Real exchange rate change"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b6",
+    "sequence_id": 72,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 99.7599868774414,
+          "y0": 230.6669921875,
+          "x1": 125.46580505371094,
+          "y1": 238.989990234375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "6",
+      "confidence": 1.0,
+      "layout_reading_order": 71,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "First lag"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b7",
+    "sequence_id": 73,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 99.63998413085938,
+          "y0": 253.58697509765625,
+          "x1": 134.58621215820312,
+          "y1": 261.90997314453125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "7",
+      "confidence": 1.0,
+      "layout_reading_order": 72,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Second lag"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b8",
+    "sequence_id": 74,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 92.07998657226562,
+          "y0": 276.7469787597656,
+          "x1": 160.73654174804688,
+          "y1": 285.0699768066406,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "8",
+      "confidence": 1.0,
+      "layout_reading_order": 73,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Domestic output gap"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b9",
+    "sequence_id": 75,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 92.19998931884766,
+          "y0": 299.7859802246094,
+          "x1": 169.17947387695312,
+          "y1": 316.989990234375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "9",
+      "confidence": 1.0,
+      "layout_reading_order": 74,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Error correction model\nterm"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b10",
+    "sequence_id": 76,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 91.8399887084961,
+          "y0": 322.70697021484375,
+          "x1": 165.53558349609375,
+          "y1": 331.02996826171875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "10",
+      "confidence": 1.0,
+      "layout_reading_order": 75,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Terms of trade change"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b11",
+    "sequence_id": 77,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 92.08000183105469,
+          "y0": 345.6259460449219,
+          "x1": 121.06819152832031,
+          "y1": 353.8299560546875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "11",
+      "confidence": 1.0,
+      "layout_reading_order": 76,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Constant"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b12",
+    "sequence_id": 78,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 91.95999908447266,
+          "y0": 369.71197509765625,
+          "x1": 127.99006652832031,
+          "y1": 378.0699768066406,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "12",
+      "confidence": 1.0,
+      "layout_reading_order": 77,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "LM[X2(1)]"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b13",
+    "sequence_id": 79,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 91.95999908447266,
+          "y0": 381.7469787597656,
+          "x1": 122.73408508300781,
+          "y1": 390.0699768066406,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "13",
+      "confidence": 1.0,
+      "layout_reading_order": 78,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "LM[X2(4)]"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b14",
+    "sequence_id": 80,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 195.52000427246094,
+          "y0": 133.82696533203125,
+          "x1": 215.89817810058594,
+          "y1": 151.26995849609375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "14",
+      "confidence": 1.0,
+      "layout_reading_order": 79,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Fixed\nEffects"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b15",
+    "sequence_id": 81,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 198.04000854492188,
+          "y0": 161.906982421875,
+          "x1": 220.20216369628906,
+          "y1": 179.22998046875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "15",
+      "confidence": 1.0,
+      "layout_reading_order": 80,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0.40**\n(0.04)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b16",
+    "sequence_id": 82,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 196.24000549316406,
+          "y0": 184.82696533203125,
+          "x1": 220.22898864746094,
+          "y1": 202.14996337890625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "16",
+      "confidence": 1.0,
+      "layout_reading_order": 81,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "-0.47**\n(0.06)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b17",
+    "sequence_id": 83,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 196.36000061035156,
+          "y0": 207.866943359375,
+          "x1": 216.3675537109375,
+          "y1": 225.0699462890625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "17",
+      "confidence": 1.0,
+      "layout_reading_order": 82,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "-4.81\n(4.81)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b18",
+    "sequence_id": 84,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 198.39999389648438,
+          "y0": 230.66693115234375,
+          "x1": 216.4665069580078,
+          "y1": 247.98992919921875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "18",
+      "confidence": 1.0,
+      "layout_reading_order": 83,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "2.45\n(4.60)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b19",
+    "sequence_id": 85,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 196.47999572753906,
+          "y0": 253.7069091796875,
+          "x1": 217.16700744628906,
+          "y1": 271.0299072265625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "19",
+      "confidence": 1.0,
+      "layout_reading_order": 84,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "-8.65*\n(4.58)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b20",
+    "sequence_id": 86,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 196.59999084472656,
+          "y0": 276.74688720703125,
+          "x1": 220.51290893554688,
+          "y1": 294.06988525390625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "20",
+      "confidence": 1.0,
+      "layout_reading_order": 85,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "-0.45**\n(0.10)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b21",
+    "sequence_id": 87,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 196.71998596191406,
+          "y0": 299.786865234375,
+          "x1": 220.6990966796875,
+          "y1": 316.9898681640625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "21",
+      "confidence": 1.0,
+      "layout_reading_order": 86,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "-0.10**\n(0.02)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b22",
+    "sequence_id": 88,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 198.87997436523438,
+          "y0": 322.5868835449219,
+          "x1": 220.86270141601562,
+          "y1": 339.7898864746094,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "22",
+      "confidence": 1.0,
+      "layout_reading_order": 87,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0.13**\n(0.04)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b23",
+    "sequence_id": 89,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 204.15997314453125,
+          "y0": 345.98687744140625,
+          "x1": 211.0899658203125,
+          "y1": 354.30987548828125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "23",
+      "confidence": 1.0,
+      "layout_reading_order": 88,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "—"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b24",
+    "sequence_id": 90,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 201.5199737548828,
+          "y0": 368.306884765625,
+          "x1": 214.0919952392578,
+          "y1": 376.6298828125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "24",
+      "confidence": 1.0,
+      "layout_reading_order": 89,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "3.2*"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b25",
+    "sequence_id": 91,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 197.55996704101562,
+          "y0": 382.34686279296875,
+          "x1": 217.30355834960938,
+          "y1": 390.66986083984375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "25",
+      "confidence": 1.0,
+      "layout_reading_order": 90,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "32.4**"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b26",
+    "sequence_id": 92,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 201.27996826171875,
+          "y0": 396.3868408203125,
+          "x1": 214.5400390625,
+          "y1": 404.7098388671875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "26",
+      "confidence": 1.0,
+      "layout_reading_order": 91,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0.40"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b27",
+    "sequence_id": 93,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 247.5999755859375,
+          "y0": 133.94683837890625,
+          "x1": 291.97271728515625,
+          "y1": 151.38983154296875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "27",
+      "confidence": 1.0,
+      "layout_reading_order": 92,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Ordinary\nLeast Squares"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b28",
+    "sequence_id": 94,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 255.99996948242188,
+          "y0": 161.9068603515625,
+          "x1": 277.99884033203125,
+          "y1": 179.2298583984375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "28",
+      "confidence": 1.0,
+      "layout_reading_order": 93,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0.44**\n(0.04)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b29",
+    "sequence_id": 95,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 254.19996643066406,
+          "y0": 184.94683837890625,
+          "x1": 278.29095458984375,
+          "y1": 202.26983642578125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "29",
+      "confidence": 1.0,
+      "layout_reading_order": 94,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "-0.38**\n(0.06)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b30",
+    "sequence_id": 96,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 254.19996643066406,
+          "y0": 207.8668212890625,
+          "x1": 274.3064880371094,
+          "y1": 225.1898193359375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "30",
+      "confidence": 1.0,
+      "layout_reading_order": 95,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "-3.23\n(4.68)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b31",
+    "sequence_id": 97,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 256.3599548339844,
+          "y0": 230.78680419921875,
+          "x1": 274.4264831542969,
+          "y1": 248.10980224609375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "31",
+      "confidence": 1.0,
+      "layout_reading_order": 96,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "3.23\n(4.59)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b32",
+    "sequence_id": 98,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 254.31996154785156,
+          "y0": 253.706787109375,
+          "x1": 274.5254211425781,
+          "y1": 271.1497802734375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "32",
+      "confidence": 1.0,
+      "layout_reading_order": 97,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "-7.10\n(4.51)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b33",
+    "sequence_id": 99,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 254.43995666503906,
+          "y0": 276.7467956542969,
+          "x1": 278.5471496582031,
+          "y1": 294.0697937011719,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "33",
+      "confidence": 1.0,
+      "layout_reading_order": 98,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "-0.36**\n(0.09)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b34",
+    "sequence_id": 100,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 254.55995178222656,
+          "y0": 299.7867736816406,
+          "x1": 278.6439208984375,
+          "y1": 316.9897766113281,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "34",
+      "confidence": 1.0,
+      "layout_reading_order": 99,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "-0.10**\n(0.02)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b35",
+    "sequence_id": 101,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 256.7199401855469,
+          "y0": 322.7067565917969,
+          "x1": 278.9217529296875,
+          "y1": 339.9097595214844,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "35",
+      "confidence": 1.0,
+      "layout_reading_order": 100,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0.13**\n(0.04)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b36",
+    "sequence_id": 102,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 254.79994201660156,
+          "y0": 345.50677490234375,
+          "x1": 274.9064636230469,
+          "y1": 362.82977294921875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "36",
+      "confidence": 1.0,
+      "layout_reading_order": 101,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "-0.13\n(0.25)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b37",
+    "sequence_id": 103,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 260.5599365234375,
+          "y0": 368.4267883300781,
+          "x1": 268.5176086425781,
+          "y1": 376.7497863769531,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "37",
+      "confidence": 1.0,
+      "layout_reading_order": 102,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "1.3"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b38",
+    "sequence_id": 104,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 259.35992431640625,
+          "y0": 382.4667663574219,
+          "x1": 268.2481384277344,
+          "y1": 390.7897644042969,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "38",
+      "confidence": 1.0,
+      "layout_reading_order": 103,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "7.3"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b39",
+    "sequence_id": 105,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 259.23992919921875,
+          "y0": 396.5067443847656,
+          "x1": 272.4139099121094,
+          "y1": 404.8297424316406,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "39",
+      "confidence": 1.0,
+      "layout_reading_order": 104,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0.40"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b40",
+    "sequence_id": 106,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 316.11993408203125,
+          "y0": 133.8267822265625,
+          "x1": 342.49847412109375,
+          "y1": 151.269775390625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "40",
+      "confidence": 1.0,
+      "layout_reading_order": 105,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Random\nEffects"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b41",
+    "sequence_id": 107,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 319.11993408203125,
+          "y0": 161.90679931640625,
+          "x1": 341.22271728515625,
+          "y1": 179.22979736328125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "41",
+      "confidence": 1.0,
+      "layout_reading_order": 106,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0.33**\n(0.04)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b42",
+    "sequence_id": 108,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 317.1999206542969,
+          "y0": 184.94677734375,
+          "x1": 341.3070983886719,
+          "y1": 202.1497802734375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "42",
+      "confidence": 1.0,
+      "layout_reading_order": 107,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "-0.36**\n(0.06)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b43",
+    "sequence_id": 109,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 319.3598937988281,
+          "y0": 207.86676025390625,
+          "x1": 337.4264221191406,
+          "y1": 225.18975830078125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "43",
+      "confidence": 1.0,
+      "layout_reading_order": 108,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "2.80\n(4.58)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b44",
+    "sequence_id": 110,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 319.3598937988281,
+          "y0": 230.666748046875,
+          "x1": 337.5253601074219,
+          "y1": 248.1097412109375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "44",
+      "confidence": 1.0,
+      "layout_reading_order": 109,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "1.01\n(5.03)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b45",
+    "sequence_id": 111,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 317.43988037109375,
+          "y0": 253.58673095703125,
+          "x1": 337.54638671875,
+          "y1": 271.02972412109375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "45",
+      "confidence": 1.0,
+      "layout_reading_order": 110,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "-6.99\n(4.65)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b46",
+    "sequence_id": 112,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 317.43988037109375,
+          "y0": 276.7467041015625,
+          "x1": 341.5308532714844,
+          "y1": 293.94970703125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "46",
+      "confidence": 1.0,
+      "layout_reading_order": 111,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "-0.18**\n(0.09)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b47",
+    "sequence_id": 113,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 317.67987060546875,
+          "y0": 299.66668701171875,
+          "x1": 341.4432067871094,
+          "y1": 316.98968505859375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "47",
+      "confidence": 1.0,
+      "layout_reading_order": 112,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "-0.11**\n(0.02)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b48",
+    "sequence_id": 114,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 319.7198486328125,
+          "y0": 322.5867004394531,
+          "x1": 341.93157958984375,
+          "y1": 339.7897033691406,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "48",
+      "confidence": 1.0,
+      "layout_reading_order": 113,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0.07**\n(0.04)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b49",
+    "sequence_id": 115,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 319.83984375,
+          "y0": 345.5066833496094,
+          "x1": 337.9063720703125,
+          "y1": 362.8296813964844,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "49",
+      "confidence": 1.0,
+      "layout_reading_order": 114,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0.03\n(0.26)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b50",
+    "sequence_id": 116,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 323.5598449707031,
+          "y0": 368.3066711425781,
+          "x1": 331.652099609375,
+          "y1": 376.6296691894531,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "50",
+      "confidence": 1.0,
+      "layout_reading_order": 115,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "1.4"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b51",
+    "sequence_id": 117,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 319.4798583984375,
+          "y0": 382.3466491699219,
+          "x1": 338.30096435546875,
+          "y1": 390.6696472167969,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "51",
+      "confidence": 1.0,
+      "layout_reading_order": 116,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "11.8**"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b52",
+    "sequence_id": 118,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 322.2398376464844,
+          "y0": 396.3866271972656,
+          "x1": 335.47314453125,
+          "y1": 404.7096252441406,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "52",
+      "confidence": 1.0,
+      "layout_reading_order": 117,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0.37"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b53",
+    "sequence_id": 119,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 380.31982421875,
+          "y0": 133.9466552734375,
+          "x1": 400.7989807128906,
+          "y1": 151.3896484375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "53",
+      "confidence": 1.0,
+      "layout_reading_order": 118,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Fixed\nEffects"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b54",
+    "sequence_id": 120,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 383.6798095703125,
+          "y0": 162.02667236328125,
+          "x1": 405.7219543457031,
+          "y1": 179.22967529296875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "54",
+      "confidence": 1.0,
+      "layout_reading_order": 119,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0.40**\n(0.04)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b55",
+    "sequence_id": 121,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 381.7597961425781,
+          "y0": 184.9466552734375,
+          "x1": 405.7389221191406,
+          "y1": 202.2696533203125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "55",
+      "confidence": 1.0,
+      "layout_reading_order": 120,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "-0.50**\n(0.06)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b56",
+    "sequence_id": 122,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 383.9197692871094,
+          "y0": 207.86663818359375,
+          "x1": 401.8872985839844,
+          "y1": 225.18963623046875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "56",
+      "confidence": 1.0,
+      "layout_reading_order": 121,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0.20\n(4.55)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b57",
+    "sequence_id": 123,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 383.9197692871094,
+          "y0": 230.78662109375,
+          "x1": 401.8872985839844,
+          "y1": 247.9896240234375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "57",
+      "confidence": 1.0,
+      "layout_reading_order": 122,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "1.48\n(4.64)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b58",
+    "sequence_id": 124,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 381.8797912597656,
+          "y0": 253.70660400390625,
+          "x1": 405.9675598144531,
+          "y1": 271.14959716796875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "58",
+      "confidence": 1.0,
+      "layout_reading_order": 123,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "-9.89**\n(4.60)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b59",
+    "sequence_id": 125,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 381.999755859375,
+          "y0": 276.7466125488281,
+          "x1": 405.9815673828125,
+          "y1": 294.1896057128906,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "59",
+      "confidence": 1.0,
+      "layout_reading_order": 124,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "-0.52**\n(0.10)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b60",
+    "sequence_id": 126,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 382.1197204589844,
+          "y0": 299.78662109375,
+          "x1": 406.0988464355469,
+          "y1": 316.9896240234375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "60",
+      "confidence": 1.0,
+      "layout_reading_order": 125,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "-0.10**\n(0.02)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b61",
+    "sequence_id": 127,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 389.1996765136719,
+          "y0": 323.4266052246094,
+          "x1": 396.1296691894531,
+          "y1": 331.7496032714844,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "61",
+      "confidence": 1.0,
+      "layout_reading_order": 126,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "—"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b62",
+    "sequence_id": 128,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 389.1996765136719,
+          "y0": 345.9866027832031,
+          "x1": 396.1296691894531,
+          "y1": 354.3096008300781,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "62",
+      "confidence": 1.0,
+      "layout_reading_order": 127,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "—"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b63",
+    "sequence_id": 129,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 387.8796691894531,
+          "y0": 368.3066101074219,
+          "x1": 395.99566650390625,
+          "y1": 376.6296081542969,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "63",
+      "confidence": 1.0,
+      "layout_reading_order": 128,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "1.9"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b64",
+    "sequence_id": 130,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 382.59967041015625,
+          "y0": 382.46661376953125,
+          "x1": 402.42547607421875,
+          "y1": 390.78961181640625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "64",
+      "confidence": 1.0,
+      "layout_reading_order": 129,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "28.7**"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b65",
+    "sequence_id": 131,
+    "node_type": "composite_block",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 386.6796569824219,
+          "y0": 396.3866271972656,
+          "x1": 399.6634826660156,
+          "y1": 404.7096252441406,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "65",
+      "confidence": 1.0,
+      "layout_reading_order": 130,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "0.39"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b66",
+    "sequence_id": 132,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 92.31965637207031,
+          "y0": 415.46563720703125,
+          "x1": 418.3258361816406,
+          "y1": 432.6696472167969,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "66",
+      "confidence": 1.0,
+      "layout_reading_order": 131,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Notes: * (**) denotes significance at the 10 (5) percent level; number of countries (N) = 21; number of time pe-\nriods (7) = 20; mean of dependent variable: -0.98; standard error of dependent variable: 5.70."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b67",
+    "sequence_id": 133,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 74.43966674804688,
+          "y0": 476.6196594238281,
+          "x1": 298.7980041503906,
+          "y1": 706.899658203125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "67",
+      "confidence": 1.0,
+      "layout_reading_order": 132,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "The panel unit root test rejects the null of nonsta-\ntionary residuals (i.e., no cointegration) in the OLS\nspecification but narrowly fails to reject the null in\nour preferred fixed effects specification. The country\ndummies are jointly significant in the fixed effects\nspecification. The hypothesis that the coefficients on\nthe explanatory variables are the same across coun-\ntries is again rejected, however (the F statistic is\n28.4). Nevertheless, as stated above, the regression\ncan be regarded as capturing the effect on an average\ncountry's net foreign asset position of changes in the\nexplanatory variables.\nThe estimation results of the error-correction\nmodel are shown in Table 6.6. The short-run, error-\ncorrection specification includes the residuals (i.e.,\nerror-correction mechanism terms) from the levels\nregression estimated with fixed effects in column 1\nof Table 6.5. The specification also includes other\nvariables that may have shorter-term effects on the\ncurrent account discussed earlier. The dependent\nvariable in the short-run model is the change in the"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b68",
+    "sequence_id": 134,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 318.99969482421875,
+          "y0": 475.522705078125,
+          "x1": 539.9212646484375,
+          "y1": 608.6197509765625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "68",
+      "confidence": 1.0,
+      "layout_reading_order": 133,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "net foreign assets ratio.47 The presence of the lagged\ndependent variable in the regression suggests that\nfixed effects is the appropriate specification; more-\nover, the Hausman test rejects the random effects as-\nsumption at the 5 percent level.\nThe error-correction term was significant and had\nthe expected negative sign. The coefficient of -0.1 in\ncolumn 1 suggests that deviations from the equilib-\nrium level of NFA to GDP have a half life of six or\nseven years. The other short-run variables generally\nhave the same impact as in the current account esti-\nmation in Table 6.4. The exchange rate again has a J-"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b69",
+    "sequence_id": 135,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 320.43963623046875,
+          "y0": 643.3538818359375,
+          "x1": 539.1005249023438,
+          "y1": 705.5497436523438,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "69",
+      "confidence": 1.0,
+      "layout_reading_order": 134,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "47While the first difference of the ratio of net foreign assets to\nGDP used in the levels regression is not precisely the current-ac-\ncount-to-GDP ratio, as discussed earlier, the current-account-to-\nGDP ratio (ca) maps into the change in the NFA-to-GDP ratio\n(Anfa) through the growth rate of output (g) in steady state. Sim-\nilarly, the budget surplus maps into changes in the level of gov-\nernment debt."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b70",
+    "sequence_id": 136,
+    "node_type": "composite_block",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 75.41119384765625,
+          "y0": 85.21233367919922,
+          "x1": 337.5799560546875,
+          "y1": 99.4443359375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "70",
+      "confidence": 1.0,
+      "layout_reading_order": 135,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Table 6.4 Panel Regrestion: Partial Adjistment Model"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b71",
+    "sequence_id": 137,
+    "node_type": "paragraph",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 40.16469192504883,
+          "y0": 724.8468017578125,
+          "x1": 49.37205123901367,
+          "y1": 739.0787963867188,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "71",
+      "confidence": 1.0,
+      "layout_reading_order": 136,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "46"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b72",
+    "sequence_id": 138,
+    "node_type": "composite_block",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 78.68988800048828,
+          "y0": 98.83872985839844,
+          "x1": 191.63400268554688,
+          "y1": 110.69873046875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "72",
+      "confidence": 1.0,
+      "layout_reading_order": 137,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "(Dependent variable, CA/GDP)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p2_b73",
+    "sequence_id": 139,
+    "node_type": "paragraph",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 156.5599822998047,
+          "y0": 762.30908203125,
+          "x1": 438.719482421875,
+          "y1": 779.3909912109375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        2
+      ],
+      "provider_native_id": "73",
+      "confidence": 1.0,
+      "layout_reading_order": 138,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "©International Monetary Fund. Not for Redistribution",
+      "heading_level": "unknown"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b1",
+    "sequence_id": 140,
+    "node_type": "paragraph",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 221.51998901367188,
+          "y0": 43.01002502441406,
+          "x1": 538.00244140625,
+          "y1": 54.9000244140625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "1",
+      "confidence": 1.0,
+      "layout_reading_order": 139,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Partial Adjustment Model Extensions and Saving-Investment Norm",
+      "heading_level": "unknown"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b2",
+    "sequence_id": 141,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 73.55998992919922,
+          "y0": 81.54000854492188,
+          "x1": 294.466552734375,
+          "y1": 312.0597839355469,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "2",
+      "confidence": 1.0,
+      "layout_reading_order": 140,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "curve type impact on the change in NFA when terms\nof trade are excluded in column 4, with the initial ef-\nfect being positive before turning negative in the sec-\nond year. This may in part reflect valuation effects\non the stock of NFA. Fiscal policy, meanwhile, has a\nlarge influence on the change in NFA in the short\nrun. A change in the stock of government debt of 1\npercent of GDP will improve the NFA position in the\nshort run by around 0.5 percent of GDP. The domes-\ntic output gap term enters significantly with the ex-\npected negative sign.\nThe error-correction model for NFA thus unites, in\na general sense, the findings from the cross-sectional\nregressions (Table 6.2) and the panel estimates of the\npartial adjustment model (Table 6.4). In the long run,\nthe stage of development, government debt, and de-\nmographics affect the current account, associated\nwith longer-term stock equilibrium, but in the short\nrun, the flow current account is affected by move-\nments in relative prices, the stage of the business\ncycle, and the fiscal budget balance."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b3",
+    "sequence_id": 142,
+    "node_type": "heading",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 74.03999328613281,
+          "y0": 343.4117736816406,
+          "x1": 286.40997314453125,
+          "y1": 370.759765625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "3",
+      "confidence": 1.0,
+      "layout_reading_order": 141,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Partial Adjustment Model Extensions\nand the Saving-Investment Norm",
+      "heading_level": "unknown"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b4",
+    "sequence_id": 143,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 73.92001342773438,
+          "y0": 378.2997741699219,
+          "x1": 295.6605529785156,
+          "y1": 707.5799560546875,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "4",
+      "confidence": 1.0,
+      "layout_reading_order": 142,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "The previous discussion has shown that, for our\npanel of 21 industrial countries, both a partial adjust-\nment model of the current account and an error-cor-\nrection model of net foreign assets can provide satis-\nfactory explanations of the longer-term behavior of\nthe current account in terms of explanatory variables\nthat can be thought of as operating on the external\nbalance through their effects on underlying saving\nand investment behavior. This section further exam-\nines—in the context of the partial adjustment\nmodel—the role of relative fiscal, demographic, and\nstage of development variables in determining the\nsaving-investment balance; it does so to construct\nmeasures of \"normal\" current account positions (i.e.,\nsaving-investment norms) for our sample of indus-\ntrial countries. The decision to base the saving-in-\nvestment norms on the partial adjustment model,\nrather than the error-correction model of NFA, re-\nflected an initial desire to have separate norms for\nsaving and investment, along with the fact that ade-\nquate data were not available on cumulative stocks of\nsaving and investment. In extending the partial ad-\njustment model for constructing norms, we examine\nissues such as country-specific constants and coeffi-\ncients, omitted variables, and the implications of the\nsaving-investment model for the global discrepancy.\nFollowing the reduced-form framework described\nin Section IV, we can express the current account as\npart of a larger system involving separate equations\nfor saving, investment, and the saving-investment"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b5",
+    "sequence_id": 144,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 318.0000305175781,
+          "y0": 81.53994750976562,
+          "x1": 538.107177734375,
+          "y1": 202.019775390625,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "5",
+      "confidence": 1.0,
+      "layout_reading_order": 143,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "balance (with the appropriate cross-equation restric-\ntions). With common coefficients across countries,\nand expressing the set of explanatory variables in\nrelative terms (as deviations from global averages),\nthis framework has the desirable property of pre-\nserving the level of the global current account (i.e.,\nglobal discrepancy) in the face of changes in own-\ncountry variables or their global averages—which\ncan be thought of as reflecting changes in the world\nreal interest rate. We will return to this system of\nequations shortly."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b6",
+    "sequence_id": 145,
+    "node_type": "heading",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 318.8400573730469,
+          "y0": 217.48976135253906,
+          "x1": 520.1436767578125,
+          "y1": 240.29974365234375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "6",
+      "confidence": 1.0,
+      "layout_reading_order": 144,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Partial Adjustment Model: Single Equation\nEstimates"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b7",
+    "sequence_id": 146,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 318.48004150390625,
+          "y0": 246.41970825195312,
+          "x1": 538.29931640625,
+          "y1": 334.1397399902344,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "7",
+      "confidence": 1.0,
+      "layout_reading_order": 145,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "Before turning to the system estimates, it is useful\nto describe many of the issues relevant for construct-\ning the saving-investment norms in the context of a\nsingle equation for the saving-investment balance.\nSingle-equation estimation of the partial adjustment\nmodel for our panel of 21 industrial countries over\nthe sample period from 1972 to 1993 yields the fol-\nlowing result:"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b8",
+    "sequence_id": 147,
+    "node_type": "display_equation",
+    "strategy": "passthrough",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 338.52001953125,
+          "y0": 339.89971923828125,
+          "x1": 538.309326171875,
+          "y1": 373.2596740722656,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "8",
+      "confidence": 1.0,
+      "layout_reading_order": 146,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "CA = 0.66 CA_1 + 0.15 SUR - 0.04 DEM\n+ 0.05 YPCAP - 0.25 GAP + 8;\nR2 = 0.76, D.W. = 1.76, S.E.E. = 1.81.\n(6.4)"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b9",
+    "sequence_id": 148,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 318.6000061035156,
+          "y0": 378.2996520996094,
+          "x1": 538.6807250976562,
+          "y1": 455.0997314453125,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "9",
+      "confidence": 1.0,
+      "layout_reading_order": 147,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "In this equation, note that the current account, CA, is\nexpressed as a ratio to GDP, but the fiscal surplus (as\na share of GDP), SUR, and the dependency ratio,\nDEM, are now standardized, expressed as deviations\nfrom their GDP-weighted averages for the industrial\ncountries; YPCAP is income per capita relative to the\nUnited States, and GAP is the domestic output gap.48"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b10",
+    "sequence_id": 149,
+    "node_type": "paragraph",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 318.9599914550781,
+          "y0": 454.73974609375,
+          "x1": 538.4898071289062,
+          "y1": 487.8597717285156,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "10",
+      "confidence": 1.0,
+      "layout_reading_order": 148,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "The fitted equation also contains country-specific\nconstants and a measure for German unification\n(1990-93).49"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b11",
+    "sequence_id": 150,
+    "node_type": "composite_block",
+    "strategy": "translate",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 320.39996337890625,
+          "y0": 526.4901733398438,
+          "x1": 539.1884155273438,
+          "y1": 706.2398071289062,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "11",
+      "confidence": 1.0,
+      "layout_reading_order": 149,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "48A standardized measure for the stage of development vari-\nable, YPCAP, expressed as a deviation from its average, is con-\nsidered later. The discussion in Section IV also suggests including\na global average for the output gap (to standardize this variable).\nA foreign output gap term—constructed on a trade-weighted\n(rather than GDP-weighted) basis—was included in the regres-\nsion but not found significant.\n49The effects of unification are introduced through a series of\ntime dummies for 1990-93 in the current account equation for\nGermany. The dummies have the expected negative sign, reflect-\ning the significant decline in the saving-investment balance (as a\nshare of GDP), reaching a peak decline in 1991 with a point esti-\nmate of-3 (percentage points) followed by -1 and —1 1/2 (percent-\nage points) in subsequent years. As described later, in con-\nstructing the saving-investment norm, we adjust Germany's\ncountry-specific constant to broadly reflect the (persistent) effects\nof unification, with counterpart adjustments in the saving-invest-\nment balances of Germany's partner countries (distributed ac-\ncording to trade shares). We further impose a gradual unwinding\nof these effects at a 10 percent annual rate of decay over time."
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b12",
+    "sequence_id": 151,
+    "node_type": "paragraph",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 558.2067260742188,
+          "y0": 725.6259155273438,
+          "x1": 571.2504272460938,
+          "y1": 745.7879028320312,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "12",
+      "confidence": 1.0,
+      "layout_reading_order": 150,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "47"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  },
+  {
+    "node_id": "p3_b13",
+    "sequence_id": 152,
+    "node_type": "paragraph",
+    "strategy": "omit",
+    "metadata": {
+      "bboxes": [
+        {
+          "x0": 156.5599822998047,
+          "y0": 762.30908203125,
+          "x1": 438.719482421875,
+          "y1": 779.3909912109375,
+          "is_normalized": false
+        }
+      ],
+      "pages": [
+        3
+      ],
+      "provider_native_id": "13",
+      "confidence": 1.0,
+      "layout_reading_order": 151,
+      "semantic_origin": "pdf_text"
+    },
+    "depth": 0,
+    "payload": {
+      "content": "©International Monetary Fund. Not for Redistribution",
+      "heading_level": "unknown"
+    },
+    "control_plane": {},
+    "parent_node_id": null,
+    "segment_index": 0,
+    "segment_count": 1
+  }
+]
