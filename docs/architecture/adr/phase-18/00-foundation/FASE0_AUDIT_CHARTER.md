@@ -5,7 +5,7 @@
 * **Estado:** FROZEN (preregistro de Fase 0; congelado por aprobación del Board en kickoff)
 * **Fecha:** 2026-10-01
 * **Autoridad:** Architecture Board
-* **Aprobación Board:** 2026-10-01 (comment de aprobación DC-06a del owner en PR #{N}; merge #{SHA})
+* **Aprobación Board:** 2026-10-01 (comment de aprobación DC-06a del owner en PR #5; merge # 10f0eb8ce8c2c24575584d70947dd12ab8ae3726)
 * **Ubicación:** `docs/architecture/adr/phase-18/00-foundation/FASE0_AUDIT_CHARTER.md`
 * **Derivado de:** ROADMAP_ARQUITECTONICO_LP v3.0 (§IV Fase 18), ADR_F17_BIS_MASTER (§9 jerarquía),
   2_METH_ADR_MASTER v1.0.1 (§2 DoR, §7 compuerta de auditoría), METHODOLOGY_FOR_ORDERED_PIPELINE_CHANGES v1.4.0
