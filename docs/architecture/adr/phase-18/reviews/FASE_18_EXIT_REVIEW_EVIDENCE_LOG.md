@@ -1,11 +1,11 @@
 # FASE_18_EXIT_REVIEW_EVIDENCE_LOG.md
 
 **Documento:** docs/architecture/adr/phase-18/reviews/FASE_18_EXIT_REVIEW_EVIDENCE_LOG.md
-**Versión:** 1.0.0
+**Versión:** 1.0.2
 **Estado:** IN_PROGRESS
 **Fecha:** 2026-10-04
-**Última actualización:** 2026-10-04
-**Derivado de:** PHASE_18.1_EXECUTION_PLAN.md v1.0.1 — Subfase 18.1 (Execution Plane & Concurrency)
+**Última actualización:** 2026-10-05
+**Derivado de:** PHASE_18.1_EXECUTION_PLAN.md v1.0.2 — Subfase 18.1 (Execution Plane & Concurrency)
 **Ámbito:** Subfase 18.1 — Execution Plane & Concurrency
 **Propósito:** Registro auditable de la evidencia forense que fundamenta cada decisión
 tomada durante el Exit Review de la Subfase 18.1. Cada finding incluye los archivos
@@ -27,6 +27,8 @@ clasificación final.
 | Versión | Fecha | Cambio |
 |---|---|---|
 | 1.0.0 | 2026-10-04 | Emisión inicial. Estructura abierta para incorporación dinámica de hallazgos. DF-06 pre-registrado con estructura de análisis preparada. Ningún Gate ejecutado todavía. |
+| 1.0.1 | 2026-10-05 | Wave 1.1 completada. Evidencia forense agregada para DF-07 (RESOLVED), DF-08 (CLOSED (NAR)), GF-01 (IMPLEMENTATION_REQUIRED). Gate 1 parcialmente ejecutado (Wave 1.1 de 3). |
+| 1.0.2 | 2026-10-05 | Wave 1.2 completada. Evidencia forense agregada para DF-09 (REVIEW_REQUIRED): resultado contraintuitivo del benchmark de SyncProviderBridge. La barrera síncrona NO es el cuello de botella que GAP-0.1-01 sugiere; requiere reevaluación de DC-01. Gate 1 parcialmente ejecutado (Wave 1.1 y 1.2 de 3). |
 
 ---
 
@@ -120,7 +122,7 @@ clasificación final.
 
 ### 1.5 Relación con el Findings Register
 
-Cada entrada de este Evidence Log tiene una referencia cruzada bidireccional con el FASE_18_DEFERRED_FINDINGS_REGISTER v1.0.0:
+Cada entrada de este Evidence Log tiene una referencia cruzada bidireccional con el FASE_18_DEFERRED_FINDINGS_REGISTER v1.0.1:
 
 | Documento | Propósito | Momento |
 |-----------|-----------|---------|
@@ -240,6 +242,392 @@ Esta regla aplica porque DF-06 identifica una posible dependencia de core (domin
 
 ---
 
+### 2.2 DF-07 — Ausencia de adaptador síncrono para TelemetryPort
+
+| Campo | Valor |
+|-------|-------|
+| **ID** | DF-07 |
+| **Tipo** | Deferred Finding |
+| **Estado** | RESOLVED |
+| **Origen** | Inspección forense Wave 1.1; PHASE_18.1_EXECUTION_PLAN §2.1 |
+| **Gate destino original** | Gate 1 (Wave 1.1, Task 1.1.1) |
+| **Estado previo** | Identificado durante inspección forense de Wave 1.1 |
+| **Prioridad** | Alta — prerrequisito técnico de Task 1.1.1 |
+| **¿Requiere implementación?** | Sí — crear adaptador síncrono de TelemetryPort |
+| **¿Bloquea la Subfase 18.1?** | Sí — sin adaptador síncrono no se puede instrumentar run_regression.py |
+
+#### 2.2.1 Texto original del DF
+
+> *"Solo existe SQLiteTelemetryGateway (asíncrono, ProductionTelemetryEvent). No existe implementación síncrona de TelemetryPort.record_execution(StageExecutionRecord). Prerrequisito técnico de Task 1.1.1."*
+
+#### 2.2.2 Reformulación corregida
+
+No requiere reformulación. El texto original es preciso y fue identificado durante la inspección forense de Wave 1.1.
+
+#### 2.2.3 Archivos y documentos auditados
+
+| # | Archivo / Documento | Evidencia extraída |
+|---|---------------------|-------------------|
+| 1 | core/telemetry/ports.py (líneas 19-27) | TelemetryPort definido como ABC con record_execution(StageExecutionRecord). NullTelemetryAdapter en línea 25 implementa correctamente la interfaz. |
+| 2 | core/telemetry/adapters.py (líneas 1-10) | NullTelemetryAdapter duplicado con API incompatible (record_metric, record_event). No implementa TelemetryPort. (GF-01 identificado aquí.) |
+| 3 | core/telemetry/gateway.py | SQLiteTelemetryGateway asíncrono para ProductionTelemetryEvent. No implementa TelemetryPort. |
+| 4 | core/telemetry/models.py | ProductionTelemetryEvent y TelemetryEventType definidos. Modelo de producción, no de pipeline stages. |
+| 5 | tools/evaluation/run_regression.py | Entry point síncrono. No usa telemetría. Necesita adaptador síncrono. |
+
+#### 2.2.4 Análisis
+
+- **¿La condición original existe?** Sí. No existe ningún adaptador síncrono que implemente TelemetryPort.record_execution(StageExecutionRecord).
+- **¿Es una violación normativa o un comportamiento correcto por diseño?** Es un gap de implementación. TelemetryPort (contrato canónico) existe pero no tiene implementación síncrona. SQLiteTelemetryGateway es asíncrono y usa un modelo diferente (ProductionTelemetryEvent).
+- **¿Qué NADRs/ADRs aplican?** NADR-F18-02 §5.7 R23-R26 (visibilidad operacional mínima). ENGINEERING_PRINCIPLES §VII (Reuse Before Invent): se reutiliza TelemetryPort existente, se crea adaptador síncrono porque no existe.
+- **¿Cuál es el impacto funcional real?** Sin adaptador síncrono, no se puede instrumentar run_regression.py (que es síncrono) para capturar métricas por etapa. Bloquea Task 1.1.1 y GAP-0.5-02.
+
+#### 2.2.5 Gaps objetivos confirmados
+
+| # | Gap | Evidencia | Severidad |
+|---|-----|-----------|-----------|
+| G1 | No existe adaptador síncrono de TelemetryPort | Búsqueda exhaustiva en core/telemetry/ confirma ausencia | Alta |
+| G2 | SQLiteTelemetryGateway usa modelo incompatible (ProductionTelemetryEvent vs StageExecutionRecord) | core/telemetry/gateway.py no implementa TelemetryPort | Media |
+
+#### 2.2.6 Lo que NO es un gap
+
+| Aspecto | Veredicto | Justificación |
+|---------|-----------|---------------|
+| TelemetryPort (contrato) | ✅ Correcto por diseño | Interface abstracta bien definida en ports.py |
+| NullTelemetryAdapter en ports.py | ✅ Correcto por diseño | Implementa TelemetryPort correctamente |
+| StageExecutionRecord (modelo) | ✅ Correcto por diseño | Modelo Pydantic completo con todos los campos necesarios |
+
+#### 2.2.7 Impacto en la Subfase 18.1
+
+| Dimensión | ¿Afecta? | Justificación |
+|-----------|----------|---------------|
+| Determinismo | ❌ No | Telemetría no afecta determinismo |
+| Reproducibilidad | ❌ No | Telemetría no afecta reproducibilidad |
+| Corrección funcional | ⚠️ Parcial | Sin telemetría, no se puede validar GAP-0.5-02 |
+| Bloquea DC-01 | ⚠️ Sí (indirecto) | DC-01 requiere evidencia de Gate 1; sin telemetría no hay evidencia por etapa |
+| Bloquea DC-05 | ❌ No | DC-05 es independiente de telemetría |
+| Bloquea Gate 4 | ❌ No | Gate 4 requiere Gate 1-3 completados |
+
+#### 2.2.8 Sub-acciones identificadas
+
+| Sub-acción | Descripción | Estado | Scope |
+|------------|-------------|--------|-------|
+| DF-07-A | Crear core/telemetry/regression_gateway.py con RegressionTelemetryGateway(TelemetryPort) | Completado | Telemetría |
+| DF-07-B | Crear tests/telemetry/test_regression_gateway.py con 6 tests | Completado | Tests |
+| DF-07-C | Integrar en run_regression.py | Completado | Entry point |
+
+#### 2.2.9 Clasificación consolidada
+
+| Campo | Valor |
+|-------|-------|
+| Condición original existe | ✅ Sí (gap confirmado) |
+| Es violación arquitectónica | ❌ No (gap de implementación, no violación) |
+| Es violación de gobernanza | ❌ No |
+| Es problema técnico | ✅ Sí |
+| Pertenece a Subfase 18.1 | ✅ Sí (prerrequisito de Task 1.1.1) |
+| Bloquea objetivo de 18.1 | ✅ Sí (bloquea GAP-0.5-02) |
+| Clasificación | RESOLVED |
+| Prioridad | Alta |
+
+#### 2.2.10 Regla aplicada
+
+> **ENGINEERING_PRINCIPLES §VII (Reuse Before Invent):**
+> *"Toda sustitución de autoridad existente exige evidencia de insuficiencia."*
+
+Esta regla aplica porque se reutiliza TelemetryPort (contrato canónico existente) y se crea un adaptador síncrono nuevo solo porque no existe implementación síncrona. No se inventa un nuevo contrato ni un nuevo modelo de datos.
+
+---
+
+### 2.3 DF-08 — Variables no definidas en pipeline_factory.py
+
+| Campo | Valor |
+|-------|-------|
+| **ID** | DF-08 |
+| **Tipo** | Deferred Finding |
+| **Estado** | CLOSED (NAR) |
+| **Origen** | Inspección forense Wave 1.1 (código pegado truncado) |
+| **Gate destino original** | Gate 1 (Wave 1.1) |
+| **Estado previo** | Reportado como bug crítico durante inspección |
+| **Prioridad** | Alta (reportado inicialmente) → N/A (falso positivo) |
+| **¿Requiere implementación?** | No — falso positivo |
+| **¿Bloquea la Subfase 18.1?** | No — no hay bug |
+
+#### 2.3.1 Texto original del DF
+
+> *"Variables no definidas en pipeline_factory.py: error_summary y draft en _adapter_mapper. Reportado como bug crítico de producción."*
+
+#### 2.3.2 Reformulación corregida
+
+No requiere reformulación. El hallazgo fue cerrado como falso positivo tras verificación forense.
+
+#### 2.3.3 Archivos y documentos auditados
+
+| # | Archivo / Documento | Evidencia extraída |
+|---|---------------------|-------------------|
+| 1 | apps/bootstrap/pipeline_factory.py línea 202 | `error_summary = "; ".join(report.errors)` — variable definida correctamente |
+| 2 | apps/bootstrap/pipeline_factory.py línea 210 | `draft = _layout_block_to_draft(block, page.page_number, reading_order)` — variable definida correctamente |
+| 3 | Verificación Select-String | Comandos PowerShell confirmaron presencia de ambas líneas en el archivo real |
+| 4 | HITO_0.7 v1.1.0 | Baseline operacional ejecutada exitosamente (wall=1.659s, CPU=1.448s), lo cual es inconsistente con un NameError en el pipeline |
+
+#### 2.3.4 Análisis
+
+- **¿La condición original existe?** No. El código pegado estaba truncado por encoding de PowerShell. Las líneas reales del archivo tienen las variables definidas correctamente.
+- **¿Es una violación normativa o un comportamiento correcto por diseño?** No es violación ni gap. Es un falso positivo causado por truncamiento del pegado en la consola PowerShell.
+- **¿Qué NADRs/ADRs aplican?** ENGINEERING_PRINCIPLES §IV (Cero Fallos Silenciosos): verificación forense antes de fixear. Un fix incorrecto podría introducir un fallo silencioso peor.
+- **¿Cuál es el impacto funcional real?** Ninguno. El código real funciona correctamente. HITO_0.7 ejecutó el pipeline exitosamente.
+
+#### 2.3.5 Gaps objetivos confirmados
+
+| # | Gap | Evidencia | Severidad |
+|---|-----|-----------|-----------|
+| — | Ningún gap confirmado | Falso positivo | N/A |
+
+#### 2.3.6 Lo que NO es un gap
+
+| Aspecto | Veredicto | Justificación |
+|---------|-----------|---------------|
+| error_summary no definido | ❌ No es gap | Línea 202 tiene `error_summary = "; ".join(report.errors)` |
+| draft no definido | ❌ No es gap | Línea 210 tiene `draft = _layout_block_to_draft(block, page.page_number, reading_order)` |
+| _adapter_mapper roto | ❌ No es gap | Función completa y correcta en el archivo real |
+
+#### 2.3.7 Impacto en la Subfase 18.1
+
+| Dimensión | ¿Afecta? | Justificación |
+|-----------|----------|---------------|
+| Determinismo | ❌ No | No hay bug |
+| Reproducibilidad | ❌ No | No hay bug |
+| Corrección funcional | ❌ No | No hay bug |
+| Bloquea DC-01 | ❌ No | No hay bug |
+| Bloquea DC-05 | ❌ No | No hay bug |
+| Bloquea Gate 4 | ❌ No | No hay bug |
+
+#### 2.3.8 Sub-acciones identificadas
+
+| Sub-acción | Descripción | Estado | Scope |
+|------------|-------------|--------|-------|
+| DF-08-A | Verificar código real con Select-String | Completado | Verificación |
+| DF-08-B | Reclasificar como CLOSED (NAR) | Completado | Findings Register |
+
+#### 2.3.9 Clasificación consolidada
+
+| Campo | Valor |
+|-------|-------|
+| Condición original existe | ❌ No (falso positivo) |
+| Es violación arquitectónica | ❌ No |
+| Es violación de gobernanza | ❌ No |
+| Es problema técnico | ❌ No |
+| Pertenece a Subfase 18.1 | N/A |
+| Bloquea objetivo de 18.1 | ❌ No |
+| Clasificación | CLOSED (NAR) |
+| Prioridad | N/A |
+
+#### 2.3.10 Regla aplicada
+
+> **ENGINEERING_PRINCIPLES §IV (Cero Fallos Silenciosos):**
+> *"Todo fallo debe ser detectable, reportable y trazable."*
+
+Esta regla aplica en sentido inverso: antes de fixear un supuesto bug, se verificó forensemente que el bug existe. La verificación confirmó que es un falso positivo. No se aplicó ningún fix, evitando así introducir un fallo silencioso real.
+
+---
+
+### 2.4 GF-01 — NullTelemetryAdapter duplicado con APIs incompatibles
+
+| Campo | Valor |
+|-------|-------|
+| **ID** | GF-01 |
+| **Tipo** | Governance Finding |
+| **Estado** | IMPLEMENTATION_REQUIRED |
+| **Origen** | Inspección forense Wave 1.1 |
+| **Gate destino original** | Gate 3 (Wave 3.5, junto con refactor de composición) |
+| **Estado previo** | Identificado durante inspección forense de Wave 1.1 |
+| **Prioridad** | Media |
+| **¿Requiere implementación?** | Sí — consolidar NullTelemetryAdapter en una única implementación |
+| **¿Bloquea la Subfase 18.1?** | No — warning agregado, consolidación diferida a Gate 3 |
+
+#### 2.4.1 Texto original del GF
+
+> *"Dos clases con el mismo nombre NullTelemetryAdapter coexisten: core/telemetry/ports.py:25 (implementa TelemetryPort correctamente) y core/telemetry/adapters.py:4 (expone record_metric/record_event, API incompatible con TelemetryPort)."*
+
+#### 2.4.2 Reformulación corregida
+
+No requiere reformulación. El texto original es preciso.
+
+#### 2.4.3 Archivos y documentos auditados
+
+| # | Archivo / Documento | Evidencia extraída |
+|---|---------------------|-------------------|
+| 1 | core/telemetry/ports.py líneas 19-27 | TelemetryPort (ABC) con record_execution(StageExecutionRecord). NullTelemetryAdapter en línea 25 implementa record_execution correctamente. |
+| 2 | core/telemetry/adapters.py líneas 1-10 | NullTelemetryAdapter con record_metric(name, value, tags) y record_event(name, payload). NO implementa TelemetryPort. |
+| 3 | core/telemetry/gateway.py | SQLiteTelemetryGateway usa ProductionTelemetryEvent, no TelemetryPort. |
+| 4 | ENGINEERING_PRINCIPLES.md §III | "Explicit over Implicit — toda decisión arquitectónica debe ser explícita y trazable." |
+
+#### 2.4.4 Análisis
+
+- **¿La condición original existe?** Sí. Dos clases con el mismo nombre NullTelemetryAdapter coexisten con APIs incompatibles.
+- **¿Es una violación normativa o un comportamiento correcto por diseño?** Es una violación de ENGINEERING_PRINCIPLES §III (Explicit over Implicit). La duplicación con APIs incompatibles crea confusión de contratos y riesgo de import incorrecto.
+- **¿Qué NADRs/ADRs aplican?** ENGINEERING_PRINCIPLES §III (Explicit over Implicit). NADR-F18-02 §5.7 R25 (evidencia operacional separada): la consolidación debe mantener la separación entre telemetría de producción y telemetría de pipeline.
+- **¿Cuál es el impacto funcional real?** Confusión de contratos. Riesgo de que un desarrollador importe el NullTelemetryAdapter incorrecto (de adapters.py en lugar de ports.py). No afecta funcionalidad actual porque el NullTelemetryAdapter de adapters.py no se usa en el flujo de regression.
+
+#### 2.4.5 Gaps objetivos confirmados
+
+| # | Gap | Evidencia | Severidad |
+|---|-----|-----------|-----------|
+| G1 | NullTelemetryAdapter duplicado con APIs incompatibles | ports.py:25 vs adapters.py:4 | Media |
+| G2 | adapters.py NullTelemetryAdapter no implementa TelemetryPort | Inspección de código | Media |
+
+#### 2.4.6 Lo que NO es un gap
+
+| Aspecto | Veredicto | Justificación |
+|---------|-----------|---------------|
+| TelemetryPort en ports.py | ✅ Correcto por diseño | Interface abstracta bien definida |
+| NullTelemetryAdapter en ports.py | ✅ Correcto por diseño | Implementa TelemetryPort correctamente |
+| SQLiteTelemetryGateway en gateway.py | ✅ Correcto por diseño | Gateway de producción con modelo diferente |
+
+#### 2.4.7 Impacto en la Subfase 18.1
+
+| Dimensión | ¿Afecta? | Justificación |
+|-----------|----------|---------------|
+| Determinismo | ❌ No | No afecta determinismo |
+| Reproducibilidad | ❌ No | No afecta reproducibilidad |
+| Corrección funcional | ❌ No | No afecta funcionalidad actual |
+| Bloquea DC-01 | ❌ No | No bloquea DC-01 |
+| Bloquea DC-05 | ❌ No | No bloquea DC-05 |
+| Bloquea Gate 4 | ❌ No | No bloquea Gate 4 |
+
+#### 2.4.8 Sub-acciones identificadas
+
+| Sub-acción | Descripción | Estado | Scope |
+|------------|-------------|--------|-------|
+| GF-01-A | Agregar warning en core/telemetry/adapters.py | Completado | Inmediato |
+| GF-01-B | Consolidar NullTelemetryAdapter en Gate 3 (Wave 3.5) | Pendiente | Gate 3 |
+
+#### 2.4.9 Clasificación consolidada
+
+| Campo | Valor |
+|-------|-------|
+| Condición original existe | ✅ Sí (gap confirmado) |
+| Es violación arquitectónica | ⚠️ Parcial (violación de Explicit over Implicit) |
+| Es violación de gobernanza | ✅ Sí (conflicto de interfaces en el mismo módulo) |
+| Es problema técnico | ✅ Sí |
+| Pertenece a Subfase 18.1 | ✅ Sí (consolidación en Gate 3) |
+| Bloquea objetivo de 18.1 | ❌ No |
+| Clasificación | IMPLEMENTATION_REQUIRED |
+| Prioridad | Media |
+
+#### 2.4.10 Regla aplicada
+
+> **ENGINEERING_PRINCIPLES §III (Explicit over Implicit):**
+> *"Toda decisión arquitectónica debe ser explícita y trazable."*
+
+Esta regla aplica porque la duplicación de NullTelemetryAdapter con APIs incompatibles viola el principio de explicitud. La consolidación debe hacer explícita cuál es la implementación canónica. El warning agregado en adapters.py documenta la inconsistencia hasta que se resuelva en Gate 3.
+
+---
+
+### 2.5 DF-09 — Resultado contraintuitivo del benchmark de SyncProviderBridge
+
+| Campo | Valor |
+|-------|-------|
+| **ID** | DF-09 |
+| **Tipo** | Deferred Finding |
+| **Estado** | REVIEW_REQUIRED |
+| **Origen** | Benchmark de SyncProviderBridge, Wave 1.2 (Task 1.2.1, 1.2.2); reports/benchmark/sync_bridge_benchmark.json |
+| **Gate destino original** | Gate 1 (Wave 1.2) → Gate 2 (Wave 2.2, reevaluación de DC-01) |
+| **Estado previo** | Identificado durante ejecución del benchmark en Wave 1.2 |
+| **Prioridad** | Alta — afecta la decisión DC-01 |
+| **¿Requiere implementación?** | No — requiere reevaluación de DC-01 con la nueva evidencia |
+| **¿Bloquea la Subfase 18.1?** | No directamente — pero cambia la priorización de DC-01 en Gate 2 |
+
+#### 2.5.1 Texto original del DF
+
+> *"Resultado contraintuitivo del benchmark de SyncProviderBridge: la barrera síncrona NO es el cuello de botella que GAP-0.1-01 sugiere. Overhead p95 pequeño (2-10ms), throughput idéntico (ratio 1.00x), backpressure idéntico, RSS despreciable (0.02 MB). La hipótesis original de HITO_0.1 E-0.1-001 (inferencia estática) es corregida por la primera medición cuantitativa. Requiere reevaluación de DC-01."*
+
+#### 2.5.2 Reformulación corregida
+
+No requiere reformulación. El texto original es preciso y está alineado con la evidencia cuantitativa del benchmark.
+
+#### 2.5.3 Archivos y documentos auditados
+
+| # | Archivo / Documento | Evidencia extraída |
+|---|---------------------|-------------------|
+| 1 | tools/evaluation/benchmark_sync_bridge.py | Instrumento de medición efímero creado en Task 1.2.1. 4 experimentos sintéticos con MockLLMProvider y MockPromptBuilder. |
+| 2 | reports/benchmark/sync_bridge_benchmark.json | Resultados cuantitativos del benchmark (timestamp, 4 experimentos, limitaciones documentadas). |
+| 3 | apps/llm_workers/sync_bridge.py | SyncProviderBridge: barrera síncrona en execute() vía future.result(timeout=180.0), thread dedicado con event loop, shutdown con join(timeout=2.0). |
+| 4 | apps/llm_workers/__main__.py | LLMWorkerDaemon: loop síncrono secuencial, backoff exponencial (base=1.0s, max=4.0s, factor=1.2), TaskLeaseHeartbeat en thread separado. |
+| 5 | apps/llm_workers/dispatcher.py | AsyncDispatcher: async nativo con PriorityQueue, N workers (default 20), queue.join(), cancelación explícita. |
+| 6 | HITO_0.1 v1.2.0 §10 (E-0.1-001) | Evidencia forense original: barrera síncrona identificada como hecho estructural; impacto cuantitativo pendiente de medición (GAP-0.1-01). |
+| 7 | FASE0_AUDIT_CHARTER.md §9 | Criterio preregistrado: métrica latencia p95, dirección ↓, condición sin ↑RSS, calibración umbral = p95_baseline × (1 − δ). |
+
+#### 2.5.4 Análisis
+
+- **¿La condición original existe?** La barrera síncrona SÍ existe como hecho estructural (confirmado por HITO_0.1 E-0.1-001). Pero la HIPÓTESIS de que es un cuello de botella significativo NO se confirma. El benchmark cuantitativo revela que el impacto es pequeño o nulo.
+- **¿Es una violación normativa o un comportamiento correcto por diseño?** No es violación ni gap. Es una corrección de hipótesis: la inferencia estática original (HITO_0.1) es corregida por la primera medición cuantitativa. Esto valida el proceso "Audit First, Design Later" y "Benchmark Before Optimization" (ADR_F18_MASTER §5.2).
+- **¿Qué NADRs/ADRs aplican?** FASE0_AUDIT_CHARTER §9 (criterio preregistrado: la evidencia determina el resultado, no la intuición). ENGINEERING_PRINCIPLES §VII (Benchmark Before Optimization). ADR_F18_MASTER §5.2 (Audit First, Design Later). NADR-F18-02 §5.9 R31 (evidencia cuantitativa para DC-01).
+- **¿Cuál es el impacto funcional real?** Cambia la priorización de DC-01. La elisión de SyncProviderBridge NO está justificada por la evidencia cuantitativa. Los modelos candidatos deben evaluarse contra las 32 reglas de NADR-F18-02, no contra la hipótesis de que la barrera es un cuello de botella.
+
+#### 2.5.5 Gaps objetivos confirmados
+
+| # | Gap | Evidencia | Severidad |
+|---|-----|-----------|-----------|
+| G1 | La hipótesis original (GAP-0.1-01) era una inferencia estática no verificada | HITO_0.1 E-0.1-001 identifica la estructura pero no mide el impacto | Media |
+| G2 | El overhead de la barrera crece con la latencia del provider (2-10ms p95), no es constante | Exp 1: overhead p95 = 2.05ms (0.1s), 9.28ms (0.5s), 10.40ms (1.0s) | Media |
+
+#### 2.5.6 Lo que NO es un gap
+
+| Aspecto | Veredicto | Justificación |
+|---------|-----------|---------------|
+| Throughput bajo carga | ❌ No es gap | Ratio async/bridge = 1.00x en N=1,2,5,10,20. Sin diferencia. |
+| Backpressure bajo burst | ❌ No es gap | wall=20.08s idéntico ambos paths, peak_threads=5, completed=50. Sin diferencia. |
+| Costo de memoria del thread dedicado | ❌ No es gap | RSS delta = 0.02 MB. Despreciable. |
+| Existencia de la barrera síncrona | ❌ No es gap | Existe como hecho estructural, pero su impacto es pequeño o nulo. |
+
+#### 2.5.7 Impacto en la Subfase 18.1
+
+| Dimensión | ¿Afecta? | Justificación |
+|-----------|----------|---------------|
+| Determinismo | ❌ No | Telemetría y benchmark no afectan determinismo |
+| Reproducibilidad | ❌ No | Telemetría y benchmark no afectan reproducibilidad |
+| Corrección funcional | ❌ No | No hay bug; es corrección de hipótesis |
+| Bloquea DC-01 | ⚠️ Sí (indirecto) | Cambia la priorización de DC-01 en Gate 2 (Wave 2.2); la elisión de SyncProviderBridge no es prioritaria |
+| Bloquea DC-05 | ❌ No | DC-05 es independiente de la barrera síncrona |
+| Bloquea Gate 4 | ❌ No | Gate 4 requiere Gate 1-3 completados |
+
+#### 2.5.8 Sub-acciones identificadas
+
+| Sub-acción | Descripción | Estado | Scope |
+|------------|-------------|--------|-------|
+| DF-09-A | Ejecutar benchmark de SyncProviderBridge (4 experimentos sintéticos) | Completado | Wave 1.2 |
+| DF-09-B | Documentar resultados cuantitativos y evaluar contra criterio preregistrado de Charter §9 | Completado | Wave 1.2 |
+| DF-09-C | Reevaluar DC-01 en Gate 2 (Wave 2.2) con la nueva evidencia | Pendiente | Gate 2 |
+| DF-09-D | Documentar limitaciones del benchmark (mock provider, no replica daemon real, concurrencia N>1 no existe en producción) | Completado | Wave 1.2 |
+
+#### 2.5.9 Clasificación consolidada
+
+| Campo | Valor |
+|-------|-------|
+| Condición original existe | ⚠️ Parcial (la barrera existe, pero el impacto es pequeño o nulo) |
+| Es violación arquitectónica | ❌ No (corrección de hipótesis, no violación) |
+| Es violación de gobernanza | ❌ No |
+| Es problema técnico | ✅ Sí (requiere reevaluación de DC-01) |
+| Pertenece a Subfase 18.1 | ✅ Sí (Gate 1 Wave 1.2 → Gate 2 Wave 2.2) |
+| Bloquea objetivo de 18.1 | ⚠️ Parcial (cambia priorización de DC-01, no bloquea) |
+| Clasificación | REVIEW_REQUIRED |
+| Prioridad | Alta |
+
+#### 2.5.10 Regla aplicada
+
+> **FASE0_AUDIT_CHARTER §9 (Pre-registro de reglas de decisión):**
+> *"La forma de cada regla y la regla de calibración quedan congeladas con este charter. Los números concretos se instancian desde el baseline F0-A aplicando la regla de calibración preregistrada."*
+
+Esta regla aplica porque el benchmark evaluó el impacto de la barrera síncrona contra el criterio preregistrado de Charter §9. El resultado muestra que el criterio NO se cumple claramente (overhead 2-10ms, throughput idéntico, RSS sin diferencia), por lo que la elisión de SyncProviderBridge NO está justificada por la evidencia cuantitativa. Esto valida el proceso de preregistro: la evidencia determina el resultado, no la intuición.
+
+**Regla complementaria:**
+
+> **ENGINEERING_PRINCIPLES §VII (Benchmark Before Optimization):**
+> *"Toda sustitución de autoridad existente exige evidencia de insuficiencia."*
+
+Esta regla aplica porque la elisión de SyncProviderBridge es una sustitución de autoridad existente. La evidencia del benchmark NO demuestra insuficiencia suficiente para justificar la sustitución.
+
+---
+
 ## 3. GATE EXIT REVIEW SUMMARY
 
 {Estructura abierta. Se agregará una sub-sección por cada Gate Exit Review ejecutado. Ningún Gate ha sido ejecutado todavía.}
@@ -248,10 +636,30 @@ Esta regla aplica porque DF-06 identifica una posible dependencia de core (domin
 
 | Gate | Estado | Fecha | Hallazgos analizados |
 |------|--------|-------|---------------------|
-| Gate 1 — Evidence & Measurement Baseline | ⏳ No ejecutado | — | 0 |
-| Gate 2 — Architectural Decisions | ⏳ No ejecutado | — | 0 |
-| Gate 3 — Implementation | ⏳ No ejecutado | — | 0 (DF-06 pre-registrado) |
+| Gate 1 — Evidence & Measurement Baseline | 🟡 Parcialmente ejecutado (Wave 1.1 y Wave 1.2 de 3 completadas) | 2026-10-05 | 4 (DF-07, DF-08, GF-01, DF-09) |
+| Gate 2 — Architectural Decisions | ⏳ No ejecutado | — | 0 (DF-09 derivado para reevaluación de DC-01) |
+| Gate 3 — Implementation | ⏳ No ejecutado | — | 0 (DF-06 pre-registrado, GF-01 diferido) |
 | Gate 4 — Verification & Technique Evaluation | ⏳ No ejecutado | — | 0 |
+
+### 3.1 Gate 1 Exit Review — PARCIAL (Wave 1.1 y Wave 1.2 completadas, 2026-10-05)
+
+**Árbol de decisión aplicado:**
+
+| DF/GF | ¿Válido? | ¿Resoluble? | ¿Técnico? | Decisión | Motivo |
+|----|----------|-------------|-----------|----------|--------|
+| DF-07 | ✅ Sí | ✅ Sí | ✅ Sí | RESOLVED | RegressionTelemetryGateway creado en Task 1.1.1 |
+| DF-08 | ❌ No | N/A | N/A | CLOSED (NAR) | Falso positivo por truncamiento de pegado PowerShell |
+| GF-01 | ✅ Sí | ❌ No (en Gate 1) | ✅ Sí | IMPLEMENTATION_REQUIRED | Consolidación diferida a Gate 3 |
+| DF-09 | ✅ Sí | ❌ No (requiere reevaluación de DC-01) | ✅ Sí | REVIEW_REQUIRED | Resultado contraintuitivo del benchmark de SyncProviderBridge. Derivado a Gate 2 (Wave 2.2) para reevaluación de DC-01. |
+
+**Resumen:**
+- RESOLVED: 1 (DF-07)
+- CLOSED (NAR): 1 (DF-08)
+- IMPLEMENTATION_REQUIRED: 1 (GF-01)
+- REVIEW_REQUIRED: 1 (DF-09)
+- Nuevos hallazgos registrados: 4
+
+**Evidencia forense detallada:** Ver §2.2 (DF-07), §2.3 (DF-08), §2.4 (GF-01), §2.5 (DF-09).
 
 ---
 
@@ -263,20 +671,24 @@ Esta regla aplica porque DF-06 identifica una posible dependencia de core (domin
 
 | Clasificación | Cantidad | DFs |
 |--------------|----------|-----|
-| CLOSED (NAR) | 0 | — |
+| CLOSED (NAR) | 1 | DF-08 |
 | RESOLVED — DELETE | 0 | — |
-| RESOLVED | 0 | — |
-| IMPLEMENTATION_REQUIRED | 0 | — |
+| RESOLVED | 1 | DF-07 |
+| IMPLEMENTATION_REQUIRED | 1 | GF-01 |
 | RECLASSIFIED_FUTURE_PHASE | 0 | — |
-| REVIEW_REQUIRED | 0 | — |
+| REVIEW_REQUIRED | 1 | DF-09 |
 | ACCEPTED_LIMITATION | 0 | — |
 | PENDING_REVIEW | 1 | DF-06 |
 
 ### 4.2 Tabla consolidada
 
-| DF | Estado | Decisión |
+| DF/GF | Estado | Decisión |
 |----|--------|----------|
 | DF-06 | PENDING_REVIEW | Pendiente de evaluación en Gate 3 (Task 3.5.1) |
+| DF-07 | RESOLVED | RegressionTelemetryGateway creado en Wave 1.1 (Task 1.1.1). Ver §2.2 para evidencia forense completa. |
+| DF-08 | CLOSED (NAR) | Falso positivo por truncamiento de pegado PowerShell. Ver §2.3 para evidencia forense completa. |
+| GF-01 | IMPLEMENTATION_REQUIRED | Consolidar NullTelemetryAdapter en Gate 3 (Wave 3.5). Ver §2.4 para evidencia forense completa. |
+| DF-09 | REVIEW_REQUIRED | Resultado contraintuitivo del benchmark de SyncProviderBridge (Wave 1.2). La barrera síncrona NO es el cuello de botella que GAP-0.1-01 sugiere. Requiere reevaluación de DC-01 en Gate 2 (Wave 2.2). Ver §2.5 para evidencia forense completa. |
 
 ---
 
@@ -292,7 +704,7 @@ El documento se considera cerrado (FROZEN) cuando:
 - [ ] Cada clasificación tiene al menos una regla normativa aplicada
 - [ ] Los hallazgos RECLASSIFIED_FUTURE_PHASE tienen destino explícito
 - [ ] Los hallazgos REVIEW_REQUIRED tienen plan de reevaluación
-- [ ] Todos los Gates del PHASE_18.1_EXECUTION_PLAN v1.0.1 están COMPLETED
+- [ ] Todos los Gates del PHASE_18.1_EXECUTION_PLAN v1.0.2 están COMPLETED
 - [ ] La Subfase 18.1 cumple el Global DoD definido en §5 del Execution Plan
 
 ### 5.2 Relación con el Findings Register
@@ -306,6 +718,21 @@ El Evidence Log y el Findings Register son documentos complementarios:
 
 Cada entrada del Findings Register debe tener una referencia cruzada a la
 sección correspondiente de este Evidence Log.
+
+**Referencias cruzadas Wave 1.1:**
+
+| Findings Register | Evidence Log | Estado |
+|---|---|---|
+| DF-07 (RESOLVED) | §2.2 | Completo |
+| DF-08 (CLOSED (NAR)) | §2.3 | Completo |
+| GF-01 (IMPLEMENTATION_REQUIRED) | §2.4 | Completo |
+| DF-06 (PENDING_REVIEW) | §2.1 | Pendiente (Gate 3) |
+
+**Referencias cruzadas Wave 1.2:**
+
+| Findings Register | Evidence Log | Estado |
+|---|---|---|
+| DF-09 (REVIEW_REQUIRED) | §2.5 | Completo — derivado a Gate 2 (Wave 2.2) para reevaluación de DC-01 |
 
 ### 5.3 Protocolo de actualización dinámica
 

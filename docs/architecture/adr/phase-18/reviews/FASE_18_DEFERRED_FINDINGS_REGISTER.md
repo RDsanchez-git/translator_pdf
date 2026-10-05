@@ -1,11 +1,11 @@
 # FASE_18_DEFERRED_FINDINGS_REGISTER.md
 
 **Documento:** docs/architecture/adr/phase-18/reviews/FASE_18_DEFERRED_FINDINGS_REGISTER.md
-**Versión:** 1.0.0
+**Versión:** 1.0.2
 **Estado:** IN_PROGRESS
 **Fecha de creación:** 2026-10-04
-**Última actualización:** 2026-10-04
-**Derivado de:** PHASE_18.1_EXECUTION_PLAN.md v1.0.1
+**Última actualización:** 2026-10-05
+**Derivado de:** PHASE_18.1_EXECUTION_PLAN.md v1.0.2
 **Ámbito:** Subfase 18.1 — Execution Plane & Concurrency
 **Propósito:** Registro auditable de hallazgos identificados durante la implementación
 del Execution Plan de la Subfase 18.1, su clasificación, resolución y evidencia
@@ -130,6 +130,91 @@ Los siguientes hallazgos fueron identificados durante la Fase 0 y/o el diseño d
 
 **Nota sobre DF-06:** La autoridad normativa de la frontera hexagonal es ENGINEERING_PRINCIPLES §II, no NADR-F18-02. DF-06 es una manifestación concreta que debe ser evaluada. Si se confirma, la resolución implica eliminar los imports cruzados. Si no se confirma, la evidencia se deriva a este registro para clasificación/cierre como NAR. La Task 3.5.1 evalúa; la Task 3.5.2 implementa si se confirma. La clasificación y cierre formal corresponden a este registro.
 
+### 2.1 Gate 1 Exit Review — PARCIAL (Wave 1.1 y Wave 1.2 completadas, 2026-10-05)
+
+**Árbol de decisión aplicado:**
+
+    1. ¿Sigue siendo válido el hallazgo? → NO: CLOSED (NAR) / SÍ: continuar
+    2. ¿Puede resolverse dentro del Gate actual? → SÍ: RESOLVED / NO: continuar
+    3. ¿Es un problema técnico? → SÍ: RECLASIFICADO / NO: continuar
+    4. ¿Es un conflicto normativo? → SÍ: CONVERTIDO EN GF
+
+| DF/GF | ¿Válido? | ¿Resoluble? | ¿Técnico? | Decisión | Motivo |
+|----|----------|-------------|-----------|----------|--------|
+| DF-07 | ✅ Sí | ✅ Sí | ✅ Sí | RESOLVED | RegressionTelemetryGateway creado en Task 1.1.1. Adaptador síncrono SQLite WAL con context manager. |
+| DF-08 | ❌ No | N/A | N/A | CLOSED (NAR) | Falso positivo. Verificación forense (Select-String) confirmó que el código real tiene las variables definidas. El pegado estaba truncado por encoding de PowerShell. |
+| GF-01 | ✅ Sí | ❌ No (en Gate 1) | ✅ Sí | IMPLEMENTATION_REQUIRED | NullTelemetryAdapter duplicado con APIs incompatibles. Consolidación diferida a Gate 3 (Wave 3.5). Warning agregado en adapters.py. |
+| DF-09 | ✅ Sí | ❌ No (requiere reevaluación de DC-01) | ✅ Sí | REVIEW_REQUIRED | Resultado contraintuitivo del benchmark de SyncProviderBridge. La barrera síncrona NO es el cuello de botella que GAP-0.1-01 sugiere. Requiere reevaluación de DC-01 en Gate 2 (Wave 2.2). |
+
+**Resumen:**
+- RESOLVED: 1 (DF-07)
+- CLOSED (NAR): 1 (DF-08)
+- IMPLEMENTATION_REQUIRED: 1 (GF-01)
+- REVIEW_REQUIRED: 1 (DF-09)
+- Nuevos hallazgos registrados: 4 (DF-07, DF-08, GF-01, DF-09)
+
+#### Evidencia forense por hallazgo
+
+**DF-07 — Ausencia de adaptador síncrono para TelemetryPort:**
+
+| Campo | Valor |
+|-------|-------|
+| **Tipo** | Deferred Finding |
+| **Origen** | Inspección forense Wave 1.1; PHASE_18.1_EXECUTION_PLAN §2.1 |
+| **Estado** | `RESOLVED` |
+| **Gate** | Gate 1 (Wave 1.1, Task 1.1.1) |
+| **Descripción** | Solo existe SQLiteTelemetryGateway (asíncrono, ProductionTelemetryEvent). No existe implementación síncrona de TelemetryPort.record_execution(StageExecutionRecord). Prerrequisito técnico de Task 1.1.1. |
+| **Archivos auditados** | core/telemetry/ports.py, core/telemetry/adapters.py, core/telemetry/gateway.py |
+| **Gap confirmado** | (a) gap confirmado: no existe adaptador síncrono |
+| **Resolución** | Creado core/telemetry/regression_gateway.py con RegressionTelemetryGateway(TelemetryPort). Pyright: 0 errors. Tests: 6/6 passed. |
+| **Regla aplicada** | ENGINEERING_PRINCIPLES §VII (Reuse Before Invent): se reutiliza TelemetryPort existente, se crea adaptador síncrono porque no existe |
+
+**DF-08 — Variables no definidas en pipeline_factory.py:**
+
+| Campo | Valor |
+|-------|-------|
+| **Tipo** | Deferred Finding |
+| **Origen** | Inspección forense Wave 1.1 (código pegado truncado) |
+| **Estado** | `CLOSED (NAR)` |
+| **Gate** | Gate 1 (Wave 1.1) |
+| **Descripción** | Se reportó que `_adapter_mapper` en apps/bootstrap/pipeline_factory.py referencia `error_summary` y `draft` no definidos. Reportado como bug crítico de producción. |
+| **Archivos auditados** | apps/bootstrap/pipeline_factory.py (líneas 200-215) |
+| **Veredicto** | (c) no-gap: falso positivo por truncamiento de pegado PowerShell |
+| **Evidencia de cierre** | Select-String confirmó: línea 210 tiene `draft = _layout_block_to_draft(block, page.page_number, reading_order)`; línea 202 tiene `error_summary = "; ".join(report.errors)`. El código real está correcto. |
+| **Regla aplicada** | ENGINEERING_PRINCIPLES §IV (Cero Fallos Silenciosos): verificación forense antes de fixear. Un fix incorrecto podría introducir un fallo silencioso peor. |
+
+**GF-01 — NullTelemetryAdapter duplicado con APIs incompatibles:**
+
+| Campo | Valor |
+|-------|-------|
+| **Tipo** | Governance Finding |
+| **Origen** | Inspección forense Wave 1.1 |
+| **Estado** | `IMPLEMENTATION_REQUIRED` |
+| **Gate destino** | Gate 3 (Wave 3.5, junto con refactor de composición) |
+| **Descripción** | Dos clases con el mismo nombre `NullTelemetryAdapter` coexisten: core/telemetry/ports.py:25 (implementa TelemetryPort correctamente) y core/telemetry/adapters.py:4 (expone record_metric/record_event, API incompatible con TelemetryPort). |
+| **Archivos auditados** | core/telemetry/ports.py (líneas 19-27), core/telemetry/adapters.py (líneas 1-10) |
+| **Gap confirmado** | (a) gap confirmado: conflicto de interfaces en el mismo módulo |
+| **Impacto** | Confusión de contratos, riesgo de import incorrecto, viola ENGINEERING_PRINCIPLES §III (Explicit over Implicit) |
+| **Acción inmediata** | Warning agregado en core/telemetry/adapters.py: "GF-01: Esta clase tiene API incompatible con TelemetryPort (core/telemetry/ports.py). La implementación canónica de NullTelemetryAdapter está en ports.py. Consolidación pendiente de resolución en Findings Register." |
+| **Regla aplicada** | ENGINEERING_PRINCIPLES §III (Explicit over Implicit): la consolidación debe hacer explícita la implementación canónica |
+
+**DF-09 — Resultado contraintuitivo del benchmark de SyncProviderBridge:**
+
+| Campo | Valor |
+|-------|-------|
+| **Tipo** | Deferred Finding |
+| **Origen** | Benchmark de SyncProviderBridge, Wave 1.2 (Task 1.2.1, 1.2.2); reports/benchmark/sync_bridge_benchmark.json |
+| **Estado** | `REVIEW_REQUIRED` |
+| **Gate** | Gate 1 (Wave 1.2) → Gate 2 (Wave 2.2, reevaluación de DC-01) |
+| **Descripción** | El benchmark cuantitativo de SyncProviderBridge produce resultados contraintuitivos respecto a la hipótesis original de GAP-0.1-01 (HITO_0.1 E-0.1-001). La barrera síncrona existe como hecho estructural, pero su impacto en bounded execution (C1) y backpressure (C3) es pequeño o nulo: overhead p95 = 2-10ms, throughput ratio async/bridge = 1.00x (sin diferencia en N=1 a N=20), backpressure idéntico bajo burst, RSS delta = 0.02 MB (despreciable). La hipótesis original era una inferencia estática no verificada; la primera medición cuantitativa la corrige. |
+| **Archivos auditados** | tools/evaluation/benchmark_sync_bridge.py, reports/benchmark/sync_bridge_benchmark.json, apps/llm_workers/sync_bridge.py, apps/llm_workers/__main__.py, apps/llm_workers/dispatcher.py |
+| **Veredicto** | (b) hipótesis corregida: la hipótesis "la barrera síncrona es un cuello de botella significativo" NO se confirma. El overhead es pequeño (2-10ms p95) y el throughput es idéntico (ratio 1.00x). |
+| **Evidencia cuantitativa** | Exp 1: overhead p95 = 2.05ms (latencia 0.1s), 9.28ms (0.5s), 10.40ms (1.0s). Exp 2: throughput ratio async/bridge = 1.00x en N=1,2,5,10,20. Exp 3: wall = 20.08s idéntico ambos paths, peak_threads=5, completed=50. Exp 4: RSS delta = 0.02 MB. |
+| **Evaluación contra criterio preregistrado (Charter §9)** | Métrica: latencia p95 por etapa I/O → overhead 2-10ms (pequeño). Dirección esperada si se elide: ↓ → margen marginal (2-10ms). Condición sin ↑RSS: ✅ se cumple (0.02 MB). Throughput: sin mejora si se elide (ratio 1.00x). Veredicto: el criterio NO se cumple claramente; la elisión de SyncProviderBridge NO está justificada por la evidencia cuantitativa. |
+| **Implicación para DC-01** | DC-01 (fork de concurrencia) requiere reevaluación en Gate 2 (Wave 2.2) con la nueva evidencia. La elisión de SyncProviderBridge no es una optimización prioritaria. Los modelos candidatos deben evaluarse contra las 32 reglas de NADR-F18-02, no contra la hipótesis de que la barrera es un cuello de botella. |
+| **Limitaciones del benchmark** | (1) MockLLMProvider usa asyncio.sleep(), no I/O real de red. (2) No replica el daemon real (secuencial, heartbeat, backoff, SQLite). (3) Concurrencia N>1 no existe en producción (el daemon es secuencial). (4) MockPromptBuilder evita el costo real del PromptBuilder. Estas limitaciones podrían subestimar el impacto en producción, pero el resultado es claro para el escenario medido. |
+| **Regla aplicada** | FASE0_AUDIT_CHARTER §9 (criterio preregistrado: la evidencia determina el resultado, no la intuición). ENGINEERING_PRINCIPLES §VII (Benchmark Before Optimization). ADR_F18_MASTER §5.2 (Audit First, Design Later). |
+
 ---
 
 ## 3. TABLA CONSOLIDADA FINAL
@@ -140,20 +225,24 @@ Se actualiza al cierre del último Gate Exit Review.
 
 | Clasificación | Cantidad | DFs |
 |--------------|----------|-----|
-| CLOSED (NAR) | 0 | — |
+| CLOSED (NAR) | 1 | DF-08 |
 | RESOLVED — DELETE | 0 | — |
-| RESOLVED | 0 | — |
-| IMPLEMENTATION_REQUIRED | 0 | — |
+| RESOLVED | 1 | DF-07 |
+| IMPLEMENTATION_REQUIRED | 1 | GF-01 |
 | RECLASSIFIED_FUTURE_PHASE | 0 | — |
-| REVIEW_REQUIRED | 0 | — |
+| REVIEW_REQUIRED | 1 | DF-09 |
 | ACCEPTED_LIMITATION | 0 | — |
 | PENDING_REVIEW | 1 | DF-06 |
 
 ### 3.2 Tabla consolidada
 
-| DF | Estado | Decisión |
+| DF/GF | Estado | Decisión |
 |----|--------|----------|
 | DF-06 | PENDING_REVIEW | Pendiente de evaluación en Gate 3 (Task 3.5.1) |
+| DF-07 | RESOLVED | RegressionTelemetryGateway creado en Wave 1.1 (Task 1.1.1). Adaptador síncrono SQLite WAL con context manager. Pyright: 0 errors. Tests: 6/6 passed. |
+| DF-08 | CLOSED (NAR) | Falso positivo. Verificación forense (Select-String) confirmó que pipeline_factory.py:210 tiene `draft = _layout_block_to_draft(block, page.page_number, reading_order)` y pipeline_factory.py:202 tiene `error_summary = "; ".join(report.errors)`. El código pegado estaba truncado por encoding de PowerShell. |
+| GF-01 | IMPLEMENTATION_REQUIRED | Consolidar NullTelemetryAdapter en Gate 3 (Wave 3.5). Warning agregado en adapters.py. APIs incompatibles: ports.py implementa TelemetryPort; adapters.py expone record_metric/record_event. |
+| DF-09 | REVIEW_REQUIRED | Resultado contraintuitivo del benchmark de SyncProviderBridge (Wave 1.2). La barrera síncrona NO es el cuello de botella que GAP-0.1-01 sugiere: overhead p95 2-10ms, throughput ratio 1.00x, backpressure idéntico, RSS 0.02 MB. Requiere reevaluación de DC-01 en Gate 2 (Wave 2.2). La elisión de SyncProviderBridge NO está justificada por la evidencia cuantitativa conforme a Charter §9. |
 
 ---
 
@@ -169,18 +258,18 @@ Se actualiza al cierre de cada batch.
 
 | Métrica | Valor |
 |---------|-------|
-| Total de hallazgos analizados | 0 |
-| Hallazgos resueltos | 0 |
-| Hallazgos cerrados sin acción | 0 |
+| Total de hallazgos analizados | 4 |
+| Hallazgos resueltos | 1 |
+| Hallazgos cerrados sin acción | 1 |
 | Hallazgos reclasificados a fase futura | 0 |
-| Hallazgos pendientes de implementación | 0 |
-| Hallazgos pendientes de revisión | 1 |
+| Hallazgos pendientes de implementación | 1 |
+| Hallazgos pendientes de revisión | 2 |
 | Batches completados | 0 |
 | Archivos eliminados totales | 0 |
 | Archivos movidos totales | 0 |
-| Archivos creados totales | 0 |
-| Tests finales | — |
-| Pyright final | — |
+| Archivos creados totales | 3 |
+| Tests finales | 6 passed, 0 skipped |
+| Pyright final | 0 errors |
 
 ---
 
@@ -218,11 +307,11 @@ El documento se considera cerrado (ARCHIVED) cuando:
 
 | Categoría | Cantidad |
 |-----------|----------|
-| Total de hallazgos analizados | 0 |
-| Hallazgos resueltos | 0 |
-| Hallazgos pendientes de implementación | 0 |
-| Hallazgos pendientes de revisión | 1 |
-| Hallazgos cerrados sin acción | 0 |
+| Total de hallazgos analizados | 4 |
+| Hallazgos resueltos | 1 |
+| Hallazgos pendientes de implementación | 1 |
+| Hallazgos pendientes de revisión | 2 |
+| Hallazgos cerrados sin acción | 1 |
 | Batches completados | 0/0 |
 | Estado del Exit Review | 🟡 IN PROGRESS |
 
