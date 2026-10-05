@@ -1,7 +1,7 @@
-# PHASE 18.1 EXECUTION PLAN v1.0.1
+# PHASE 18.1 EXECUTION PLAN v1.0.3
 ## Implementation Execution Plan & Rule-Centric Traceability Matrix
 
-**Version:** 1.0.2
+**Version:** 1.0.3
 **Status:** IN_PROGRESS
 **Date:** 2026-10-05
 **Aprobación Architecture Board:** — (pendiente)
@@ -16,6 +16,7 @@
 | 1.0.0 | 2026-10-04 | Emisión inicial. 4 Gates, 14 Waves, 32 Tasks. Mapeo completo de 52 reglas. |
 | 1.0.1 | 2026-10-04 | Corrección de consistencia (11 cambios): (1) Conteo corregido a 31 Tasks. (2) Gate 3 corregido a 11 Tasks. (3) DF-06 desvinculado de NADR-F18-02 §5.8 R27; autoridad correcta es ENGINEERING_PRINCIPLES §II. (4) Task 3.5.2: cierre de DF-06 derivado al Findings Register, no resuelto por la Task. (5) Semántica de "Rules Implemented" aclarada para Tasks de verificación. (6) §7: DONE alcanzable por combinación implementación+verificación. (7) Gate 4.1: "propiedades estructurales y contractuales verificables mediante análisis estático". (8) DC-02-A reformulado como DC-02 (descomposición operativa: definición provisional). (9) Global DoD: evidencia decisional/probatoria permitida para reglas no implementables como código. (10) MIG-01: "backup" sustituido por "snapshot/retención operacional". (11) Gate 1 explicitado como evidence materialization. |
 | 1.0.2 | 2026-10-05 | Wave 1.2 COMPLETED (Tasks 1.2.1, 1.2.2). Benchmark de SyncProviderBridge ejecutado: overhead p95 2-10ms, throughput ratio 1.00x (sin diferencia), backpressure idéntico, RSS delta 0.02 MB. Resultado contraintuitivo: la barrera síncrona NO es el cuello de botella que GAP-0.1-01 sugería. Derivado DF-09 (REVIEW_REQUIRED) — requiere reevaluación de DC-01. NADR-F18-02 §5.9 R32 → DONE. |
+| 1.0.3 | 2026-10-05 | Wave 1.3 COMPLETED (Tasks 1.3.1, 1.3.2). Baselines FROZEN v1.0.0: F18_BASELINE_CONCURRENCY.md (modelo dual, 3 threads, barrera, backoff, shutdown) y F18_BASELINE_METRICS_PER_STAGE.md (HITO_0.7 + telemetría Wave 1.1 + benchmark Wave 1.2 + estado calibración 1/6 técnicas). Gate 1 ✅ COMPLETED (Waves 1.1, 1.2, 1.3 todas DONE). NADR-F18-02 §5.9 R31 → DONE. Correcciones de consistencia: (I1) Tasks 1.1.1, 1.1.2 Status TODO → DONE (ya estaban completadas según notas de implementación); (I2) Task 1.2.2 nota de implementación completada. |
 
 
 ---
@@ -110,7 +111,7 @@ Este documento es **vivo**: se actualiza durante la implementación conforme al 
 **Objective:** Reunir la evidencia cuantitativa requerida para la resolución de DC-01 (fork de concurrencia). Resolver GAP-0.5-02 (telemetría por etapa) y GAP-0.1-01 (impacto de SyncProviderBridge). Sin este Gate, DC-01 no puede resolverse conforme a NADR-F18-02 §5.9 R31. **Este Gate es evidence materialization, no implementación de comportamiento del execution plane.**
 **Execution Mode:** Secuencial (Wave 1.1 → 1.2 → 1.3)
 **Rollback Plan:** Si la medición revela que el instrumento es inadecuado, se rediseña el protocolo de medición sin modificar código productivo. Los datos de medición son efímeros y no afectan estado normativo.
-**Gate Status:** ⏳ PENDING
+**Gate Status:** ✅ COMPLETED
 
 ### 2.1 Wave 1.1 — Telemetry Integration (GAP-0.5-02)
 
@@ -120,8 +121,8 @@ Este documento es **vivo**: se actualiza durante la implementación conforme al 
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **1.1.1** | Integrar la infraestructura de telemetría existente (SQLiteTelemetryGateway, ProductionTelemetryEvent) en el entry point de medición (run_regression.py) para capturar métricas por etapa del pipeline | NADR-F18-02 §5.9 R31 | Medium | — | TODO |
-| **1.1.2** | Validar que el pipeline de recolección de telemetría produce datos completos y consistentes por etapa (extraction, normalización, segmentación, chunking, traducción, validación, ensamblado, TED, hashing, serialización, SQLite) | NADR-F18-02 §5.9 R31 | Low | 1.1.1 | TODO |
+| **1.1.1** | Integrar la infraestructura de telemetría existente (SQLiteTelemetryGateway, ProductionTelemetryEvent) en el entry point de medición (run_regression.py) para capturar métricas por etapa del pipeline | NADR-F18-02 §5.9 R31 | Medium | — | DONE |
+| **1.1.2** | Validar que el pipeline de recolección de telemetría produce datos completos y consistentes por etapa (extraction, normalización, segmentación, chunking, traducción, validación, ensamblado, TED, hashing, serialización, SQLite) | NADR-F18-02 §5.9 R31 | Low | 1.1.1 | DONE |
 
 #### Notas de implementación — Task 1.1.1
 
@@ -199,7 +200,36 @@ Este documento es **vivo**: se actualiza durante la implementación conforme al 
 
 #### Notas de implementación — Task 1.2.2
 
-> Pendiente de implementación.
+> Completada 2026-10-05. Resultados cuantitativos del benchmark documentados:
+>
+> **Exp 1 — Overhead por llamada:** p95 = 2.05ms (0.1s), 9.28ms (0.5s),
+> 10.40ms (1.0s). El overhead CRECE con la latencia del provider (no es
+> constante; sugiere contention en run_coroutine_threadsafe o overhead del
+> event loop dedicado proporcional al tiempo de espera).
+>
+> **Exp 2 — Throughput bajo carga:** ratio async/bridge = 1.00x en N=1,2,
+> 5,10,20. SIN DIFERENCIA de throughput. ThreadPoolExecutor con bridge es
+> tan eficiente como asyncio.Semaphore para este workload I/O-bound.
+>
+> **Exp 3 — Backpressure bajo burst:** wall=20.08s idéntico ambos paths,
+> peak_threads=5, completed=50. SIN DIFERENCIA.
+>
+> **Exp 4 — RSS delta:** 0.02 MB. Costo de memoria del thread dedicado
+> prácticamente cero.
+>
+> **Evaluación contra criterio preregistrado (Charter §9):**
+> - Métrica: latencia p95 por etapa I/O → overhead 2-10ms (pequeño)
+> - Dirección esperada si se elide: ↓ → margen marginal (2-10ms)
+> - Condición sin ↑RSS: ✅ se cumple (0.02 MB)
+> - Throughput: sin mejora si se elide (ratio 1.00x)
+>
+> **Veredicto:** El criterio NO se cumple claramente; la elisión de
+> SyncProviderBridge NO está justificada por la evidencia cuantitativa.
+> La hipótesis original de GAP-0.1-01 (inferencia estática de HITO_0.1
+> E-0.1-001) es corregida por la primera medición cuantitativa. Derivado
+> DF-09 (REVIEW_REQUIRED) al Findings Register. NADR-F18-02 §5.9 R31
+> satisfecho para Wave 1.2. R32 satisfecho: el benchmark documenta sin
+> prescribir modelo de concurrencia.
 
 #### Hallazgos identificados en esta Wave
 
@@ -209,38 +239,61 @@ Este documento es **vivo**: se actualiza durante la implementación conforme al 
 
 ### 2.3 Wave 1.3 — Baseline Documentation
 
-**Wave Status:** ⏳ PENDING
-**Fecha de inicio:** —
-**Fecha de cierre:** —
+**Wave Status:** ✅ COMPLETED
+**Fecha de inicio:** 2026-10-05
+**Fecha de cierre:** 2026-10-05
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **1.3.1** | Documentar el baseline de concurrencia actual: modelo híbrido dual, 3 threads independientes, barrera síncrona, backoff exponencial, shutdown con bounded join | NADR-F18-02 §5.9 R31 | Low | 1.2.2 | TODO |
-| **1.3.2** | Documentar el baseline de métricas por etapa del pipeline conforme a HITO_0.7 v1.1.0 (wall, CPU, peak RSS, allocations, I/O wait) | NADR-F18-02 §5.9 R31 | Low | 1.1.2 | TODO |
+| **1.3.1** | Documentar el baseline de concurrencia actual: modelo híbrido dual, 3 threads independientes, barrera síncrona, backoff exponencial, shutdown con bounded join | NADR-F18-02 §5.9 R31 | Low | 1.2.2 | DONE |
+| **1.3.2** | Documentar el baseline de métricas por etapa del pipeline conforme a HITO_0.7 v1.1.0 (wall, CPU, peak RSS, allocations, I/O wait) | NADR-F18-02 §5.9 R31 | Low | 1.1.2 | DONE |
 
 #### Notas de implementación — Task 1.3.1
 
-> Pendiente de implementación.
+> Completada 2026-10-05. Creado `docs/baselines/F18_BASELINE_CONCURRENCY.md`
+> (FROZEN v1.0.0). Integra evidencia de HITO_0.1 v1.2.0 (forense),
+> benchmark Wave 1.2 (cuantitativa) e inspección de código de producción.
+> Documenta: modelo híbrido dual (SyncProviderBridge + AsyncDispatcher),
+> 3 threads independientes (main loop, heartbeat, bridge event loop),
+> barrera síncrona con overhead 2-10ms y timeout 180s, backoff exponencial
+> (base=1.0s, max=4.0s, factor=1.2, jitter=±0.5s), shutdown con bounded
+> join (timeout=2.0s). Incluye sección de trazabilidad DC-01 (alimenta
+> Gate 2 Wave 2.2 sin resolver DC-01 prematuramente), limitaciones del
+> benchmark (L1-L5), gaps residuales (GAP-0.1-02, GAP-0.1-03), y
+> verificación NADR. DC-01 NO se resuelve en Gate 1 (evidence
+> materialization); se resuelve en Gate 2 Wave 2.2 conforme a
+> NADR-F18-02 §5.9 R30.
 
 #### Notas de implementación — Task 1.3.2
 
-> Pendiente de implementación.
+> Completada 2026-10-05. Creado `docs/baselines/F18_BASELINE_METRICS_PER_STAGE.md`
+> (FROZEN v1.0.0). Integra evidencia de 3 fuentes: HITO_0.7 v1.1.0
+> (métricas agregadas: wall 1.659s CV 0.41%, CPU 1.448s CV 0.48%, peak
+> WS single-process 76.98 MB CV 0.07%), telemetría Wave 1.1 (métricas por
+> etapa de regression: EXTRACTION avg 0.0592s, TOPOLOGY_EVALUATION avg
+> 0.0550s, REPORT_ASSEMBLY <0.0001s), benchmark Wave 1.2 (overhead,
+> throughput, RSS). Incluye tabla de estado de calibración Charter §9:
+> 1/6 técnicas evaluadas (SyncProviderBridge elision → rechazada, overhead
+> negligible y throughput idéntico), 5/6 pendientes de métricas específicas.
+> GAP-0.7-01 parcialmente resuelto (regression sí, daemon producción no).
+> GAP-0.7-02 y GAP-0.7-05 documentados como DEFERRED. NADR-F18-02 §5.9
+> R31 satisfecho para Wave 1.3.
 
 #### Hallazgos identificados en esta Wave
 
 | ID | Hallazgo | Derivado a |
 |----|----------|------------|
-| — | — | — |
+| — | Sin hallazgos nuevos en Wave 1.3. Baselines documentados sin identificar gaps adicionales a los ya registrados. GAP-0.7-01 parcialmente resuelto (telemetría Wave 1.1 cubre el pipeline de regression); GAP-0.7-02 y GAP-0.7-05 permanecen DEFERRED conforme a HITO_0.7 §14. | — |
 
 ### 2.4 Gate 1 Exit Criteria
 
 Todas las reglas de NADR-F18-02 §5.9 R31 referenciadas en este Gate deben alcanzar estado DONE. Específicamente:
 
-- GAP-0.5-02 resuelto: telemetría integrada en el entry point de medición con datos por etapa
-- GAP-0.1-01 resuelto: impacto cuantitativo de SyncProviderBridge medido y documentado
-- Baseline de concurrencia actual documentado
-- Baseline de métricas por etapa documentado
-- Evidencia suficiente para evaluar DC-01 conforme a NADR-F18-02 §5.9 R31
+- GAP-0.5-02 resuelto: telemetría integrada en el entry point de medición con datos por etapa ✅
+- GAP-0.1-01 resuelto: impacto cuantitativo de SyncProviderBridge medido y documentado ✅
+- Baseline de concurrencia actual documentado: F18_BASELINE_CONCURRENCY.md FROZEN v1.0.0 ✅
+- Baseline de métricas por etapa documentado: F18_BASELINE_METRICS_PER_STAGE.md FROZEN v1.0.0 ✅
+- Evidencia suficiente para evaluar DC-01 conforme a NADR-F18-02 §5.9 R31 ✅
 
 ### 2.5 Gate 1 Exit Review
 
@@ -250,16 +303,16 @@ Antes de declarar el Gate como COMPLETED, se ejecuta el proceso de Revisión Pos
 
 | # | Verificación | Estado |
 |---|-------------|--------|
-| 1 | Todas las Tasks del Gate en estado DONE | ⏳ |
-| 2 | Todas las reglas del Gate en estado DONE en §7 | ⏳ |
-| 3 | Gate Exit Criteria satisfechos | ⏳ |
-| 4 | Hallazgos identificados derivados al Findings Register | ⏳ |
-| 5 | Pyright: 0 errors, 0 warnings | ⏳ |
-| 6 | Tests: suite completa en verde | ⏳ |
-| 7 | Notas de implementación completas para todas las Tasks | ⏳ |
+| 1 | Todas las Tasks del Gate en estado DONE | ✅ 6/6 (1.1.1, 1.1.2, 1.2.1, 1.2.2, 1.3.1, 1.3.2) |
+| 2 | Todas las reglas del Gate en estado DONE en §7 | ✅ R31 DONE, R32 DONE (2/2) |
+| 3 | Gate Exit Criteria satisfechos | ✅ 5/5 criterios |
+| 4 | Hallazgos identificados derivados al Findings Register | ✅ 4 hallazgos (DF-07 RESOLVED, DF-08 CLOSED (NAR), GF-01 IMPLEMENTATION_REQUIRED, DF-09 REVIEW_REQUIRED) |
+| 5 | Pyright: 0 errors, 0 warnings | ✅ |
+| 6 | Tests: suite completa en verde | ✅ 6/6 passed |
+| 7 | Notas de implementación completas para todas las Tasks | ✅ 6/6 |
 
-**Veredicto del Gate:** —
-**Fecha de verificación:** —
+**Veredicto del Gate:** ✅ COMPLETED
+**Fecha de verificación:** 2026-10-05
 
 ---
 
@@ -691,7 +744,7 @@ Se actualiza al cierre de cada Gate.
 
 | Gate | Fecha de cierre | Rules DONE / Total | Tasks DONE / Total | Hallazgos derivados | Observaciones |
 |------|----------------|-------------------|-------------------|-------------------|---------------|
-| Gate 1 | — | 1/2 | 4/6 | 4 (DF-07 RESOLVED, DF-08 CLOSED (NAR), GF-01 IMPLEMENTATION_REQUIRED, DF-09 REVIEW_REQUIRED) | Evidence & Measurement Baseline (evidence materialization). Wave 1.1 ✅ COMPLETED. Wave 1.2 ✅ COMPLETED (resultado contraintuitivo: barrera no es cuello de botella; DF-09 derivado). Wave 1.3 pendiente. |
+| Gate 1 | 2026-10-05 | 2/2 | 6/6 | 4 (DF-07 RESOLVED, DF-08 CLOSED (NAR), GF-01 IMPLEMENTATION_REQUIRED, DF-09 REVIEW_REQUIRED) | Evidence & Measurement Baseline (evidence materialization). ✅ COMPLETED. Wave 1.1: telemetría por etapa integrada. Wave 1.2: benchmark SyncProviderBridge (resultado contraintuitivo; DF-09 derivado). Wave 1.3: baselines FROZEN (concurrencia + métricas por etapa; calibración 1/6 técnicas). Evidencia suficiente para Gate 2 (DC-01). |
 | Gate 2 | — | 0/14 | 0/7 | 0 | Architectural Decisions |
 | Gate 3 | — | 0/32 | 0/11 | 0 | Implementation |
 | Gate 4 | — | 0/8 | 0/7 | 0 | Verification & Technique Evaluation |
@@ -748,11 +801,11 @@ Los contadores se **derivan computacionalmente** del Traceability Appendix (§7)
 
 | Gate | Tasks DONE | Rules DONE | Rules DEFERRED | Rules PENDING | Gate Status |
 |---|---|---|---|---|---|
-| Gate 1 | 4 | 1 | 0 | 1 | 🟡 IN PROGRESS |
+| Gate 1 | 6 | 2 | 0 | 0 | ✅ COMPLETED |
 | Gate 2 | 0 | 0 | 0 | 14 | ⏳ PENDING |
 | Gate 3 | 0 | 0 | 0 | 32 | ⏳ PENDING |
 | Gate 4 | 0 | 0 | 0 | 8 | ⏳ PENDING |
-| **TOTAL** | **4** | **1** | **0** | **55 (51 únicas + 4 referencias cruzadas)** | 🟡 IN PROGRESS |
+| **TOTAL** | **6** | **2** | **0** | **54 (50 únicas + 4 referencias cruzadas)** | 🟡 IN PROGRESS |
 
 **Regla de actualización:** Cada vez que una Task pase a DONE:
 1. Se actualiza el Status de la Task en la tabla de Wave correspondiente (§2)
@@ -775,8 +828,8 @@ Los contadores se **derivan computacionalmente** del Traceability Appendix (§7)
 
 | Rule | Derived Status | Evidence | Implementation Notes |
 |---|---|---|---|
-| NADR-F18-02 §5.9 R31 | PENDING (Wave 1.1, 1.2 DONE) | Wave 1.1 / Task 1.1.1, 1.1.2 ✅; Wave 1.2 / Task 1.2.1, 1.2.2 ✅; Wave 1.3 / Task 1.3.1, 1.3.2 ⏳ | Evidencia cuantitativa para DC-01 (evidence materialization). Wave 1.1 completada: telemetría por etapa integrada y validada. Wave 1.2 completada: benchmark de SyncProviderBridge ejecutado (overhead p95 2-10ms, throughput ratio 1.00x, backpressure idéntico, RSS 0.02 MB). Pendiente: baseline documentation (Wave 1.3). |
-| NADR-F18-02 §5.9 R32 | DONE | Wave 1.2 / Task 1.2.2 ✅ | No prescripción de modelo. El benchmark documenta resultados cuantitativos sin prescribir modelo de concurrencia; la decisión permanece abierta para DC-01 (Gate 2) con la nueva evidencia. |
+| NADR-F18-02 §5.9 R31 | DONE | Wave 1.1 / Task 1.1.1, 1.1.2 ✅; Wave 1.2 / Task 1.2.1, 1.2.2 ✅; Wave 1.3 / Task 1.3.1, 1.3.2 ✅ | Evidencia cuantitativa para DC-01 (evidence materialization). 3 Waves completadas: telemetría por etapa (Wave 1.1), benchmark SyncProviderBridge con resultado contraintuitivo (Wave 1.2, DF-09), baselines FROZEN de concurrencia y métricas por etapa (Wave 1.3). Evidencia suficiente para Gate 2 (Wave 2.2) evaluar DC-01 contra las 32 reglas de NADR-F18-02. |
+| NADR-F18-02 §5.9 R32 | DONE | Wave 1.2 / Task 1.2.2 ✅; Wave 1.3 / Task 1.3.1, 1.3.2 ✅ | No prescripción de modelo. Los baselines documentan el estado actual sin prescribir modelo de concurrencia. DC-01 se resuelve en Gate 2 (Wave 2.2) conforme a §5.9 R30. |
 
 ### 7.2 Gate 2 — Rules Audit Board
 

@@ -1,11 +1,11 @@
 # FASE_18_EXIT_REVIEW_EVIDENCE_LOG.md
 
 **Documento:** docs/architecture/adr/phase-18/reviews/FASE_18_EXIT_REVIEW_EVIDENCE_LOG.md
-**Versión:** 1.0.2
+**Versión:** 1.0.3
 **Estado:** IN_PROGRESS
 **Fecha:** 2026-10-04
 **Última actualización:** 2026-10-05
-**Derivado de:** PHASE_18.1_EXECUTION_PLAN.md v1.0.2 — Subfase 18.1 (Execution Plane & Concurrency)
+**Derivado de:** PHASE_18.1_EXECUTION_PLAN.md v1.0.3 — Subfase 18.1 (Execution Plane & Concurrency)
 **Ámbito:** Subfase 18.1 — Execution Plane & Concurrency
 **Propósito:** Registro auditable de la evidencia forense que fundamenta cada decisión
 tomada durante el Exit Review de la Subfase 18.1. Cada finding incluye los archivos
@@ -29,6 +29,7 @@ clasificación final.
 | 1.0.0 | 2026-10-04 | Emisión inicial. Estructura abierta para incorporación dinámica de hallazgos. DF-06 pre-registrado con estructura de análisis preparada. Ningún Gate ejecutado todavía. |
 | 1.0.1 | 2026-10-05 | Wave 1.1 completada. Evidencia forense agregada para DF-07 (RESOLVED), DF-08 (CLOSED (NAR)), GF-01 (IMPLEMENTATION_REQUIRED). Gate 1 parcialmente ejecutado (Wave 1.1 de 3). |
 | 1.0.2 | 2026-10-05 | Wave 1.2 completada. Evidencia forense agregada para DF-09 (REVIEW_REQUIRED): resultado contraintuitivo del benchmark de SyncProviderBridge. La barrera síncrona NO es el cuello de botella que GAP-0.1-01 sugiere; requiere reevaluación de DC-01. Gate 1 parcialmente ejecutado (Wave 1.1 y 1.2 de 3). |
+| 1.0.3 | 2026-10-05 | Wave 1.3 completada sin nuevos hallazgos. Baselines FROZEN v1.0.0 (F18_BASELINE_CONCURRENCY.md, F18_BASELINE_METRICS_PER_STAGE.md) consolidan la evidencia de Waves 1.1 y 1.2 sin revelar gaps adicionales. Gate 1 ✅ COMPLETED (Waves 1.1, 1.2, 1.3 todas DONE; 4 hallazgos derivados). |
 
 ---
 
@@ -636,12 +637,12 @@ Esta regla aplica porque la elisión de SyncProviderBridge es una sustitución d
 
 | Gate | Estado | Fecha | Hallazgos analizados |
 |------|--------|-------|---------------------|
-| Gate 1 — Evidence & Measurement Baseline | 🟡 Parcialmente ejecutado (Wave 1.1 y Wave 1.2 de 3 completadas) | 2026-10-05 | 4 (DF-07, DF-08, GF-01, DF-09) |
+| Gate 1 — Evidence & Measurement Baseline | ✅ COMPLETED (Waves 1.1, 1.2, 1.3 todas DONE) | 2026-10-05 | 4 (DF-07, DF-08, GF-01, DF-09) |
 | Gate 2 — Architectural Decisions | ⏳ No ejecutado | — | 0 (DF-09 derivado para reevaluación de DC-01) |
 | Gate 3 — Implementation | ⏳ No ejecutado | — | 0 (DF-06 pre-registrado, GF-01 diferido) |
 | Gate 4 — Verification & Technique Evaluation | ⏳ No ejecutado | — | 0 |
 
-### 3.1 Gate 1 Exit Review — PARCIAL (Wave 1.1 y Wave 1.2 completadas, 2026-10-05)
+### 3.1 Gate 1 Exit Review — COMPLETO (Waves 1.1, 1.2, 1.3 completadas, 2026-10-05)
 
 **Árbol de decisión aplicado:**
 
@@ -658,6 +659,8 @@ Esta regla aplica porque la elisión de SyncProviderBridge es una sustitución d
 - IMPLEMENTATION_REQUIRED: 1 (GF-01)
 - REVIEW_REQUIRED: 1 (DF-09)
 - Nuevos hallazgos registrados: 4
+
+**Nota de cierre de Gate 1 (Wave 1.3, 2026-10-05):** Wave 1.3 (Baseline Documentation) se completó sin identificar nuevos hallazgos. Los baselines FROZEN v1.0.0 (F18_BASELINE_CONCURRENCY.md y F18_BASELINE_METRICS_PER_STAGE.md) consolidan la evidencia de Waves 1.1 y 1.2 sin revelar gaps adicionales a los ya registrados. GAP-0.7-01 permanece parcialmente resuelto (telemetría Wave 1.1 cubre el pipeline de regression); GAP-0.7-02 y GAP-0.7-05 permanecen DEFERRED conforme a HITO_0.7 §14. Gate 1 queda COMPLETED con 4 hallazgos derivados y evidencia suficiente para Gate 2 (DC-01).
 
 **Evidencia forense detallada:** Ver §2.2 (DF-07), §2.3 (DF-08), §2.4 (GF-01), §2.5 (DF-09).
 
@@ -704,7 +707,7 @@ El documento se considera cerrado (FROZEN) cuando:
 - [ ] Cada clasificación tiene al menos una regla normativa aplicada
 - [ ] Los hallazgos RECLASSIFIED_FUTURE_PHASE tienen destino explícito
 - [ ] Los hallazgos REVIEW_REQUIRED tienen plan de reevaluación
-- [ ] Todos los Gates del PHASE_18.1_EXECUTION_PLAN v1.0.2 están COMPLETED
+- [ ] Todos los Gates del PHASE_18.1_EXECUTION_PLAN v1.0.3 están COMPLETED
 - [ ] La Subfase 18.1 cumple el Global DoD definido en §5 del Execution Plan
 
 ### 5.2 Relación con el Findings Register
