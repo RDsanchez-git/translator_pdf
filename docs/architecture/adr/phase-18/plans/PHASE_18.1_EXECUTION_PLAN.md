@@ -1,9 +1,9 @@
 # PHASE 18.1 EXECUTION PLAN v1.0.1
 ## Implementation Execution Plan & Rule-Centric Traceability Matrix
 
-**Version:** 1.0.1
+**Version:** 1.0.2
 **Status:** IN_PROGRESS
-**Date:** 2026-10-04
+**Date:** 2026-10-05
 **Aprobación Architecture Board:** — (pendiente)
 **Supersedes:** v1.0.0
 **Derived From:** 2 NADRs FROZEN (NADR-F18-01 v1.0.3, NADR-F18-02 v1.0.1) + METHODOLOGY_FOR_ORDERED_PIPELINE_CHANGES.md v1.3.0
@@ -15,6 +15,8 @@
 |---|---|---|
 | 1.0.0 | 2026-10-04 | Emisión inicial. 4 Gates, 14 Waves, 32 Tasks. Mapeo completo de 52 reglas. |
 | 1.0.1 | 2026-10-04 | Corrección de consistencia (11 cambios): (1) Conteo corregido a 31 Tasks. (2) Gate 3 corregido a 11 Tasks. (3) DF-06 desvinculado de NADR-F18-02 §5.8 R27; autoridad correcta es ENGINEERING_PRINCIPLES §II. (4) Task 3.5.2: cierre de DF-06 derivado al Findings Register, no resuelto por la Task. (5) Semántica de "Rules Implemented" aclarada para Tasks de verificación. (6) §7: DONE alcanzable por combinación implementación+verificación. (7) Gate 4.1: "propiedades estructurales y contractuales verificables mediante análisis estático". (8) DC-02-A reformulado como DC-02 (descomposición operativa: definición provisional). (9) Global DoD: evidencia decisional/probatoria permitida para reglas no implementables como código. (10) MIG-01: "backup" sustituido por "snapshot/retención operacional". (11) Gate 1 explicitado como evidence materialization. |
+| 1.0.2 | 2026-10-05 | Wave 1.2 COMPLETED (Tasks 1.2.1, 1.2.2). Benchmark de SyncProviderBridge ejecutado: overhead p95 2-10ms, throughput ratio 1.00x (sin diferencia), backpressure idéntico, RSS delta 0.02 MB. Resultado contraintuitivo: la barrera síncrona NO es el cuello de botella que GAP-0.1-01 sugería. Derivado DF-09 (REVIEW_REQUIRED) — requiere reevaluación de DC-01. NADR-F18-02 §5.9 R32 → DONE. |
+
 
 ---
 
@@ -112,9 +114,9 @@ Este documento es **vivo**: se actualiza durante la implementación conforme al 
 
 ### 2.1 Wave 1.1 — Telemetry Integration (GAP-0.5-02)
 
-**Wave Status:** ⏳ PENDING
-**Fecha de inicio:** —
-**Fecha de cierre:** —
+**Wave Status:** ✅ COMPLETED
+**Fecha de inicio:** 2026-10-05
+**Fecha de cierre:** 2026-10-05
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
@@ -123,32 +125,77 @@ Este documento es **vivo**: se actualiza durante la implementación conforme al 
 
 #### Notas de implementación — Task 1.1.1
 
-> Pendiente de implementación.
+> Completada 2026-10-05. Creado `core/telemetry/regression_gateway.py` con
+> `RegressionTelemetryGateway(TelemetryPort)`: adaptador síncrono SQLite WAL
+> con context manager, fail-safe (catch sqlite3.Error + TypeError + ValueError),
+> schema creation en `__enter__`. Modificado `tools/evaluation/run_regression.py`:
+> imports agregados, `telemetry_execution_id` (uuid4) generado en `main()`
+> separado de `identity_chain.execution_id` (NADR-F18-01 §5.2 R8),
+> `_run_evaluation()` instrumentado con 3 stages: EXTRACTION (stage_index=0),
+> TOPOLOGY_EVALUATION (stage_index=1), REPORT_ASSEMBLY (stage_index=2).
+> Telemetría persiste en `output_dir/telemetry.db` como evidencia operacional
+> separada (NADR-F18-02 §5.7 R25).
+> Pyright: 0 errors, 0 warnings. Tests: 6/6 passed.
+> DF-07 resuelto. DF-08 reclasificado como CLOSED (NAR) — falso positivo
+> por truncamiento de pegado PowerShell; verificación forense confirmó que
+> `draft = _layout_block_to_draft(...)` y `error_summary = "; ".join(report.errors)`
+> existen en el código real (pipeline_factory.py:210, pipeline_factory.py:202).
 
 #### Notas de implementación — Task 1.1.2
 
-> Pendiente de implementación.
+> Completada 2026-10-05. Validación de completitud ejecutada contra
+> `reports/regression_test/telemetry.db` (regresión SMOKE, 5 documentos).
+> Resultados: 1 execution_id único, 0 NULLs en 8 campos requeridos,
+> 11/11 timestamps ISO 8601 válidos, 10/10 stages con document_id en metadata,
+> latencias consistentes (EXTRACTION avg=0.0592s, TOPOLOGY_EVALUATION avg=0.0550s,
+> REPORT_ASSEMBLY <0.0001s). Veredicto: PASS — datos completos y consistentes.
+> NADR-F18-02 §5.9 R31 satisfecho para Wave 1.1.
 
 #### Hallazgos identificados en esta Wave
 
 | ID | Hallazgo | Derivado a |
 |----|----------|------------|
-| — | — | — |
+| DF-07 | Ausencia de adaptador síncrono para TelemetryPort. Solo existe SQLiteTelemetryGateway (asíncrono, ProductionTelemetryEvent). Prerrequisito técnico de Task 1.1.1. | Findings Register — RESOLVED en Task 1.1.1 |
+| DF-08 | Variables no definidas en pipeline_factory.py (`error_summary`, `draft`). Reportado como bug crítico durante inspección forense. | Findings Register — CLOSED (NAR), falso positivo por truncamiento de pegado PowerShell |
+| GF-01 | NullTelemetryAdapter duplicado en core/telemetry/ports.py y core/telemetry/adapters.py con APIs incompatibles. | Findings Register — IMPLEMENTATION_REQUIRED, consolidación diferida a Gate 3 |
 
 ### 2.2 Wave 1.2 — SyncProviderBridge Impact Measurement (GAP-0.1-01)
 
-**Wave Status:** ⏳ PENDING
-**Fecha de inicio:** —
-**Fecha de cierre:** —
+**Wave Status:** ✅ COMPLETED
+**Fecha de inicio:** 2026-10-05
+**Fecha de cierre:** 2026-10-05
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **1.2.1** | Diseñar y ejecutar el protocolo de medición del impacto cuantitativo de la barrera síncrona (SyncProviderBridge) sobre bounded execution (C1) y backpressure (C3) bajo carga, conforme al criterio preregistrado de Charter §9 | NADR-F18-02 §5.9 R31 | Medium | 1.1.2 | TODO |
-| **1.2.2** | Documentar los resultados cuantitativos de la medición: latencia p95 por etapa I/O, impacto en concurrencia efectiva, comportamiento de backpressure bajo carga | NADR-F18-02 §5.9 R31, R32 | Low | 1.2.1 | TODO |
+| **1.2.1** | Diseñar y ejecutar el protocolo de medición del impacto cuantitativo de la barrera síncrona (SyncProviderBridge) sobre bounded execution (C1) y backpressure (C3) bajo carga, conforme al criterio preregistrado de Charter §9 | NADR-F18-02 §5.9 R31 | Medium | 1.1.2 | DONE |
+| **1.2.2** | Documentar los resultados cuantitativos de la medición: latencia p95 por etapa I/O, impacto en concurrencia efectiva, comportamiento de backpressure bajo carga | NADR-F18-02 §5.9 R31, R32 | Low | 1.2.1 | DONE |
 
 #### Notas de implementación — Task 1.2.1
 
-> Pendiente de implementación.
+> Completada 2026-10-05. Creado `tools/evaluation/benchmark_sync_bridge.py`:
+> instrumento de medición efímero conforme a ADR_F18_MASTER §7.1 (medición
+> externa, sin mutación de código productivo). 4 experimentos sintéticos:
+> (1) overhead por llamada con MockLLMProvider de latencia fija (0.1s/0.5s/1.0s),
+> (2) throughput bajo carga con N=1,2,5,10,20 workers,
+> (3) backpressure ante burst de 50 unidades con concurrency=5,
+> (4) RSS delta del thread dedicado del bridge.
+> Mocks deterministas: MockLLMProvider (asyncio.sleep), MockPromptBuilder
+> (envelopes fijos que aíslan la variable: solo la barrera cambia entre
+> Path A bridge y Path B async directo).
+> Verificaciones forenses de imports previas a la ejecución:
+> PromptBudget es @dataclass(frozen=True, slots=True) con campos
+> system_tokens/context_tokens/payload_tokens/reserved_tokens/window_limit;
+> NodeId es Annotated[str, StringConstraints(pattern=r"^[^:]+$")];
+> control_plane existe en ASTNode (línea 122); PromptIntent.TRANSLATE y
+> PromptConstraints() con defaults. Un falso positivo sobre PromptBudget
+> (decorador no capturado por Select-String -Context 0,20) fue descartado
+> con verificación de línea previa (línea 28), mismo patrón que DF-08.
+> Limitaciones documentadas en el JSON: Exp 2 usa asyncio.Semaphore como
+> aproximación de AsyncDispatcher (sin PriorityQueue ni validation/healing);
+> Exp 1-4 no incluyen TaskLeaseHeartbeat ni backoff exponencial; el daemon
+> real es SECUENCIAL (N=1), los experimentos de concurrencia miden el
+> overhead de la barrera, no el comportamiento actual del daemon.
+> Pyright: 0 errors. Sin tests de unidad (instrumento de medición efímero).
 
 #### Notas de implementación — Task 1.2.2
 
@@ -158,7 +205,7 @@ Este documento es **vivo**: se actualiza durante la implementación conforme al 
 
 | ID | Hallazgo | Derivado a |
 |----|----------|------------|
-| — | — | — |
+| DF-09 | Resultado contraintuitivo: la barrera síncrona NO es el cuello de botella que GAP-0.1-01 sugiere. Overhead p95 pequeño (2-10ms), throughput idéntico (ratio 1.00x), backpressure idéntico, RSS despreciable (0.02 MB). La hipótesis original de HITO_0.1 E-0.1-001 (inferencia estática) es corregida por la primera medición cuantitativa. Implica reevaluación de DC-01: la elisión de SyncProviderBridge no está justificada por la evidencia. | Findings Register — REVIEW_REQUIRED (reevaluación de DC-01) |
 
 ### 2.3 Wave 1.3 — Baseline Documentation
 
@@ -644,7 +691,7 @@ Se actualiza al cierre de cada Gate.
 
 | Gate | Fecha de cierre | Rules DONE / Total | Tasks DONE / Total | Hallazgos derivados | Observaciones |
 |------|----------------|-------------------|-------------------|-------------------|---------------|
-| Gate 1 | — | 0/2 | 0/6 | 0 | Evidence & Measurement Baseline (evidence materialization) |
+| Gate 1 | — | 1/2 | 4/6 | 4 (DF-07 RESOLVED, DF-08 CLOSED (NAR), GF-01 IMPLEMENTATION_REQUIRED, DF-09 REVIEW_REQUIRED) | Evidence & Measurement Baseline (evidence materialization). Wave 1.1 ✅ COMPLETED. Wave 1.2 ✅ COMPLETED (resultado contraintuitivo: barrera no es cuello de botella; DF-09 derivado). Wave 1.3 pendiente. |
 | Gate 2 | — | 0/14 | 0/7 | 0 | Architectural Decisions |
 | Gate 3 | — | 0/32 | 0/11 | 0 | Implementation |
 | Gate 4 | — | 0/8 | 0/7 | 0 | Verification & Technique Evaluation |
@@ -701,11 +748,11 @@ Los contadores se **derivan computacionalmente** del Traceability Appendix (§7)
 
 | Gate | Tasks DONE | Rules DONE | Rules DEFERRED | Rules PENDING | Gate Status |
 |---|---|---|---|---|---|
-| Gate 1 | 0 | 0 | 0 | 2 | ⏳ PENDING |
+| Gate 1 | 4 | 1 | 0 | 1 | 🟡 IN PROGRESS |
 | Gate 2 | 0 | 0 | 0 | 14 | ⏳ PENDING |
 | Gate 3 | 0 | 0 | 0 | 32 | ⏳ PENDING |
 | Gate 4 | 0 | 0 | 0 | 8 | ⏳ PENDING |
-| **TOTAL** | **0** | **0** | **0** | **56 (52 únicas + 4 referencias cruzadas)** | ⏳ PENDING |
+| **TOTAL** | **4** | **1** | **0** | **55 (51 únicas + 4 referencias cruzadas)** | 🟡 IN PROGRESS |
 
 **Regla de actualización:** Cada vez que una Task pase a DONE:
 1. Se actualiza el Status de la Task en la tabla de Wave correspondiente (§2)
@@ -728,8 +775,8 @@ Los contadores se **derivan computacionalmente** del Traceability Appendix (§7)
 
 | Rule | Derived Status | Evidence | Implementation Notes |
 |---|---|---|---|
-| NADR-F18-02 §5.9 R31 | PENDING | Wave 1.1 / Task 1.1.1, 1.1.2; Wave 1.2 / Task 1.2.1, 1.2.2; Wave 1.3 / Task 1.3.1, 1.3.2 | Evidencia cuantitativa para DC-01 (evidence materialization) |
-| NADR-F18-02 §5.9 R32 | PENDING | Wave 1.2 / Task 1.2.2 | No prescripción de modelo |
+| NADR-F18-02 §5.9 R31 | PENDING (Wave 1.1, 1.2 DONE) | Wave 1.1 / Task 1.1.1, 1.1.2 ✅; Wave 1.2 / Task 1.2.1, 1.2.2 ✅; Wave 1.3 / Task 1.3.1, 1.3.2 ⏳ | Evidencia cuantitativa para DC-01 (evidence materialization). Wave 1.1 completada: telemetría por etapa integrada y validada. Wave 1.2 completada: benchmark de SyncProviderBridge ejecutado (overhead p95 2-10ms, throughput ratio 1.00x, backpressure idéntico, RSS 0.02 MB). Pendiente: baseline documentation (Wave 1.3). |
+| NADR-F18-02 §5.9 R32 | DONE | Wave 1.2 / Task 1.2.2 ✅ | No prescripción de modelo. El benchmark documenta resultados cuantitativos sin prescribir modelo de concurrencia; la decisión permanece abierta para DC-01 (Gate 2) con la nueva evidencia. |
 
 ### 7.2 Gate 2 — Rules Audit Board
 
