@@ -16,6 +16,7 @@
 | 1.0.0 | 2026-10-04 | Emisión inicial. 4 Gates, 14 Waves, 32 Tasks. Mapeo completo de 52 reglas. |
 | 1.0.1 | 2026-10-04 | Corrección de consistencia (11 cambios): (1) Conteo corregido a 31 Tasks. (2) Gate 3 corregido a 11 Tasks. (3) DF-06 desvinculado de NADR-F18-02 §5.8 R27; autoridad correcta es ENGINEERING_PRINCIPLES §II. (4) Task 3.5.2: cierre de DF-06 derivado al Findings Register, no resuelto por la Task. (5) Semántica de "Rules Implemented" aclarada para Tasks de verificación. (6) §7: DONE alcanzable por combinación implementación+verificación. (7) Gate 4.1: "propiedades estructurales y contractuales verificables mediante análisis estático". (8) DC-02-A reformulado como DC-02 (descomposición operativa: definición provisional). (9) Global DoD: evidencia decisional/probatoria permitida para reglas no implementables como código. (10) MIG-01: "backup" sustituido por "snapshot/retención operacional". (11) Gate 1 explicitado como evidence materialization. |
 
+
 ---
 
 ## 1. EXECUTIVE SUMMARY & METHODOLOGICAL CONVENTION
@@ -112,9 +113,9 @@ Este documento es **vivo**: se actualiza durante la implementación conforme al 
 
 ### 2.1 Wave 1.1 — Telemetry Integration (GAP-0.5-02)
 
-**Wave Status:** ⏳ PENDING
-**Fecha de inicio:** —
-**Fecha de cierre:** —
+**Wave Status:** ✅ COMPLETED
+**Fecha de inicio:** 2026-10-05
+**Fecha de cierre:** 2026-10-05
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
@@ -123,17 +124,39 @@ Este documento es **vivo**: se actualiza durante la implementación conforme al 
 
 #### Notas de implementación — Task 1.1.1
 
-> Pendiente de implementación.
+> Completada 2026-10-05. Creado `core/telemetry/regression_gateway.py` con
+> `RegressionTelemetryGateway(TelemetryPort)`: adaptador síncrono SQLite WAL
+> con context manager, fail-safe (catch sqlite3.Error + TypeError + ValueError),
+> schema creation en `__enter__`. Modificado `tools/evaluation/run_regression.py`:
+> imports agregados, `telemetry_execution_id` (uuid4) generado en `main()`
+> separado de `identity_chain.execution_id` (NADR-F18-01 §5.2 R8),
+> `_run_evaluation()` instrumentado con 3 stages: EXTRACTION (stage_index=0),
+> TOPOLOGY_EVALUATION (stage_index=1), REPORT_ASSEMBLY (stage_index=2).
+> Telemetría persiste en `output_dir/telemetry.db` como evidencia operacional
+> separada (NADR-F18-02 §5.7 R25).
+> Pyright: 0 errors, 0 warnings. Tests: 6/6 passed.
+> DF-07 resuelto. DF-08 reclasificado como CLOSED (NAR) — falso positivo
+> por truncamiento de pegado PowerShell; verificación forense confirmó que
+> `draft = _layout_block_to_draft(...)` y `error_summary = "; ".join(report.errors)`
+> existen en el código real (pipeline_factory.py:210, pipeline_factory.py:202).
 
 #### Notas de implementación — Task 1.1.2
 
-> Pendiente de implementación.
+> Completada 2026-10-05. Validación de completitud ejecutada contra
+> `reports/regression_test/telemetry.db` (regresión SMOKE, 5 documentos).
+> Resultados: 1 execution_id único, 0 NULLs en 8 campos requeridos,
+> 11/11 timestamps ISO 8601 válidos, 10/10 stages con document_id en metadata,
+> latencias consistentes (EXTRACTION avg=0.0592s, TOPOLOGY_EVALUATION avg=0.0550s,
+> REPORT_ASSEMBLY <0.0001s). Veredicto: PASS — datos completos y consistentes.
+> NADR-F18-02 §5.9 R31 satisfecho para Wave 1.1.
 
 #### Hallazgos identificados en esta Wave
 
 | ID | Hallazgo | Derivado a |
 |----|----------|------------|
-| — | — | — |
+| DF-07 | Ausencia de adaptador síncrono para TelemetryPort. Solo existe SQLiteTelemetryGateway (asíncrono, ProductionTelemetryEvent). Prerrequisito técnico de Task 1.1.1. | Findings Register — RESOLVED en Task 1.1.1 |
+| DF-08 | Variables no definidas en pipeline_factory.py (`error_summary`, `draft`). Reportado como bug crítico durante inspección forense. | Findings Register — CLOSED (NAR), falso positivo por truncamiento de pegado PowerShell |
+| GF-01 | NullTelemetryAdapter duplicado en core/telemetry/ports.py y core/telemetry/adapters.py con APIs incompatibles. | Findings Register — IMPLEMENTATION_REQUIRED, consolidación diferida a Gate 3 |
 
 ### 2.2 Wave 1.2 — SyncProviderBridge Impact Measurement (GAP-0.1-01)
 
@@ -644,7 +667,7 @@ Se actualiza al cierre de cada Gate.
 
 | Gate | Fecha de cierre | Rules DONE / Total | Tasks DONE / Total | Hallazgos derivados | Observaciones |
 |------|----------------|-------------------|-------------------|-------------------|---------------|
-| Gate 1 | — | 0/2 | 0/6 | 0 | Evidence & Measurement Baseline (evidence materialization) |
+| Gate 1 | — | 0/2 | 2/6 | 3 (DF-07 RESOLVED, DF-08 CLOSED (NAR), GF-01 IMPLEMENTATION_REQUIRED) | Evidence & Measurement Baseline (evidence materialization). Wave 1.1 ✅ COMPLETED. Waves 1.2, 1.3 pendientes. |
 | Gate 2 | — | 0/14 | 0/7 | 0 | Architectural Decisions |
 | Gate 3 | — | 0/32 | 0/11 | 0 | Implementation |
 | Gate 4 | — | 0/8 | 0/7 | 0 | Verification & Technique Evaluation |
@@ -701,11 +724,11 @@ Los contadores se **derivan computacionalmente** del Traceability Appendix (§7)
 
 | Gate | Tasks DONE | Rules DONE | Rules DEFERRED | Rules PENDING | Gate Status |
 |---|---|---|---|---|---|
-| Gate 1 | 0 | 0 | 0 | 2 | ⏳ PENDING |
+| Gate 1 | 2 | 0 | 0 | 2 | 🟡 IN PROGRESS |
 | Gate 2 | 0 | 0 | 0 | 14 | ⏳ PENDING |
 | Gate 3 | 0 | 0 | 0 | 32 | ⏳ PENDING |
 | Gate 4 | 0 | 0 | 0 | 8 | ⏳ PENDING |
-| **TOTAL** | **0** | **0** | **0** | **56 (52 únicas + 4 referencias cruzadas)** | ⏳ PENDING |
+| **TOTAL** | **2** | **0** | **0** | **56 (52 únicas + 4 referencias cruzadas)** | 🟡 IN PROGRESS |
 
 **Regla de actualización:** Cada vez que una Task pase a DONE:
 1. Se actualiza el Status de la Task en la tabla de Wave correspondiente (§2)
@@ -728,7 +751,7 @@ Los contadores se **derivan computacionalmente** del Traceability Appendix (§7)
 
 | Rule | Derived Status | Evidence | Implementation Notes |
 |---|---|---|---|
-| NADR-F18-02 §5.9 R31 | PENDING | Wave 1.1 / Task 1.1.1, 1.1.2; Wave 1.2 / Task 1.2.1, 1.2.2; Wave 1.3 / Task 1.3.1, 1.3.2 | Evidencia cuantitativa para DC-01 (evidence materialization) |
+| NADR-F18-02 §5.9 R31 | PENDING (Wave 1.1 DONE) | Wave 1.1 / Task 1.1.1, 1.1.2 ✅; Wave 1.2 / Task 1.2.1, 1.2.2 ⏳; Wave 1.3 / Task 1.3.1, 1.3.2 ⏳ | Evidencia cuantitativa para DC-01 (evidence materialization). Wave 1.1 completada: telemetría por etapa integrada y validada. Pendiente: medición de SyncProviderBridge (Wave 1.2) y baseline documentation (Wave 1.3). |
 | NADR-F18-02 §5.9 R32 | PENDING | Wave 1.2 / Task 1.2.2 | No prescripción de modelo |
 
 ### 7.2 Gate 2 — Rules Audit Board

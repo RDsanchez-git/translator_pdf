@@ -98,6 +98,11 @@ from core.benchmark.verification.report import (
 )
 from core.shared.crypto import compute_sha256_stream
 from infra.fs.corpus_repository import LocalFileSystemCorpusLoader
+import time
+import uuid
+
+from core.telemetry.ports import StageExecutionRecord
+from core.telemetry.regression_gateway import RegressionTelemetryGateway
 from infra.fs.ground_truth_store import (
     LocalFileSystemGroundTruthArtifactAdapter,
     LocalFileSystemGroundTruthReader,
@@ -354,25 +359,21 @@ def _run_evaluation(
     manifest: CorpusManifest,
     declared_manifest_hash: str,
     profile: VerificationProfile,
+    telemetry_execution_id: str,
 ) -> EvaluationArtifacts:
     """Ejecuta Pasos 3-5: pipeline, evaluación, construcción de reporte.
 
-    NO escribe archivos (eso lo hace main() como Imperative Shell).
-    Retorna EvaluationArtifacts con el RegressionReport, config_fingerprint
-    y cost_weights para que main() construya el ContinuousVerificationReport
-    y escriba JSON + Markdown.
+    GAP-0.5-02: Instrumentado con RegressionTelemetryGateway para capturar
+    métricas por etapa del pipeline de regression (EXTRACTION,
+    TOPOLOGY_EVALUATION, REPORT_ASSEMBLY).
 
-    NADR-29 §5.1 R3: Filtra documentos por perfil de ejecución antes
-    de evaluar. Todos los perfiles usan el mismo mecanismo de evaluación
-    (NADR-29 §5.5 R24-R27).
+    La telemetría se persiste en output_dir/telemetry.db como
+    evidencia operacional separada de la evidencia científica
+    (NADR-F18-02 §5.7 R25).
 
-    Imperative Shell: orquesta I/O de lectura (PDFs, GTs). Cualquier
-    excepción no controlada se propaga al caller para ser traducida a
-    EXECUTION_FAILURE.
-
-    Returns:
-        EvaluationArtifacts con regression_report, config_fingerprint,
-        y cost_weights.
+    El telemetry_execution_id es evidencia operacional (uuid4), NO
+    scientific identity. Se mantiene separado de identity_chain.execution_id
+    conforme a NADR-F18-01 §5.2 R8.
     """
     # ── Paso 3: Construir pipeline de evaluación ─────────────────────
     cost_context = CriticalityAwareCostContext()
@@ -409,45 +410,135 @@ def _run_evaluation(
         if doc.document_id in profile_document_ids
     ]
 
-    # ── Paso 4: Evaluar cada documento del perfil ────────────────────
+    # ── GAP-0.5-02: Instrumentación de telemetría ────────────────────
+    telemetry_db_path = output_dir / "telemetry.db"
     document_reports = []
-    for doc_metadata in filtered_documents:
-        doc_id = doc_metadata.document_id
 
-        nodes = load_gt_uc.execute(doc_id)
-        oracle = hydrate_ground_truth(
-            document_id=doc_id,
-            nodes=nodes,
-            state=GroundTruthLifecycleState.SEALED,
-        )
-        assert isinstance(oracle, SealedOracle)
+    with RegressionTelemetryGateway(telemetry_db_path) as telemetry:
 
-        adapter.verify_document_identity(oracle, doc_metadata)
-        adapter.verify_sealed_state(doc_metadata)
-        adapter.verify_oracle_integrity(oracle, doc_metadata)
+        # ── Paso 4: Evaluar cada documento del perfil ────────────────
+        for doc_metadata in filtered_documents:
+            doc_id = doc_metadata.document_id
 
-        pdf_path = pdf_dir / f"{doc_id}.pdf"
-        runtime_ast = extraction_pipeline.parse(str(pdf_path))
+            nodes = load_gt_uc.execute(doc_id)
+            oracle = hydrate_ground_truth(
+                document_id=doc_id,
+                nodes=nodes,
+                state=GroundTruthLifecycleState.SEALED,
+            )
+            assert isinstance(oracle, SealedOracle)
 
-        eval_report = strategy.evaluate_regression(
-            document_id=doc_id,
-            candidate_ast=runtime_ast,
-            ground_truth_ast=oracle.nodes,
-        )
-        document_reports.append(eval_report)
+            adapter.verify_document_identity(oracle, doc_metadata)
+            adapter.verify_sealed_state(doc_metadata)
+            adapter.verify_oracle_integrity(oracle, doc_metadata)
 
-    # ── Paso 5: Construir reporte de corpus ──────────────────────────
-    generated_at = (
-        datetime.now(timezone.utc).isoformat() if inject_timestamp else None
-    )
-    regression_report = build_regression_report(
-        corpus_version=manifest.corpus_version.value,
-        evaluation_reports=document_reports,
-        generated_at=generated_at,
-        configuration_fingerprint=config_fingerprint,
-    )
+            # === STAGE 1: EXTRACTION ===
+            pdf_path = pdf_dir / f"{doc_id}.pdf"
+            t_extraction_start = time.perf_counter()
+            extraction_error: str | None = None
+            extraction_status = "SUCCESS"
+            try:
+                runtime_ast = extraction_pipeline.parse(str(pdf_path))
+            except Exception as e:
+                extraction_status = "FAILED"
+                extraction_error = str(e)
+                runtime_ast = None
+            t_extraction_end = time.perf_counter()
 
-    # ── Paso 7: Retornar artefactos (la escritura JSON la hace main) ─
+            telemetry.record_execution(StageExecutionRecord(
+                execution_id=telemetry_execution_id,
+                stage_name="EXTRACTION",
+                stage_index=0,
+                latency_sec=t_extraction_end - t_extraction_start,
+                input_type="pdf_path",
+                output_type="runtime_ast" if runtime_ast is not None else "error",
+                status=extraction_status,
+                error_message=extraction_error,
+                metadata={"document_id": doc_id},
+            ))
+
+            if runtime_ast is None:
+                raise RuntimeError(
+                    f"EXTRACTION_FAILED for document {doc_id}: {extraction_error}"
+                )
+
+            # === STAGE 2: TOPOLOGY_EVALUATION ===
+            t_eval_start = time.perf_counter()
+            eval_error: str | None = None
+            eval_status = "SUCCESS"
+            try:
+                eval_report = strategy.evaluate_regression(
+                    document_id=doc_id,
+                    candidate_ast=runtime_ast,
+                    ground_truth_ast=oracle.nodes,
+                )
+            except Exception as e:
+                eval_status = "FAILED"
+                eval_error = str(e)
+                eval_report = None
+            t_eval_end = time.perf_counter()
+
+            telemetry.record_execution(StageExecutionRecord(
+                execution_id=telemetry_execution_id,
+                stage_name="TOPOLOGY_EVALUATION",
+                stage_index=1,
+                latency_sec=t_eval_end - t_eval_start,
+                input_type="runtime_ast + ground_truth_ast",
+                output_type="evaluation_report" if eval_report is not None else "error",
+                status=eval_status,
+                error_message=eval_error,
+                metadata={"document_id": doc_id},
+            ))
+
+            if eval_report is None:
+                raise RuntimeError(
+                    f"TOPOLOGY_EVALUATION_FAILED for document {doc_id}: {eval_error}"
+                )
+
+            document_reports.append(eval_report)
+
+        # ── Paso 5: Construir reporte de corpus ──────────────────────
+        # === STAGE 3: REPORT_ASSEMBLY ===
+        t_assembly_start = time.perf_counter()
+        assembly_error: str | None = None
+        assembly_status = "SUCCESS"
+        try:
+            generated_at = (
+                datetime.now(timezone.utc).isoformat() if inject_timestamp else None
+            )
+            regression_report = build_regression_report(
+                corpus_version=manifest.corpus_version.value,
+                evaluation_reports=document_reports,
+                generated_at=generated_at,
+                configuration_fingerprint=config_fingerprint,
+            )
+        except Exception as e:
+            assembly_status = "FAILED"
+            assembly_error = str(e)
+            regression_report = None
+        t_assembly_end = time.perf_counter()
+
+        telemetry.record_execution(StageExecutionRecord(
+            execution_id=telemetry_execution_id,
+            stage_name="REPORT_ASSEMBLY",
+            stage_index=2,
+            latency_sec=t_assembly_end - t_assembly_start,
+            input_type="evaluation_reports[]",
+            output_type="regression_report" if regression_report is not None else "error",
+            status=assembly_status,
+            error_message=assembly_error,
+            metadata={
+                "corpus_version": manifest.corpus_version.value,
+                "document_count": len(document_reports),
+            },
+        ))
+
+        if regression_report is None:
+            raise RuntimeError(
+                f"REPORT_ASSEMBLY_FAILED: {assembly_error}"
+            )
+
+    # ── Retornar artefactos ──────────────────────────────────────────
     return EvaluationArtifacts(
         regression_report=regression_report,
         config_fingerprint=config_fingerprint,
@@ -464,6 +555,12 @@ def main() -> None:
     output_dir: Path = args.output_dir
     inject_timestamp: bool = args.inject_timestamp
     profile = VerificationProfile(args.profile)
+        # ── GAP-0.5-02: Generar telemetry_execution_id (evidencia operacional) ──
+    # NADR-F18-01 §5.2 R8: El telemetry_execution_id es evidencia operacional,
+    # NO scientific identity. Se genera como uuid4 y no se mezcla con
+    # identity_chain.execution_id (que es hash determinista generado
+    # internamente por build_identity_chain).
+    telemetry_execution_id = uuid.uuid4().hex
 
     # ── Estado operacional (NADR-27 §5.1 R1) ─────────────────────────
     baseline_failed = False
@@ -535,6 +632,7 @@ def main() -> None:
                 manifest=manifest,
                 declared_manifest_hash=declared_manifest_hash,
                 profile=profile,
+                telemetry_execution_id=telemetry_execution_id,
             )
             regression_report = artifacts.regression_report
             config_fingerprint = artifacts.config_fingerprint
