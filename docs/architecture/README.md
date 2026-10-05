@@ -32,8 +32,8 @@ docs/
         │   ├── reports/                  (Métricas, CI, Benchmarks)
         |   ├── reviews/  
         │   |   ├── FASE_{X}_DEFERRED_FINDINGS_REGISTER.md   ← Registro de decisiones + batches
-        │       ├── FASE_{X}_EXIT_REVIEW_EVIDENCE_LOG.md     ← Evidencia forense (este documento)
-        │       └── DF-{XX}_{NOMBRE}.md                      ← Opcional, para hallazgos muy com
+        │   |   └──FASE_{X}_EXIT_REVIEW_EVIDENCE_LOG.md     ← Evidencia forense (este documento)
+        │   |
         │   └── handoff/                  (Documentación de transición a Fase 18)
         └── phase-18/
 ```
@@ -45,7 +45,7 @@ docs/
 
 La autoridad fluye estrictamente de arriba hacia abajo. Cada nivel implementa o refina al superior, pero **nunca** lo redefine. Cada tarea de código debe ser trazable hasta su origen arquitectónico.
 
-`ROADMAP` ➔ `ADR MAESTRO` ➔ `ADR DE FASE` ➔ `NADR` ➔ `EXECUTION PLAN` ➔ `IMPLEMENTACIÓN` ➔ `TESTS / CI`
+`ROADMAP` ➔`AUDITORÍA FORENSE`➔ `ADR MAESTRO` ➔ `ADR DE FASE` ➔ `NADR` ➔ `EXECUTION PLAN` ➔ `IMPLEMENTACIÓN` ➔ `TESTS / CI`
 
 ### Responsabilidad de cada Artefacto:
 * **Roadmap:** Visión a largo plazo (¿Hacia dónde vamos?). Evolución y grandes hitos.
@@ -66,6 +66,7 @@ Toda fase respeta la misma organización de directorios para separar responsabil
 * **`00-foundation/`**: Auditorías, evidencia forense y descubrimiento.
 * **`plans/`**: Secuenciación operativa (Execution Plans).
 * **`reports/`**: Métricas, reportes de benchmark y evidencia de CI.
+* **`reviews/`**: Documentos para el registro de de hallazgos identificados durante la implementación del plan.
 * **`handoff/`**: Documentos de entrega para transicionar a la siguiente fase.
 
 *💡 **Orden de Lectura Obligatorio:** Roadmap ➔ ADR Master ➔ NADR ➔ Execution Plan ➔ Implementación.*
@@ -101,9 +102,9 @@ La documentación arquitectónica existe para habilitar y respaldar la implement
 - `docs\architecture\1_METHODOLOGY_FOR_ORDERED_PIPELINE_CHANGES.md` ➔ Metodología General para cambios ordenados en el pipeline del Traductor
 - `docs\architecture\2_METH_ADR_MASTER.md ` ➔ Metodología General para la construcción del ADR MASTER de cada Fase.
 - `docs\architecture\1.2_METH_FOR_FORENSIC_HITOs.md` ➔ Metodología General para la construcción de los HITOS de auditoría forense necesarios para los documentos
-- `docs\architecture\3_METH_ADR_PHASES.md` ➔ Metodología General para la construcción de las Fases en cuestión definida en el ADR_Master
+- `docs\architecture\3_METH_ADR_SUBPHASES.md` ➔ Metodología General para la construcción de las Sub-Fases en cuestión definida en el ADR_Master
 - `docs\architecture\4_METH_NADR.md` ➔ Plantilla Canónica para el armado de los NADRs de las Fases
-- `docs\architecture\5_METH_EXECUTION_PLAN.md` ➔ Metodología General para la construcción del Plan de Ejecución de una Fase en específico.
-- `docs\architecture\6_METH_DEFERRED_FINDINGS_REGISTER_FASE_{X}.md` ➔ Metodología General para el regristro de la auditoría técnica de los DFs/GFs obtenido en la Fase
-- `docs\architecture\6_METH_EXIT_REVIEW_EVIDENCE_LOG_FASE_{X}.md` ➔ Metodología General para la construcción de la evidencia y resultado de los DFs/Gfs obtenidos en la Fase
+- `docs\architecture\5_METH_EXECUTION_PLAN.md` ➔ Metodología General para la construcción del Plan de Ejecución de una Sub-Fase en específico.
+- `docs\architecture\6_METH_DEFERRED_FINDINGS_REGISTER_FASE_{X}.md` ➔ Metodología General para el regristro de la auditoría técnica de los DFs/GFs obtenido en la Sub-Fase
+- `docs\architecture\6_METH_EXIT_REVIEW_EVIDENCE_LOG_FASE_{X}.md` ➔ Metodología General para la construcción de la evidencia y resultado de los DFs/Gfs obtenidos en la Sub-Fase
 - `docs\architecture\7_METH_HANDOFF_FASE_{X}md` ➔ Metodología General para la construcción de los handoff una vez finalizada la implementación de una Fase en particular

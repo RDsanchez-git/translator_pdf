@@ -146,7 +146,7 @@ Si este NADR depende de otro, el otro debe listar este como influencia.}
 | Artefacto | Relación |
 | :--- | :--- |
 | `ADR_F{FASE}_MASTER` | {Cómo este NADR materializa la visión del ADR Maestro} |
-| `ADR_F{FASE}_{XX}` | {Relación con el ADR de Fase si existe} |
+| `ADR_F{FASE}_{SUBFASE}` | {Relación con el ADR de Sub-Fase si existe} |
 | `NADR-F{FASE}-{YY}` | **{Dependencia directa | Influencia | Conflicto}:** {Descripción de la relación} |
 | `NADR-F{FASE}-{ZZ}` | **{Dependencia directa | Influencia | Conflicto}:** {Descripción de la relación} |
 | `PHASE_{FASE}_EXECUTION_PLAN` | {Qué tareas materializan estas reglas} |

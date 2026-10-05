@@ -4,7 +4,7 @@
 
 * **Estado:** FROZEN
 * **Fecha de Emisión Original:** 2026-10-02
-* **Fecha de Congelamiento:** — (pendiente de aprobación del Architecture Board)
+* **Fecha de Congelamiento:** 2026-10-04
 * **Autor:** Architecture Board / Staff Engineering
 * **Fase:** 18 — Advanced Local Runtime
 * **Módulos Afectados:** `apps/llm_workers/`, `apps/daemons/`, `apps/compiler/`, `core/execution/`, `core/pipeline/`, `core/resilience/`, `core/telemetry/`, `core/compiler/`, `infra/db/`, `infra/resilience/`, `runtime/`

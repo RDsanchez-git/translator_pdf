@@ -43,7 +43,7 @@ checklist de congelación.
   (Etapas I y II), o sub-fase que el Architecture Board eleve a unidad de
   gobernanza con re-baseline propia (precedente: 17-BIS dentro de Fase 17).
   Las sub-fases operativas dentro de una unidad gobernada usan ADR de Fase
-  (`3_METH_ADR_PHASES.md`), nunca Maestro.
+  (`3_METH_ADR_SUBPHASES.md`), nunca Maestro.
 * **Precondición (Definition of Ready):** compuerta de auditoría forense
   (Fase 0 de la fase) completada, con HITos commiteados en `00-foundation/`
   (metodología general §3.5.1 y §6.2: "no se escribe evidencia forense sin
@@ -171,7 +171,7 @@ documento no redefine esa nomenclatura; solo la forma y el ciclo de vida.
 | HITos tratados como nivel normativo | §9 coloca `00-foundation/` como eslabón de la cadena | Los HITos son evidencia de entrada (§6.2); el nivel normativo es el ADR de la compuerta de auditoría, si existe |
 | DC sin resolución | DC log con preguntas abiertas al congelar | Todo DC resuelto con evidencia o diferido con destino terminal (§5) |
 | No-objetivos sin dueño | "Fuera de alcance: optimizaciones" | "Fuera de alcance: optimizaciones (pertenece a Fase 18)" |
-| Maestro por sub-fase operativa | Emitir Maestros para sub-fases | Sub-fases operativas usan ADR de Fase (`3_METH_ADR_PHASES.md`) |
+| Maestro por sub-fase operativa | Emitir Maestros para sub-fases | Sub-fases operativas usan ADR de Fase (`3_METH_ADR_SUBPHASES.md`) |
 | Errata editada en FROZEN | Corregir typos o campos en un Maestro FROZEN | Inmutabilidad absoluta: errata no-sustantiva no se corrige; la sustantiva exige ADR sucesor (§6) |
 | Flujo de gobernanza duplicado dentro del ADR | §7 repite el diagrama de flujo de §6 | §7 conserva solo lo específico de la compuerta de auditoría (inputs, actividades, entregables); el flujo de transición de estado vive únicamente en §6 |
 
@@ -203,7 +203,7 @@ Antes de marcar un ADR Maestro como FROZEN, verificar:
 | Artefacto | Relación con el ADR Maestro |
 |---|---|
 | Metodología general | Secuencia el flujo (§6.1 paso 2) y permanece como nivel máximo de meta-gobernanza (§9.3); este documento es su template de artefacto para el nivel Maestro |
-| `3_METH_ADR_PHASES.md` | Los ADRs de Fase derivan capacidades del Maestro; no lo redefinen |
+| `3_METH_ADR_SUBPHASES.md` | Los ADRs de Fase derivan capacidades del Maestro; no lo redefinen |
 | `4_METH_NADR.md` | Las invariantes de §5 del ADR son candidatas a materialización normativa en NADRs |
 | `5_METH_EXECUTION_PLAN.md` | El Maestro §6 declara orden lógico de capacidades; el Execution Plan gobierna secuencia operativa, deploy y trazabilidad regla→task |
 | `6_METH_*.md` | Los hallazgos de la fase (DF/GF) viven en Registers, nunca en el Maestro |
