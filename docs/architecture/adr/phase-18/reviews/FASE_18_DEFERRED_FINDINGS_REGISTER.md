@@ -1,11 +1,11 @@
 # FASE_18_DEFERRED_FINDINGS_REGISTER.md
 
 **Documento:** docs/architecture/adr/phase-18/reviews/FASE_18_DEFERRED_FINDINGS_REGISTER.md
-**Versión:** 1.0.2
+**Versión:** 1.0.3
 **Estado:** IN_PROGRESS
 **Fecha de creación:** 2026-10-04
 **Última actualización:** 2026-10-05
-**Derivado de:** PHASE_18.1_EXECUTION_PLAN.md v1.0.2
+**Derivado de:** PHASE_18.1_EXECUTION_PLAN.md v1.0.3
 **Ámbito:** Subfase 18.1 — Execution Plane & Concurrency
 **Propósito:** Registro auditable de hallazgos identificados durante la implementación
 del Execution Plan de la Subfase 18.1, su clasificación, resolución y evidencia
@@ -95,7 +95,7 @@ empírica de los batches.
 
 ### 1.5 Relación con el Execution Plan
 
-Este registro recibe hallazgos derivados de las siguientes fuentes del PHASE_18.1_EXECUTION_PLAN v1.0.1:
+Este registro recibe hallazgos derivados de las siguientes fuentes del PHASE_18.1_EXECUTION_PLAN v1.0.3:
 
 | Fuente en Execution Plan | Sección | Tipo de hallazgo esperado |
 |---|---|---|
@@ -130,7 +130,7 @@ Los siguientes hallazgos fueron identificados durante la Fase 0 y/o el diseño d
 
 **Nota sobre DF-06:** La autoridad normativa de la frontera hexagonal es ENGINEERING_PRINCIPLES §II, no NADR-F18-02. DF-06 es una manifestación concreta que debe ser evaluada. Si se confirma, la resolución implica eliminar los imports cruzados. Si no se confirma, la evidencia se deriva a este registro para clasificación/cierre como NAR. La Task 3.5.1 evalúa; la Task 3.5.2 implementa si se confirma. La clasificación y cierre formal corresponden a este registro.
 
-### 2.1 Gate 1 Exit Review — PARCIAL (Wave 1.1 y Wave 1.2 completadas, 2026-10-05)
+### 2.1 Gate 1 Exit Review — COMPLETO (Waves 1.1, 1.2, 1.3 completadas, 2026-10-05)
 
 **Árbol de decisión aplicado:**
 
@@ -152,6 +152,8 @@ Los siguientes hallazgos fueron identificados durante la Fase 0 y/o el diseño d
 - IMPLEMENTATION_REQUIRED: 1 (GF-01)
 - REVIEW_REQUIRED: 1 (DF-09)
 - Nuevos hallazgos registrados: 4 (DF-07, DF-08, GF-01, DF-09)
+
+**Nota de cierre de Gate 1 (Wave 1.3, 2026-10-05):** Wave 1.3 (Baseline Documentation) se completó sin identificar nuevos hallazgos. Los baselines FROZEN v1.0.0 (F18_BASELINE_CONCURRENCY.md y F18_BASELINE_METRICS_PER_STAGE.md) consolidan la evidencia de las Waves 1.1 y 1.2 sin revelar gaps adicionales a los ya registrados. GAP-0.7-01 permanece parcialmente resuelto (telemetría Wave 1.1 cubre el pipeline de regression); GAP-0.7-02 y GAP-0.7-05 permanecen DEFERRED conforme a HITO_0.7 §14. Gate 1 queda COMPLETED con 4 hallazgos derivados y evidencia suficiente para Gate 2 (DC-01).
 
 #### Evidencia forense por hallazgo
 
@@ -267,7 +269,7 @@ Se actualiza al cierre de cada batch.
 | Batches completados | 0 |
 | Archivos eliminados totales | 0 |
 | Archivos movidos totales | 0 |
-| Archivos creados totales | 3 |
+| Archivos creados totales | 5 |
 | Tests finales | 6 passed, 0 skipped |
 | Pyright final | 0 errors |
 
@@ -298,7 +300,7 @@ El documento se considera cerrado (ARCHIVED) cuando:
 2. No hay hallazgos en estado REVIEW_REQUIRED sin decisión
 3. Todos los batches planificados están completados
 4. Los hallazgos RECLASSIFIED_FUTURE_PHASE tienen destino explícito
-5. Todos los Gates del PHASE_18.1_EXECUTION_PLAN v1.0.1 están COMPLETED
+5. Todos los Gates del PHASE_18.1_EXECUTION_PLAN v1.0.3 están COMPLETED
 6. La Subfase 18.1 cumple el Global DoD definido en §5 del Execution Plan
 
 ---
@@ -321,6 +323,6 @@ El documento se considera cerrado (ARCHIVED) cuando:
 findings → clasificación → resolución → commit de la Subfase 18.1. No tiene
 autoridad normativa. No redefine reglas de NADRs ni ADRs. Su único propósito
 es documentar la evidencia empírica de los hallazgos identificados durante la
-implementación del PHASE_18.1_EXECUTION_PLAN v1.0.1 y su resolución. La
+implementación del PHASE_18.1_EXECUTION_PLAN v1.0.3 y su resolución. La
 autoridad de clasificación y cierre de hallazgos corresponde exclusivamente a
 este documento, conforme a METHODOLOGY_FOR_ORDERED_PIPELINE_CHANGES.md §3.5.3.
