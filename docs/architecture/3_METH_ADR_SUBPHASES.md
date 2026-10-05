@@ -1,11 +1,11 @@
 # ARCHITECTURE DECISION RECORD (ADR)
-## ADR_F{FASE}_{XX}: {Título de la Subfase}
+## ADR_F{FASE}_{SUBFASE}: {Título de la Subfase}
 
 * **Estado:** {DRAFT | APPROVED | FROZEN | SUPERSEDED}
 * **Versión:** {X.Y.Z}
 * **Fecha de Emisión:** {YYYY-MM-DD}
 * **Autor:** Architecture Board / Staff Engineering
-* **Fase Parent:** {Fase a la que pertenece} ({Nombre de la Fase})
+* **Fase Parent:** {Unidad de Gobernanza Parent} ({Nombre de la Unidad de Gobernanza})
 * **Evidencia Forense Vinculante:** {IDs de HITOs, Findings, Observaciones}
 * **Referencias Cruzadas:**
   * **Depende de:** {ADR Maestro, otros ADRs de Fase}
@@ -13,7 +13,7 @@
   * **Ejecutado por:** {Execution Plan que secuencia las tareas}
   * **Conflictúa con:** {Otros ADRs si aplica, o "Ninguno"}
 
-> **Nota de Gobernanza:** Este documento desarrolla una decisión arquitectónica particular dentro de la {Fase Parent}, conforme a la arquitectura definida por el `{ADR_PARENT_MASTER.md}`. No modifica ni reemplaza las decisiones del ADR Maestro; únicamente las particulariza para esta subfase.
+> **Nota de Gobernanza:** Este documento desarrolla una decisión arquitectónica particular dentro de la {Fase Parent}, conforme a la arquitectura definida por el `{ADR_F{FASE}_MASTER.md}`. No modifica ni reemplaza las decisiones del ADR Maestro; únicamente las particulariza para esta subfase.
 
 ---
 
@@ -75,7 +75,7 @@ El objetivo primordial es garantizar que:
 
 ## 6. GOBERNANZA DE LA SUBFASE
 
-Esta sub-fase requiere preservar las invariantes arquitectónicas fundacionales establecidas por el ADR Maestro (`{ADR_PARENT_MASTER.md}`).
+Esta sub-fase requiere preservar las invariantes arquitectónicas fundacionales establecidas por el ADR Maestro (`{ADR_F{FASE}_MASTER.md}`).
 
 Las restricciones obligatorias de implementación que garantizan el cumplimiento estricto de estas invariantes **quedan definidas y gobernadas exclusivamente en los NADRs asociados a esta fase**.
 
@@ -100,11 +100,11 @@ Las restricciones obligatorias de implementación que garantizan el cumplimiento
 
 | Artefacto | Relación | Bidireccional |
 |---|---|---|
-| `{ADR_PARENT_MASTER.md}` | Este ADR particulariza las decisiones del Maestro para la subfase | ✅ |
+| `{ADR_F{FASE}_MASTER.md}` | Este ADR particulariza las decisiones del Maestro para la subfase | ✅ |
 | `{NADR_XX.md}` | Implementa la regla {R-XX-Y.Z} de este ADR | ✅ |
 | `{NADR_YY.md}` | Implementa la regla {R-YY-W.V} de este ADR | ✅ |
 | `{PHASE_XX_EXECUTION_PLAN.md}` | Secuencia las tareas que materializan este ADR | ✅ |
-| `{Otro ADR de Fase}` | {Relación si aplica} | ✅ |
+| `{Otro ADR de Sub-fase}` | {Relación si aplica} | ✅ |
 
 ---
 
