@@ -1,11 +1,11 @@
 # FASE_18_DEFERRED_FINDINGS_REGISTER.md
 
 **Documento:** docs/architecture/adr/phase-18/reviews/FASE_18_DEFERRED_FINDINGS_REGISTER.md
-**Versión:** 1.0.4
+**Versión:** 1.0.5
 **Estado:** IN_PROGRESS
 **Fecha de creación:** 2026-10-04
 **Última actualización:** 2026-10-05
-**Derivado de:** PHASE_18.1_EXECUTION_PLAN.md v1.0.4
+**Derivado de:** PHASE_18.1_EXECUTION_PLAN.md v1.0.5
 **Ámbito:** Subfase 18.1 — Execution Plane & Concurrency
 **Propósito:** Registro auditable de hallazgos identificados durante la implementación
 del Execution Plan de la Subfase 18.1, su clasificación, resolución y evidencia
@@ -95,7 +95,7 @@ empírica de los batches.
 
 ### 1.5 Relación con el Execution Plan
 
-Este registro recibe hallazgos derivados de las siguientes fuentes del PHASE_18.1_EXECUTION_PLAN v1.0.4:
+Este registro recibe hallazgos derivados de las siguientes fuentes del PHASE_18.1_EXECUTION_PLAN v1.0.5:
 
 | Fuente en Execution Plan | Sección | Tipo de hallazgo esperado |
 |---|---|---|
@@ -247,7 +247,7 @@ Los siguientes hallazgos fueron identificados durante la Fase 0 y/o el diseño d
 | **Limitaciones del benchmark** | (1) MockLLMProvider usa asyncio.sleep(), no I/O real de red. (2) No replica el daemon real (secuencial, heartbeat, backoff, SQLite). (3) Concurrencia N>1 no existe en producción (el daemon es secuencial). (4) MockPromptBuilder evita el costo real del PromptBuilder. Estas limitaciones podrían subestimar el impacto en producción, pero el resultado es claro para el escenario medido. |
 | **Regla aplicada** | FASE0_AUDIT_CHARTER §9 (criterio preregistrado: la evidencia determina el resultado, no la intuición). ENGINEERING_PRINCIPLES §VII (Benchmark Before Optimization). ADR_F18_MASTER §5.2 (Audit First, Design Later). |
 
-### 2.2 Gate 2 Exit Review — PARCIAL (Wave 2.1 completada, 2026-10-05)
+### 2.2 Gate 2 Exit Review — COMPLETO (Waves 2.1, 2.2, 2.3 completadas, 2026-10-05)
 
 **Árbol de decisión aplicado:**
 
@@ -258,13 +258,23 @@ Los siguientes hallazgos fueron identificados durante la Fase 0 y/o el diseño d
 
 | DF/GF | ¿Válido? | ¿Resoluble? | ¿Técnico? | Decisión | Motivo |
 |----|----------|-------------|-----------|----------|--------|
+| DF-09 | ✅ Sí | ✅ Sí (DC-01 resuelto con esta evidencia) | ✅ Sí | **RESOLVED** | La reevaluación de DC-01 exigida por DF-09 se materializó en F18_DC01_DECISION.md v1.0.0. El benchmark demostró que la elisión de SyncProviderBridge no produce beneficio medible; DC-01 resuelto: mantener modelo híbrido. |
 | DF-13 | ✅ Sí | ❌ No (requiere cambio de código en identity_chain) | ✅ Sí | REVIEW_REQUIRED | `model_de_execution` ausente de `build_identity_chain()`. Evaluación de extensión diferida a Gate 3 (Task 3.4.2, trazabilidad de identidad). |
 
 **Resumen:**
+- RESOLVED: 1 (DF-09, reclasificado desde REVIEW_REQUIRED)
 - REVIEW_REQUIRED: 1 (DF-13)
-- Nuevos hallazgos registrados: 1 (DF-13)
+- Nuevos hallazgos registrados: 0 (DC-01 y DC-05 son decisiones, no hallazgos)
 
-**Nota de Wave 2.1:** El contrato F18_IDENTITY_BOUNDARY_CONTRACT.md FROZEN v1.0.1 (DC-02-A) resuelve Tasks 2.1.1-2.1.3 sin otros hallazgos. DF-13 es el único hallazgo derivado de Wave 2.1.
+**Decisiones de Gate 2 (no son hallazgos, se documentan para trazabilidad):**
+
+| DC | Decisión | Evidencia | Documento |
+|----|----------|-----------|-----------|
+| DC-02-A | Contrato provisional de identidad definido | F18_IDENTITY_BOUNDARY_CONTRACT.md v1.0.1 | Wave 2.1 |
+| DC-01 | Mantener modelo híbrido actual | Benchmark Wave 1.2 (overhead 2-10ms, throughput 1.00x) | F18_DC01_DECISION.md v1.0.0, Wave 2.2 |
+| DC-05 | Specialized Contexts (ratificación) | God-Object Test: 6 contextos sin solapamiento | F18_DC05_DECISION.md v1.0.0, Wave 2.3 |
+
+**Nota de cierre de Gate 2:** Las tres Waves de Gate 2 completadas sin nuevos hallazgos DF/GF. DF-09 reclasificado a RESOLVED porque la reevaluación de DC-01 que exigía se materializó en F18_DC01_DECISION.md v1.0.0. DF-13 permanece REVIEW_REQUIRED (diferido a Gate 3, Task 3.4.2). Gate 2 queda COMPLETED con 3 DCs resueltos y 1 hallazgo pendiente de revisión.
 
 #### Evidencia forense por hallazgo
 
@@ -295,10 +305,10 @@ Se actualiza al cierre del último Gate Exit Review.
 |--------------|----------|-----|
 | CLOSED (NAR) | 1 | DF-08 |
 | RESOLVED — DELETE | 0 | — |
-| RESOLVED | 1 | DF-07 |
+| RESOLVED | 2 | DF-07, DF-09 |
 | IMPLEMENTATION_REQUIRED | 1 | GF-01 |
 | RECLASSIFIED_FUTURE_PHASE | 0 | — |
-| REVIEW_REQUIRED | 2 | DF-09, DF-13 |
+| REVIEW_REQUIRED | 1 | DF-13 |
 | ACCEPTED_LIMITATION | 0 | — |
 | PENDING_REVIEW | 1 | DF-06 |
 
@@ -310,7 +320,7 @@ Se actualiza al cierre del último Gate Exit Review.
 | DF-07 | RESOLVED | RegressionTelemetryGateway creado en Wave 1.1 (Task 1.1.1). Adaptador síncrono SQLite WAL con context manager. Pyright: 0 errors. Tests: 6/6 passed. |
 | DF-08 | CLOSED (NAR) | Falso positivo. Verificación forense (Select-String) confirmó que pipeline_factory.py:210 tiene `draft = _layout_block_to_draft(block, page.page_number, reading_order)` y pipeline_factory.py:202 tiene `error_summary = "; ".join(report.errors)`. El código pegado estaba truncado por encoding de PowerShell. |
 | GF-01 | IMPLEMENTATION_REQUIRED | Consolidar NullTelemetryAdapter en Gate 3 (Wave 3.5). Warning agregado en adapters.py. APIs incompatibles: ports.py implementa TelemetryPort; adapters.py expone record_metric/record_event. |
-| DF-09 (F18) | REVIEW_REQUIRED | Resultado contraintuitivo del benchmark de SyncProviderBridge (Wave 1.2). La barrera síncrona NO es el cuello de botella que GAP-0.1-01 sugiere: overhead p95 2-10ms, throughput ratio 1.00x, backpressure idéntico, RSS 0.02 MB. Requiere reevaluación de DC-01 en Gate 2 (Wave 2.2). La elisión de SyncProviderBridge NO está justificada por la evidencia cuantitativa conforme a Charter §9. **Nota de numeración (§1.6):** DF-09 de F18 NO es el mismo hallazgo que DF-09 de Fase 17-BIS (enforcement CV diferido, ACCEPTED_LIMITATION). |
+| DF-09 (F18) | **RESOLVED** | Resultado contraintuitivo del benchmark de SyncProviderBridge (Wave 1.2). La barrera síncrona NO es el cuello de botella que GAP-0.1-01 sugería. **Reclasificado en Gate 2 Exit Review:** la reevaluación de DC-01 exigida por DF-09 se materializó en F18_DC01_DECISION.md v1.0.0 (decisión: mantener modelo híbrido). La evidencia del benchmark fue consumida para resolver DC-01. **Nota de numeración (§1.6):** DF-09 de F18 NO es el mismo hallazgo que DF-09 de Fase 17-BIS (enforcement CV diferido, ACCEPTED_LIMITATION). |
 | DF-13 | REVIEW_REQUIRED | `model_de_execution` ausente de `identity_chain` de `build_identity_chain()` (Wave 2.1). execution_id es hash determinista de scientific identity + result, no discriminador de modo; DC-12 no puede distinguir modos por execution_id alone. INV-EXEC-IDENTIFIABILITY parcialmente satisfecha. Evaluación de extensión de `build_identity_chain` diferida a Gate 3 (Task 3.4.2). Ver §2.2 para evidencia forense completa. |
 
 ---
@@ -327,16 +337,14 @@ Se actualiza al cierre de cada batch.
 
 | Métrica | Valor |
 |---------|-------|
-| Total de hallazgos analizados | 5 |
-| Hallazgos resueltos | 1 |
+| Total de hallazgos analizados | 6 |
+| Hallazgos resueltos | 2 |
 | Hallazgos cerrados sin acción | 1 |
 | Hallazgos reclasificados a fase futura | 0 |
 | Hallazgos pendientes de implementación | 1 |
-| Hallazgos pendientes de revisión | 3 |
+| Hallazgos pendientes de revisión | 2 |
 | Batches completados | 0 |
 | Archivos eliminados totales | 0 |
-| Archivos movidos totales | 1 |
-| Archivos creados totales | 6 |
 | Tests finales | 6 passed, 0 skipped |
 | Pyright final | 0 errors |
 
@@ -367,7 +375,7 @@ El documento se considera cerrado (ARCHIVED) cuando:
 2. No hay hallazgos en estado REVIEW_REQUIRED sin decisión
 3. Todos los batches planificados están completados
 4. Los hallazgos RECLASSIFIED_FUTURE_PHASE tienen destino explícito
-5. Todos los Gates del PHASE_18.1_EXECUTION_PLAN v1.0.4 están COMPLETED
+5. Todos los Gates del PHASE_18.1_EXECUTION_PLAN v1.0.5 están COMPLETED
 6. La Subfase 18.1 cumple el Global DoD definido en §5 del Execution Plan
 
 ---
@@ -376,10 +384,10 @@ El documento se considera cerrado (ARCHIVED) cuando:
 
 | Categoría | Cantidad |
 |-----------|----------|
-| Total de hallazgos analizados | 5 |
-| Hallazgos resueltos | 1 |
+| Total de hallazgos analizados | 6 |
+| Hallazgos resueltos | 2 |
 | Hallazgos pendientes de implementación | 1 |
-| Hallazgos pendientes de revisión | 3 |
+| Hallazgos pendientes de revisión | 2 |
 | Hallazgos cerrados sin acción | 1 |
 | Batches completados | 0/0 |
 | Estado del Exit Review | 🟡 IN PROGRESS |

@@ -1,11 +1,11 @@
 # FASE_18_EXIT_REVIEW_EVIDENCE_LOG.md
 
 **Documento:** docs/architecture/adr/phase-18/reviews/FASE_18_EXIT_REVIEW_EVIDENCE_LOG.md
-**Versión:** 1.0.4
+**Versión:** 1.0.5
 **Estado:** IN_PROGRESS
 **Fecha:** 2026-10-04
 **Última actualización:** 2026-10-05
-**Derivado de:** PHASE_18.1_EXECUTION_PLAN.md v1.0.4 — Subfase 18.1 (Execution Plane & Concurrency)
+**Derivado de:** PHASE_18.1_EXECUTION_PLAN.md v1.0.5 — Subfase 18.1 (Execution Plane & Concurrency)
 **Ámbito:** Subfase 18.1 — Execution Plane & Concurrency
 **Propósito:** Registro auditable de la evidencia forense que fundamenta cada decisión
 tomada durante el Exit Review de la Subfase 18.1. Cada finding incluye los archivos
@@ -31,6 +31,7 @@ clasificación final.
 | 1.0.2 | 2026-10-05 | Wave 1.2 completada. Evidencia forense agregada para DF-09 (REVIEW_REQUIRED): resultado contraintuitivo del benchmark de SyncProviderBridge. La barrera síncrona NO es el cuello de botella que GAP-0.1-01 sugiere; requiere reevaluación de DC-01. Gate 1 parcialmente ejecutado (Wave 1.1 y 1.2 de 3). |
 | 1.0.3 | 2026-10-05 | Wave 1.3 completada sin nuevos hallazgos. Baselines FROZEN v1.0.0 (F18_BASELINE_CONCURRENCY.md, F18_BASELINE_METRICS_PER_STAGE.md) consolidan la evidencia de Waves 1.1 y 1.2 sin revelar gaps adicionales. Gate 1 ✅ COMPLETED (Waves 1.1, 1.2, 1.3 todas DONE; 4 hallazgos derivados). |
 | 1.0.4 | 2026-10-05 | Wave 2.1 completada. Evidencia forense agregada para DF-13 (REVIEW_REQUIRED): `model_de_execution` ausente de `identity_chain`; INV-EXEC-IDENTIFIABILITY parcialmente satisfecha. Contrato F18_IDENTITY_BOUNDARY_CONTRACT.md FROZEN v1.0.1 (DC-02-A) emitido. Gate 2 🟡 Parcialmente ejecutado (Wave 2.1 de 3). Convención de numeración por fase y colisión DF-09 documentadas en Findings Register §1.6. |
+| 1.0.5 | 2026-10-05 | **Gate 2 ✅ COMPLETED.** Wave 2.2 (DC-01): Mantener modelo híbrido actual (F18_DC01_DECISION.md). Wave 2.3 (DC-05): Specialized Contexts ratificados (F18_DC05_DECISION.md). DF-09 reclasificado a RESOLVED en Findings Register (la reevaluación exigida se materializó en la decisión DC-01). |
 
 ---
 
@@ -124,7 +125,7 @@ clasificación final.
 
 ### 1.5 Relación con el Findings Register
 
-Cada entrada de este Evidence Log tiene una referencia cruzada bidireccional con el FASE_18_DEFERRED_FINDINGS_REGISTER v1.0.4:
+Cada entrada de este Evidence Log tiene una referencia cruzada bidireccional con el FASE_18_DEFERRED_FINDINGS_REGISTER v1.0.5:
 
 | Documento | Propósito | Momento |
 |-----------|-----------|---------|
@@ -530,7 +531,7 @@ Esta regla aplica porque la duplicación de NullTelemetryAdapter con APIs incomp
 |-------|-------|
 | **ID** | DF-09 |
 | **Tipo** | Deferred Finding |
-| **Estado** | REVIEW_REQUIRED |
+| **Estado** | RESOLVED (reclasificado desde REVIEW_REQUIRED en Gate 2 Exit Review) |
 | **Origen** | Benchmark de SyncProviderBridge, Wave 1.2 (Task 1.2.1, 1.2.2); reports/benchmark/sync_bridge_benchmark.json |
 | **Gate destino original** | Gate 1 (Wave 1.2) → Gate 2 (Wave 2.2, reevaluación de DC-01) |
 | **Estado previo** | Identificado durante ejecución del benchmark en Wave 1.2 |
@@ -598,7 +599,7 @@ No requiere reformulación. El texto original es preciso y está alineado con la
 |------------|-------------|--------|-------|
 | DF-09-A | Ejecutar benchmark de SyncProviderBridge (4 experimentos sintéticos) | Completado | Wave 1.2 |
 | DF-09-B | Documentar resultados cuantitativos y evaluar contra criterio preregistrado de Charter §9 | Completado | Wave 1.2 |
-| DF-09-C | Reevaluar DC-01 en Gate 2 (Wave 2.2) con la nueva evidencia | Pendiente | Gate 2 |
+| DF-09-C | Reevaluar DC-01 en Gate 2 (Wave 2.2) con la nueva evidencia | **Completado** — materializado en F18_DC01_DECISION.md v1.0.0 (decisión: mantener modelo híbrido) | Gate 2 |
 | DF-09-D | Documentar limitaciones del benchmark (mock provider, no replica daemon real, concurrencia N>1 no existe en producción) | Completado | Wave 1.2 |
 
 #### 2.5.9 Clasificación consolidada
@@ -608,10 +609,10 @@ No requiere reformulación. El texto original es preciso y está alineado con la
 | Condición original existe | ⚠️ Parcial (la barrera existe, pero el impacto es pequeño o nulo) |
 | Es violación arquitectónica | ❌ No (corrección de hipótesis, no violación) |
 | Es violación de gobernanza | ❌ No |
-| Es problema técnico | ✅ Sí (requiere reevaluación de DC-01) |
+| Es problema técnico | ✅ Sí (requirió reevaluación de DC-01) |
 | Pertenece a Subfase 18.1 | ✅ Sí (Gate 1 Wave 1.2 → Gate 2 Wave 2.2) |
-| Bloquea objetivo de 18.1 | ⚠️ Parcial (cambia priorización de DC-01, no bloquea) |
-| Clasificación | REVIEW_REQUIRED |
+| Bloquea objetivo de 18.1 | ❌ No (reevaluación completada, DC-01 resuelto) |
+| Clasificación | **RESOLVED** (reclasificado desde REVIEW_REQUIRED en Gate 2 Exit Review; la reevaluación de DC-01 se materializó en F18_DC01_DECISION.md v1.0.0) |
 | Prioridad | Alta |
 
 #### 2.5.10 Regla aplicada
@@ -743,7 +744,7 @@ Esta regla aplica porque el testing diferencial (DC-12 M1) requiere distinguir m
 | Gate | Estado | Fecha | Hallazgos analizados |
 |------|--------|-------|---------------------|
 | Gate 1 — Evidence & Measurement Baseline | ✅ COMPLETED (Waves 1.1, 1.2, 1.3 todas DONE) | 2026-10-05 | 4 (DF-07, DF-08, GF-01, DF-09) |
-| Gate 2 — Architectural Decisions | 🟡 Parcialmente ejecutado (Wave 2.1 de 3 completada) | 2026-10-05 | 1 (DF-13) |
+| Gate 2 — Architectural Decisions | ✅ COMPLETED (Waves 2.1, 2.2, 2.3 todas DONE) | 2026-10-05 | 1 (DF-13) + 2 DCs resueltos (DC-01, DC-05) |
 | Gate 3 — Implementation | ⏳ No ejecutado | — | 0 (DF-06 pre-registrado, GF-01 diferido, DF-13 diferido) |
 | Gate 4 — Verification & Technique Evaluation | ⏳ No ejecutado | — | 0 |
 
@@ -769,21 +770,31 @@ Esta regla aplica porque el testing diferencial (DC-12 M1) requiere distinguir m
 
 **Evidencia forense detallada:** Ver §2.2 (DF-07), §2.3 (DF-08), §2.4 (GF-01), §2.5 (DF-09).
 
-### 3.2 Gate 2 Exit Review — PARCIAL (Wave 2.1 completada, 2026-10-05)
+### 3.2 Gate 2 Exit Review — COMPLETO (Waves 2.1, 2.2, 2.3 completadas, 2026-10-05)
 
 **Árbol de decisión aplicado:**
 
 | DF/GF | ¿Válido? | ¿Resoluble? | ¿Técnico? | Decisión | Motivo |
 |----|----------|-------------|-----------|----------|--------|
+| DF-09 | ✅ Sí | ✅ Sí (DC-01 resuelto con esta evidencia) | ✅ Sí | **RESOLVED** | La reevaluación de DC-01 exigida por DF-09 se materializó en F18_DC01_DECISION.md v1.0.0. El benchmark demostró que la elisión de SyncProviderBridge no produce beneficio medible; DC-01 resuelto: mantener modelo híbrido. |
 | DF-13 | ✅ Sí | ❌ No (requiere cambio de código en identity_chain) | ✅ Sí | REVIEW_REQUIRED | `model_de_execution` ausente de `build_identity_chain()`. Evaluación de extensión diferida a Gate 3 (Task 3.4.2). |
 
 **Resumen:**
+- RESOLVED: 1 (DF-09, reclasificado desde REVIEW_REQUIRED)
 - REVIEW_REQUIRED: 1 (DF-13)
-- Nuevos hallazgos registrados: 1
+- Nuevos hallazgos registrados: 0 (DC-01 y DC-05 son decisiones, no hallazgos)
 
-**Nota de Wave 2.1:** El contrato F18_IDENTITY_BOUNDARY_CONTRACT.md FROZEN v1.0.1 (DC-02-A) resuelve Tasks 2.1.1-2.1.3 sin otros hallazgos. DF-13 es el único hallazgo derivado de Wave 2.1. DC-02-A queda RESUELTO como contrato provisional; DC-02-B (consolidación definitiva) queda pendiente post DC-12 conforme a HITO_0.12 §4.2.
+**Decisiones de Gate 2 (no son hallazgos, se documentan para trazabilidad):**
 
-**Evidencia forense detallada:** Ver §2.6 (DF-13).
+| DC | Decisión | Evidencia | Documento |
+|----|----------|-----------|-----------|
+| DC-02-A | Contrato provisional de identidad definido | F18_IDENTITY_BOUNDARY_CONTRACT.md v1.0.1 | Wave 2.1 |
+| DC-01 | Mantener modelo híbrido actual | Benchmark Wave 1.2 (overhead 2-10ms, throughput 1.00x) | F18_DC01_DECISION.md v1.0.0, Wave 2.2 |
+| DC-05 | Specialized Contexts (ratificación) | God-Object Test: 6 contextos sin solapamiento | F18_DC05_DECISION.md v1.0.0, Wave 2.3 |
+
+**Nota de cierre de Gate 2:** Las tres Waves de Gate 2 completadas sin nuevos hallazgos DF/GF. DF-09 reclasificado a RESOLVED porque la reevaluación de DC-01 que exigía se materializó en F18_DC01_DECISION.md v1.0.0. DF-13 permanece REVIEW_REQUIRED (diferido a Gate 3, Task 3.4.2). Gate 2 queda COMPLETED con 3 DCs resueltos y 1 hallazgo pendiente de revisión.
+
+**Evidencia forense detallada:** Ver §2.5 (DF-09), §2.6 (DF-13), y documentos de decisión F18_DC01_DECISION.md / F18_DC05_DECISION.md.
 
 ---
 
@@ -797,10 +808,10 @@ Esta regla aplica porque el testing diferencial (DC-12 M1) requiere distinguir m
 |--------------|----------|-----|
 | CLOSED (NAR) | 1 | DF-08 |
 | RESOLVED — DELETE | 0 | — |
-| RESOLVED | 1 | DF-07 |
+| RESOLVED | 2 | DF-07, DF-09 |
 | IMPLEMENTATION_REQUIRED | 1 | GF-01 |
 | RECLASSIFIED_FUTURE_PHASE | 0 | — |
-| REVIEW_REQUIRED | 2 | DF-09, DF-13 |
+| REVIEW_REQUIRED | 1 | DF-13 |
 | ACCEPTED_LIMITATION | 0 | — |
 | PENDING_REVIEW | 1 | DF-06 |
 
@@ -812,7 +823,7 @@ Esta regla aplica porque el testing diferencial (DC-12 M1) requiere distinguir m
 | DF-07 | RESOLVED | RegressionTelemetryGateway creado en Wave 1.1 (Task 1.1.1). Ver §2.2 para evidencia forense completa. |
 | DF-08 | CLOSED (NAR) | Falso positivo por truncamiento de pegado PowerShell. Ver §2.3 para evidencia forense completa. |
 | GF-01 | IMPLEMENTATION_REQUIRED | Consolidar NullTelemetryAdapter en Gate 3 (Wave 3.5). Ver §2.4 para evidencia forense completa. |
-| DF-09 | REVIEW_REQUIRED | Resultado contraintuitivo del benchmark de SyncProviderBridge (Wave 1.2). La barrera síncrona NO es el cuello de botella que GAP-0.1-01 sugiere. Requiere reevaluación de DC-01 en Gate 2 (Wave 2.2). Ver §2.5 para evidencia forense completa. |
+| DF-09 (F18) | **RESOLVED** | Resultado contraintuitivo del benchmark de SyncProviderBridge (Wave 1.2). **Reclasificado en Gate 2 Exit Review:** la reevaluación de DC-01 exigida por DF-09 se materializó en F18_DC01_DECISION.md v1.0.0 (decisión: mantener modelo híbrido). La evidencia del benchmark fue consumida para resolver DC-01. **Nota de numeración:** DF-09 de F18 NO es el mismo hallazgo que DF-09 de Fase 17-BIS. |
 | DF-13 | REVIEW_REQUIRED | `model_de_execution` ausente de `identity_chain` de `build_identity_chain()` (Wave 2.1). execution_id no discrimina modo de ejecución; INV-EXEC-IDENTIFIABILITY parcialmente satisfecha. Evaluación de extensión diferida a Gate 3 (Task 3.4.2). Ver §2.6 para evidencia forense completa. |
 
 ---
@@ -829,7 +840,7 @@ El documento se considera cerrado (FROZEN) cuando:
 - [ ] Cada clasificación tiene al menos una regla normativa aplicada
 - [ ] Los hallazgos RECLASSIFIED_FUTURE_PHASE tienen destino explícito
 - [ ] Los hallazgos REVIEW_REQUIRED tienen plan de reevaluación
-- [ ] Todos los Gates del PHASE_18.1_EXECUTION_PLAN v1.0.4 están COMPLETED
+- [ ] Todos los Gates del PHASE_18.1_EXECUTION_PLAN v1.0.5 están COMPLETED
 - [ ] La Subfase 18.1 cumple el Global DoD definido en §5 del Execution Plan
 
 ### 5.2 Relación con el Findings Register
@@ -864,6 +875,14 @@ sección correspondiente de este Evidence Log.
 | Findings Register | Evidence Log | Estado |
 |---|---|---|
 | DF-13 (REVIEW_REQUIRED) | §2.6 | Completo — derivado a Gate 3 (Wave 3.4, Task 3.4.2) para evaluación de extensión de identity_chain |
+
+**Referencias cruzadas Wave 2.2 y 2.3 (Decisiones Arquitectónicas):**
+
+| Findings Register / DC | Evidence Log / Documento | Estado |
+|---|---|---|
+| DF-09 (RESOLVED) | §2.5 | Completo — reevaluación materializada en F18_DC01_DECISION.md v1.0.0 (DC-01) |
+| DC-01 (RESOLVED) | F18_DC01_DECISION.md v1.0.0 | Decisión arquitectónica documentada con evidencia cuantitativa |
+| DC-05 (RESOLVED) | F18_DC05_DECISION.md v1.0.0 | Decisión arquitectónica documentada (Specialized Contexts) |
 
 ### 5.3 Protocolo de actualización dinámica
 
