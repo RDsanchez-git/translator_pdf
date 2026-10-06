@@ -1,11 +1,11 @@
 # FASE_18_EXIT_REVIEW_EVIDENCE_LOG.md
 
 **Documento:** docs/architecture/adr/phase-18/reviews/FASE_18_EXIT_REVIEW_EVIDENCE_LOG.md
-**Versión:** 1.0.3
+**Versión:** 1.0.4
 **Estado:** IN_PROGRESS
 **Fecha:** 2026-10-04
 **Última actualización:** 2026-10-05
-**Derivado de:** PHASE_18.1_EXECUTION_PLAN.md v1.0.3 — Subfase 18.1 (Execution Plane & Concurrency)
+**Derivado de:** PHASE_18.1_EXECUTION_PLAN.md v1.0.4 — Subfase 18.1 (Execution Plane & Concurrency)
 **Ámbito:** Subfase 18.1 — Execution Plane & Concurrency
 **Propósito:** Registro auditable de la evidencia forense que fundamenta cada decisión
 tomada durante el Exit Review de la Subfase 18.1. Cada finding incluye los archivos
@@ -30,6 +30,7 @@ clasificación final.
 | 1.0.1 | 2026-10-05 | Wave 1.1 completada. Evidencia forense agregada para DF-07 (RESOLVED), DF-08 (CLOSED (NAR)), GF-01 (IMPLEMENTATION_REQUIRED). Gate 1 parcialmente ejecutado (Wave 1.1 de 3). |
 | 1.0.2 | 2026-10-05 | Wave 1.2 completada. Evidencia forense agregada para DF-09 (REVIEW_REQUIRED): resultado contraintuitivo del benchmark de SyncProviderBridge. La barrera síncrona NO es el cuello de botella que GAP-0.1-01 sugiere; requiere reevaluación de DC-01. Gate 1 parcialmente ejecutado (Wave 1.1 y 1.2 de 3). |
 | 1.0.3 | 2026-10-05 | Wave 1.3 completada sin nuevos hallazgos. Baselines FROZEN v1.0.0 (F18_BASELINE_CONCURRENCY.md, F18_BASELINE_METRICS_PER_STAGE.md) consolidan la evidencia de Waves 1.1 y 1.2 sin revelar gaps adicionales. Gate 1 ✅ COMPLETED (Waves 1.1, 1.2, 1.3 todas DONE; 4 hallazgos derivados). |
+| 1.0.4 | 2026-10-05 | Wave 2.1 completada. Evidencia forense agregada para DF-13 (REVIEW_REQUIRED): `model_de_execution` ausente de `identity_chain`; INV-EXEC-IDENTIFIABILITY parcialmente satisfecha. Contrato F18_IDENTITY_BOUNDARY_CONTRACT.md FROZEN v1.0.1 (DC-02-A) emitido. Gate 2 🟡 Parcialmente ejecutado (Wave 2.1 de 3). Convención de numeración por fase y colisión DF-09 documentadas en Findings Register §1.6. |
 
 ---
 
@@ -123,7 +124,7 @@ clasificación final.
 
 ### 1.5 Relación con el Findings Register
 
-Cada entrada de este Evidence Log tiene una referencia cruzada bidireccional con el FASE_18_DEFERRED_FINDINGS_REGISTER v1.0.1:
+Cada entrada de este Evidence Log tiene una referencia cruzada bidireccional con el FASE_18_DEFERRED_FINDINGS_REGISTER v1.0.4:
 
 | Documento | Propósito | Momento |
 |-----------|-----------|---------|
@@ -629,6 +630,110 @@ Esta regla aplica porque la elisión de SyncProviderBridge es una sustitución d
 
 ---
 
+### 2.6 DF-13 — `model_de_execution` ausente de `identity_chain`
+
+| Campo | Valor |
+|-------|-------|
+| **ID** | DF-13 |
+| **Tipo** | Deferred Finding |
+| **Estado** | REVIEW_REQUIRED |
+| **Origen** | Wave 2.1 (Task 2.1.1); F18_IDENTITY_BOUNDARY_CONTRACT.md v1.0.1 §2.2; core/benchmark/verification/identity_chain.py |
+| **Gate destino original** | Gate 2 (Wave 2.1) → Gate 3 (Wave 3.4, Task 3.4.2) |
+| **Estado previo** | Identificado durante emisión del contrato DC-02-A |
+| **Prioridad** | Media — afecta trazabilidad de DC-12, no bloquea |
+| **¿Requiere implementación?** | Condicional — evaluación de extensión de `build_identity_chain` en Gate 3 (Task 3.4.2) |
+| **¿Bloquea la Subfase 18.1?** | No — debilita trazabilidad del modo de ejecución en evidencia de verificación, pero no invalida DC-12 |
+
+#### 2.6.1 Texto original del DF
+
+> *"`model_de_execution` (modo de ejecución) NO está incluido en `identity_chain` de `build_identity_chain()`. El testing diferencial (DC-12) no puede distinguir modos de ejecución por execution_id alone. INV-EXEC-IDENTIFIABILITY está parcialmente satisfecha: el modo es identificable en configuración del sistema, pero no presente en el identity_chain del reporte de verificación."*
+
+#### 2.6.2 Reformulación corregida
+
+No requiere reformulación. El texto original es preciso y está alineado con la inspección de `identity_chain.py` y el contrato §2.2.
+
+#### 2.6.3 Archivos y documentos auditados
+
+| # | Archivo / Documento | Evidencia extraída |
+|---|---------------------|-------------------|
+| 1 | core/benchmark/verification/identity_chain.py | `build_identity_chain()` compone baseline_identity, subject_identity, configuration_identity, cost_weights, profile_identity, result_identity → execution_id. **No incluye campo de modo de ejecución.** |
+| 2 | core/benchmark/verification/identity_chain.py (`build_execution_id`) | execution_id = hash determinista de baseline + config + profile + result. Derivado de scientific identity + resultado, **no discriminador de modo**. |
+| 3 | core/benchmark/verification/report.py | `ContinuousVerificationReport` porta identity_chain; sin campo de modo de ejecución en el reporte. |
+| 4 | F18_IDENTITY_BOUNDARY_CONTRACT.md v1.0.1 §2.2 | Clasifica `model_de_execution` como execution identity y documenta explícitamente su ausencia en identity_chain (nota DF-13). |
+| 5 | NADR-F18-01 v1.0.3 §5.2 R6, R7 | Toda propiedad que determine el modo/política de ejecución MUST ser clasificada como execution identity y MUST ser identificable. |
+| 6 | ADR_F18_MASTER §5.1 | INV-EXEC-IDENTIFIABILITY: el modo/política de ejecución es identificable y reproducible y habilita testing diferencial. |
+
+#### 2.6.4 Análisis
+
+- **¿La condición original existe?** Sí. `build_identity_chain()` no incluye `model_de_execution`. Dos ejecuciones con la misma scientific identity y el mismo resultado producen el **mismo** execution_id independientemente del modo (secuencial vs concurrente), porque execution_id es hash de baseline + config + profile + result.
+- **¿Es una violación normativa o un comportamiento correcto por diseño?** Es un gap parcial de materialización, no una violación directa. El contrato DC-02-A **clasifica** correctamente el modo como execution identity (cumple R6 en el plano normativo), pero el mecanismo existente (`identity_chain`) no lo **materializa** en el reporte de verificación (R7 e INV-EXEC-IDENTIFIABILITY quedan parcialmente satisfechos). El modo es identificable en configuración del sistema, pero no en la evidencia de verificación persistida.
+- **¿Qué NADRs/ADRs aplican?** NADR-F18-01 §5.2 R6 (clasificación de execution identity), §5.2 R7 (execution identity identificable). INV-EXEC-IDENTIFIABILITY (ADR_F18_MASTER §5.1). NADR-F18-01 §5.2 R8 (el modo NO debe entrar en scientific identity — la extensión propuesta debe respetar esta exclusión).
+- **¿Cuál es el impacto funcional real?** DC-12 M1 requiere comparar dos modos de ejecución. Sin el modo en el reporte, la distinción de modos debe hacerse por configuración externa al artefacto de verificación, no por identity_chain. Esto debilita la trazabilidad autocontenida del experimento M1 pero no lo invalida. También afecta Task 3.4.2 (trazabilidad de identidad por artefacto).
+
+#### 2.6.5 Gaps objetivos confirmados
+
+| # | Gap | Evidencia | Severidad |
+|---|-----|-----------|-----------|
+| G1 | `model_de_execution` ausente de `identity_chain` | Inspección de build_identity_chain() en identity_chain.py; contrato §2.2 | Media |
+| G2 | `execution_id` no discrimina modo de ejecución | build_execution_id() = hash(baseline + config + profile + result); mismo resultado + misma scientific identity ⇒ mismo execution_id en cualquier modo | Media |
+
+#### 2.6.6 Lo que NO es un gap
+
+| Aspecto | Veredicto | Justificación |
+|---------|-----------|---------------|
+| execution_id determinista | ✅ Correcto por diseño | Identificabilidad de resultado derivado de scientific identity; no debe variar por modo (R8) |
+| telemetry_execution_id separado | ✅ Correcto por diseño | Evidencia operacional uuid4, excluida de scientific identity (R8; Wave 1.1) |
+| scientific identity sin propiedades de ejecución | ✅ Correcto por diseño | R3 y R8 cumplidos en contrato §2.1 |
+| Clasificación normativa del modo | ✅ Correcto por diseño | Contrato §2.2 clasifica model_de_execution como execution identity (R6) |
+
+#### 2.6.7 Impacto en la Subfase 18.1
+
+| Dimensión | ¿Afecta? | Justificación |
+|-----------|----------|---------------|
+| Determinismo | ❌ No | No afecta determinismo de hashing ni de métricas |
+| Reproducibilidad | ❌ No | El modo es reproducible por configuración externa |
+| Corrección funcional | ❌ No | No hay bug; es ausencia de campo de trazabilidad |
+| Bloquea DC-01 | ❌ No | DC-01 evalúa modelos candidatos; el modo se conoce por configuración |
+| Bloquea DC-12 | ⚠️ Parcial | Debilita trazabilidad autocontenida del modo en evidencia de verificación de M1; no invalida el experimento |
+| Bloquea Gate 4 | ❌ No | Gate 4 verifica propiedades; la extensión corresponde a Gate 3 |
+
+#### 2.6.8 Sub-acciones identificadas
+
+| Sub-acción | Descripción | Estado | Scope |
+|------------|-------------|--------|-------|
+| DF-13-A | Evaluar en Gate 3 (Task 3.4.2) si `build_identity_chain()` debe extenderse con `model_de_execution` como campo de execution identity | Pendiente | Gate 3 |
+| DF-13-B | Alternativa a evaluar: registrar el modo en metadata operacional de `ContinuousVerificationReport` (sin tocar identity_chain), si la extensión rompe estabilidad de identity_chain existente | Pendiente | Gate 3 |
+| DF-13-C | Verificar que cualquier extensión respete NADR-F18-01 §5.2 R8 (el modo NO entra en scientific identity) y no altere execution_id de reportes históricos | Pendiente | Gate 3 |
+
+#### 2.6.9 Clasificación consolidada
+
+| Campo | Valor |
+|-------|-------|
+| Condición original existe | ✅ Sí (gap confirmado) |
+| Es violación arquitectónica | ⚠️ Parcial (limitación de mecanismo existente frente a R7 / INV-EXEC-IDENTIFIABILITY; clasificación normativa correcta) |
+| Es violación de gobernanza | ❌ No |
+| Es problema técnico | ✅ Sí |
+| Pertenece a Subfase 18.1 | ✅ Sí (Gate 3, Task 3.4.2) |
+| Bloquea objetivo de 18.1 | ⚠️ Parcial (debilita trazabilidad de DC-12, no bloquea) |
+| Clasificación | REVIEW_REQUIRED |
+| Prioridad | Media |
+
+#### 2.6.10 Regla aplicada
+
+> **NADR-F18-01 §5.2 R6 y R7:**
+> *"Toda propiedad que determine el modo/política de ejecución MUST ser clasificada como execution identity"* y *"la execution identity MUST ser identificable"*.
+
+Esta regla aplica porque el modo de ejecución determina la política de ejecución y está correctamente clasificado en el contrato (R6), pero no es identificable **en el artefacto de verificación** (R7 parcial). La resolución debe materializar el modo en la evidencia sin violar R8.
+
+**Regla complementaria:**
+
+> **INV-EXEC-IDENTIFIABILITY (ADR_F18_MASTER §5.1):**
+> *"El modo/política de ejecución es identificable y reproducible, excluido de la identidad científica."*
+
+Esta regla aplica porque el testing diferencial (DC-12 M1) requiere distinguir modos de ejecución en la evidencia comparada. Sin el modo en identity_chain o en el reporte, la distinción depende de configuración externa, debilitando la autocontenibilidad de la evidencia de M1.
+
+---
+
 ## 3. GATE EXIT REVIEW SUMMARY
 
 {Estructura abierta. Se agregará una sub-sección por cada Gate Exit Review ejecutado. Ningún Gate ha sido ejecutado todavía.}
@@ -638,8 +743,8 @@ Esta regla aplica porque la elisión de SyncProviderBridge es una sustitución d
 | Gate | Estado | Fecha | Hallazgos analizados |
 |------|--------|-------|---------------------|
 | Gate 1 — Evidence & Measurement Baseline | ✅ COMPLETED (Waves 1.1, 1.2, 1.3 todas DONE) | 2026-10-05 | 4 (DF-07, DF-08, GF-01, DF-09) |
-| Gate 2 — Architectural Decisions | ⏳ No ejecutado | — | 0 (DF-09 derivado para reevaluación de DC-01) |
-| Gate 3 — Implementation | ⏳ No ejecutado | — | 0 (DF-06 pre-registrado, GF-01 diferido) |
+| Gate 2 — Architectural Decisions | 🟡 Parcialmente ejecutado (Wave 2.1 de 3 completada) | 2026-10-05 | 1 (DF-13) |
+| Gate 3 — Implementation | ⏳ No ejecutado | — | 0 (DF-06 pre-registrado, GF-01 diferido, DF-13 diferido) |
 | Gate 4 — Verification & Technique Evaluation | ⏳ No ejecutado | — | 0 |
 
 ### 3.1 Gate 1 Exit Review — COMPLETO (Waves 1.1, 1.2, 1.3 completadas, 2026-10-05)
@@ -664,6 +769,22 @@ Esta regla aplica porque la elisión de SyncProviderBridge es una sustitución d
 
 **Evidencia forense detallada:** Ver §2.2 (DF-07), §2.3 (DF-08), §2.4 (GF-01), §2.5 (DF-09).
 
+### 3.2 Gate 2 Exit Review — PARCIAL (Wave 2.1 completada, 2026-10-05)
+
+**Árbol de decisión aplicado:**
+
+| DF/GF | ¿Válido? | ¿Resoluble? | ¿Técnico? | Decisión | Motivo |
+|----|----------|-------------|-----------|----------|--------|
+| DF-13 | ✅ Sí | ❌ No (requiere cambio de código en identity_chain) | ✅ Sí | REVIEW_REQUIRED | `model_de_execution` ausente de `build_identity_chain()`. Evaluación de extensión diferida a Gate 3 (Task 3.4.2). |
+
+**Resumen:**
+- REVIEW_REQUIRED: 1 (DF-13)
+- Nuevos hallazgos registrados: 1
+
+**Nota de Wave 2.1:** El contrato F18_IDENTITY_BOUNDARY_CONTRACT.md FROZEN v1.0.1 (DC-02-A) resuelve Tasks 2.1.1-2.1.3 sin otros hallazgos. DF-13 es el único hallazgo derivado de Wave 2.1. DC-02-A queda RESUELTO como contrato provisional; DC-02-B (consolidación definitiva) queda pendiente post DC-12 conforme a HITO_0.12 §4.2.
+
+**Evidencia forense detallada:** Ver §2.6 (DF-13).
+
 ---
 
 ## 4. TABLA CONSOLIDADA FINAL
@@ -679,7 +800,7 @@ Esta regla aplica porque la elisión de SyncProviderBridge es una sustitución d
 | RESOLVED | 1 | DF-07 |
 | IMPLEMENTATION_REQUIRED | 1 | GF-01 |
 | RECLASSIFIED_FUTURE_PHASE | 0 | — |
-| REVIEW_REQUIRED | 1 | DF-09 |
+| REVIEW_REQUIRED | 2 | DF-09, DF-13 |
 | ACCEPTED_LIMITATION | 0 | — |
 | PENDING_REVIEW | 1 | DF-06 |
 
@@ -692,6 +813,7 @@ Esta regla aplica porque la elisión de SyncProviderBridge es una sustitución d
 | DF-08 | CLOSED (NAR) | Falso positivo por truncamiento de pegado PowerShell. Ver §2.3 para evidencia forense completa. |
 | GF-01 | IMPLEMENTATION_REQUIRED | Consolidar NullTelemetryAdapter en Gate 3 (Wave 3.5). Ver §2.4 para evidencia forense completa. |
 | DF-09 | REVIEW_REQUIRED | Resultado contraintuitivo del benchmark de SyncProviderBridge (Wave 1.2). La barrera síncrona NO es el cuello de botella que GAP-0.1-01 sugiere. Requiere reevaluación de DC-01 en Gate 2 (Wave 2.2). Ver §2.5 para evidencia forense completa. |
+| DF-13 | REVIEW_REQUIRED | `model_de_execution` ausente de `identity_chain` de `build_identity_chain()` (Wave 2.1). execution_id no discrimina modo de ejecución; INV-EXEC-IDENTIFIABILITY parcialmente satisfecha. Evaluación de extensión diferida a Gate 3 (Task 3.4.2). Ver §2.6 para evidencia forense completa. |
 
 ---
 
@@ -707,7 +829,7 @@ El documento se considera cerrado (FROZEN) cuando:
 - [ ] Cada clasificación tiene al menos una regla normativa aplicada
 - [ ] Los hallazgos RECLASSIFIED_FUTURE_PHASE tienen destino explícito
 - [ ] Los hallazgos REVIEW_REQUIRED tienen plan de reevaluación
-- [ ] Todos los Gates del PHASE_18.1_EXECUTION_PLAN v1.0.3 están COMPLETED
+- [ ] Todos los Gates del PHASE_18.1_EXECUTION_PLAN v1.0.4 están COMPLETED
 - [ ] La Subfase 18.1 cumple el Global DoD definido en §5 del Execution Plan
 
 ### 5.2 Relación con el Findings Register
@@ -736,6 +858,12 @@ sección correspondiente de este Evidence Log.
 | Findings Register | Evidence Log | Estado |
 |---|---|---|
 | DF-09 (REVIEW_REQUIRED) | §2.5 | Completo — derivado a Gate 2 (Wave 2.2) para reevaluación de DC-01 |
+
+**Referencias cruzadas Wave 2.1:**
+
+| Findings Register | Evidence Log | Estado |
+|---|---|---|
+| DF-13 (REVIEW_REQUIRED) | §2.6 | Completo — derivado a Gate 3 (Wave 3.4, Task 3.4.2) para evaluación de extensión de identity_chain |
 
 ### 5.3 Protocolo de actualización dinámica
 

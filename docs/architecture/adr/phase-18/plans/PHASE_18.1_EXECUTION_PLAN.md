@@ -1,7 +1,7 @@
 # PHASE 18.1 EXECUTION PLAN v1.0.3
 ## Implementation Execution Plan & Rule-Centric Traceability Matrix
 
-**Version:** 1.0.3
+**Version:** 1.0.4
 **Status:** IN_PROGRESS
 **Date:** 2026-10-05
 **Aprobación Architecture Board:** — (pendiente)
@@ -17,6 +17,7 @@
 | 1.0.1 | 2026-10-04 | Corrección de consistencia (11 cambios): (1) Conteo corregido a 31 Tasks. (2) Gate 3 corregido a 11 Tasks. (3) DF-06 desvinculado de NADR-F18-02 §5.8 R27; autoridad correcta es ENGINEERING_PRINCIPLES §II. (4) Task 3.5.2: cierre de DF-06 derivado al Findings Register, no resuelto por la Task. (5) Semántica de "Rules Implemented" aclarada para Tasks de verificación. (6) §7: DONE alcanzable por combinación implementación+verificación. (7) Gate 4.1: "propiedades estructurales y contractuales verificables mediante análisis estático". (8) DC-02-A reformulado como DC-02 (descomposición operativa: definición provisional). (9) Global DoD: evidencia decisional/probatoria permitida para reglas no implementables como código. (10) MIG-01: "backup" sustituido por "snapshot/retención operacional". (11) Gate 1 explicitado como evidence materialization. |
 | 1.0.2 | 2026-10-05 | Wave 1.2 COMPLETED (Tasks 1.2.1, 1.2.2). Benchmark de SyncProviderBridge ejecutado: overhead p95 2-10ms, throughput ratio 1.00x (sin diferencia), backpressure idéntico, RSS delta 0.02 MB. Resultado contraintuitivo: la barrera síncrona NO es el cuello de botella que GAP-0.1-01 sugería. Derivado DF-09 (REVIEW_REQUIRED) — requiere reevaluación de DC-01. NADR-F18-02 §5.9 R32 → DONE. |
 | 1.0.3 | 2026-10-05 | Wave 1.3 COMPLETED (Tasks 1.3.1, 1.3.2). Baselines FROZEN v1.0.0: F18_BASELINE_CONCURRENCY.md (modelo dual, 3 threads, barrera, backoff, shutdown) y F18_BASELINE_METRICS_PER_STAGE.md (HITO_0.7 + telemetría Wave 1.1 + benchmark Wave 1.2 + estado calibración 1/6 técnicas). Gate 1 ✅ COMPLETED (Waves 1.1, 1.2, 1.3 todas DONE). NADR-F18-02 §5.9 R31 → DONE. Correcciones de consistencia: (I1) Tasks 1.1.1, 1.1.2 Status TODO → DONE (ya estaban completadas según notas de implementación); (I2) Task 1.2.2 nota de implementación completada. |
+| 1.0.4 | 2026-10-05 | Wave 2.1 COMPLETED (Tasks 2.1.1, 2.1.2, 2.1.3). Contrato F18_IDENTITY_BOUNDARY_CONTRACT.md FROZEN v1.0.1 (DC-02-A) emitido en decisions/: 3 dimensiones ortogonales (Scientific Identity, Execution Identity, Operational State) + Workload Identity (GAP-0.3-03 documentado), reglas de no-colapso, cláusula de invalidación con 3 condiciones + escalación (R17), gobernanza de modificaciones (R16), matriz regla-por-regla de las 10 reglas de Wave 2.1. 10 reglas NADR-F18-01 → DONE. Derivado DF-13 (model_de_execution ausente de identity_chain; INV-EXEC-IDENTIFIABILITY parcial). Nota de colisión de numeración DF-09 (F18 vs F17-BIS) documentada en contrato §10. Gate 2 🟡 IN PROGRESS. |
 
 
 ---
@@ -321,31 +322,73 @@ Antes de declarar el Gate como COMPLETED, se ejecuta el proceso de Revisión Pos
 **Objective:** Resolver DC-01 (modelo de concurrencia), DC-02 (descomposición operativa: definición provisional de frontera de identidad) y DC-05 (estructura de contextos de ejecución). DC-02 (definición provisional) puede avanzar en paralelo con Gate 1 al no existir dependencia (ADR_F18.1 §3). DC-01 requiere Gate 1 completado. DC-05 requiere DC-01 resuelto.
 **Execution Mode:** Mixto (Wave 2.1 en paralelo con Gate 1; Wave 2.2 secuencial post-Gate 1; Wave 2.3 secuencial post-Wave 2.2)
 **Rollback Plan:** Si DC-01 revela que ningún modelo candidato satisface las reglas de NADR-F18-02, se escala al Architecture Board para reevaluación del criterio preregistrado. No se fuerza una decisión sin evidencia.
-**Gate Status:** ⏳ PENDING
+**Gate Status:** 🟡 IN PROGRESS
 
 ### 2B.1 Wave 2.1 — Identity Boundary Definition (DC-02, descomposición operativa: definición provisional) [PARALELO con Gate 1]
 
-**Wave Status:** ⏳ PENDING
-**Fecha de inicio:** —
-**Fecha de cierre:** —
+**Wave Status:** ✅ COMPLETED
+**Fecha de inicio:** 2026-10-05
+**Fecha de cierre:** 2026-10-05
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **2.1.1** | Definir la frontera provisional entre scientific identity, execution identity y operational state conforme a NADR-F18-01 §5.1-§5.3. Establecer el piso constitucional mínimo (baseline sellada + parámetros científicos congelados + representación estructural canónica) | NADR-F18-01 §5.1 R1, R2, R3, R5; §5.2 R6, R8; §5.3 R10 | High | — | TODO |
-| **2.1.2** | Validar que la frontera provisional es compatible con DC-12 (guard diferencial, Subfase 18.5): las dimensiones relevantes para comparación quedan explícitamente fijadas y la cláusula de invalidación está documentada | NADR-F18-01 §5.4 R17, R18 | Medium | 2.1.1 | TODO |
-| **2.1.3** | Documentar el contrato de frontera de identidad: dimensiones incluidas, dimensiones excluidas, versión, gobernanza de modificaciones | NADR-F18-01 §5.4 R16 | Medium | 2.1.1, 2.1.2 | TODO |
+| **2.1.1** | Definir la frontera provisional entre scientific identity, execution identity y operational state conforme a NADR-F18-01 §5.1-§5.3. Establecer el piso constitucional mínimo (baseline sellada + parámetros científicos congelados + representación estructural canónica) | NADR-F18-01 §5.1 R1, R2, R3, R5; §5.2 R6, R8; §5.3 R10 | High | — | DONE |
+| **2.1.2** | Validar que la frontera provisional es compatible con DC-12 (guard diferencial, Subfase 18.5): las dimensiones relevantes para comparación quedan explícitamente fijadas y la cláusula de invalidación está documentada | NADR-F18-01 §5.4 R17, R18 | Medium | 2.1.1 | DONE |
+| **2.1.3** | Documentar el contrato de frontera de identidad: dimensiones incluidas, dimensiones excluidas, versión, gobernanza de modificaciones | NADR-F18-01 §5.4 R16 | Medium | 2.1.1, 2.1.2 | DONE |
 
 #### Notas de implementación — Task 2.1.1
 
-> Pendiente de implementación.
+> Completada 2026-10-05. Emitido `docs/architecture/adr/phase-18/decisions/
+> F18_IDENTITY_BOUNDARY_CONTRACT.md` FROZEN v1.0.1 (DC-02-A). Frontera
+> provisional definida en 3 dimensiones ortogonales + Workload Identity:
+> (1) Scientific Identity (tolerancia cero): baseline_identity (manifest
+> sellado), configuration_identity (matching_policy + cost_context +
+> engine_configuration), profile_identity, result_identity — mapeados
+> directamente a `build_identity_chain()`; piso constitucional mínimo
+> satisfecho (R2). (2) Execution Identity: execution_id (identificador de
+> resultado derivado, NO discriminador de modo), subject_identity,
+> model_de_execution, telemetry_execution_id — explícitamente excluidos de
+> scientific identity (R8). (3) Operational State: 8 componentes (timestamps,
+> scheduling order, resource utilization, retry timing, cache hit/miss,
+> provider latency, worker ID, queue timings) — nunca contaminan scientific
+> identity (R10). (4) Workload Identity: parcialmente cubierta por
+> profile_identity; GAP-0.3-03 documentado como limitación de DC-02-A,
+> resolución en DC-02-B. Reglas de no-colapso explícitas por dimensión.
+> 7 reglas de Task 2.1.1 verificadas en matriz §7 del contrato.
 
 #### Notas de implementación — Task 2.1.2
 
-> Pendiente de implementación.
+> Completada 2026-10-05. Compatibilidad con DC-12 validada en contrato §4:
+> (a) prerrequisitos de HITO_0.4 v1.3.0 verificados (E-0.4-001 hashing AST
+> determinista, E-0.4-002 ensamblado por identidad/lineage, E-0.4-003 métricas
+> NSS/Critical FN reproducibles, E-0.4-004 exit codes 0-4 en boundary);
+> (b) propiedades end-to-end pendientes de M1 explícitamente declaradas
+> (neutralidad científica, INV-ASSEMBLY-ORDER, INV-NO-RESOURCE-SIGNAL parcial);
+> (c) cláusula de invalidación (R17) con 3 condiciones concretas: M1 revela
+> dimensión operational afectando scientific equality; técnica de DC-06b
+> introduce variación científica no anticipada; INV-SCI-1 no se cumple bajo
+> clasificación provisional — más proceso de escalación al Architecture Board
+> con hallazgo P0 y suspensión de DC-12 hasta recalibración;
+> (d) estabilidad durante comparación (R18) garantizada por restricciones de
+> modificación (§5.4 del contrato). Contrato de comparación (§3) define
+> scientific equality bit-exact, operational evidence no comparada, y subset
+> canónico de verificación/lineage (exit codes, coverage, corpus_verdict,
+> corpus_nss).
 
 #### Notas de implementación — Task 2.1.3
 
-> Pendiente de implementación.
+> Completada 2026-10-05. Contrato documentado, versionado y gobernado (R16):
+> dimensiones incluidas (§2.1-§2.4) y excluidas (§3.2) explícitas; versión
+> FROZEN v1.0.1 con changelog (v1.0.0 emisión inicial, v1.0.1 correcciones
+> C1-C6); gobernanza de modificaciones (§5) con autoridad por nivel
+> (Scientific Identity y Workload Identity: Architecture Board; Execution
+> Identity: Board/Staff Engineering; Operational State: Staff Engineering),
+> proceso de 5 pasos (propuesta con evidencia → evaluación de impacto →
+> aprobación → emisión → recalibración de DC-12 si aplica), versionado
+> incremental y 4 restricciones duras. Documento ubicado en `decisions/`
+> (artefacto de decisión, no plan operativo). Matriz de verificación
+> regla-por-regla de las 10 reglas de Wave 2.1 en §7 del contrato.
+> Nota de colisión de numeración DF-09 (F18 vs F17-BIS) documentada en §10.
 
 #### Notas de referencia cruzada (§1.4)
 
@@ -355,7 +398,19 @@ Antes de declarar el Gate como COMPLETED, se ejecuta el proceso de Revisión Pos
 
 | ID | Hallazgo | Derivado a |
 |----|----------|------------|
-| — | — | — |
+| DF-13 | `model_de_execution` (modo de ejecución) NO está incluido en `identity_chain` de `build_identity_chain()`. El testing diferencial (DC-12) no puede distinguir modos de ejecución por execution_id alone, porque execution_id es un hash determinista derivado de scientific identity + result, no un discriminador de modo. INV-EXEC-IDENTIFIABILITY parcialmente satisfecha: el modo es identificable en configuración del sistema pero no presente en el identity_chain del reporte de verificación. | Findings Register — REVIEW_REQUIRED; evaluación de extensión de `build_identity_chain` en Gate 3 (Task 3.4.2) |
+
+#### Nota de numeración (Wave 2.1)
+
+> DF-09 de Fase 18 (resultado contraintuitivo del benchmark de
+> SyncProviderBridge) **NO es el mismo hallazgo** que DF-09 de Fase 17-BIS
+> (enforcement CV diferido, ACCEPTED_LIMITATION). La numeración se reinicia
+> por fase; los IDs de fases anteriores trasladados permanecen ocupados y no
+> se reutilizan. DF-09 de F18 fue asignado antes de verificar colisión con el
+> histórico; la colisión se documenta en el contrato §10 y en el Findings
+> Register para evitar ambigüedad en referencias cruzadas. El siguiente ID
+> libre en F18 es DF-13 (DF-06, DF-10, DF-11, DF-12, DF-19, DF-24, DF-34
+> ocupados por fases anteriores o por F18).
 
 ### 2B.2 Wave 2.2 — Concurrency Model Decision (DC-01)
 
@@ -802,10 +857,10 @@ Los contadores se **derivan computacionalmente** del Traceability Appendix (§7)
 | Gate | Tasks DONE | Rules DONE | Rules DEFERRED | Rules PENDING | Gate Status |
 |---|---|---|---|---|---|
 | Gate 1 | 6 | 2 | 0 | 0 | ✅ COMPLETED |
-| Gate 2 | 0 | 0 | 0 | 14 | ⏳ PENDING |
+| Gate 2 | 3 | 10 | 0 | 4 | 🟡 IN PROGRESS |
 | Gate 3 | 0 | 0 | 0 | 32 | ⏳ PENDING |
 | Gate 4 | 0 | 0 | 0 | 8 | ⏳ PENDING |
-| **TOTAL** | **6** | **2** | **0** | **54 (50 únicas + 4 referencias cruzadas)** | 🟡 IN PROGRESS |
+| **TOTAL** | **9** | **12** | **0** | **44 (40 únicas + 4 referencias cruzadas)** | 🟡 IN PROGRESS |
 
 **Regla de actualización:** Cada vez que una Task pase a DONE:
 1. Se actualiza el Status de la Task en la tabla de Wave correspondiente (§2)
@@ -835,16 +890,16 @@ Los contadores se **derivan computacionalmente** del Traceability Appendix (§7)
 
 | Rule | Derived Status | Evidence | Implementation Notes |
 |---|---|---|---|
-| NADR-F18-01 §5.1 R1 | PENDING | Wave 2.1 / Task 2.1.1 | Composición de scientific identity |
-| NADR-F18-01 §5.1 R2 | PENDING | Wave 2.1 / Task 2.1.1 | Piso constitucional mínimo |
-| NADR-F18-01 §5.1 R3 | PENDING | Wave 2.1 / Task 2.1.1 | Exclusión de propiedades de ejecución |
-| NADR-F18-01 §5.1 R5 | PENDING | Wave 2.1 / Task 2.1.1 | Variación requiere re-baseline |
-| NADR-F18-01 §5.2 R6 | PENDING | Wave 2.1 / Task 2.1.1 | Clasificación execution identity |
-| NADR-F18-01 §5.2 R8 | PENDING | Wave 2.1 / Task 2.1.1 | Exclusión de scientific identity |
-| NADR-F18-01 §5.3 R10 | PENDING | Wave 2.1 / Task 2.1.1 | Clasificación operational state |
-| NADR-F18-01 §5.4 R16 | PENDING | Wave 2.1 / Task 2.1.3 | Frontera documentada y versionada |
-| NADR-F18-01 §5.4 R17 | PENDING | Wave 2.1 / Task 2.1.2 | Cláusula de invalidación DC-12 |
-| NADR-F18-01 §5.4 R18 | PENDING | Wave 2.1 / Task 2.1.2 | Estabilidad durante comparación |
+| NADR-F18-01 §5.1 R1 | DONE | Wave 2.1 / Task 2.1.1 ✅ | Composición de scientific identity: 4 componentes mapeados a build_identity_chain() (contrato §2.1) |
+| NADR-F18-01 §5.1 R2 | DONE | Wave 2.1 / Task 2.1.1 ✅ | Piso constitucional mínimo: baseline sellada + params congelados + representación estructural (contrato §2.1, §3.1) |
+| NADR-F18-01 §5.1 R3 | DONE | Wave 2.1 / Task 2.1.1 ✅ | Exclusión de propiedades de ejecución: mecanismo/scheduling/concurrencia/resources clasificados en Execution Identity u Operational State (contrato §2.2, §2.3) |
+| NADR-F18-01 §5.1 R5 | DONE | Wave 2.1 / Task 2.1.1 ✅ | Variación requiere re-baseline: gobernanza de modificaciones exige nueva versión del contrato (contrato §5.2, §5.3) |
+| NADR-F18-01 §5.2 R6 | DONE | Wave 2.1 / Task 2.1.1 ✅ | Clasificación execution identity: execution_id, subject_identity, model_de_execution, telemetry_execution_id (contrato §2.2) |
+| NADR-F18-01 §5.2 R8 | DONE | Wave 2.1 / Task 2.1.1 ✅ | Exclusión de scientific identity: regla de no-colapso explícita (contrato §2.1, §2.2) |
+| NADR-F18-01 §5.3 R10 | DONE | Wave 2.1 / Task 2.1.1 ✅ | Clasificación operational state: 8 componentes que pueden diferir libremente (contrato §2.3) |
+| NADR-F18-01 §5.4 R16 | DONE | Wave 2.1 / Task 2.1.3 ✅ | Frontera documentada, versionada y gobernada: contrato FROZEN v1.0.1 + §5 Gobernanza de Modificaciones |
+| NADR-F18-01 §5.4 R17 | DONE | Wave 2.1 / Task 2.1.2 ✅ | Cláusula de invalidación DC-12: 3 condiciones concretas + proceso de escalación al Board (contrato §4.3) |
+| NADR-F18-01 §5.4 R18 | DONE | Wave 2.1 / Task 2.1.2 ✅ | Estabilidad durante comparación: restricciones de modificación + FROZEN hasta DC-02-B (contrato §4.3, §5.4) |
 | NADR-F18-02 §5.6 R20 | PENDING | Wave 2.3 / Task 2.3.2 | Context boundaries explícitos |
 | NADR-F18-02 §5.6 R21 | PENDING | Wave 2.3 / Task 2.3.1 | No god-object |
 | NADR-F18-02 §5.6 R22 | PENDING | Wave 2.3 / Task 2.3.2 | Condicionado a DC-01/DC-05 |
