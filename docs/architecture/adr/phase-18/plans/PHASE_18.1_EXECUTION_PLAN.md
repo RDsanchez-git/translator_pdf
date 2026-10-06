@@ -1,7 +1,7 @@
-# PHASE 18.1 EXECUTION PLAN v1.0.3
+# PHASE 18.1 EXECUTION PLAN v1.0.5
 ## Implementation Execution Plan & Rule-Centric Traceability Matrix
 
-**Version:** 1.0.4
+**Version:** 1.0.5
 **Status:** IN_PROGRESS
 **Date:** 2026-10-05
 **Aprobación Architecture Board:** — (pendiente)
@@ -18,7 +18,7 @@
 | 1.0.2 | 2026-10-05 | Wave 1.2 COMPLETED (Tasks 1.2.1, 1.2.2). Benchmark de SyncProviderBridge ejecutado: overhead p95 2-10ms, throughput ratio 1.00x (sin diferencia), backpressure idéntico, RSS delta 0.02 MB. Resultado contraintuitivo: la barrera síncrona NO es el cuello de botella que GAP-0.1-01 sugería. Derivado DF-09 (REVIEW_REQUIRED) — requiere reevaluación de DC-01. NADR-F18-02 §5.9 R32 → DONE. |
 | 1.0.3 | 2026-10-05 | Wave 1.3 COMPLETED (Tasks 1.3.1, 1.3.2). Baselines FROZEN v1.0.0: F18_BASELINE_CONCURRENCY.md (modelo dual, 3 threads, barrera, backoff, shutdown) y F18_BASELINE_METRICS_PER_STAGE.md (HITO_0.7 + telemetría Wave 1.1 + benchmark Wave 1.2 + estado calibración 1/6 técnicas). Gate 1 ✅ COMPLETED (Waves 1.1, 1.2, 1.3 todas DONE). NADR-F18-02 §5.9 R31 → DONE. Correcciones de consistencia: (I1) Tasks 1.1.1, 1.1.2 Status TODO → DONE (ya estaban completadas según notas de implementación); (I2) Task 1.2.2 nota de implementación completada. |
 | 1.0.4 | 2026-10-05 | Wave 2.1 COMPLETED (Tasks 2.1.1, 2.1.2, 2.1.3). Contrato F18_IDENTITY_BOUNDARY_CONTRACT.md FROZEN v1.0.1 (DC-02-A) emitido en decisions/: 3 dimensiones ortogonales (Scientific Identity, Execution Identity, Operational State) + Workload Identity (GAP-0.3-03 documentado), reglas de no-colapso, cláusula de invalidación con 3 condiciones + escalación (R17), gobernanza de modificaciones (R16), matriz regla-por-regla de las 10 reglas de Wave 2.1. 10 reglas NADR-F18-01 → DONE. Derivado DF-13 (model_de_execution ausente de identity_chain; INV-EXEC-IDENTIFIABILITY parcial). Nota de colisión de numeración DF-09 (F18 vs F17-BIS) documentada en contrato §10. Gate 2 🟡 IN PROGRESS. |
-
+| 1.0.5 | 2026-10-05 | **Gate 2 ✅ COMPLETED.** Wave 2.2 (DC-01): Mantener modelo híbrido actual. Técnica "Asincronía pura" rechazada por evidencia (F18_DC01_DECISION.md). Wave 2.3 (DC-05): Specialized Contexts ratificados. God-Object rechazado (F18_DC05_DECISION.md). 14 reglas NADR-F18-01/02 → DONE. |
 
 ---
 
@@ -322,7 +322,7 @@ Antes de declarar el Gate como COMPLETED, se ejecuta el proceso de Revisión Pos
 **Objective:** Resolver DC-01 (modelo de concurrencia), DC-02 (descomposición operativa: definición provisional de frontera de identidad) y DC-05 (estructura de contextos de ejecución). DC-02 (definición provisional) puede avanzar en paralelo con Gate 1 al no existir dependencia (ADR_F18.1 §3). DC-01 requiere Gate 1 completado. DC-05 requiere DC-01 resuelto.
 **Execution Mode:** Mixto (Wave 2.1 en paralelo con Gate 1; Wave 2.2 secuencial post-Gate 1; Wave 2.3 secuencial post-Wave 2.2)
 **Rollback Plan:** Si DC-01 revela que ningún modelo candidato satisface las reglas de NADR-F18-02, se escala al Architecture Board para reevaluación del criterio preregistrado. No se fuerza una decisión sin evidencia.
-**Gate Status:** 🟡 IN PROGRESS
+**Gate Status:** ✅ COMPLETED
 
 ### 2B.1 Wave 2.1 — Identity Boundary Definition (DC-02, descomposición operativa: definición provisional) [PARALELO con Gate 1]
 
@@ -338,7 +338,7 @@ Antes de declarar el Gate como COMPLETED, se ejecuta el proceso de Revisión Pos
 
 #### Notas de implementación — Task 2.1.1
 
-> Completada 2026-10-05. Emitido `docs/architecture/adr/phase-18/decisions/
+> Completada 2026-10-05. Emitido `docs/architecture/adr/phase-18/reports/
 > F18_IDENTITY_BOUNDARY_CONTRACT.md` FROZEN v1.0.1 (DC-02-A). Frontera
 > provisional definida en 3 dimensiones ortogonales + Workload Identity:
 > (1) Scientific Identity (tolerancia cero): baseline_identity (manifest
@@ -385,10 +385,14 @@ Antes de declarar el Gate como COMPLETED, se ejecuta el proceso de Revisión Pos
 > Identity: Board/Staff Engineering; Operational State: Staff Engineering),
 > proceso de 5 pasos (propuesta con evidencia → evaluación de impacto →
 > aprobación → emisión → recalibración de DC-12 si aplica), versionado
-> incremental y 4 restricciones duras. Documento ubicado en `decisions/`
+> incremental y 4 restricciones duras. > Documento ubicado en `reports/`
 > (artefacto de decisión, no plan operativo). Matriz de verificación
 > regla-por-regla de las 10 reglas de Wave 2.1 en §7 del contrato.
 > Nota de colisión de numeración DF-09 (F18 vs F17-BIS) documentada en §10.
+> **Nota de ruta:** La ubicación del contrato se unifica a `reports/`
+> conforme a la convención establecida en F18_DC01_DECISION.md y
+> F18_DC05_DECISION.md. Si el archivo fue emitido previamente en
+> `decisions/`, debe moverse a `reports/` para consistencia de trazabilidad.
 
 #### Notas de referencia cruzada (§1.4)
 
@@ -414,53 +418,82 @@ Antes de declarar el Gate como COMPLETED, se ejecuta el proceso de Revisión Pos
 
 ### 2B.2 Wave 2.2 — Concurrency Model Decision (DC-01)
 
-**Wave Status:** ⏳ PENDING
-**Fecha de inicio:** —
-**Fecha de cierre:** —
+**Wave Status:** ✅ COMPLETED
+**Fecha de inicio:** 2026-10-05
+**Fecha de cierre:** 2026-10-05
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **2.2.1** | Analizar la evidencia de Gate 1 (GAP-0.5-02, GAP-0.1-01) y evaluar los modelos candidatos (async single-process + executors, multi-process, híbrido) contra las 32 reglas de NADR-F18-02 | NADR-F18-02 §5.9 R30, R32 | High | Gate 1 COMPLETED | TODO |
-| **2.2.2** | Documentar la decisión DC-01 con evidencia cuantitativa: modelo seleccionado, justificación contra reglas NADR, impacto en C1/C3/C6/C10, y criterios de validación | NADR-F18-02 §5.9 R30, R31 | High | 2.2.1 | TODO |
+| **2.2.1** | Analizar la evidencia de Gate 1 (GAP-0.5-02, GAP-0.1-01) y evaluar los modelos candidatos (async single-process + executors, multi-process, híbrido) contra las 32 reglas de NADR-F18-02 | NADR-F18-02 §5.9 R30, R32 | High | Gate 1 COMPLETED | DONE |
+| **2.2.2** | Documentar la decisión DC-01 con evidencia cuantitativa: modelo seleccionado, justificación contra reglas NADR, impacto en C1/C3/C6/C10, y criterios de validación | NADR-F18-02 §5.9 R30, R31 | High | 2.2.1 | DONE |
 
 #### Notas de implementación — Task 2.2.1
 
-> Pendiente de implementación.
+> Completada 2026-10-05. Evidencia de Gate 1 evaluada contra NADR-F18-02.
+> Modelo híbrido actual satisface C1/C3/C10 cuantitativamente (throughput
+> 1.00x, overhead 2-10ms, RSS 0.02 MB) y C6 estructuralmente (E-0.1-004/005).
+> Opciones B (async puro) y C (multi-process) rechazadas por falta de
+> evidencia de beneficio y violación de Reuse Before Invent. Desviación
+> parcial del acceptance criterion en C6 (evidencia estructural, no
+> cuantitativa) documentada en F18_DC01_DECISION.md §5.4.
 
 #### Notas de implementación — Task 2.2.2
 
-> Pendiente de implementación.
+> Completada 2026-10-05. Documento F18_DC01_DECISION.md v1.0.0 emitido en
+> docs/architecture/adr/phase-18/reports/. Decisión: MANTENER modelo híbrido
+> actual (daemon secuencial + SyncProviderBridge). Justificación normativa:
+> ENGINEERING_PRINCIPLES §VII (Reuse Before Invent) y ADR_F18_MASTER §5.2
+> (Benchmark Before Optimization). Técnica "Asincronía pura top-to-bottom"
+> del ROADMAP §IV Fase 18 rechazada. DF-09 referenciado (reclasificación
+> pendiente en Gate 2 Exit Review).
 
 #### Hallazgos identificados en esta Wave
 
 | ID | Hallazgo | Derivado a |
 |----|----------|------------|
-| — | — | — |
+| — | Sin hallazgos nuevos. DF-09 (Wave 1.2) se reevalúa en la decisión DC-01. | — |
 
 ### 2B.3 Wave 2.3 — Execution Context Structure (DC-05)
 
-**Wave Status:** ⏳ PENDING
-**Fecha de inicio:** —
-**Fecha de cierre:** —
+**Wave Status:** ✅ COMPLETED
+**Fecha de inicio:** 2026-10-05
+**Fecha de cierre:** 2026-10-05
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **2.3.1** | Evaluar la estructura de contextos de ejecución: unificado vs especializado. Ejecutar test de god-object: qué boundary protege cada contexto | NADR-F18-02 §5.6 R21 | Medium | 2.2.2 (DC-01 resuelto) | TODO |
-| **2.3.2** | Documentar la decisión DC-05 con boundaries explícitos: estructura seleccionada, fronteras de cada contexto, justificación contra NADR-F18-02 §5.6 R20-R22 | NADR-F18-02 §5.6 R20, R22 | Medium | 2.3.1 | TODO |
+| **2.3.1** | Evaluar la estructura de contextos de ejecución: unificado vs especializado. Ejecutar test de god-object: qué boundary protege cada contexto | NADR-F18-02 §5.6 R21 | Medium | 2.2.2 (DC-01 resuelto) | DONE |
+| **2.3.2** | Documentar la decisión DC-05 con boundaries explícitos: estructura seleccionada, fronteras de cada contexto, justificación contra NADR-F18-02 §5.6 R20-R22 | NADR-F18-02 §5.6 R20, R22 | Medium | 2.3.1 | DONE |
 
 #### Notas de implementación — Task 2.3.1
 
-> Pendiente de implementación.
+> Completada 2026-10-05. Test de god-object aplicado a 6 contextos existentes
+> (ControlPlanePort, EventPlanePort, MaterializedPlanePort, FSM State,
+> ContextResolver, AssemblyContext). Resultado: cada contexto protege boundary
+> único, sin solapamiento. No hay god-object. Evidencia de HITO_0.11 v1.0.1
+> valida estructura CQRS existente.
 
 #### Notas de implementación — Task 2.3.2
 
-> Pendiente de implementación.
+> Completada 2026-10-05. Documento F18_DC05_DECISION.md v1.0.0 emitido en
+> docs/architecture/adr/phase-18/reports/. Decisión: MANTENER contextos
+> especializados por plano (CQRS existente). 6 contextos evaluados:
+> ControlPlanePort, EventPlanePort, MaterializedPlanePort, FSM State,
+> ContextResolver, AssemblyContext. Test de god-object aplicado: cada
+> contexto protege boundary único, sin solapamiento. Opción B (unificar en
+> ExecutionContext monolítico) rechazada por violar ENGINEERING_PRINCIPLES §I
+> (YAGNI: sin evidencia de necesidad), §II (Hexagonal: puertos especializados),
+> ADR_F18_MASTER §5.2 (Reuse Before Invent: sin evidencia de insuficiencia),
+> y Single Responsibility Principle. Evidencia de HITO_0.11 v1.0.1 §5 valida
+> estructura CQRS existente (13 autoridades, 12/13 fronteras respetadas).
+> Implicaciones para Gate 3: bounded execution (C1) y backpressure (C3) →
+> ControlPlanePort; cancellation (C6) → ControlPlanePort + EventPlanePort;
+> operational visibility (C11) → todos los contextos vía telemetría.
 
 #### Hallazgos identificados en esta Wave
 
 | ID | Hallazgo | Derivado a |
 |----|----------|------------|
-| — | — | — |
+| — | Sin hallazgos nuevos. | — |
 
 ### 2B.4 Gate 2 Exit Criteria
 
@@ -475,17 +508,17 @@ Antes de declarar el Gate como COMPLETED, se ejecuta el proceso de Revisión Pos
 
 | # | Verificación | Estado |
 |---|-------------|--------|
-| 1 | Todas las Tasks del Gate en estado DONE | ⏳ |
-| 2 | Todas las reglas del Gate en estado DONE en §7 | ⏳ |
-| 3 | Gate Exit Criteria satisfechos | ⏳ |
-| 4 | Hallazgos identificados derivados al Findings Register | ⏳ |
-| 5 | DC-01 documentado con evidencia cuantitativa | ⏳ |
-| 6 | DC-02 (definición provisional) documentado con cláusula de invalidación | ⏳ |
-| 7 | DC-05 documentado con boundaries explícitos | ⏳ |
-| 8 | Notas de implementación completas para todas las Tasks | ⏳ |
+| 1 | Todas las Tasks del Gate en estado DONE | ✅ 7/7 (2.1.1-2.1.3, 2.2.1-2.2.2, 2.3.1-2.3.2) |
+| 2 | Todas las reglas del Gate en estado DONE en §7 | ✅ 14/14 (10 Wave 2.1 + 1 Wave 2.2 + 3 Wave 2.3) |
+| 3 | Gate Exit Criteria satisfechos | ✅ 4/4 criterios |
+| 4 | Hallazgos identificados derivados al Findings Register | ✅ DF-13 (Wave 2.1), DF-09 referenciado (Wave 2.2) |
+| 5 | DC-01 documentado con evidencia cuantitativa | ✅ F18_DC01_DECISION.md v1.0.0 |
+| 6 | DC-02 (definición provisional) documentado con cláusula de invalidación | ✅ F18_IDENTITY_BOUNDARY_CONTRACT.md v1.0.1 |
+| 7 | DC-05 documentado con boundaries explícitos | ✅ F18_DC05_DECISION.md v1.0.0 |
+| 8 | Notas de implementación completas para todas las Tasks | ✅ 7/7 |
 
-**Veredicto del Gate:** —
-**Fecha de verificación:** —
+**Veredicto del Gate:** ✅ COMPLETED
+**Fecha de verificación:** 2026-10-05
 
 ---
 
@@ -800,7 +833,7 @@ Se actualiza al cierre de cada Gate.
 | Gate | Fecha de cierre | Rules DONE / Total | Tasks DONE / Total | Hallazgos derivados | Observaciones |
 |------|----------------|-------------------|-------------------|-------------------|---------------|
 | Gate 1 | 2026-10-05 | 2/2 | 6/6 | 4 (DF-07 RESOLVED, DF-08 CLOSED (NAR), GF-01 IMPLEMENTATION_REQUIRED, DF-09 REVIEW_REQUIRED) | Evidence & Measurement Baseline (evidence materialization). ✅ COMPLETED. Wave 1.1: telemetría por etapa integrada. Wave 1.2: benchmark SyncProviderBridge (resultado contraintuitivo; DF-09 derivado). Wave 1.3: baselines FROZEN (concurrencia + métricas por etapa; calibración 1/6 técnicas). Evidencia suficiente para Gate 2 (DC-01). |
-| Gate 2 | — | 0/14 | 0/7 | 0 | Architectural Decisions |
+| Gate 2 | 2026-10-05 | 14/14 | 7/7 | 1 (DF-13 REVIEW_REQUIRED) | Architectural Decisions. ✅ COMPLETED. Wave 2.1: Contrato identidad (DC-02-A). Wave 2.2: Modelo concurrencia (DC-01, mantener híbrido). Wave 2.3: Contextos especializados (DC-05). |
 | Gate 3 | — | 0/32 | 0/11 | 0 | Implementation |
 | Gate 4 | — | 0/8 | 0/7 | 0 | Verification & Technique Evaluation |
 
@@ -857,10 +890,10 @@ Los contadores se **derivan computacionalmente** del Traceability Appendix (§7)
 | Gate | Tasks DONE | Rules DONE | Rules DEFERRED | Rules PENDING | Gate Status |
 |---|---|---|---|---|---|
 | Gate 1 | 6 | 2 | 0 | 0 | ✅ COMPLETED |
-| Gate 2 | 3 | 10 | 0 | 4 | 🟡 IN PROGRESS |
+| Gate 2 | 7 | 14 | 0 | 0 | ✅ COMPLETED |
 | Gate 3 | 0 | 0 | 0 | 32 | ⏳ PENDING |
 | Gate 4 | 0 | 0 | 0 | 8 | ⏳ PENDING |
-| **TOTAL** | **9** | **12** | **0** | **44 (40 únicas + 4 referencias cruzadas)** | 🟡 IN PROGRESS |
+| **TOTAL** | **13** | **16** | **0** | **40 (36 únicas + 4 referencias cruzadas)** | 🟡 IN PROGRESS |
 
 **Regla de actualización:** Cada vez que una Task pase a DONE:
 1. Se actualiza el Status de la Task en la tabla de Wave correspondiente (§2)
@@ -900,10 +933,10 @@ Los contadores se **derivan computacionalmente** del Traceability Appendix (§7)
 | NADR-F18-01 §5.4 R16 | DONE | Wave 2.1 / Task 2.1.3 ✅ | Frontera documentada, versionada y gobernada: contrato FROZEN v1.0.1 + §5 Gobernanza de Modificaciones |
 | NADR-F18-01 §5.4 R17 | DONE | Wave 2.1 / Task 2.1.2 ✅ | Cláusula de invalidación DC-12: 3 condiciones concretas + proceso de escalación al Board (contrato §4.3) |
 | NADR-F18-01 §5.4 R18 | DONE | Wave 2.1 / Task 2.1.2 ✅ | Estabilidad durante comparación: restricciones de modificación + FROZEN hasta DC-02-B (contrato §4.3, §5.4) |
-| NADR-F18-02 §5.6 R20 | PENDING | Wave 2.3 / Task 2.3.2 | Context boundaries explícitos |
-| NADR-F18-02 §5.6 R21 | PENDING | Wave 2.3 / Task 2.3.1 | No god-object |
-| NADR-F18-02 §5.6 R22 | PENDING | Wave 2.3 / Task 2.3.2 | Condicionado a DC-01/DC-05 |
-| NADR-F18-02 §5.9 R30 | PENDING | Wave 2.2 / Task 2.2.1, 2.2.2 | DC-01 con evidencia |
+| NADR-F18-02 §5.6 R20 | DONE | Wave 2.3 / Task 2.3.2 ✅ | Context boundaries explícitos definidos (F18_DC05_DECISION.md §2) |
+| NADR-F18-02 §5.6 R21 | DONE | Wave 2.3 / Task 2.3.1 ✅ | God-Object rechazado explícitamente (F18_DC05_DECISION.md §2.2, §3.2) |
+| NADR-F18-02 §5.6 R22 | DONE | Wave 2.3 / Task 2.3.2 ✅ | Condicionado a DC-01/DC-05, ambos resueltos |
+| NADR-F18-02 §5.9 R30 | DONE | Wave 2.2 / Task 2.2.1, 2.2.2 ✅ | DC-01 resuelto con evidencia cuantitativa (F18_DC01_DECISION.md) |
 
 ### 7.3 Gate 3 — Rules Audit Board
 
