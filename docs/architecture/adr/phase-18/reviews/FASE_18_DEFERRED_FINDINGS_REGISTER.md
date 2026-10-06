@@ -1,11 +1,11 @@
 # FASE_18_DEFERRED_FINDINGS_REGISTER.md
 
 **Documento:** docs/architecture/adr/phase-18/reviews/FASE_18_DEFERRED_FINDINGS_REGISTER.md
-**Versión:** 1.0.3
+**Versión:** 1.0.4
 **Estado:** IN_PROGRESS
 **Fecha de creación:** 2026-10-04
 **Última actualización:** 2026-10-05
-**Derivado de:** PHASE_18.1_EXECUTION_PLAN.md v1.0.3
+**Derivado de:** PHASE_18.1_EXECUTION_PLAN.md v1.0.4
 **Ámbito:** Subfase 18.1 — Execution Plane & Concurrency
 **Propósito:** Registro auditable de hallazgos identificados durante la implementación
 del Execution Plan de la Subfase 18.1, su clasificación, resolución y evidencia
@@ -95,7 +95,7 @@ empírica de los batches.
 
 ### 1.5 Relación con el Execution Plan
 
-Este registro recibe hallazgos derivados de las siguientes fuentes del PHASE_18.1_EXECUTION_PLAN v1.0.3:
+Este registro recibe hallazgos derivados de las siguientes fuentes del PHASE_18.1_EXECUTION_PLAN v1.0.4:
 
 | Fuente en Execution Plan | Sección | Tipo de hallazgo esperado |
 |---|---|---|
@@ -113,6 +113,36 @@ Este registro recibe hallazgos derivados de las siguientes fuentes del PHASE_18.
 | Wave 4.1 — Static Verification | §2D.1 | Hallazgos de verificación |
 | Wave 4.2 — Dynamic Validation | §2D.2 | Hallazgos de validación |
 | Wave 4.3 — Technique Evaluation (DC-06b) | §2D.3 | Hallazgos de evaluación |
+
+### 1.6 Convención de numeración por fase
+
+La numeración de DF/GF **se reinicia en cada fase**. No existe numeración global
+entre fases. Los IDs de fases anteriores que se **trasladaron o migraron** a la
+fase actual conservan su numeración original y permanecen **ocupados**: no se
+reutilizan en la numeración corriente de la fase en ejecución.
+
+**IDs ocupados en Fase 18 por traslado o colisión histórica:**
+
+| ID | Origen | Estado en F18 |
+|----|--------|---------------|
+| DF-06 | Trasladado de Fase 0 / HITO_0.2 (E-0.2-005) | Activo en F18 (PENDING_REVIEW, Gate 3) |
+| DF-10 | Ocupado por Fase 17-BIS (HARD_FAIL basal NSS) | No reutilizable en F18 |
+| DF-11 | Ocupado por Fase 17-BIS (manifest corrupto → exit 3) | No reutilizable en F18 |
+| DF-12 | Ocupado por Fase 17-BIS (LayoutBlockDraft legacy zombi) | No reutilizable en F18 |
+| DF-19, DF-24, DF-34 | Ocupados por Fase 17-BIS / HITO_0.2 / HITO_0.8 | No reutilizables en F18 |
+
+**Colisión documentada — DF-09:** DF-09 de Fase 18 (resultado contraintuitivo
+del benchmark de SyncProviderBridge, REVIEW_REQUIRED) **NO es el mismo
+hallazgo** que DF-09 de Fase 17-BIS (enforcement CV diferido,
+ACCEPTED_LIMITATION, cláusula 6.1). DF-09 fue asignado en F18 antes de
+verificar colisión con el histórico de Fase 17-BIS. Ambos hallazgos son
+independientes y pertenecen a fases distintas. Esta colisión se documenta aquí
+para evitar ambigüedad en referencias cruzadas inter-fase. El siguiente ID
+libre en F18 tras DF-09 es **DF-13**.
+
+**Regla operativa:** Al asignar un ID nuevo en F18, verificar contra la tabla de
+IDs ocupados de esta sección. Si el ID candidato está ocupado por una fase
+anterior, tomar el siguiente libre.
 
 ---
 
@@ -217,6 +247,42 @@ Los siguientes hallazgos fueron identificados durante la Fase 0 y/o el diseño d
 | **Limitaciones del benchmark** | (1) MockLLMProvider usa asyncio.sleep(), no I/O real de red. (2) No replica el daemon real (secuencial, heartbeat, backoff, SQLite). (3) Concurrencia N>1 no existe en producción (el daemon es secuencial). (4) MockPromptBuilder evita el costo real del PromptBuilder. Estas limitaciones podrían subestimar el impacto en producción, pero el resultado es claro para el escenario medido. |
 | **Regla aplicada** | FASE0_AUDIT_CHARTER §9 (criterio preregistrado: la evidencia determina el resultado, no la intuición). ENGINEERING_PRINCIPLES §VII (Benchmark Before Optimization). ADR_F18_MASTER §5.2 (Audit First, Design Later). |
 
+### 2.2 Gate 2 Exit Review — PARCIAL (Wave 2.1 completada, 2026-10-05)
+
+**Árbol de decisión aplicado:**
+
+    1. ¿Sigue siendo válido el hallazgo? → NO: CLOSED (NAR) / SÍ: continuar
+    2. ¿Puede resolverse dentro del Gate actual? → SÍ: RESOLVED / NO: continuar
+    3. ¿Es un problema técnico? → SÍ: RECLASIFICADO / NO: continuar
+    4. ¿Es un conflicto normativo? → SÍ: CONVERTIDO EN GF
+
+| DF/GF | ¿Válido? | ¿Resoluble? | ¿Técnico? | Decisión | Motivo |
+|----|----------|-------------|-----------|----------|--------|
+| DF-13 | ✅ Sí | ❌ No (requiere cambio de código en identity_chain) | ✅ Sí | REVIEW_REQUIRED | `model_de_execution` ausente de `build_identity_chain()`. Evaluación de extensión diferida a Gate 3 (Task 3.4.2, trazabilidad de identidad). |
+
+**Resumen:**
+- REVIEW_REQUIRED: 1 (DF-13)
+- Nuevos hallazgos registrados: 1 (DF-13)
+
+**Nota de Wave 2.1:** El contrato F18_IDENTITY_BOUNDARY_CONTRACT.md FROZEN v1.0.1 (DC-02-A) resuelve Tasks 2.1.1-2.1.3 sin otros hallazgos. DF-13 es el único hallazgo derivado de Wave 2.1.
+
+#### Evidencia forense por hallazgo
+
+**DF-13 — `model_de_execution` ausente de `identity_chain`:**
+
+| Campo | Valor |
+|-------|-------|
+| **Tipo** | Deferred Finding |
+| **Origen** | Wave 2.1 (Task 2.1.1); F18_IDENTITY_BOUNDARY_CONTRACT.md v1.0.1 §2.2; core/benchmark/verification/identity_chain.py |
+| **Estado** | `REVIEW_REQUIRED` |
+| **Gate** | Gate 2 (Wave 2.1) → Gate 3 (Wave 3.4, Task 3.4.2) |
+| **Descripción** | `model_de_execution` (modo de ejecución: secuencial vs concurrente vs híbrido) NO está incluido en `identity_chain` de `build_identity_chain()`. El `execution_id` es un hash determinista derivado de baseline + config + profile + result, por lo que dos ejecuciones con la misma scientific identity y el mismo resultado producen el MISMO execution_id independientemente del modo de ejecución. El testing diferencial (DC-12) no puede distinguir modos de ejecución por execution_id alone. INV-EXEC-IDENTIFIABILITY está parcialmente satisfecha: el modo es identificable en la configuración del sistema, pero no está presente en el identity_chain del reporte de verificación. |
+| **Archivos auditados** | core/benchmark/verification/identity_chain.py (build_identity_chain, build_execution_id), core/benchmark/verification/report.py (ContinuousVerificationReport), F18_IDENTITY_BOUNDARY_CONTRACT.md v1.0.1 §2.2 |
+| **Gap confirmado** | (a) gap confirmado: ausencia de discriminador de modo de ejecución en identity_chain |
+| **Implicación para DC-12** | El guard diferencial (M1) requiere comparar dos modos de ejecución. Sin `model_de_execution` en el reporte, la distinción de modos debe hacerse por configuración externa al reporte, no por identity_chain. Esto no invalida DC-12 pero debilita la trazabilidad del modo en la evidencia de verificación. |
+| **Acción requerida** | Evaluar en Gate 3 (Task 3.4.2) si `build_identity_chain()` debe extenderse con `model_de_execution` como campo de execution identity, o si el modo debe registrarse en metadata operacional del ContinuousVerificationReport. La decisión requiere evaluar impacto en NADR-F18-01 §5.2 R6-R9 y en la estabilidad de identity_chain existente. |
+| **Regla aplicada** | NADR-F18-01 §5.2 R6 (toda propiedad que determine el modo/política de ejecución MUST ser clasificada como execution identity); §5.2 R7 (execution identity identificable). INV-EXEC-IDENTIFIABILITY (ADR_F18_MASTER §5.1): el modo de ejecución habilita testing diferencial. |
+
 ---
 
 ## 3. TABLA CONSOLIDADA FINAL
@@ -232,7 +298,7 @@ Se actualiza al cierre del último Gate Exit Review.
 | RESOLVED | 1 | DF-07 |
 | IMPLEMENTATION_REQUIRED | 1 | GF-01 |
 | RECLASSIFIED_FUTURE_PHASE | 0 | — |
-| REVIEW_REQUIRED | 1 | DF-09 |
+| REVIEW_REQUIRED | 2 | DF-09, DF-13 |
 | ACCEPTED_LIMITATION | 0 | — |
 | PENDING_REVIEW | 1 | DF-06 |
 
@@ -244,7 +310,8 @@ Se actualiza al cierre del último Gate Exit Review.
 | DF-07 | RESOLVED | RegressionTelemetryGateway creado en Wave 1.1 (Task 1.1.1). Adaptador síncrono SQLite WAL con context manager. Pyright: 0 errors. Tests: 6/6 passed. |
 | DF-08 | CLOSED (NAR) | Falso positivo. Verificación forense (Select-String) confirmó que pipeline_factory.py:210 tiene `draft = _layout_block_to_draft(block, page.page_number, reading_order)` y pipeline_factory.py:202 tiene `error_summary = "; ".join(report.errors)`. El código pegado estaba truncado por encoding de PowerShell. |
 | GF-01 | IMPLEMENTATION_REQUIRED | Consolidar NullTelemetryAdapter en Gate 3 (Wave 3.5). Warning agregado en adapters.py. APIs incompatibles: ports.py implementa TelemetryPort; adapters.py expone record_metric/record_event. |
-| DF-09 | REVIEW_REQUIRED | Resultado contraintuitivo del benchmark de SyncProviderBridge (Wave 1.2). La barrera síncrona NO es el cuello de botella que GAP-0.1-01 sugiere: overhead p95 2-10ms, throughput ratio 1.00x, backpressure idéntico, RSS 0.02 MB. Requiere reevaluación de DC-01 en Gate 2 (Wave 2.2). La elisión de SyncProviderBridge NO está justificada por la evidencia cuantitativa conforme a Charter §9. |
+| DF-09 (F18) | REVIEW_REQUIRED | Resultado contraintuitivo del benchmark de SyncProviderBridge (Wave 1.2). La barrera síncrona NO es el cuello de botella que GAP-0.1-01 sugiere: overhead p95 2-10ms, throughput ratio 1.00x, backpressure idéntico, RSS 0.02 MB. Requiere reevaluación de DC-01 en Gate 2 (Wave 2.2). La elisión de SyncProviderBridge NO está justificada por la evidencia cuantitativa conforme a Charter §9. **Nota de numeración (§1.6):** DF-09 de F18 NO es el mismo hallazgo que DF-09 de Fase 17-BIS (enforcement CV diferido, ACCEPTED_LIMITATION). |
+| DF-13 | REVIEW_REQUIRED | `model_de_execution` ausente de `identity_chain` de `build_identity_chain()` (Wave 2.1). execution_id es hash determinista de scientific identity + result, no discriminador de modo; DC-12 no puede distinguir modos por execution_id alone. INV-EXEC-IDENTIFIABILITY parcialmente satisfecha. Evaluación de extensión de `build_identity_chain` diferida a Gate 3 (Task 3.4.2). Ver §2.2 para evidencia forense completa. |
 
 ---
 
@@ -260,16 +327,16 @@ Se actualiza al cierre de cada batch.
 
 | Métrica | Valor |
 |---------|-------|
-| Total de hallazgos analizados | 4 |
+| Total de hallazgos analizados | 5 |
 | Hallazgos resueltos | 1 |
 | Hallazgos cerrados sin acción | 1 |
 | Hallazgos reclasificados a fase futura | 0 |
 | Hallazgos pendientes de implementación | 1 |
-| Hallazgos pendientes de revisión | 2 |
+| Hallazgos pendientes de revisión | 3 |
 | Batches completados | 0 |
 | Archivos eliminados totales | 0 |
-| Archivos movidos totales | 0 |
-| Archivos creados totales | 5 |
+| Archivos movidos totales | 1 |
+| Archivos creados totales | 6 |
 | Tests finales | 6 passed, 0 skipped |
 | Pyright final | 0 errors |
 
@@ -300,7 +367,7 @@ El documento se considera cerrado (ARCHIVED) cuando:
 2. No hay hallazgos en estado REVIEW_REQUIRED sin decisión
 3. Todos los batches planificados están completados
 4. Los hallazgos RECLASSIFIED_FUTURE_PHASE tienen destino explícito
-5. Todos los Gates del PHASE_18.1_EXECUTION_PLAN v1.0.3 están COMPLETED
+5. Todos los Gates del PHASE_18.1_EXECUTION_PLAN v1.0.4 están COMPLETED
 6. La Subfase 18.1 cumple el Global DoD definido en §5 del Execution Plan
 
 ---
@@ -309,10 +376,10 @@ El documento se considera cerrado (ARCHIVED) cuando:
 
 | Categoría | Cantidad |
 |-----------|----------|
-| Total de hallazgos analizados | 4 |
+| Total de hallazgos analizados | 5 |
 | Hallazgos resueltos | 1 |
 | Hallazgos pendientes de implementación | 1 |
-| Hallazgos pendientes de revisión | 2 |
+| Hallazgos pendientes de revisión | 3 |
 | Hallazgos cerrados sin acción | 1 |
 | Batches completados | 0/0 |
 | Estado del Exit Review | 🟡 IN PROGRESS |
@@ -323,6 +390,6 @@ El documento se considera cerrado (ARCHIVED) cuando:
 findings → clasificación → resolución → commit de la Subfase 18.1. No tiene
 autoridad normativa. No redefine reglas de NADRs ni ADRs. Su único propósito
 es documentar la evidencia empírica de los hallazgos identificados durante la
-implementación del PHASE_18.1_EXECUTION_PLAN v1.0.3 y su resolución. La
+implementación del PHASE_18.1_EXECUTION_PLAN v1.0.4 y su resolución. La
 autoridad de clasificación y cierre de hallazgos corresponde exclusivamente a
 este documento, conforme a METHODOLOGY_FOR_ORDERED_PIPELINE_CHANGES.md §3.5.3.
