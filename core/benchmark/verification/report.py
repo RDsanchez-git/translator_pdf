@@ -35,6 +35,8 @@ from core.benchmark.verification.outcome import ContinuousVerificationResult
 
 from core.benchmark.topology.criticality.models import NodeCriticality
 
+from core.benchmark.verification.execution_metadata import ExecutionMetadata
+
 @dataclass(frozen=True)
 class ContinuousVerificationReport:
     """Reporte completo de Continuous Verification con identity chain.
@@ -55,6 +57,7 @@ class ContinuousVerificationReport:
     operational_result: ContinuousVerificationResult
     coverage: tuple[str, ...]
     regression_report: RegressionReport | None = None
+    execution_metadata: ExecutionMetadata | None = None  # NUEVO (DF-13)
 
 
 @dataclass(frozen=True)
@@ -103,6 +106,16 @@ class JsonContinuousVerificationReportFormatter(
         data: dict[str, object] = {
             "schema_version": report.schema_version,
             "identity_chain": report.identity_chain.to_mapping(),
+            # NUEVO (DF-13): metadata operacional separada de científica
+            "execution_metadata": (
+                {
+                    "model_de_execution": report.execution_metadata.model_de_execution,
+                    "execution_timestamp_iso8601": report.execution_metadata.execution_timestamp_iso8601,
+                    "telemetry_execution_id": report.execution_metadata.telemetry_execution_id,
+                }
+                if report.execution_metadata is not None
+                else None
+            ),
             "operational_result": {
                 "outcome": report.operational_result.outcome.value,
                 "scientific_verdict": (

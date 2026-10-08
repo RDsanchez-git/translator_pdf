@@ -1,6 +1,7 @@
 from enum import Enum
 from typing import Protocol, List, Optional, runtime_checkable
 from dataclasses import dataclass
+from core.execution.models import ExecutionEnvelope
 
 # ==========================================
 # ENUMS SEMÁNTICOS (Exhaustiveness)
@@ -80,3 +81,14 @@ class MaterializedPlanePort(Protocol):
     def upsert_projection(self, document_id: str, ast_hash: str, node_id: str, content_hash: str, 
                           normalized_text: str, normalized_hash: str, projection_v: int) -> None: ...
     def get_assemblable_chunks(self, document_id: str, ast_hash: str, expected_node_ids: List[str], required_projection_v: int) -> List[ProjectionRecord]: ...
+
+
+
+@runtime_checkable
+class ResourceMonitorPort(Protocol):
+    """
+    Puerto hexagonal para monitoreo de recursos del execution plane.
+    Implementación concreta en infra/os/resource_monitor.py.
+    """
+    def get_current_rss_mb(self) -> float: ...
+    def check_envelope(self, envelope: ExecutionEnvelope) -> None: ...
