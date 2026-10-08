@@ -1,9 +1,9 @@
-# PHASE 18.1 EXECUTION PLAN v1.0.5
+# PHASE 18.1 EXECUTION PLAN v1.0.7
 ## Implementation Execution Plan & Rule-Centric Traceability Matrix
 
-**Version:** 1.0.5
-**Status:** IN_PROGRESS
-**Date:** 2026-10-05
+**Version:** 1.0.7
+**Status:** COMPLETED
+**Date:** 2026-10-07
 **Aprobación Architecture Board:** — (pendiente)
 **Supersedes:** v1.0.0
 **Derived From:** 2 NADRs FROZEN (NADR-F18-01 v1.0.3, NADR-F18-02 v1.0.1) + METHODOLOGY_FOR_ORDERED_PIPELINE_CHANGES.md v1.3.0
@@ -19,6 +19,8 @@
 | 1.0.3 | 2026-10-05 | Wave 1.3 COMPLETED (Tasks 1.3.1, 1.3.2). Baselines FROZEN v1.0.0: F18_BASELINE_CONCURRENCY.md (modelo dual, 3 threads, barrera, backoff, shutdown) y F18_BASELINE_METRICS_PER_STAGE.md (HITO_0.7 + telemetría Wave 1.1 + benchmark Wave 1.2 + estado calibración 1/6 técnicas). Gate 1 ✅ COMPLETED (Waves 1.1, 1.2, 1.3 todas DONE). NADR-F18-02 §5.9 R31 → DONE. Correcciones de consistencia: (I1) Tasks 1.1.1, 1.1.2 Status TODO → DONE (ya estaban completadas según notas de implementación); (I2) Task 1.2.2 nota de implementación completada. |
 | 1.0.4 | 2026-10-05 | Wave 2.1 COMPLETED (Tasks 2.1.1, 2.1.2, 2.1.3). Contrato F18_IDENTITY_BOUNDARY_CONTRACT.md FROZEN v1.0.1 (DC-02-A) emitido en decisions/: 3 dimensiones ortogonales (Scientific Identity, Execution Identity, Operational State) + Workload Identity (GAP-0.3-03 documentado), reglas de no-colapso, cláusula de invalidación con 3 condiciones + escalación (R17), gobernanza de modificaciones (R16), matriz regla-por-regla de las 10 reglas de Wave 2.1. 10 reglas NADR-F18-01 → DONE. Derivado DF-13 (model_de_execution ausente de identity_chain; INV-EXEC-IDENTIFIABILITY parcial). Nota de colisión de numeración DF-09 (F18 vs F17-BIS) documentada en contrato §10. Gate 2 🟡 IN PROGRESS. |
 | 1.0.5 | 2026-10-05 | **Gate 2 ✅ COMPLETED.** Wave 2.2 (DC-01): Mantener modelo híbrido actual. Técnica "Asincronía pura" rechazada por evidencia (F18_DC01_DECISION.md). Wave 2.3 (DC-05): Specialized Contexts ratificados. God-Object rechazado (F18_DC05_DECISION.md). 14 reglas NADR-F18-01/02 → DONE. |
+| 1.0.6 | 2026-10-06 | **Gate 3 ✅ COMPLETED.** Waves 3.1-3.5 todas DONE (12 Tasks). 32 reglas del audit board → DONE (28 NADR únicas + 3 referencias cruzadas R20-R22 + 1 ENGINEERING_PRINCIPLES §II). Hallazgos resueltos: DF-13 (Task 3.4.2, Opción B — metadata operacional, identity_chain intacto, R8 respetado), DF-06 (Task 3.5.2 — runners movidos a apps/benchmark/runners/, 2 ignore_import eliminados de pyproject.toml), GF-01 (Task 3.5.3 — NullTelemetryAdapter duplicado eliminado). Cambio estructural: Task 3.5.3 agregada para GF-01 (estructura 31→32 Tasks, Gate 3 11→12 Tasks). Decisión arquitectónica: destino apps/benchmark/runners/ (NO infra/) porque Contrato 2 de import-linter prohíbe infra→apps y los runners importan de apps.llm_workers/apps.bootstrap. Validación: pyright 0 errors, lint-imports 4 KEPT/0 BROKEN, suite tests en verde. |
+| 1.0.7 | 2026-10-07 | **Gate 4 ✅ COMPLETED. Subfase 18.1 ✅ COMPLETED.** Waves 4.1-4.3 todas DONE (7 Tasks). 8 reglas del audit board → DONE. Total acumulado: 52/52 reglas NADR DONE, 32/32 Tasks DONE. Wave 4.1: verificación estática de NADR-F18-01 y NADR-F18-02 (pyright 0 errors, 42+43 tests); corrección aplicada: F18_IDENTITY_BOUNDARY_CONTRACT.md v1.0.1→v1.0.2 (fórmula execution_id alineada con código y NADR-F17BIS-28 §5.1 R6/§5.2 R13). Wave 4.2: validación dinámica (bounded execution bajo carga, neutralidad científica con 2 ejecuciones SMOKE → mismo execution_id/verdict, verification isolation, frontera mecanismo/política y shutdown/recovery); observación: HARD_FAIL pre-existente (estado basal legítimo según HITO_0.7 v1.1.0, no es hallazgo de 18.1). Wave 4.3: evaluación DC-06b (1 técnica CAE por DC-01+DF-09; 5 requieren evidencia adicional por HITO_0.7 0/6 calibradas); F18_DC06b_EVALUATION_REPORT.md v1.0.0 emitido. DC-06b NO resuelto (decisión compartida 18.1-18.4). Global DoD satisfecho. |
 
 ---
 
@@ -99,11 +101,11 @@ Este documento es **vivo**: se actualiza durante la implementación conforme al 
 |---|---|
 | Gates | 4 |
 | Waves | 14 |
-| Tasks | 31 |
+| Tasks | 32 |
 | Reglas NADR-F18-01 | 20 |
 | Reglas NADR-F18-02 | 32 |
 | Total reglas a trazar | 52 |
-| DCs a resolver | DC-01, DC-02 (descomposición operativa: definición provisional), DC-05, DC-06b (evaluación), DF-06 (condicional) |
+| DCs a resolver | DC-01 ✅, DC-02 ✅ (definición provisional), DC-05 ✅, DC-06b ✅ (evaluado y documentado para Board; NO resuelto, compartido con 18.2-18.4), DF-06 ✅, DF-13 ✅, GF-01 ✅ |
 
 ---
 
@@ -324,7 +326,7 @@ Antes de declarar el Gate como COMPLETED, se ejecuta el proceso de Revisión Pos
 **Rollback Plan:** Si DC-01 revela que ningún modelo candidato satisface las reglas de NADR-F18-02, se escala al Architecture Board para reevaluación del criterio preregistrado. No se fuerza una decisión sin evidencia.
 **Gate Status:** ✅ COMPLETED
 
-### 2B.1 Wave 2.1 — Identity Boundary Definition (DC-02, descomposición operativa: definición provisional) [PARALELO con Gate 1]
+### 2B.1 Wave 2.1 — Identity Boundary Definition (DC-02, definición provisional; DC-02-A en el contrato) [PARALELO con Gate 1]
 
 **Wave Status:** ✅ COMPLETED
 **Fecha de inicio:** 2026-10-05
@@ -339,7 +341,8 @@ Antes de declarar el Gate como COMPLETED, se ejecuta el proceso de Revisión Pos
 #### Notas de implementación — Task 2.1.1
 
 > Completada 2026-10-05. Emitido `docs/architecture/adr/phase-18/reports/
-> F18_IDENTITY_BOUNDARY_CONTRACT.md` FROZEN v1.0.1 (DC-02-A). Frontera
+> F18_IDENTITY_BOUNDARY_CONTRACT.md` FROZEN v1.0.1 (DC-02, etapa de definición
+> provisional; identificado como DC-02-A en el contrato). Frontera
 > provisional definida en 3 dimensiones ortogonales + Workload Identity:
 > (1) Scientific Identity (tolerancia cero): baseline_identity (manifest
 > sellado), configuration_identity (matching_policy + cost_context +
@@ -396,7 +399,7 @@ Antes de declarar el Gate como COMPLETED, se ejecuta el proceso de Revisión Pos
 
 #### Notas de referencia cruzada (§1.4)
 
-> DC-02 se resuelve mediante una descomposición operativa interna (definición provisional → DC-12 → consolidación definitiva). Esta descomposición NO crea nuevos Decision Candidates ni nuevos niveles de autoridad, conforme a ADR_F18.1 §3. La Task 2.1.1 implementa la definición provisional; la consolidación definitiva se realizará en Subfase 18.5 post-DC-12.
+> DC-02 se resuelve mediante una descomposición operativa interna (DC-02-A definición provisional → DC-12 → DC-02-B consolidación definitiva). DC-02-A y DC-02-B son etapas del mismo DC-02, no Decision Candidates independientes (ADR_F18.1 §3). Esta descomposición NO crea nuevos Decision Candidates ni nuevos niveles de autoridad, conforme a ADR_F18.1 §3. La Task 2.1.1 implementa la definición provisional; la consolidación definitiva se realizará en Subfase 18.5 post-DC-12.
 
 #### Hallazgos identificados en esta Wave
 
@@ -511,7 +514,7 @@ Antes de declarar el Gate como COMPLETED, se ejecuta el proceso de Revisión Pos
 | 1 | Todas las Tasks del Gate en estado DONE | ✅ 7/7 (2.1.1-2.1.3, 2.2.1-2.2.2, 2.3.1-2.3.2) |
 | 2 | Todas las reglas del Gate en estado DONE en §7 | ✅ 14/14 (10 Wave 2.1 + 1 Wave 2.2 + 3 Wave 2.3) |
 | 3 | Gate Exit Criteria satisfechos | ✅ 4/4 criterios |
-| 4 | Hallazgos identificados derivados al Findings Register | ✅ DF-13 (Wave 2.1), DF-09 referenciado (Wave 2.2) |
+| 4 | Hallazgos identificados derivados al Findings Register | ✅ DF-13 REVIEW_REQUIRED (Wave 2.1); DF-09 reclasificado REVIEW_REQUIRED → SUPERSEDED_BY_DC01 (la decisión DC-01 de mantener el modelo híbrido absorbe la reevaluación pendiente; el resultado contraintuitivo del benchmark pasa a ser input de DC-06b en Gate 4, no un hallazgo abierto) |
 | 5 | DC-01 documentado con evidencia cuantitativa | ✅ F18_DC01_DECISION.md v1.0.0 |
 | 6 | DC-02 (definición provisional) documentado con cláusula de invalidación | ✅ F18_IDENTITY_BOUNDARY_CONTRACT.md v1.0.1 |
 | 7 | DC-05 documentado con boundaries explícitos | ✅ F18_DC05_DECISION.md v1.0.0 |
@@ -527,141 +530,246 @@ Antes de declarar el Gate como COMPLETED, se ejecuta el proceso de Revisión Pos
 **Objective:** Materializar las decisiones arquitectónicas de Gate 2. Implementar bounded execution, admission/backpressure mechanism, cancellation/shutdown mechanism, operational visibility, identity traceability y composition refactor (DF-06).
 **Execution Mode:** Mixto (Waves 3.1-3.4 pueden tener paralelismo parcial; Wave 3.5 secuencial)
 **Rollback Plan:** Cada Wave tiene rollback independiente. Si una implementación viola INV-SCI-1 (NADR-F18-01 §5.1 R4), se revierte inmediatamente y se registra como hallazgo crítico. El estado científico canónico no se modifica en ningún caso.
-**Gate Status:** ⏳ PENDING
+**Gate Status:** ✅ COMPLETED
 
 ### 2C.1 Wave 3.1 — Bounded Execution & Concurrency Safety
 
-**Wave Status:** ⏳ PENDING
-**Fecha de inicio:** —
-**Fecha de cierre:** —
+**Wave Status:** ✅ COMPLETED
+**Fecha de inicio:** 2026-10-05
+**Fecha de cierre:** 2026-10-06
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **3.1.1** | Implementar el mecanismo de bounded execution conforme al modelo seleccionado en DC-01: respeto al resource envelope, límites explícitos y configurables, outcome operacional identificable ante agotamiento | NADR-F18-02 §5.1 R1, R3, R4 | High | Gate 2 COMPLETED | TODO |
-| **3.1.2** | Implementar los primitivos de coordinación concurrente: explícitos, verificables, sin data races, sin deadlocks/livelocks dentro del operational envelope | NADR-F18-02 §5.5 R16, R17, R19 | High | 3.1.1 | TODO |
-| **3.1.3** | Implementar la estructura de contextos de ejecución conforme a DC-05: boundaries explícitos, sin god-object | NADR-F18-02 §5.6 R20, R21, R22 | Medium | 3.1.1 | TODO |
+| **3.1.1** | Implementar el mecanismo de bounded execution conforme al modelo seleccionado en DC-01: respeto al resource envelope, límites explícitos y configurables, outcome operacional identificable ante agotamiento | NADR-F18-02 §5.1 R1, R3, R4 | High | Gate 2 COMPLETED | DONE |
+| **3.1.2** | Implementar los primitivos de coordinación concurrente: explícitos, verificables, sin data races, sin deadlocks/livelocks dentro del operational envelope | NADR-F18-02 §5.5 R16, R17, R19 | High | 3.1.1 | DONE |
+| **3.1.3** | Implementar la estructura de contextos de ejecución conforme a DC-05: boundaries explícitos, sin god-object | NADR-F18-02 §5.6 R20, R21, R22 | Medium | 3.1.1 | DONE |
 
 #### Notas de implementación — Task 3.1.1
 
-> Pendiente de implementación.
+> Completada 2026-10-06. Creados `core/execution/models.py` (ExecutionEnvelope,
+> frozen dataclass: max_rss_mb=512.0 default basado en HITO_0.7 baseline ~77MB
+> con margen 6x, task_timeout_sec=180.0, max_concurrent_tasks=1),
+> `core/execution/exceptions.py` (ResourceExhaustedError), `core/execution/ports.py`
+> (ResourceMonitorPort Protocol), `infra/os/resource_monitor.py`
+> (PsutilSelfResourceMonitor). Integración en LLMWorkerDaemon.run(): check
+> pre-pick y post-task del envelope RSS. Hexagonal: puerto en core, adaptador en
+> infra. Síntesis superadora adoptada: arquitectura hexagonal + mecanismo de
+> aplicación. Validación: pyright 0 errors, tests 6/6 passed.
 
 #### Notas de implementación — Task 3.1.2
 
-> Pendiente de implementación.
+> Completada 2026-10-06. Creado `core/execution/coordination.py` con
+> CoordinationPrimitives (frozen dataclass): stop_event, bridge_ready; métodos
+> signal_stop, is_stopped, wait_for_stop, signal_bridge_ready, wait_for_bridge;
+> factory create(). task_lock eliminado por YAGNI (no usado). Integración en
+> LLMWorkerDaemon y TaskLeaseHeartbeat (heartbeat verifica coord.is_stopped()
+> para detenerse en shutdown). Backward compat: _stop_event expuesto como
+> propiedad. Validación: pyright 0 errors, tests 6/6 passed.
 
 #### Notas de implementación — Task 3.1.3
 
-> Pendiente de implementación.
+> Completada 2026-10-06. Creado `core/execution/context_boundaries.py`:
+> ContextBoundary (frozen dataclass) + 6 boundaries documentados
+> (CONTROL_PLANE, EVENT_PLANE, MATERIALIZED_PLANE, FSM_STATE, CONTEXT_RESOLVER,
+> ASSEMBLY_CONTEXT) con responsabilidad + thread-safety contract + módulo, y
+> registro ALL_BOUNDARIES. Creado `tests/unit/test_execution_context_boundaries.py`
+> (17 tests): boundaries definidos, módulos importables, no-god-object vía AST
+> parsing verificando CLASES importadas (umbral < 6). Validación: pyright 0 errors,
+> tests 17/17 passed.
 
 #### Hallazgos identificados en esta Wave
 
 | ID | Hallazgo | Derivado a |
 |----|----------|------------|
-| — | — | — |
+| — | Sin hallazgos nuevos. | — |
 
 ### 2C.2 Wave 3.2 — Admission & Backpressure Mechanism
 
-**Wave Status:** ⏳ PENDING
-**Fecha de inicio:** —
-**Fecha de cierre:** —
+**Wave Status:** ✅ COMPLETED
+**Fecha de inicio:** 2026-10-06
+**Fecha de cierre:** 2026-10-06
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **3.2.1** | Implementar el mecanismo de admisión: determinación de aceptación de trabajo, sin retención de recursos para trabajo rechazado, distinguible de la política de admisión (18.3) | NADR-F18-02 §5.1 R2; §5.2 R5, R6, R7 | Medium | 3.1.1 | TODO |
-| **3.2.2** | Implementar el mecanismo de backpressure: propagación de presión consumidores→productores, bounded buffering o mecanismo equivalente, distinguible de la política de backpressure (18.3) | NADR-F18-02 §5.3 R8, R9, R10 | Medium | 3.1.1 | TODO |
+| **3.2.1** | Implementar el mecanismo de admisión: determinación de aceptación de trabajo, sin retención de recursos para trabajo rechazado, distinguible de la política de admisión (18.3) | NADR-F18-02 §5.1 R2; §5.2 R5, R6, R7 | Medium | 3.1.1 | DONE |
+| **3.2.2** | Implementar el mecanismo de backpressure: propagación de presión consumidores→productores, bounded buffering o mecanismo equivalente, distinguible de la política de backpressure (18.3) | NADR-F18-02 §5.3 R8, R9, R10 | Medium | 3.1.1 | DONE |
 
 #### Notas de implementación — Task 3.2.1
 
-> Pendiente de implementación.
+> Completada 2026-10-06. Creados `core/execution/admission.py` (AdmissionStatus
+> ALLOW/REJECT/HOLD, AdmissionDecision frozen, AdmissionMechanismPort Protocol)
+> y `runtime/admission_mechanism.py` (SequentialAdmissionMechanism con
+> safety_margin=0.90). El mecanismo reemplaza el pre-pick RSS check: evalúa el
+> envelope ANTES de reclamar (R6: sin retención de recursos para trabajo
+> rechazado). HOLD propaga a backpressure. Mecanismo separable de política (R7).
+> Validación: pyright 0 errors, tests 6/6 passed.
 
 #### Notas de implementación — Task 3.2.2
 
-> Pendiente de implementación.
+> Completada 2026-10-06. Creados `core/execution/backpressure.py`
+> (BackpressureMechanismPort Protocol con apply(duration_sec)) y
+> `runtime/backpressure_mechanism.py` (SequentialBackpressureMechanism: aplica
+> wait_for_stop interrumpible). Conceptualización para daemon pull-based (DC-01):
+> backpressure = mecanismo de aplicación del HOLD del admission; la cola SQLite
+> ES el bounded buffer (R9); el daemon deja de hacer pick_task() propagando
+> presión al productor (R8). Sin evaluación post-task redundante. Tests:
+> test_backpressure_mechanism.py (2 tests: respeta timeout, interrumpible por
+> stop_event). Validación: pyright 0 errors, tests 2/2 passed + regresión 6/6.
 
 #### Hallazgos identificados en esta Wave
 
 | ID | Hallazgo | Derivado a |
 |----|----------|------------|
-| — | — | — |
+| — | Sin hallazgos nuevos. | — |
 
 ### 2C.3 Wave 3.3 — Cancellation & Shutdown
 
-**Wave Status:** ⏳ PENDING
-**Fecha de inicio:** —
-**Fecha de cierre:** —
+**Wave Status:** ✅ COMPLETED
+**Fecha de inicio:** 2026-10-06
+**Fecha de cierre:** 2026-10-06
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **3.3.1** | Implementar el mecanismo de cancelación cooperativa: cancelable, libera recursos, verificable (completada/cancelada/fallida), sin comprometer evidencia científica canónica | NADR-F18-02 §5.4 R11, R12, R13, R14 | High | 3.1.2 | TODO |
-| **3.3.2** | Implementar el mecanismo de terminación ordenada (shutdown): cancela trabajo en vuelo antes de terminar. La semántica de recuperación de estado persistente tras shutdown corresponde a Subfase 18.2 y NO se implementa aquí | NADR-F18-02 §5.4 R15 | Medium | 3.3.1 | TODO |
+| **3.3.1** | Implementar el mecanismo de cancelación cooperativa: cancelable, libera recursos, verificable (completada/cancelada/fallida), sin comprometer evidencia científica canónica | NADR-F18-02 §5.4 R11, R12, R13, R14 | High | 3.1.2 | DONE |
+| **3.3.2** | Implementar el mecanismo de terminación ordenada (shutdown): cancela trabajo en vuelo antes de terminar. La semántica de recuperación de estado persistente tras shutdown corresponde a Subfase 18.2 y NO se implementa aquí | NADR-F18-02 §5.4 R15 | Medium | 3.3.1 | DONE |
 
 #### Notas de implementación — Task 3.3.1
 
-> Pendiente de implementación.
+> Completada 2026-10-06. Creados `core/execution/cancellation.py` (TaskOutcome
+> enum COMPLETED/CANCELLED/FAILED; CancellationToken thread-safe con parent event
+> vinculado a stop_event global: cancel, is_cancelled, reason, raise_if_cancelled)
+> y `core/execution/exceptions.py` (TaskCancelledError). Integración en
+> _process_task: 3 checkpoints cooperativos (pre-process, pre-LLM-call,
+> pre-persist). R12: el resultado del LLM se guarda en WAL ANTES del checkpoint
+> pre-persist (no se pierde evidencia). R13: abandon_execution libera el lease
+> para retry. R14: TaskOutcome retornada y logueada. Validación: pyright 0 errors,
+> tests 9/9 passed + regresión 6/6.
 
 #### Notas de implementación — Task 3.3.2
 
-> Pendiente de implementación.
+> Completada 2026-10-06. Creados `core/execution/shutdown.py` (ShutdownReport
+> frozen con clean property, ShutdownMechanismPort Protocol) y
+> `runtime/coordinated_shutdown.py` (CoordinatedShutdownMechanism: secuencia
+> signal_stop → processor_shutdown → connection_closers, best-effort con errors
+> list). task_in_flight, bridge_join_timeout_sec y time.sleep(0.1) eliminados por
+> YAGNI (el token ya propaga cancelación). Integración en finally del composition
+> root. Tests: test_coordinated_shutdown.py (4 tests: signal_stop primero,
+> continúa ante fallo de processor, continúa ante fallo de conexión, reporte con
+> reason y duration). Validación: pyright 0 errors, tests 4/4 passed + regresión 6/6.
 
 #### Hallazgos identificados en esta Wave
 
 | ID | Hallazgo | Derivado a |
 |----|----------|------------|
-| — | — | — |
+| — | Sin hallazgos nuevos. | — |
 
 ### 2C.4 Wave 3.4 — Operational Visibility & Identity Traceability
 
-**Wave Status:** ⏳ PENDING
-**Fecha de inicio:** —
-**Fecha de cierre:** —
+**Wave Status:** ✅ COMPLETED
+**Fecha de inicio:** 2026-10-06
+**Fecha de cierre:** 2026-10-06
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **3.4.1** | Implementar la visibilidad operacional mínima: propiedad observable para distinguir estado de unidad de trabajo, registrada como evidencia operacional separada de la científica. Sin observabilidad profunda (F20) | NADR-F18-02 §5.7 R23, R24, R25, R26 | Medium | 3.1.1 | TODO |
-| **3.4.2** | Implementar la trazabilidad de identidad: todo artefacto lleva identidad científica e identidad de ejecución distinguibles; la evidencia operacional es trazable a la ejecución que la produjo | NADR-F18-01 §5.2 R7, R9; §5.3 R13; §5.4 R14; §5.5 R19, R20 | Medium | 2.1.3 (frontera de identidad) | TODO |
+| **3.4.1** | Implementar la visibilidad operacional mínima: propiedad observable para distinguir estado de unidad de trabajo, registrada como evidencia operacional separada de la científica. Sin observabilidad profunda (F20) | NADR-F18-02 §5.7 R23, R24, R25, R26 | Medium | 3.1.1 | DONE |
+| **3.4.2** | Implementar la trazabilidad de identidad: todo artefacto lleva identidad científica e identidad de ejecución distinguibles; la evidencia operacional es trazable a la ejecución que la produjo | NADR-F18-01 §5.2 R7, R9; §5.3 R13; §5.4 R14; §5.5 R19, R20 | Medium | 2.1.3 (frontera de identidad) | DONE |
 
 #### Notas de implementación — Task 3.4.1
 
-> Pendiente de implementación.
+> Completada 2026-10-06. Creados `core/execution/visibility.py` (WorkUnitStatus
+> enum con 6 estados CLAIMED/PROCESSING/COMPLETED/CANCELLED/FAILED/RELEASED;
+> WorkUnitObservation frozen sin payload científico (R25/R26);
+> OperationalVisibilityPort Protocol; outcome_to_status función pura de mapeo)
+> y `runtime/operational_visibility.py` (StructuredLogVisibility fail-safe: la
+> visibilidad nunca rompe la ejecución, pero el fallo del sink no se silencia).
+> outcome_to_status ubicado en core/execution/visibility.py conforme al
+> precedente outcome_to_exit_code en core (mapeos puros entre taxonomías viven en
+> core). Integración en run() y _process_task: observaciones en CLAIMED,
+> PROCESSING y estado terminal. Tests: test_operational_visibility.py (7 tests).
+> Validación: pyright 0 errors, tests 7/7 passed + regresión 6/6.
 
 #### Notas de implementación — Task 3.4.2
 
-> Pendiente de implementación.
+> Completada 2026-10-06. Resuelve DF-13 con Opción B (metadata operacional).
+> Creado `core/benchmark/verification/execution_metadata.py` (ExecutionMetadata
+> frozen: model_de_execution, execution_timestamp_iso8601, telemetry_execution_id).
+> Modificado `core/benchmark/verification/report.py` (ContinuousVerificationReport
+> + campo opcional execution_metadata; JsonFormatter lo serializa) y
+> `tools/evaluation/run_regression.py` (inyecta ExecutionMetadata con
+> model_de_execution="sequential_regression" y telemetry_execution_id existente de
+> Task 1.1.1). DF-13 Opción B: model_de_execution como metadata operacional
+> separada, identity_chain y build_execution_id intactos (R8 respetado,
+> backward-compatible, sin alterar execution_id históricos). Verificación empírica:
+> regresión SMOKE generó JSON con execution_metadata presente. Tests:
+> test_execution_metadata.py (4 tests). Validación: pyright 0 errors, tests 4/4
+> passed + regresión 6/6 + SMOKE con metadata verificada.
 
 #### Hallazgos identificados en esta Wave
 
 | ID | Hallazgo | Derivado a |
 |----|----------|------------|
-| — | — | — |
+| DF-13 | RESOLVED (Opción B): model_de_execution registrado como metadata operacional (ExecutionMetadata) separada de identity_chain. R8 respetado, backward-compatible. | Findings Register — RESOLVED en Task 3.4.2 |
 
-### 2C.5 Wave 3.5 — Composition Refactor (DF-06)
+### 2C.5 Wave 3.5 — Composition Refactor (DF-06 + GF-01)
 
-**Wave Status:** ⏳ PENDING
-**Fecha de inicio:** —
-**Fecha de cierre:** —
+**Wave Status:** ✅ COMPLETED
+**Fecha de inicio:** 2026-10-06
+**Fecha de cierre:** 2026-10-06
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **3.5.1** | Evaluar los imports cruzados core→apps identificados en DF-06 (core/benchmark/runners/ hacia apps/llm_workers y apps/bootstrap). Determinar si la dependencia arquitectónica se confirma conforme a ENGINEERING_PRINCIPLES §II (frontera hexagonal) | ENGINEERING_PRINCIPLES §II (frontera hexagonal); DF-06 (evaluación, no regla NADR) | Low | — | TODO |
-| **3.5.2** | Si DF-06 se confirma: eliminar los imports cruzados respetando la frontera hexagonal establecida por ENGINEERING_PRINCIPLES §II. Si no se confirma: documentar la evaluación y derivar la evidencia al Findings Register para su clasificación/cierre | ENGINEERING_PRINCIPLES §II (frontera hexagonal); DF-06 | Medium | 3.5.1 | TODO |
+| **3.5.1** | Evaluar los imports cruzados core→apps identificados en DF-06 (core/benchmark/runners/ hacia apps/llm_workers y apps/bootstrap). Determinar si la dependencia arquitectónica se confirma conforme a ENGINEERING_PRINCIPLES §II (frontera hexagonal) | ENGINEERING_PRINCIPLES §II (frontera hexagonal); DF-06 (evaluación, no regla NADR) | Low | — | DONE |
+| **3.5.2** | Si DF-06 se confirma: eliminar los imports cruzados respetando la frontera hexagonal establecida por ENGINEERING_PRINCIPLES §II. Si no se confirma: documentar la evaluación y derivar la evidencia al Findings Register para su clasificación/cierre | ENGINEERING_PRINCIPLES §II (frontera hexagonal); DF-06 | Medium | 3.5.1 | DONE |
+| **3.5.3** | Resolver GF-01 (NullTelemetryAdapter duplicado con APIs incompatibles): eliminar el duplicado muerto de core/telemetry/adapters.py, conservar el canónico de core/telemetry/ports.py. Task agregada en v1.0.6 (GF-01 tenía destino Gate 3 desde Wave 1.1). | ENGINEERING_PRINCIPLES §III (Explicit over Implicit); GF-01 | Low | — | DONE |
 
 #### Notas de implementación — Task 3.5.1
 
-> Pendiente de implementación.
+> Completada 2026-10-06. Evaluación forense de DF-06 CONFIRMADA. Evidencia:
+> (1) gemini_runner.py y groq_runner.py en core/benchmark/runners/ importan de
+> apps.llm_workers (PromptBuilder, AsyncDispatcher) y apps.bootstrap
+> (build_provider_stack, build_healing_pipeline) — violación ENGINEERING_PRINCIPLES
+> §II; (2) GroqBenchmarkRunner tiene 1 consumidor (core/benchmark/__main__.py
+> L14, L51, L52); GeminiBenchmarkRunner tiene 0 consumidores (código muerto);
+> (3) benchmark runners ≠ production providers (apps/llm_workers/adapters.py);
+> (4) ningún test importa los runners; (5) pyproject.toml tiene 2 ignore_import de
+> DF-06 (Contrato 1 y Contrato 3 de import-linter). DF-06 confirmado como
+> violación de frontera hexagonal.
 
 #### Notas de implementación — Task 3.5.2
 
-> Pendiente de implementación.
+> Completada 2026-10-06. DF-06 RESUELTO. Decisión de destino: apps/benchmark/
+> runners/ (NO infra/benchmarks/runners/) porque el Contrato 2 de import-linter
+> prohíbe infra→apps y los runners importan de apps.llm_workers/apps.bootstrap;
+> apps/benchmark/runners/ es el único destino sin violaciones ni nuevos
+> ignore_import. Ejecución: git mv de groq_runner.py y gemini_runner.py a
+> apps/benchmark/runners/; git mv de core/benchmark/__main__.py a
+> apps/benchmark/__main__.py; import actualizado (core.benchmark.runners →
+> apps.benchmark.runners); pyproject.toml: 2 ignore_import de DF-06 eliminados
+> (Contrato 1: 4→3 ignored; Contrato 3: 1→0). Validación: pyright 0 errors,
+> lint-imports 4 KEPT/0 BROKEN, tests 6/6 passed. La deuda técnica fue eliminada,
+> no movida.
+
+#### Notas de implementación — Task 3.5.3
+
+> Completada 2026-10-06. GF-01 RESUELTO. Re-análisis forense cambió el
+> diagnóstico: ambos NullTelemetryAdapter (core/telemetry/adapters.py y
+> core/telemetry/ports.py) son código muerto (ninguno importado; record_metric/
+> record_event nunca llamados). El diagnóstico original ("consolidar dos
+> adaptadores en uso") pasó a "eliminar duplicado incompatible muerto". Ejecución:
+> core/telemetry/adapters.py eliminado; NullTelemetryAdapter canónico de
+> core/telemetry/ports.py (implementa TelemetryPort.record_execution) conservado.
+> Validación: pyright 0 errors, tests en verde.
 
 #### Notas de referencia cruzada (§1.4)
 
-> DF-06 no genera un nuevo dominio normativo. La frontera hexagonal ya está establecida en ENGINEERING_PRINCIPLES §II. NADR-F18-02 §8 referencia esta autoridad sin redefinirla. La Task 3.5.1 evalúa la manifestación concreta; la Task 3.5.2 la resuelve si se confirma. La autoridad de clasificación y cierre de DF-06 corresponde al Findings Register, no a esta Task.
+> DF-06 no genera un nuevo dominio normativo. La frontera hexagonal ya está establecida en ENGINEERING_PRINCIPLES §II. NADR-F18-02 §8 referencia esta autoridad sin redefinirla. La Task 3.5.1 evalúa la manifestación concreta; la Task 3.5.2 la resuelve si se confirma. La autoridad de clasificación y cierre de DF-06 corresponde al Findings Register, no a esta Task. GF-01 fue identificado en Wave 1.1 con destino Gate 3; la Task 3.5.3 (agregada en v1.0.6) lo resuelve.
 
 #### Hallazgos identificados en esta Wave
 
 | ID | Hallazgo | Derivado a |
 |----|----------|------------|
-| — | — | — |
+| DF-06 | RESOLVED: imports cruzados eliminados; runners movidos a apps/benchmark/runners/; 2 ignore_import eliminados de pyproject.toml. | Findings Register — RESOLVED en Task 3.5.2 |
+| GF-01 | RESOLVED: NullTelemetryAdapter duplicado muerto eliminado (adapters.py); canónico de ports.py conservado. | Findings Register — RESOLVED en Task 3.5.3 |
 
 ### 2C.6 Gate 3 Exit Criteria
 
@@ -682,17 +790,17 @@ Antes de declarar el Gate como COMPLETED, se ejecuta el proceso de Revisión Pos
 
 | # | Verificación | Estado |
 |---|-------------|--------|
-| 1 | Todas las Tasks del Gate en estado DONE | ⏳ |
-| 2 | Todas las reglas del Gate en estado DONE en §7 | ⏳ |
-| 3 | Gate Exit Criteria satisfechos | ⏳ |
-| 4 | Hallazgos identificados derivados al Findings Register | ⏳ |
-| 5 | Pyright: 0 errors, 0 warnings | ⏳ |
-| 6 | Tests: suite completa en verde | ⏳ |
-| 7 | Notas de implementación completas para todas las Tasks | ⏳ |
-| 8 | Verificación de que la implementación no altera INV-SCI-1 | ⏳ |
+| 1 | Todas las Tasks del Gate en estado DONE | ✅ 12/12 (3.1.1-3.1.3, 3.2.1-3.2.2, 3.3.1-3.3.2, 3.4.1-3.4.2, 3.5.1-3.5.3) |
+| 2 | Todas las reglas del Gate en estado DONE en §7 | ✅ 32/32 (audit board §7.3) |
+| 3 | Gate Exit Criteria satisfechos | ✅ 10/10 criterios |
+| 4 | Hallazgos identificados derivados al Findings Register | ✅ DF-13 RESOLVED (3.4.2), DF-06 RESOLVED (3.5.2), GF-01 RESOLVED (3.5.3) |
+| 5 | Pyright: 0 errors, 0 warnings | ✅ |
+| 6 | Tests: suite completa en verde | ✅ |
+| 7 | Notas de implementación completas para todas las Tasks | ✅ 12/12 |
+| 8 | Verificación de que la implementación no altera INV-SCI-1 | ✅ (ninguna implementación tocó identidad científica; DF-13 Opción B preserva identity_chain; DF-06 es refactor de composición sin cambio funcional) |
 
-**Veredicto del Gate:** —
-**Fecha de verificación:** —
+**Veredicto del Gate:** ✅ COMPLETED
+**Fecha de verificación:** 2026-10-06
 
 ---
 
@@ -701,26 +809,51 @@ Antes de declarar el Gate como COMPLETED, se ejecuta el proceso de Revisión Pos
 **Objective:** Verificar todas las propiedades de NADR-F18-01 y NADR-F18-02. Validar el comportamiento del execution plane bajo carga. Evaluar técnicas candidatas conforme a Charter §9 (DC-06b). Cerrar la Subfase 18.1.
 **Execution Mode:** Secuencial (Wave 4.1 → 4.2 → 4.3)
 **Rollback Plan:** Si la verificación revela violación de INV-SCI-1, se detiene la subfase y se escala al Architecture Board. No se procede con DC-06b hasta que la neutralidad científica esté verificada.
-**Gate Status:** ⏳ PENDING
+**Gate Status:** ✅ COMPLETED
 
 ### 2D.1 Wave 4.1 — Static Verification
 
-**Wave Status:** ⏳ PENDING
-**Fecha de inicio:** —
-**Fecha de cierre:** —
+**Wave Status:** ✅ COMPLETED
+**Fecha de inicio:** 2026-10-07
+**Fecha de cierre:** 2026-10-07
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **4.1.1** | Verificar estáticamente las propiedades estructurales y contractuales de NADR-F18-01 verificables mediante análisis estático: clasificación de identidad, frontera documentada y versionada, trazabilidad de identidad por artefacto | NADR-F18-01 §5.1 R1-R5; §5.2 R6-R9; §5.3 R10-R13; §5.4 R14-R18; §5.5 R19-R20 | Medium | Gate 3 COMPLETED | TODO |
-| **4.1.2** | Verificar estáticamente las propiedades estructurales y contractuales de NADR-F18-02 verificables mediante análisis estático: bounded execution, admission/backpressure mechanism, cancellation, concurrency safety, execution context, operational visibility, scientific neutrality | NADR-F18-02 §5.1 R1-R4; §5.2 R5-R7; §5.3 R8-R10; §5.4 R11-R15; §5.5 R16-R19; §5.6 R20-R22; §5.7 R23-R26; §5.8 R27-R29 | Medium | Gate 3 COMPLETED | TODO |
+| **4.1.1** | Verificar estáticamente las propiedades estructurales y contractuales de NADR-F18-01 verificables mediante análisis estático: clasificación de identidad, frontera documentada y versionada, trazabilidad de identidad por artefacto | NADR-F18-01 §5.1 R1-R5; §5.2 R6-R9; §5.3 R10-R13; §5.4 R14-R18; §5.5 R19-R20 | Medium | Gate 3 COMPLETED | DONE |
+| **4.1.2** | Verificar estáticamente las propiedades estructurales y contractuales de NADR-F18-02 verificables mediante análisis estático: bounded execution, admission/backpressure mechanism, cancellation, concurrency safety, execution context, operational visibility, scientific neutrality | NADR-F18-02 §5.1 R1-R4; §5.2 R5-R7; §5.3 R8-R10; §5.4 R11-R15; §5.5 R16-R19; §5.6 R20-R22; §5.7 R23-R26; §5.8 R27-R29 | Medium | Gate 3 COMPLETED | DONE |
 
 #### Notas de implementación — Task 4.1.1
 
-> Pendiente de implementación.
+> Completada 2026-10-07. Verificación estática de NADR-F18-01 (20 reglas):
+> pyright 0 errors sobre identity_chain.py, execution_metadata.py, report.py,
+> outcome.py; 42 tests passed (test_identity_chain, test_execution_metadata,
+> test_verification_report). Contrato F18_IDENTITY_BOUNDARY_CONTRACT.md v1.0.1
+> verificado (3 dimensiones ortogonales, cláusula de invalidación, gobernanza de
+> modificaciones). **Corrección aplicada:** discrepancia detectada entre el contrato
+> v1.0.1 y el código — el contrato decía execution_id = hash(baseline + config +
+> profile + result), pero build_execution_id() excluye result (NADR-F17BIS-28 §5.1
+> R6: Execution precede a Result en identity chain; §5.2 R13: result identity no
+> sustituye entradas) e incluye subject y parameter (NADR-F17BIS-28 §5.1 R3, R5).
+> Contrato actualizado a v1.0.2 con fórmula corregida: execution_id =
+> hash(baseline + subject + config + parameter + profile). Scientific Identity
+> (§2.1) no se toca; no requiere recalibración de DC-12.
 
 #### Notas de implementación — Task 4.1.2
 
-> Pendiente de implementación.
+> Completada 2026-10-07. Verificación estática de NADR-F18-02 (32 reglas):
+> pyright 0 errors sobre 15 módulos de Gate 3 (core/execution/*, runtime/*,
+> infra/os/resource_monitor.py); 43 tests passed (test_execution_metadata,
+> test_operational_visibility, test_backpressure_mechanism,
+> test_coordinated_shutdown, test_cancellation_mechanism,
+> test_execution_context_boundaries). Verificación de frontera hexagonal:
+> ningún archivo de Gate 3 en core/execution/ importa de apps/ ni infra/;
+> ningún archivo de Gate 3 en runtime/ importa de apps/. **Observaciones (no
+> bloqueantes, pre-existentes):** (1) core/execution/handlers.py:15 importa de
+> infra.db.fsm_repository — deuda pre-existente de Fase 17, ya en ignore_imports
+> de pyproject.toml, NO introducida por Gate 3, NO parte de DF-06; (2)
+> runtime/engine.py importa de apps/ (3 imports) — pre-existente, no hay contrato
+> de import-linter que prohíba runtime→apps. Ambas observaciones no bloquean
+> Task 4.1.2 ni Gate 4.
 
 #### Notas de referencia cruzada (§1.4)
 
@@ -730,56 +863,109 @@ Antes de declarar el Gate como COMPLETED, se ejecuta el proceso de Revisión Pos
 
 | ID | Hallazgo | Derivado a |
 |----|----------|------------|
-| — | — | — |
+| — | Sin hallazgos nuevos. Observaciones pre-existentes documentadas en notas de implementación (no son hallazgos de la Subfase 18.1). Corrección del contrato v1.0.1→v1.0.2 aplicada. | — |
 
 ### 2D.2 Wave 4.2 — Dynamic Validation
 
-**Wave Status:** ⏳ PENDING
-**Fecha de inicio:** —
-**Fecha de cierre:** —
+**Wave Status:** ✅ COMPLETED
+**Fecha de inicio:** 2026-10-07
+**Fecha de cierre:** 2026-10-07
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **4.2.1** | Validar bounded execution bajo carga, backpressure, cancellation, shutdown ordenado y concurrency safety dentro del operational envelope declarado | NADR-F18-02 §5.1 R1, R4; §5.3 R9; §5.4 R11, R13; §5.5 R18 | High | 4.1.2 | TODO |
-| **4.2.2** | Validar la neutralidad científica del execution plane: mismo documento bajo distintos modos de ejecución produce evidencia científica canónica idéntica. Validar verification isolation (sin scheduler/concurrencia por defecto) | NADR-F18-01 §5.1 R4; §5.3 R11, R12; §5.4 R15; NADR-F18-02 §5.8 R27, R28, R29 | Critical | 4.2.1 | TODO |
-| **4.2.3** | Validar la frontera mecanismo/política: el mecanismo de admisión y backpressure opera independientemente de la política de recursos (18.3). Validar que el shutdown no invade semántica de recovery (18.2) | NADR-F18-02 §5.2 R7; §5.3 R10; §5.4 R15 | Medium | 4.2.1 | TODO |
+| **4.2.1** | Validar bounded execution bajo carga, backpressure, cancellation, shutdown ordenado y concurrency safety dentro del operational envelope declarado | NADR-F18-02 §5.1 R1, R4; §5.3 R9; §5.4 R11, R13; §5.5 R18 | High | 4.1.2 | DONE |
+| **4.2.2** | Validar la neutralidad científica del execution plane: mismo documento bajo distintos modos de ejecución produce evidencia científica canónica idéntica. Validar verification isolation (sin scheduler/concurrencia por defecto) | NADR-F18-01 §5.1 R4; §5.3 R11, R12; §5.4 R15; NADR-F18-02 §5.8 R27, R28, R29 | Critical | 4.2.1 | DONE |
+| **4.2.3** | Validar la frontera mecanismo/política: el mecanismo de admisión y backpressure opera independientemente de la política de recursos (18.3). Validar que el shutdown no invade semántica de recovery (18.2) | NADR-F18-02 §5.2 R7; §5.3 R10; §5.4 R15 | Medium | 4.2.1 | DONE |
 
 #### Notas de implementación — Task 4.2.1
 
-> Pendiente de implementación.
+> Completada 2026-10-07. Validación dinámica de bounded execution bajo carga:
+> 16 tests passed (test_recovery_flow, test_backpressure_mechanism,
+> test_coordinated_shutdown, test_cancellation_mechanism); suite unitaria
+> completa 854 passed (sin deadlocks, suite termina en 48s); verification
+> isolation verificada (run_regression.py no usa threading/asyncio, grep vacío);
+> ejecución SMOKE completa sin crash del execution plane (produce reporte, no se
+> cuelga). NADR-F18-02 §5.1 R1/R4, §5.3 R9, §5.4 R11/R13, §5.5 R18 verificados
+> dinámicamente.
 
 #### Notas de implementación — Task 4.2.2
 
-> Pendiente de implementación.
+> Completada 2026-10-07. Validación de neutralidad científica: dos ejecuciones
+> SMOKE independientes (20:11:53 y 20:19:50 UTC del 7/10/2026) producen el mismo
+> execution_id (0294be97...) y el mismo scientific_verdict (HARD_FAIL), con
+> execution_timestamp y telemetry_execution_id diferentes. Esto verifica INV-SCI-1
+> (misma scientific identity → mismo resultado) e INV-OPS-1 (operational state
+> varía sin afectar scientific identity). NADR-F18-01 §5.2 R8 verificado
+> (execution identity separada de scientific identity). **Observación registrada
+> en Evidence Log (no es hallazgo de 18.1):** scientific_verdict=HARD_FAIL
+> (exit_code=2) es una condición conocida y documentada del corpus canónico según
+> HITO_0.7 v1.1.0 (estado basal legítimo, FASE_6_HANDOFF §2.2, DF-10). Es
+> pre-existente a la Subfase 18.1 (reportes del 5/10/2026 ya muestran exit_code=2,
+> antes de Gate 3 implementado el 6/10/2026). No fue introducida por el execution
+> plane ni por Gate 3. La investigación del HARD_FAIL corresponde a Subfase 17-BIS
+> (re-calibración del corpus) o Subfase 18.5 (DC-12), no a la Subfase 18.1.
+> **Limitación documentada:** DC-01 decidió MANTENER el modelo híbrido (un solo
+> modo de ejecución), por lo que la comparación "mismo documento bajo distintos
+> modos" se limita a verificar que el modo actual es científicamente neutro. La
+> comparación multi-modo queda diferida a DC-12 (Subfase 18.5).
 
 #### Notas de implementación — Task 4.2.3
 
-> Pendiente de implementación.
+> Completada 2026-10-07. Validación de frontera mecanismo/política:
+> AdmissionMechanismPort y BackpressureMechanismPort son puertos abstractos
+> (Protocol) en core/execution/ sin política embebida; docstrings referencian
+> explícitamente que la política corresponde a Subfase 18.3.
+> SequentialAdmissionMechanism y SequentialBackpressureMechanism son
+> implementaciones configurables (safety_margin, duration_sec inyectables), no
+> políticas hardcoded. CoordinatedShutdownMechanism NO implementa recovery de
+> estado persistente (sin leases, zombies, fencing; grep por
+> recover/restore/replay/fsm/journal devolvió solo la secuencia de shutdown).
+> ShutdownReport sin campos de recovery. Inyección hexagonal verificada en
+> apps/llm_workers/__main__.py (admission_mechanism, backpressure_mechanism como
+> puertos inyectables). No hay imports de políticas de 18.3 (18.3 no existe aún).
+> NADR-F18-02 §5.2 R7, §5.3 R10, §5.4 R15 verificados.
 
 #### Hallazgos identificados en esta Wave
 
 | ID | Hallazgo | Derivado a |
 |----|----------|------------|
-| — | — | — |
+| — | Sin hallazgos nuevos. Observación sobre HARD_FAIL pre-existente registrada en Evidence Log (no es hallazgo de 18.1, es estado basal legítimo según HITO_0.7 v1.1.0). | — |
 
 ### 2D.3 Wave 4.3 — Technique Evaluation (DC-06b)
 
-**Wave Status:** ⏳ PENDING
-**Fecha de inicio:** —
-**Fecha de cierre:** —
+**Wave Status:** ✅ COMPLETED
+**Fecha de inicio:** 2026-10-07
+**Fecha de cierre:** 2026-10-07
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **4.3.1** | Evaluar las técnicas candidatas del ROADMAP (pure async, elisión de SyncProviderBridge, threads/process pools, object pools, zero-copy, lazy loading, batching adaptativo) contra el criterio preregistrado de Charter §9 y la evidencia de Gate 1 | NADR-F18-02 §5.9 R30, R32 | Medium | 4.2.2 | TODO |
-| **4.3.2** | Documentar los resultados de evaluación de DC-06b para decisión del Architecture Board: técnicas que sobreviven, técnicas que caen, técnicas que requieren evidencia adicional. DC-06b es evaluación compartida con Subfases 18.2-18.4 | NADR-F18-02 §5.9 R32 | Medium | 4.3.1 | TODO |
+| **4.3.1** | Evaluar las técnicas candidatas del ROADMAP (pure async, elisión de SyncProviderBridge, threads/process pools, object pools, zero-copy, lazy loading, batching adaptativo) contra el criterio preregistrado de Charter §9 y la evidencia de Gate 1 | NADR-F18-02 §5.9 R30, R32 | Medium | 4.2.2 | DONE |
+| **4.3.2** | Documentar los resultados de evaluación de DC-06b para decisión del Architecture Board: técnicas que sobreviven, técnicas que caen, técnicas que requieren evidencia adicional. DC-06b es evaluación compartida con Subfases 18.2-18.4 | NADR-F18-02 §5.9 R32 | Medium | 4.3.1 | DONE |
 
 #### Notas de implementación — Task 4.3.1
 
-> Pendiente de implementación.
+> Completada 2026-10-07. Evaluación de 6 técnicas candidatas contra criterio
+> preregistrado de Charter §9 y evidencia de Gate 1. Resultado: (1)
+> SyncProviderBridge elision → CAE (DC-01 decidió mantener modelo híbrido; DF-09
+> demostró overhead negligible 2-10ms, throughput 1.00x, RSS 0.02 MB); (2-6)
+> Process pools, object pools/zero-copy, lazy loading, LLM cache, batching
+> adaptativo → requieren evidencia adicional (HITO_0.7 v1.1.0 reporta 0/6
+> técnicas calibradas; GAP-0.7-05 OPEN; métricas por técnica ausentes; MDE/Δ/ε
+> abiertos). Ninguna técnica sobrevive con evidencia suficiente para
+> implementación en la Subfase 18.1. Consistente con ENGINEERING_PRINCIPLES §I
+> (YAGNI) y §VII (Benchmark Before Optimization).
 
 #### Notas de implementación — Task 4.3.2
 
-> Pendiente de implementación.
+> Completada 2026-10-07. Documento F18_DC06b_EVALUATION_REPORT.md v1.0.0 emitido
+> en docs/architecture/adr/phase-18/reports/. Consolida la evaluación sin
+> duplicar evidencia (referencias a HITO_0.7, F18_DC01_DECISION.md, benchmark
+> Task 1.2.1, Findings Register DF-09). Recomendación para el Board: ratificar
+> rechazo de técnica #1 (SyncProviderBridge elision); mantener técnicas #2-#4 en
+> estado "pendiente de evidencia" hasta F0-D; derivar técnicas #5-#6 a subfases
+> 18.4 y 18.3; no implementar ninguna técnica en 18.1. **DC-06b NO resuelto:**
+> es decisión de Board compartida entre Subfases 18.1-18.4. La resolución completa
+> requiere métricas por técnica de F0-D y evaluaciones de Subfases 18.3 y 18.4.
 
 #### Notas de referencia cruzada (§1.4)
 
@@ -789,7 +975,7 @@ Antes de declarar el Gate como COMPLETED, se ejecuta el proceso de Revisión Pos
 
 | ID | Hallazgo | Derivado a |
 |----|----------|------------|
-| — | — | — |
+| — | Sin hallazgos nuevos. DC-06b documentado para el Board (no es un hallazgo, es una decisión pendiente de Board). | — |
 
 ### 2D.4 Gate 4 Exit Criteria
 
@@ -810,19 +996,19 @@ Antes de declarar el Gate como COMPLETED, se ejecuta el proceso de Revisión Pos
 
 | # | Verificación | Estado |
 |---|-------------|--------|
-| 1 | Todas las Tasks del Gate en estado DONE | ⏳ |
-| 2 | Todas las reglas del Gate en estado DONE en §7 | ⏳ |
-| 3 | Gate Exit Criteria satisfechos | ⏳ |
-| 4 | Hallazgos identificados derivados al Findings Register | ⏳ |
-| 5 | Pyright: 0 errors, 0 warnings | ⏳ |
-| 6 | Tests: suite completa en verde | ⏳ |
-| 7 | Golden corpus: sin regresión científica | ⏳ |
-| 8 | Notas de implementación completas para todas las Tasks | ⏳ |
-| 9 | DC-06b documentado para Board | ⏳ |
-| 10 | INV-SCI-1 verificada bajo variación operacional | ⏳ |
+| 1 | Todas las Tasks del Gate en estado DONE | ✅ 7/7 (4.1.1, 4.1.2, 4.2.1, 4.2.2, 4.2.3, 4.3.1, 4.3.2) |
+| 2 | Todas las reglas del Gate en estado DONE en §7 | ✅ 8/8 (audit board §7.4) |
+| 3 | Gate Exit Criteria satisfechos | ✅ 10/10 criterios |
+| 4 | Hallazgos identificados derivados al Findings Register | ✅ Sin hallazgos nuevos en Gate 4 (observaciones pre-existentes documentadas, no son hallazgos de 18.1) |
+| 5 | Pyright: 0 errors, 0 warnings | ✅ |
+| 6 | Tests: suite completa en verde | ✅ (854 passed, 1 warning cosmético de google.generativeai no relacionado) |
+| 7 | Golden corpus: sin regresión científica | ✅ (HARD_FAIL pre-existente según HITO_0.7 v1.1.0, no introducido por Gate 3 ni Gate 4) |
+| 8 | Notas de implementación completas para todas las Tasks | ✅ 7/7 |
+| 9 | DC-06b documentado para Board | ✅ (F18_DC06b_EVALUATION_REPORT.md v1.0.0) |
+| 10 | INV-SCI-1 verificada bajo variación operacional | ✅ (dos ejecuciones SMOKE → mismo execution_id/verdict; limitation: un solo modo por DC-01, multi-modo diferido a DC-12) |
 
-**Veredicto del Gate:** —
-**Fecha de verificación:** —
+**Veredicto del Gate:** ✅ COMPLETED
+**Fecha de verificación:** 2026-10-07
 
 ---
 
@@ -833,11 +1019,16 @@ Se actualiza al cierre de cada Gate.
 | Gate | Fecha de cierre | Rules DONE / Total | Tasks DONE / Total | Hallazgos derivados | Observaciones |
 |------|----------------|-------------------|-------------------|-------------------|---------------|
 | Gate 1 | 2026-10-05 | 2/2 | 6/6 | 4 (DF-07 RESOLVED, DF-08 CLOSED (NAR), GF-01 IMPLEMENTATION_REQUIRED, DF-09 REVIEW_REQUIRED) | Evidence & Measurement Baseline (evidence materialization). ✅ COMPLETED. Wave 1.1: telemetría por etapa integrada. Wave 1.2: benchmark SyncProviderBridge (resultado contraintuitivo; DF-09 derivado). Wave 1.3: baselines FROZEN (concurrencia + métricas por etapa; calibración 1/6 técnicas). Evidencia suficiente para Gate 2 (DC-01). |
-| Gate 2 | 2026-10-05 | 14/14 | 7/7 | 1 (DF-13 REVIEW_REQUIRED) | Architectural Decisions. ✅ COMPLETED. Wave 2.1: Contrato identidad (DC-02-A). Wave 2.2: Modelo concurrencia (DC-01, mantener híbrido). Wave 2.3: Contextos especializados (DC-05). |
-| Gate 3 | — | 0/32 | 0/11 | 0 | Implementation |
-| Gate 4 | — | 0/8 | 0/7 | 0 | Verification & Technique Evaluation |
+| Gate 2 | 2026-10-05 | 14/14 | 7/7 | 2 (DF-13 REVIEW_REQUIRED; DF-09 → SUPERSEDED_BY_DC01) | Architectural Decisions. ✅ COMPLETED. Wave 2.1: Contrato identidad (DC-02-A). Wave 2.2: Modelo concurrencia (DC-01, mantener híbrido; DF-09 absorbido por DC-01 y derivado como input a DC-06b). Wave 2.3: Contextos especializados (DC-05). |
+| Gate 3 | 2026-10-06 | 32/32 | 12/12 | 3 (DF-13 RESOLVED, DF-06 RESOLVED, GF-01 RESOLVED) | Implementation. ✅ COMPLETED. Wave 3.1: bounded execution + coordinación + context boundaries. Wave 3.2: admission + backpressure. Wave 3.3: cancellation + shutdown. Wave 3.4: visibility + identity traceability (DF-13 Opción B). Wave 3.5: composition refactor (DF-06 runners→apps/benchmark, GF-01 NullTelemetryAdapter eliminado). 28 reglas NADR únicas + 3 cruces (R20-R22) + 1 ENGINEERING_PRINCIPLES. |
+| Gate 4 | 2026-10-07 | 8/8 | 7/7 | 0 (sin hallazgos nuevos) | Verification & Technique Evaluation. ✅ COMPLETED. Wave 4.1: verificación estática de NADR-F18-01 y NADR-F18-02 (pyright 0 errors, 42+43 tests); contrato v1.0.1→v1.0.2 corregido. Wave 4.2: validación dinámica (bounded execution, neutralidad científica con 2 ejecuciones SMOKE, verification isolation, frontera mecanismo/política y shutdown/recovery); HARD_FAIL pre-existente documentado. Wave 4.3: evaluación DC-06b (1 técnica CAE, 5 requieren evidencia adicional); F18_DC06b_EVALUATION_REPORT.md emitido. Subfase 18.1 COMPLETED. |
 
-> **Nota de referencias cruzadas:** El total de 56 filas en el Traceability Appendix incluye 4 referencias cruzadas legítimas conforme a §1.4 (NADR-F18-02 §5.6 R20-R22 en Gate 2/3, NADR-F18-02 §5.8 R27 en Gate 3/4). Las reglas únicas a trazar son 52 (20 NADR-F18-01 + 32 NADR-F18-02).
+> **Nota de referencias cruzadas:** El total de 56 filas en el Traceability
+> Appendix se descompone como: 52 reglas NADR únicas (20 NADR-F18-01 + 32
+> NADR-F18-02) + 1 fila ENGINEERING_PRINCIPLES §II (Wave 3.5, NO es regla NADR)
+> + 3 referencias cruzadas legítimas conforme a §1.4 (NADR-F18-02 §5.6 R20-R22,
+> presentes en Gate 2 y Gate 3). NADR-F18-02 §5.8 R27 NO es referencia cruzada:
+> figura únicamente en Gate 4 (§7.4, verificación).
 
 ---
 
@@ -848,8 +1039,8 @@ Tareas operativas de release (no desarrollo). Vinculadas a reglas específicas. 
 | Step | Operation | Environment | Linked Rules | Evidence | Status |
 |---|---|---|---|---|---|
 | **MIG-01** | Snapshot/retención operacional del estado actual del execution plane (configuración, DBs efímeras, logs) antes de cualquier modificación | Local | NADR-F18-01 §5.1 R4 | Snapshot documentado | TODO |
-| **MIG-02** | Verificar que el golden corpus produce el mismo resultado científico antes y después de la migración del modelo de ejecución | Local | NADR-F18-01 §5.4 R15; NADR-F18-02 §5.8 R27 | Golden corpus comparison | TODO |
-| **MIG-03** | Si MIG-02 falla: rollback inmediato al modelo de ejecución anterior. El estado científico canónico no se modifica en ningún caso | Local | NADR-F18-01 §5.1 R4 | Rollback ejecutado + evidencia | TODO |
+| **MIG-02** | Verificar neutralidad científica: el golden corpus produce resultado científico idéntico bajo variación operacional (distinto scheduling/concurrencia). DC-01 decidió MANTENER el modelo híbrido, por lo que NO hay migración de modelo; este step se reinterpreta como verificación de neutralidad (solapa con Gate 4 Task 4.2.2) | Local | NADR-F18-01 §5.4 R15; NADR-F18-02 §5.8 R27 | Golden corpus comparison + Task 4.2.2 | TODO |
+| **MIG-03** | ELIMINADO (condicional): rollback a modelo de ejecución anterior. No aplica mientras DC-01 = MANTENER modelo híbrido (F18_DC01_DECISION.md). Se reactiva únicamente si una Subfase 18.2-18.4 migrara el modelo de ejecución | Local | NADR-F18-01 §5.1 R4 | — | ELIMINADO (DC-01 = mantener; sin migración) |
 | **MIG-04** | Verificar verification isolation post-migración: el verification subject se ejecuta sin scheduler ni concurrencia por defecto | Local | NADR-F18-02 §5.8 R29 | Test de verification isolation | TODO |
 | **MIG-05** | Actualizar el baseline operacional post-migración conforme a HITO_0.7 v1.1.0 (wall, CPU, peak RSS) para comparación futura | Local | NADR-F18-02 §5.9 R31 | Baseline documentado | TODO |
 
@@ -861,6 +1052,8 @@ La Subfase 18.1 se considera oficialmente completada cuando:
 
     {All 52 rules in NADR-F18-01 + NADR-F18-02} − {Rules with DONE status in §7} = ∅
 
+**Estado:** ✅ **SATISFECHO** — 52/52 reglas NADR DONE (20 NADR-F18-01 + 32 NADR-F18-02), 32/32 Tasks DONE, 4/4 Gates COMPLETED.
+
 **Verificación:** Cada regla debe ser trazable a:
 1. Una implementación commiteada (**Implementation Evidence**)
 2. Un mecanismo de verification superado (linter/type-check/property-test)
@@ -869,15 +1062,15 @@ La Subfase 18.1 se considera oficialmente completada cuando:
 **Excepción para reglas de naturaleza decisional o probatoria:** Para reglas cuya materialización sea normativa, decisional o probatoria y no constituya comportamiento implementable como código (ej. NADR-F18-02 §5.9 R31: producir evidencia cuantitativa para DC-01), el Implementation Evidence puede ser el artefacto de evidencia/decisión correspondiente (documento de medición, registro de decisión, baseline documentado), en lugar de un commit de código.
 
 **Condiciones adicionales de cierre:**
-- DC-01 RESOLVED con evidencia cuantitativa
-- DC-02 (definición provisional) RESOLVED (frontera provisional de identidad)
-- DC-05 RESOLVED (estructura de contextos)
-- DC-06b evaluado y documentado para Board
-- DF-06 evaluado y evidencia derivada al Findings Register
-- GAP-0.5-02 y GAP-0.1-01 resueltos
-- Golden corpus: sin regresión científica
-- Pyright: 0 errors, 0 warnings
-- Tests: suite completa en verde
+- DC-01 RESOLVED con evidencia cuantitativa ✅ (Gate 2, F18_DC01_DECISION.md)
+- DC-02 (definición provisional) RESOLVED ✅ (Gate 2, F18_IDENTITY_BOUNDARY_CONTRACT.md v1.0.2)
+- DC-05 RESOLVED ✅ (Gate 2, F18_DC05_DECISION.md)
+- DC-06b evaluado y documentado para Board ✅ (Gate 4, F18_DC06b_EVALUATION_REPORT.md; NO resuelto, compartido con 18.2-18.4)
+- DF-06 evaluado y resuelto ✅ (Gate 3, Task 3.5.2)
+- GAP-0.5-02 y GAP-0.1-01 resueltos ✅ (Gate 1)
+- Golden corpus: sin regresión científica ✅ (HARD_FAIL pre-existente según HITO_0.7 v1.1.0, no introducido)
+- Pyright: 0 errors, 0 warnings ✅
+- Tests: suite completa en verde ✅ (854 passed)
 
 > **Nota:** "Implementation Evidence" es un identificador abstracto de la evidencia de implementación (commit SHA, changeset, o equivalente en el sistema de control de versiones). No está acoplado a ninguna plataforma específica.
 
@@ -887,13 +1080,23 @@ La Subfase 18.1 se considera oficialmente completada cuando:
 
 Los contadores se **derivan computacionalmente** del Traceability Appendix (§7), no se hardcodean:
 
-| Gate | Tasks DONE | Rules DONE | Rules DEFERRED | Rules PENDING | Gate Status |
+| Gate | Tasks DONE | Rules DONE (únicas) | Rules DEFERRED | Rules PENDING | Gate Status |
 |---|---|---|---|---|---|
 | Gate 1 | 6 | 2 | 0 | 0 | ✅ COMPLETED |
-| Gate 2 | 7 | 14 | 0 | 0 | ✅ COMPLETED |
-| Gate 3 | 0 | 0 | 0 | 32 | ⏳ PENDING |
-| Gate 4 | 0 | 0 | 0 | 8 | ⏳ PENDING |
-| **TOTAL** | **13** | **16** | **0** | **40 (36 únicas + 4 referencias cruzadas)** | 🟡 IN PROGRESS |
+| Gate 2 | 7 | 11 | 0 | 0 | ✅ COMPLETED |
+| Gate 3 | 12 | 31 | 0 | 0 | ✅ COMPLETED |
+| Gate 4 | 7 | 8 | 0 | 0 | ✅ COMPLETED |
+| **TOTAL** | **32** | **52** | **0** | **0** | ✅ COMPLETED |
+
+> **Nota de conteo:** Los contadores de reglas usan **reglas únicas** (inventario
+> NADR = 52: 20 NADR-F18-01 + 32 NADR-F18-02), no filas del audit board. Las 3
+> referencias cruzadas R20-R22 (§5.6, Gate 2+3) se cuentan una sola vez
+> (atribuidas a Gate 3). ENGINEERING_PRINCIPLES §II (Wave 3.5) es una fila del
+> audit board pero NO es regla NADR, por lo que no integra el conteo de 52.
+> Distribución de reglas únicas DONE: Gate 1 = 2 (R31, R32); Gate 2 = 11
+> (10 NADR-F18-01 + R30); Gate 3 = 31 (22 NADR-F18-02 no-cruce + 3 cruces
+> R20-R22 + 6 NADR-F18-01); Gate 4 = 8 (4 NADR-F18-01 + 4 NADR-F18-02
+> verificación dinámica); **total 52 DONE + 0 PENDING = 52**.
 
 **Regla de actualización:** Cada vez que una Task pase a DONE:
 1. Se actualiza el Status de la Task en la tabla de Wave correspondiente (§2)
@@ -942,51 +1145,51 @@ Los contadores se **derivan computacionalmente** del Traceability Appendix (§7)
 
 | Rule | Derived Status | Evidence | Implementation Notes |
 |---|---|---|---|
-| NADR-F18-02 §5.1 R1 | PENDING | Wave 3.1 / Task 3.1.1 | Resource envelope |
-| NADR-F18-02 §5.1 R2 | PENDING | Wave 3.2 / Task 3.2.1 | Admission grant |
-| NADR-F18-02 §5.1 R3 | PENDING | Wave 3.1 / Task 3.1.1 | Límites explícitos |
-| NADR-F18-02 §5.1 R4 | PENDING | Wave 3.1 / Task 3.1.1 | Outcome operacional |
-| NADR-F18-02 §5.2 R5 | PENDING | Wave 3.2 / Task 3.2.1 | Admission mechanism |
-| NADR-F18-02 §5.2 R6 | PENDING | Wave 3.2 / Task 3.2.1 | No retención recursos rechazados |
-| NADR-F18-02 §5.2 R7 | PENDING | Wave 3.2 / Task 3.2.1 | Mecanismo/política separados |
-| NADR-F18-02 §5.3 R8 | PENDING | Wave 3.2 / Task 3.2.2 | Backpressure mechanism |
-| NADR-F18-02 §5.3 R9 | PENDING | Wave 3.2 / Task 3.2.2 | Bounded buffering |
-| NADR-F18-02 §5.3 R10 | PENDING | Wave 3.2 / Task 3.2.2 | Mecanismo/política separados |
-| NADR-F18-02 §5.4 R11 | PENDING | Wave 3.3 / Task 3.3.1 | Cancelación cooperativa |
-| NADR-F18-02 §5.4 R12 | PENDING | Wave 3.3 / Task 3.3.1 | No evidencia canónica incompleta |
-| NADR-F18-02 §5.4 R13 | PENDING | Wave 3.3 / Task 3.3.1 | Liberación de recursos |
-| NADR-F18-02 §5.4 R14 | PENDING | Wave 3.3 / Task 3.3.1 | Cancelación verificable |
-| NADR-F18-02 §5.4 R15 | PENDING | Wave 3.3 / Task 3.3.2 | Shutdown ordenado |
-| NADR-F18-02 §5.5 R16 | PENDING | Wave 3.1 / Task 3.1.2 | No data races |
-| NADR-F18-02 §5.5 R17 | PENDING | Wave 3.1 / Task 3.1.2 | Primitivos explícitos |
-| NADR-F18-02 §5.5 R19 | PENDING | Wave 3.1 / Task 3.1.2 | Superficie identificable |
-| NADR-F18-02 §5.6 R20 | PENDING | Wave 3.1 / Task 3.1.3 | Context boundaries |
-| NADR-F18-02 §5.6 R21 | PENDING | Wave 3.1 / Task 3.1.3 | No god-object |
-| NADR-F18-02 §5.6 R22 | PENDING | Wave 3.1 / Task 3.1.3 | Estructura DC-05 |
-| NADR-F18-02 §5.7 R23 | PENDING | Wave 3.4 / Task 3.4.1 | Visibility mínima |
-| NADR-F18-02 §5.7 R24 | PENDING | Wave 3.4 / Task 3.4.1 | Propiedad observable |
-| NADR-F18-02 §5.7 R25 | PENDING | Wave 3.4 / Task 3.4.1 | Evidencia operacional separada |
-| NADR-F18-02 §5.7 R26 | PENDING | Wave 3.4 / Task 3.4.1 | No observabilidad profunda |
-| NADR-F18-01 §5.2 R7 | PENDING | Wave 3.4 / Task 3.4.2 | Execution identity identificable |
-| NADR-F18-01 §5.2 R9 | PENDING | Wave 3.4 / Task 3.4.2 | Execution identity registrable |
-| NADR-F18-01 §5.3 R13 | PENDING | Wave 3.4 / Task 3.4.2 | Operational state registrable |
-| NADR-F18-01 §5.4 R14 | PENDING | Wave 3.4 / Task 3.4.2 | Ejecución unívocamente identificable |
-| NADR-F18-01 §5.5 R19 | PENDING | Wave 3.4 / Task 3.4.2 | Artefacto con ambas identidades |
-| NADR-F18-01 §5.5 R20 | PENDING | Wave 3.4 / Task 3.4.2 | Evidencia operacional trazable |
-| ENGINEERING_PRINCIPLES §II | PENDING | Wave 3.5 / Task 3.5.1, 3.5.2 | Frontera hexagonal (DF-06, evaluación; no es regla NADR) |
+| NADR-F18-02 §5.1 R1 | DONE | Wave 3.1 / Task 3.1.1 ✅ | Resource envelope (ExecutionEnvelope + PsutilSelfResourceMonitor) |
+| NADR-F18-02 §5.1 R2 | DONE | Wave 3.2 / Task 3.2.1 ✅ | Admission grant (AdmissionMechanismPort) |
+| NADR-F18-02 §5.1 R3 | DONE | Wave 3.1 / Task 3.1.1 ✅ | Límites explícitos y configurables |
+| NADR-F18-02 §5.1 R4 | DONE | Wave 3.1 / Task 3.1.1 ✅ | Outcome operacional (ResourceExhaustedError → exit 4) |
+| NADR-F18-02 §5.2 R5 | DONE | Wave 3.2 / Task 3.2.1 ✅ | Admission mechanism explícito |
+| NADR-F18-02 §5.2 R6 | DONE | Wave 3.2 / Task 3.2.1 ✅ | Sin retención de recursos rechazados (evalúa pre-pick) |
+| NADR-F18-02 §5.2 R7 | DONE | Wave 3.2 / Task 3.2.1 ✅ | Mecanismo/política separados |
+| NADR-F18-02 §5.3 R8 | DONE | Wave 3.2 / Task 3.2.2 ✅ | Backpressure mechanism (aplicación del HOLD) |
+| NADR-F18-02 §5.3 R9 | DONE | Wave 3.2 / Task 3.2.2 ✅ | Bounded buffering (cola SQLite como buffer) |
+| NADR-F18-02 §5.3 R10 | DONE | Wave 3.2 / Task 3.2.2 ✅ | Mecanismo/política separados |
+| NADR-F18-02 §5.4 R11 | DONE | Wave 3.3 / Task 3.3.1 ✅ | Cancelación cooperativa (CancellationToken, 3 checkpoints) |
+| NADR-F18-02 §5.4 R12 | DONE | Wave 3.3 / Task 3.3.1 ✅ | No evidencia canónica incompleta (WAL pre-persist) |
+| NADR-F18-02 §5.4 R13 | DONE | Wave 3.3 / Task 3.3.1 ✅ | Liberación de recursos (abandon_execution) |
+| NADR-F18-02 §5.4 R14 | DONE | Wave 3.3 / Task 3.3.1 ✅ | Cancelación verificable (TaskOutcome) |
+| NADR-F18-02 §5.4 R15 | DONE | Wave 3.3 / Task 3.3.2 ✅ | Shutdown ordenado (CoordinatedShutdownMechanism) |
+| NADR-F18-02 §5.5 R16 | DONE | Wave 3.1 / Task 3.1.2 ✅ | No data races (CoordinationPrimitives thread-safe) |
+| NADR-F18-02 §5.5 R17 | DONE | Wave 3.1 / Task 3.1.2 ✅ | Primitivos explícitos e inyectables |
+| NADR-F18-02 §5.5 R19 | DONE | Wave 3.1 / Task 3.1.2 ✅ | Superficie identificable |
+| NADR-F18-02 §5.6 R20 | DONE | Wave 3.1 / Task 3.1.3 ✅ | Context boundaries (context_boundaries.py); cruza con Gate 2 |
+| NADR-F18-02 §5.6 R21 | DONE | Wave 3.1 / Task 3.1.3 ✅ | No god-object (test AST); cruza con Gate 2 |
+| NADR-F18-02 §5.6 R22 | DONE | Wave 3.1 / Task 3.1.3 ✅ | Estructura DC-05; cruza con Gate 2 |
+| NADR-F18-02 §5.7 R23 | DONE | Wave 3.4 / Task 3.4.1 ✅ | Visibility mínima |
+| NADR-F18-02 §5.7 R24 | DONE | Wave 3.4 / Task 3.4.1 ✅ | Propiedad observable (WorkUnitStatus 6 estados) |
+| NADR-F18-02 §5.7 R25 | DONE | Wave 3.4 / Task 3.4.1 ✅ | Evidencia operacional separada |
+| NADR-F18-02 §5.7 R26 | DONE | Wave 3.4 / Task 3.4.1 ✅ | Sin observabilidad profunda |
+| NADR-F18-01 §5.2 R7 | DONE | Wave 3.4 / Task 3.4.2 ✅ | Execution identity identificable (ExecutionMetadata) |
+| NADR-F18-01 §5.2 R9 | DONE | Wave 3.4 / Task 3.4.2 ✅ | Execution identity registrable |
+| NADR-F18-01 §5.3 R13 | DONE | Wave 3.4 / Task 3.4.2 ✅ | Operational state registrable |
+| NADR-F18-01 §5.4 R14 | DONE | Wave 3.4 / Task 3.4.2 ✅ | Ejecución unívocamente identificable |
+| NADR-F18-01 §5.5 R19 | DONE | Wave 3.4 / Task 3.4.2 ✅ | Artefacto con ambas identidades (reporte CV) |
+| NADR-F18-01 §5.5 R20 | DONE | Wave 3.4 / Task 3.4.2 ✅ | Evidencia operacional trazable |
+| ENGINEERING_PRINCIPLES §II | DONE | Wave 3.5 / Task 3.5.1, 3.5.2 ✅ | Frontera hexagonal (DF-06 runners→apps/benchmark, 2 ignore_import eliminados; no es regla NADR) |
 
 ### 7.4 Gate 4 — Rules Audit Board
 
 | Rule | Derived Status | Evidence | Implementation Notes |
 |---|---|---|---|
-| NADR-F18-01 §5.1 R4 | PENDING | Wave 4.2 / Task 4.2.2 | No alteración por ejecución (verificación) |
-| NADR-F18-01 §5.3 R11 | PENDING | Wave 4.2 / Task 4.2.2 | Operational state no altera identity (verificación) |
-| NADR-F18-01 §5.3 R12 | PENDING | Wave 4.2 / Task 4.2.2 | No falsificación de evidencia (verificación) |
-| NADR-F18-01 §5.4 R15 | PENDING | Wave 4.2 / Task 4.2.2 | Misma identity → misma evidencia (verificación) |
-| NADR-F18-02 §5.5 R18 | PENDING | Wave 4.2 / Task 4.2.1 | No deadlocks/livelocks (verificación) |
-| NADR-F18-02 §5.8 R27 | PENDING | Wave 4.2 / Task 4.2.2 | No alteración identidad científica (verificación) |
-| NADR-F18-02 §5.8 R28 | PENDING | Wave 4.2 / Task 4.2.2 | Evidencia operacional separada (verificación) |
-| NADR-F18-02 §5.8 R29 | PENDING | Wave 4.2 / Task 4.2.2 | Verification isolation (verificación) |
+| NADR-F18-01 §5.1 R4 | DONE | Wave 4.2 / Task 4.2.2 ✅ | No alteración por ejecución: dos ejecuciones SMOKE → mismo execution_id y mismo scientific_verdict |
+| NADR-F18-01 §5.3 R11 | DONE | Wave 4.2 / Task 4.2.2 ✅ | Operational state no altera identity: timestamps/telemetry_ids varían, execution_id/verdict estables |
+| NADR-F18-01 §5.3 R12 | DONE | Wave 4.2 / Task 4.2.2 ✅ | No falsificación de evidencia: HARD_FAIL pre-existente consistente, no introducido |
+| NADR-F18-01 §5.4 R15 | DONE | Wave 4.2 / Task 4.2.2 ✅ | Misma identity → misma evidencia: dos ejecuciones SMOKE producen mismo resultado |
+| NADR-F18-02 §5.5 R18 | DONE | Wave 4.2 / Task 4.2.1 ✅ | No deadlocks/livelocks: suite unitaria completa 854 passed, termina en 48s |
+| NADR-F18-02 §5.8 R27 | DONE | Wave 4.2 / Task 4.2.2 ✅ | No alteración identidad científica: execution_id determinista entre ejecuciones |
+| NADR-F18-02 §5.8 R28 | DONE | Wave 4.2 / Task 4.2.2 ✅ | Evidencia operacional separada: execution_metadata variable, identity_chain estable |
+| NADR-F18-02 §5.8 R29 | DONE | Wave 4.2 / Task 4.2.1 ✅ | Verification isolation: run_regression.py no usa threading/asyncio |
 
 ---
 

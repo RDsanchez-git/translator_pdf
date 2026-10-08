@@ -103,6 +103,11 @@ from infra.fs.ground_truth_store import (
     LocalFileSystemGroundTruthReader,
 )
 
+import uuid
+from core.benchmark.verification.execution_metadata import ExecutionMetadata
+
+
+
 
 def _iter_pdf_chunks(pdf_path: Path, chunk_size: int = 8 * 1024 * 1024) -> Iterator[bytes]:
     """Itera sobre chunks de un PDF para cálculo de hash en streaming.
@@ -598,14 +603,22 @@ def main() -> None:
         profile_identity=profile_identity,
         result_identity=result_identity,
     )
-
+    
     # ── Construir ContinuousVerificationReport (NADR-28 §5.3 R14) ────
+    # Generar telemetry_execution_id inline (Task 3.4.2)
+    telemetry_execution_id = uuid.uuid4().hex[:16]
     cv_report = ContinuousVerificationReport(
         schema_version=SCHEMA_VERSION,
         identity_chain=identity_chain,
         operational_result=result,
-        coverage=tuple(sorted(profile_document_ids)),  # ← conversión a tuple ordenado
+        coverage=tuple(sorted(profile_document_ids)),
         regression_report=regression_report,
+        # NUEVO (DF-13): metadata operacional con model_de_execution
+        execution_metadata=ExecutionMetadata(
+            model_de_execution="sequential_regression",
+            execution_timestamp_iso8601=datetime.now(timezone.utc).isoformat(),
+            telemetry_execution_id=telemetry_execution_id,
+        ),
     )
 
     # ── Persistir con filename único (NADR-28 §5.4 R21) ──────────────

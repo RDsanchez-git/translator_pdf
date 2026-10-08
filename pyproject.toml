@@ -127,8 +127,9 @@ type = "forbidden"
 source_modules = ["core"]
 forbidden_modules = ["infra", "apps"]
 ignore_imports = [
-    # DEUDA TÉCNICA PRE-EXISTENTE (Gate 3-4): DF-06
-    "core.benchmark.__main__ -> apps.bootstrap.pipeline_factory",
+    # DEUDA TÉCNICA PRE-EXISTENTE: core.execution.handlers importa de infra.db
+    # (deuda de Fase 17, no relacionada con DF-06 que fue sobre core/benchmark/runners)
+    "core.execution.handlers -> infra.db.fsm_repository",
     "core.compiler.service -> apps.compiler.tex_builder",
     "core.execution.handlers -> infra.db.fsm_repository",
     "core.pipeline.state_store -> infra.db.fsm_repository",
@@ -158,12 +159,6 @@ forbidden_modules = [
     "PIL",
 ]
 ignore_imports = [
-    # DEUDA TÉCNICA PRE-EXISTENTE (Gate 3-4): DF-06
-    # core.benchmark.__main__ importa apps.bootstrap.pipeline_factory que
-    # transitivamente alcanza fitz vía infra.extraction.providers.
-    # Se eliminará cuando core/benchmark/__main__.py deje de importar
-    # directamente de apps/ (resolución de DF-06 en Gate 3-4).
-    "core.benchmark.__main__ -> apps.bootstrap.pipeline_factory",
 ]
 
 # NADR-F17BIS-25 §5.3 R8 (Integración, No Creación):

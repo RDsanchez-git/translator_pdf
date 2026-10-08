@@ -79,3 +79,26 @@ class ChunkExecutionEvent:
     @property
     def is_assemblable(self) -> bool:
         return (self.lifecycle == ChunkLifecycle.PROCESSED and self.failure_type == FailureType.NONE)
+
+@dataclass(frozen=True)
+class ExecutionEnvelope:
+    """
+    NADR-F18-02 §5.1 R1, R3: Resource envelope con límites explícitos.
+    Inmutable (frozen=True). Cualquier cambio requiere nueva instancia.
+    """
+    max_rss_mb: float
+    task_timeout_sec: float
+    max_concurrent_tasks: int = 1
+
+    @classmethod
+    def default_local(cls) -> "ExecutionEnvelope":
+        """
+        Default basado en HITO_0.7 baseline (peak single-process ~77MB).
+        Margen 4x para absorber GC y picos sin OOM del OS.
+        task_timeout_sec = 180s alinea con el timeout del SyncProviderBridge.
+        """
+        return cls(
+            max_rss_mb=512.0,
+            task_timeout_sec=180.0,
+            max_concurrent_tasks=1,
+        )

@@ -11,7 +11,7 @@ sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
 from core.benchmark.models import ProviderDescriptor, BenchmarkMode
 from core.benchmark.persistence import BenchmarkPersistenceGateway
 from core.benchmark.orchestrator import SequentialBenchmarkOrchestrator
-from core.benchmark.runners.groq_runner import GroqBenchmarkRunner
+from apps.benchmark.runners.groq_runner import GroqBenchmarkRunner
 
 from core.telemetry.gateway import SQLiteTelemetryGateway
 from core.telemetry.analyzer import TelemetryAnalyzer

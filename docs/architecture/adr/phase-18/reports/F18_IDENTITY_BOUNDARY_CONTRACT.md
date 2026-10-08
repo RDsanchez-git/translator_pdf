@@ -1,8 +1,8 @@
 # F18_IDENTITY_BOUNDARY_CONTRACT.md
 
 **Documento:** `docs/architecture/adr/phase-18/decisions/F18_IDENTITY_BOUNDARY_CONTRACT.md`
-**Estado:** FROZEN v1.0.1
-**Fecha:** 2026-10-05
+**Estado:** FROZEN v1.0.2
+**Fecha:** 2026-10-06
 **Tipo:** Contrato provisional de identidad científica (DC-02-A)
 **Naturaleza:** Read-only. Define la frontera entre scientific identity, execution
   identity y operational state para el guard diferencial (DC-12).
@@ -25,6 +25,7 @@
 |---|---|---|
 | 1.0.0 | 2026-10-05 | Emisión inicial. |
 | 1.0.1 | 2026-10-05 | Corrección de 6 puntos: (C1) Contradicción de execution_id resuelta; DF-13 derivado al Findings Register. (C2) Cláusula de invalidación fortalecida con 3 condiciones concretas + proceso de escalación. (C3) Sección de gobernanza de modificaciones agregada. (C4) Identidad de workload y GAP-0.3-03 documentados. (C5) Matriz de verificación regla-por-regla de las 10 reglas de Wave 2.1 agregada. (C6) Documento movido a decisions/. |
+| 1.0.2 | 2026-10-06 | Corrección de la fórmula de `execution_id` en §2.2 detectada en Gate 4 Task 4.1.1 (static verification). Tres errores corregidos: (C7) `result` eliminado de la fórmula — NADR-F17BIS-28 §5.1 R6 establece Execution→Result como orden de la identity chain y §5.2 R13 prohíbe usar result identity como sustituto de entradas. (C8) `subject_identity` agregado a la fórmula — requerido por NADR-F17BIS-28 §5.1 R3. (C9) `parameter_identity` agregado a la fórmula — requerido por NADR-F17BIS-28 §5.1 R5. Fórmula corregida: `execution_id = hash(baseline + subject + config + parameter + profile)`. La clasificación de `execution_id` como Execution Identity permanece sin cambios. No se altera Scientific Identity (§2.1) ni se requiere recalibración de DC-12. Nota de DF-13 actualizada a RESOLVED (Gate 3, Opción B). |
 
 ---
 
@@ -75,7 +76,7 @@ misma scientific identity.
 
 | Componente | Fuente | Determinismo | Incluido en `identity_chain` | Nota |
 |---|---|---|---|---|
-| `execution_id` | Hash de baseline + config + profile + result | Determinista | ✅ Sí | **Identificador de resultado derivado.** NO es un discriminador de modo de ejecución. Dos ejecuciones con los mismos parámetros científicos y el mismo resultado producen el MISMO execution_id, independientemente del modo de ejecución. |
+| `execution_id` | Hash de baseline + subject + config + parameter + profile | Determinista | ✅ Sí | **Identificador de condiciones de ejecución.** NO es un discriminador de modo de ejecución. NO incluye `result_identity` (NADR-F17BIS-28 §5.1 R6: Execution precede a Result; §5.2 R13: result identity no sustituye entradas). Dos ejecuciones con las mismas entradas, configuración, parámetros y perfil producen el MISMO execution_id, independientemente del modo de ejecución y del resultado. |
 | `subject_identity` | Commit SHA del pipeline (git rev-parse HEAD) | Determinista por commit | ✅ Sí | Identifica el sujeto de la verificación. |
 | `model_de_execution` | Modo de ejecución ("hybrid_sequential", "async_concurrent", etc.) | Configuración | ❌ **No incluido actualmente** | **DF-13:** El discriminador de modo NO está incluido en `identity_chain`. El testing diferencial (DC-12) no puede distinguir modos de ejecución por execution_id alone. Requiere evaluación de extensión de `build_identity_chain` en Gate 3 (Task 3.4.2). |
 | `telemetry_execution_id` | uuid4 generado en entry point | No determinista | ❌ No | Evidencia operacional, NO scientific identity. |
@@ -83,14 +84,7 @@ misma scientific identity.
 **Regla de no-colapso:** La execution identity habilita testing diferencial
 (INV-EXEC-IDENTIFIABILITY) pero no altera la scientific identity.
 
-**Nota sobre `execution_id` vs `model_de_execution`:** El `execution_id` es un
-hash determinista derivado de los componentes de scientific identity (baseline,
-config, profile, result). NO captura el modo de ejecución. El discriminador de
-modo es `model_de_execution`, que actualmente NO está incluido en
-`identity_chain`. Esto significa que INV-EXEC-IDENTIFIABILITY está
-**parcialmente satisfecha**: el modo de ejecución es identificable en la
-configuración del sistema, pero no está presente en el identity_chain del
-reporte de verificación. Ver DF-13 en el Findings Register.
+**Nota sobre `execution_id` vs `model_de_execution`:** El `execution_id` es un hash determinista construido por `build_execution_id(baseline_identity, subject_identity, configuration_identity, parameter_identity, profile_identity)`. **NO incluye `result_identity`**: NADR-F17BIS-28 §5.1 R6 establece que Execution precede a Result en la identity chain, y §5.2 R13 prohíbe utilizar la identidad del resultado como sustituto de las identidades de las entradas que lo produjeron. NO captura el modo de ejecución. El discriminador de modo es `model_de_execution`, que actualmente NO está incluido en `identity_chain`. Esto significa que INV-EXEC-IDENTIFIABILITY está **parcialmente satisfecha**: el modo de ejecución es identificable en la configuración del sistema, pero no está presente en el identity_chain del reporte de verificación. Ver DF-13 en el Findings Register (RESOLVED en Gate 3, Task 3.4.2, Opción B — metadata operacional).
 
 ### 2.3 Operational State (observable, puede diferir)
 
@@ -350,7 +344,7 @@ Las reglas asignadas a Wave 2.1 según PHASE_18.1_EXECUTION_PLAN v1.0.1:
 
 ## 10. CIERRE
 
-**Estado:** FROZEN v1.0.1
+**Estado:** FROZEN v1.0.2
 **Condición de cierre:** Contrato provisional de identidad científica definido
 con 3 dimensiones ortogonales y reglas de no-colapso; tolerancia cero en
 scientific identity; operational evidence excluida; cláusula de invalidación

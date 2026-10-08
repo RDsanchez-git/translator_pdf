@@ -137,3 +137,29 @@ class MalformedInferenceResponse(InferenceProtocolError):
 class DialectParsingError(MalformedInferenceResponse):
     """SOTA: El LLM desobedeció el json_mode o la estrategia de respuesta."""
     pass
+
+class ResourceExhaustedError(DomainException):
+    """
+    NADR-F18-02 §5.1 R4 / INV-NO-RESOURCE-SIGNAL.
+    Fallo estrictamente operacional. Mapea a exit code 4 (EXECUTION_FAILURE).
+    Nunca debe interpretarse como señal científica.
+    """
+    def __init__(self, resource_type: str, limit: float, actual: float) -> None:
+        self.resource_type = resource_type
+        self.limit = limit
+        self.actual = actual
+        super().__init__(
+            f"Operational envelope breached: {resource_type} "
+            f"(actual={actual:.2f} > limit={limit:.2f})"
+        )
+
+class TaskCancelledError(DomainException):
+    """
+    NADR-F18-02 §5.4 R11/R12: cancelación cooperativa operacional.
+    
+    Nunca es una señal científica; no debe mapearse a verdicts de regresión.
+    El caller debe liberar recursos sin persistir estado científico parcial (R12).
+    """
+    def __init__(self, reason: str) -> None:
+        self.reason = reason
+        super().__init__(f"Task cancelled cooperatively: {reason}")
