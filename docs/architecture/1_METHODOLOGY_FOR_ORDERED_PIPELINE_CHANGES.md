@@ -392,7 +392,7 @@ La revisión estructurada se ejecuta incrementalmente en cada Gate Exit Review y
 | Aspecto | Convención |
 |---|---|
 | **ADR Maestro** | `ADR_F{FASE}_MASTER.md` (ej: ADR_F17_BIS_MASTER.md) |
-| **ADR de Fase** | `ADR_F{FASE}_{XX}.md` (ej: ADR_F17_BIS_01.md) |
+| **ADR de Fase** | `ADR_F{FASE}_{SUBFASE}.md` (ej: ADR_F17_BIS_01.md) |
 | **Ubicación** | `docs/architecture/adr/phase-{fase}/ADR/` |
 
 ### 7.3 Execution Plan
