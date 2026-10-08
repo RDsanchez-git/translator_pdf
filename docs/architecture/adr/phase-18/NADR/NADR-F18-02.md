@@ -7,7 +7,7 @@
 * **Clase de Decisión:** `STRUCTURAL / OPERATIONAL`
 * **Nivel de Cumplimiento:** `MANDATORY`
 * **Versión:** 1.0.1
-* **Ciclo de Vida:** `DRAFT`
+* **Ciclo de Vida:** `FROZEN`
 * **Vigente Desde:** Fase 18, Subfase 18.1
 * **Autoridad:** Architecture Board
 * **Responsable Técnico:** Staff Engineering
