@@ -1,0 +1,55 @@
+{
+  "metadata": {
+    "timestamp": "2026-10-09T01:34:58.382545",
+    "python_version": "3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]",
+    "samples_per_scenario": 50,
+    "mock_llm_latency_ms": 25
+  },
+  "A_window_temporal": {
+    "samples": 50,
+    "min_ms": 25.555,
+    "max_ms": 26.626,
+    "mean_ms": 26.02,
+    "p50_ms": 25.975,
+    "p95_ms": 26.566,
+    "p99_ms": 26.626,
+    "note": "Incluye latencia LLM simulada + append_wal() real"
+  },
+  "B_duplicacion": {
+    "total_tasks": 20,
+    "crashes_inyectados": 10,
+    "re_ejecuciones_por_reconciler": 10,
+    "total_efectos_externos": 30,
+    "tasa_duplicacion_pct": 50.0,
+    "llamadas_duplicadas_absolutas": 10
+  },
+  "C_recovery": {},
+  "D_finops": {
+    "llamadas_duplicadas_obs": 10,
+    "tokens_por_llamada": {
+      "input": 1500,
+      "output": 500
+    },
+    "costo_unitario_usd": 0.0875,
+    "escenario_1000_tareas_dia": {
+      "duplicadas_estimadas": 500.0,
+      "costo_diario_usd": 4.375,
+      "costo_mensual_usd": 131.25
+    },
+    "nota": "Estimación basada en precios GPT-4o-mini y tasa observada"
+  },
+  "E_fencing": {
+    "worker_zombi_bloqueado": true,
+    "worker_legitimo_funciona": true,
+    "veredicto": "PASS",
+    "mecanismo": "Optimistic locking vía WHERE lease_owner = ? AND lease_expires_at >= ?"
+  },
+  "F_convergencia": {},
+  "resumen_ejecutivo": {
+    "ventana_p50_ms": 25.975,
+    "ventana_p99_ms": 26.626,
+    "tasa_duplicacion_pct": 50.0,
+    "fencing_efectivo": true,
+    "costo_mensual_estimado_usd": 131.25
+  }
+}
