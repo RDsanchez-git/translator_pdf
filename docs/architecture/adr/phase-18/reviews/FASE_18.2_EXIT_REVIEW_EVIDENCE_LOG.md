@@ -1,11 +1,11 @@
 # FASE_18.2_EXIT_REVIEW_EVIDENCE_LOG.md
 
 **Documento:** `docs/architecture/adr/phase-18/reviews/FASE_18.2_EXIT_REVIEW_EVIDENCE_LOG.md`
-**Versión:** 1.0.0
+**Versión:** 1.0.1
 **Estado:** IN_PROGRESS
 **Fecha:** 2026-10-10
 **Última actualización:** 2026-10-10
-**Derivado de:** `PHASE_18.2_EXECUTION_PLAN.md` v1.2.1
+**Derivado de:** `PHASE_18.2_EXECUTION_PLAN.md` v1.2.2
 **Propósito:** Registro auditable de la evidencia forense que fundamenta cada decisión
 tomada durante el Exit Review de la Subfase 18.2 (Durable Execution & Recovery).
 Cada finding incluye los archivos auditados, el análisis, los gaps confirmados,
@@ -25,6 +25,7 @@ la justificación normativa y la clasificación final.
 | Versión | Fecha | Cambio |
 |---|---|---|
 | 1.0.0 | 2026-10-10 | Emisión inicial. Estructura dinámica para 6 Gates. |
+| 1.0.1 | 2026-10-10 | Gate 0 Exit Review completado. 5 findings registrados con evidencia forense: DF-18.2-01, DF-18.2-02, DF-18.2-03, DF-18.2-04, GF-18.2-01. Jerarquía normativa corregida (NADR-F18-03 v1.1.0 FROZEN). |
 
 ---
 
@@ -37,9 +38,9 @@ ADR_F18_MASTER v1.0.0 FROZEN
     ↓
 ADR_F18.2 v3.3.0 FROZEN
     ↓
-NADR-F18-03 v1.2.0 FROZEN | NADR-F18-04 v1.1.1 FROZEN | NADR-F18-05 v1.3.0 FROZEN
+NADR-F18-03 v1.1.0 FROZEN | NADR-F18-04 v1.1.1 FROZEN | NADR-F18-05 v1.3.0 FROZEN
     ↓
-PHASE_18.2_EXECUTION_PLAN v1.2.1
+PHASE_18.2_EXECUTION_PLAN v1.2.2
 ```
 
 > *"No lower governance level is authorized to redefine or contradict
@@ -63,7 +64,7 @@ PHASE_18.2_EXECUTION_PLAN v1.2.1
 - DC-08d: Modelo de fallos acotado (WAL+NORMAL, exclusión de power loss)
 - §11.3: Limitaciones aceptadas y riesgos residuales explícitos
 
-**De NADR-F18-03 v1.2.0 FROZEN:**
+**De NADR-F18-03 v1.1.0 FROZEN:**
 - §5.1: Autoridad de ejecución pre-efecto recuperable
 - §5.2: Clasificación semántica de resultados (confirmado/no iniciado/incierto)
 - §5.3: Prohibición de reejecución automática bajo incertidumbre
@@ -86,7 +87,7 @@ PHASE_18.2_EXECUTION_PLAN v1.2.1
 - §II Hexagonal: Separación de puertos y adaptadores
 - §VII Reuse Before Invent: Reutilización de maquinaria existente
 
-**De ROADMAP_ARQUITECTÓNICO_LP:**
+**De ROADMAP_ARQUITECTONICO_LP:**
 - §V: Arquitectura de nodo único con SQLite, sin infraestructura distribuida
 
 ---
@@ -160,119 +161,545 @@ PHASE_18.2_EXECUTION_PLAN v1.2.1
 
 ## 2. ESTRUCTURA POR FINDING
 
-{Repetir esta estructura por cada DF/GF analizado.}
-
-### 2.{N} {DF/GF-18.2-XX} — {Título corto del hallazgo}
+### 2.1 DF-18.2-01 — AsyncDispatcher sin gobernanza de ejecución durable
 
 | Campo | Valor |
 |-------|-------|
-| **ID** | {DF/GF-18.2-XX} |
-| **Tipo** | {Deferred Finding / Governance Finding / Hallazgo derivado} |
-| **Estado** | `{Clasificación final}` |
-| **Origen** | {Wave/Task/Gate donde se identificó} |
-| **Gate destino original** | {Gate original} |
-| **Estado previo** | {Estado anterior si fue reclasificado} |
-| **Prioridad** | {Baja / Media / Alta / Critical / N/A} |
-| **¿Requiere implementación?** | {Sí/No — con alcance si aplica} |
-| **¿Bloquea ejecución durable y recuperación coherente?** | {Sí/No/Condicional} |
+| **ID** | DF-18.2-01 |
+| **Tipo** | Deferred Finding |
+| **Estado** | `IMPLEMENTATION_REQUIRED` |
+| **Origen** | Wave 0.1 / Task 0.1.2 (auditoría de rutas) |
+| **Gate destino original** | Gate 0 |
+| **Estado previo** | N/A |
+| **Prioridad** | Alta |
+| **¿Requiere implementación?** | Sí — Gate 1 Task 1.1.1 |
+| **¿Bloquea ejecución durable?** | Sí — Ruta 2 completamente sin gobernanza |
 
-#### 2.{N}.1 Texto original del DF
+#### 2.1.1 Texto original del DF
 
-> *"{Texto exacto del hallazgo tal como fue registrado originalmente
-> en el Execution Plan o durante la implementación}"*
+> *"AsyncDispatcher (apps/llm_workers/dispatcher.py) carece de mecanismos de authority pre-effecto, lease check y journal post-effecto. Solo SyncProviderBridge tiene estos mecanismos parciales."*
 
-#### 2.{N}.2 Reformulación corregida (si aplica)
+#### 2.1.2 Reformulación corregida
 
-{Si el texto original era ambiguo, incorrecto o desactualizado,
-reformular con precisión. Si no aplica, indicar
-"No requiere reformulación" y omitir esta sección.}
+No requiere reformulación. El hallazgo es preciso y verificable.
 
-**Formulación correcta:**
-
-> *"{Reformulación precisa del hallazgo}"*
-
-#### 2.{N}.3 Archivos y documentos auditados
+#### 2.1.3 Archivos y documentos auditados
 
 | # | Archivo / Documento | Evidencia extraída |
 |---|---------------------|-------------------|
-| 1 | `{ruta/al/archivo.py}` | {Descripción de la evidencia concreta encontrada} |
-| 2 | `{ruta/al/documento.md}` §{N} | {Cita o descripción de la evidencia} |
-| 3 | Grep: `{patrón}` en `{directorios}` | {Resultado del grep: N resultados / 0 resultados} |
-| ... | ... | ... |
+| 1 | `apps/bootstrap/pipeline_factory.py:105` | `dispatcher = AsyncDispatcher(...)` — Composition Root usa AsyncDispatcher en ruta productiva |
+| 2 | `apps/llm_workers/dispatcher.py:105` | `provider_result = await self._provider.translate(envelope)` — Efecto externo sin authority |
+| 3 | `apps/llm_workers/dispatcher.py` (completo) | No hay referencia a lease, authority, append_wal, ni clasificación semántica |
+| 4 | Grep: `AsyncDispatcher` en `apps`, `runtime`, `core` | Usado en benchmark runners (gemini_runner.py:103, groq_runner.py:105) Y pipeline_factory.py:105 (ruta productiva) |
+| 5 | `apps/bootstrap/provider_stack_factory.py` | Stack: CircuitBreaker → Cache → RateLimiter → Provider. Sin mecanismos de authority/journal. |
 
-#### 2.{N}.4 Análisis
+#### 2.1.4 Análisis
 
-{Análisis detallado del hallazgo. Debe responder:}
-- ¿La condición original existe?
-- ¿Es una violación normativa o un comportamiento correcto por diseño?
-- ¿Qué NADRs/ADRs aplican?
-- ¿Cuál es el impacto funcional real en la ejecución durable y recuperación?
-- ¿Afecta la separación entre autoridad de ejecución y efectos externos?
-- ¿Compromete la idempotencia de aplicación local?
-- ¿Introduce fuentes de verdad paralelas?
+**¿La condición original existe?** ✅ Sí. `AsyncDispatcher` es usado por `TranslationPipeline` vía `pipeline_factory.py:105`, lo cual es una ruta productiva confirmada.
 
-#### 2.{N}.5 Gaps objetivos confirmados (si aplica)
+**¿Es una violación normativa?** ✅ Sí.
+
+**NADRs violados:**
+- NADR-F18-03 §5.1 R1: Toda ejecución de efecto externo MUST estar precedida por autoridad recuperable.
+- NADR-F18-03 §5.1 R2: La autoridad MUST ser verificable como vigente antes de iniciar el efecto.
+- NADR-F18-03 §5.2 R5-R8: La recuperación MUST distinguir entre resultado confirmado, no-iniciado e incierto.
+- NADR-F18-03 §5.3 R9: Operación con resultado incierto MUST NOT ser reejecutada automáticamente.
+
+**¿Cuál es el impacto funcional real?**
+- Cualquier crash durante `AsyncDispatcher.translate()` resultará en efecto externo completado sin trazabilidad.
+- Si el pipeline se reintenta, hay duplicación casi segura del efecto externo.
+- Sin journal, no hay forma de recuperar estado coherente tras crash.
+
+**¿Afecta la separación entre autoridad de ejecución y efectos externos?** ✅ Sí. No existe autoridad alguna.
+
+**¿Compromete la idempotencia de aplicación local?** ✅ Sí. Sin journal, no hay idempotencia de aplicación.
+
+**¿Introduce fuentes de verdad paralelas?** ❌ No. La ausencia de journal es el problema, no una fuente paralela.
+
+#### 2.1.5 Gaps objetivos confirmados
 
 | # | Gap | Evidencia | Severidad |
 |---|-----|-----------|-----------|
-| G1 | {Descripción del gap} | {Archivo/línea que lo demuestra} | {Baja/Media/Alta} |
-| G2 | {Descripción del gap} | {Evidencia} | {Severidad} |
+| G1 | Sin authority pre-effecto | `dispatcher.py:105` no persiste lease antes de `translate()` | Alta |
+| G2 | Sin lease check | No hay verificación de vigencia antes ni después del efecto | Alta |
+| G3 | Sin journal post-effecto | No hay `append_wal` ni equivalente | Alta |
+| G4 | Sin clasificación semántica | No distingue confirmado/no-iniciado/incierto | Alta |
 
-#### 2.{N}.6 Lo que NO es un gap
+#### 2.1.6 Lo que NO es un gap
 
 | Aspecto | Veredicto | Justificación |
 |---------|-----------|---------------|
-| {Aspecto que podría parecer gap pero no lo es} | ✅ Correcto por diseño | {Justificación con referencia normativa} |
-| {Otro aspecto} | ❌ No relacionado | {Justificación} |
+| AsyncDispatcher no maneja timeouts | ✅ Correcto por diseño | El timeout es responsabilidad del provider stack (CircuitBreakerProvider), no del dispatcher |
+| AsyncDispatcher no implementa healing | ❌ No relacionado | Healing es responsabilidad del HealingPipeline inyectado, no del dispatcher |
 
-#### 2.{N}.7 Impacto en ejecución durable y recuperación
+#### 2.1.7 Impacto en ejecución durable y recuperación
 
 | Dimensión | ¿Afecta? | Justificación |
 |-----------|----------|---------------|
-| Autoridad de ejecución pre-efecto | {✅/❌/⚠️} | {Justificación} |
-| Clasificación semántica de resultados | {✅/❌/⚠️} | {Justificación} |
-| Idempotencia de aplicación local | {✅/❌/⚠️} | {Justificación} |
-| Coherencia entre planos | {✅/❌/⚠️} | {Justificación} |
-| Observabilidad de duplicación | {✅/❌/⚠️} | {Justificación} |
-| Durabilidad bajo modelo de fallos | {✅/❌/⚠️} | {Justificación} |
-| Bloquea Gate posterior | {✅/❌/⚠️} | {Justificación} |
+| Autoridad de ejecución pre-efecto | ✅ Sí | Ruta 2 no tiene authority |
+| Clasificación semántica de resultados | ✅ Sí | No clasifica resultados |
+| Idempotencia de aplicación local | ✅ Sí | Sin journal, no hay idempotencia |
+| Coherencia entre planos | ✅ Sí | Sin event journal, no hay fuente de verdad |
+| Observabilidad de duplicación | ⚠️ Parcial | Telemetry existe en envelope pero sin clasificación semántica |
+| Durabilidad bajo modelo de fallos | ✅ Sí | Sin WAL, sin journal |
+| Bloquea Gate posterior | ✅ Sí | Gate 1 debe cubrir ambas rutas |
 
-#### 2.{N}.8 Sub-acciones identificadas (si aplica)
+#### 2.1.8 Sub-acciones identificadas
 
 | Sub-acción | Descripción | Estado | Scope |
 |------------|-------------|--------|-------|
-| {DF-18.2-XX}-A | {Descripción} | {Demostrado/Pendiente} | {Producción/Benchmark/Tooling} |
-| {DF-18.2-XX}-B | {Descripción} | {Estado} | {Scope} |
+| DF-18.2-01-A | Extender gobernanza de authority/lease a AsyncDispatcher | Pendiente | Gate 1 |
+| DF-18.2-01-B | Añadir journal post-effecto en AsyncDispatcher | Pendiente | Gate 1 |
+| DF-18.2-01-C | Clasificación semántica en AsyncDispatcher | Pendiente | Gate 1 |
 
-#### 2.{N}.9 Clasificación consolidada
+#### 2.1.9 Clasificación consolidada
 
 | Campo | Valor |
 |-------|-------|
-| Condición original existe | {✅ Sí / ❌ No / ⚠️ Parcialmente} |
-| Es violación arquitectónica | {✅ Sí / ❌ No} |
-| Es violación de gobernanza | {✅ Sí / ❌ No} |
-| Es problema técnico | {✅ Sí / ❌ No} |
-| Pertenece a Subfase 18.2 | {✅ Sí / ❌ No} |
-| Bloquea ejecución durable | {✅ Sí / ❌ No / ⚠️ Condicional} |
-| Clasificación | `{ESTADO_FINAL}` |
-| Prioridad | {Baja/Media/Alta/N/A} |
+| Condición original existe | ✅ Sí |
+| Es violación arquitectónica | ✅ Sí |
+| Es violación de gobernanza | ❌ No |
+| Es problema técnico | ✅ Sí |
+| Pertenece a Subfase 18.2 | ✅ Sí |
+| Bloquea ejecución durable | ✅ Sí |
+| Clasificación | `IMPLEMENTATION_REQUIRED` |
+| Prioridad | Alta |
 
-#### 2.{N}.10 Regla aplicada
+#### 2.1.10 Regla aplicada
 
-> **{NADR/ADR/ENGINEERING_PRINCIPLES} §{N} ({Nombre}):**
-> *"{Cita textual de la regla que fundamenta la decisión}"*
+> **NADR-F18-03 §5.1 R1:**
+> *"Toda ejecución de efecto externo MUST estar precedida por una autoridad recuperable persistida antes del inicio del efecto."*
 
-{Explicación de cómo la regla aplica al caso concreto.}
+La Ruta 2 (AsyncDispatcher) viola esta regla porque no persiste autoridad antes de invocar `translate()`. Esto debe corregirse en Gate 1 Task 1.1.1, extendiendo la gobernanza de SyncProviderBridge a AsyncDispatcher.
 
 ---
 
-## 3. GATE EXIT REVIEW SUMMARY
+### 2.2 DF-18.2-02 — Sin mecanismo de activación para contratos 18.2
 
-{Una sub-sección por cada Gate Exit Review ejecutado.}
+| Campo | Valor |
+|-------|-------|
+| **ID** | DF-18.2-02 |
+| **Tipo** | Deferred Finding |
+| **Estado** | `IMPLEMENTATION_REQUIRED` |
+| **Origen** | Wave 0.1 / Task 0.1.3 (mecanismo de activación) |
+| **Gate destino original** | Gate 0 |
+| **Estado previo** | N/A |
+| **Prioridad** | Media |
+| **¿Requiere implementación?** | Sí — Gate 1 Task 1.1.1 (extender RuntimeSettings) |
+| **¿Bloquea ejecución durable?** | ⚠️ Condicional — necesario para MIG-05 |
 
-### 3.0 Gate 0 Exit Review ({YYYY-MM-DD})
+#### 2.2.1 Texto original del DF
 
-**Estado:** ⏳ PENDIENTE DE EJECUCIÓN
+> *"No existe mecanismo de feature flags o activación gradual para los contratos de ejecución durable de 18.2. RuntimeSettings existe pero no tiene campos específicos para 18.2."*
+
+#### 2.2.2 Reformulación corregida
+
+No requiere reformulación.
+
+#### 2.2.3 Archivos y documentos auditados
+
+| # | Archivo / Documento | Evidencia extraída |
+|---|---------------------|-------------------|
+| 1 | `runtime/settings.py` | `RuntimeSettings` dataclass frozen con campos: `reconciliation_enabled`, `sweep_interval_seconds`, `sweep_jitter_seconds` |
+| 2 | Grep: `feature_flag`, `ENABLE_`, `TOGGLE`, `os.environ`, `config.get` en `runtime`, `core/utils`, `apps/bootstrap` | Sin resultados relevantes |
+| 3 | `apps/bootstrap/pipeline_factory.py` | Usa `RuntimeSettings` vía inyección desde Composition Root |
+| 4 | `apps/llm_workers/__main__.py` | No hay referencia a `RuntimeSettings`; configuración directa vía `os.getenv` para `GROQ_RPM_LIMIT` y `GROQ_TPM_LIMIT` |
+
+#### 2.2.4 Análisis
+
+**¿La condición original existe?** ✅ Sí. No hay mecanismo de activación para los contratos de 18.2.
+
+**¿Es una violación normativa?** ❌ No. Es una carencia, no una violación. Los contratos de 18.2 aún no están implementados.
+
+**Decisión arquitectónica:**
+- NO inventar sistema de feature flags nuevo (YAGNI).
+- SÍ extender `RuntimeSettings` con campos específicos para 18.2.
+- SÍ mantener inyección desde Composition Root (NADR-11 §5.1 R1).
+- Nota: `__main__.py` usa `os.getenv` directamente para RPM/TPM limits. Esto es coherente con el patrón existente pero debe revisarse para mantener consistencia con `RuntimeSettings`.
+
+#### 2.2.5 Gaps objetivos confirmados
+
+| # | Gap | Evidencia | Severidad |
+|---|-----|-----------|-----------|
+| G1 | Sin campos de activación 18.2 en RuntimeSettings | `settings.py` solo tiene campos de reconciliación | Media |
+| G2 | Uso inconsistente de configuración (os.getenv vs RuntimeSettings) | `__main__.py` usa `os.getenv` para RPM/TPM | Baja |
+
+#### 2.2.6 Lo que NO es un gap
+
+| Aspecto | Veredicto | Justificación |
+|---------|-----------|---------------|
+| RuntimeSettings no tiene campos de observabilidad | ✅ Correcto por diseño | La observabilidad es responsabilidad de NADR-F18-05, no de RuntimeSettings |
+
+#### 2.2.7 Impacto en ejecución durable y recuperación
+
+| Dimensión | ¿Afecta? | Justificación |
+|-----------|----------|---------------|
+| Autoridad de ejecución pre-efecto | ❌ No | No afecta directamente |
+| Clasificación semántica de resultados | ❌ No | No afecta directamente |
+| Idempotencia de aplicación local | ❌ No | No afecta directamente |
+| Coherencia entre planos | ❌ No | No afecta directamente |
+| Observabilidad de duplicación | ❌ No | No afecta directamente |
+| Durabilidad bajo modelo de fallos | ❌ No | No afecta directamente |
+| Bloquea Gate posterior | ⚠️ Condicional | Necesario para MIG-05 (activación controlada) |
+
+#### 2.2.8 Sub-acciones identificadas
+
+| Sub-acción | Descripción | Estado | Scope |
+|------------|-------------|--------|-------|
+| DF-18.2-02-A | Extender RuntimeSettings con campos de activación 18.2 | Pendiente | Gate 1 |
+| DF-18.2-02-B | Revisar uso de os.getenv en __main__.py para consistencia | Pendiente | Gate 1 |
+
+#### 2.2.9 Clasificación consolidada
+
+| Campo | Valor |
+|-------|-------|
+| Condición original existe | ✅ Sí |
+| Es violación arquitectónica | ❌ No |
+| Es violación de gobernanza | ❌ No |
+| Es problema técnico | ✅ Sí |
+| Pertenece a Subfase 18.2 | ✅ Sí |
+| Bloquea ejecución durable | ⚠️ Condicional |
+| Clasificación | `IMPLEMENTATION_REQUIRED` |
+| Prioridad | Media |
+
+#### 2.2.10 Regla aplicada
+
+> **NADR-10 §5.2 R11:**
+> *"La activación de mecanismos del runtime MUST estar gobernada por configuración externa, no por banderas hardcodeadas."*
+
+RuntimeSettings es el mecanismo canónico para esta configuración. Debe extenderse en Gate 1 con campos específicos para 18.2.
+
+---
+
+### 2.3 DF-18.2-03 — Archivos vacíos (deuda técnica potencial)
+
+| Campo | Valor |
+|-------|-------|
+| **ID** | DF-18.2-03 |
+| **Tipo** | Deferred Finding |
+| **Estado** | `REVIEW_REQUIRED` |
+| **Origen** | Wave 0.1 / Task 0.1.2 (auditoría de rutas) |
+| **Gate destino original** | Gate 0 |
+| **Estado previo** | N/A |
+| **Prioridad** | Baja |
+| **¿Requiere implementación?** | No inmediato — requiere análisis |
+| **¿Bloquea ejecución durable?** | No |
+
+#### 2.3.1 Texto original del DF
+
+> *"Archivos vacíos detectados: core/execution/event_log.py (0 bytes), core/execution/invariants.py (0 bytes), core/execution/job_model.py (0 bytes), core/utils/config.py (0 bytes), core/utils/time.py (0 bytes), infra/redis/queues.py (0 bytes), apps/api/server.py (0 bytes). core/execution/constants.py tiene contenido (344 bytes)."*
+
+#### 2.3.2 Reformulación corregida
+
+No requiere reformulación.
+
+#### 2.3.3 Archivos y documentos auditados
+
+| # | Archivo | Tamaño | Evidencia |
+|---|---------|--------|-----------|
+| 1 | `core/execution/event_log.py` | 0 bytes | Vacío. El event journal real está en `infra/db/event_repo.py`. Posible placeholder muerto. |
+| 2 | `core/execution/constants.py` | 344 bytes | Contiene `CURRENT_PROJECTION_VERSION = 1`. Usado por `SyncProviderBridge`. No es deuda. |
+| 3 | `core/execution/invariants.py` | 0 bytes | Vacío. Posible placeholder. |
+| 4 | `core/execution/job_model.py` | 0 bytes | Vacío. El modelo de job está en `core/pipeline/job.py`. Posible placeholder muerto. |
+| 5 | `core/utils/config.py` | 0 bytes | Vacío. Configuración se maneja vía `runtime/settings.py`. Posible placeholder muerto. |
+| 6 | `core/utils/time.py` | 0 bytes | Vacío. Posible placeholder. |
+| 7 | `infra/redis/queues.py` | 0 bytes | Vacío. Coherente con ROADMAP §V: Redis no es arquitectura objetivo. Candidato a eliminación. |
+| 8 | `apps/api/server.py` | 0 bytes | Vacío. API futura/no implementada. |
+
+#### 2.3.4 Análisis
+
+**¿La condición original existe?** ✅ Sí. Los archivos están vacíos.
+
+**¿Es una violación normativa?** ❌ No. Es deuda técnica, no violación.
+
+**¿Cuál es el impacto funcional real?** Ninguno. Los archivos vacíos no afectan la ejecución.
+
+**¿Qué riesgo introducen?** Confusión para futuros desarrolladores. Un archivo vacío llamado `event_log.py` puede confundirse con el event journal real.
+
+**Posibles acciones:**
+1. Eliminar archivos vacíos si son placeholders muertos.
+2. Documentar como "futuro trabajo" si son placeholders intencionales.
+3. Dejar como está si no afectan la implementación de 18.2.
+
+**Recomendación:** Diferir a análisis posterior. No bloquea Gate 0 ni Gates 1-5. `infra/redis/queues.py` es candidato a eliminación inmediata por ser coherente con la decisión de ROADMAP §V (sin Redis).
+
+#### 2.3.5 Gaps objetivos confirmados
+
+| # | Gap | Evidencia | Severidad |
+|---|-----|-----------|-----------|
+| G1 | 7 archivos vacíos sin documentación de propósito | Ver tabla 2.3.3 | Baja |
+
+#### 2.3.6 Lo que NO es un gap
+
+| Aspecto | Veredicto | Justificación |
+|---------|-----------|---------------|
+| `core/execution/constants.py` vacío | ❌ No es gap | Tiene contenido: `CURRENT_PROJECTION_VERSION = 1` |
+| `apps/api/server.py` vacío | ✅ Correcto por diseño | API no está en el alcance de Fase 18 |
+
+#### 2.3.7 Impacto en ejecución durable y recuperación
+
+| Dimensión | ¿Afecta? | Justificación |
+|-----------|----------|---------------|
+| Autoridad de ejecución pre-efecto | ❌ No | No afecta |
+| Clasificación semántica de resultados | ❌ No | No afecta |
+| Idempotencia de aplicación local | ❌ No | No afecta |
+| Coherencia entre planos | ❌ No | No afecta |
+| Observabilidad de duplicación | ❌ No | No afecta |
+| Durabilidad bajo modelo de fallos | ❌ No | No afecta |
+| Bloquea Gate posterior | ❌ No | No bloquea |
+
+#### 2.3.8 Sub-acciones identificadas
+
+| Sub-acción | Descripción | Estado | Scope |
+|------------|-------------|--------|-------|
+| DF-18.2-03-A | Evaluar si archivos vacíos son placeholders intencionales o deuda | Pendiente | Gate 5 o posterior |
+| DF-18.2-03-B | Eliminar `infra/redis/queues.py` (coherente con ROADMAP §V) | Pendiente | Gate 5 o posterior |
+
+#### 2.3.9 Clasificación consolidada
+
+| Campo | Valor |
+|-------|-------|
+| Condición original existe | ✅ Sí |
+| Es violación arquitectónica | ❌ No |
+| Es violación de gobernanza | ❌ No |
+| Es problema técnico | ⚠️ Parcial (deuda técnica) |
+| Pertenece a Subfase 18.2 | ❌ No (no bloquea) |
+| Bloquea ejecución durable | ❌ No |
+| Clasificación | `REVIEW_REQUIRED` |
+| Prioridad | Baja |
+
+#### 2.3.10 Regla aplicada
+
+> **ENGINEERING_PRINCIPLES §I (YAGNI):**
+> *"No se crea un nuevo artefacto a menos que elimine una ambigüedad que esté bloqueando activamente la implementación."*
+
+Los archivos vacíos no bloquean implementación, pero introducen ambigüedad. Deben evaluarse y documentarse o eliminarse.
+
+---
+
+### 2.4 DF-18.2-04 — SyncProviderBridge verifica lease POST-effecto
+
+| Campo | Valor |
+|-------|-------|
+| **ID** | DF-18.2-04 |
+| **Tipo** | Deferred Finding |
+| **Estado** | `IMPLEMENTATION_REQUIRED` |
+| **Origen** | Wave 0.1 / Task 0.1.2 (auditoría de rutas) |
+| **Gate destino original** | Gate 0 |
+| **Estado previo** | N/A |
+| **Prioridad** | Alta |
+| **¿Requiere implementación?** | Sí — Gate 1 Task 1.1.1 |
+| **¿Bloquea ejecución durable?** | Sí — ventana de efecto sin authority verificada |
+
+#### 2.4.1 Texto original del DF
+
+> *"SyncProviderBridge solo verifica lease POST-effecto (línea 328 de __main__.py), no PRE-effecto. Esto viola NADR-F18-03 §5.1 R2 que requiere verificación de vigencia antes de iniciar el efecto externo."*
+
+#### 2.4.2 Reformulación corregida
+
+No requiere reformulación.
+
+#### 2.4.3 Archivos y documentos auditados
+
+| # | Archivo / Documento | Evidencia extraída |
+|---|---------------------|-------------------|
+| 1 | `apps/llm_workers/__main__.py:326` | `raw_response = self.processor.execute(node)` — Efecto externo |
+| 2 | `apps/llm_workers/__main__.py:328` | `if heartbeat.lease_lost.is_set(): raise OptimisticLockError(...)` — Check POST-effecto |
+| 3 | `apps/llm_workers/__main__.py:333` | `self.event.append_wal(...)` — Journal POST-effecto |
+| 4 | `apps/llm_workers/sync_bridge.py` | `SyncProviderBridge.execute()` no tiene verificación de lease. Solo `future.result(timeout=...)`. |
+| 5 | HITO_18.2.2 E-18.2.2-001 | Confirma que el check de lease es POST-EFFECT |
+
+#### 2.4.4 Análisis
+
+**¿La condición original existe?** ✅ Sí. El check de lease ocurre después del efecto externo.
+
+**¿Es una violación normativa?** ✅ Sí.
+
+**NADR violado:**
+- NADR-F18-03 §5.1 R2: *"La autoridad de ejecución MUST ser verificable como vigente antes de iniciar el efecto externo."*
+
+**¿Cuál es el impacto funcional real?**
+- Si el lease expira durante `execute()`, el efecto externo se completa pero se detecta después.
+- Esto es coherente con NADR-F18-03 §5.1 R3 (detectar pérdida, no revertir), pero la verificación debe ser PRE-effecto para prevenir inicio sin authority.
+- La ventana entre `pick_task()` y `execute()` puede ser larga si hay demoras en la construcción del prompt.
+
+**Corrección requerida:**
+- Verificar lease INMEDIATAMENTE antes de `execute(node)`.
+- Si lease no vigente, NO iniciar efecto externo.
+- Clasificar como "no-iniciado" en lugar de "incierto".
+
+#### 2.4.5 Gaps objetivos confirmados
+
+| # | Gap | Evidencia | Severidad |
+|---|-----|-----------|-----------|
+| G1 | Lease check POST-effecto en lugar de PRE-effecto | `__main__.py:326-328` | Alta |
+| G2 | SyncProviderBridge.execute() no verifica lease internamente | `sync_bridge.py` completo | Media |
+
+#### 2.4.6 Lo que NO es un gap
+
+| Aspecto | Veredicto | Justificación |
+|---------|-----------|---------------|
+| Check de lease POST-effecto existe | ✅ Correcto por diseño | NADR-F18-03 §5.1 R3 requiere detección de pérdida. El check post-effecto cumple parcialmente. |
+| OptimisticLockError lanzado tras pérdida | ✅ Correcto por diseño | Previene escrituras obsoletas en SQLite (fencing local). |
+
+#### 2.4.7 Impacto en ejecución durable y recuperación
+
+| Dimensión | ¿Afecta? | Justificación |
+|-----------|----------|---------------|
+| Autoridad de ejecución pre-efecto | ✅ Sí | Verificación POST en lugar de PRE |
+| Clasificación semántica de resultados | ⚠️ Parcial | Si lease expira durante execute, la clasificación es incierta en lugar de no-iniciada |
+| Idempotencia de aplicación local | ❌ No | No afecta directamente |
+| Coherencia entre planos | ❌ No | No afecta directamente |
+| Observabilidad de duplicación | ❌ No | No afecta directamente |
+| Durabilidad bajo modelo de fallos | ❌ No | No afecta directamente |
+| Bloquea Gate posterior | ✅ Sí | Gate 1 Task 1.1.1 debe corregir |
+
+#### 2.4.8 Sub-acciones identificadas
+
+| Sub-acción | Descripción | Estado | Scope |
+|------------|-------------|--------|-------|
+| DF-18.2-04-A | Mover lease check a PRE-effecto en __main__.py | Pendiente | Gate 1 |
+| DF-18.2-04-B | Evaluar si SyncProviderBridge.execute() debe verificar lease internamente | Pendiente | Gate 1 |
+
+#### 2.4.9 Clasificación consolidada
+
+| Campo | Valor |
+|-------|-------|
+| Condición original existe | ✅ Sí |
+| Es violación arquitectónica | ✅ Sí |
+| Es violación de gobernanza | ❌ No |
+| Es problema técnico | ✅ Sí |
+| Pertenece a Subfase 18.2 | ✅ Sí |
+| Bloquea ejecución durable | ✅ Sí |
+| Clasificación | `IMPLEMENTATION_REQUIRED` |
+| Prioridad | Alta |
+
+#### 2.4.10 Regla aplicada
+
+> **NADR-F18-03 §5.1 R2:**
+> *"La autoridad de ejecución MUST ser verificable como vigente antes de iniciar el efecto externo."*
+
+La verificación actual es POST-effecto. Debe moverse a PRE-effecto en Gate 1 Task 1.1.1. El check POST-effecto existente se mantiene como detección de pérdida durante la ejecución (NADR-F18-03 §5.1 R3).
+
+---
+
+### 2.5 GF-18.2-01 — CircuitBreakerProvider envuelve cache
+
+| Campo | Valor |
+|-------|-------|
+| **ID** | GF-18.2-01 |
+| **Tipo** | Governance Finding |
+| **Estado** | `REVIEW_REQUIRED` |
+| **Origen** | Wave 0.1 / Task 0.1.2 (auditoría de rutas) |
+| **Gate destino original** | Gate 0 |
+| **Estado previo** | N/A |
+| **Prioridad** | Media |
+| **¿Requiere implementación?** | No inmediato — requiere análisis de impacto FinOps |
+| **¿Bloquea ejecución durable?** | No |
+
+#### 2.5.1 Texto original del GF
+
+> *"CircuitBreakerProvider envuelve CachedLLMProvider en el provider stack. Si el breaker está abierto, podría impedir servir respuestas cacheadas locales, lo cual tensiona con el objetivo FinOps de reducir llamadas al proveedor."*
+
+#### 2.5.2 Reformulación corregida
+
+No requiere reformulación.
+
+#### 2.5.3 Archivos y documentos auditados
+
+| # | Archivo / Documento | Evidencia extraída |
+|---|---------------------|-------------------|
+| 1 | `apps/bootstrap/provider_stack_factory.py` | Stack: `CircuitBreakerProvider(underlying=provider, breaker=breaker)` donde `provider` es `CachedLLMProvider` o `RateLimitedProvider` |
+| 2 | `apps/bootstrap/provider_stack_factory.py` docstring | "Stack order: CircuitBreaker → Cache → RateLimiter → Provider" y "NADR-08 §5.5: CB antes de RL previene consumo de cuota con circuito abierto" |
+| 3 | `apps/llm_workers/circuit_breaker_provider.py` | Delega al breaker, que decide si llamar al provider |
+
+#### 2.5.4 Análisis
+
+**¿La condición original existe?** ✅ Sí. El CircuitBreaker está fuera del cache en el stack.
+
+**¿Es un conflicto normativo?** ⚠️ Posible tensión entre:
+- NADR-08 §5.2 R7: CircuitBreaker MANDATORY en todas las rutas.
+- NADR-08 §5.5: CB antes de RL previene consumo de cuota con circuito abierto.
+- NADR-F18-05 §5.4: FinOps — respuestas cacheadas locales no deberían consumir cuota del proveedor.
+
+**¿Cuál es el impacto funcional real?**
+- Si el breaker está abierto, las llamadas se rechazan ANTES de consultar el cache.
+- Esto significa que respuestas cacheadas válidas no se sirven cuando el proveedor está caído.
+- Impacto FinOps: se pierde la oportunidad de servir respuestas gratuitas del cache.
+- Impacto de disponibilidad: el sistema falla más de lo necesario.
+
+**¿Es una violación?** ❌ No. El diseño actual es válido según NADR-08 §5.5. Pero hay una tensión con el objetivo FinOps.
+
+**Pregunta de gobernanza:**
+Si el breaker está abierto, ¿debería permitir servir respuestas cacheadas locales?
+
+**Opciones:**
+1. Mantener diseño actual (CB fuera de cache). Cumple NADR-08 §5.5.
+2. Reordenar stack a Cache → CircuitBreaker → RateLimiter → Provider. Permite cache hits con breaker abierto.
+3. Añadir lógica condicional: si cache hit, servir sin pasar por breaker.
+
+**Recomendación:** Analizar en Gate 3 (Observabilidad & FinOps) con datos de impacto reales. No decidir en Gate 0.
+
+#### 2.5.5 Gaps objetivos confirmados
+
+| # | Gap | Evidencia | Severidad |
+|---|-----|-----------|-----------|
+| G1 | Posible pérdida de respuestas cacheadas con breaker abierto | `provider_stack_factory.py` stack order | Media |
+
+#### 2.5.6 Lo que NO es un gap
+
+| Aspecto | Veredicto | Justificación |
+|---------|-----------|---------------|
+| CircuitBreaker está presente en el stack | ✅ Correcto por diseño | NADR-08 §5.2 R7 lo requiere |
+| CircuitBreaker previene consumo de cuota con circuito abierto | ✅ Correcto por diseño | NADR-08 §5.5 lo justifica |
+
+#### 2.5.7 Impacto en ejecución durable y recuperación
+
+| Dimensión | ¿Afecta? | Justificación |
+|-----------|----------|---------------|
+| Autoridad de ejecución pre-efecto | ❌ No | No afecta |
+| Clasificación semántica de resultados | ❌ No | No afecta |
+| Idempotencia de aplicación local | ❌ No | No afecta |
+| Coherencia entre planos | ❌ No | No afecta |
+| Observabilidad de duplicación | ❌ No | No afecta |
+| Durabilidad bajo modelo de fallos | ❌ No | No afecta |
+| Bloquea Gate posterior | ❌ No | Análisis en Gate 3 |
+
+#### 2.5.8 Sub-acciones identificadas
+
+| Sub-acción | Descripción | Estado | Scope |
+|------------|-------------|--------|-------|
+| GF-18.2-01-A | Analizar impacto FinOps de respuestas cacheadas perdidas con breaker abierto | Pendiente | Gate 3 |
+| GF-18.2-01-B | Evaluar reordenamiento del stack (Cache → CB → RL → Provider) | Pendiente | Gate 3 |
+
+#### 2.5.9 Clasificación consolidada
+
+| Campo | Valor |
+|-------|-------|
+| Condición original existe | ✅ Sí |
+| Es violación arquitectónica | ❌ No (diseño actual es válido) |
+| Es violación de gobernanza | ⚠️ Posible tensión entre NADRs |
+| Es problema técnico | ❌ No |
+| Pertenece a Subfase 18.2 | ✅ Sí (análisis FinOps) |
+| Bloquea ejecución durable | ❌ No |
+| Clasificación | `REVIEW_REQUIRED` |
+| Prioridad | Media |
+
+#### 2.5.10 Regla aplicada
+
+> **NADR-08 §5.5:**
+> *"CB antes de RL previene consumo de cuota con circuito abierto."*
+
+> **NADR-F18-05 §5.4 R12:**
+> *"Los costes derivados de efectos externos MUST distinguirse explícitamente en tres categorías: coste observado o facturado, coste estimado, y exposición económica potencial no confirmada."*
+
+La tensión entre ambas reglas debe resolverse con análisis de impacto FinOps en Gate 3. No es una violación, sino una oportunidad de optimización.
+
+---
+
+### 3.0 Gate 0 Exit Review (2026-10-10)
+
+**Estado:** ✅ COMPLETED
 
 **Gate 0 — Baseline & Contract Readiness**
 - Wave 0.1: Rule & Evidence Mapping (Tasks 0.1.1, 0.1.2, 0.1.3)
@@ -280,93 +707,23 @@ reformular con precisión. Si no aplica, indicar
 
 **Árbol de decisión aplicado:**
 
-| DF | ¿Válido? | ¿Resoluble? | ¿Técnico? | Decisión | Motivo |
-|----|----------|-------------|-----------|----------|--------|
-| — | — | — | — | — | Sin hallazgos aún |
+| DF | ¿Válido? | ¿Resoluble en Gate 0? | ¿Técnico? | Decisión | Motivo |
+|----|----------|----------------------|-----------|----------|--------|
+| DF-18.2-01 | ✅ Sí | ❌ No | ✅ Sí | IMPLEMENTATION_REQUIRED | AsyncDispatcher sin gobernanza. Gate 1. |
+| DF-18.2-02 | ✅ Sí | ❌ No | ✅ Sí | IMPLEMENTATION_REQUIRED | Sin mecanismo de activación. Gate 1. |
+| DF-18.2-03 | ✅ Sí | ⚠️ Parcial | ✅ Sí | REVIEW_REQUIRED | Archivos vacíos. No bloquea. |
+| DF-18.2-04 | ✅ Sí | ❌ No | ✅ Sí | IMPLEMENTATION_REQUIRED | Lease check POST-effecto. Gate 1. |
+| GF-18.2-01 | ✅ Sí | ❌ No | ❌ No | REVIEW_REQUIRED | CB envuelve cache. Gate 3. |
 
 **Resumen:**
 - RESOLVED: 0
-- RECLASIFICADO → Gate posterior: 0
+- IMPLEMENTATION_REQUIRED: 3 (DF-18.2-01, DF-18.2-02, DF-18.2-04)
+- REVIEW_REQUIRED: 2 (DF-18.2-03, GF-18.2-01)
 - CLOSED (NAR): 0
-- CONVERTIDO EN GF: 0
+- CONVERTIDO EN GF: 1 (GF-18.2-01)
 - ESCALATED_TO_BOARD: 0
 - DEFERRED_CONDITIONAL: 0
-- Nuevos hallazgos registrados: 0
-
----
-
-### 3.1 Gate 1 Exit Review ({YYYY-MM-DD})
-
-**Estado:** ⏳ PENDIENTE DE EJECUCIÓN
-
-**Gate 1 — Execution Authority & Conservative Recovery**
-- Wave 1.1: Pre-effect Authority (Tasks 1.1.1, 1.1.2, 1.1.3)
-- Wave 1.2: Conservative Reconciliation (Tasks 1.2.1, 1.2.2, 1.2.3, 1.2.4, 1.2.5)
-
-**Árbol de decisión aplicado:**
-
-| DF | ¿Válido? | ¿Resoluble? | ¿Técnico? | Decisión | Motivo |
-|----|----------|-------------|-----------|----------|--------|
-| — | — | — | — | — | Sin hallazgos aún |
-
-**Resumen:**
-- RESOLVED: 0
-- RECLASIFICADO → Gate posterior: 0
-- CLOSED (NAR): 0
-- CONVERTIDO EN GF: 0
-- ESCALATED_TO_BOARD: 0
-- DEFERRED_CONDITIONAL: 0
-- Nuevos hallazgos registrados: 0
-
----
-
-### 3.2 Gate 2 Exit Review ({YYYY-MM-DD})
-
-**Estado:** ⏳ PENDIENTE DE EJECUCIÓN
-
-**Gate 2 — Durable Local Apply & Recovery**
-- Wave 2.1: Durability & Idempotent Apply (Tasks 2.1.1, 2.1.2, 2.1.3)
-- Wave 2.2: Recovery Convergence (Tasks 2.2.1, 2.2.2, 2.2.3, 2.2.4)
-
-**Árbol de decisión aplicado:**
-
-| DF | ¿Válido? | ¿Resoluble? | ¿Técnico? | Decisión | Motivo |
-|----|----------|-------------|-----------|----------|--------|
-| — | — | — | — | — | Sin hallazgos aún |
-
-**Resumen:**
-- RESOLVED: 0
-- RECLASIFICADO → Gate posterior: 0
-- CLOSED (NAR): 0
-- CONVERTIDO EN GF: 0
-- ESCALATED_TO_BOARD: 0
-- DEFERRED_CONDITIONAL: 0
-- Nuevos hallazgos registrados: 0
-
----
-
-### 3.3 Gate 3 Exit Review ({YYYY-MM-DD})
-
-**Estado:** ⏳ PENDIENTE DE EJECUCIÓN
-
-**Gate 3 — Exposure Observability & FinOps**
-- Wave 3.1: Correlation & Evidence (Tasks 3.1.1, 3.1.2)
-- Wave 3.2: Measurement & Financial Exposure (Tasks 3.2.1, 3.2.2, 3.2.3)
-
-**Árbol de decisión aplicado:**
-
-| DF | ¿Válido? | ¿Resoluble? | ¿Técnico? | Decisión | Motivo |
-|----|----------|-------------|-----------|----------|--------|
-| — | — | — | — | — | Sin hallazgos aún |
-
-**Resumen:**
-- RESOLVED: 0
-- RECLASIFICADO → Gate posterior: 0
-- CLOSED (NAR): 0
-- CONVERTIDO EN GF: 0
-- ESCALATED_TO_BOARD: 0
-- DEFERRED_CONDITIONAL: 0
-- Nuevos hallazgos registrados: 0
+- Nuevos hallazgos registrados: 5
 
 ---
 
@@ -435,9 +792,9 @@ reformular con precisión. Si no aplica, indicar
 | `RESOLVED — REFACTORED` | 0 | — |
 | `RESOLVED — FACTORY EXTRACTION` | 0 | — |
 | `RESOLVED` | 0 | — |
-| `IMPLEMENTATION_REQUIRED` | 0 | — |
+| `IMPLEMENTATION_REQUIRED` | 3 | DF-18.2-01, DF-18.2-02, DF-18.2-04 |
 | `RECLASSIFIED_FUTURE_PHASE` | 0 | — |
-| `REVIEW_REQUIRED` | 0 | — |
+| `REVIEW_REQUIRED` | 2 | DF-18.2-03, GF-18.2-01 |
 | `ACCEPTED_LIMITATION` | 0 | — |
 | `DEFERRED_CONDITIONAL` | 0 | — |
 | `ESCALATED_TO_BOARD` | 0 | — |
@@ -446,7 +803,11 @@ reformular con precisión. Si no aplica, indicar
 
 | DF | Estado | Decisión |
 |----|--------|----------|
-| — | — | Sin hallazgos aún |
+| DF-18.2-01 | `IMPLEMENTATION_REQUIRED` | AsyncDispatcher requiere authority, lease check y journal. Gate 1 Task 1.1.1. |
+| DF-18.2-02 | `IMPLEMENTATION_REQUIRED` | Extender RuntimeSettings con campos de activación 18.2. Gate 1 Task 1.1.1. |
+| DF-18.2-03 | `REVIEW_REQUIRED` | Archivos vacíos: evaluar si son placeholders intencionales o deuda técnica. No bloquea. |
+| DF-18.2-04 | `IMPLEMENTATION_REQUIRED` | Mover lease check a PRE-effecto en SyncProviderBridge. Gate 1 Task 1.1.1. |
+| GF-18.2-01 | `REVIEW_REQUIRED` | CircuitBreaker envuelve cache: analizar impacto FinOps en Gate 3. Posible reordenamiento del stack. |
 
 ---
 
@@ -456,16 +817,18 @@ reformular con precisión. Si no aplica, indicar
 
 El documento se considera cerrado (`FROZEN`) cuando:
 
-- [ ] Todos los hallazgos del Execution Plan tienen evidencia forense registrada
-- [ ] Ningún hallazgo está en estado `PENDING_REVIEW`
+- [x] Todos los hallazgos del Execution Plan tienen evidencia forense registrada
+- [x] Ningún hallazgo está en estado `PENDING_REVIEW`
 - [ ] La tabla consolidada final está completa
-- [ ] Cada clasificación tiene al menos una regla normativa aplicada
+- [x] Cada clasificación tiene al menos una regla normativa aplicada
 - [ ] Los hallazgos `RECLASSIFIED_FUTURE_PHASE` tienen destino explícito
 - [ ] Los hallazgos `REVIEW_REQUIRED` tienen plan de reevaluación
 - [ ] Los hallazgos `DEFERRED_CONDITIONAL` (DF-24, DF-34) tienen disposición documentada
 - [ ] Los hallazgos `ESCALATED_TO_BOARD` tienen resolución formal del Architecture Board
 - [ ] Todos los Gates (0-5) están en estado COMPLETED
 - [ ] El Findings Register está ARCHIVED
+
+**Progreso:** Gate 0 completado. 5/5 findings con evidencia forense registrada. Gates 1-5 pendientes.
 
 ### 5.2 Relación con el Findings Register
 
