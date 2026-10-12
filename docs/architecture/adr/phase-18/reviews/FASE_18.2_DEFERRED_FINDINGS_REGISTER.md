@@ -1,11 +1,11 @@
 # FASE_18.2_DEFERRED_FINDINGS_REGISTER.md
 
 **Documento:** `docs/architecture/adr/phase-18/reviews/FASE_18.2_DEFERRED_FINDINGS_REGISTER.md`
-**Versión:** 1.0.0
+**Versión:** 1.0.1
 **Estado:** IN_PROGRESS
 **Fecha de creación:** 2026-10-10
 **Última actualización:** 2026-10-10
-**Derivado de:** `PHASE_18.2_EXECUTION_PLAN.md` v1.2.1
+**Derivado de:** `PHASE_18.2_EXECUTION_PLAN.md` v1.2.2
 **Propósito:** Registro auditable de hallazgos identificados durante la implementación
 del Execution Plan de la Subfase 18.2 (Durable Execution & Recovery), su clasificación,
 resolución y evidencia empírica de los batches.
@@ -16,15 +16,13 @@ resolución y evidencia empírica de los batches.
 
 ### 0.1 Jerarquía normativa aplicada
 
-```text
 ADR_F18_MASTER v1.0.0 FROZEN
     ↓
 ADR_F18.2 v3.3.0 FROZEN
     ↓
-NADR-F18-03 v1.2.0 FROZEN | NADR-F18-04 v1.1.1 FROZEN | NADR-F18-05 v1.3.0 FROZEN
+NADR-F18-03 v1.1.0 FROZEN | NADR-F18-04 v1.1.1 FROZEN | NADR-F18-05 v1.3.0 FROZEN
     ↓
-PHASE_18.2_EXECUTION_PLAN v1.2.1
-```
+PHASE_18.2_EXECUTION_PLAN v1.2.2
 
 > *"No lower governance level is authorized to redefine or contradict
 > decisions established by an upper level."*
@@ -123,9 +121,9 @@ PHASE_18.2_EXECUTION_PLAN v1.2.1
 
 {Se agregan dinámicamente conforme se ejecutan los gates.}
 
-### 2.0 Gate 0 Exit Review ({YYYY-MM-DD})
+### 2.0 Gate 0 Exit Review (2026-10-10)
 
-**Estado:** ⏳ PENDIENTE DE EJECUCIÓN
+**Estado:** ✅ COMPLETED
 
 **Gate 0 — Baseline & Contract Readiness**
 - Wave 0.1: Rule & Evidence Mapping (Tasks 0.1.1, 0.1.2, 0.1.3)
@@ -140,23 +138,48 @@ PHASE_18.2_EXECUTION_PLAN v1.2.1
 4. ¿Es un conflicto normativo? → SÍ: CONVERTIDO EN GF
 ```
 
-| DF | ¿Válido? | ¿Resoluble? | ¿Técnico? | Decisión | Motivo |
-|----|----------|-------------|-----------|----------|--------|
-| — | — | — | — | — | Sin hallazgos aún |
+| DF | ¿Válido? | ¿Resoluble en Gate 0? | ¿Técnico? | Decisión | Motivo |
+|----|----------|----------------------|-----------|----------|--------|
+| DF-18.2-01 | ✅ Sí | ❌ No | ✅ Sí | IMPLEMENTATION_REQUIRED | AsyncDispatcher carece de authority/lease/journal. Requiere Gate 1. |
+| DF-18.2-02 | ✅ Sí | ❌ No | ✅ Sí | IMPLEMENTATION_REQUIRED | Sin mecanismo de activación para contratos 18.2. Requiere Gate 1. |
+| DF-18.2-03 | ✅ Sí | ⚠️ Parcial | ✅ Sí | REVIEW_REQUIRED | Archivos vacíos son deuda técnica potencial. No bloquea Gates 1-5. |
+| DF-18.2-04 | ✅ Sí | ❌ No | ✅ Sí | IMPLEMENTATION_REQUIRED | SyncProviderBridge verifica lease POST-effecto. Requiere Gate 1. |
+| GF-18.2-01 | ✅ Sí | ❌ No | ❌ No | REVIEW_REQUIRED | Tensión normativa entre NADR-08 §5.2 R7 y NADR-F18-05 §5.4. Análisis en Gate 3. |
 
 **Resumen:**
 - RESOLVED: 0
-- RECLASIFICADO → Gate posterior: 0
+- IMPLEMENTATION_REQUIRED: 3 (DF-18.2-01, DF-18.2-02, DF-18.2-04)
+- REVIEW_REQUIRED: 2 (DF-18.2-03, GF-18.2-01)
 - CLOSED (NAR): 0
-- CONVERTIDO EN GF: 0
-- Nuevos hallazgos registrados: 0
+- CONVERTIDO EN GF: 1 (GF-18.2-01)
+- Nuevos hallazgos registrados: 5
 - Revisiones tardías documentadas: 0
 
 #### Hallazgos identificados en Gate 0
 
 | ID | Hallazgo | Clasificación | Acción |
 |----|----------|---------------|--------|
-| — | — | — | Sin hallazgos aún |
+| DF-18.2-01 | AsyncDispatcher (Ruta 2) carece de authority pre-effecto, lease check y journal post-effecto | IMPLEMENTATION_REQUIRED | Gate 1 Task 1.1.1 |
+| DF-18.2-02 | No existe mecanismo de activación por configuración para contratos 18.2 | IMPLEMENTATION_REQUIRED | Gate 1 Task 1.1.1 (extender RuntimeSettings) |
+| DF-18.2-03 | Archivos vacíos: event_log.py, invariants.py, job_model.py, config.py, time.py, redis/queues.py, api/server.py | REVIEW_REQUIRED | Evaluar si son placeholders o deuda técnica |
+| DF-18.2-04 | SyncProviderBridge solo verifica lease POST-effecto (línea 328), no PRE-effecto | IMPLEMENTATION_REQUIRED | Gate 1 Task 1.1.1 |
+| GF-18.2-01 | CircuitBreakerProvider envuelve CachedLLMProvider; breaker abierto podría impedir respuestas cacheadas locales | REVIEW_REQUIRED | Análisis en Gate 3 (FinOps) |
+
+#### Decisiones arquitectónicas congeladas en Gate 0
+
+| Decisión | Task | Justificación |
+|----------|------|---------------|
+| Extender RuntimeSettings con campos de activación 18.2 | 1.1.1 | NADR-10 §5.2 R11: activación gobernada por configuración externa. NADR-11 §5.1 R1: inyección desde Composition Root. |
+| AsyncDispatcher requiere misma gobernanza que SyncProviderBridge | 1.1.1 | NADR-F18-03 §5.1 R1: toda ejecución de efecto externo requiere authority recuperable. |
+| Lease check debe ser PRE-effecto, no solo POST-effecto | 1.1.1 | NADR-F18-03 §5.1 R2: verificación de vigencia antes de iniciar efecto externo. |
+| FASE_18.2_RULE_TASK_MAPPING.md eliminado por duplicación | 0.1.1 | ENGINEERING_PRINCIPLES §I (YAGNI): la información ya está en Execution Plan §7. |
+
+#### Lecciones aprendidas
+
+- Los greps iniciales fueron screening útil pero no suficientes para auditoría de rutas de ejecución. Se requirió revisión profunda de `provider_stack_factory.py`, `sync_bridge.py`, `dispatcher.py` y `pipeline_factory.py`.
+- La dualidad de modelos de ejecución (SyncProviderBridge vs AsyncDispatcher) no estaba documentada en los HITOs previos. Es un hallazgo de Gate 0.
+- `RuntimeSettings` es el mecanismo canónico de configuración. No inventar feature flags nuevos (YAGNI).
+- El documento de mapeo Rule → Task fue útil como herramienta de detección de errores de numeración, pero como artefacto persistente duplica el §7 del Execution Plan. Se eliminó para evitar sobreingeniería documental.
 
 ---
 
@@ -374,9 +397,9 @@ Se actualiza al cierre del último Gate Exit Review.
 | `RESOLVED — REFACTORED` | 0 | — |
 | `RESOLVED — FACTORY EXTRACTION` | 0 | — |
 | `RESOLVED` | 0 | — |
-| `IMPLEMENTATION_REQUIRED` | 0 | — |
+| `IMPLEMENTATION_REQUIRED` | 3 | DF-18.2-01, DF-18.2-02, DF-18.2-04 |
 | `RECLASSIFIED_FUTURE_PHASE` | 0 | — |
-| `REVIEW_REQUIRED` | 0 | — |
+| `REVIEW_REQUIRED` | 2 | DF-18.2-03, GF-18.2-01 |
 | `ACCEPTED_LIMITATION` | 0 | — |
 | `DEFERRED_CONDITIONAL` | 0 | — |
 | `ESCALATED_TO_BOARD` | 0 | — |
@@ -385,7 +408,11 @@ Se actualiza al cierre del último Gate Exit Review.
 
 | DF | Estado | Decisión |
 |----|--------|----------|
-| — | — | Sin hallazgos aún |
+| DF-18.2-01 | `IMPLEMENTATION_REQUIRED` | AsyncDispatcher requiere authority, lease check y journal. Gate 1 Task 1.1.1. |
+| DF-18.2-02 | `IMPLEMENTATION_REQUIRED` | Extender RuntimeSettings con campos de activación 18.2. Gate 1 Task 1.1.1. |
+| DF-18.2-03 | `REVIEW_REQUIRED` | Archivos vacíos: evaluar si son placeholders intencionales o deuda técnica. No bloquea. |
+| DF-18.2-04 | `IMPLEMENTATION_REQUIRED` | Mover lease check a PRE-effecto en SyncProviderBridge. Gate 1 Task 1.1.1. |
+| GF-18.2-01 | `REVIEW_REQUIRED` | CircuitBreaker envuelve cache: analizar impacto FinOps en Gate 3. Posible reordenamiento del stack. |
 
 ---
 
@@ -444,20 +471,20 @@ Se actualiza al cierre de cada batch.
 
 | Métrica | Valor |
 |---------|-------|
-| Total de hallazgos analizados | 0 |
+| Total de hallazgos analizados | 5 |
 | Hallazgos resueltos | 0 |
 | Hallazgos cerrados sin acción | 0 |
 | Hallazgos reclasificados a fase futura | 0 |
-| Hallazgos pendientes de implementación | 0 |
-| Hallazgos pendientes de revisión | 0 |
+| Hallazgos pendientes de implementación | 3 |
+| Hallazgos pendientes de revisión | 2 |
 | Hallazgos diferidos condicionados | 0 |
 | Hallazgos escalados al Board | 0 |
 | Batches completados | 0 |
-| Archivos eliminados totales | 0 |
+| Archivos eliminados totales | 1 (FASE_18.2_RULE_TASK_MAPPING.md) |
 | Archivos movidos totales | 0 |
-| Archivos creados totales | 0 |
-| Tests finales | {baseline: 854 passed} |
-| Pyright final | {baseline: 0 errors} |
+| Archivos creados totales | 1 (FASE_18.2_FAILURE_SCENARIO_MATRIX.md) |
+| Tests finales | 992 passed, 5 skipped (baseline: 854 → 992) |
+| Pyright final | 0 errors, 0 warnings |
 
 ---
 
@@ -498,15 +525,15 @@ El documento se considera cerrado (`ARCHIVED`) cuando:
 
 | Categoría | Cantidad |
 |-----------|----------|
-| Total de hallazgos analizados | 0 |
+| Total de hallazgos analizados | 5 |
 | Hallazgos resueltos | 0 |
-| Hallazgos pendientes de implementación | 0 |
-| Hallazgos pendientes de revisión | 0 |
+| Hallazgos pendientes de implementación | 3 |
+| Hallazgos pendientes de revisión | 2 |
 | Hallazgos cerrados sin acción | 0 |
 | Hallazgos diferidos condicionados | 0 |
 | Hallazgos escalados al Board | 0 |
 | Batches completados | 0/{Total} |
-| Estado del Exit Review | ⏳ NOT STARTED |
+| Estado del Exit Review | 🟡 IN PROGRESS (Gate 0 completado) |
 
 ---
 
