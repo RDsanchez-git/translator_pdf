@@ -1,11 +1,11 @@
 # FASE_18.2_DEFERRED_FINDINGS_REGISTER.md
 
 **Documento:** `docs/architecture/adr/phase-18/reviews/FASE_18.2_DEFERRED_FINDINGS_REGISTER.md`
-**Versión:** 1.0.1
+**Versión:** 1.0.2
 **Estado:** IN_PROGRESS
 **Fecha de creación:** 2026-10-10
 **Última actualización:** 2026-10-10
-**Derivado de:** `PHASE_18.2_EXECUTION_PLAN.md` v1.2.2
+**Derivado de:** `PHASE_18.2_EXECUTION_PLAN.md` v1.2.3
 **Propósito:** Registro auditable de hallazgos identificados durante la implementación
 del Execution Plan de la Subfase 18.2 (Durable Execution & Recovery), su clasificación,
 resolución y evidencia empírica de los batches.
@@ -396,8 +396,8 @@ Se actualiza al cierre del último Gate Exit Review.
 | `RESOLVED — MOVE` | 0 | — |
 | `RESOLVED — REFACTORED` | 0 | — |
 | `RESOLVED — FACTORY EXTRACTION` | 0 | — |
-| `RESOLVED` | 0 | — |
-| `IMPLEMENTATION_REQUIRED` | 3 | DF-18.2-01, DF-18.2-02, DF-18.2-04 |
+| `RESOLVED` | 3 | DF-18.2-01, DF-18.2-02, DF-18.2-04 |
+| `IMPLEMENTATION_REQUIRED` | 0 | — |
 | `RECLASSIFIED_FUTURE_PHASE` | 0 | — |
 | `REVIEW_REQUIRED` | 2 | DF-18.2-03, GF-18.2-01 |
 | `ACCEPTED_LIMITATION` | 0 | — |
@@ -408,60 +408,77 @@ Se actualiza al cierre del último Gate Exit Review.
 
 | DF | Estado | Decisión |
 |----|--------|----------|
-| DF-18.2-01 | `IMPLEMENTATION_REQUIRED` | AsyncDispatcher requiere authority, lease check y journal. Gate 1 Task 1.1.1. |
-| DF-18.2-02 | `IMPLEMENTATION_REQUIRED` | Extender RuntimeSettings con campos de activación 18.2. Gate 1 Task 1.1.1. |
+| DF-18.2-01 | `RESOLVED` | AsyncDispatcher con authority, journal y replay check. Evidencia: EventPlanePort inyectado, execution_id generado, append_wal post-efecto, get_replay pre-efecto. Verificado con 1009 tests + Pyright 0 errors. |
+| DF-18.2-02 | `RESOLVED` | RuntimeSettings extendido con conservative_recovery_enabled, semantic_classification_enabled, stratified_observability_enabled. Inyección desde Composition Root (NADR-10 §5.2 R11). |
 | DF-18.2-03 | `REVIEW_REQUIRED` | Archivos vacíos: evaluar si son placeholders intencionales o deuda técnica. No bloquea. |
-| DF-18.2-04 | `IMPLEMENTATION_REQUIRED` | Mover lease check a PRE-effecto en SyncProviderBridge. Gate 1 Task 1.1.1. |
+| DF-18.2-04 | `RESOLVED` | Lease check movido a PRE-effecto con is_lease_viable (margen 30s). mark_task_completed con doble fencing (lease + state_version). Manejo explícito de OptimisticLockError post-completado. |
 | GF-18.2-01 | `REVIEW_REQUIRED` | CircuitBreaker envuelve cache: analizar impacto FinOps en Gate 3. Posible reordenamiento del stack. |
 
 ---
 
 ## 4. RESULTADOS DE IMPLEMENTACIÓN POR BATCH
 
-{Se agregan dinámicamente conforme se ejecutan los batches.}
+### 4.1 BATCH 1 — Wave 1.1 Pre-effect Authority (COMPLETADO)
 
-### 4.1 BATCH 1 — {NOMBRE DEL BATCH} ({Completado/Pendiente})
-
-**Fecha de ejecución:** {YYYY-MM-DD}
-**Validación:** Pyright {N} errors | pytest {X} passed, {Y} skipped
+**Fecha de ejecución:** 2026-10-10
+**Validación:** Pyright 0 errors | pytest 1009 passed, 5 skipped | import-linter 4/4 KEPT
 
 | DF ID | Estado Final | Acción Ejecutada | Archivos Afectados | Validación |
 |-------|--------------|------------------|-------------------|------------|
-| — | — | — | — | Sin batches aún |
+| DF-18.2-01 | `RESOLVED` | AsyncDispatcher: EventPlanePort inyectado, execution_id + append_wal post-efecto, get_replay pre-efecto, NullEventPlane para benchmarks | apps/llm_workers/dispatcher.py, apps/bootstrap/pipeline_factory.py, core/pipeline/orchestrator.py, apps/benchmark/runners/gemini_runner.py, apps/benchmark/runners/groq_runner.py, tests/helpers/fakes.py, 6 archivos de tests | 1009 tests passed |
+| DF-18.2-02 | `RESOLVED` | RuntimeSettings extendido con 3 campos de activación 18.2 | runtime/settings.py | Pyright 0 errors |
+| DF-18.2-04 | `RESOLVED` | TaskLeaseHeartbeat: is_lease_viable + _lease_lock + _lease_expires_at. mark_task_completed con doble fencing. abandon_execution corregido. Manejo OptimisticLockError post-completado | apps/llm_workers/__main__.py, infra/db/control_repo.py, core/execution/ports.py | 1009 tests passed |
+| (Task 1.1.3) | — | Clasificación semántica implementada (no es un DF, es tarea normativa) | core/execution/semantic_classification.py (NUEVO), core/execution/ports.py, infra/db/event_repo.py, tests/unit/test_semantic_classification.py (NUEVO) | 17 tests nuevos passed |
 
 #### Correcciones adicionales durante ejecución
 
-- {pendiente de completar}
+- `EventRecord` movido de `infra/db/event_repo.py` a `core/execution/ports.py` (arquitectura hexagonal: tipos de retorno de puertos en core).
+- `NullEventPlane.get_latest_event()` implementado tras extensión del protocolo `EventPlanePort` (8 errores de Pyright resueltos).
+- `FakeDispatcher` actualizado con parámetros `document_id` y `ast_hash` por defecto para compatibilidad con tests existentes.
+- `InferenceResult` requiere campo `chunk_id` (descubierto durante implementación de replay en Task 1.1.1).
 
 #### Hallazgos registrados durante el batch
 
 | ID | Hallazgo | Clasificación | Acción |
 |----|----------|---------------|--------|
-| — | — | — | Sin hallazgos aún |
+| — | — | — | Sin hallazgos nuevos |
 
 #### Cambios normativos aplicados
 
 | NADR | Regla | Cómo se cumple |
 |------|-------|----------------|
-| — | — | {pendiente de completar} |
+| NADR-F18-03 | §5.1 R1 | EventPlanePort inyectado, execution_id generado pre-efecto, append_wal post-efecto |
+| NADR-F18-03 | §5.1 R2 | is_lease_viable con margen 30s, verificación PRE-effecto |
+| NADR-F18-03 | §5.1 R3 | mark_task_completed con doble fencing (lease + state_version) |
+| NADR-F18-03 | §5.1 R4 | execution_id separa identidad de intento de identidad científica |
+| NADR-F18-03 | §5.2 R5 | ExternalEffectKind Literal (sin enum físico) |
+| NADR-F18-03 | §5.2 R6 | CONFIRMED derivado de evento GENERATED |
+| NADR-F18-03 | §5.2 R7 | NOT_STARTED solo con PENDING |
+| NADR-F18-03 | §5.2 R8 | UNCERTAIN como default conservador |
+| NADR-F18-04 | §5.2 R5 (parcial) | Replay check implementado; property tests pendientes en Task 2.1.2 |
 
 #### Decisiones de diseño clave
 
 | Decisión | Justificación | Alternativas rechazadas |
 |----------|---------------|------------------------|
-| — | — | {pendiente de completar} |
+| Worker-level replay check (no batch filtering) | Consistente con LLMWorkerDaemon, overhead <0.05%, respeta índices de BD | Batch filtering en dispatch(): over-engineering, duplica lógica, acopla a document_id |
+| Función derivada pura para clasificación (Opción A) | NADR-F18-03 §5.2 "sin enums físicos", NADR-F18-05 §5.5 R13 sin fuentes paralelas | Enum físico: viola NADR. Persistencia en journal: redundancia |
+| mark_task_failed NO implementado (YAGNI) | abandon_execution ya maneja retry vs fail terminal vía max_retries | Método separado: duplicación de funcionalidad |
+| upsert_projection sin logging de rowcount | Idempotencia por versión monotónica correcta por diseño, rowcount ambiguo en SQLite | Logging + excepción: violaría idempotencia, falsos positivos |
+| EventRecord movido a core/execution/ports.py | Hexagonal: tipos de retorno de puertos en dominio | Mantener en infra: violación de dependencia |
+| NullEventPlane.get_latest_event() retorna None | Semántica epistemológica: no afirma ausencia de efecto, afirma ausencia de plano | Retornar excepción: incorrecto para tests/benchmarks |
 
 #### Métricas post-batch
 
 | Métrica | Valor |
 |---------|-------|
-| Archivos creados | {N} |
-| Archivos modificados | {N} |
-| Archivos eliminados | {N} |
-| Archivos movidos | {N} |
-| Imports corregidos | {N} |
-| Tests ejecutados | {X} passed, {Y} skipped |
-| Errores de tipo estático | {N} |
+| Archivos creados | 2 (semantic_classification.py, test_semantic_classification.py) |
+| Archivos modificados | 20 |
+| Archivos eliminados | 0 |
+| Archivos movidos | 1 (EventRecord: infra → core) |
+| Imports corregidos | 12 |
+| Tests ejecutados | 1009 passed, 5 skipped (+17 nuevos) |
+| Errores de tipo estático | 0 |
 
 ---
 
@@ -472,18 +489,18 @@ Se actualiza al cierre de cada batch.
 | Métrica | Valor |
 |---------|-------|
 | Total de hallazgos analizados | 5 |
-| Hallazgos resueltos | 0 |
+| Hallazgos resueltos | 3 |
 | Hallazgos cerrados sin acción | 0 |
 | Hallazgos reclasificados a fase futura | 0 |
-| Hallazgos pendientes de implementación | 3 |
+| Hallazgos pendientes de implementación | 0 |
 | Hallazgos pendientes de revisión | 2 |
 | Hallazgos diferidos condicionados | 0 |
 | Hallazgos escalados al Board | 0 |
-| Batches completados | 0 |
+| Batches completados | 1 |
 | Archivos eliminados totales | 1 (FASE_18.2_RULE_TASK_MAPPING.md) |
-| Archivos movidos totales | 0 |
-| Archivos creados totales | 1 (FASE_18.2_FAILURE_SCENARIO_MATRIX.md) |
-| Tests finales | 992 passed, 5 skipped (baseline: 854 → 992) |
+| Archivos movidos totales | 1 (EventRecord: infra → core) |
+| Archivos creados totales | 3 (FASE_18.2_FAILURE_SCENARIO_MATRIX.md, semantic_classification.py, test_semantic_classification.py) |
+| Tests finales | 1009 passed, 5 skipped (baseline: 854 → 992 → 1009) |
 | Pyright final | 0 errors, 0 warnings |
 
 ---
@@ -526,14 +543,14 @@ El documento se considera cerrado (`ARCHIVED`) cuando:
 | Categoría | Cantidad |
 |-----------|----------|
 | Total de hallazgos analizados | 5 |
-| Hallazgos resueltos | 0 |
-| Hallazgos pendientes de implementación | 3 |
+| Hallazgos resueltos | 3 |
+| Hallazgos pendientes de implementación | 0 |
 | Hallazgos pendientes de revisión | 2 |
 | Hallazgos cerrados sin acción | 0 |
 | Hallazgos diferidos condicionados | 0 |
 | Hallazgos escalados al Board | 0 |
-| Batches completados | 0/{Total} |
-| Estado del Exit Review | 🟡 IN PROGRESS (Gate 0 completado) |
+| Batches completados | 1/6 (estimado) |
+| Estado del Exit Review | 🟡 IN PROGRESS (Gate 0 completado, Gate 1 Wave 1.1 completada) |
 
 ---
 

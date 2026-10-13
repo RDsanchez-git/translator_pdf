@@ -2,13 +2,13 @@
 
 ## Implementation Execution Plan & Rule-Centric Traceability Matrix
 
-**Version:** 1.2.2
+**Version:** 1.2.3
 
 **Status:** DRAFT
 
 **Date:** 2026-10-10
 
-**Supersedes:** v1.2.1
+**Supersedes:** v1.2.2
 
 **Derived From:** 3 NADRs FROZEN (NADR-F18-03 v1.1.0, NADR-F18-04 v1.1.1, NADR-F18-05 v1.3.0) + METHODOLOGY_FOR_ORDERED_PIPELINE_CHANGES.md v1.3.0
 
@@ -24,6 +24,7 @@
 | 1.1.0 | 2026-10-11 | Corrección de conteo de reglas: 55 reglas totales. |
 | 1.2.0 | 2026-10-11 | Correcciones de integridad estructural y gobernanza (11 correcciones). |
 | 1.2.2 | 2026-10-10 | **Gate 0 COMPLETED:** 5/5 tasks DONE. Baseline verificada: 992 tests passed, Pyright 0 errors, import-linter 4/4 KEPT. 5 hallazgos derivados al Findings Register (DF-18.2-01 a DF-18.2-04, GF-18.2-01). FASE_18.2_FAILURE_SCENARIO_MATRIX.md v1.0.0 emitido. FASE_18.2_RULE_TASK_MAPPING.md eliminado por duplicación con §7. |
+| 1.2.3 | 2026-10-10 | **Gate 1 Wave 1.1 COMPLETED:** 3/3 tasks DONE (1.1.1, 1.1.2, 1.1.3). 8 reglas NADR implementadas (7 de NADR-F18-03 §5.1-§5.2, 1 parcial de NADR-F18-04 §5.2). DF-18.2-01, DF-18.2-02, DF-18.2-04 resueltos. 20 archivos modificados, 2 nuevos. 1009 tests passed, Pyright 0 errors. |
 
 ---
 
@@ -251,31 +252,107 @@ Antes de declarar el Gate como COMPLETED, se ejecuta el proceso de Revisión Pos
 
 **Rollback Plan:** Preservar el modelo de datos compatible y utilizar activación controlada. No restaurar un reconciler que vuelva a exponer operaciones inciertas a duplicación automática como estrategia de rollback de producción. Rollback de código no significa restaurar una condición operacional insegura.
 
-**Gate Status:** ⏳ PENDING
+**Gate Status:** 🟡 IN PROGRESS
 
 ---
 
 #### Wave 1.1 — Pre-effect Authority (NADR-F18-03 §5.1, §5.2)
 
-**Wave Status:** ⏳ PENDING
+**Wave Status:** ✅ COMPLETED
+
+**Fecha de inicio:** 2026-10-10
+
+**Fecha de cierre:** 2026-10-10
 
 | Task | Description | Rules Implemented | Risk | Deps | Status |
 |---|---|---|---|---|---|
-| **1.1.1** | Verificar y completar la autoridad recuperable antes del efecto externo, reutilizando el lease existente en chunk_tasks. Implementar persistencia de lease antes de `execute()` y verificación de vigencia. | NADR-F18-03 §5.1 R1, R2, R4 | High | Gate 0 | TODO |
-| **1.1.2** | Materializar el tratamiento de autoridades caducadas u obsoletas, con fencing local verificable. Implementar detección de pérdida/expiración de autoridad durante ejecución del efecto externo. | NADR-F18-03 §5.1 R3 | High | Task 1.1.1 | TODO |
-| **1.1.3** | Materializar los contratos de clasificación semántica: resultado confirmado localmente, no inicio demostrablemente verificado, e incertidumbre sobre ejecución o resultado. Implementar distinción sin exigir enums físicos específicos. | NADR-F18-03 §5.2 R5, R6, R7, R8 | High | Task 1.1.1 | TODO |
+| **1.1.1** | Verificar y completar la autoridad recuperable antes del efecto externo, reutilizando el lease existente en chunk_tasks. Implementar persistencia de lease antes de `execute()` y verificación de vigencia. | NADR-F18-03 §5.1 R1, R2, R4; NADR-F18-04 §5.2 R5 (parcial) | High | Gate 0 | DONE |
+| **1.1.2** | Materializar el tratamiento de autoridades caducadas u obsoletas, con fencing local verificable. Implementar detección de pérdida/expiración de autoridad durante ejecución del efecto externo. | NADR-F18-03 §5.1 R3 | High | Task 1.1.1 | DONE |
+| **1.1.3** | Materializar los contratos de clasificación semántica: resultado confirmado localmente, no inicio demostrablemente verificado, e incertidumbre sobre ejecución o resultado. Implementar distinción sin exigir enums físicos específicos. | NADR-F18-03 §5.2 R5, R6, R7, R8 | High | Task 1.1.1 | DONE |
 
 **Notas de implementación — Task 1.1.1**
 
-> {Se actualiza al completar la Task.}
+> Task 1.1.1 COMPLETADA. Resuelve DF-18.2-01, DF-18.2-02, DF-18.2-04.
+>
+> **DF-18.2-01 RESUELTO — Gobernanza para AsyncDispatcher (Ruta 2):**
+> - `DispatcherProtocol` actualizado: `dispatch(units, document_id, ast_hash)` provee contexto de autoridad para journal.
+> - `AsyncDispatcher` recibe `EventPlanePort` inyectado desde Composition Root (`pipeline_factory.py`).
+> - `_worker()` genera `execution_id` único y llama a `append_wal()` INMEDIATAMENTE después del efecto externo, antes de validación/healing.
+> - `_worker()` hace `get_replay()` pre-efecto: si existe replay con matching `payload_sha256 + prompt_version + model_name`, sintetiza `InferenceResult` sin llamar al LLM. Patrón consistente con `LLMWorkerDaemon`.
+> - Benchmarks (`gemini_runner.py`, `groq_runner.py`) usan `NullEventPlane` (adaptador nulo, no escribe en journal de producción).
+>
+> **DF-18.2-02 RESUELTO — Mecanismo de activación 18.2:**
+> - `RuntimeSettings` extendido con 3 campos: `conservative_recovery_enabled`, `semantic_classification_enabled`, `stratified_observability_enabled`.
+> - Cumple NADR-10 §5.2 R11: activación gobernada por configuración externa, no hardcodeada.
+> - Inyección desde Composition Root (NADR-11 §5.1 R1).
+>
+> **DF-18.2-04 RESUELTO — Verificación PRE-effecto en SyncProviderBridge (Ruta 1):**
+> - `TaskLeaseHeartbeat` añade `_lease_lock` (thread-safe), `_lease_expires_at`, y property `is_lease_viable` con margen conservador de 30 segundos.
+> - `LLMWorkerDaemon._process_task()` verifica `heartbeat.is_lease_viable` INMEDIATAMENTE antes de `self.processor.execute(node)`.
+> - Lanza `LeaseExpiredError` si el lease no tiene margen suficiente, previniendo el inicio del efecto externo sin autoridad vigente.
+> - Verificación POST-effecto existente se mantiene para detección de pérdida DURANTE el efecto (NADR-F18-03 §5.1 R3).
+>
+> **Reglas NADR implementadas:**
+> - NADR-F18-03 §5.1 R1: ✅ Autoridad recuperable pre-efecto (EventPlanePort + execution_id).
+> - NADR-F18-03 §5.1 R2: ✅ Verificación de vigencia pre-efecto (is_lease_viable con margen 30s).
+> - NADR-F18-03 §5.1 R4: ✅ Separación identidad de intento (execution_id) de identidad científica (content_hash).
+> - NADR-F18-04 §5.2 R5: ✅ (parcial) Idempotencia de reaplicación implementada; property tests pendientes en Task 2.1.2.
+>
+> **Archivos modificados:** runtime/settings.py, apps/llm_workers/dispatcher.py, apps/llm_workers/__main__.py, apps/bootstrap/pipeline_factory.py, core/pipeline/orchestrator.py, tests/helpers/fakes.py, apps/benchmark/runners/gemini_runner.py, apps/benchmark/runners/groq_runner.py.
+>
+> **Validación:** Pyright 0 errors, 0 warnings, 0 informations. Tests: 992 passed, 5 skipped. Import-linter 4/4 KEPT.
 
 **Notas de implementación — Task 1.1.2**
 
-> {Se actualiza al completar la Task.}
+> Task 1.1.2 COMPLETADA. Implementa fencing local verificable con doble check.
+>
+> **Implementación:**
+> - `mark_task_completed()` añadido a `ControlPlaneRepository` con WHERE clause: `lease_owner = ? AND lease_expires_at >= ? AND state_version = ?`. Doble fencing (lease + state_version) previene zombie writes de autoridades obsoletas.
+> - `ControlPlanePort` actualizado con nueva firma de `mark_task_completed`.
+> - `abandon_execution()` corregido en callers (`__main__.py` líneas ~410, ~416): usaba keyword `reason` en lugar de parámetro posicional `error`.
+> - Manejo explícito de `OptimisticLockError` en `mark_task_completed`: si el lease expira post-completado (después de journal + proyección), el trabajo se preserva y se loggea como fencing exitoso. No se marca como FAILED porque el trabajo se completó.
+>
+> **Decisiones arquitectónicas:**
+> - NO implementar `mark_task_failed` (YAGNI): `abandon_execution` ya maneja retry vs fail terminal basado en `max_retries`.
+> - NO añadir logging basado en `cursor.rowcount` en `upsert_projection`: idempotencia por versión monotónica es correcta por diseño (NADR-F18-04 §5.2 R5).
+> - NO lanzar excepción si `upsert_projection` ignora escritura por versión obsoleta: violaría idempotencia de reaplicación.
+>
+> **Regla NADR implementada:**
+> - NADR-F18-03 §5.1 R3: ✅ Fencing local verificable. La pérdida o expiración de autoridad durante una operación externa es detectable por el sistema.
+>
+> **Archivos modificados:** infra/db/control_repo.py, core/execution/ports.py, apps/llm_workers/__main__.py.
+>
+> **Validación:** Pyright 0 errors, 0 warnings, 0 informations. Tests: 992 passed, 5 skipped. Import-linter 4/4 KEPT.
 
 **Notas de implementación — Task 1.1.3**
 
-> {Se actualiza al completar la Task.}
+> Task 1.1.3 COMPLETADA. Implementa clasificación semántica sin enums físicos específicos.
+>
+> **Implementación:**
+> - `core/execution/semantic_classification.py` (NUEVO): `ExternalEffectKind = Literal["CONFIRMED", "NOT_STARTED", "UNCERTAIN"]` (typing.Literal, no Enum físico, conforme a NADR-F18-03 §5.2 "sin exigir enums físicos específicos").
+> - `ExternalEffectEvidence` dataclass (frozen) con `task_state` + `has_generated_event`.
+> - `classify_external_effect()` función pura y determinista (ENGINEERING_PRINCIPLES §II: Functional Core):
+>   * CONFIRMED: existe evento GENERATED en journal (evidencia autoritativa).
+>   * NOT_STARTED: task_state == "PENDING" (único estado demostrable de no-inicio).
+>   * UNCERTAIN: comportamiento por defecto conservador (NADR-F18-03 §5.2 R8).
+> - `EventRecord` movido de `infra/db/event_repo.py` a `core/execution/ports.py` (arquitectura hexagonal: tipos de retorno de puertos en core, no en infra).
+> - `get_latest_event()` añadido a `EventPlanePort`.
+> - `NullEventPlane.get_latest_event()` retorna None con semántica epistemológica correcta: no afirma que el efecto no ocurrió, afirma que no hay plano de evidencia en este contexto (NADR-F18-03 §5.4 R17).
+>
+> **Decisiones arquitectónicas:**
+> - Función derivada pura (Opción A) en lugar de Enum físico o persistencia en journal. Cumple NADR-F18-05 §5.5 R13: no crea fuentes de verdad paralelas.
+> - Clasificación epistemológicamente sólida: FAILED sin evento es UNCERTAIN (no NOT_STARTED) porque pudo fallar POST-effecto/pre-journal.
+> - Integración con logging/telemetría diferida a Gate 3 Task 3.1.2 (observabilidad estratificada).
+>
+> **Reglas NADR implementadas:**
+> - NADR-F18-03 §5.2 R5: ✅ Taxonomía semántica de resultados.
+> - NADR-F18-03 §5.2 R6: ✅ Resultado confirmado localmente (CONFIRMED derivado de evento GENERATED).
+> - NADR-F18-03 §5.2 R7: ✅ No-inicio demostrablemente verificado (NOT_STARTED solo con PENDING).
+> - NADR-F18-03 §5.2 R8: ✅ Incertidumbre sobre ejecución o resultado (UNCERTAIN como default conservador).
+>
+> **Archivos:** core/execution/semantic_classification.py (NUEVO), core/execution/ports.py, infra/db/event_repo.py, apps/llm_workers/dispatcher.py, tests/unit/test_semantic_classification.py (NUEVO).
+>
+> **Validación:** Pyright 0 errors, 0 warnings, 0 informations. Tests: 1009 passed, 5 skipped (+17 tests nuevos). Import-linter 4/4 KEPT.
 
 **Hallazgos identificados en esta Wave**
 
@@ -852,7 +929,8 @@ Se actualiza al cierre de cada Gate.
 | Gate | Fecha de cierre | Rules DONE / Total | Tasks DONE / Total | Hallazgos derivados | Observaciones |
 |------|----------------|-------------------|-------------------|-------------------|---------------|
 | Gate 0 | 2026-10-10 | 0/0 (no implementa reglas, solo mapeo) | 5/5 | 5 | Baseline 992 tests, Pyright 0, import-linter 4/4. DF-18.2-01 a 04, GF-18.2-01. |
-| Gate 1 | {YYYY-MM-DD} | {X}/23 (NADR-F18-03) | {A}/8 | {N} | {Observaciones} |
+| Gate 1 (Wave 1.1) | 2026-10-10 | 8/23 (NADR-F18-03 §5.1-§5.2: 7 DONE, NADR-F18-04 §5.2 R5: DONE parcial) | 3/8 | 0 | DF-18.2-01, 02, 04 resueltos. 1009 tests, Pyright 0, import-linter 4/4. |
+| Gate 1 (Wave 1.2) | {YYYY-MM-DD} | {X}/23 | {A}/5 | {N} | {Observaciones} |
 | Gate 2 | {YYYY-MM-DD} | {X}/16 (NADR-F18-04) | {A}/7 | {N} | {Observaciones} |
 | Gate 3 | {YYYY-MM-DD} | {X}/16 (NADR-F18-05) | {A}/5 | {N} | {Observaciones} |
 | Gate 4 | {YYYY-MM-DD} | 0/0 (validación empírica, no implementación de reglas nuevas) | {A}/8 | {N} | {Observaciones} |
@@ -932,12 +1010,12 @@ Los contadores se **derivan computacionalmente** del Traceability Appendix (§7)
 | Gate | Tasks DONE | Rules DONE | Rules DEFERRED | Rules PENDING | Gate Status |
 |---|---|---|---|---|---|
 | Gate 0 | 5/5 | 0/0 | 0 | 0 | ✅ COMPLETED |
-| Gate 1 | 0/8 | 0/23 | 0 | 23 | ⏳ PENDING |
+| Gate 1 | 3/8 | 8/23 | 0 | 15 | 🟡 IN PROGRESS |
 | Gate 2 | 0/7 | 0/16 | 0 | 16 | ⏳ PENDING |
 | Gate 3 | 0/5 | 0/16 | 0 | 16 | ⏳ PENDING |
 | Gate 4 | 0/8 | 0/0 | 0 | 0 | ⏳ PENDING |
 | Gate 5 | 0/7 | 0/0 | 0 | 0 | ⏳ PENDING |
-| **TOTAL** | **5/40** | **0/55** | **0** | **55** | 🟡 IN PROGRESS |
+| **TOTAL** | **8/40** | **8/55** | **0** | **47** | 🟡 IN PROGRESS |
 
 **Regla de actualización:** Cada vez que una Task pase a `DONE`:
 1. Se actualiza el `Status` de la Task en la tabla de Wave correspondiente (§2)
@@ -958,50 +1036,50 @@ Los contadores se **derivan computacionalmente** del Traceability Appendix (§7)
 
 | Rule | Derived Status | Evidence | Implementation Notes |
 |---|---|---|---|
-| NADR-F18-03 §5.1 R1 | {DONE/PENDING} | Wave 1.1 / Task 1.1.1 | {Notes} |
-| NADR-F18-03 §5.1 R2 | {Status} | Wave 1.1 / Task 1.1.1 | {Notes} |
-| NADR-F18-03 §5.1 R3 | {Status} | Wave 1.1 / Task 1.1.2 | {Notes} |
-| NADR-F18-03 §5.1 R4 | {Status} | Wave 1.1 / Task 1.1.1 | {Notes} |
-| NADR-F18-03 §5.2 R5 | {Status} | Wave 1.1 / Task 1.1.3 | {Notes} |
-| NADR-F18-03 §5.2 R6 | {Status} | Wave 1.1 / Task 1.1.3 | {Notes} |
-| NADR-F18-03 §5.2 R7 | {Status} | Wave 1.1 / Task 1.1.3 | {Notes} |
-| NADR-F18-03 §5.2 R8 | {Status} | Wave 1.1 / Task 1.1.3 | {Notes} |
-| NADR-F18-03 §5.3 R9 | {Status} | Wave 1.2 / Task 1.2.1 | {Notes} |
-| NADR-F18-03 §5.3 R10 | {Status} | Wave 1.2 / Task 1.2.2 | {Notes} |
-| NADR-F18-03 §5.3 R11 | {Status} | Wave 1.2 / Task 1.2.2 | {Notes} |
-| NADR-F18-03 §5.3 R12 | {Status} | Wave 1.2 / Task 1.2.1 | {Notes} |
-| NADR-F18-03 §5.3 R13 | {Status} | Wave 1.2 / Task 1.2.1 | {Notes} |
-| NADR-F18-03 §5.3 R14 | {Status} | Wave 1.2 / Task 1.2.3 | {Notes} |
-| NADR-F18-03 §5.3 R15 | {Status} | Wave 1.2 / Task 1.2.1 | {Notes} |
-| NADR-F18-03 §5.4 R16 | {Status} | Wave 1.2 / Task 1.2.4 | {Notes} |
-| NADR-F18-03 §5.4 R17 | {Status} | Wave 1.2 / Task 1.2.4 | {Notes} |
-| NADR-F18-03 §5.4 R18 | {Status} | Wave 1.2 / Task 1.2.4 | {Notes} |
-| NADR-F18-03 §5.5 R19 | {Status} | Wave 1.2 / Task 1.2.5 | {Notes} |
-| NADR-F18-03 §5.5 R20 | {Status} | Wave 1.2 / Task 1.2.5 | {Notes} |
-| NADR-F18-03 §5.6 R21 | {Status} | Wave 1.2 / Task 1.2.3 | {Notes} |
-| NADR-F18-03 §5.6 R22 | {Status} | Wave 1.2 / Task 1.2.3 | {Notes} |
-| NADR-F18-03 §5.6 R23 | {Status} | Wave 1.2 / Task 1.2.3 | {Notes} |
+| NADR-F18-03 §5.1 R1 | DONE | Wave 1.1 / Task 1.1.1 | EventPlanePort inyectado en AsyncDispatcher. execution_id generado pre-efecto. append_wal() llamado inmediatamente post-efecto externo en _worker(). Replay check en _worker() y LLMWorkerDaemon._process_task(). |
+| NADR-F18-03 §5.1 R2 | DONE | Wave 1.1 / Task 1.1.1 | TaskLeaseHeartbeat.is_lease_viable con margen de 30s. Verificación PRE-effecto en LLMWorkerDaemon._process_task() antes de self.processor.execute(node). Lanza LeaseExpiredError si no hay margen. |
+| NADR-F18-03 §5.1 R3 | DONE | Wave 1.1 / Task 1.1.2 | mark_task_completed() con doble fencing (lease_owner + lease_expires_at + state_version). OptimisticLockError lanzado si el lease expiró o fue robado. Manejo explícito post-completado: trabajo preservado, no marcado como FAILED. |
+| NADR-F18-03 §5.1 R4 | DONE | Wave 1.1 / Task 1.1.1, Task 1.1.2 | execution_id separa identidad de intento de identidad científica (content_hash). Preservación verificable mediante journal + proyección. |
+| NADR-F18-03 §5.2 R5 | DONE | Wave 1.1 / Task 1.1.3 | ExternalEffectKind como Literal["CONFIRMED", "NOT_STARTED", "UNCERTAIN"] (sin enum físico específico). Función pura classify_external_effect(). |
+| NADR-F18-03 §5.2 R6 | DONE | Wave 1.1 / Task 1.1.3 | CONFIRMED derivado de evento GENERATED en journal (evidencia autoritativa). |
+| NADR-F18-03 §5.2 R7 | DONE | Wave 1.1 / Task 1.1.3 | NOT_STARTED solo con task_state == "PENDING" (único estado demostrable de no-inicio). |
+| NADR-F18-03 §5.2 R8 | DONE | Wave 1.1 / Task 1.1.3 | UNCERTAIN como comportamiento por defecto conservador. Incluye PROCESSING, FAILED, RETRYABLE_ERROR sin evento GENERATED. |
+| NADR-F18-03 §5.3 R9 | PENDING | Wave 1.2 / Task 1.2.1 | — |
+| NADR-F18-03 §5.3 R10 | PENDING | Wave 1.2 / Task 1.2.2 | — |
+| NADR-F18-03 §5.3 R11 | PENDING | Wave 1.2 / Task 1.2.2 | — |
+| NADR-F18-03 §5.3 R12 | PENDING | Wave 1.2 / Task 1.2.1 | — |
+| NADR-F18-03 §5.3 R13 | PENDING | Wave 1.2 / Task 1.2.1 | — |
+| NADR-F18-03 §5.3 R14 | PENDING | Wave 1.2 / Task 1.2.3 | — |
+| NADR-F18-03 §5.3 R15 | PENDING | Wave 1.2 / Task 1.2.1 | — |
+| NADR-F18-03 §5.4 R16 | PENDING | Wave 1.2 / Task 1.2.4 | — |
+| NADR-F18-03 §5.4 R17 | PENDING | Wave 1.2 / Task 1.2.4 | — |
+| NADR-F18-03 §5.4 R18 | PENDING | Wave 1.2 / Task 1.2.4 | — |
+| NADR-F18-03 §5.5 R19 | PENDING | Wave 1.2 / Task 1.2.5 | — |
+| NADR-F18-03 §5.5 R20 | PENDING | Wave 1.2 / Task 1.2.5 | — |
+| NADR-F18-03 §5.6 R21 | PENDING | Wave 1.2 / Task 1.2.3 | — |
+| NADR-F18-03 §5.6 R22 | PENDING | Wave 1.2 / Task 1.2.3 | — |
+| NADR-F18-03 §5.6 R23 | PENDING | Wave 1.2 / Task 1.2.3 | — |
 
 ### 7.2 Gate 2 — Rules Audit Board (NADR-F18-04)
 
 | Rule | Derived Status | Evidence | Implementation Notes |
 |---|---|---|---|
-| NADR-F18-04 §5.1 R1 | {DONE/PENDING} | Wave 2.1 / Task 2.1.1 | {Notes} |
-| NADR-F18-04 §5.1 R2 | {Status} | Wave 2.1 / Task 2.1.1 | {Notes} |
-| NADR-F18-04 §5.1 R3 | {Status} | Wave 2.1 / Task 2.1.1 | {Notes} |
-| NADR-F18-04 §5.1 R4 | {Status} | Wave 2.1 / Task 2.1.1 | {Notes} |
-| NADR-F18-04 §5.2 R5 | {Status} | Wave 2.1 / Task 2.1.2 | {Notes} |
-| NADR-F18-04 §5.2 R6 | {Status} | Wave 2.1 / Task 2.1.2 (implementación), Task 2.1.3 (verificación) | {Notes} |
-| NADR-F18-04 §5.2 R7 | {Status} | Wave 2.1 / Task 2.1.3 | {Notes} |
-| NADR-F18-04 §5.3 R8 | {Status} | Wave 2.2 / Task 2.2.1 | {Notes} |
-| NADR-F18-04 §5.3 R9 | {Status} | Wave 2.2 / Task 2.2.1 (implementación), Task 2.2.2 (verificación) | {Notes} |
-| NADR-F18-04 §5.3 R10 | {Status} | Wave 2.2 / Task 2.2.1 | {Notes} |
-| NADR-F18-04 §5.4 R11 | {Status} | Wave 2.2 / Task 2.2.3 | {Notes} |
-| NADR-F18-04 §5.4 R12 | {Status} | Wave 2.2 / Task 2.2.3 | {Notes} |
-| NADR-F18-04 §5.4 R13 | {Status} | Wave 2.2 / Task 2.2.3 | {Notes} |
-| NADR-F18-04 §5.4 R14 | {Status} | Wave 2.2 / Task 2.2.3 | {Notes} |
-| NADR-F18-04 §5.5 R15 | {Status} | Wave 2.2 / Task 2.2.4 | {Notes} |
-| NADR-F18-04 §5.5 R16 | {Status} | Wave 2.2 / Task 2.2.4 | {Notes} |
+| NADR-F18-04 §5.1 R1 | PENDING | Wave 2.1 / Task 2.1.1 | — |
+| NADR-F18-04 §5.1 R2 | PENDING | Wave 2.1 / Task 2.1.1 | — |
+| NADR-F18-04 §5.1 R3 | PENDING | Wave 2.1 / Task 2.1.1 | — |
+| NADR-F18-04 §5.1 R4 | PENDING | Wave 2.1 / Task 2.1.1 | — |
+| NADR-F18-04 §5.2 R5 | DONE (parcial) | Wave 1.1 / Task 1.1.1 (implementación en AsyncDispatcher y LLMWorkerDaemon), Wave 2.1 / Task 2.1.2 (verificación con property tests) | Replay check implementado en AsyncDispatcher._worker() y LLMWorkerDaemon._process_task(). Property tests de repetición pendientes en Task 2.1.2. |
+| NADR-F18-04 §5.2 R6 | PENDING | Wave 2.1 / Task 2.1.2 (implementación), Task 2.1.3 (verificación) | — |
+| NADR-F18-04 §5.2 R7 | PENDING | Wave 2.1 / Task 2.1.3 | — |
+| NADR-F18-04 §5.3 R8 | PENDING | Wave 2.2 / Task 2.2.1 | — |
+| NADR-F18-04 §5.3 R9 | PENDING | Wave 2.2 / Task 2.2.1 (implementación), Task 2.2.2 (verificación) | — |
+| NADR-F18-04 §5.3 R10 | PENDING | Wave 2.2 / Task 2.2.1 | — |
+| NADR-F18-04 §5.4 R11 | PENDING | Wave 2.2 / Task 2.2.3 | — |
+| NADR-F18-04 §5.4 R12 | PENDING | Wave 2.2 / Task 2.2.3 | — |
+| NADR-F18-04 §5.4 R13 | PENDING | Wave 2.2 / Task 2.2.3 | — |
+| NADR-F18-04 §5.4 R14 | PENDING | Wave 2.2 / Task 2.2.3 | — |
+| NADR-F18-04 §5.5 R15 | PENDING | Wave 2.2 / Task 2.2.4 | — |
+| NADR-F18-04 §5.5 R16 | PENDING | Wave 2.2 / Task 2.2.4 | — |
 
 ### 7.3 Gate 3 — Rules Audit Board (NADR-F18-05)
 

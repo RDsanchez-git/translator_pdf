@@ -33,7 +33,12 @@ class FakeChunker:
 
 class FakeDispatcher:
     # SOTA FIX: El Dispatcher de la Fase 16 debe retornar estructuralmente un DispatchResult encapsulando ChunkOutcomes
-    async def dispatch(self, units: List[TranslationUnit]) -> DispatchResult:
+    async def dispatch(
+        self,
+        units: List[TranslationUnit],
+        document_id: str = "test_doc",
+        ast_hash: str = "test_hash",
+    ) -> DispatchResult:
         outcomes = []
         for u in units:
             translated_unit = TranslatedUnit(

@@ -26,6 +26,8 @@ from core.context.dynamic_resolver import DynamicContextResolver
 from core.validation.factory import build_validation_pipeline
 from core.validation.estimators import ExactBPEEstimator
 
+from apps.llm_workers.dispatcher import NullEventPlane
+
 
 logger = logging.getLogger(__name__)
 
@@ -106,6 +108,7 @@ class GeminiBenchmarkRunner(BenchmarkRunnerProtocol):
             provider_stack=provider_stack,
             validation_pipeline=validation_pipeline,
             healing_pipeline=healing_pipeline,
+            event_plane=NullEventPlane(),  # Benchmarks no escriben en journal de producción
             concurrency=self.concurrency,
         )
         
@@ -122,7 +125,10 @@ class GeminiBenchmarkRunner(BenchmarkRunnerProtocol):
             raise RuntimeError("El Runner debe inicializarse vía warmup().")
 
         start_time = time.monotonic()
-        dispatch_result = await self._dispatcher.dispatch(dataset.prepared_units)
+
+        dispatch_result = await self._dispatcher.dispatch(
+            dataset.prepared_units, document_id="benchmark_gemini", ast_hash="benchmark_gemini"
+        )
         makespan = time.monotonic() - start_time
 
         raw_records: List[ChunkBenchmarkRecord] = []

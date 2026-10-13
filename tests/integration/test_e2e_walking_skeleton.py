@@ -11,6 +11,10 @@ from apps.llm_workers.rate_limiter import RateLimitedProvider, QuotaManager
 from apps.llm_workers.cache_provider import CachedLLMProvider
 from apps.llm_workers.dispatcher import AsyncDispatcher
 from core.validation.estimators import ExactBPEEstimator
+from apps.llm_workers.dispatcher import NullEventPlane
+
+TEST_DOCUMENT_ID = "test_e2e_walking_skeleton"
+TEST_AST_HASH = "test_hash_e2e_ws"
 
 
 class FakeLLMProvider:
@@ -77,6 +81,7 @@ class TestTrueWalkingSkeletonE2E(unittest.IsolatedAsyncioTestCase):
             provider_stack=self.cache_provider,
             validation_pipeline=validation_pipeline,
             healing_pipeline=healing_pipeline,
+            event_plane=NullEventPlane(),
         )
         
         from core.validation.pipeline import ValidationPipeline
@@ -136,7 +141,9 @@ class TestTrueWalkingSkeletonE2E(unittest.IsolatedAsyncioTestCase):
         # ==========================================
         # PRIMERA CORRIDA (Cache Miss)
         # ==========================================
-        translated_units_run_1 = await self.dispatcher.dispatch(translation_units)
+        translated_units_run_1 = await self.dispatcher.dispatch(
+            translation_units, document_id=TEST_DOCUMENT_ID, ast_hash=TEST_AST_HASH
+        )
         
         outcomes_1 = getattr(translated_units_run_1, "outcomes", [])
         passthrough_count = sum(1 for u in outcomes_1 if u.translated_unit and getattr(u.translated_unit, "chunk_type", None) in [TranslationTaskType.PRESERVE, TranslationTaskType.PRESERVE.value])
@@ -155,7 +162,9 @@ class TestTrueWalkingSkeletonE2E(unittest.IsolatedAsyncioTestCase):
         # ==========================================
         # SEGUNDA CORRIDA (Cache Hit Reentrante)
         # ==========================================
-        translated_units_run_2 = await self.dispatcher.dispatch(translation_units)
+        translated_units_run_2 = await self.dispatcher.dispatch(
+            translation_units, document_id=TEST_DOCUMENT_ID, ast_hash=TEST_AST_HASH
+        )
         
         outcomes_2 = getattr(translated_units_run_2, "outcomes", [])
         for outcome in outcomes_2:

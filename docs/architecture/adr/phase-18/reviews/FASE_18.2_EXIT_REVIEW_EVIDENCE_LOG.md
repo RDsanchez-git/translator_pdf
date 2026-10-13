@@ -1,11 +1,11 @@
 # FASE_18.2_EXIT_REVIEW_EVIDENCE_LOG.md
 
 **Documento:** `docs/architecture/adr/phase-18/reviews/FASE_18.2_EXIT_REVIEW_EVIDENCE_LOG.md`
-**Versión:** 1.0.1
+**Versión:** 1.0.2
 **Estado:** IN_PROGRESS
 **Fecha:** 2026-10-10
 **Última actualización:** 2026-10-10
-**Derivado de:** `PHASE_18.2_EXECUTION_PLAN.md` v1.2.2
+**Derivado de:** `PHASE_18.2_EXECUTION_PLAN.md` v1.2.3
 **Propósito:** Registro auditable de la evidencia forense que fundamenta cada decisión
 tomada durante el Exit Review de la Subfase 18.2 (Durable Execution & Recovery).
 Cada finding incluye los archivos auditados, el análisis, los gaps confirmados,
@@ -26,7 +26,7 @@ la justificación normativa y la clasificación final.
 |---|---|---|
 | 1.0.0 | 2026-10-10 | Emisión inicial. Estructura dinámica para 6 Gates. |
 | 1.0.1 | 2026-10-10 | Gate 0 Exit Review completado. 5 findings registrados con evidencia forense: DF-18.2-01, DF-18.2-02, DF-18.2-03, DF-18.2-04, GF-18.2-01. Jerarquía normativa corregida (NADR-F18-03 v1.1.0 FROZEN). |
-
+| 1.0.2 | 2026-10-10 | Gate 1 Wave 1.1 completada. Secciones de resolución añadidas a DF-18.2-01, DF-18.2-02, DF-18.2-04 (estado → RESOLVED). Evidencia de validación: 1009 tests passed, Pyright 0 errors, import-linter 4/4 KEPT. Gate 1 Exit Review permanece pendiente hasta completar Wave 1.2. |
 ---
 
 ## 0. MARCO NORMATIVO Y PRINCIPIOS RECTORES
@@ -167,7 +167,7 @@ PHASE_18.2_EXECUTION_PLAN v1.2.2
 |-------|-------|
 | **ID** | DF-18.2-01 |
 | **Tipo** | Deferred Finding |
-| **Estado** | `IMPLEMENTATION_REQUIRED` |
+| **Estado** | `RESOLVED` |
 | **Origen** | Wave 0.1 / Task 0.1.2 (auditoría de rutas) |
 | **Gate destino original** | Gate 0 |
 | **Estado previo** | N/A |
@@ -248,9 +248,9 @@ No requiere reformulación. El hallazgo es preciso y verificable.
 
 | Sub-acción | Descripción | Estado | Scope |
 |------------|-------------|--------|-------|
-| DF-18.2-01-A | Extender gobernanza de authority/lease a AsyncDispatcher | Pendiente | Gate 1 |
-| DF-18.2-01-B | Añadir journal post-effecto en AsyncDispatcher | Pendiente | Gate 1 |
-| DF-18.2-01-C | Clasificación semántica en AsyncDispatcher | Pendiente | Gate 1 |
+| DF-18.2-01-A | Extender gobernanza de authority/lease a AsyncDispatcher | ✅ Completado (Task 1.1.1) | Gate 1 |
+| DF-18.2-01-B | Añadir journal post-effecto en AsyncDispatcher | ✅ Completado (Task 1.1.1) | Gate 1 |
+| DF-18.2-01-C | Clasificación semántica en AsyncDispatcher | ✅ Completado (Task 1.1.3) | Gate 1 |
 
 #### 2.1.9 Clasificación consolidada
 
@@ -272,6 +272,41 @@ No requiere reformulación. El hallazgo es preciso y verificable.
 
 La Ruta 2 (AsyncDispatcher) viola esta regla porque no persiste autoridad antes de invocar `translate()`. Esto debe corregirse en Gate 1 Task 1.1.1, extendiendo la gobernanza de SyncProviderBridge a AsyncDispatcher.
 
+#### 2.1.11 Resolución implementada — Gate 1 Wave 1.1 (2026-10-10)
+
+**Estado:** ✅ RESOLVED
+**Resuelto por:** Task 1.1.1 (DF-18.2-01-A, DF-18.2-01-B) + Task 1.1.3 (DF-18.2-01-C)
+**Batch:** BATCH 1 — Wave 1.1 Pre-effect Authority
+
+**Implementación:**
+- `DispatcherProtocol` actualizado: `dispatch(units, document_id, ast_hash)` provee contexto de autoridad.
+- `AsyncDispatcher` recibe `EventPlanePort` inyectado desde Composition Root (`pipeline_factory.py`).
+- `_worker()` genera `execution_id` único pre-efecto y llama a `append_wal()` INMEDIATAMENTE después del efecto externo, antes de validación/healing.
+- `_worker()` hace `get_replay()` pre-efecto: si existe replay con matching `payload_sha256 + prompt_version + model_name`, sintetiza `InferenceResult` sin llamar al LLM (patrón consistente con `LLMWorkerDaemon`).
+- Benchmarks usan `NullEventPlane` (adaptador nulo, no escribe en journal de producción).
+- Clasificación semántica implementada en Task 1.1.3: `classify_external_effect()` derivada de evidencia observable (`task_state` + `has_generated_event`).
+
+**Archivos modificados:**
+- `apps/llm_workers/dispatcher.py`
+- `apps/bootstrap/pipeline_factory.py`
+- `core/pipeline/orchestrator.py`
+- `core/execution/semantic_classification.py` (NUEVO — Task 1.1.3)
+- `apps/benchmark/runners/gemini_runner.py`, `apps/benchmark/runners/groq_runner.py`
+- `tests/helpers/fakes.py` + 6 archivos de tests
+
+**Evidencia de validación:**
+- Pyright: 0 errors, 0 warnings, 0 informations
+- Tests: 1009 passed, 5 skipped
+- Import-linter: 4/4 KEPT
+
+**Reglas NADR satisfechas:**
+- NADR-F18-03 §5.1 R1: Autoridad recuperable pre-efecto (execution_id + append_wal)
+- NADR-F18-03 §5.2 R5-R8: Clasificación semántica (Task 1.1.3)
+- NADR-F18-04 §5.2 R5 (parcial): Idempotencia de reaplicación vía replay check
+
+**Limitación residual documentada:**
+- El fencing por lease en Ruta 2 (AsyncDispatcher) no es idéntico al de Ruta 1 (LLMWorkerDaemon). La Ruta 2 es un flujo batch en memoria orquestado por `TranslationPipeline`, donde la autoridad se gestiona a nivel de documento (FSM), no de chunk individual. Esta diferencia es correcta por diseño y está documentada en `FASE_18.2_FAILURE_SCENARIO_MATRIX.md` §3.2.
+
 ---
 
 ### 2.2 DF-18.2-02 — Sin mecanismo de activación para contratos 18.2
@@ -280,7 +315,7 @@ La Ruta 2 (AsyncDispatcher) viola esta regla porque no persiste autoridad antes 
 |-------|-------|
 | **ID** | DF-18.2-02 |
 | **Tipo** | Deferred Finding |
-| **Estado** | `IMPLEMENTATION_REQUIRED` |
+| **Estado** | `RESOLVED` |
 | **Origen** | Wave 0.1 / Task 0.1.3 (mecanismo de activación) |
 | **Gate destino original** | Gate 0 |
 | **Estado previo** | N/A |
@@ -346,8 +381,8 @@ No requiere reformulación.
 
 | Sub-acción | Descripción | Estado | Scope |
 |------------|-------------|--------|-------|
-| DF-18.2-02-A | Extender RuntimeSettings con campos de activación 18.2 | Pendiente | Gate 1 |
-| DF-18.2-02-B | Revisar uso de os.getenv en __main__.py para consistencia | Pendiente | Gate 1 |
+| DF-18.2-02-A | Extender RuntimeSettings con campos de activación 18.2 | ✅ Completado (Task 1.1.1) | Gate 1 |
+| DF-18.2-02-B | Revisar uso de os.getenv en __main__.py para consistencia | ⚠️ Diferido (mejora no bloqueante) | Gate 5 o posterior |
 
 #### 2.2.9 Clasificación consolidada
 
@@ -368,6 +403,34 @@ No requiere reformulación.
 > *"La activación de mecanismos del runtime MUST estar gobernada por configuración externa, no por banderas hardcodeadas."*
 
 RuntimeSettings es el mecanismo canónico para esta configuración. Debe extenderse en Gate 1 con campos específicos para 18.2.
+
+#### 2.2.11 Resolución implementada — Gate 1 Wave 1.1 (2026-10-10)
+
+**Estado:** ✅ RESOLVED (hallazgo principal)
+**Resuelto por:** Task 1.1.1
+**Batch:** BATCH 1 — Wave 1.1 Pre-effect Authority
+
+**Implementación:**
+- `RuntimeSettings` extendido con 3 campos de activación para 18.2:
+  - `conservative_recovery_enabled: bool = False`
+  - `semantic_classification_enabled: bool = False`
+  - `stratified_observability_enabled: bool = False`
+- Valores por defecto `False`: activación gobernada por configuración externa, no hardcodeada (NADR-10 §5.2 R11).
+- Inyección desde Composition Root mantenida (NADR-11 §5.1 R1). No se inventó sistema de feature flags nuevo (YAGNI).
+
+**Archivos modificados:**
+- `runtime/settings.py`
+
+**Evidencia de validación:**
+- Pyright: 0 errors, 0 warnings, 0 informations
+- Tests: 1009 passed, 5 skipped
+- Import-linter: 4/4 KEPT
+
+**Reglas NADR satisfechas:**
+- NADR-10 §5.2 R11: Activación gobernada por configuración externa
+
+**Limitación residual documentada:**
+- DF-18.2-02-B (consistencia de `os.getenv` en `__main__.py` para GROQ_RPM_LIMIT/GROQ_TPM_LIMIT) se difiere como mejora de consistencia no bloqueante. El uso actual de `os.getenv` para límites de cuota es coherente con el patrón existente y no compromete la ejecución durable. Se evaluará en Gate 5 o en una tarea de limpieza posterior.
 
 ---
 
@@ -483,7 +546,7 @@ Los archivos vacíos no bloquean implementación, pero introducen ambigüedad. D
 |-------|-------|
 | **ID** | DF-18.2-04 |
 | **Tipo** | Deferred Finding |
-| **Estado** | `IMPLEMENTATION_REQUIRED` |
+| **Estado** | `RESOLVED` |
 | **Origen** | Wave 0.1 / Task 0.1.2 (auditoría de rutas) |
 | **Gate destino original** | Gate 0 |
 | **Estado previo** | N/A |
@@ -558,8 +621,8 @@ No requiere reformulación.
 
 | Sub-acción | Descripción | Estado | Scope |
 |------------|-------------|--------|-------|
-| DF-18.2-04-A | Mover lease check a PRE-effecto en __main__.py | Pendiente | Gate 1 |
-| DF-18.2-04-B | Evaluar si SyncProviderBridge.execute() debe verificar lease internamente | Pendiente | Gate 1 |
+| DF-18.2-04-A | Mover lease check a PRE-effecto en __main__.py | ✅ Completado (Task 1.1.1) | Gate 1 |
+| DF-18.2-04-B | Evaluar si SyncProviderBridge.execute() debe verificar lease internamente | ✅ Completado — Decisión: NO mover al bridge (Task 1.1.2) | Gate 1 |
 
 #### 2.4.9 Clasificación consolidada
 
@@ -580,6 +643,40 @@ No requiere reformulación.
 > *"La autoridad de ejecución MUST ser verificable como vigente antes de iniciar el efecto externo."*
 
 La verificación actual es POST-effecto. Debe moverse a PRE-effecto en Gate 1 Task 1.1.1. El check POST-effecto existente se mantiene como detección de pérdida durante la ejecución (NADR-F18-03 §5.1 R3).
+
+#### 2.4.11 Resolución implementada — Gate 1 Wave 1.1 (2026-10-10)
+
+**Estado:** ✅ RESOLVED
+**Resuelto por:** Task 1.1.1 (verificación PRE-effecto) + Task 1.1.2 (fencing local verificable)
+**Batch:** BATCH 1 — Wave 1.1 Pre-effect Authority
+
+**Implementación:**
+- `TaskLeaseHeartbeat` añade `_lease_lock` (thread-safe), `_lease_expires_at`, y property `is_lease_viable` con margen conservador de 30 segundos.
+- `LLMWorkerDaemon._process_task()` verifica `heartbeat.is_lease_viable` INMEDIATAMENTE antes de `self.processor.execute(node)`.
+- Lanza `LeaseExpiredError` si el lease no tiene margen suficiente, previniendo el inicio del efecto externo sin autoridad vigente.
+- Verificación POST-effecto existente (`lease_lost.is_set()`) se mantiene como detección de pérdida DURANTE el efecto (NADR-F18-03 §5.1 R3).
+- `mark_task_completed()` añadido con doble fencing (lease_owner + lease_expires_at + state_version) en Task 1.1.2.
+- Manejo explícito de `OptimisticLockError` post-completado: si el lease expira después de journal + proyección, el trabajo se preserva (no se marca como FAILED).
+
+**Decisión de diseño DF-18.2-04-B:**
+- Se evaluó mover la verificación de lease dentro de `SyncProviderBridge.execute()`. Decisión: NO moverla. La verificación permanece en `__main__.py` (capa de orquestación) porque:
+  - `SyncProviderBridge` es un adaptador de impedancia thread-safe, no debe conocer la semántica de lease.
+  - La responsabilidad de authority pertenece a la capa de orquestación (NADR-F18-02 §5.1: separación de responsabilidades).
+  - Moverla al bridge violaría el principio de inversión de dependencias (el bridge recibiría dependencia del control plane).
+
+**Archivos modificados:**
+- `apps/llm_workers/__main__.py`
+- `infra/db/control_repo.py` (mark_task_completed)
+- `core/execution/ports.py` (ControlPlanePort actualizado)
+
+**Evidencia de validación:**
+- Pyright: 0 errors, 0 warnings, 0 informations
+- Tests: 1009 passed, 5 skipped
+- Import-linter: 4/4 KEPT
+
+**Reglas NADR satisfechas:**
+- NADR-F18-03 §5.1 R2: Verificación de vigencia PRE-effecto (is_lease_viable)
+- NADR-F18-03 §5.1 R3: Detección de pérdida durante ejecución + fencing local verificable (mark_task_completed)
 
 ---
 
@@ -791,8 +888,8 @@ La tensión entre ambas reglas debe resolverse con análisis de impacto FinOps e
 | `RESOLVED — MOVE` | 0 | — |
 | `RESOLVED — REFACTORED` | 0 | — |
 | `RESOLVED — FACTORY EXTRACTION` | 0 | — |
-| `RESOLVED` | 0 | — |
-| `IMPLEMENTATION_REQUIRED` | 3 | DF-18.2-01, DF-18.2-02, DF-18.2-04 |
+| `RESOLVED` | 3 | DF-18.2-01, DF-18.2-02, DF-18.2-04 |
+| `IMPLEMENTATION_REQUIRED` | 0 | — |
 | `RECLASSIFIED_FUTURE_PHASE` | 0 | — |
 | `REVIEW_REQUIRED` | 2 | DF-18.2-03, GF-18.2-01 |
 | `ACCEPTED_LIMITATION` | 0 | — |
@@ -803,10 +900,10 @@ La tensión entre ambas reglas debe resolverse con análisis de impacto FinOps e
 
 | DF | Estado | Decisión |
 |----|--------|----------|
-| DF-18.2-01 | `IMPLEMENTATION_REQUIRED` | AsyncDispatcher requiere authority, lease check y journal. Gate 1 Task 1.1.1. |
-| DF-18.2-02 | `IMPLEMENTATION_REQUIRED` | Extender RuntimeSettings con campos de activación 18.2. Gate 1 Task 1.1.1. |
+| DF-18.2-01 | `RESOLVED` | AsyncDispatcher con authority, journal y replay check. Resuelto en Task 1.1.1 + Task 1.1.3. Evidencia: §2.1.11. |
+| DF-18.2-02 | `RESOLVED` | RuntimeSettings extendido con campos de activación 18.2. Resuelto en Task 1.1.1. Sub-acción B diferida (mejora no bloqueante). Evidencia: §2.2.11. |
 | DF-18.2-03 | `REVIEW_REQUIRED` | Archivos vacíos: evaluar si son placeholders intencionales o deuda técnica. No bloquea. |
-| DF-18.2-04 | `IMPLEMENTATION_REQUIRED` | Mover lease check a PRE-effecto en SyncProviderBridge. Gate 1 Task 1.1.1. |
+| DF-18.2-04 | `RESOLVED` | Lease check movido a PRE-effecto + fencing local verificable. Resuelto en Task 1.1.1 + Task 1.1.2. Evidencia: §2.4.11. |
 | GF-18.2-01 | `REVIEW_REQUIRED` | CircuitBreaker envuelve cache: analizar impacto FinOps en Gate 3. Posible reordenamiento del stack. |
 
 ---
@@ -828,7 +925,7 @@ El documento se considera cerrado (`FROZEN`) cuando:
 - [ ] Todos los Gates (0-5) están en estado COMPLETED
 - [ ] El Findings Register está ARCHIVED
 
-**Progreso:** Gate 0 completado. 5/5 findings con evidencia forense registrada. Gates 1-5 pendientes.
+**Progreso:** Gate 0 completado. Gate 1 Wave 1.1 completada. 3/5 findings RESOLVED con evidencia forense de resolución registrada. 2/5 findings pendientes (DF-18.2-03, GF-18.2-01 — ambos REVIEW_REQUIRED, no bloqueantes). Gate 1 Exit Review pendiente hasta completar Wave 1.2.
 
 ### 5.2 Relación con el Findings Register
 

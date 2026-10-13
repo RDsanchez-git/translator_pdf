@@ -10,7 +10,9 @@ import signal
 import asyncio
 
 from core.utils.telemetry import setup_distributed_logger
-from core.execution.exceptions import OptimisticLockError, TransientAPIError, CircuitOpenError
+from core.execution.exceptions import (OptimisticLockError, TransientAPIError,
+                                        CircuitOpenError, ResourceExhaustedError,TaskCancelledError,
+                                        LeaseExpiredError, )
 from core.execution.ports import EventLifecycle, ProjectionState
 from core.normalization.normalizer import TextNormalizer
 from core.ast.registry import ASTRegistry
@@ -25,7 +27,6 @@ from core.metrics.metrics import Metrics
 from apps.bootstrap.provider_stack_factory import build_provider_stack
 from core.execution.models import ExecutionEnvelope
 from core.execution.ports import ResourceMonitorPort
-from core.execution.exceptions import ResourceExhaustedError
 from core.execution.coordination import CoordinationPrimitives
 from core.execution.admission import AdmissionMechanismPort, AdmissionStatus
 from runtime.admission_mechanism import SequentialAdmissionMechanism
@@ -33,7 +34,6 @@ from core.execution.backpressure import BackpressureMechanismPort
 from runtime.backpressure_mechanism import SequentialBackpressureMechanism
 
 from core.execution.cancellation import CancellationToken, TaskOutcome
-from core.execution.exceptions import TaskCancelledError
 from runtime.coordinated_shutdown import CoordinatedShutdownMechanism
 
 from core.execution.visibility import (
@@ -53,6 +53,9 @@ class TaskLeaseHeartbeat:
     """
     SOTA: Daemon Thread con conexión SQLite dedicada para evitar el Self-Lock.
     Confía exclusivamente en el estado de renovación de la base de datos (Opción A).
+    
+    NADR-F18-03 §5.1 R1/R2: Expone lease_expires_at para verificación
+    PRE-effecto de vigencia de autoridad.
     """
     def __init__(
         self,
@@ -60,7 +63,7 @@ class TaskLeaseHeartbeat:
         task_id: str,
         worker_id: str,
         ttl_sec: int = 120,
-        coordination: CoordinationPrimitives | None = None,  # ← NUEVO
+        coordination: CoordinationPrimitives | None = None,
     ):
         self.db_path = db_path
         self.task_id = task_id
@@ -72,11 +75,32 @@ class TaskLeaseHeartbeat:
         self.lease_lost = threading.Event()
         self.conn = None
         
-        # ── CORRECCIÓN (Fallo 2): usar CoordinationPrimitives compartido ──
+        # ── NUEVO (NADR-F18-03 §5.1): estado de vigencia del lease ──
+        # Protegido por _lease_lock para acceso thread-safe desde hilo principal
+        self._lease_lock = threading.Lock()
+        self._lease_expires_at: float = time.time() + ttl_sec
+        
         self._coord = coordination
 
         ctx = copy_context()
         self.thread = threading.Thread(target=lambda: ctx.run(self._beat), daemon=True)
+
+    @property
+    def lease_expires_at(self) -> float:
+        """Tiempo de expiración del lease (thread-safe, NADR-F18-03 §5.1 R2)."""
+        with self._lease_lock:
+            return self._lease_expires_at
+
+    @property
+    def is_lease_viable(self) -> bool:
+        """
+        Verificación PRE-effecto de vigencia (NADR-F18-03 §5.1 R2).
+        Retorna True si el lease tiene margen suficiente para iniciar un efecto externo.
+        Margen conservador: 30 segundos antes de expiración real.
+        """
+        MARGIN_SEC = 30.0
+        with self._lease_lock:
+            return time.time() + MARGIN_SEC < self._lease_expires_at
 
     def _beat(self):
         from infra.db.connection import get_connection
@@ -86,7 +110,6 @@ class TaskLeaseHeartbeat:
         control_repo = ControlPlaneRepository(self.conn)
         
         while not self.stop_event.wait(self.interval):
-            # ── CORRECCIÓN (Fallo 2): verificar si el daemon se está deteniendo ──
             if self._coord is not None and self._coord.is_stopped():
                 logger.info(f"[HEARTBEAT] Daemon stopping, heartbeat for task {self.task_id[:8]} exiting.")
                 break
@@ -97,6 +120,11 @@ class TaskLeaseHeartbeat:
                     logger.critical("LEASE_LOST_DURING_IO", extra={"extra_data": {"task": self.task_id[:8]}})
                     self.lease_lost.set()
                     break
+                
+                # ── NUEVO: actualizar vigencia del lease tras renovación exitosa ──
+                with self._lease_lock:
+                    self._lease_expires_at = time.time() + self.ttl_sec
+                    
             except Exception as e:
                 logger.error(f"Fallo en hilo de heartbeat al conectar a DB: {e}")
                 self.lease_lost.set()
@@ -316,6 +344,19 @@ class LLMWorkerDaemon:
                     
                     # ── Checkpoint 2 (R11): pre-LLM-call ──
                     self._cancellation_token.raise_if_cancelled()
+                    
+                    # ── VERIFICACIÓN PRE-EFFECTO (NADR-F18-03 §5.1 R2) ──
+                    # Verificar vigencia de lease INMEDIATAMENTE antes de iniciar efecto externo.
+                    # Si el lease no tiene margen suficiente, NO iniciar efecto externo.
+                    # Esto previene el escenario de crash post-effect/pre-journal donde
+                    # el efecto externo se completó pero no hay registro local.
+                    if not heartbeat.is_lease_viable:
+                        raise LeaseExpiredError(
+                            f"Lease de {task_id[:8]} sin margen suficiente para efecto externo. "
+                            f"Expires: {heartbeat.lease_expires_at:.2f}, "
+                            f"Now: {time.time():.2f}"
+                        )
+                    
                     # ── VISIBILITY (R24): llamada LLM en curso ──
                     self._visibility.observe(WorkUnitObservation(
                         task_id=task_id,
@@ -325,6 +366,10 @@ class LLMWorkerDaemon:
 
                     raw_response = self.processor.execute(node)
                     
+                    # ── VERIFICACIÓN POST-EFFECTO (NADR-F18-03 §5.1 R3) ──
+                    # Detectar pérdida de autoridad durante el efecto externo.
+                    # No revierte el efecto externo (limitación reconocida),
+                    # pero previene split-brain en el registro local.
                     if heartbeat.lease_lost.is_set():
                         raise OptimisticLockError(f"Split-Brain evitado: el lease de {task_id} fue revocado externamente durante I/O.")
 
@@ -353,7 +398,17 @@ class LLMWorkerDaemon:
                 normalized, normalized_hash, self.processor.projection_v
             )
             
-            self.control.mark_task_completed(task_id, self.node_id, task["state_version"])
+            # NADR-F18-03 §5.1 R3: Fencing con manejo explícito
+            try:
+                self.control.mark_task_completed(task_id, self.node_id, task["state_version"])
+            except OptimisticLockError:
+                # El lease expiró post-completado, pero el trabajo se preservó
+                # (journal + proyección persistidos). Otro worker completará el marcado.
+                logger.info(
+                    f"[FENCING] mark_task_completed rejected for {task_id[:8]}. "
+                    f"Lease expirado post-completado. Trabajo preservado."
+                )
+            
             self.metrics.observe("node_latency", time.perf_counter() - start_node)
             return TaskOutcome.COMPLETED
 
@@ -362,12 +417,12 @@ class LLMWorkerDaemon:
             # abandon_execution libera la tarea para que otro worker la tome
             # El heartbeat se cierra por context manager
             # Si el LLM ya procesó, el resultado está en WAL (preservado para replay)
-            self.control.abandon_execution(task_id, reason=f"CANCELLED:{e.reason}")
+            self.control.abandon_execution(task_id, self.node_id, f"CANCELLED:{e.reason}")
             logger.warning(f"[CANCEL] Task {task_id[:8]} cancelled: {e.reason} (task released for retry)")
             return TaskOutcome.CANCELLED
 
         except Exception as e:
-            self.control.abandon_execution(task_id, reason=str(e))
+            self.control.abandon_execution(task_id, self.node_id, str(e))
             logger.error(f"[FAIL] Task {task_id[:8]} failed: {e}")
             return TaskOutcome.FAILED
 

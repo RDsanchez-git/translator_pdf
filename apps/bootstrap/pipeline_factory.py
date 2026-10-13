@@ -57,6 +57,8 @@ from core.domain.document import LayoutBlock, BoundingBox
 from core.context.context_registry import ContextRegistry
 from core.context.dynamic_resolver import DynamicContextResolver
 
+from infra.db.event_repo import EventPlaneRepository
+
 
 
 
@@ -102,12 +104,18 @@ def build_pipeline(
     context_registry, context_resolver = _build_context_stack()
 
     # 3. Dispatcher completo
+    # NADR-F18-03 §5.1 R1: Inyección de EventPlanePort para journal de efectos externos
+    evt_conn = get_connection(os.getenv("EVENT_DB_PATH", "infra/db/event.db"), timeout=30)
+    evt_conn.execute("PRAGMA busy_timeout=30000")
+    event_plane = EventPlaneRepository(evt_conn)
+    
     dispatcher = AsyncDispatcher(
         context_resolver=context_resolver,
         prompt_builder=prompt_builder,
         provider_stack=provider_stack,
         validation_pipeline=validation_pipeline,
         healing_pipeline=healing_pipeline,
+        event_plane=event_plane,
         concurrency=concurrency,
     )
 

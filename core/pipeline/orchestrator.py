@@ -46,7 +46,14 @@ class ChunkerProtocol(Protocol):
     def chunk(self, nodes: List[ASTNode]) -> List[TranslationUnit]: ...
 
 class DispatcherProtocol(Protocol):
-    async def dispatch(self, units: List[TranslationUnit]) -> DispatchResult: ...
+    # NADR-F18-03 §5.1 R1: El dispatcher requiere contexto de documento para
+    # garantizar la trazabilidad y autoridad de cada efecto externo en el journal.
+    async def dispatch(
+        self,
+        units: List[TranslationUnit],
+        document_id: str,
+        ast_hash: str,
+    ) -> DispatchResult: ...
 
 class AuditBuilderProtocol(Protocol):
     def build(self, dispatch_result: DispatchResult) -> TranslationAuditSummary: ...
@@ -236,7 +243,12 @@ class TranslationPipeline:
             self.document_repository.save_batch(job.job_id, translation_units)
 
             job.enter_step(PipelineStep.DISPATCHING)
-            dispatch_result = await self.dispatcher.dispatch(translation_units)
+            # NADR-F18-03 §5.1 R1: Provisión de contexto de autoridad para el journal
+            dispatch_result = await self.dispatcher.dispatch(
+                translation_units,
+                document_id=job.document_id or job.job_id,
+                ast_hash=job.ast_hash or "unknown",
+            )
 
             # Emitir MarkAssemblyReadyCommand al finalizar el trabajo
             self._emit(job, MarkAssemblyReadyCommand)

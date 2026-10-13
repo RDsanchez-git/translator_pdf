@@ -18,6 +18,15 @@ class RuntimeSettings:
     reciben esta configuración por inyección. No consultan variables
     de entorno directamente.
     """
+    # === F18.1: Configuración existente ===
     reconciliation_enabled: bool = True
     sweep_interval_seconds: float = 45.0
     sweep_jitter_seconds: float = 5.0
+    
+    # === F18.2: Activación de contratos de ejecución durable ===
+    # Gate 1: Autoridad de ejecución y recuperación conservadora
+    conservative_recovery_enabled: bool = False
+    semantic_classification_enabled: bool = False
+    
+    # Gate 3: Observabilidad estratificada de duplicación
+    stratified_observability_enabled: bool = False

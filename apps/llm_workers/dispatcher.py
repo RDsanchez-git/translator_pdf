@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import itertools
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict, Any, Tuple, Optional
 from dataclasses import replace
 
 from core.ast.models import TranslationUnit, TranslatedUnit, ChunkOutcome, ExecutionStatus, FailureReason, DispatchResult
@@ -17,6 +17,11 @@ from core.healing.models import HealingOutcome
 from core.healing.pipeline import HealingPipeline
 from core.validation.budget import BudgetViolationReason
 from core.healing.models import HealingFailedException
+
+from core.execution.ports import EventPlanePort, EventLifecycle, EventRecord, ReplayPayload
+
+import uuid as _uuid
+from core.execution.constants import CURRENT_PROJECTION_VERSION
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +51,7 @@ class AsyncDispatcher:
         provider_stack: LLMProvider, 
         validation_pipeline: ValidationPipeline,
         healing_pipeline: HealingPipeline,
+        event_plane: EventPlanePort,  # NADR-F18-03 §5.1 R1: Journal de efectos externos
         concurrency: int = 20,
     ):
         self.context_resolver = context_resolver
@@ -54,6 +60,7 @@ class AsyncDispatcher:
         self._concurrency = concurrency
         self.validation_pipeline = validation_pipeline
         self.healing_pipeline = healing_pipeline
+        self._event_plane = event_plane
 
     async def _process_validation_and_healing(
         self, unit: TranslationUnit, provider_result: InferenceResult, envelope: PromptEnvelope
@@ -128,14 +135,58 @@ class AsyncDispatcher:
             )
 
     # SOTA FIX: Tipado estructural de la Cola para eliminar los Unknowns de priority, seq_id, unit, y envelope.
-    async def _worker(self, queue: 'asyncio.PriorityQueue[Tuple[int, int, TranslationUnit, PromptEnvelope]]', results: Dict[int, ChunkOutcome]) -> None:
+    async def _worker(
+        self,
+        queue: 'asyncio.PriorityQueue[Tuple[int, int, TranslationUnit, PromptEnvelope]]',
+        results: Dict[int, ChunkOutcome],
+        document_id: str,
+    ) -> None:
         while True:
             try:
                _priority, _seq_id, unit, envelope = await queue.get()
             except asyncio.CancelledError:
                 break
             try:
-                provider_result = await self._provider.translate(envelope)
+                # NADR-F18-03 §5.1 R1: Generar identidad de intento única
+                execution_id = f"exec_async_{_uuid.uuid4().hex[:8]}"
+                
+                # NADR-F18-04 §5.2 R5: Verificar replay económico antes de llamar al LLM
+                replay = self._event_plane.get_replay(
+                    unit.payload_sha256,
+                    envelope.prompt_version,
+                    envelope.model_name,
+                )
+                
+                if replay:
+                    logger.info(
+                        "ECONOMIC_REPLAY_HIT",
+                        extra={"extra_data": {"chunk_id": unit.chunk_id, "exec_id": execution_id}},
+                    )
+                    provider_result = InferenceResult(
+                        chunk_id=unit.chunk_id,
+                        content=replay.raw_response,
+                        finish_reason="replay",
+                        input_tokens=0,
+                        output_tokens=0,
+                        latency_ms=0.0,
+                    )
+                else:
+                    # Sin replay: ejecutar efecto externo
+                    provider_result = await self._provider.translate(envelope)
+                    
+                    # NADR-F18-03 §5.1 R1: Journal INMEDIATO post-efecto externo
+                    self._event_plane.append_wal(
+                        execution_id=execution_id,
+                        document_id=document_id,
+                        node_id=unit.chunk_id,
+                        content_hash=unit.payload_sha256,
+                        raw_response=str(provider_result.content),
+                        prompt_v=envelope.prompt_version,
+                        model_v=envelope.model_name,
+                        projection_v=CURRENT_PROJECTION_VERSION,
+                        lifecycle=EventLifecycle.GENERATED,
+                    )
+                
                 translated = await self._process_validation_and_healing(unit, provider_result, envelope)
                 
                 # SOTA FIX: Aislamiento dict nativo para evitar Unknown Propagation
@@ -218,7 +269,12 @@ class AsyncDispatcher:
             finally:
                 queue.task_done()
 
-    async def dispatch(self, units: List[TranslationUnit]) -> DispatchResult:
+    async def dispatch(
+        self,
+        units: List[TranslationUnit],
+        document_id: str,
+        ast_hash: str,  # Trazabilidad defensiva: disponible para futura extensión
+    ) -> DispatchResult:
         if not units:
             return DispatchResult(outcomes=[])
             
@@ -282,7 +338,8 @@ class AsyncDispatcher:
             seq_id = next(sequence_counter)
             queue.put_nowait((cost_priority, seq_id, unit, envelope))
             
-        workers = [asyncio.create_task(self._worker(queue, outcomes_map)) for _ in range(self._concurrency)]
+        # NADR-F18-03 §5.1 R1: Pasar document_id a workers para journal
+        workers = [asyncio.create_task(self._worker(queue, outcomes_map, document_id)) for _ in range(self._concurrency)]
         
         try:
             await queue.join()
@@ -309,3 +366,60 @@ class AsyncDispatcher:
                 
         final_outcomes_sorted = [outcomes_map[idx] for idx in sorted(outcomes_map.keys())]
         return DispatchResult(outcomes=final_outcomes_sorted)
+
+
+class NullEventPlane(EventPlanePort):
+    """
+    Adaptador nulo para contextos donde no se requiere journal
+    (benchmarks y tests unitarios).
+
+    NADR-F18-05 §5.5 R16: No impone infraestructura específica.
+
+    SEMÁNTICA EPISTEMOLÓGICA:
+        Este plano NO afirma que un efecto externo no ocurrió.
+        Afirma que NO EXISTE plano de evidencia en este contexto.
+        get_latest_event() retorna None sin fabricar CONFIRMED.
+        (NADR-F18-03 §5.4 R17: ausencia de evidencia ≠ ausencia de efecto)
+
+    RESTRICCIÓN DE USO:
+        PROHIBIDO inyectar en reconcilers o daemons de recuperación.
+        Un reconciler que interprete None como "zombie puro" podría
+        reejecutar un efecto externo que sí ocurrió.
+        Solo válido donde no se ejercita gobernanza de recuperación.
+
+    Uso actual:
+        - Benchmarks (gemini_runner, groq_runner): no escriben en producción.
+        - Tests unitarios/integración: aislamiento de E/S.
+    """
+
+    def get_replay(
+        self, content_hash: str, prompt_v: str, model_v: str
+    ) -> Optional[ReplayPayload]:
+        """Sin plano de evidencia: nunca hay replay disponible."""
+        return None
+
+    def append_wal(
+        self,
+        execution_id: str,
+        document_id: str,
+        node_id: str,
+        content_hash: str,
+        raw_response: str,
+        prompt_v: str,
+        model_v: str,
+        projection_v: int,
+        lifecycle: EventLifecycle,
+    ) -> None:
+        """No-op: benchmarks y tests no persisten en el journal de producción."""
+        pass
+
+    def get_latest_event(self, node_id: str) -> Optional[EventRecord]:
+        """
+        NADR-F18-03 §5.2 / §5.4 R17: Ausencia de plano de evidencia.
+
+        Retorna None porque no existe journal en este contexto.
+        NO significa que el efecto externo no ocurrió.
+        La clasificación semántica debe aplicar comportamiento conservador
+        (UNCERTAIN) cuando no hay evidencia y el estado no demuestra no-inicio.
+        """
+        return None

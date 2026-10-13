@@ -7,6 +7,12 @@ from apps.llm_workers.dispatcher import AsyncDispatcher
 
 from apps.llm_workers.prompt_builder import PromptEnvelope, PromptBuilder
 
+from apps.llm_workers.dispatcher import NullEventPlane
+
+# Constantes de Test (NADR-F18-03 §5.1 R1: contexto de autoridad)
+TEST_DOCUMENT_ID = "test_doc_unit"
+TEST_AST_HASH = "test_hash_unit"
+
 class TestAsyncDispatcher(unittest.IsolatedAsyncioTestCase):
     """SOTA: Certificación del orquestador unificado con tolerancia a fallos parciales."""
 
@@ -44,6 +50,7 @@ class TestAsyncDispatcher(unittest.IsolatedAsyncioTestCase):
             provider_stack=self.mock_provider,
             validation_pipeline=validation_pipeline,
             healing_pipeline=healing_pipeline,
+            event_plane=NullEventPlane(),  # Tests no escriben en journal de producción
         )
 
     def _create_mock_unit(self, chunk_index: int, chunk_type: TranslationTaskType) -> TranslationUnit:
@@ -79,7 +86,9 @@ class TestAsyncDispatcher(unittest.IsolatedAsyncioTestCase):
         units = [self._create_mock_unit(1, TranslationTaskType.TRANSLATE)]
         self.mock_provider.translate.side_effect = ConnectionError("Simulated Network Drop")
         
-        results = await self.dispatcher.dispatch(units)
+        results = await self.dispatcher.dispatch(
+            units, document_id=TEST_DOCUMENT_ID, ast_hash=TEST_AST_HASH
+        )
         self.assertEqual(len(results.outcomes), 1)
         self.assertFalse(results.outcomes[0].is_success)
 
@@ -95,7 +104,9 @@ class TestAsyncDispatcher(unittest.IsolatedAsyncioTestCase):
             return self._mock_translate_side_effect(envelope)
             
         self.mock_provider.translate.side_effect = _variable_latency
-        results = await self.dispatcher.dispatch(units)
+        results = await self.dispatcher.dispatch(
+            units, document_id=TEST_DOCUMENT_ID, ast_hash=TEST_AST_HASH
+        )
         
         self.assertEqual(results.outcomes[0].chunk_index, 1)
         self.assertEqual(results.outcomes[2].chunk_index, 3)
@@ -105,7 +116,9 @@ class TestAsyncDispatcher(unittest.IsolatedAsyncioTestCase):
         self.mock_provider.translate.side_effect = ConnectionError("Timeout")
         
         # SOTA FIX: Caídas de red catastróficas invalidan la integridad transaccional de todo el lote concurrente
-        results = await self.dispatcher.dispatch(units)
+        results = await self.dispatcher.dispatch(
+            units, document_id=TEST_DOCUMENT_ID, ast_hash=TEST_AST_HASH
+        )
         self.assertEqual(len(results.outcomes), 2)
         
         for outcome in results.outcomes:
@@ -115,7 +128,9 @@ class TestAsyncDispatcher(unittest.IsolatedAsyncioTestCase):
         units = [self._create_mock_unit(5, TranslationTaskType.TRANSLATE), self._create_mock_unit(5, TranslationTaskType.PRESERVE)]
         
         with self.assertRaises(ValueError):
-            await self.dispatcher.dispatch(units)
+            await self.dispatcher.dispatch(
+                units, document_id=TEST_DOCUMENT_ID, ast_hash=TEST_AST_HASH
+            )
 
     async def test_case_H_provider_result_mapping(self):
         """SOTA: Certifica el mapeo estructural desde ProviderResult hacia TranslatedUnit."""
@@ -134,7 +149,9 @@ class TestAsyncDispatcher(unittest.IsolatedAsyncioTestCase):
         
         self.mock_provider.translate.return_value = mock_inference
     
-        results = await self.dispatcher.dispatch([unit])
+        results = await self.dispatcher.dispatch(
+            [unit], document_id=TEST_DOCUMENT_ID, ast_hash=TEST_AST_HASH
+        )
     
         self.assertEqual(len(results.outcomes), 1)
         outcome = results.outcomes[0]

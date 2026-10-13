@@ -12,6 +12,11 @@ from apps.llm_workers.cache_provider import CachedLLMProvider
 from apps.llm_workers.dispatcher import AsyncDispatcher
 from core.validation.estimators import ExactBPEEstimator
 
+from apps.llm_workers.dispatcher import NullEventPlane
+
+TEST_DOCUMENT_ID = "test_translation_layer"
+TEST_AST_HASH = "test_hash_tl"
+
 class FakeLLMProvider:
     async def translate(self, envelope: Any) -> Any:
         mock_res = MagicMock()
@@ -72,6 +77,7 @@ class TestTranslationLayerIntegration(unittest.IsolatedAsyncioTestCase):
             provider_stack=self.cache_provider,
             validation_pipeline=validation_pipeline,
             healing_pipeline=healing_pipeline,
+            event_plane=NullEventPlane(),
         )
         
         # ELIMINAR esta línea:
@@ -112,7 +118,9 @@ class TestTranslationLayerIntegration(unittest.IsolatedAsyncioTestCase):
             )
         ]
 
-        translated_units = await self.dispatcher.dispatch(units)
+        translated_units = await self.dispatcher.dispatch(
+            units, document_id=TEST_DOCUMENT_ID, ast_hash=TEST_AST_HASH
+        )
         
         outcomes = getattr(translated_units, "outcomes", [])
         self.assertEqual([u.chunk_index for u in outcomes], [1, 2, 3])
