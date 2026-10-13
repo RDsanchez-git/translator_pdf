@@ -25,7 +25,12 @@ class FakeChunker:
 
 class FakeDispatcher:
     """Implementación asíncrona de control homologada para DispatcherProtocol."""
-    async def dispatch(self, units: List[TranslationUnit]) -> DispatchResult:
+    async def dispatch(
+        self,
+        units: List[TranslationUnit],
+        document_id: str = "",
+        ast_hash: str = "",
+    ) -> DispatchResult:
         outcomes = []
         for u in units:
             translated_unit = TranslatedUnit(

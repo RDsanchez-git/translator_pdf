@@ -13,6 +13,8 @@ from core.finops.measurement import InferenceMeasurementService
 from core.validation.budget import PromptBudgetCalculator, StandardCompressionPolicy
 from core.validation.estimators import ExactBPEEstimator
 
+from apps.llm_workers.dispatcher import NullEventPlane
+
 
 class FinOpsControlledChunker:
     """Chunker de control presupuestario para pruebas E2E."""
@@ -88,6 +90,7 @@ class TestRealE2EFinOps(unittest.IsolatedAsyncioTestCase):
             provider_stack=rate_provider,
             validation_pipeline=validation_pipeline,
             healing_pipeline=healing_pipeline,
+            event_plane=NullEventPlane(),
         )
         
         # Construir TranslationPipeline directamente

@@ -57,6 +57,26 @@ class ProjectionRecord:
     normalized_response: str
     projection_version: int
 
+@dataclass(frozen=True)
+class EventRecord:
+    """
+    DTO inmutable del último evento del journal para un nodo.
+    
+    NADR-F18-03 §5.2: Evidencia autoritativa de que un efecto externo ocurrió.
+    Ubicado en core (no en infra) para cumplir arquitectura hexagonal:
+    los tipos de retorno de los puertos pertenecen al dominio.
+    """
+    execution_id: str
+    document_id: str
+    node_id: str
+    content_hash: str
+    raw_response: str
+    prompt_version: str
+    model_version: str
+    projection_version: int
+    lifecycle: str
+    timestamp: float
+
 # ==========================================
 # PROTOCOLS: Contratos con DIP
 # ==========================================
@@ -68,12 +88,16 @@ class ControlPlanePort(Protocol):
     def acknowledge_execution(self, task_id: str, worker_id: str) -> None: ...
     def abandon_execution(self, task_id: str, worker_id: str, error: str) -> None: ...
     def renew_task_lease(self, task_id: str, worker_id: str, additional_ttl_sec: int) -> bool: ...
+    # NADR-F18-03 §5.1 R3: Fencing local verificable con state_version
+    def mark_task_completed(self, task_id: str, worker_id: str, state_version: int) -> None: ...
 
 @runtime_checkable
 class EventPlanePort(Protocol):
     def get_replay(self, content_hash: str, prompt_v: str, model_v: str) -> Optional[ReplayPayload]: ...
     def append_wal(self, execution_id: str, document_id: str, node_id: str, content_hash: str, 
                    raw_response: str, prompt_v: str, model_v: str, projection_v: int, lifecycle: EventLifecycle) -> None: ...
+    # NADR-F18-03 §5.2: Evidencia autoritativa para clasificación semántica
+    def get_latest_event(self, node_id: str) -> Optional[EventRecord]: ...
 
 @runtime_checkable
 class MaterializedPlanePort(Protocol):

@@ -10,6 +10,15 @@ from core.validation.pipeline import ValidationPipeline
 from apps.llm_workers.routing import LLMProvider
 from apps.llm_workers.prompt_builder import PromptEnvelope, PromptBuilder
 
+from apps.llm_workers.dispatcher import NullEventPlane
+
+# ==============================================================================
+# Constantes de Test (NADR-F18-03 §5.1 R1: contexto de autoridad)
+# ==============================================================================
+
+TEST_DOCUMENT_ID = "test_doc_validation"
+TEST_AST_HASH = "test_hash_validation"
+
 # ==============================================================================
 # Mocks de Infraestructura
 # ==============================================================================
@@ -84,6 +93,7 @@ def build_test_dispatcher(provider: LLMProvider, pipeline: Optional[ValidationPi
         provider_stack=provider,
         validation_pipeline=pipeline,
         healing_pipeline=healing_pipeline,
+        event_plane=NullEventPlane(),  # Tests no escriben en journal de producción
     )
 
 # ==============================================================================
@@ -104,7 +114,9 @@ async def test_dispatcher_hard_fail_on_invalid_output():
         target_payload="{normal brace", estimated_tokens=5, payload_sha256="sha_miss"
     )
     
-    result = await dispatcher.dispatch([unit])
+    result = await dispatcher.dispatch(
+        [unit], document_id=TEST_DOCUMENT_ID, ast_hash=TEST_AST_HASH
+    )
     assert len(result.outcomes) == 1
     assert result.outcomes[0].is_success is False
 
@@ -122,7 +134,9 @@ async def test_dispatcher_revalidates_cache_hits():
         target_payload="test", estimated_tokens=5, payload_sha256="sha_key"
     )
     
-    result = await dispatcher.dispatch([unit])
+    result = await dispatcher.dispatch(
+        [unit], document_id=TEST_DOCUMENT_ID, ast_hash=TEST_AST_HASH
+    )
     assert len(result.outcomes) == 1
     assert result.outcomes[0].is_success is False
 
@@ -144,6 +158,8 @@ async def test_dispatcher_document_level_hard_fail():
     )
     
     # SOTA FIX: Las validaciones macro de documento no bloquean ni alteran el despacho individual de chunks
-    result = await dispatcher.dispatch([unit])
+    result = await dispatcher.dispatch(
+        [unit], document_id=TEST_DOCUMENT_ID, ast_hash=TEST_AST_HASH
+    )
     assert len(result.outcomes) == 1
     assert result.outcomes[0].is_success is True

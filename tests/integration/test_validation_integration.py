@@ -5,6 +5,11 @@ from core.ast.models import TranslationUnit, TranslationTaskType
 from apps.llm_workers.dispatcher import AsyncDispatcher
 from apps.llm_workers.prompt_builder import PromptEnvelope, PromptBuilder
 
+from apps.llm_workers.dispatcher import NullEventPlane
+
+TEST_DOCUMENT_ID = "test_validation_integration"
+TEST_AST_HASH = "test_hash_vi"
+
 # ==============================================================================
 # Mocks de Infraestructura (E/S y Red Aisladas)
 # ==============================================================================
@@ -98,6 +103,7 @@ def build_test_dispatcher(provider: Any) -> AsyncDispatcher:
         provider_stack=provider,
         validation_pipeline=validation_pipeline,
         healing_pipeline=healing_pipeline,
+        event_plane=NullEventPlane(),
     )
 
 # ==============================================================================
@@ -117,7 +123,9 @@ async def test_integration_hard_fail_on_unbalanced_braces():
         target_payload="some source", estimated_tokens=5, payload_sha256="sha_brace"
     )
     
-    result = await dispatcher.dispatch([unit])
+    result = await dispatcher.dispatch(
+        [unit], document_id=TEST_DOCUMENT_ID, ast_hash=TEST_AST_HASH
+    )
     assert len(result.outcomes) == 1
     assert result.outcomes[0].is_success is False
 
@@ -135,7 +143,9 @@ async def test_integration_preservation_fail_on_missing_doi():
         estimated_tokens=5, payload_sha256="sha_doi"
     )
     
-    result = await dispatcher.dispatch([unit])
+    result = await dispatcher.dispatch(
+        [unit], document_id=TEST_DOCUMENT_ID, ast_hash=TEST_AST_HASH
+    )
     assert len(result.outcomes) == 1
     assert result.outcomes[0].is_success is False
 
@@ -153,7 +163,9 @@ async def test_integration_warning_does_not_block():
         estimated_tokens=5, payload_sha256="sha_warn"
     )
     
-    result = await dispatcher.dispatch([unit])
+    result = await dispatcher.dispatch(
+        [unit], document_id=TEST_DOCUMENT_ID, ast_hash=TEST_AST_HASH
+    )
     assert len(result.outcomes) == 1
     assert result.outcomes[0].is_success is True
 
@@ -170,7 +182,9 @@ async def test_integration_perimeter_fail_on_markdown():
         target_payload="source text", estimated_tokens=5, payload_sha256="sha_mark"
     )
     
-    result = await dispatcher.dispatch([unit])
+    result = await dispatcher.dispatch(
+        [unit], document_id=TEST_DOCUMENT_ID, ast_hash=TEST_AST_HASH
+    )
     assert len(result.outcomes) == 1
     assert result.outcomes[0].is_success is False
 
@@ -200,6 +214,8 @@ async def test_integration_document_level_pi04_fail():
     ]
     
     # SOTA FIX: El dispatcher procesa los chunks de forma atómica; la validación macro ocurre pos-ensamble
-    result = await dispatcher.dispatch(units)
+    result = await dispatcher.dispatch(
+        units, document_id=TEST_DOCUMENT_ID, ast_hash=TEST_AST_HASH
+    )
     assert len(result.outcomes) == 2
     assert all(outcome.is_success for outcome in result.outcomes)

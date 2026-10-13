@@ -2,24 +2,13 @@ import time
 import uuid
 import sqlite3
 from typing import Optional
-from core.execution.ports import EventPlanePort, ReplayPayload, EventLifecycle 
-from collections import namedtuple
+from core.execution.ports import EventPlanePort, ReplayPayload, EventLifecycle, EventRecord
 
-EventRecord = namedtuple(
-    "EventRecord",
-    [
-        'execution_id',
-        'document_id',
-        'node_id',
-        'content_hash',
-        'raw_response',
-        'prompt_version',
-        'model_version',
-        'projection_version',
-        'lifecycle',
-        'timestamp'
-    ]
-)
+
+
+# NADR-F18-03 §5.2: EventRecord movido a core/execution/ports.py
+# para cumplir arquitectura hexagonal (los tipos de retorno de puertos
+# pertenecen al dominio, no a la infraestructura).
 
 class EventPlaneRepository(EventPlanePort):
     def __init__(self, conn: sqlite3.Connection):

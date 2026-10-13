@@ -125,6 +125,32 @@ class ControlPlaneRepository(ControlPlanePort):
         if cursor.rowcount == 0:
             raise OptimisticLockError(f"Zombie write interceptado al liberar: El lease de {task_id} expiró o fue robado.")
 
+    def mark_task_completed(self, task_id: str, worker_id: str, state_version: int) -> None:
+        """
+        NADR-F18-03 §5.1 R3: Fencing local verificable con doble check (lease + state_version).
+        Previene zombie writes de autoridades obsoletas.
+        """
+        now = time.time()
+        cursor = self.conn.execute(
+            """UPDATE chunk_tasks
+               SET task_state = 'COMPLETED', 
+                   lease_owner = NULL, 
+                   lease_expires_at = NULL, 
+                   updated_at = ?,
+                   state_version = state_version + 1
+               WHERE task_id = ? 
+                 AND lease_owner = ? 
+                 AND lease_expires_at >= ?
+                 AND state_version = ?""",
+            (now, task_id, worker_id, now, state_version)
+        )
+        self.conn.commit()
+        if cursor.rowcount == 0:
+            raise OptimisticLockError(
+                f"Fencing interceptado: mark_task_completed para {task_id} falló. "
+                f"Lease expirado, robado, o state_version desactualizado."
+            )
+
     def mark_cqrs_reconciled(self, task_id: str, reconciliation_id: str) -> bool:
         now = time.time()
         try:
