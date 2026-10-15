@@ -1,9 +1,8 @@
-# HITO_{ID}_PRODUCTION_PIPELINE_EXECUTION_ATLAS.md
+# Production Pipeline Execution Atlas
 
-## Production Pipeline Execution Atlas
-### Reconstrucción AS-IS, viabilidad de componentes y reconciliación del motor PDF → PDF
+## Reconstrucción AS-IS, viabilidad de componentes y reconciliación del motor PDF → PDF
 
-**Versión:** 0.2.14
+**Versión:** 0.2.15
 **Estado:** IN_PROGRESS — investigación forense  
 **Fecha de apertura:** 2026-10-14  
 **Fecha de congelamiento:** N/A  
@@ -18,7 +17,7 @@
 **Metodología:** `docs/architecture/1.2_METH_FOR_FORENSIC_HITOs.md` (archivo leído; cabecera interna: `METHODOLOGY_FOR_FORENSIC_HITOs.md`, v1.2.0 FROZEN)  
 **Naturaleza:** evidencia forense AS-IS, read-only; no especificación TO-BE, ADR, NADR ni Execution Plan.  
 **Mandato:** reconstruir y contrastar las rutas CLI, OCR→Engine→Assembler y OCR→LLMWorkerDaemon→Assembler hasta el PDF traducido; documentar sus contratos, discontinuidades y capacidades reutilizables.  
-**Alcance de esta actualización:** §0, §1 y §2. §3–§12 permanecen fuera de esta entrega y deberán conservarse en el documento integral, sin sobrescritura.
+**Alcance de esta actualización:** Documento en revisión.
 
 ### Changelog
 
@@ -40,8 +39,10 @@
 | 0.2.12 | 2026-10-15 | Población forense de §10: matriz CAP-01…12 y estado por ruta, activos aprovechables solo en alcance estático, fronteras desconectadas, controles negativos de duplicación, docket D-1…D-7 y riesgos residuales. Readiness de producto NOT DEMONSTRATED; E2E-0 y testigos NO EJECUTADOS. Sin selección canónica, disposiciones KEEP/RETIRE, decisiones ni cambios funcionales. |
 | 0.2.13 | 2026-10-15 | Población forense de §11: registro federado de fuentes y modalidades; trazabilidad de enlaces L-01…14 hacia CAP/CTR/B8/W sin duplicar hallazgos; reconciliación delta de P1/P7, GAP-0.2-01/DF-34, F18.2 RESOLVED y Charter; hipótesis abiertas con prueba falsable y límites de cierre. Sin nuevos E-/GAP-IDs, E2E-0, decisiones canónicas ni cambios funcionales. |
 | 0.2.14 | 2026-10-15 | Población de §12: dictamen forense estático sin certificación PDF→PDF; matriz de completitud y techos de inferencia; derivación federada a registros históricos, testigos y docket D-1…D-7; checklist de congelamiento conforme a 1.2_METH §8 y declaración expresa de no cierre formal. E2E-0/L0/L2/L3 NO EJECUTADOS; sin nuevos folios E-/GAP-, severidades, disposiciones KEEP/RETIRE, decisiones ni cambios funcionales. |
+| 0.2.15 | 2026-10-16 | Reconciliación editorial post-auditoría de consistencia (informe sobre commit 99a3e493, v0.2.14): renombrado de HITO_{ID} a PRODUCTION_PIPELINE_EXECUTION_ATLAS.md; actualización de tabla de progreso §0.4 al corte efectivo; sustitución de metadatos «Versión propuesta v0.2.XX» por «Integración documental» en §§9, 11 y 12; eliminación de párrafos obsoletos sobre cabecera 0.2.11 (§§10.6.2, 12.4.2); eliminación de footer «Fin del esqueleto v0.1.0»; nota de límite de gobernanza tras changelog; registro de identidad formal como DECISION REQUIRED (DOC-01). Sin cambios funcionales, sin decisiones D-1…D-7, sin E2E-0. |
 
-**Charter:** no modificar su preregistro `DRAFT`. La unidad documental debe conservar el estado provisional de decisiones D-1 a D-7. Un nuevo hallazgo del Atlas no corrige ni reescribe un Charter preregistrado. §6–§12 permanecen íntegros, y las derivaciones quedan para su llenado posterior.
+**Límite de gobernanza:** este Atlas no modifica el Charter v0.1.0 `DRAFT` ni supone la aprobación de D-1…D-7. Las conclusiones de §§0–12 son evidencia forense provisional y no sustituyen la formalización de la unidad, la caracterización E2E-0 o el acto de cierre del HITO.
+
 
 ---
 
@@ -78,18 +79,20 @@ Los IDs `R-*`, `CAP-*` y `ATLAS-RTE-*` aquí son **etiquetas locales provisional
 9. Conservar las hipótesis no resueltas como `TO BE VERIFIED` hasta revisar mecanismos alternativos o realizar pruebas reproducibles.
 10. No introducir infraestructura distribuida ni recomendaciones TO-BE bajo la apariencia de análisis AS-IS.
 
-## 0.4 Progreso
+## 0.4 Progreso del Atlas v0.2.14 — corte documental 2026-10-15
 
-| Bloque | Estado a 2026-10-14 | Evidencia / limitación |
+| Superficie | Población documental | Estado probatorio / pendiente |
 |---|---|---|
-| Producto y frontera | **PARCIAL — documentado** | `PROJECT_SCOPE`, principios y §1; Charter DRAFT §6.1–§6.2 cotejado; aprobación y selección de caso pendientes. |
-| Rutas productivas existentes | **PARCIAL — inspección estática sustancial** | CLI, factory, orquestador, OCR, Engine, LLM daemon, Reconciler, Assembler, Compose. |
-| Capacidades indispensables | **PARCIAL** | Inventario de capacidad en §1.2; no prueba de cobertura íntegra. |
-| Conectividad y datos | **PARCIAL — rupturas identificadas** | IDs de tarea/nodo, AST cache, DBs, perfil y barrera de ensamblado. Desarrollo completo en §4. |
-| Viabilidad de componentes | **PENDIENTE de clasificación integral** | Empezará en §5, alimentada por §2 y §4. |
-| Duplicaciones y causas estructurales | **PARCIAL — rutas concurrentes identificadas** | Aún no se justifica consolidación ni retiro (§6). |
-| Verificación E2E | **NO EJECUTADA / NO ACREDITADA** | No se dispone de reproducción PDF→PDF del commit. |
-| Consolidación forense | **EN CURSO** | Resultados preliminares, no cierre FROZEN. |
+| Frontera de producto y capacidades (§§1 y 3) | **POBLADO — ESTÁTICO** | CAP-01…12 identificadas; cobertura E2E no acreditada. |
+| Rutas de entrada y composición (§2) | **POBLADO — ESTÁTICO** | Rutas/variantes diferenciadas; configuración efectivamente ejecutada sin prueba. |
+| Conectividad, linaje e identidades (§4) | **POBLADO — ESTÁTICO** | L-01…14; primeras rupturas condicionadas a precondiciones; ejecución integrada desconocida. |
+| Roles y viabilidad (§5) | **POBLADO — CLASIFICACIÓN CANDIDATA** | Sin decisiones formales KEEP/RETIRE y sin comprobación completa de consumidores indirectos. |
+| Duplicación y mecanismos causales (§6) | **POBLADO — ESTÁTICO** | DUP-01…12 con controles negativos; no equivalen a doce defectos. |
+| Contratos (§7) | **POBLADO — CONTRASTE ESTÁTICO** | CTR-01…12; garantías dinámicas, incertidumbre y preservación pendientes. |
+| Bloqueantes/topología (§8) | **POBLADO — ESTÁTICO** | B8-01…22 y W-01…10 definidos; algunas condiciones corroboradas con SQLite aislado; sin E2E. |
+| Protocolo L0–L3 (§9) | **POBLADO — NO EJECUTADO** | PF-01…12, CP-00…12 y W previstos; owner/Charter/PDF/egress pendientes. |
+| Readiness, fuentes y cierre (§§10–12) | **POBLADO — PROVISIONAL** | Trazabilidad y límites documentados; `FROZEN` y readiness no acreditados. |
+| Evidencia dinámica y decisiones | **NO DISPONIBLE / NO AUTORIZADA EN ESTE CORTE** | E2E-0, L0–L3 sin ejecutar; D-1…D-7 pendientes del Board. |
 
 ## 0.5 Fuentes y calidad de evidencia de este corte
 
@@ -1845,7 +1848,8 @@ Los resultados del Carril A fijan la línea base AS-IS. Los resultados del Carri
 
 # 9. DYNAMIC EXECUTION & E2E EVIDENCE
 
-> **Versión documental propuesta:** `v0.2.12`, para reemplazar únicamente §9 del Atlas local `v0.2.10` informado por el owner. **No afirma sincronización con GitHub.** **Código bajo auditoría:** baseline funcional `95ef8a38614a1416484593fbd734443e57a74369`; lectura documental y de código mediante `380cafd91ac0e69f94a8aa237e83125cd6346504`. **Charter:** `PIPELINE_STABILIZATION_AUDIT_CHARTER.md` v0.1.0 **DRAFT**. **Estado:** `PROTOCOL POPULATED / EXECUTION NOT STARTED / DYNAMIC EVIDENCE NOT AVAILABLE`. Fecha: 2026-10-15. No se ejecutaron E2E-0, Docker integrado, proveedores reales ni fault injection para esta versión. [S9-01] [S9-02]
+**Integración documental:** §9 incorporada al Atlas v0.2.15; protocolo poblado, ejecución dinámica no iniciada. Esta integración editorial no implica aprobación del Charter ni corridas realizadas.
+**Código bajo auditoría:** baseline funcional `95ef8a38614a1416484593fbd734443e57a74369`; lectura documental y de código mediante `380cafd91ac0e69f94a8aa237e83125cd6346504`. **Charter:** `PIPELINE_STABILIZATION_AUDIT_CHARTER.md` v0.1.0 **DRAFT**. **Estado:** `PROTOCOL POPULATED / EXECUTION NOT STARTED / DYNAMIC EVIDENCE NOT AVAILABLE`. Fecha: 2026-10-15. No se ejecutaron E2E-0, Docker integrado, proveedores reales ni fault injection para esta versión. [S9-01] [S9-02]
 
 ## 9.0 Alcance, autoridad y priorización
 
@@ -1862,7 +1866,7 @@ Los resultados del Carril A fijan la línea base AS-IS. Los resultados del Carri
 
 **Etiquetas:** `OBSERVED-STATIC` describe código/documentos, `OBSERVED-DYNAMIC` requiere una ejecución con artefactos atribuibles, `REQUIRED` una obligación efectivamente vigente, `INCOMPATIBLE-STATIC` una incompatibilidad acreditada sin prueba integrada y `UNKNOWN` la ausencia de evidencia suficiente. `RUN-ID`, `CP-*` y `W-*` son identificadores locales; no reemplazan los folios `E-{U}.{H}-NNN` pendientes de asignación. [S9-01]
 
-**Gobernanza de versiones:** que el owner haya integrado §8 como `v0.2.10` es información autoritativa **para su documento local**, no prueba de commit/push. L0 comprobará por separado la versión documental entregada, `git rev-parse HEAD`, el estado del árbol y el contenido efectivo ejecutado. No es necesario publicar el Atlas para redactar un protocolo; sí será necesario fijar su versión y procedencia al registrar una corrida.
+**Procedencia por corrida futura:** cada expediente L0/L1 identificará versión del Atlas, commit de código, `git status`, configuración y hashes de corpus. La publicación de este documento no constituye ninguna corrida ni sustituye su cadena de custodia.
 
 ## 9.1 Entorno y reproducibilidad — L0
 
@@ -2015,12 +2019,6 @@ La inyección de fallos **no** es requisito para registrar E2E-0. Si se aprueba 
 | Readiness de producción | `NOT DEMONSTRATED` | Reconciliación dimensional (§10), evidencia en límites aplicables y decisiones del Board; **no** deducir de la documentación. |
 
 **Interfaz:** §10 puede clasificar capacidades **implementadas, integradas, demostradas, bloqueadas o UNKNOWN** con cita y perímetro. No podrá declarar ruta canónica, retirar componentes ni reabrir hechos históricos por inferencia. §11–§12 deben conservar los pendientes de autoridad y las pruebas aún no realizadas. **Las tres vías A/B/C de clasificación normativa no son las clases A/B/C del resultado de E2E-0**; consignar siempre su dominio. [S9-01]
-
-**Changelog propuesto, solo cuando el owner integre el reemplazo:**
-
-```markdown
-| 0.2.12 | 2026-10-15 | Simplificación de §9 por proporcionalidad: L0/L1 priorizados, registro mínimo auditable y CP-00…12 conservados; testigos W referenciados a §8 sin duplicación; L2/fault injection y L3 diferidos sin eliminar sus garantías; esquema/verificador externos opcionales. Evidencia dinámica sigue NO EJECUTADA; sin decisiones ni cambios funcionales. |
-```
 
 ### Fuentes de §9 — referencias de lectura estática, no folios de evidencia dinámica
 
@@ -2202,13 +2200,11 @@ La dimensión *demostración del producto* se separa expresamente de *cumplimien
 
 **Conclusión forense provisional — apta para derivación, no para cierre:** el repositorio contiene **piezas sustanciales de las doce capacidades** y mecanismos locales de extracción, inferencia, CQRS, FSM, recuperación, ensamblado y Tectonic. La composición investigada muestra **descontinuidades específicas y verificables estáticamente**, especialmente en arranque del scheduler, identidad chunk→nodo, transferencia de perfil, handoff CLI y configuración benchmark. Paralelamente, **persisten riesgos contractuales de alta relevancia** sobre efecto externo incierto, publicación antes del fence, replay, `PRESERVE` y equivalencia de validación, que un mero PDF generado no cerraría. Ninguna ruta está acreditada E2E, ninguna selección de arquitectura está autorizada y ninguna decisión de retiro se deriva de esta síntesis. La continuación legítima es adquirir evidencia dinámica conforme a §9, completar trazabilidad formal §11 y documentar límites/derivaciones §12, sin modificar retrospectivamente el Charter.
 
-**Higiene documental a verificar al integrar:** el documento consolidado recibido muestra cabecera `Versión: 0.2.11` y una fila `0.2.11` incompleta, mientras §9 contiene un changelog `0.2.12` **propuesto**. Además, §0.4 conserva estados de avance tempranos (por ejemplo, §5 «pendiente») y §0.2 todavía delimita una entrega original de §0–§2, pese a que el archivo actual contiene §3–§9 pobladas. Son **desajustes editoriales históricos de integración**, no hallazgos sobre el runtime. El owner debe reconciliar cabecera, changelog y notas antiguas con su versión maestra efectiva; **este reemplazo no las modifica**. Si se acepta, registrar la siguiente entrada en el changelog general, **sin usarla como confirmación anticipada de integración**:
-
 ---
 
 # 11. EVIDENCE INDEX & TRACEABILITY
 
-> **Estado del bloque:** `POPULATED / TRACEABILITY RECONCILED — DYNAMIC EVIDENCE PENDING`; Atlas `IN_PROGRESS`. **Versión propuesta:** `v0.2.14`, únicamente para el reemplazo documental de §11 tras la §10 aprobada como `v0.2.13`. **Línea base funcional:** `95ef8a38614a1416484593fbd734443e57a74369`; **commit documental/código inspeccionado:** `380cafd91ac0e69f94a8aa237e83125cd6346504`, con comparación de commits citada en §4/§5. **Charter de estabilización:** v0.1.0 `DRAFT`, D-1…D-7 pendientes. **E2E-0, L0–L3, PF-01…12, CP-00…12 y W-01…10:** `NO EJECUTADOS` en esta auditoría. Este registro no congela el HITO, no asigna evidencias oficiales ni reabre decisiones o findings históricos. [S5-01] [S7-01] [S8-01] [S9-01]
+**Estado del bloque:** `POPULATED / TRACEABILITY RECONCILED — DYNAMIC EVIDENCE PENDING`; Atlas `IN_PROGRESS`. **Integración documental:** §11 forma parte del Atlas consolidado v0.2.15. **Línea base funcional:** `95ef8a38614a1416484593fbd734443e57a74369`; **commit documental/código inspeccionado:** `380cafd91ac0e69f94a8aa237e83125cd6346504`, con comparación de commits citada en §4/§5. **Charter de estabilización:** v0.1.0 `DRAFT`, D-1…D-7 pendientes. **E2E-0, L0–L3, PF-01…12, CP-00…12 y W-01…10:** `NO EJECUTADOS` en esta auditoría. Este registro no congela el HITO, no asigna evidencias oficiales ni reabre decisiones o findings históricos. [S5-01] [S7-01] [S8-01] [S9-01]
 
 ## 11.0 Finalidad y límite del índice
 
@@ -2373,7 +2369,7 @@ Las preguntas siguientes son **pendientes de prueba**, no nuevas hipótesis nume
 
 # 12. CIERRE FORENSE Y DERIVACIÓN
 
-> **Estado de §12:** `POPULATED — FORENSIC SYNTHESIS / FORMAL CLOSURE PENDING`. **Estado del Atlas:** `IN_PROGRESS`, **no** `FROZEN`. **Resultado sobre el producto:** `PDF→PDF PRODUCT READINESS NOT DEMONSTRATED`. **Modalidad de investigación:** inspección estática, contraste normativo e histórico y dos reproducciones SQL *aisladas* referidas en el Atlas; **sin L0, E2E-0/L1, testigos L2, E2E L3, build de Docker ni PDF producido y atribuido a una corrida de esta unidad**. **Base funcional:** `95ef8a38614a1416484593fbd734443e57a74369`; **corte documental y código inspeccionado:** `380cafd91ac0e69f94a8aa237e83125cd6346504` (sin delta de código funcional entre ambos, según comparación registrada en §§4–5). **Charter:** v0.1.0 `DRAFT`; D-1…D-7, identificador de unidad/HITO, selección de PDF y autorizaciones de ejecución pendientes. **Versión de incorporación propuesta:** `v0.2.15` después de §11 `v0.2.14` — no presume publicación en GitHub ni actualiza la cabecera del documento maestro.
+**Estado de §12:** `POPULATED — FORENSIC SYNTHESIS / FORMAL CLOSURE PENDING`. **Estado del Atlas:** `IN_PROGRESS`, **no** `FROZEN`. **Resultado sobre el producto:** `PDF→PDF PRODUCT READINESS NOT DEMONSTRATED`. **Modalidad de investigación:** inspección estática, contraste normativo e histórico y dos reproducciones SQL *aisladas* referidas en el Atlas; **sin L0, E2E-0/L1, testigos L2, E2E L3, build de Docker ni PDF producido y atribuido a una corrida de esta unidad**. **Base funcional:** `95ef8a38614a1416484593fbd734443e57a74369`; **corte documental y código inspeccionado:** `380cafd91ac0e69f94a8aa237e83125cd6346504` (sin delta de código funcional entre ambos, según comparación registrada en §§4–5). **Charter:** v0.1.0 `DRAFT`; D-1…D-7, identificador de unidad/HITO, selección de PDF y autorizaciones de ejecución pendientes. **Integración documental:** §12 forma parte del Atlas consolidado `v0.2.15`, tras la reconciliación editorial post-auditoría. Esta integración no modifica el estado `IN_PROGRESS` ni acredita un cierre forense o productivo.
 
 **Límite de autoridad de este cierre.** Se cierran **documentalmente las conclusiones que soporta el corte estático**, no los hallazgos como `RESOLVED`, no el mandato forense completo, no los GAPs históricos, no los contratos FROZEN ni la certificación operativa. Los identificadores `CAP-*`, `L-*`, `ATLAS-RTE-*`, `CTR-*`, `PEND-*`, `B8-*`, `W-*` y `CP-*` siguen siendo **anclas locales**, no folios formales `E-{FASE}.{HITO}-{NNN}`, `GAP-{FASE}.{HITO}-{NN}` ni severidades aprobadas. Los índices primarios se encuentran en §§2–11 y **no se replican aquí**.
 
@@ -2488,7 +2484,7 @@ Estados: `SATISFECHO` = la evidencia/documentación local cumple el criterio en 
 
 | Condición de metodología y mandato | Evidencia disponible | Estado actual / impedimento concreto |
 |---|---|---|
-| **Identidad del HITO, metadata, autoridad y versión consistentes** | Baselines/Charter documentados; §0 y changelog históricos. | **PENDIENTE:** ID de unidad/HITO y autorización; cabecera del consolidado aún marca `0.2.11`, fila de `0.2.11` incompleta, changelogs propuestos posteriores y notas antiguas de §0.2/§0.4 desactualizadas. |
+| **Identidad del Atlas, metadata, autoridad y versión consistentes** | Cabecera, changelog y progreso de §0.4 reconciliados editorialmente en `v0.2.15`; baseline funcional y Charter identificados. | **PENDIENTE — DOC-01 (`DECISION REQUIRED`):** determinar la identidad formal de la unidad/Atlas, su identificador y autoridad, así como la nomenclatura y ubicación aplicables conforme a la metodología FROZEN. La reconciliación editorial está completada, pero no existe acto formal de congelamiento; el Atlas permanece `IN_PROGRESS`. |
 | **Mandato, alcance, exclusiones y fuentes trazados** | §§0–2, 5, 11; índices por sección y fuentes ancladas. | **PARCIAL:** mapa amplio, pero falta censo formal de `AUDITADO/REFERENCIADO/NO AUDITADO/NO VERIFICABLE` para todas las superficies del mandato; elegibilidad de despliegue efectivo `UNKNOWN`. |
 | **Rutas productivas caracterizadas conforme al preregistro aplicable** | R1/R2/R3 y variantes reconstruidas estáticamente; protocolo §9. | **PENDIENTE:** Charter DRAFT, selección PDF/owner/egress; **L0/L1 no ejecutados**, sin actas A/B/C. No «cerrar» una ruta solo con código. |
 | **Capacidades indispensables y enlaces críticos documentados** | CAP-01…12, L-01…14 y atlas de primeras rupturas B8. | **PARCIAL:** inventario y contratos poblados; continuidad real multiproceso y salida PDF no demostradas. |
@@ -2511,11 +2507,9 @@ Estados: `SATISFECHO` = la evidencia/documentación local cumple el criterio en 
 
 **Siguiente paso autorizado solo tras decisión/consentimiento correspondiente:** entregar el expediente de caracterización AS-IS de §9 al owner para ejecución controlada conforme al Charter aplicable, conservar resultados incluso si son B/C, y retornar con evidencia dinámica a §§8–12 antes de deliberar convergencia. §10 continuará siendo una matriz de capacidad y §11 el índice de procedencia; ni esta síntesis ni un PDF histórico sustituyen aquella observación. [§§9.0–9.7, 10.5–10.6, 11.4]
 
-**Higiene documental al integrar:** actualizar cabecera, changelog completo, alcance de actualización de §0.2, estados cronológicos de §0.4 y cualquier marcador «esqueleto» restante **solo en el acto editorial del owner**. Verificar también referencia exacta a las versiones F18-03, y no corregir silenciosamente NADRs/HITOs FROZEN. Es una condición de consistencia del artefacto, **no** un hallazgo de ejecución PDF→PDF. [§10.6.2; §11.3]
+
 
 **Fin de §12 — corte de investigación estática. El Atlas permanece `IN_PROGRESS` y no se presenta como HITO `FROZEN` ni como certificación del motor PDF→PDF.**
 
 
 ---
-
-**Fin del esqueleto v0.1.0.**
