@@ -1,95 +1,89 @@
-# I0-1 — Audit Sandbox build inputs (instrumentación, DRAFT)
+# I0-1 + I0-1B — Instrumentación de auditoría, consolidada (no acreditada)
 
-**Estado:** `I0-1 SOURCE PREPARATION IMPLEMENTED; ARTIFACT ACQUISITION / BUILD / HV / L1 NOT RUN`.
-**Fuentes:** D1 publicado en el commit `8d3aa568ba5ce01202280cd93adca564a966038a`; código del sujeto a congelar por SHA completo antes de cualquier ejecución. El paquete es **solo para revisión**; no está incorporado al repositorio del owner.
+**Estado:** código y pruebas instrumentales preparados. La resolución real, descarga,
+instalación de ruedas, Tectonic/binario ELF, build de imagen, HV y E2E-0 están
+**PENDIENTES y NO EJECUTADOS**. No implica `PF-06 PASS` ni un resultado del producto.
 
-## Archivos
+**Sujeto congelado:** commit `c56f3e124d76ae9f1506e4b12fbf0faa4881b574`,
+tree `eb7d2f6770517b72546055f4b611bac4734a3db3`.
+I0-1 caracteriza 328 archivos del snapshot y 24 dependencias de ejecución.
+`groq==1.4.0` es **restricción instrumental**, no versión histórica certificada.
 
-- `prepare_source.py`: crea una exportación de origen desde un **commit completo** mediante Git objects, independiente del working tree, con lista positiva y manifiesto de hashes. No descarga ni compila.
-- `source_policy.json`: política explícita de rutas y extensiones. Deliberadamente no admite PDFs, corpus, documentos del usuario, SQLite, resultados JSON ni `.env`.
-- `verify_materials.py`: valida `requirements.lock`, **todos los wheels**, Tectonic y una base Docker `@sha256:` frente al manifiesto; bloquea entradas faltantes o extrañas. Después compone un contexto local nuevo sin ejecutar Docker.
-- `.dockerignore`: segunda frontera de lista positiva en el contexto de Docker (excluye cualquier archivo añadido por accidente). Nunca sustituye al generador/validador de hashes.
-- `Dockerfile.audit`: instala **solo ruedas verificadas** sin acceso de red; no invoca `apt-get` ni `curl`; copia únicamente código autorizado y Tectonic verificado. Requiere una base Linux preparada y aprobada con librerías nativas de Tectonic, identificada por digest; **no se proporciona todavía**.
-- `materials-manifest.template.json`: es plantilla deliberadamente inutilizable, no reemplazar campos con valores ficticios.
-- `tests/test_i0_1.py`: tests con repositorios sintéticos temporales, sin acceso a red ni corpus.
+## Única estructura instrumental dentro del repositorio
 
-## Primer control local, sin cambios de producto
+- `prepare_source.py` + `source_policy.json`: exportación del snapshot desde Git
+  por allowlist (se conservan los archivos de I0-1).
+- `prepare_resolution.py`: prepara **solo** `requirements.in`,
+  `groq-constraint.in` y `resolution-plan.json` desde un snapshot completo
+  y externamente anclado. La salida siempre permanece `INCOMPLETE_NOT_AUTHORIZED_NOT_EXECUTED`.
+- `verify_materials.py`: **único** gate de lock/wheels/materiales; valida I0-1
+  completo, manifiesto de origen contra hash confiable, manifiesto de materiales
+  v1.1, hashes externos e internos `RECORD`, límites ZIP y cierre transitivo.
+  Después ensambla en directorio nuevo y compara cada archivo del contexto
+  con los hashes de los **manifiestos copiados ya validados**.
+- `Dockerfile.audit`, `.dockerignore`: políticas de contexto I0-1 sin cambios.
+- `materials-manifest.template.json`: plantilla **deliberadamente inutilizable**,
+  v1.1; reemplaza la plantilla v1.0 cuando se adopte esta versión.
+- `tests/test_i0_1.py`, `tests/test_prepare_resolution.py`: tests sintéticos;
+  **no** resuelven ni instalan dependencias, ni usan el corpus.
 
-Desde una copia de estos archivos y usando el SHA del sujeto confirmado para la siguiente adquisición:
+No se requiere ni se conserva `verify_lock_wheels.py` como segunda ruta de
+acreditación, ni `tests/test_i0_1b.py` de la revisión aislada: sus controles de
+lock/wheels se consolidaron en el verificador y la preparación inerte quedó
+cubierta por `tests/test_prepare_resolution.py`. Conservar por separado el RAR
+original si se necesita trazabilidad histórica, **fuera** del árbol operativo.
 
-```powershell
-python -m unittest discover -s audit/build/tests -v
-python audit/build/prepare_source.py `
-  --repo . `
-  --commit <SHA_COMMIT_COMPLETO_DE_CODIGO> `
-  --out <CARPETA_NUEVA_FUERA_DEL_REPOSITORIO>
+## Aplicación segura
+
+1. **No fusionar a ciegas**: respaldar la carpeta `audit/build/` local y comparar
+   estos archivos con modificaciones locales que todavía no fueron adjuntadas.
+2. Mantener `prepare_source.py`, `source_policy.json`, `Dockerfile.audit` y
+   `.dockerignore` idénticos a la base I0-1, salvo revisión documentada.
+3. Aplicar en `audit/build/` los cambios del verificador, planner, plantilla,
+   tests y este README; no copiar carpetas `src/`, `materials/`, `wheels/` ni secretos.
+4. Comprobar en la raíz del repo, en Python con `packaging` ya disponible:
+
+   ```sh
+   python -B -m unittest discover -s audit/build/tests -v
+   ```
+
+5. Revisar `git diff -- audit/build` y `git status --short` **antes** de decidir
+   cualquier commit instrumental. No se ha hecho commit/push automáticamente.
+
+**Comandos futuros, SOLO con aprobación independiente e insumos auténticos:**
+
+```sh
+python -B audit/build/prepare_resolution.py \
+  --source-context <SNAPSHOT_I0-1> --out <NUEVO_DIRECTORIO_EXTERNO> \
+  --expected-source-manifest-sha256 <SHA256_DE_EVIDENCIA_I0-1>
+
+python -B audit/build/verify_materials.py \
+  --source-context <SNAPSHOT_I0-1> --materials <MATERIALES_APROBADOS> \
+  --out <NUEVO_CONTEXTO_EXTERNO> \
+  --expected-source-manifest-sha256 <SHA256_DE_EVIDENCIA_I0-1>
 ```
 
-El segundo comando **solo crea una copia de código versionado** en una carpeta nueva fuera del repositorio. No ejecutarlo con rutas de salida existentes, dentro del repo, o sin decidir el SHA del sujeto. No se necesita Docker Desktop.
+El SHA del manifiesto debe venir de **evidencia I0-1 previamente aceptada**, no
+calcularse de un snapshot arbitrario para fingir aprobación.
 
-## Materiales: adquisición futura separada y autorizada
+## Qué sigue pendiente para grado producción
 
-`verify_materials.py` requiere, en una carpeta **externa** que se rellena solo tras obtener artefactos reales y aprobar su origen:
+1. Acreditar y bloquear las herramientas instrumentales (Python/`packaging`,
+   resolver, pip) y el artefacto/distribución de cada binario por SHA/procedencia.
+2. Resolver/adquirir en un enclave Linux/amd64 CPython 3.11 separado **solo con
+   autorización**, registrar índice/corte, reproducibilidad, binarios y materiales.
+3. Comprobar que el host de validación coincide **realmente** con la imagen base
+   aprobada (digest + Python patch + ABI + glibc); los campos del manifiesto por
+   sí solos no autentican la imagen.
+4. Calibrar límites de ZIP con wheels aprobados; validar legalidad/licencias y
+   seguridad del supply chain; realizar pruebas offline autorizadas y HV.
+5. Revisar excepciones de recursos faltantes mediante política explícita, nunca
+   ampliar el allowlist para forzar un PASS. No correr Compose productivo ni E2E-0.
 
-```
-materials/
-  materials-manifest.json
-  requirements.lock
-  tectonic
-  wheels/
-    <wheels-linux-cp311-con-hash>.whl
-```
+La verificación de materiales **no es certificación de inmutabilidad**:
+`chmod` es solamente una barrera accidental, y el contexto final debe protegerse
+contra mutaciones posteriores mediante aislamiento y verificación del consumidor.
 
-El `materials-manifest.json` debe contener:
-
-```json
-{
-  "schema_version": "1.0",
-  "status": "APPROVED_MATERIALS",
-  "target_platform": "linux/amd64",
-  "python_version": "3.11",
-  "groq_version": "1.4.0",
-  "base_image": "<NOMBRE_DE_IMAGEN>@sha256:<DIGEST_REAL_DE_64_HEX>",
-  "files": {
-    "requirements.lock": "<SHA256_REAL>",
-    "tectonic": "<SHA256_REAL>",
-    "wheels/<NOMBRE_REAL>.whl": "<SHA256_REAL>"
-  }
-}
-```
-
-La plantilla es explicativa: **no debe usarse tal cual**. Cada wheel del lock debe estar representado, en la plataforma correcta y vinculado por hash al lock. Dependencias no fijadas, URLs directas, `-e`, listas transitivas incompletas, binarios fuera del manifiesto o un digest de imagen faltante producen rechazo.
-
-Aún pendiente: seleccionar y preregistrar un resolver Python, índice/procedencia y mecanismo de descarga aprobados; generar lock completo y wheelhouse para Linux/amd64 Python 3.11; comprobar reproducibilidad en dos adquisiciones independientes si la política lo exige; y disponer de base de imagen con runtime nativo de Tectonic, referenciada por digest. No se inventan estos insumos.
-
-Una vez adquiridos los artefactos, exclusivamente después de autorización documental:
-
-```powershell
-python audit/build/verify_materials.py `
-  --source-context <CARPETA_SOURCE_PREPARADA> `
-  --materials <CARPETA_MATERIALES_APROBADOS> `
-  --out <CARPETA_NUEVA_CONTEXT_BUILD>
-```
-
-Este comando verifica materiales y arma un directorio: **no construye imagen**. Para una construcción posterior se exige revisión y autorización independiente, usando `docker build --network=none` con `--build-arg BASE_IMAGE=<digest aprobado>`, plataforma Linux amd64, caché controlada, hashes y evidencia. El Dockerfile requiere esa base preinstalada en el daemon; no presupone que esté disponible.
-
-## Límites importantes
-
-1. **No tiene lock real**, ni Tectonic real verificado, ni base Docker aprobada; por diseño no puede superar I0-1 completo ni iniciar build.
-2. **La allowlist es restrictiva**: si faltan plantillas, otros recursos o imports, no se amplía a ciegas para que los tests pasen. Cualquier excepción requiere revisión y un nuevo hash de política. `configs` YAML y código Python no acreditan completitud de runtime.
-3. **No hay certificación automática de ausencia de secretos en el contenido del código.** El generador rechaza archivos/raíces sensibles por política, pero una clave hardcodeada dentro de un `.py` requeriría escaneo adicional, manual y automatizado, antes de cualquier build. El manifiesto con estado `APPROVED_MATERIALS` es una afirmación del operador; las firmas/procedencia y aprobación humana deben verificarse en un gate independiente.
-4. **El Dockerfile es estructural**, no un build verificado. Linux, dependencias compartidas y compatibilidad con Tectonic se verifican en HV. El control de no egress runtime pertenece a I0-3/HV, no a este paquete.
-5. **No reutilizar el Compose productivo** ni hacer `docker compose up` hasta I0-3 y autorización HV. El fake Groq y el Compose aislado se implementarán en I0-2/I0-3.
-6. **El SDK Groq 1.4.0 fue verificado en Windows local** respecto de `GROQ_BASE_URL`; requiere nueva verificación en imagen Linux, no inferirla.
-7. **Los tests sintéticos son pruebas del generador, no del pipeline**; cualquier fallo de la instrumentación se registra como `HARNESS_FAILURE`, nunca como resultado A/B/C de E2E-0.
-8. `PYTHONPATH=/app` y paquetes instalados con wheels no validan permisos SQLite o flujo de datos. La futura composición revisará lectura/escritura, redes y persistencia.
-
-## Criterio de salida de I0-1
-
-- Diff instrumental revisado; test de lista positiva sin contaminación ni secretos del working tree.
-- Commit/tree del sujeto explicitados y manifiestos de blobs calculados.
-- Lock cerrado con SHA reales, wheelhouse completo y Tectonic/base aprobados.
-- Build **offline** reproducible y smoke test dentro de imagen (posteriores a autorización).
-- Captura de entradas y salidas de los controles HV pertinentes.
-
-**Hasta completar todo ello: `I0-1 PARTIAL; PF-06 NO ACREDITADO; HV NOT_RUN; L1 NO_EJECUTADO; outcome=null`.**
+**Estado formal:** `I0-1 PASS previo; I0-1B tests sintéticos PASS; INTEGRACIÓN
+LOCAL Y TOOLING LOCK PENDIENTES; PF-06 NO ACREDITADO; HV NOT_RUN; E2E-0 NOT_EXECUTED;
+execution_outcome=null`.
