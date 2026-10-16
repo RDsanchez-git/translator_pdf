@@ -1,0 +1,91 @@
+{
+  "schema_version": "0.1.0-draft",
+  "document_kind": "AUDIT_HARNESS_BUILD_PROVENANCE_TEMPLATE",
+  "evidence_status": "D1_DESIGN_ONLY",
+  "repository": "RDsanchez-git/translator_pdf",
+  "reference_commit": "4b9fc2c3c692ad87402855235d4dedd0e7d8db5f",
+  "subject_variant_id": null,
+  "approvals": {
+    "design_review": "PENDING",
+    "instrumentation_implementation": "NOT_AUTHORIZED",
+    "harness_verification": "NOT_AUTHORIZED",
+    "e2e_l1": "NOT_AUTHORIZED"
+  },
+  "source": {
+    "subject_code_commit": null,
+    "source_tree_sha": null,
+    "source_export_manifest_sha256": null,
+    "functional_diff_from_baseline": "UNKNOWN"
+  },
+  "platform": {
+    "target_os": "linux",
+    "target_arch": "PENDING",
+    "python_minor": "3.11",
+    "base_image_ref_by_digest": null,
+    "base_image_digest_verified": false
+  },
+  "python_dependencies": {
+    "descriptor": "pyproject.toml",
+    "lock_path": null,
+    "lock_sha256": null,
+    "wheelhouse_manifest_sha256": null,
+    "resolver_name": null,
+    "resolver_version": null,
+    "installed_groq_version_in_image": null,
+    "host_groq_version_reported": "1.4.0",
+    "host_sdk_override_local_test": "PASS_REPORTED_LOCAL"
+  },
+  "native_dependencies": {
+    "tectonic_expected_version": "0.15.0",
+    "tectonic_artifact_sha256": null,
+    "tectonic_version_in_image": null,
+    "apt_snapshot_identity": null
+  },
+  "build": {
+    "build_context_policy": "POSITIVE_ALLOWLIST_PROPOSED",
+    "context_attestation_sha256": null,
+    "image_digest": null,
+    "sbom_sha256": null,
+    "build_network_disabled": null,
+    "result": "NOT_RUN"
+  },
+  "runtime_policy": {
+    "compose_manifest_sha256": null,
+    "public_ports": null,
+    "internal_network_only": null,
+    "host_original_checkout_mounts": null,
+    "egress_denied_test": "NOT_RUN",
+    "groq_base_url_effective_in_image": "NOT_VERIFIED",
+    "fake_contract_test": "NOT_RUN",
+    "real_provider_credentials_present": "NOT_VERIFIED"
+  },
+  "harness_checks": {
+    "HV-01": "NOT_RUN",
+    "HV-02": "NOT_RUN",
+    "HV-03": "NOT_RUN",
+    "HV-04": "NOT_RUN",
+    "HV-05": "NOT_RUN",
+    "HV-06": "NOT_RUN",
+    "HV-07": "NOT_RUN",
+    "HV-08": "NOT_RUN",
+    "HV-09": "NOT_RUN",
+    "HV-10": "NOT_RUN",
+    "HV-11": "NOT_RUN",
+    "HV-12": "NOT_RUN",
+    "HV-13": "NOT_RUN",
+    "HV-14": "NOT_RUN",
+    "HV-15": "NOT_RUN",
+    "HV-16": "NOT_RUN"
+  },
+  "e2e": {
+    "authorized_pdf_id": null,
+    "authorized_pdf_sha256": null,
+    "status": "NOT_EXECUTED",
+    "execution_outcome": null
+  },
+  "review": {
+    "reviewer": null,
+    "review_utc": null,
+    "notes": "Auxiliary template; NOT an authority record or proof that controls passed."
+  }
+}
