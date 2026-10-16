@@ -134,6 +134,7 @@ reports/gt_views/
 *.egg-info/
 dist/
 build/
+!/audit/build/
 
 # =====================================================================
 # CACHÉS DE HERRAMIENTAS DE VERIFICACIÓN (NO COMMITEAR)

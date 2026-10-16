@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0",
+  "allowed_exact_files": ["pyproject.toml"],
+  "allowed_roots": {
+    "apps": [".py", ".pyi", ".sql"],
+    "core": [".py", ".pyi", ".sql"],
+    "infra": [".py", ".pyi", ".sql", ".yaml", ".yml"],
+    "runtime": [".py", ".pyi", ".sql"],
+    "configs": [".yaml", ".yml", ".toml"],
+    "bootstrap": [".py", ".pyi", ".sql"]
+  },
+  "max_file_bytes": 2097152,
+  "max_total_bytes": 33554432,
+  "denied_basename_patterns": [".env", ".env.*", "*.pem", "*.key", "*credentials*", "*secret*"],
+  "notes": "Positive-list source snapshot, not evidence of runtime completeness. Any missing resource must be reviewed and deliberately added to policy. Never add corpus, PDFs, DB, private files, or general JSON results."
+}
