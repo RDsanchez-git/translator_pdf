@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0",
+  "status": "TEMPLATE_ONLY_NOT_BUILDABLE",
+  "target_platform": "linux/amd64",
+  "python_version": "3.11",
+  "groq_version": "1.4.0",
+  "base_image": null,
+  "files": {
+    "requirements.lock": null,
+    "tectonic": null
+  },
+  "notes": "When authorizing acquisition, replace with actual base_image registry@sha256:digest and add an exact sha256 for EVERY wheels/*.whl. Unset fields MUST fail verification. No placeholder digests."
+}

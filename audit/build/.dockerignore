@@ -1,0 +1,10 @@
+# I0-1 dedicated Docker context: fail-closed allowlist.
+# Build context is a prepared new directory, never the owner checkout.
+**
+!Dockerfile.audit
+!requirements.lock
+!tectonic
+!wheels/
+!wheels/**
+!src/
+!src/**

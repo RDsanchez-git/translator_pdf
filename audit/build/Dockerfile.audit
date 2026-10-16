@@ -1,0 +1,36 @@
+# I0-1 design implementation. Build ONLY after materials approval and HV plan.
+# Base image MUST be supplied as a content-addressed digest by the operator.
+# The approved base MUST already contain native runtime libraries for Tectonic.
+ARG BASE_IMAGE
+FROM ${BASE_IMAGE}
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONPATH=/app \
+    APP_ROOT=/app
+WORKDIR /app
+
+# All dependencies supplied as verified Linux wheels; build must use --network=none.
+COPY requirements.lock /opt/audit/requirements.lock
+COPY wheels/ /opt/audit/wheels/
+RUN --network=none python -m pip install --no-index --only-binary=:all: \
+    --require-hashes --find-links=/opt/audit/wheels \
+    -r /opt/audit/requirements.lock
+
+# Audited Tectonic ELF binary from a separately verified artifact, not curl.
+COPY tectonic /usr/local/bin/tectonic
+RUN --network=none chmod 0555 /usr/local/bin/tectonic \
+    && /usr/local/bin/tectonic --version \
+    && python -c 'from importlib.metadata import version; assert version("groq") == "1.4.0"'
+
+# Product files are exactly the source commit snapshot allowlist.
+COPY src/ /app/
+RUN --network=none groupadd --gid 10001 audit \
+    && useradd --uid 10001 --gid 10001 --no-create-home audit \
+    && mkdir -p /app/data/inbox /app/data/archive /app/data/error \
+        /app/data/ast_cache /app/infra/db /app/output /app/.cache \
+    && chown -R 10001:10001 /app/data /app/infra/db /app/output /app/.cache
+USER 10001:10001
+
+# No CMD invocation is permitted until isolated Compose + HV reviewed.
+CMD ["python", "runtime/engine.py"]
