@@ -57,6 +57,19 @@ MAX_WHEEL_EXPANDED = 2 << 30
 MAX_MEMBER_EXPANDED = 1 << 30
 MAX_METADATA_BYTES = 16 << 20  # RECORD may be large; candidate, not an approved limit
 MAX_COMPRESSION_RATIO = 200
+
+# I0-1C: narrow audited overrides tied to immutable wheel SHA-256.
+SCIPY_WHEEL = 'scipy-1.17.1-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl'
+SCIPY_WHEEL_SHA256 = '43af8d1f3bea642559019edfe64e9b11192a8978efbd1539d7bc2aaa23d92de4'
+SCIPY_OVERRATIO_MEMBERS = frozenset({
+    'scipy/stats/tests/data/nist_anova/SmLs03.dat',
+    'scipy/stats/tests/data/nist_anova/SmLs06.dat',
+    'scipy/stats/tests/data/nist_anova/SmLs09.dat',
+})
+SCIPY_MAX_COMPRESSION_RATIO = 240
+TORCH_WHEEL = 'torch-2.14.1-cp311-cp311-manylinux_2_28_x86_64.whl'
+TORCH_WHEEL_SHA256 = '305a61f61f35f128579f299c5bd33d475f6a01c6307336139632e30856c4854d'
+TORCH_MAX_WHEEL_MEMBERS = 13_100
 MAX_LOCK_BYTES = 8 << 20
 MAX_MANIFEST_BYTES = 8 << 20
 
@@ -292,12 +305,19 @@ def inspect_wheel(path: Path, filename: str, allowed_tags: frozenset,
         raise PreflightError(f'Invalid wheel filename: {filename}') from exc
     if not filename_tags.intersection(allowed_tags):
         raise PreflightError(f'Wheel incompatible with target tags: {filename}')
+    scoped_scipy = filename == SCIPY_WHEEL
+    scoped_torch = filename == TORCH_WHEEL
+    if scoped_scipy and digest_path(path) != SCIPY_WHEEL_SHA256:
+        raise PreflightError('SciPy wheel differs from audited ZIP-limit exception')
+    if scoped_torch and digest_path(path) != TORCH_WHEEL_SHA256:
+        raise PreflightError('Torch wheel differs from audited ZIP-limit exception')
     if path.stat().st_size > MAX_WHEEL_EXPANDED:
         raise PreflightError('Compressed wheel exceeds configured safety limit')
     try:
         with zipfile.ZipFile(path) as archive:
             infos = archive.infolist()
-            if not infos or len(infos) > MAX_WHEEL_MEMBERS:
+            member_limit = TORCH_MAX_WHEEL_MEMBERS if scoped_torch else MAX_WHEEL_MEMBERS
+            if not infos or len(infos) > member_limit:
                 raise PreflightError('Wheel member-count limit violated')
             members: dict[str, zipfile.ZipInfo] = {}
             total = 0
@@ -315,13 +335,16 @@ def inspect_wheel(path: Path, filename: str, allowed_tags: frozenset,
                 total += info.file_size
                 if (total > MAX_WHEEL_EXPANDED or info.file_size > MAX_MEMBER_EXPANDED
                         or (info.file_size and not info.compress_size)
-                        or (info.compress_size and info.file_size > MAX_COMPRESSION_RATIO * info.compress_size)):
+                        or (info.compress_size and info.file_size >
+                            (SCIPY_MAX_COMPRESSION_RATIO
+                             if scoped_scipy and member in SCIPY_OVERRATIO_MEMBERS
+                             else MAX_COMPRESSION_RATIO) * info.compress_size)):
                     raise PreflightError('Wheel decompression limit violated')
                 members[member] = info
             regular = {name for name, info in members.items() if not info.is_dir()}
-            metadata = [k for k in regular if k.endswith('.dist-info/METADATA')]
-            wheel_meta = [k for k in regular if k.endswith('.dist-info/WHEEL')]
-            records = [k for k in regular if k.endswith('.dist-info/RECORD')]
+            metadata = [k for k in regular if re.fullmatch(r'[^/]+\.dist-info/METADATA', k)]
+            wheel_meta = [k for k in regular if re.fullmatch(r'[^/]+\.dist-info/WHEEL', k)]
+            records = [k for k in regular if re.fullmatch(r'[^/]+\.dist-info/RECORD', k)]
             if len(metadata) != 1 or len(wheel_meta) != 1 or len(records) != 1:
                 raise PreflightError('Missing/ambiguous wheel metadata/RECORD')
             prefix = metadata[0].split('/', 1)[0]
@@ -388,7 +411,7 @@ def inspect_wheel(path: Path, filename: str, allowed_tags: frozenset,
             raise PreflightError('Missing/duplicate core wheel metadata')
         declared_tags = wheel_headers.get_all('Tag', [])
         if (not wheel_headers.get('Wheel-Version', '').startswith('1.')
-                or wheel_headers.get('Root-Is-Purelib') not in ('true', 'false')
+                or str(wheel_headers.get('Root-Is-Purelib', '')).casefold() not in ('true', 'false')
                 or not declared_tags or set(declared_tags) != {str(x) for x in filename_tags}):
             raise PreflightError('Invalid WHEEL header/tags')
         python_spec = meta.get('Requires-Python')
