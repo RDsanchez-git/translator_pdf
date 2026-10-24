@@ -170,3 +170,85 @@ def publish_staged_plan(
         )
         _verify_rows(materialized_conn, plan, rows, result_hash, projection_version)
     return True
+
+def finalize_published_plan(
+    queue_repo: ControlPlaneRepository,
+    materialized_conn: sqlite3.Connection,
+    plan: ChunkPlan,
+    ast: Sequence[ASTNode],
+    *,
+    projection_version: int = 1,
+) -> bool:
+    """Confirm a fully published generation in one queue.db transaction.
+
+    Returns True for the first completion, False for an already verified replay.
+    A durable RESULT_STAGED receipt -- not a live worker lease -- authorizes
+    recovery. No cross-database transaction is implied. The publication must
+    already be committed in materialized.db; never trust uncommitted evidence.
+    """
+    if type(projection_version) is not int or projection_version < 1:
+        raise ValueError("G3_B3_3B_INVALID_VERSION")
+    if materialized_conn.in_transaction:
+        raise ValueError("G3_B3_3B_UNCOMMITTED_PUBLICATION")
+
+    with queue_repo._chunk_plan_write_scope():
+        verified = queue_repo.load_chunk_plan(plan.document_id, plan.ast_hash, ast)
+        if verified != plan:
+            raise ValueError("G3_B3_3B_PLAN_DRIFT")
+        expected = queue_repo._chunk_plan_task_ids(verified)
+        rows = queue_repo.conn.execute(
+            "SELECT task_id,node_id,task_state,execution_id,lease_owner,"
+            "lease_expires_at,state_version FROM chunk_tasks "
+            "WHERE document_id=? AND ast_hash=?",
+            (plan.document_id, plan.ast_hash),
+        ).fetchall()
+        if (len(rows) != len(expected)
+                or {node_id: task_id for task_id, node_id, *_ in rows} != expected):
+            raise ValueError("G3_B3_3B_QUEUE_PLAN_DRIFT")
+        states = {row[2] for row in rows}
+        if states not in ({"RESULT_STAGED"}, {"COMPLETED"}):
+            raise ValueError("G3_B3_3B_INCOMPLETE_OR_MIXED_STATES")
+
+        # Read every receipt through the existing strict parser and checksums.
+        # This option only widens the allowed state for verification/replay.
+        responses = queue_repo.load_staged_chunk_responses(
+            verified, ast, allow_completed=True,
+        )
+        nodes = materialize_node_results(verified, responses)
+        verify_published_nodes(
+            materialized_conn, verified, ast, nodes,
+            projection_version=projection_version,
+        )
+        if materialized_conn.in_transaction:
+            raise ValueError("G3_B3_3B_UNCOMMITTED_PUBLICATION")
+
+        if states == {"COMPLETED"}:
+            if any(owner is not None or expiry is not None
+                   for _, _, _, _, owner, expiry, _ in rows):
+                raise ValueError("G3_B3_3B_COMPLETED_LEASE_DRIFT")
+            return False
+
+        now = time.time()
+        for task_id, chunk_id, _, execution_id, owner, _, version in rows:
+            if not owner or not execution_id:
+                raise ValueError("G3_B3_3B_MISSING_STAGED_AUTHORITY")
+            updated = queue_repo.conn.execute(
+                "UPDATE chunk_tasks SET task_state='COMPLETED', "
+                "lease_owner=NULL, lease_expires_at=NULL, "
+                "updated_at=?, state_version=state_version+1 "
+                "WHERE task_id=? AND document_id=? AND ast_hash=? AND node_id=? "
+                "AND task_state='RESULT_STAGED' AND execution_id=? "
+                "AND lease_owner=? AND state_version=?",
+                (now, task_id, verified.document_id, verified.ast_hash,
+                 chunk_id, execution_id, owner, version),
+            )
+            if updated.rowcount != 1:
+                raise ValueError("G3_B3_3B_COMPLETION_CAS_LOST")
+        final = queue_repo.conn.execute(
+            "SELECT COUNT(*) FROM chunk_tasks "
+            "WHERE document_id=? AND ast_hash=? AND task_state='COMPLETED'",
+            (verified.document_id, verified.ast_hash),
+        ).fetchone()[0]
+        if final != len(expected):
+            raise ValueError("G3_B3_3B_INCOMPLETE_COMPLETION")
+    return True

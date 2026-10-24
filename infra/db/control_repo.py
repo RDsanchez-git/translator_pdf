@@ -261,7 +261,7 @@ class ControlPlaneRepository(ControlPlanePort):
         return True
 
     def load_staged_chunk_responses(
-        self, plan: ChunkPlan, ast: Sequence[ASTNode],
+        self, plan: ChunkPlan, ast: Sequence[ASTNode], *, allow_completed: bool = False,
     ) -> dict[str, str]:
         """Rebuild validated response map once *all* chunks are durably staged.
 
@@ -274,6 +274,8 @@ class ControlPlaneRepository(ControlPlanePort):
         if verified != plan:
             raise ValueError("G3_B3_2_PLAN_DRIFT")
         expected = self._chunk_plan_task_ids(verified)
+        allowed_states = ({"RESULT_STAGED", "COMPLETED"}
+                          if allow_completed else {"RESULT_STAGED"})
         try:
             rows = self.conn.execute(
                 "SELECT r.chunk_id,r.task_id,r.execution_id,r.raw_response,r.response_sha256,"
@@ -293,7 +295,7 @@ class ControlPlaneRepository(ControlPlanePort):
         seen: set[str] = set()
         for chunk_id, task_id, execution_id, raw, digest, state, active_execution in rows:
             if (chunk_id in seen or chunk_id not in units or expected[chunk_id] != task_id
-                    or state != "RESULT_STAGED" or execution_id != active_execution):
+                    or state not in allowed_states or execution_id != active_execution):
                 raise ValueError("G3_B3_2_RECEIPT_QUEUE_DRIFT")
             seen.add(chunk_id)
             if units[chunk_id].chunk_type == TranslationTaskType.PRESERVE:
@@ -518,7 +520,7 @@ class ControlPlaneRepository(ControlPlanePort):
                       SELECT 1 FROM chunk_tasks t3
                       WHERE t3.document_id = f.document_id
                         AND t3.ast_hash = f.ast_hash
-                        AND t3.task_state IN ('PENDING', 'PROCESSING', 'RETRYABLE_ERROR')
+                        AND t3.task_state IN ('PENDING', 'PROCESSING', 'RETRYABLE_ERROR', 'RESULT_STAGED')
                   )
               )
             ORDER BY f.updated_at ASC
