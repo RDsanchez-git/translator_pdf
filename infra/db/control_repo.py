@@ -95,7 +95,8 @@ class ControlPlaneRepository(ControlPlanePort):
     def _verify_chunk_plan_tasks(self, plan: ChunkPlan) -> None:
         expected = self._chunk_plan_task_ids(plan)
         rows = self.conn.execute(
-            "SELECT node_id, task_id FROM chunk_tasks WHERE document_id = ? AND ast_hash = ?",
+            "SELECT node_id, task_id FROM chunk_tasks "
+            "WHERE document_id = ? AND ast_hash = ? AND worker_type <> 'ASSEMBLER'",
             (plan.document_id, plan.ast_hash),
         ).fetchall()
         actual = {node_id: task_id for node_id, task_id in rows}
@@ -217,7 +218,8 @@ class ControlPlaneRepository(ControlPlanePort):
             self.conn.execute(_G3_RESULT_RECEIPTS_DDL)
             row = self.conn.execute(
                 "SELECT task_state, lease_owner, execution_id, lease_expires_at, state_version "
-                "FROM chunk_tasks WHERE task_id=? AND document_id=? AND ast_hash=? AND node_id=?",
+                "FROM chunk_tasks WHERE task_id=? AND document_id=? AND ast_hash=? AND node_id=? "
+                "AND worker_type='LLM'",
                 (task_id, verified.document_id, verified.ast_hash, chunk_id),
             ).fetchone()
             if row is None:
@@ -324,6 +326,7 @@ class ControlPlaneRepository(ControlPlanePort):
                 WHERE task_id = (
                     SELECT task_id FROM chunk_tasks 
                     WHERE document_id = ? AND ast_hash = ? 
+                        AND worker_type = 'LLM'
                         AND task_state IN ('PENDING', 'RETRYABLE_ERROR')
                         AND (lease_owner IS NULL OR lease_expires_at < ?)
                     ORDER BY created_at ASC LIMIT 1
@@ -514,12 +517,14 @@ class ControlPlaneRepository(ControlPlanePort):
                       SELECT 1 FROM chunk_tasks t2
                       WHERE t2.document_id = f.document_id
                         AND t2.ast_hash = f.ast_hash
+                        AND t2.worker_type = 'LLM'
                         AND t2.task_state IN ('PENDING', 'RETRYABLE_ERROR')
                   )
                   OR NOT EXISTS (
                       SELECT 1 FROM chunk_tasks t3
                       WHERE t3.document_id = f.document_id
                         AND t3.ast_hash = f.ast_hash
+                        AND t3.worker_type = 'LLM'
                         AND t3.task_state IN ('PENDING', 'PROCESSING', 'RETRYABLE_ERROR', 'RESULT_STAGED')
                   )
               )

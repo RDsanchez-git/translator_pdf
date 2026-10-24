@@ -199,7 +199,7 @@ def finalize_published_plan(
         rows = queue_repo.conn.execute(
             "SELECT task_id,node_id,task_state,execution_id,lease_owner,"
             "lease_expires_at,state_version FROM chunk_tasks "
-            "WHERE document_id=? AND ast_hash=?",
+            "WHERE document_id=? AND ast_hash=? AND worker_type <> 'ASSEMBLER'",
             (plan.document_id, plan.ast_hash),
         ).fetchall()
         if (len(rows) != len(expected)
@@ -246,7 +246,8 @@ def finalize_published_plan(
                 raise ValueError("G3_B3_3B_COMPLETION_CAS_LOST")
         final = queue_repo.conn.execute(
             "SELECT COUNT(*) FROM chunk_tasks "
-            "WHERE document_id=? AND ast_hash=? AND task_state='COMPLETED'",
+            "WHERE document_id=? AND ast_hash=? AND worker_type <> 'ASSEMBLER' "
+            "AND task_state='COMPLETED'",
             (verified.document_id, verified.ast_hash),
         ).fetchone()[0]
         if final != len(expected):
