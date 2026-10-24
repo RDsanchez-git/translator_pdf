@@ -38,6 +38,21 @@ CREATE TABLE IF NOT EXISTS chunk_plans (
     PRIMARY KEY (document_id, ast_hash)
 );
 
+CREATE TABLE IF NOT EXISTS chunk_result_receipts (
+    document_id TEXT NOT NULL,
+    ast_hash TEXT NOT NULL,
+    chunk_id TEXT NOT NULL,
+    task_id TEXT NOT NULL,
+    execution_id TEXT NOT NULL,
+    raw_response TEXT,
+    response_sha256 TEXT CHECK(response_sha256 IS NULL OR length(response_sha256) = 64),
+    created_at REAL NOT NULL,
+    PRIMARY KEY (document_id, ast_hash, chunk_id),
+    FOREIGN KEY (task_id) REFERENCES chunk_tasks(task_id),
+    CHECK ((raw_response IS NULL AND response_sha256 IS NULL) OR
+           (raw_response IS NOT NULL AND response_sha256 IS NOT NULL))
+);
+
 CREATE TABLE IF NOT EXISTS system_leases (
     lease_name TEXT PRIMARY KEY,
     owner_id TEXT,

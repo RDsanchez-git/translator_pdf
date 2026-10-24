@@ -8,9 +8,25 @@ from core.execution.ports import ControlPlanePort, TaskLease
 from core.execution.exceptions import OptimisticLockError 
 from core.ast.models import ASTNode
 from core.chunking.manifest_contract import ChunkPlan
+from core.chunking.result_contract import parse_chunk_response
 from infra.db.connection import ensure_fsm_database_attached
 
 logger = logging.getLogger(__name__)
+
+_G3_RESULT_RECEIPTS_DDL = """CREATE TABLE IF NOT EXISTS chunk_result_receipts (
+    document_id TEXT NOT NULL,
+    ast_hash TEXT NOT NULL,
+    chunk_id TEXT NOT NULL,
+    task_id TEXT NOT NULL,
+    execution_id TEXT NOT NULL,
+    raw_response TEXT,
+    response_sha256 TEXT CHECK(response_sha256 IS NULL OR length(response_sha256) = 64),
+    created_at REAL NOT NULL,
+    PRIMARY KEY (document_id, ast_hash, chunk_id),
+    FOREIGN KEY (task_id) REFERENCES chunk_tasks(task_id),
+    CHECK ((raw_response IS NULL AND response_sha256 IS NULL) OR
+           (raw_response IS NOT NULL AND response_sha256 IS NOT NULL))
+)"""
 
 _G3_CHUNK_PLAN_DDL = """CREATE TABLE IF NOT EXISTS chunk_plans (
     document_id TEXT NOT NULL,
@@ -155,6 +171,142 @@ class ControlPlaneRepository(ControlPlanePort):
             raise ValueError("G3_B2_STORED_DIGEST_MISMATCH")
         self._verify_chunk_plan_tasks(plan)
         return plan
+
+    def stage_chunk_result(
+        self,
+        plan: ChunkPlan,
+        ast: Sequence[ASTNode],
+        *,
+        chunk_id: str,
+        task_id: str,
+        worker_id: str,
+        execution_id: str,
+        raw_response: Optional[str],
+    ) -> bool:
+        """Fence a validated provider result in queue.db; never acknowledge here.
+
+        Returns True when newly stored; False for an exact, already staged retry.
+        A PRESERVE chunk is staged with raw_response=None and needs no provider.
+        """
+        from hashlib import sha256
+        from core.ast.models import TranslationTaskType
+
+        if not worker_id or not execution_id:
+            raise ValueError("G3_B3_2_MISSING_LEASE_IDENTITY")
+        # B2 enforces persisted digest, AST linkage, and exact queue membership.
+        verified = self.load_chunk_plan(plan.document_id, plan.ast_hash, ast)
+        if verified != plan:
+            raise ValueError("G3_B3_2_PLAN_DRIFT")
+        expected_tasks = self._chunk_plan_task_ids(verified)
+        if expected_tasks.get(chunk_id) != task_id:
+            raise ValueError("G3_B3_2_UNKNOWN_TASK_OR_CHUNK")
+        units = {u.chunk_id: u for u in verified.units}
+        unit = units[chunk_id]
+        if unit.chunk_type == TranslationTaskType.PRESERVE:
+            if raw_response is not None:
+                raise ValueError("G3_B3_2_PRESERVE_MUST_BYPASS_PROVIDER")
+            response_sha256 = None
+        else:
+            # Fail closed: parse the whole envelope before even acquiring a lease.
+            parse_chunk_response(verified, chunk_id, raw_response)
+            assert isinstance(raw_response, str)
+            response_sha256 = sha256(raw_response.encode("utf-8")).hexdigest()
+
+        with self._chunk_plan_write_scope():
+            # In-place schema addition for already initialized queue.db files.
+            self.conn.execute(_G3_RESULT_RECEIPTS_DDL)
+            row = self.conn.execute(
+                "SELECT task_state, lease_owner, execution_id, lease_expires_at, state_version "
+                "FROM chunk_tasks WHERE task_id=? AND document_id=? AND ast_hash=? AND node_id=?",
+                (task_id, verified.document_id, verified.ast_hash, chunk_id),
+            ).fetchone()
+            if row is None:
+                raise ValueError("G3_B3_2_TASK_NOT_FOUND")
+            state, owner, active_execution, expires_at, version = row
+            existing = self.conn.execute(
+                "SELECT task_id, execution_id, raw_response, response_sha256 "
+                "FROM chunk_result_receipts WHERE document_id=? AND ast_hash=? AND chunk_id=?",
+                (verified.document_id, verified.ast_hash, chunk_id),
+            ).fetchone()
+            if existing is not None:
+                if (state == "RESULT_STAGED" and owner == worker_id
+                        and active_execution == execution_id
+                        and existing == (task_id, execution_id, raw_response, response_sha256)):
+                    return False  # Byte-identical retry; no change to state or timestamps.
+                raise ValueError("G3_B3_2_STAGED_RECEIPT_CONFLICT")
+
+            now = time.time()
+            if (state != "PROCESSING" or owner != worker_id or active_execution != execution_id
+                    or expires_at is None or expires_at <= now):
+                raise ValueError("G3_B3_2_LEASE_FENCE_REJECTED")
+
+            self.conn.execute(
+                "INSERT INTO chunk_result_receipts "
+                "(document_id,ast_hash,chunk_id,task_id,execution_id,raw_response,response_sha256,created_at) "
+                "VALUES (?,?,?,?,?,?,?,?)",
+                (verified.document_id, verified.ast_hash, chunk_id, task_id,
+                 execution_id, raw_response, response_sha256, now),
+            )
+            updated = self.conn.execute(
+                "UPDATE chunk_tasks SET task_state='RESULT_STAGED', "
+                "state_version=state_version+1, updated_at=? "
+                "WHERE task_id=? AND document_id=? AND ast_hash=? AND node_id=? "
+                "AND task_state='PROCESSING' AND lease_owner=? AND execution_id=? "
+                "AND lease_expires_at>? AND state_version=?",
+                (now, task_id, verified.document_id, verified.ast_hash, chunk_id,
+                 worker_id, execution_id, now, version),
+            )
+            if updated.rowcount != 1:
+                raise ValueError("G3_B3_2_LEASE_CAS_LOST")
+        return True
+
+    def load_staged_chunk_responses(
+        self, plan: ChunkPlan, ast: Sequence[ASTNode],
+    ) -> dict[str, str]:
+        """Rebuild validated response map once *all* chunks are durably staged.
+
+        Read-only. No projections or DONE states are written here.
+        """
+        from hashlib import sha256
+        from core.ast.models import TranslationTaskType
+
+        verified = self.load_chunk_plan(plan.document_id, plan.ast_hash, ast)
+        if verified != plan:
+            raise ValueError("G3_B3_2_PLAN_DRIFT")
+        expected = self._chunk_plan_task_ids(verified)
+        try:
+            rows = self.conn.execute(
+                "SELECT r.chunk_id,r.task_id,r.execution_id,r.raw_response,r.response_sha256,"
+                "t.task_state,t.execution_id "
+                "FROM chunk_result_receipts AS r JOIN chunk_tasks AS t "
+                "ON t.task_id=r.task_id AND t.document_id=r.document_id "
+                "AND t.ast_hash=r.ast_hash AND t.node_id=r.chunk_id "
+                "WHERE r.document_id=? AND r.ast_hash=?",
+                (verified.document_id, verified.ast_hash),
+            ).fetchall()
+        except sqlite3.OperationalError as exc:
+            raise ValueError("G3_B3_2_RECEIPTS_NOT_INITIALIZED") from exc
+        if len(rows) != len(verified.units):
+            raise ValueError("G3_B3_2_INCOMPLETE_STAGED_PLAN")
+        units = {u.chunk_id: u for u in verified.units}
+        responses: dict[str, str] = {}
+        seen: set[str] = set()
+        for chunk_id, task_id, execution_id, raw, digest, state, active_execution in rows:
+            if (chunk_id in seen or chunk_id not in units or expected[chunk_id] != task_id
+                    or state != "RESULT_STAGED" or execution_id != active_execution):
+                raise ValueError("G3_B3_2_RECEIPT_QUEUE_DRIFT")
+            seen.add(chunk_id)
+            if units[chunk_id].chunk_type == TranslationTaskType.PRESERVE:
+                if raw is not None or digest is not None:
+                    raise ValueError("G3_B3_2_INVALID_PRESERVE_RECEIPT")
+            else:
+                if not isinstance(raw, str) or digest != sha256(raw.encode("utf-8")).hexdigest():
+                    raise ValueError("G3_B3_2_RECEIPT_CHECKSUM_MISMATCH")
+                parse_chunk_response(verified, chunk_id, raw)
+                responses[chunk_id] = raw
+        if seen != set(units):
+            raise ValueError("G3_B3_2_INCOMPLETE_STAGED_PLAN")
+        return responses
 
     def pick_task(self, worker_id: str, document_id: str, ast_hash: str) -> Optional[TaskLease]:
         execution_id = f"exec_{int(time.time()*1000):015d}_{uuid.uuid4().hex[:8]}" 
