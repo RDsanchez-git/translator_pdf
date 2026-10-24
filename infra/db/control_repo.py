@@ -2,12 +2,24 @@ import time
 import uuid
 import sqlite3
 import logging
-from typing import Optional, List
+from contextlib import contextmanager
+from typing import Optional, List, Sequence
 from core.execution.ports import ControlPlanePort, TaskLease
 from core.execution.exceptions import OptimisticLockError 
+from core.ast.models import ASTNode
+from core.chunking.manifest_contract import ChunkPlan
 from infra.db.connection import ensure_fsm_database_attached
 
 logger = logging.getLogger(__name__)
+
+_G3_CHUNK_PLAN_DDL = """CREATE TABLE IF NOT EXISTS chunk_plans (
+    document_id TEXT NOT NULL,
+    ast_hash TEXT NOT NULL,
+    manifest_sha256 TEXT NOT NULL CHECK(length(manifest_sha256) = 64),
+    manifest_json TEXT NOT NULL,
+    created_at REAL NOT NULL,
+    PRIMARY KEY (document_id, ast_hash)
+)"""
 
 class ControlPlaneRepository(ControlPlanePort):
     def __init__(self, conn: sqlite3.Connection):
@@ -33,6 +45,116 @@ class ControlPlaneRepository(ControlPlanePort):
             tasks
         )
         self.conn.commit()
+
+    @contextmanager
+    def _chunk_plan_write_scope(self):
+        """SAVEPOINT: transaccion propia durable, ajena permanece bajo su owner."""
+        name = f"g3_chunk_plan_{uuid.uuid4().hex}"
+        self.conn.execute(f"SAVEPOINT {name}")
+        try:
+            yield
+        except BaseException:
+            try:
+                self.conn.execute(f"ROLLBACK TO SAVEPOINT {name}")
+            finally:
+                self.conn.execute(f"RELEASE SAVEPOINT {name}")
+            raise
+        else:
+            self.conn.execute(f"RELEASE SAVEPOINT {name}")
+
+    @staticmethod
+    def _chunk_plan_task_ids(plan: ChunkPlan) -> dict[str, str]:
+        """Compatible con el task_id estable usado por enqueue_tasks."""
+        import hashlib
+        task_ids = {
+            u.chunk_id: "task_" + hashlib.sha256(
+                f"{plan.document_id}:{plan.ast_hash}:{u.chunk_id}".encode("utf-8")
+            ).hexdigest()[:24]
+            for u in plan.units
+        }
+        if len(task_ids) != len(plan.units) or len(set(task_ids.values())) != len(task_ids):
+            raise ValueError("G3_B2_DUPLICATE_TASK_ID")
+        return task_ids
+
+    def _verify_chunk_plan_tasks(self, plan: ChunkPlan) -> None:
+        expected = self._chunk_plan_task_ids(plan)
+        rows = self.conn.execute(
+            "SELECT node_id, task_id FROM chunk_tasks WHERE document_id = ? AND ast_hash = ?",
+            (plan.document_id, plan.ast_hash),
+        ).fetchall()
+        actual = {node_id: task_id for node_id, task_id in rows}
+        if len(rows) != len(actual) or actual != expected:
+            raise ValueError("G3_B2_QUEUE_MANIFEST_DRIFT")
+
+    def enqueue_chunk_plan(self, plan: ChunkPlan, ast: Sequence[ASTNode]) -> None:
+        """Persiste plan + tareas atomicos en queue.db; reintento identico no-op.
+
+        Este API NO habilita Engine: la respuesta estructurada va en G3-B3.
+        El campo legacy chunk_tasks.node_id sigue guardando chunk_id.
+        """
+        verified = ChunkPlan.build(plan.document_id, plan.ast_hash, ast, plan.units)
+        if verified.digest != plan.digest:
+            raise ValueError("G3_B2_PLAN_VALIDATION_DRIFT")
+        payload, digest = verified.to_json(), verified.digest
+        now = time.time()
+        with self._chunk_plan_write_scope():
+            # Migracion compatible para queue.db existentes, DDL revertible.
+            self.conn.execute(_G3_CHUNK_PLAN_DDL)
+            row = self.conn.execute(
+                "SELECT manifest_sha256, manifest_json FROM chunk_plans "
+                "WHERE document_id = ? AND ast_hash = ?",
+                (plan.document_id, plan.ast_hash),
+            ).fetchone()
+            if row is not None:
+                if row != (digest, payload):
+                    raise ValueError("G3_B2_GENERATION_PLAN_CONFLICT")
+                self._verify_chunk_plan_tasks(verified)
+                return
+
+            # Nunca absorber automaticamente tareas legacy sin manifiesto.
+            preexisting = self.conn.execute(
+                "SELECT 1 FROM chunk_tasks WHERE document_id = ? AND ast_hash = ? LIMIT 1",
+                (plan.document_id, plan.ast_hash),
+            ).fetchone()
+            if preexisting:
+                raise ValueError("G3_B2_LEGACY_TASKS_WITHOUT_PLAN")
+
+            expected = self._chunk_plan_task_ids(verified)
+            self.conn.execute(
+                "INSERT INTO chunk_plans "
+                "(document_id, ast_hash, manifest_sha256, manifest_json, created_at) "
+                "VALUES (?, ?, ?, ?, ?)",
+                (plan.document_id, plan.ast_hash, digest, payload, now),
+            )
+            self.conn.executemany(
+                "INSERT INTO chunk_tasks "
+                "(task_id, document_id, ast_hash, node_id, task_state, "
+                "execution_id, created_at, updated_at) "
+                "VALUES (?, ?, ?, ?, 'PENDING', NULL, ?, ?)",
+                [
+                    (expected[u.chunk_id], plan.document_id, plan.ast_hash,
+                     u.chunk_id, now, now)
+                    for u in verified.units
+                ],
+            )
+            self._verify_chunk_plan_tasks(verified)
+
+    def load_chunk_plan(self, document_id: str, ast_hash: str,
+                        ast: Sequence[ASTNode]) -> ChunkPlan:
+        """Rehidrata plan comprobando checksum, AST y asociacion con queue."""
+        row = self.conn.execute(
+            "SELECT manifest_sha256, manifest_json FROM chunk_plans "
+            "WHERE document_id = ? AND ast_hash = ?",
+            (document_id, ast_hash),
+        ).fetchone()
+        if row is None:
+            raise ValueError("G3_B2_MANIFEST_NOT_FOUND")
+        digest, payload = row
+        plan = ChunkPlan.from_json(payload, ast, document_id=document_id, ast_hash=ast_hash)
+        if digest != plan.digest:
+            raise ValueError("G3_B2_STORED_DIGEST_MISMATCH")
+        self._verify_chunk_plan_tasks(plan)
+        return plan
 
     def pick_task(self, worker_id: str, document_id: str, ast_hash: str) -> Optional[TaskLease]:
         execution_id = f"exec_{int(time.time()*1000):015d}_{uuid.uuid4().hex[:8]}" 

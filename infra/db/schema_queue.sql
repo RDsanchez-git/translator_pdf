@@ -29,6 +29,15 @@ CREATE INDEX IF NOT EXISTS idx_chunk_tasks_scheduler
 ON chunk_tasks (worker_type, lease_expires_at, created_at)
 WHERE task_state IN ('PENDING', 'RETRYABLE_ERROR');
 
+CREATE TABLE IF NOT EXISTS chunk_plans (
+    document_id TEXT NOT NULL,
+    ast_hash TEXT NOT NULL,
+    manifest_sha256 TEXT NOT NULL CHECK(length(manifest_sha256) = 64),
+    manifest_json TEXT NOT NULL,
+    created_at REAL NOT NULL,
+    PRIMARY KEY (document_id, ast_hash)
+);
+
 CREATE TABLE IF NOT EXISTS system_leases (
     lease_name TEXT PRIMARY KEY,
     owner_id TEXT,
