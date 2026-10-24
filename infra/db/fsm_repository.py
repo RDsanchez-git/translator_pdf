@@ -1,6 +1,8 @@
 from typing import Optional
 import time
 import logging
+from contextlib import contextmanager
+import uuid
 from core.execution.exceptions import OptimisticLockError
 from dataclasses import dataclass
 
@@ -18,33 +20,58 @@ class FSMRepository:
     def __init__(self, db_connection):
         self.db = db_connection
 
+    @contextmanager
+    def _write_scope(self):
+        """SAVEPOINT aislado: RELEASE confirma solo si no habia transaccion externa.
+
+        El owner de una transaccion abierta controla su propio commit/rollback.
+        Ante fallo, este repositorio revierte solo el SAVEPOINT propio.
+        """
+        name = f"fsm_repo_{uuid.uuid4().hex}"
+        self.db.execute(f"SAVEPOINT {name}")
+        try:
+            yield
+        except BaseException:
+            try:
+                self.db.execute(f"ROLLBACK TO SAVEPOINT {name}")
+            finally:
+                self.db.execute(f"RELEASE SAVEPOINT {name}")
+            raise
+        else:
+            self.db.execute(f"RELEASE SAVEPOINT {name}")
+
     def initialize_document(self, document_id: str, ast_hash: str) -> None:
         """SOTA: Bootstrap del documento en la FSM sin leases (CAS-Driven)."""
         now = time.time()
-        self.db.execute(
-            """INSERT OR IGNORE INTO document_fsm 
+        # Cada comando FSM es una transaccion SQLite local durable.
+        # La cola reside en otro plano; esto NO garantiza atomicidad entre DBs.
+        with self._write_scope():
+            self.db.execute(
+                """INSERT OR IGNORE INTO document_fsm
                (document_id, ast_hash, current_state, entered_state_at, created_at, updated_at)
                VALUES (?, ?, 'CREATED', ?, ?, ?)""",
-            (document_id, ast_hash, now, now, now)
-        )
+                (document_id, ast_hash, now, now, now)
+            )
 
     def transition_to(self, document_id: str, ast_hash: str, old_state: str, new_state: str, 
                       current_version: int, owner_id: str, is_terminal: bool = False,
                       failure_reason: Optional[str] = None, suspended_state: Optional[str] = None) -> None:
         """SOTA: Transición atómica gobernada por Exclusión Mutua Optimista (CAS Duro)."""
         now = time.time()
-        cursor = self.db.execute(
-            """UPDATE document_fsm
+        # Incluye CAS + verificacion de rowcount dentro del mismo limite transaccional.
+        with self._write_scope():
+            cursor = self.db.execute(
+                """UPDATE document_fsm
                SET current_state = ?, state_version = state_version + 1, is_terminal = ?,
                    entered_state_at = ?, updated_at = ?, failure_reason = ?, suspended_state = ?
                WHERE document_id = ? AND ast_hash = ? AND current_state = ?
                  AND state_version = ?""",
-            (new_state, 1 if is_terminal else 0, now, now, failure_reason, suspended_state,
-             document_id, ast_hash, old_state, current_version)
-        )
-        if cursor.rowcount == 0:
-            logger.error(f"LOCK_FAILURE: Doc {document_id[:8]} no pudo transicionar de {old_state} a {new_state}. Conflicto de versión.")
-            raise OptimisticLockError(f"Conflicto de concurrencia/lock optimista en documento {document_id}")
+                (new_state, 1 if is_terminal else 0, now, now, failure_reason, suspended_state,
+                 document_id, ast_hash, old_state, current_version)
+            )
+            if cursor.rowcount == 0:
+                logger.error(f"LOCK_FAILURE: Doc {document_id[:8]} no pudo transicionar de {old_state} a {new_state}. Conflicto de versión.")
+                raise OptimisticLockError(f"Conflicto de concurrencia/lock optimista en documento {document_id}")
 
     def get_status(self, document_id: str, ast_hash: str) -> Optional[DocumentStatusDTO]:
         """Lectura rápida inmutable para validación CAS."""

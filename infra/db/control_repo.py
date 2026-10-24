@@ -5,6 +5,7 @@ import logging
 from typing import Optional, List
 from core.execution.ports import ControlPlanePort, TaskLease
 from core.execution.exceptions import OptimisticLockError 
+from infra.db.connection import ensure_fsm_database_attached
 
 logger = logging.getLogger(__name__)
 
@@ -224,40 +225,31 @@ class ControlPlaneRepository(ControlPlanePort):
             raise e
         
     def find_documents_with_pending_chunks(self, sample_size: int = 10) -> list[tuple[str, str]]:
-        import os
-        fsm_path = os.getenv("FSM_DB_PATH", "infra/db/fsm.db")
-        
-        # SOTA: Enlace entre espacios de nombres físicos de SQLite
-        self.conn.execute(f"ATTACH DATABASE '{fsm_path}' AS fsm_db")
-        
-        try:
-            cursor = self.conn.execute(
-                """
-                SELECT DISTINCT f.document_id, f.ast_hash
-                FROM fsm_db.document_fsm f
-                WHERE f.current_state = 'PROCESSING'
-                  AND (
-                      EXISTS (
-                          SELECT 1 FROM chunk_tasks t2
-                          WHERE t2.document_id = f.document_id
-                            AND t2.ast_hash = f.ast_hash
-                            AND t2.task_state IN ('PENDING', 'RETRYABLE_ERROR')
-                      )
-                      OR NOT EXISTS (
-                          SELECT 1 FROM chunk_tasks t3
-                          WHERE t3.document_id = f.document_id
-                            AND t3.ast_hash = f.ast_hash
-                            AND t3.task_state IN ('PENDING', 'PROCESSING', 'RETRYABLE_ERROR')
-                      )
+        # Conexion, scheduler y otros consumidores comparten la propiedad
+        # del alias; no repetir ATTACH ni hacer DETACH de un alias existente.
+        ensure_fsm_database_attached(self.conn)
+        cursor = self.conn.execute(
+            """
+            SELECT DISTINCT f.document_id, f.ast_hash
+            FROM fsm_db.document_fsm f
+            WHERE f.current_state = 'PROCESSING'
+              AND (
+                  EXISTS (
+                      SELECT 1 FROM chunk_tasks t2
+                      WHERE t2.document_id = f.document_id
+                        AND t2.ast_hash = f.ast_hash
+                        AND t2.task_state IN ('PENDING', 'RETRYABLE_ERROR')
                   )
-                ORDER BY f.updated_at ASC
-                LIMIT ?
-                """,
-                (sample_size,)
-            )
-            return cursor.fetchall()
-        finally:
-            try:
-                self.conn.execute("DETACH DATABASE fsm_db")
-            except Exception:
-                pass
+                  OR NOT EXISTS (
+                      SELECT 1 FROM chunk_tasks t3
+                      WHERE t3.document_id = f.document_id
+                        AND t3.ast_hash = f.ast_hash
+                        AND t3.task_state IN ('PENDING', 'PROCESSING', 'RETRYABLE_ERROR')
+                  )
+              )
+            ORDER BY f.updated_at ASC
+            LIMIT ?
+            """,
+            (sample_size,)
+        )
+        return cursor.fetchall()

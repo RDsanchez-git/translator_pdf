@@ -20,27 +20,45 @@ def _to_absolute_path(env_var: str, default_rel: str) -> str:
         p = BASE_DIR / p
     return str(p.resolve())
 
-def _attach_fsm_database(conn: sqlite3.Connection) -> None:
-    """
-    Capability Bootstrap: Enlaza el esquema FSM de forma permanente al contexto de la conexión.
-    Aísla la lógica CQRS cruzada para simplificar testing unitario y migraciones.
+def ensure_fsm_database_attached(conn: sqlite3.Connection) -> None:
+    """Garantiza fsm_db correcto en la conexion; nunca desadjunta alias ajenos.
+
+    El archivo debe existir: ATTACH nunca debe crearlo silenciosamente desde
+    una consulta del scheduler. La vinculación pertenece a la conexion.
     """
     fsm_db_path = _to_absolute_path("FSM_DB_PATH", "infra/db/fsm.db")
-    
-    if os.path.exists(fsm_db_path):
-        attached = conn.execute("PRAGMA database_list").fetchall()
-        if not any(db[1] == "fsm_db" for db in attached):
-            try:
-                # Sanitización de literales para prevenir inyecciones de path en ATTACH
-                safe_fsm_path = fsm_db_path.replace("'", "''")
-                conn.execute(f"ATTACH DATABASE '{safe_fsm_path}' AS fsm_db")
-                logger.debug(f"Volumen CQRS acoplado exitosamente: {safe_fsm_path}")
-            except sqlite3.OperationalError as e:
-                logger.error(f"CRÍTICO: Fallo al enlazar (ATTACH) FSM DB {fsm_db_path}: {e}")
-                conn.close()
-                raise
-    else:
+    if not os.path.isfile(fsm_db_path):
+        raise FileNotFoundError(f"Base FSM ausente: {fsm_db_path}")
+
+    expected_path = os.path.normcase(os.path.realpath(fsm_db_path))
+    for _, alias, attached_path in conn.execute("PRAGMA database_list").fetchall():
+        if alias == "fsm_db":
+            current_path = os.path.normcase(os.path.realpath(attached_path))
+            if current_path != expected_path:
+                raise sqlite3.OperationalError(
+                    f"Alias fsm_db apunta a otra base: {attached_path}; se esperaba {fsm_db_path}"
+                )
+            return
+
+    # Parametrizar la ruta evita interpolacion SQL de nombres de archivo.
+    conn.execute("ATTACH DATABASE ? AS fsm_db", (fsm_db_path,))
+
+
+def _attach_fsm_database(conn: sqlite3.Connection) -> None:
+    """Bootstrap de la conexion de cola. Conexion sin alias si aun falta FSM."""
+    fsm_db_path = _to_absolute_path("FSM_DB_PATH", "infra/db/fsm.db")
+    if not os.path.exists(fsm_db_path):
         logger.warning(f"ATTACH diferido: El archivo maestro {fsm_db_path} no se encuentra en el disco.")
+        return
+
+    try:
+        ensure_fsm_database_attached(conn)
+        logger.debug(f"Volumen CQRS acoplado exitosamente: {fsm_db_path}")
+    except sqlite3.OperationalError as e:
+        logger.error(f"CRÍTICO: Fallo al enlazar (ATTACH) FSM DB {fsm_db_path}: {e}")
+        conn.close()
+        raise
+
 
 def get_connection(db_path: str, timeout: int = 15) -> sqlite3.Connection:
     """
