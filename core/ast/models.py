@@ -233,6 +233,22 @@ class OverflowPolicy(str, Enum):
     BY_PARAGRAPH = "by_paragraph"
     HARD_TRUNCATE = "hard_truncate"
 
+@dataclass(frozen=True, slots=True)
+class ChunkMember:
+    """Identidad de un nodo o de uno de sus segmentos en un chunk.
+
+    segment_index: cero-based en el nodo padre, no en el chunk. Junto con
+    node_id identifica al miembro; source_text preserva bytes Unicode.
+    """
+    node_id: str
+    sequence_id: int
+    segment_index: int
+    segment_count: int
+    source_text: str
+    node_type: str
+    strategy: str
+
+
 @dataclass(frozen=True)
 class TranslationUnit:
     chunk_index: int
@@ -246,6 +262,7 @@ class TranslationUnit:
     target_payload: str
     estimated_tokens: int
     payload_sha256: str
+    members: Tuple[ChunkMember, ...] = ()
 
 @dataclass
 class ChunkingReport:
