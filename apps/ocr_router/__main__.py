@@ -28,7 +28,7 @@ from apps.bootstrap.pipeline_factory import build_document_profiler
 
 # 1. Importaciones actualizadas
 from core.document_profile.ports import ProfileStore
-from infra.db.profile_store import InMemoryProfileStore
+from infra.db.profile_store import SQLiteProfileStore
 
 setup_distributed_logger()
 logger = logging.getLogger("ocr_router")
@@ -109,11 +109,6 @@ class OCRRouterDaemon:
                 f"Layout={profiling_result.profile.layout}, "
                 f"Tipo={profiling_result.profile.document_type}"
             )
-            # NOTA DE INTEGRACIÓN: Como el Router no maneja SQLiteDocumentRepository,
-            # el 'profiling_result.profile' debe guardarse junto al AST o pasarse 
-            # como metadata a self.ast_registry.register_ast(...) para que el 
-            # Assembler lo consuma aguas abajo.
-            # =================================================================
             
             ast_hash = compute_ast_hash(raw_ast)
             if previous is not None and previous.ast_hash != ast_hash:
@@ -211,7 +206,8 @@ if __name__ == "__main__":
     
     # SOTA: Inyección de Profiler y Store
     profiler = build_document_profiler()
-    profile_store = InMemoryProfileStore()
+    profile_conn = get_connection("infra/db/documents.db", timeout=30)
+    profile_store = SQLiteProfileStore(profile_conn)
     
     fsm_repo = FSMRepository(fsm_conn)
     task_repo = ControlPlaneRepository(queue_conn)

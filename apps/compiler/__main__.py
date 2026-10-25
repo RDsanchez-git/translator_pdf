@@ -30,7 +30,7 @@ from core.compiler.service import CompilationService
 from core.compiler.context_resolver import CQRSAssemblyContextResolver
 from core.compiler.assembler import DocumentAssembler, AssemblyPolicy
 from core.compiler.rendering.mapper import DefaultRenderUnitMapper
-from infra.db.profile_store import InMemoryProfileStore
+from infra.db.profile_store import SQLiteProfileStore
 from infra.db.document_repository import SQLiteDocumentRepository
 
 
@@ -264,7 +264,7 @@ if __name__ == "__main__":
     asset_adapter = RenderAssetAdapter()
     mapper = DefaultRenderUnitMapper(geom_adapter, asset_adapter)
 
-    profile_store = InMemoryProfileStore()
+    profile_store = SQLiteProfileStore(doc_conn)
 
     compilation_service = CompilationService(
         assembler=assembler,
