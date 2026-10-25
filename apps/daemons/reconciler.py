@@ -44,6 +44,12 @@ class ReconcilerDaemon:
             JOIN chunk_tasks c ON d.document_id = c.document_id AND d.ast_hash = c.ast_hash
             WHERE d.current_state = 'PROCESSING'
               AND d.updated_at < ?
+              -- G3 documents must prove their publication and finalization.
+              -- Never bypass the B4/3b barrier on task states alone.
+              AND NOT EXISTS (
+                  SELECT 1 FROM chunk_plans p
+                  WHERE p.document_id=d.document_id AND p.ast_hash=d.ast_hash
+              )
             GROUP BY d.document_id, d.ast_hash, d.state_version
             HAVING COUNT(c.task_id) > 0
                AND COUNT(c.task_id) = SUM(CASE WHEN c.task_state = 'COMPLETED' THEN 1 ELSE 0 END)

@@ -534,3 +534,37 @@ class ControlPlaneRepository(ControlPlanePort):
             (sample_size,)
         )
         return cursor.fetchall()
+
+    def find_documents_ready_for_g3_recovery(
+        self, sample_size: int = 10,
+    ) -> list[tuple[str, str]]:
+        """Select G3 plans with no runnable tasks needing durable resolution.
+
+        Fully staged/completed plans can recover publication/FSM; a terminal
+        FAILED + staged mix must be selected so the Engine can fail the FSM.
+        Preserve the legacy pending-task selector and its existing contract.
+        """
+        if type(sample_size) is not int or sample_size < 1:
+            raise ValueError("G3_B4_3B_INVALID_SAMPLE_SIZE")
+        ensure_fsm_database_attached(self.conn)
+        return self.conn.execute(
+            "SELECT f.document_id, f.ast_hash FROM fsm_db.document_fsm AS f "
+            "JOIN chunk_plans AS p ON p.document_id=f.document_id AND p.ast_hash=f.ast_hash "
+            "WHERE f.current_state='PROCESSING' "
+            "AND EXISTS (SELECT 1 FROM chunk_tasks t WHERE t.document_id=f.document_id "
+            "AND t.ast_hash=f.ast_hash AND t.worker_type='LLM') "
+            "AND ( "
+            "NOT EXISTS (SELECT 1 FROM chunk_tasks t WHERE t.document_id=f.document_id "
+            "AND t.ast_hash=f.ast_hash AND t.worker_type='LLM' "
+            "AND t.task_state<>'RESULT_STAGED') "
+            "OR NOT EXISTS (SELECT 1 FROM chunk_tasks t WHERE t.document_id=f.document_id "
+            "AND t.ast_hash=f.ast_hash AND t.worker_type='LLM' "
+            "AND t.task_state<>'COMPLETED') "
+            "OR (EXISTS (SELECT 1 FROM chunk_tasks t WHERE t.document_id=f.document_id "
+            "AND t.ast_hash=f.ast_hash AND t.worker_type='LLM' AND t.task_state='FAILED') "
+            "AND NOT EXISTS (SELECT 1 FROM chunk_tasks t WHERE t.document_id=f.document_id "
+            "AND t.ast_hash=f.ast_hash AND t.worker_type='LLM' "
+            "AND t.task_state IN ('PENDING','PROCESSING','RETRYABLE_ERROR'))) "
+            ") ORDER BY f.updated_at ASC LIMIT ?",
+            (sample_size,),
+        ).fetchall()
