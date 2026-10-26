@@ -13,12 +13,30 @@ else:
     BASE_DIR = Path(__file__).resolve().parents[2]
 
 def _to_absolute_path(env_var: str, default_rel: str) -> str:
-    """Garantiza la resolución de un path absoluto basándose en APP_ROOT o la raíz calculada."""
-    raw_path = os.getenv(env_var, default_rel)
-    p = Path(raw_path)
-    if not p.is_absolute():
-        p = BASE_DIR / p
-    return str(p.resolve())
+    """Resuelve rutas configuradas, respetando el opt-in de SQLite."""
+    return resolve_sqlite_path(os.getenv(env_var, default_rel))
+
+
+def resolve_sqlite_path(db_path: str) -> str:
+    """Redirige SOLO /infra/db/*.db cuando SQLITE_STATE_DIR está definido.
+
+    Los SQLite :memory:, las rutas ajenas y el modo sin opt-in conservan
+    su destino original. No crea directorios, ni inicia conexiones.
+    """
+    if db_path == ":memory:":
+        return db_path
+    p = Path(db_path)
+    absolute = p.resolve() if p.is_absolute() else (BASE_DIR / p).resolve()
+    state_setting = os.getenv("SQLITE_STATE_DIR")
+    if not state_setting:
+        return str(absolute)
+    source_dir = (BASE_DIR / "infra" / "db").resolve()
+    if absolute.parent != source_dir or absolute.suffix.lower() != ".db":
+        return str(absolute)
+    state_dir = Path(state_setting)
+    if not state_dir.is_absolute():
+        state_dir = BASE_DIR / state_dir
+    return str((state_dir.resolve() / absolute.name))
 
 def ensure_fsm_database_attached(conn: sqlite3.Connection) -> None:
     """Garantiza fsm_db correcto en la conexion; nunca desadjunta alias ajenos.
@@ -70,8 +88,7 @@ def get_connection(db_path: str, timeout: int = 15) -> sqlite3.Connection:
     if db_path == ":memory:":
         abs_db_path = ":memory:"
     else:
-        p_db = Path(db_path)
-        abs_db_path = str(p_db.resolve()) if p_db.is_absolute() else str((BASE_DIR / p_db).resolve())
+        abs_db_path = resolve_sqlite_path(db_path)
     
     conn = sqlite3.connect(abs_db_path, timeout=timeout)
     conn.execute("PRAGMA journal_mode=WAL")
