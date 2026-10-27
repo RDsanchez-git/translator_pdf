@@ -46,7 +46,7 @@ def _create_chunk_processor():
     """Initialize paid provider only if at least one unit needs inference."""
     from apps.llm_workers.sync_bridge import SyncProviderBridge
     from core.validation.estimators import ExactBPEEstimator
-    from infra.resilience.sqlite_rate_limit_store import SQLiteRateLimitStore
+    from infra.resilience.thread_owned_sqlite_rate_limit_store import ThreadOwnedSQLiteRateLimitStore
     
     api_key = os.getenv("GROQ_API_KEY")
     if not api_key:
@@ -76,23 +76,21 @@ def _create_chunk_processor():
     rpm_limit = int(os.getenv("GROQ_RPM_LIMIT", "30"))
     tpm_limit = int(os.getenv("GROQ_TPM_LIMIT", "6000"))
     
-    # DF-27: Persistencia de cuotas con SQLite WAL
-    rl_conn = get_connection("infra/db/rate_limits.db", timeout=30)
-    rl_conn.execute("PRAGMA busy_timeout=30000")
-    rl_store = SQLiteRateLimitStore(rl_conn)
+    # Durable SQLite quota state, confined to a dedicated owner thread.
+    quota_store = ThreadOwnedSQLiteRateLimitStore("infra/db/rate_limits.db", timeout=30)
 
     try:
         provider_stack = asyncio.run(build_provider_stack(
             api_key=api_key,
             rpm_limit=rpm_limit,
             tpm_limit=tpm_limit,
-            rate_limit_store=rl_store,
+            rate_limit_store=quota_store,
         ))
         processor = SyncProviderBridge(async_provider=provider_stack, prompt_builder=builder)
     except BaseException:
-        rl_conn.close()
+        quota_store.close()
         raise
-    return processor, rl_conn
+    return processor, quota_store
 
 
 def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_traduccion.pdf") -> dict:
@@ -130,7 +128,7 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
     current_state = None
     failure = None
     processor = None
-    rl_conn = None
+    quota_store = None
     
     while True:
         try:
@@ -172,7 +170,7 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
                 needs_inference = any(state in ("PENDING", "RETRYABLE_ERROR")
                                       for state in initial_states)
                 if needs_inference:
-                    processor, rl_conn = _create_chunk_processor()
+                    processor, quota_store = _create_chunk_processor()
                     max_threads = int(os.getenv("MAX_CONCURRENT_CHUNKS", "4"))
 
                 def chunk_worker_thread():
@@ -301,7 +299,7 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
     if processor is not None:
         processor.shutdown()
 
-    for conn in (fsm_conn, queue_conn, rl_conn):
+    for conn in (fsm_conn, queue_conn, quota_store):
         if conn is not None:
             try:
                 conn.close()
