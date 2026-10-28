@@ -24,6 +24,7 @@ from core.utils.telemetry import (
 from core.execution.exceptions import CircuitTripError, CircuitOpenError
 from infra.db.connection import get_connection
 from core.ast.registry import ASTRegistry
+from core.ast.models import TranslationTaskType
 from core.validation.budget import PromptBudgetCalculator, StandardCompressionPolicy
 from core.finops.measurement import InferenceMeasurementService
 from apps.llm_workers.prompt_builder import PromptBuilder
@@ -151,10 +152,11 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
                 break
                 
             if current_state == DocumentState.PROCESSING:
-                initial_states = [state for (state,) in queue_conn.execute(
-                    "SELECT task_state FROM chunk_tasks WHERE document_id=? AND ast_hash=? "
+                initial_rows = queue_conn.execute(
+                    "SELECT node_id, task_state FROM chunk_tasks WHERE document_id=? AND ast_hash=? "
                     "AND worker_type='LLM'", (document_id, ast_hash),
-                ).fetchall()]
+                ).fetchall()
+                initial_states = [state for _, state in initial_rows]
                 if (len(initial_states) == len(plan.units) and initial_states
                         and set(initial_states) in ({"RESULT_STAGED"}, {"COMPLETED"})):
                     # Recovery-only path: no API key, rate-limiter or inference required.
@@ -167,10 +169,16 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
                     current_state = DocumentState.READY_FOR_ASSEMBLY
                     break
 
-                needs_inference = any(state in ("PENDING", "RETRYABLE_ERROR")
-                                      for state in initial_states)
+                runnable_rows = [(chunk_id, state) for chunk_id, state in initial_rows
+                                 if state in ("PENDING", "RETRYABLE_ERROR")]
+                has_runnable_work = bool(runnable_rows)
+                needs_inference = any(
+                    unit_index[chunk_id].chunk_type != TranslationTaskType.PRESERVE
+                    for chunk_id, _ in runnable_rows
+                )
                 if needs_inference:
                     processor, quota_store = _create_chunk_processor()
+                if has_runnable_work:
                     max_threads = int(os.getenv("MAX_CONCURRENT_CHUNKS", "4"))
 
                 def chunk_worker_thread():
@@ -217,7 +225,7 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
                     finally:
                         th_queue_conn.close()
 
-                if needs_inference:
+                if has_runnable_work:
                     with ThreadPoolExecutor(max_workers=max_threads) as executor:
                         futures = [executor.submit(chunk_worker_thread) for _ in range(max_threads)]
                         for future in futures:
