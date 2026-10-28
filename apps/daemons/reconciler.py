@@ -14,8 +14,11 @@ from core.execution.state import MarkAssemblyReadyCommand
 logger = logging.getLogger(__name__)
 
 class ReconcilerDaemon:
-    def __init__(self, system_repo, task_repo, event_repo, recon_cmd_handler, doc_cmd_handler, ttl_sec: int = 120):
+    def __init__(self, system_repo, task_repo, event_repo, recon_cmd_handler, doc_cmd_handler,
+                 ttl_sec: int = 120, heartbeat_system_factory=None):
         self.system = system_repo
+        # The heartbeat must own its SQLite connection in its own thread.
+        self.heartbeat_system_factory = heartbeat_system_factory
         self.task_repo = task_repo   
         self.event_repo = event_repo 
         self.recon_cmd_handler = recon_cmd_handler
@@ -80,15 +83,26 @@ class ReconcilerDaemon:
                 logger.warning(f"FSM Stall bypass abortado (Posible race superado validamente): {e}")
 
     def _leadership_heartbeat(self):
-        """SOTA: El hilo no muere al perder liderazgo, solo silencia la renovación."""
-        while not self.stop_event.wait(self.interval):
-            if self.is_leader:
-                success = self.system.renew_leadership(self.lease_name, self.node_id, self.ttl_sec)
-                if not success:
-                    logger.critical("LEADERSHIP_LOST", extra={"extra_data": {"epoch": self.current_epoch}})
-                    # SOTA: Degradación a follower. No usamos stop_event.set()
-                    self.is_leader = False
-                    self.current_epoch = 0
+        """Renew using a SQLite connection owned by this heartbeat thread."""
+        heartbeat_conn = None
+        try:
+            system = self.system
+            if self.heartbeat_system_factory is not None:
+                system, heartbeat_conn = self.heartbeat_system_factory()
+            while not self.stop_event.wait(self.interval):
+                if self.is_leader:
+                    success = system.renew_leadership(self.lease_name, self.node_id, self.ttl_sec)
+                    if not success:
+                        logger.critical("LEADERSHIP_LOST", extra={"extra_data": {"epoch": self.current_epoch}})
+                        self.is_leader = False
+                        self.current_epoch = 0
+        except Exception:
+            logger.exception("RECONCILER_HEARTBEAT_FAILED")
+            self.is_leader = False
+            self.current_epoch = 0
+        finally:
+            if heartbeat_conn is not None:
+                heartbeat_conn.close()
 
     def run(self):
         logger.info("Iniciando nodo Reconciliador", extra={"extra_data": {"node_id": self.node_id}})
@@ -139,7 +153,8 @@ class ReconcilerDaemon:
 
         # PAGINACIÓN SOTA: Limit 100 para no ahogar SQLite
         cursor = self.task_repo.conn.execute("""
-            SELECT task_id, document_id, node_id, updated_at, ast_hash
+            SELECT task_id, document_id, node_id, updated_at, ast_hash,
+                   worker_type, lease_owner, execution_id, lease_expires_at, state_version
             FROM chunk_tasks
             WHERE task_state = 'PROCESSING'
               AND lease_expires_at < ?
@@ -154,8 +169,28 @@ class ReconcilerDaemon:
             if not self.is_leader:
                 return 
             
-            task_id, doc_id, node_id, updated_at, ast_hash = row
-            
+            (task_id, doc_id, node_id, updated_at, ast_hash,
+             worker_type, lease_owner, execution_id, lease_expires_at, state_version) = row
+
+            if (hasattr(self.task_repo, 'is_g3_chunk_task')
+                    and self.task_repo.is_g3_chunk_task(task_id)):
+                if worker_type == 'LLM':
+                    recovered = self.task_repo.recover_expired_g3_task(
+                        task_id=task_id, document_id=doc_id,
+                        ast_hash=ast_hash, chunk_id=node_id,
+                        expected_owner=lease_owner, expected_execution_id=execution_id,
+                        expected_expiry=lease_expires_at,
+                        expected_updated_at=updated_at, expected_version=state_version,
+                        reconciler_owner=self.node_id, reconciler_epoch=self.current_epoch,
+                        stale_before=now_safe,
+                    )
+                    if recovered:
+                        logger.info("G3_EXPIRED_LEASE_RECOVERED", extra={"extra_data": {"task": task_id[:8]}})
+                else:
+                    logger.warning("G3_NON_LLM_STALE_TASK_REQUIRES_SEPARATE_RECOVERY",
+                                   extra={"extra_data": {"task": task_id[:8], "worker_type": worker_type}})
+                continue  # G3 never uses legacy CQRS or its completion shortcuts.
+
             # SOTA: Clave de Idempotencia Determinística
             # Si el Handler ya la procesó, la ignorará
             idem_key = f"recon:{task_id}:{updated_at}"
@@ -237,6 +272,11 @@ if __name__ == "__main__":
         metrics=metrics
     )
 
+    # The heartbeat opens/closes its OWN queue connection in its own thread.
+    def heartbeat_system_factory():
+        heartbeat_conn = get_connection(QUEUE_DB_PATH, timeout=30)
+        return SystemPlaneRepository(heartbeat_conn), heartbeat_conn
+
     # 4. Arranque del Demonio
     daemon = ReconcilerDaemon(
         system_repo=system_repo,
@@ -244,7 +284,8 @@ if __name__ == "__main__":
         event_repo=event_repo,
         recon_cmd_handler=recon_cmd_handler,
         doc_cmd_handler=doc_cmd_handler,
-        ttl_sec=120
+        ttl_sec=120,
+        heartbeat_system_factory=heartbeat_system_factory,
     )
     
     daemon.run()

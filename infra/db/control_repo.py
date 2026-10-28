@@ -431,10 +431,84 @@ class ControlPlaneRepository(ControlPlanePort):
                 f"Lease expirado, robado, o state_version desactualizado."
             )
 
+    def is_g3_chunk_task(self, task_id: str) -> bool:
+        """A persisted G3 manifest owns all tasks of this document generation.
+
+        Legacy queue databases without chunk_plans must remain supported.
+        """
+        if self.conn.execute(
+            "SELECT 1 FROM sqlite_master WHERE type='table' AND name='chunk_plans'"
+        ).fetchone() is None:
+            return False
+        return self.conn.execute(
+            "SELECT 1 FROM chunk_tasks AS t JOIN chunk_plans AS p "
+            "ON p.document_id=t.document_id AND p.ast_hash=t.ast_hash "
+            "WHERE t.task_id=? LIMIT 1", (task_id,),
+        ).fetchone() is not None
+
+    def recover_expired_g3_task(
+        self, *, task_id: str, document_id: str, ast_hash: str, chunk_id: str,
+        expected_owner: str, expected_execution_id: str, expected_expiry: float,
+        expected_updated_at: float, expected_version: int,
+        reconciler_owner: str, reconciler_epoch: int, stale_before: float,
+    ) -> bool:
+        """Recover a G3 PROCESSING lease only under exact snapshot and epoch fencing.
+
+        Never alter durable RESULT_STAGED receipts; legacy CQRS is not a G3 ACK.
+        The queue connection must have fsm_db attached by its composition root.
+        A requeued inference may be retried: no exactly-once paid call is claimed.
+        """
+        if (not all((task_id, document_id, ast_hash, chunk_id, expected_owner,
+                     expected_execution_id, reconciler_owner))
+                or type(reconciler_epoch) is not int or reconciler_epoch < 1
+                or type(expected_version) is not int or expected_version < 0):
+            raise ValueError('G3_B4_9_INVALID_RECOVERY_IDENTITY')
+        now = time.time()
+        if stale_before >= now:
+            raise ValueError('G3_B4_9_INVALID_STALE_CUTOFF')
+        try:
+            self.conn.execute('BEGIN IMMEDIATE')
+            # Older SQLite queues can have a plan but no receipt table until staging.
+            self.conn.execute(_G3_RESULT_RECEIPTS_DDL)
+            updated = self.conn.execute(
+                "UPDATE chunk_tasks SET task_state='PENDING', lease_owner=NULL, "
+                "lease_expires_at=NULL, execution_id=NULL, "
+                "retry_count=retry_count+1, state_version=state_version+1, updated_at=? "
+                "WHERE task_id=? AND document_id=? AND ast_hash=? AND node_id=? "
+                "AND worker_type='LLM' AND task_state='PROCESSING' "
+                "AND lease_owner=? AND execution_id=? AND lease_expires_at=? "
+                "AND updated_at=? AND state_version=? "
+                "AND lease_expires_at<? AND updated_at<? "
+                "AND EXISTS (SELECT 1 FROM chunk_plans AS p "
+                "WHERE p.document_id=chunk_tasks.document_id AND p.ast_hash=chunk_tasks.ast_hash) "
+                "AND NOT EXISTS (SELECT 1 FROM chunk_result_receipts AS r "
+                "WHERE r.task_id=chunk_tasks.task_id) "
+                "AND EXISTS (SELECT 1 FROM system_leases AS s "
+                "WHERE s.lease_name='global_reconciler' AND s.owner_id=? "
+                "AND s.lease_version=? AND s.lease_expires_at>?) "
+                "AND EXISTS (SELECT 1 FROM fsm_db.document_fsm AS f "
+                "WHERE f.document_id=chunk_tasks.document_id AND f.ast_hash=chunk_tasks.ast_hash "
+                "AND f.current_state='PROCESSING')",
+                (now, task_id, document_id, ast_hash, chunk_id,
+                 expected_owner, expected_execution_id, expected_expiry,
+                 expected_updated_at, expected_version, now, stale_before,
+                 reconciler_owner, reconciler_epoch, now),
+            )
+            self.conn.commit()
+            return updated.rowcount == 1
+        except BaseException:
+            if self.conn.in_transaction:
+                self.conn.rollback()
+            raise
+
     def mark_cqrs_reconciled(self, task_id: str, reconciliation_id: str) -> bool:
         now = time.time()
         try:
             self.conn.execute("BEGIN IMMEDIATE")
+            # No legacy completion may acknowledge or rewrite a G3 plan task.
+            if self.is_g3_chunk_task(task_id):
+                self.conn.rollback()
+                return False
             
             cursor = self.conn.execute(
                 "INSERT OR IGNORE INTO processed_reconciliation_commands (reconciliation_id, processed_at) VALUES (?, ?)",
@@ -460,6 +534,10 @@ class ControlPlaneRepository(ControlPlanePort):
         now = time.time()
         try:
             self.conn.execute("BEGIN IMMEDIATE")
+            # No legacy completion may acknowledge or rewrite a G3 plan task.
+            if self.is_g3_chunk_task(task_id):
+                self.conn.rollback()
+                return False
             
             cursor = self.conn.execute(
                 "INSERT OR IGNORE INTO processed_reconciliation_commands (reconciliation_id, processed_at) VALUES (?, ?)",

@@ -134,6 +134,11 @@ class ReconciliationCommandHandler:
             self.metrics.inc("reconciliation_stale_epoch_total")
             return
 
+        if (hasattr(self.task, 'is_g3_chunk_task')
+                and self.task.is_g3_chunk_task(cmd.task_id)):
+            logger.warning("G3_LEGACY_REMATERIALIZATION_BLOCKED", extra={"extra_data": {"task": cmd.task_id[:8]}})
+            return
+
         try:
             latest_event = self.event.get_latest_event(cmd.node_id)
             if not latest_event or latest_event.lifecycle != "GENERATED":
@@ -180,6 +185,11 @@ class ReconciliationCommandHandler:
         if cmd.reconciler_epoch != current_epoch:
             logger.warning("STALE_RECONCILER_COMMAND_DROPPED")
             self.metrics.inc("reconciliation_stale_epoch_total")
+            return
+
+        if (hasattr(self.task, 'is_g3_chunk_task')
+                and self.task.is_g3_chunk_task(cmd.task_id)):
+            logger.warning("G3_LEGACY_ZOMBIE_RECOVERY_BLOCKED", extra={"extra_data": {"task": cmd.task_id[:8]}})
             return
 
         # 2. Mutación Atómica (Idempotencia + Rollback lógico)
