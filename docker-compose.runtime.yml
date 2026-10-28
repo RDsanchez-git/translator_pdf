@@ -67,6 +67,11 @@ services:
       QUEUE_DB_PATH: /app/state/db/queue.db
       EVENT_DB_PATH: /app/state/db/event.db
       MAT_DB_PATH: /app/state/db/materialized.db
+      COMPILER_OUTPUT_DIR: /app/output
+      HOME: /tmp
+      XDG_CONFIG_HOME: /tmp/.config
+      XDG_CACHE_HOME: /app/.cache/tectonic
+      TECTONIC_CACHE_DIR: /app/.cache/tectonic
     volumes: !override
       - g3_runtime_state:/app/state
       - hf_models_cache:/app/.cache/hf
