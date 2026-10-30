@@ -1,6 +1,5 @@
 """G3-B1: contrato de identidad del dominio, sin SQLite ni proveedor."""
 from dataclasses import replace
-from hashlib import sha256
 import json
 
 import pytest

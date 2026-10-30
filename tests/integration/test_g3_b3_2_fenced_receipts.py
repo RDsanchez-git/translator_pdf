@@ -21,8 +21,8 @@ from infra.db.control_repo import ControlPlaneRepository
 
 
 class _Estimator:
-    def estimate_tokens(self, value: str) -> int:
-        return len(value.split())
+    def estimate_tokens(self, text: str) -> int:
+        return len(text.split())
 
 
 def _node(node_id, seq, text, *, preserve=False):

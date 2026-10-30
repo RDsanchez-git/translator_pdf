@@ -2,19 +2,20 @@
 
 Exercises the bridge-to-receipt seam without ever enabling publication or FSM.
 """
-import asyncio
-from contextlib import closing
 from hashlib import sha256
 import json
 from pathlib import Path
 import sqlite3
 from threading import Semaphore
 from types import SimpleNamespace
+from typing import cast
 import time
 
 import pytest
 
 from apps.llm_workers.sync_bridge import SyncProviderBridge
+from apps.llm_workers.routing import LLMProvider
+from apps.llm_workers.prompt_builder import PromptBuilder
 from core.ast.enums import ContentNodeType, TranslationStrategy
 from core.ast.models import ASTNode, MathPayload, ParagraphPayload, TranslationTaskType
 from core.ast.grouper import SemanticGroup
@@ -28,8 +29,8 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 class _Estimator:
-    def estimate_tokens(self, value):
-        return len(value.split())
+    def estimate_tokens(self, text: str) -> int:
+        return len(text.split())
 
 
 def _fixture():
@@ -192,12 +193,17 @@ class _FakeProvider:
                                content=self.content)
 
 
+def _bridge(provider: _FakeProvider, builder: _FakeBuilder) -> SyncProviderBridge:
+    # The focused fakes expose only the seam exercised by these tests.
+    return SyncProviderBridge(cast(LLMProvider, provider), cast(PromptBuilder, builder))
+
+
 def test_bridge_prompt_contains_manifest_binding_and_all_member_sources():
     nodes, plan = _fixture()
     unit = next(u for u in plan.units if u.chunk_type == TranslationTaskType.TRANSLATE)
     builder = _FakeBuilder()
     provider = _FakeProvider(_response(plan, unit))
-    bridge = SyncProviderBridge(provider, builder)
+    bridge = _bridge(provider, builder)
     try:
         assert bridge.execute_chunk(plan, unit) == provider.content
     finally:
@@ -222,7 +228,7 @@ def test_bridge_rejects_unbound_provider_output(mutation):
     nodes, plan = _fixture()
     unit = next(u for u in plan.units if u.chunk_type == TranslationTaskType.TRANSLATE)
     content = "traduccion libre" if mutation == "plain_text" else _response(plan, unit, bad_hash=mutation == "bad_response")
-    bridge = SyncProviderBridge(_FakeProvider(content, drift=mutation == "wrong_chunk"), _FakeBuilder())
+    bridge = _bridge(_FakeProvider(content, drift=mutation == "wrong_chunk"), _FakeBuilder())
     try:
         with pytest.raises(ValueError):
             bridge.execute_chunk(plan, unit)
@@ -234,7 +240,7 @@ def test_bridge_preserve_unit_is_never_sent():
     nodes, plan = _fixture()
     unit = next(u for u in plan.units if u.chunk_type == TranslationTaskType.PRESERVE)
     provider = _FakeProvider("unused")
-    bridge = SyncProviderBridge(provider, _FakeBuilder())
+    bridge = _bridge(provider, _FakeBuilder())
     try:
         with pytest.raises(ValueError, match="G3_B4_3A_PRESERVE_PROVIDER_FORBIDDEN"):
             bridge.execute_chunk(plan, unit)
@@ -265,7 +271,7 @@ def test_bridge_masks_and_restores_exact_inline_math_in_each_member():
     member_response["members"][0]["translated_text"] = "Energia __MATH_0__ se mantiene."
     member_response["members"][1]["translated_text"] = "Y __MATH_1__ varia."
     provider = _FakeProvider(json.dumps(member_response, ensure_ascii=False))
-    bridge = SyncProviderBridge(provider, builder)
+    bridge = _bridge(provider, builder)
     try:
         restored = bridge.execute_chunk(plan, unit)
     finally:
@@ -287,7 +293,7 @@ def test_bridge_rejects_lost_or_modified_math_token(mutation):
     raw["members"][0]["translated_text"] = value
     raw["members"][1]["translated_text"] = "Y __MATH_1__ varia"
     provider = _FakeProvider(json.dumps(raw))
-    bridge = SyncProviderBridge(provider, _FakeBuilder())
+    bridge = _bridge(provider, _FakeBuilder())
     try:
         with pytest.raises(ValueError, match="G3_B4_3A_MATH_TOKEN_LOST_OR_DUPLICATED"):
             bridge.execute_chunk(plan, unit)
@@ -351,7 +357,7 @@ def test_math_source_uncertain_fails_before_provider(source, error):
     ).chunk_group(SemanticGroup(structural_path=(), context_id='ctx', nodes=ast), 1)
     plan = ChunkPlan.build('doc_uncertain', 'ast_uncertain', ast, units)
     provider = _FakeProvider('should not be used')
-    bridge = SyncProviderBridge(provider, _FakeBuilder())
+    bridge = _bridge(provider, _FakeBuilder())
     try:
         with pytest.raises(ValueError, match=error):
             bridge.execute_chunk(plan, plan.units[0])
@@ -368,7 +374,7 @@ def test_math_token_cannot_move_between_two_members():
     raw["members"][0]["translated_text"] = "Wrong __MATH_1__"
     raw["members"][1]["translated_text"] = "Wrong __MATH_0__"
     provider = _FakeProvider(json.dumps(raw))
-    bridge = SyncProviderBridge(provider, _FakeBuilder())
+    bridge = _bridge(provider, _FakeBuilder())
     try:
         with pytest.raises(ValueError, match="G3_B4_3A_MATH_TOKEN_LOST_OR_DUPLICATED"):
             bridge.execute_chunk(plan, unit)
@@ -381,7 +387,7 @@ def test_math_token_injection_is_rejected_even_when_expected_tokens_survive():
     raw = json.loads(_response(plan, unit))
     raw["members"][0]["translated_text"] = "OK __MATH_0__ EXTRA __MATH_999__"
     raw["members"][1]["translated_text"] = "OK __MATH_1__"
-    bridge = SyncProviderBridge(_FakeProvider(json.dumps(raw)), _FakeBuilder())
+    bridge = _bridge(_FakeProvider(json.dumps(raw)), _FakeBuilder())
     try:
         with pytest.raises(ValueError, match="G3_B4_3A_MATH_TOKEN_LOST_OR_DUPLICATED"):
             bridge.execute_chunk(plan, unit)
@@ -394,7 +400,7 @@ def test_hallucinated_math_token_rejected_in_no_math_unit():
     unit = next(u for u in plan.units if u.chunk_type == TranslationTaskType.TRANSLATE)
     raw = json.loads(_response(plan, unit))
     raw["members"][0]["translated_text"] = "Hallucinated __MATH_0__"
-    bridge = SyncProviderBridge(_FakeProvider(json.dumps(raw)), _FakeBuilder())
+    bridge = _bridge(_FakeProvider(json.dumps(raw)), _FakeBuilder())
     try:
         with pytest.raises(ValueError, match="G3_B4_3A_MATH_TOKEN_LOST_OR_DUPLICATED"):
             bridge.execute_chunk(plan, unit)

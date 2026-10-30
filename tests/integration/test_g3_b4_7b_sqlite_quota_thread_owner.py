@@ -3,17 +3,19 @@
 Uses a real sqlite3 database, real QuotaManager and actual SyncProviderBridge
 loop, without network, a paid provider, OCR, Docker, or a historic database.
 """
-import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from hashlib import sha256
 import json
 import sqlite3
 from types import SimpleNamespace
+from typing import cast
 
 import pytest
 
 from apps.llm_workers.rate_limiter import QuotaManager
 from apps.llm_workers.sync_bridge import SyncProviderBridge
+from apps.llm_workers.routing import LLMProvider
+from apps.llm_workers.prompt_builder import PromptBuilder
 from core.ast.enums import ContentNodeType
 from core.ast.models import ASTNode, ParagraphPayload
 from core.chunking.manifest_contract import ChunkPlan
@@ -79,7 +81,8 @@ def test_bridge_worker_threads_persist_quota_on_single_owner(tmp_path):
     try:
         manager = QuotaManager(rpm_limit=30, tpm_limit=6000, store=store)
         plan, unit = _one_member_plan()
-        bridge = SyncProviderBridge(_QuotaFakeProvider(manager, plan, unit), _Builder())
+        bridge = SyncProviderBridge(cast(LLMProvider, _QuotaFakeProvider(manager, plan, unit)),
+                                     cast(PromptBuilder, _Builder()))
         # Actual Engine shape: multiple sync worker threads submit to one bridge loop.
         with ThreadPoolExecutor(max_workers=2) as workers:
             results = list(workers.map(lambda _: bridge.execute_chunk(plan, unit), range(2)))

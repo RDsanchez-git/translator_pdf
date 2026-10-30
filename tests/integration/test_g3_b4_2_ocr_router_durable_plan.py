@@ -8,6 +8,7 @@ from hashlib import sha256
 from pathlib import Path
 import sqlite3
 from types import SimpleNamespace
+from typing import cast
 
 import pytest
 
@@ -15,9 +16,15 @@ from apps.ocr_router import __main__ as router_module
 from core.ast.enums import ContentNodeType
 from core.ast.hashing import compute_ast_hash
 from core.ast.models import ASTNode, ParagraphPayload
+from core.ast.registry import ASTRegistry
 from core.chunking.manifest_contract import ChunkPlan
 from core.chunking.semantic_chunking import build_semantic_chunks_as_units
 from infra.db.control_repo import ControlPlaneRepository
+from infra.db.fsm_repository import FSMRepository
+from core.execution.handlers import DocumentCommandHandler
+from core.document_profile.profiler import HeuristicDocumentProfiler
+from core.document_profile.ports import ProfileStore
+from core.pipeline.orchestrator import ParserProtocol
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -129,10 +136,14 @@ def _harness(tmp_path, monkeypatch, *, initial=None, previous_hash=None):
     parser = _Parser(ast)
     registry = _Registry()
     store = _ProfileStore()
+    # Partial test doubles are intentionally scoped to the ingestion paths under test.
     daemon = router_module.OCRRouterDaemon(
-        fsm_repo=fsm, task_repo=repo, cmd_handler=handler,
-        ast_registry=registry, document_profiler=_Profiler(),
-        profile_store=store, parser=parser, workspace_dir=str(tmp_path),
+        fsm_repo=cast(FSMRepository, fsm), task_repo=repo,
+        cmd_handler=cast(DocumentCommandHandler, handler),
+        ast_registry=cast(ASTRegistry, registry),
+        document_profiler=cast(HeuristicDocumentProfiler, _Profiler()),
+        profile_store=cast(ProfileStore, store),
+        parser=cast(ParserProtocol, parser), workspace_dir=str(tmp_path),
     )
     pdf = daemon.inbox_dir / 'sample.pdf'
     pdf.write_bytes(pdf_bytes)

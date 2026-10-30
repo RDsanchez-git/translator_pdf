@@ -16,6 +16,7 @@ from core.ast.grouper import SemanticGroup
 from core.chunking.manifest_contract import ChunkPlan
 from core.chunking.semantic_chunking import ChunkPolicy, TokenBudgetChunker
 from core.execution.handlers import ReconciliationCommandHandler
+from core.metrics.metrics import Metrics
 from core.execution.state import RematerializeTaskCommand, RecoverZombieTaskCommand
 from infra.db.control_repo import ControlPlaneRepository
 
@@ -23,8 +24,8 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 class _Estimator:
-    def estimate_tokens(self, s):
-        return len(s.split())
+    def estimate_tokens(self, text: str) -> int:
+        return len(text.split())
 
 
 @pytest.fixture
@@ -35,7 +36,9 @@ def state():
               '(reconciliation_id TEXT PRIMARY KEY, processed_at REAL NOT NULL)')
     q.execute("ATTACH DATABASE ':memory:' AS fsm_db")
     q.execute('CREATE TABLE fsm_db.document_fsm '
-              '(document_id TEXT, ast_hash TEXT, current_state TEXT)')
+              '(document_id TEXT, ast_hash TEXT, current_state TEXT, '
+              'state_version INTEGER NOT NULL DEFAULT 0, '
+              'is_terminal INTEGER NOT NULL DEFAULT 0)')
     ast = [ASTNode(node_id='math_g3b49', sequence_id=1,
                    node_type=ContentNodeType.DISPLAY_EQUATION,
                    strategy=TranslationStrategy.PASSTHROUGH,
@@ -47,7 +50,8 @@ def state():
     repo.enqueue_chunk_plan(plan, ast)
     lease = repo.pick_task('worker_old', plan.document_id, plan.ast_hash)
     assert lease and repo.is_g3_chunk_task(lease.task_id)
-    q.execute('INSERT INTO fsm_db.document_fsm VALUES (?,?,?)',
+    q.execute('INSERT INTO fsm_db.document_fsm '
+              '(document_id,ast_hash,current_state) VALUES (?,?,?)',
               (plan.document_id, plan.ast_hash, 'PROCESSING'))
     now = time.time()
     q.execute('UPDATE system_leases SET owner_id=?,lease_version=?,lease_expires_at=? '
@@ -184,7 +188,7 @@ def test_handler_direct_g3_rematerialization_has_no_materialized_side_effect(sta
         task_repo=state.repo,
         event_repo=SimpleNamespace(get_latest_event=forbidden),
         mat_repo=SimpleNamespace(upsert_projection=forbidden),
-        metrics=SimpleNamespace(inc=lambda *_: None),
+        metrics=Metrics(),
     )
     cmd = RematerializeTaskCommand(reconciliation_id='stale_g3', reconciler_epoch=7,
                                    task_id=state.lease.task_id, document_id=state.plan.document_id,
@@ -203,10 +207,10 @@ def test_reconciler_heartbeat_sqlite_connection_is_owned_by_heartbeat_thread():
     main_thread = threading.get_ident()
     observed = []
 
-    class _SingleBeat:
+    class _SingleBeat(threading.Event):
         calls = 0
 
-        def wait(self, _interval):
+        def wait(self, timeout: float | None = None) -> bool:
             self.calls += 1
             return self.calls > 1
 

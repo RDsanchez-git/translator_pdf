@@ -5,6 +5,7 @@ Tectonic or network calls; no claim of physical PDF->PDF end-to-end coverage.
 """
 from hashlib import sha256
 import sqlite3
+from typing import cast
 
 import pytest
 
@@ -118,7 +119,7 @@ def test_profile_invalid_type_rejected(tmp_path):
     with sqlite3.connect(tmp_path / "documents.db") as conn:
         store = SQLiteProfileStore(conn)
         with pytest.raises(ValueError, match="G3_B4_4_INVALID_PROFILE_ENUM"):
-            store.save("doc", _profile("single_column"))
+            store.save("doc", _profile(cast(PageLayout, "single_column")))
 
 
 def test_assembly_projection_validates_digest(tmp_path):
@@ -181,15 +182,15 @@ def test_restarted_ast_profile_and_projection_build_tex_without_external_service
         ).resolve(doc_id, ast_hash)
 
         class NoFallback:
-            def get_verified_payload(self, *_args):
+            def get_verified_payload(self, job_id: str, chunk_id: str, expected_sha256: str) -> str:
                 pytest.fail("unexpected fallback from complete G3 projections")
 
         class NoGeometry:
-            def extract(self, _node):
+            def extract(self, node):
                 return None
 
         class NoAsset:
-            def extract(self, _node):
+            def extract(self, node):
                 return None
 
         repository = NoFallback()

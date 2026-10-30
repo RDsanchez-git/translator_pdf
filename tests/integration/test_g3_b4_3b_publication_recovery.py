@@ -2,7 +2,6 @@
 
 Exercises durable crash boundaries, scheduler and reconciler gate. No daemon loops.
 """
-from contextlib import closing
 from hashlib import sha256
 import json
 from pathlib import Path
