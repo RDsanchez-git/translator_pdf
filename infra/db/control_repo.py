@@ -64,7 +64,21 @@ class ControlPlaneRepository(ControlPlanePort):
 
     @contextmanager
     def _chunk_plan_write_scope(self):
-        """SAVEPOINT: transaccion propia durable, ajena permanece bajo su owner."""
+        """Reserve the WAL writer before plan reads; preserve caller-owned transactions."""
+        if not self.conn.in_transaction:
+            # A deferred SAVEPOINT may read a WAL snapshot, then fail with
+            # SQLITE_BUSY_SNAPSHOT when a competing task claim commits.
+            self.conn.execute("BEGIN IMMEDIATE")
+            try:
+                yield
+                self.conn.commit()
+            except BaseException:
+                if self.conn.in_transaction:
+                    self.conn.rollback()
+                raise
+            return
+
+        # Nested use: the caller owns commit/rollback and the outer snapshot.
         name = f"g3_chunk_plan_{uuid.uuid4().hex}"
         self.conn.execute(f"SAVEPOINT {name}")
         try:
