@@ -1,0 +1,66 @@
+name: "PR26 — isolated code-only checks"
+
+on:
+  push:
+    branches:
+      - validation/pr26-code-only-52d25ca
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr26-code-only-52d25ca
+  cancel-in-progress: false
+
+jobs:
+  code-only:
+    name: "PR26 strict Pyright and non-benchmark integration"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Checkout frozen PR26 source
+        uses: actions/checkout@v4
+        with:
+          ref: 52d25cab1c3163682a525d95e65c535607eea8ae
+          persist-credentials: false
+
+      - name: Verify exact subject SHA
+        shell: bash
+        run: |
+          set -euo pipefail
+          actual="$(git rev-parse HEAD)"
+          expected="52d25cab1c3163682a525d95e65c535607eea8ae"
+          test "$actual" = "$expected"
+          test -z "$(git status --porcelain)"
+          echo "PR26_FROZEN_SUBJECT: PASS $actual"
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11.17"
+
+      - name: Install existing project dev dependencies
+        id: dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check -e ".[dev]"
+          python -m pip check
+          python -m pyright --version
+          python -m pytest --version
+
+      - name: Pyright strict from pyproject.toml
+        id: strict_pyright
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pyright -p pyproject.toml
+          echo "PR26_STRICT_PYRIGHT: PASS"
+
+      - name: Non-benchmark integration tests
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pytest -m "integration and not regression" -v --tb=short --no-header
+          echo "PR26_INTEGRATION_NONBENCHMARK: PASS"
