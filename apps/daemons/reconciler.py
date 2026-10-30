@@ -172,6 +172,25 @@ class ReconcilerDaemon:
             (task_id, doc_id, node_id, updated_at, ast_hash,
              worker_type, lease_owner, execution_id, lease_expires_at, state_version) = row
 
+            if worker_type == 'ASSEMBLER':
+                if not lease_owner or not execution_id or lease_expires_at is None:
+                    logger.warning('G5_ASSEMBLER_LEGACY_LEASE_UNFENCED_MANUAL_REVIEW',
+                                   extra={'extra_data': {'task': task_id[:8]}})
+                    continue
+                from infra.db.assembly_recovery import AssemblyLeaseRepository
+                result = AssemblyLeaseRepository(self.task_repo.conn).recover_expired(
+                    task_id=task_id, document_id=doc_id, ast_hash=ast_hash,
+                    expected_owner=lease_owner, expected_execution_id=execution_id,
+                    expected_expiry=lease_expires_at,
+                    expected_updated_at=updated_at, expected_version=state_version,
+                    reconciler_owner=self.node_id, reconciler_epoch=self.current_epoch,
+                    stale_before=now_safe,
+                )
+                if result:
+                    logger.info('G5_ASSEMBLER_EXPIRED_LEASE_' + result,
+                                extra={'extra_data': {'task': task_id[:8]}})
+                continue
+
             if (hasattr(self.task_repo, 'is_g3_chunk_task')
                     and self.task_repo.is_g3_chunk_task(task_id)):
                 if worker_type == 'LLM':

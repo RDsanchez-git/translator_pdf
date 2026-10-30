@@ -99,7 +99,8 @@ class FSMRepository:
         cursor = self.db.execute(
             """SELECT document_id, ast_hash 
                FROM document_fsm 
-               WHERE current_state IN ('PARSING', 'PROCESSING', 'READY_FOR_ASSEMBLY', 'ASSEMBLING', 'READY_FOR_COMPILATION', 'COMPILING') 
+               -- Physical phases are governed by ASSEMBLER leases, not FSM age.
+               WHERE current_state IN ('PARSING', 'PROCESSING', 'READY_FOR_ASSEMBLY')
                  AND updated_at < ?""",
             (threshold,)
         )
