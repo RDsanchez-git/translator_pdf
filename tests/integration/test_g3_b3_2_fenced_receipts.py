@@ -177,6 +177,18 @@ def test_identical_retry_is_no_op_and_conflicting_retry_is_rejected(tmp_path):
         assert repo.load_staged_chunk_responses(plan, nodes) == {plan.units[0].chunk_id: raw}
 
 
+def test_missing_non_preserve_response_rejected_before_sqlite_mutation(tmp_path):
+    nodes, plan = _plan()
+    with closing(_db(tmp_path / "queue.db")) as conn:
+        repo = ControlPlaneRepository(conn)
+        repo.enqueue_chunk_plan(plan, nodes)
+        lease = _lease(repo, plan)
+        with pytest.raises(ValueError, match="G3_B3_2_NON_PRESERVE_REQUIRES_RESPONSE"):
+            _stage(repo, plan, nodes, lease, None)
+        assert conn.execute("SELECT COUNT(*) FROM chunk_result_receipts").fetchone()[0] == 0
+        assert conn.execute("SELECT task_state FROM chunk_tasks").fetchone()[0] == "PROCESSING"
+
+
 def test_preserve_chunk_rejects_provider_result(tmp_path):
     nodes, plan = _plan(mixed=True)
     preserve = next(u for u in plan.units if u.chunk_type.value == "preserve")

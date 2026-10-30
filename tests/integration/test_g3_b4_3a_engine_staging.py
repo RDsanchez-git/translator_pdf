@@ -121,6 +121,26 @@ def test_preserve_unit_bypasses_provider_and_stages_null(queue):
                             "WHERE task_id=?", (lease.task_id,)).fetchone() == (None, None)
 
 
+def test_preserve_unit_accepts_no_processor(queue):
+    unit = next(u for u in queue.plan.units if u.chunk_type == TranslationTaskType.PRESERVE)
+    lease = _get_lease(queue, unit)
+    assert stage_claimed_unit(queue.repo, queue.plan, queue.ast, unit, lease,
+                              "worker_b43", None, Semaphore(1))
+    assert queue.db.execute("SELECT raw_response,response_sha256 FROM chunk_result_receipts "
+                            "WHERE task_id=?", (lease.task_id,)).fetchone() == (None, None)
+
+
+def test_translation_unit_rejects_missing_processor_before_staging(queue):
+    unit = next(u for u in queue.plan.units if u.chunk_type == TranslationTaskType.TRANSLATE)
+    lease = _get_lease(queue, unit)
+    with pytest.raises(ValueError, match="G3_B4_3A_PROVIDER_REQUIRED"):
+        stage_claimed_unit(queue.repo, queue.plan, queue.ast, unit, lease,
+                           "worker_b43", None, Semaphore(1))
+    assert queue.db.execute("SELECT COUNT(*) FROM chunk_result_receipts").fetchone()[0] == 0
+    assert queue.db.execute("SELECT task_state FROM chunk_tasks WHERE task_id=?",
+                            (lease.task_id,)).fetchone()[0] == "PROCESSING"
+
+
 def test_malformed_response_never_stages_or_completes(queue):
     unit = next(u for u in queue.plan.units if u.chunk_type == TranslationTaskType.TRANSLATE)
     lease = _get_lease(queue, unit)

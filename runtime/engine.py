@@ -178,9 +178,6 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
                 )
                 if needs_inference:
                     processor, quota_store = _create_chunk_processor()
-                if has_runnable_work:
-                    max_threads = int(os.getenv("MAX_CONCURRENT_CHUNKS", "4"))
-
                 def chunk_worker_thread():
                     th_queue_conn = get_connection(QUEUE_DB_PATH, timeout=30)
                     th_queue_conn.execute("PRAGMA busy_timeout=30000")
@@ -226,6 +223,7 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
                         th_queue_conn.close()
 
                 if has_runnable_work:
+                    max_threads = int(os.getenv("MAX_CONCURRENT_CHUNKS", "4"))
                     with ThreadPoolExecutor(max_workers=max_threads) as executor:
                         futures = [executor.submit(chunk_worker_thread) for _ in range(max_threads)]
                         for future in futures:

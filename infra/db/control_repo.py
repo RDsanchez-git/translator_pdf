@@ -223,8 +223,9 @@ class ControlPlaneRepository(ControlPlanePort):
             response_sha256 = None
         else:
             # Fail closed: parse the whole envelope before even acquiring a lease.
+            if raw_response is None:
+                raise ValueError("G3_B3_2_NON_PRESERVE_REQUIRES_RESPONSE")
             parse_chunk_response(verified, chunk_id, raw_response)
-            assert isinstance(raw_response, str)
             response_sha256 = sha256(raw_response.encode("utf-8")).hexdigest()
 
         with self._chunk_plan_write_scope():

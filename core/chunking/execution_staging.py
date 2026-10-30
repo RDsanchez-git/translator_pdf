@@ -28,7 +28,7 @@ def stage_claimed_unit(
     unit: TranslationUnit,
     lease: TaskLease,
     worker_id: str,
-    processor: ChunkProcessor,
+    processor: ChunkProcessor | None,
     llm_semaphore: Semaphore,
 ) -> bool:
     """Stage only. False means an *identical* existing receipt, never ACK.
@@ -47,6 +47,8 @@ def stage_claimed_unit(
     if unit.chunk_type == TranslationTaskType.PRESERVE:
         raw_response = None
     elif unit.chunk_type in (TranslationTaskType.TRANSLATE, TranslationTaskType.PARTIAL):
+        if processor is None:
+            raise ValueError("G3_B4_3A_PROVIDER_REQUIRED")
         with llm_semaphore:
             raw_response = processor.execute_chunk(plan, unit)
         if not isinstance(raw_response, str):

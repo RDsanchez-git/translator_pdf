@@ -50,7 +50,7 @@ def _write_scope(conn: sqlite3.Connection):
 
 def _expected_rows(
     plan: ChunkPlan, ast: Sequence[ASTNode], nodes: Sequence[NodeMaterialization],
-) -> tuple[list[tuple[str, str, str, str, str, int]], str]:
+) -> tuple[list[tuple[str, str, str, str, str, str]], str]:
     """Build deterministic rows and a digest bound to original sources and plan."""
     if plan != ChunkPlan.build(plan.document_id, plan.ast_hash, ast, plan.units):
         raise ValueError("G3_B3_3_INVALID_PLAN")
@@ -66,7 +66,7 @@ def _expected_rows(
                 origins[member.node_id].append(unit.chunk_id)
     if [n.node_id for n in nodes] != expected_ids:
         raise ValueError("G3_B3_3_NODE_COVERAGE_OR_ORDER")
-    rows: list[tuple[str, str, str, str, str, int]] = []
+    rows: list[tuple[str, str, str, str, str, str]] = []
     canonical: list[dict[str, object]] = []
     for node in nodes:
         if (node.document_id != plan.document_id or node.ast_hash != plan.ast_hash
