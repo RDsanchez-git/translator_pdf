@@ -21,7 +21,7 @@ from core.ast.models import ASTNode, MathPayload, ParagraphPayload, TranslationT
 from core.ast.grouper import SemanticGroup
 from core.chunking.manifest_contract import ChunkPlan
 from core.chunking.semantic_chunking import ChunkPolicy, TokenBudgetChunker
-from core.chunking.execution_staging import stage_claimed_unit
+from runtime.chunk_staging import stage_claimed_unit
 from core.chunking.result_contract import parse_chunk_response
 from infra.db.control_repo import ControlPlaneRepository
 

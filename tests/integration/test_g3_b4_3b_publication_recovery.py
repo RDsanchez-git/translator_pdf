@@ -16,7 +16,7 @@ from core.ast.models import ASTNode, MathPayload, ParagraphPayload, TranslationT
 from core.ast.grouper import SemanticGroup
 from core.chunking.manifest_contract import ChunkPlan
 from core.chunking.semantic_chunking import ChunkPolicy, TokenBudgetChunker
-from core.chunking.publication_pipeline import advance_staged_document
+from runtime.publication_pipeline import advance_staged_document
 from infra.db.control_repo import ControlPlaneRepository
 from infra.db.fsm_repository import FSMRepository
 from infra.db.staged_publication import publish_staged_plan, finalize_published_plan
@@ -138,7 +138,7 @@ def test_incomplete_tasks_do_not_publish_or_advance(dbs):
 
 def test_crash_after_publication_replays_without_reinference(dbs):
     _stage(dbs)
-    with patch("core.chunking.publication_pipeline.finalize_published_plan", side_effect=RuntimeError("crash")):
+    with patch("runtime.publication_pipeline.finalize_published_plan", side_effect=RuntimeError("crash")):
         with pytest.raises(RuntimeError, match="crash"):
             _advance(dbs)
     assert _states(dbs) == {"RESULT_STAGED"}
@@ -152,7 +152,7 @@ def test_crash_after_publication_replays_without_reinference(dbs):
 
 def test_crash_after_queue_completion_replays_to_fsm(dbs):
     _stage(dbs)
-    with patch("core.chunking.publication_pipeline.DocumentCommandHandler.handle", side_effect=RuntimeError("fsm crash")):
+    with patch("runtime.publication_pipeline.DocumentCommandHandler.handle", side_effect=RuntimeError("fsm crash")):
         with pytest.raises(RuntimeError, match="fsm crash"):
             _advance(dbs)
     assert _states(dbs) == {"COMPLETED"}

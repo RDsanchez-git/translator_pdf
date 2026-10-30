@@ -29,8 +29,8 @@ from core.validation.budget import PromptBudgetCalculator, StandardCompressionPo
 from core.finops.measurement import InferenceMeasurementService
 from apps.llm_workers.prompt_builder import PromptBuilder
 from core.ast.hashing import compute_ast_hash
-from core.chunking.execution_staging import stage_claimed_unit
-from core.chunking.publication_pipeline import advance_staged_document
+from runtime.chunk_staging import stage_claimed_unit
+from runtime.publication_pipeline import advance_staged_document
 from apps.bootstrap.provider_stack_factory import build_provider_stack
 
 logger = logging.getLogger(__name__)
