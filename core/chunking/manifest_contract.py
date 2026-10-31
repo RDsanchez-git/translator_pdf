@@ -7,7 +7,7 @@ Un resultado multimiembro no se proyecta sin validacion adicional de respuesta.
 from dataclasses import asdict, dataclass
 from hashlib import sha256
 import json
-from typing import Any, Sequence
+from typing import Any, Sequence, cast
 
 from core.ast.models import ASTNode, ChunkMember, TranslationTaskType, TranslationUnit
 from core.ast.enums import ContentNodeType, TranslationStrategy
@@ -159,9 +159,10 @@ class ChunkPlan:
 
     @classmethod
     def from_json(cls, data: str, ast: Sequence[ASTNode], *, document_id: str, ast_hash: str) -> "ChunkPlan":
-        obj = json.loads(data, object_pairs_hook=_reject_duplicate_keys)
-        if not isinstance(obj, dict) or set(obj) != {"schema_version", "document_id", "ast_hash", "units", "manifest_sha256"}:
+        decoded: Any = json.loads(data, object_pairs_hook=_reject_duplicate_keys)
+        if not isinstance(decoded, dict) or set(decoded) != {"schema_version", "document_id", "ast_hash", "units", "manifest_sha256"}:
             raise ValueError("G3_INVALID_MANIFEST_ENVELOPE")
+        obj = cast(dict[str, Any], decoded)
         if type(obj["schema_version"]) is not int or obj["schema_version"] != _SCHEMA:
             raise ValueError("G3_UNSUPPORTED_SCHEMA")
         if obj["document_id"] != document_id or obj["ast_hash"] != ast_hash:
@@ -175,15 +176,17 @@ class ChunkPlan:
         units: list[TranslationUnit] = []
         if not isinstance(obj["units"], list):
             raise ValueError("G3_INVALID_UNITS")
-        for raw in obj["units"]:
-            if not isinstance(raw, dict) or set(raw) != unit_keys or not isinstance(raw["members"], list):
+        for raw_value in cast(list[Any], obj["units"]):
+            if not isinstance(raw_value, dict) or set(raw_value) != unit_keys or not isinstance(raw_value["members"], list):
                 raise ValueError("G3_INVALID_UNIT_FIELDS")
-            members = []
-            for item in raw["members"]:
-                if not isinstance(item, dict) or set(item) != member_keys:
+            raw = cast(dict[str, Any], raw_value)
+            members: list[ChunkMember] = []
+            for item_value in cast(list[Any], raw["members"]):
+                if not isinstance(item_value, dict) or set(item_value) != member_keys:
                     raise ValueError("G3_INVALID_MEMBER_FIELDS")
+                item = cast(dict[str, Any], item_value)
                 members.append(ChunkMember(**item))
-            payload = dict(raw)
+            payload: dict[str, Any] = dict(raw)
             payload["chunk_type"] = TranslationTaskType(payload["chunk_type"])
             payload["source_sequence_range"] = tuple(payload["source_sequence_range"])
             payload["members"] = tuple(members)
