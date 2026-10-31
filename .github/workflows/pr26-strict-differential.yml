@@ -1,0 +1,126 @@
+name: "PR26 — strict Pyright differential"
+
+on:
+  push:
+    branches:
+      - validation/pr26-strict-delta-52d25ca
+
+permissions:
+  contents: read
+
+jobs:
+  strict-diff:
+    name: "Compare strict diagnostics: base vs PR26"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - name: Checkout frozen baseline
+        uses: actions/checkout@v4
+        with:
+          ref: a308ca79dd93c879dc79e2fb9dba5409c7837f4e
+          path: baseline
+          persist-credentials: false
+
+      - name: Checkout frozen PR26 code
+        uses: actions/checkout@v4
+        with:
+          ref: 52d25cab1c3163682a525d95e65c535607eea8ae
+          path: candidate
+          persist-credentials: false
+
+      - name: Verify exact commits and shared Pyright config
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C baseline rev-parse HEAD)" = "a308ca79dd93c879dc79e2fb9dba5409c7837f4e"
+          test "$(git -C candidate rev-parse HEAD)" = "52d25cab1c3163682a525d95e65c535607eea8ae"
+          cmp baseline/pyproject.toml candidate/pyproject.toml
+          cmp baseline/pyrightconfig.json candidate/pyrightconfig.json
+          test -z "$(git -C baseline status --porcelain)"
+          test -z "$(git -C candidate status --porcelain)"
+          echo "PR26_STRICT_DELTA_SUBJECTS: PASS"
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11.17"
+
+      - name: Install same dependencies from candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check "./candidate[dev]"
+          python -m pip check
+          python -m pyright --version
+
+      - name: Compare strict diagnostic multisets
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p strict-evidence
+          (cd baseline && python -m pyright -p pyproject.toml --outputjson > ../strict-evidence/base.json) || true
+          (cd candidate && python -m pyright -p pyproject.toml --outputjson > ../strict-evidence/head.json) || true
+          python - <<'PY'
+          import collections
+          import json
+          from pathlib import Path
+          import sys
+
+          root=Path.cwd()
+          paths={"base":root/"baseline","head":root/"candidate"}
+          data={label:json.loads((root/"strict-evidence"/(label+".json")).read_text(encoding="utf-8")) for label in paths}
+          moved={
+              "runtime/chunk_staging.py":"core/chunking/execution_staging.py",
+              "runtime/publication_pipeline.py":"core/chunking/publication_pipeline.py",
+          }
+
+          def diagnostics(label):
+              base=paths[label]
+              result=[]
+              for d in data[label].get("generalDiagnostics",[]):
+                  p=Path(d["file"])
+                  relative=p.resolve().relative_to(base.resolve()).as_posix() if p.is_absolute() else p.as_posix()
+                  if label=="head":
+                      relative=moved.get(relative,relative)
+                  rule=d.get("rule") or ""
+                  msg=d.get("message") or ""
+                  severity=d.get("severity") or ""
+                  result.append((relative, rule, severity, msg))
+              return collections.Counter(result)
+
+          a=diagnostics("base")
+          b=diagnostics("head")
+          only_head=b-a
+          only_base=a-b
+          out={
+              "baseline_summary":data["base"].get("summary"),
+              "candidate_summary":data["head"].get("summary"),
+              "baseline_total":sum(a.values()),
+              "candidate_total":sum(b.values()),
+              "new_diagnostics":sum(only_head.values()),
+              "resolved_diagnostics":sum(only_base.values()),
+              "new_errors":sum(n for (_,_,severity,_),n in only_head.items() if severity=="error"),
+              "new_examples":[{"file":p,"rule":rule,"severity":sev,"message":msg,"count":n} for (p,rule,sev,msg),n in only_head.most_common(35)],
+              "resolved_examples":[{"file":p,"rule":rule,"severity":sev,"message":msg,"count":n} for (p,rule,sev,msg),n in only_base.most_common(12)],
+              "comparison":"same dependencies, Pyright version and config; moved-file paths normalized",
+          }
+          (root/"strict-evidence"/"comparison.json").write_text(json.dumps(out,indent=2,ensure_ascii=False),encoding="utf-8")
+          print("PR26_STRICT_BASELINE_DIAGNOSTICS:",out["baseline_total"])
+          print("PR26_STRICT_CANDIDATE_DIAGNOSTICS:",out["candidate_total"])
+          print("PR26_STRICT_NEW_DIAGNOSTICS:",out["new_diagnostics"])
+          print("PR26_STRICT_RESOLVED_DIAGNOSTICS:",out["resolved_diagnostics"])
+          print("PR26_STRICT_NEW_ERRORS:",out["new_errors"])
+          print("PR26_STRICT_NEW_EXAMPLES:",json.dumps(out["new_examples"],ensure_ascii=False))
+          if out["new_errors"]:
+              print("PR26_STRICT_DIFFERENTIAL: FAIL_NEW_ERRORS")
+              sys.exit(1)
+          print("PR26_STRICT_DIFFERENTIAL: PASS_NO_NEW_ERRORS")
+          PY
+
+      - name: Preserve strict differential evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr26-pyright-strict-diff
+          path: strict-evidence/
+          retention-days: 14
