@@ -79,6 +79,43 @@ jobs:
           set -euo pipefail
           python -m pytest -m "integration and not regression" -v --tb=short --no-header
           echo "PR26_INTEGRATION: PASS"
+      - name: PR26-owned directed contract tests (no PDF corpus)
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        working-directory: candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pytest -q --tb=short \\
+            tests/integration/test_g3_b1_policy_guardrails.py \
+            tests/integration/test_g3_b2_sqlite_plan_contract.py \
+            tests/integration/test_g3_b3_2_fenced_receipts.py \
+            tests/integration/test_g3_b3_3a_staged_publication.py \
+            tests/integration/test_g3_b3_3b_finalization.py \
+            tests/integration/test_g3_b3_structured_result_contract.py \
+            tests/integration/test_g3_b4_1_worker_coexistence.py \
+            tests/integration/test_g3_b4_2_ocr_router_durable_plan.py \
+            tests/integration/test_g3_b4_3a_engine_staging.py \
+            tests/integration/test_g3_b4_3b_publication_recovery.py \
+            tests/integration/test_g3_b4_4_profile_projection_assembly.py \
+            tests/integration/test_g3_b4_7b_sqlite_quota_thread_owner.py \
+            tests/integration/test_g3_b4_8_preserve_engine.py \
+            tests/integration/test_g3_b4_9_reconciler_fencing.py \
+            tests/integration/test_g3_chunk_identity_contract.py \
+            tests/integration/test_g3_wal_stage_write_scope.py \
+            tests/integration/test_g5_assembler_lease_recovery.py \
+            tests/integration/test_g5_assembler_worker_integration.py \
+            tests/integration/test_pdf_pdf_fsm_transaction_ownership.py \
+            tests/integration/test_pdf_pdf_sqlite_contracts.py \
+            tests/integration/test_pdf_pdf_sqlite_g2_guardrails.py
+          echo "PR26_DIRECTED_CONTRACTS: PASS"
+      - name: Non-regression unit tests
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        working-directory: candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pytest -m "unit and not regression" -q --tb=short
+          echo "PR26_UNIT_NONBENCHMARK: PASS"
       - name: Preserve evidence
         if: always()
         uses: actions/upload-artifact@v4

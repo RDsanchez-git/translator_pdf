@@ -124,7 +124,7 @@ class ReconciliationCommandHandler:
         self.mat = mat_repo
         self.metrics = metrics
     
-    def handle(self, cmd: RematerializeTaskCommand | RecoverZombieTaskCommand) -> None:
+    def handle(self, cmd: object) -> None:
         if isinstance(cmd, RematerializeTaskCommand):
             return self.handle_rematerialize(cmd)
 
