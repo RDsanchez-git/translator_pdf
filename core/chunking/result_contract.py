@@ -109,7 +109,7 @@ def parse_chunk_response(plan: ChunkPlan, chunk_id: str, raw_json: str) -> Chunk
             or envelope["chunk_id"] != chunk_id):
         raise ValueError("G3_B3_RESPONSE_BINDING_MISMATCH")
     raw_members = envelope["members"]
-    if type(raw_members) is not list or len(raw_members) != len(unit.members):
+    if type(raw_members) is not list or len(cast(list[Any], raw_members)) != len(unit.members):
         raise ValueError("G3_B3_MEMBER_COVERAGE_MISMATCH")
     expected = {(m.node_id, m.segment_index): m for m in unit.members}
     if len(expected) != len(unit.members):

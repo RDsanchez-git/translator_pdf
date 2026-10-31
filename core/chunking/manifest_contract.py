@@ -160,7 +160,7 @@ class ChunkPlan:
     @classmethod
     def from_json(cls, data: str, ast: Sequence[ASTNode], *, document_id: str, ast_hash: str) -> "ChunkPlan":
         decoded: Any = json.loads(data, object_pairs_hook=_reject_duplicate_keys)
-        if not isinstance(decoded, dict) or set(decoded) != {"schema_version", "document_id", "ast_hash", "units", "manifest_sha256"}:
+        if not isinstance(decoded, dict) or set(cast(dict[str, Any], decoded)) != {"schema_version", "document_id", "ast_hash", "units", "manifest_sha256"}:
             raise ValueError("G3_INVALID_MANIFEST_ENVELOPE")
         obj = cast(dict[str, Any], decoded)
         if type(obj["schema_version"]) is not int or obj["schema_version"] != _SCHEMA:
@@ -177,12 +177,12 @@ class ChunkPlan:
         if not isinstance(obj["units"], list):
             raise ValueError("G3_INVALID_UNITS")
         for raw_value in cast(list[Any], obj["units"]):
-            if not isinstance(raw_value, dict) or set(raw_value) != unit_keys or not isinstance(raw_value["members"], list):
+            if not isinstance(raw_value, dict) or set(cast(dict[str, Any], raw_value)) != unit_keys or not isinstance(raw_value["members"], list):
                 raise ValueError("G3_INVALID_UNIT_FIELDS")
             raw = cast(dict[str, Any], raw_value)
             members: list[ChunkMember] = []
             for item_value in cast(list[Any], raw["members"]):
-                if not isinstance(item_value, dict) or set(item_value) != member_keys:
+                if not isinstance(item_value, dict) or set(cast(dict[str, Any], item_value)) != member_keys:
                     raise ValueError("G3_INVALID_MEMBER_FIELDS")
                 item = cast(dict[str, Any], item_value)
                 members.append(ChunkMember(**item))

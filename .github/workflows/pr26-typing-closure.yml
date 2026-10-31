@@ -33,6 +33,7 @@ jobs:
         with:
           python-version: "3.11.17"
       - name: Install dependencies only on ephemeral GitHub runner
+        id: dependencies
         shell: bash
         run: |
           set -euo pipefail
@@ -71,7 +72,7 @@ jobs:
           print('PR26_DIFFERENTIAL: PASS')
           PY
       - name: Integration without benchmark
-        if: ${{ !cancelled() && success() }}
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
         working-directory: candidate
         shell: bash
         run: |
