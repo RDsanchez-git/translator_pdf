@@ -17,6 +17,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: fix/pr26-strict-differential-contract-types
+          fetch-depth: 0
           path: candidate
           persist-credentials: false
       - name: Verify baseline and ancestry
@@ -70,7 +71,7 @@ jobs:
           print('PR26_DIFFERENTIAL: PASS')
           PY
       - name: Integration without benchmark
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && success() }}
         working-directory: candidate
         shell: bash
         run: |
