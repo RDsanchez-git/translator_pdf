@@ -146,7 +146,6 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
                 )
                 raise PipelineIntegrityError(f"Estado FSM inválido para {document_id[:8]}")
             
-            current_version = doc_status.state_version
             if current_state in TERMINAL_STATES:
                 logger.info("PIPELINE_TERMINATED", extra={"extra_data": {"final_state": current_state.value}})
                 break

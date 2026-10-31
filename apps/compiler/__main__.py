@@ -37,7 +37,7 @@ class AssemblerWorkerDaemon:
     SOTA: Orquestador físico del Worker Assembler (CPU/IO Bound).
     Espera la tarea trigger, recolecta las proyecciones y compila Tectonic.
     """
-    def __init__(self, control_repo, fsm_repo, cmd_handler, mat_repo, ast_registry,
+    def __init__(self, control_repo: ControlPlaneRepository, fsm_repo, cmd_handler, mat_repo, ast_registry,
                  runner, compilation_service, context_resolver):
         self.control = control_repo
         self.fsm = fsm_repo

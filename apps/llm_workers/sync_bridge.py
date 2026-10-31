@@ -5,6 +5,7 @@ import json
 from dataclasses import replace
 from hashlib import sha256
 import re
+from typing import Any, cast
 from core.ast.models import ASTNode, TranslationTaskType, TranslationUnit
 from apps.llm_workers.routing import LLMProvider
 from apps.llm_workers.prompt_builder import PromptBuilder
@@ -123,14 +124,15 @@ class SyncProviderBridge:
             raise ValueError("G3_B4_3A_UNIT_NOT_IN_MANIFEST")
 
         math_maps: dict[tuple[str, int], dict[str, str]] = {}
-        prompt_members = []
+        prompt_members: list[dict[str, str | int]] = []
         next_math_index = 0
         for member in unit.members:
             # Reserve the complete placeholder namespace across the entire unit.
             # Per-member __MATH_0__ reuse would hide cross-member displacement.
             if re.search(r"__MATH_\d+__", member.source_text, flags=re.IGNORECASE):
                 raise ValueError("G3_B4_3A_MATH_TOKEN_COLLISION")
-            masked_text, local_mapping = InlineMathProtector.mask(member.source_text)
+            masked_text, raw_mapping = InlineMathProtector.mask(member.source_text)
+            local_mapping = cast(dict[str, str], raw_mapping)
             replacements: dict[str, str] = {}
             mapping: dict[str, str] = {}
             for local_token, original_math in local_mapping.items():
@@ -158,7 +160,7 @@ class SyncProviderBridge:
                 "source_text": masked_text,
             })
 
-        protocol = {
+        protocol: dict[str, Any] = {
             "protocol": "G3_CHUNK_RESPONSE_V1",
             "transport": {
                 "root_key": "content",

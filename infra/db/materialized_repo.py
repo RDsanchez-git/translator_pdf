@@ -54,7 +54,7 @@ class MaterializedPlaneRepository(MaterializedPlanePort):
         """
         params = [document_id, ast_hash, required_projection_v] + expected_node_ids
         rows = self.conn.execute(query, params).fetchall()
-        result = []
+        result: list[ProjectionRecord] = []
         for node_id, normalized_text, version, stored_hash in rows:
             # The B4/3b barrier protects the FSM transition, not a later DB edit.
             # Validate the exact bytes the compiler will consume, before handing
