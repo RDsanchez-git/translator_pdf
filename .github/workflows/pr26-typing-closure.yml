@@ -1,0 +1,86 @@
+name: "PR26 — targeted typing closure verification"
+on:
+  push:
+    branches: [fix/pr26-strict-differential-contract-types]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: a308ca79dd93c879dc79e2fb9dba5409c7837f4e
+          path: baseline
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/pr26-strict-differential-contract-types
+          path: candidate
+          persist-credentials: false
+      - name: Verify baseline and ancestry
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C baseline rev-parse HEAD)" = a308ca79dd93c879dc79e2fb9dba5409c7837f4e
+          git -C candidate merge-base --is-ancestor 52d25cab1c3163682a525d95e65c535607eea8ae HEAD
+          cmp baseline/pyproject.toml candidate/pyproject.toml
+          cmp baseline/pyrightconfig.json candidate/pyrightconfig.json
+          echo "PR26_BASE_AND_CONFIG: PASS"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11.17"
+      - name: Install dependencies only on ephemeral GitHub runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check "./candidate[dev]"
+          python -m pip check
+          python -m pyright --version
+      - name: Strict typing differential
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p evidence
+          (cd baseline && python -m pyright -p pyproject.toml --outputjson > ../evidence/base.json) || true
+          (cd candidate && python -m pyright -p pyproject.toml --outputjson > ../evidence/head.json) || true
+          python - <<'PY'
+          import collections, json, pathlib, sys
+          root=pathlib.Path.cwd()
+          base=json.loads((root/'evidence/base.json').read_text())
+          head=json.loads((root/'evidence/head.json').read_text())
+          moves={'runtime/chunk_staging.py':'core/chunking/execution_staging.py','runtime/publication_pipeline.py':'core/chunking/publication_pipeline.py'}
+          def diagnostic(label,d):
+              path=d['file'].split('/'+label+'/')[-1]
+              if label=='candidate':path=moves.get(path,path)
+              return path,d.get('rule'),d['severity'],d['message']
+          a=collections.Counter(diagnostic('baseline',d) for d in base['generalDiagnostics'])
+          b=collections.Counter(diagnostic('candidate',d) for d in head['generalDiagnostics'])
+          new=b-a
+          resolved=a-b
+          info={'base':base['summary']['errorCount'],'candidate':head['summary']['errorCount'],'new':sum(new.values()),'resolved':sum(resolved.values()),'new_examples':[{'file':k[0],'rule':k[1],'severity':k[2],'message':k[3],'count':v} for k,v in new.most_common(30)]}
+          (root/'evidence/diff.json').write_text(json.dumps(info,indent=2))
+          print('PR26_BASE_STRICT_ERRORS:',info['base'])
+          print('PR26_CANDIDATE_STRICT_ERRORS:',info['candidate'])
+          print('PR26_NEW_STRICT_ERRORS:',info['new'])
+          print('PR26_RESOLVED_STRICT_ERRORS:',info['resolved'])
+          print('PR26_NEW_EXAMPLES:',json.dumps(info['new_examples']))
+          if info['new']:sys.exit(1)
+          print('PR26_DIFFERENTIAL: PASS')
+          PY
+      - name: Integration without benchmark
+        if: ${{ !cancelled() }}
+        working-directory: candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pytest -m "integration and not regression" -v --tb=short --no-header
+          echo "PR26_INTEGRATION: PASS"
+      - name: Preserve evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr26-typing-closure-evidence
+          path: evidence/
+          retention-days: 14
