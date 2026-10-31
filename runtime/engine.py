@@ -1,7 +1,6 @@
 ﻿import os
 import asyncio
 import sys
-import hashlib
 import time
 import uuid
 import random
@@ -15,26 +14,23 @@ from core.metrics.metrics import Metrics
 from infra.db.fsm_repository import FSMRepository
 from core.execution.exceptions import PipelineIntegrityError, OptimisticLockError
 from core.execution.state import (
-    DocumentState, TERMINAL_STATES, MarkAssemblyReadyCommand
+    DocumentState, TERMINAL_STATES
 )
-from core.execution.handlers import DocumentCommandHandler
 from infra.db.control_repo import ControlPlaneRepository
-from infra.db.materialized_repo import MaterializedPlaneRepository
-from infra.db.event_repo import EventPlaneRepository
 from core.utils.telemetry import (
     setup_distributed_logger, 
     ctx_execution_id, ctx_worker_id, ctx_task_id, ctx_node_id
 )
 from core.execution.exceptions import CircuitTripError, CircuitOpenError
 from infra.db.connection import get_connection
-from core.normalization.normalizer import TextNormalizer
-from core.execution.ports import EventLifecycle
 from core.ast.registry import ASTRegistry
-from core.normalization.latex_sanitizer import InlineMathProtector
+from core.ast.models import TranslationTaskType
 from core.validation.budget import PromptBudgetCalculator, StandardCompressionPolicy
 from core.finops.measurement import InferenceMeasurementService
-from core.ast.enums import ContentNodeType
 from apps.llm_workers.prompt_builder import PromptBuilder
+from core.ast.hashing import compute_ast_hash
+from runtime.chunk_staging import stage_claimed_unit
+from runtime.publication_pipeline import advance_staged_document
 from apps.bootstrap.provider_stack_factory import build_provider_stack
 
 logger = logging.getLogger(__name__)
@@ -46,29 +42,12 @@ MAT_DB_PATH = "infra/db/materialized.db"
 
 GLOBAL_LLM_SEMAPHORE = threading.Semaphore(int(os.getenv("MAX_GLOBAL_LLM_CONCURRENCY", "4")))
 
-def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_traduccion.pdf") -> dict:
-    
-    pipeline_start = time.time()
-    logger.info(f"Orquestador de Runtime acoplado al Documento [ID: {document_id[:8]}]")
-    
-    fsm_conn = get_connection(FSM_DB_PATH, timeout=30)
-    queue_conn = get_connection(QUEUE_DB_PATH, timeout=30)
-    evt_conn = get_connection(EVENT_DB_PATH, timeout=30)
-    mat_conn = get_connection(MAT_DB_PATH, timeout=30)
-    
-    for conn in (fsm_conn, queue_conn, evt_conn, mat_conn):
-        conn.execute("PRAGMA busy_timeout=30000")
-        
-    mat_repo = MaterializedPlaneRepository(mat_conn)
-    fsm_repo = FSMRepository(fsm_conn)
-    task_repo = ControlPlaneRepository(queue_conn)
-    cmd_handler = DocumentCommandHandler(fsm_repo, task_repo=task_repo)
-    ast_registry = ASTRegistry()
-    
-    # SOTA: Instanciación Singleton del Bridge para aislamiento Thread-Safe
+
+def _create_chunk_processor():
+    """Initialize paid provider only if at least one unit needs inference."""
     from apps.llm_workers.sync_bridge import SyncProviderBridge
     from core.validation.estimators import ExactBPEEstimator
-    from infra.resilience.sqlite_rate_limit_store import SQLiteRateLimitStore
+    from infra.resilience.thread_owned_sqlite_rate_limit_store import ThreadOwnedSQLiteRateLimitStore
     
     api_key = os.getenv("GROQ_API_KEY")
     if not api_key:
@@ -98,46 +77,59 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
     rpm_limit = int(os.getenv("GROQ_RPM_LIMIT", "30"))
     tpm_limit = int(os.getenv("GROQ_TPM_LIMIT", "6000"))
     
-        # DF-27: Persistencia de cuotas con SQLite WAL
-    rl_conn = get_connection("infra/db/rate_limits.db", timeout=30)
-    rl_conn.execute("PRAGMA busy_timeout=30000")
-    rl_store = SQLiteRateLimitStore(rl_conn)
+    # Durable SQLite quota state, confined to a dedicated owner thread.
+    quota_store = ThreadOwnedSQLiteRateLimitStore("infra/db/rate_limits.db", timeout=30)
 
-    provider_stack = asyncio.run(build_provider_stack(
-        api_key=api_key,
-        rpm_limit=rpm_limit,
-        tpm_limit=tpm_limit,
-        rate_limit_store=rl_store,
-    ))
-    processor = SyncProviderBridge(async_provider=provider_stack, prompt_builder=builder)
+    try:
+        provider_stack = asyncio.run(build_provider_stack(
+            api_key=api_key,
+            rpm_limit=rpm_limit,
+            tpm_limit=tpm_limit,
+            rate_limit_store=quota_store,
+        ))
+        processor = SyncProviderBridge(async_provider=provider_stack, prompt_builder=builder)
+    except BaseException:
+        quota_store.close()
+        raise
+    return processor, quota_store
+
+
+def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_traduccion.pdf") -> dict:
+
+    pipeline_start = time.time()
+    logger.info(f"Orquestador de Runtime acoplado al Documento [ID: {document_id[:8]}]")
+
+    fsm_conn = get_connection(FSM_DB_PATH, timeout=30)
+    queue_conn = get_connection(QUEUE_DB_PATH, timeout=30)
+    for conn in (fsm_conn, queue_conn):
+        conn.execute("PRAGMA busy_timeout=30000")
+
+    fsm_repo = FSMRepository(fsm_conn)
+    task_repo = ControlPlaneRepository(queue_conn)
+    ast_registry = ASTRegistry()
+
+    # Verify the actual OCR AST and persisted plan before building any paid provider.
+    # In particular, legacy benchmark nodes are NOT equivalent to manifest units.
+    try:
+        if os.getenv("IS_BENCHMARK") == "1":
+            raise PipelineIntegrityError("G3_B4_3A_BENCHMARK_REQUIRES_OWN_PLAN")
+        ast = ast_registry.get_document_ast(document_id, ast_hash)
+        if not ast or compute_ast_hash(ast) != ast_hash:
+            raise PipelineIntegrityError("G3_B4_3A_AST_MISSING_OR_HASH_MISMATCH")
+        plan = task_repo.load_chunk_plan(document_id, ast_hash, ast)
+        unit_index = {unit.chunk_id: unit for unit in plan.units}
+        if len(unit_index) != len(plan.units):
+            raise PipelineIntegrityError("G3_B4_3A_DUPLICATE_CHUNKS")
+    except BaseException:
+        fsm_conn.close()
+        queue_conn.close()
+        raise
+
     owner_id = f"orchestrator_{uuid.uuid4().hex[:8]}"
-    cache_key = (document_id, ast_hash)
-    
-    if os.getenv("IS_BENCHMARK") == "1" or document_id.startswith("doc_"):
-        cursor = queue_conn.execute("SELECT node_id FROM chunk_tasks WHERE document_id = ?", (document_id,))
-        ordered_node_ids = [row[0] for row in cursor.fetchall()]
-        
-        from core.ast.models import ASTNode, ParagraphPayload
-        
-        # SOTA FIX: Instanciación real y tipada del ASTNode para evitar evasiones de Type Checking
-        doc_nodes = {
-            nid: ASTNode(
-                node_id=nid,
-                node_type=ContentNodeType.PARAGRAPH,
-                payload=ParagraphPayload(content="SOTA synthetic content benchmarking")
-            )
-            for nid in ordered_node_ids
-        }
-    else:
-        if cache_key not in ast_registry._cache:
-            ast_registry._load_document(document_id, ast_hash)
-        doc_nodes = ast_registry._cache.get(cache_key, {})
-        if not doc_nodes:
-            raise PipelineIntegrityError(f"Error crítico: El AST cacheado por el OCR Router no existe en disco para {document_id[:8]}")
-        ordered_node_ids = list(doc_nodes.keys())
-        
-    retry_attempt = 0 
     current_state = None
+    failure = None
+    processor = None
+    quota_store = None
     
     while True:
         try:
@@ -154,196 +146,123 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
                 )
                 raise PipelineIntegrityError(f"Estado FSM inválido para {document_id[:8]}")
             
-            current_version = doc_status.state_version
             if current_state in TERMINAL_STATES:
                 logger.info("PIPELINE_TERMINATED", extra={"extra_data": {"final_state": current_state.value}})
                 break
                 
             if current_state == DocumentState.PROCESSING:
-                ast_index = doc_nodes
-                max_threads = int(os.getenv("MAX_CONCURRENT_CHUNKS", "4"))
-                
+                initial_rows = queue_conn.execute(
+                    "SELECT node_id, task_state FROM chunk_tasks WHERE document_id=? AND ast_hash=? "
+                    "AND worker_type='LLM'", (document_id, ast_hash),
+                ).fetchall()
+                initial_states = [state for _, state in initial_rows]
+                if (len(initial_states) == len(plan.units) and initial_states
+                        and set(initial_states) in ({"RESULT_STAGED"}, {"COMPLETED"})):
+                    # Recovery-only path: no API key, rate-limiter or inference required.
+                    mat_conn = get_connection(MAT_DB_PATH, timeout=30)
+                    try:
+                        advance_staged_document(task_repo, mat_conn, fsm_repo,
+                                                plan, ast, owner_id)
+                    finally:
+                        mat_conn.close()
+                    current_state = DocumentState.READY_FOR_ASSEMBLY
+                    break
+
+                runnable_rows = [(chunk_id, state) for chunk_id, state in initial_rows
+                                 if state in ("PENDING", "RETRYABLE_ERROR")]
+                has_runnable_work = bool(runnable_rows)
+                needs_inference = any(
+                    unit_index[chunk_id].chunk_type != TranslationTaskType.PRESERVE
+                    for chunk_id, _ in runnable_rows
+                )
+                if needs_inference:
+                    processor, quota_store = _create_chunk_processor()
                 def chunk_worker_thread():
                     th_queue_conn = get_connection(QUEUE_DB_PATH, timeout=30)
-                    th_evt_conn = get_connection(EVENT_DB_PATH, timeout=30)
-                    th_mat_conn = get_connection(MAT_DB_PATH, timeout=30)
-                    
-                    for c in (th_queue_conn, th_evt_conn, th_mat_conn):
-                        c.execute("PRAGMA busy_timeout=30000")
-                        
+                    th_queue_conn.execute("PRAGMA busy_timeout=30000")
                     th_task_repo = ControlPlaneRepository(th_queue_conn)
-                    th_event_repo = EventPlaneRepository(th_evt_conn)
-                    th_mat_repo = MaterializedPlaneRepository(th_mat_conn)
-                    
-                    local_processor = processor  
-                    
                     try:
                         while True:
                             task = th_task_repo.pick_task(owner_id, document_id, ast_hash)
-                            if not task:
+                            if task is None:
                                 break
-                                
-                            task_id = task.task_id
-                            node_id = task.node_id
-                            
+                            chunk_id = task.node_id  # Legacy queue column stores G3 chunk_id.
                             t_exec = ctx_execution_id.set(task.execution_id)
                             t_work = ctx_worker_id.set(owner_id)
-                            t_task = ctx_task_id.set(task_id)
-                            t_node = ctx_node_id.set(node_id)
-                            
+                            t_task = ctx_task_id.set(task.task_id)
+                            t_node = ctx_node_id.set(chunk_id)
                             try:
-                                target_node = ast_index[node_id]
-                                
-                                # SOTA FIX: Enrutamiento directo y desacoplado basado en la taxonomía pura del AST V2
-                                if target_node.node_type in (ContentNodeType.DISPLAY_EQUATION, ContentNodeType.INLINE_EQUATION, ContentNodeType.CODE, ContentNodeType.IMAGE):
-                                    policy = "PRESERVE"
-                                else:
-                                    policy = "TRANSLATE"
-                                
-                                if policy in ("PRESERVE", "IGNORE"):
-                                    raw_response = local_processor.execute(target_node)
-                                else:
-                                    # SOTA FIX: Abstracción polimórfica para extracción e instanciación inmutable de sub-payloads
-                                    # SOTA FIX: Abstracción polimórfica para extracción e instanciación inmutable de sub-payloads
-                                    original_content = target_node.text_content or ""
-                                    masked_content, math_map = InlineMathProtector.mask(original_content)
-                                    
-                                    from core.ast.models import ParagraphPayload, HeadingPayload, TablePayload, ListPayload
-                                    if target_node.node_type == ContentNodeType.HEADING:
-                                        from core.ast.enums import HeadingLevel
-                                        # SOTA FIX: Type Narrowing estructural mediante isinstance para satisfacer la unión en Pyright Strict
-                                        old_level = target_node.payload.heading_level if isinstance(target_node.payload, HeadingPayload) else HeadingLevel.UNKNOWN
-                                        masked_payload = HeadingPayload(content=masked_content, heading_level=old_level)
-                                    elif target_node.node_type == ContentNodeType.LIST:
-                                        masked_payload = ListPayload(content=masked_content)
-                                    elif target_node.node_type in (ContentNodeType.TABLE_SIMPLE, ContentNodeType.TABLE_COMPLEX):
-                                        masked_payload = TablePayload(content=masked_content)
-                                    else:
-                                        masked_payload = ParagraphPayload(content=masked_content)
-                                        
-                                    exec_node = target_node.model_copy(update={"payload": masked_payload})
-                                    
-                                    with GLOBAL_LLM_SEMAPHORE:
-                                        raw_response = local_processor.execute(exec_node)
-                                        
-                                    raw_response = InlineMathProtector.restore(raw_response, math_map)
-                                
-                                content_to_hash = target_node.text_content or ""
-                                
-                                th_event_repo.append_wal(
-                                    task.execution_id, document_id, node_id, 
-                                    hashlib.sha256(content_to_hash.encode('utf-8')).hexdigest(), 
-                                    raw_response, processor.prompt_v, processor.model_v, 
-                                    processor.projection_v, EventLifecycle.GENERATED
-                                )
-                                
-                                normalized = TextNormalizer.normalize(raw_response) if policy == "TRANSLATE" else raw_response
-                                normalized_hash = hashlib.sha256(normalized.encode('utf-8')).hexdigest()
-                                
-                                th_mat_repo.upsert_projection(
-                                    document_id, ast_hash, node_id, 
-                                    hashlib.sha256(content_to_hash.encode('utf-8')).hexdigest(), 
-                                    normalized, normalized_hash, processor.projection_v
-                                )
-                                
-                                th_task_repo.acknowledge_execution(task_id, owner_id)
-                                logger.info(f"Chunk {node_id[:8]} materializado exitosamente.")
-                                
-                            except CircuitTripError as e:
-                                logger.critical(f"CIRCUIT TRIPPED! {e}. Liberando tarea.")
-                                th_task_repo.release_task_untouched(task_id, owner_id)
+                                unit = unit_index.get(chunk_id)
+                                if unit is None:
+                                    raise PipelineIntegrityError("G3_B4_3A_UNEXPECTED_CLAIMED_CHUNK")
+                                stage_claimed_unit(th_task_repo, plan, ast, unit, task,
+                                                   owner_id, processor, GLOBAL_LLM_SEMAPHORE)
+                            except CircuitTripError as exc:
+                                logger.critical("Circuit tripped for %s: %s", chunk_id[:8], exc)
+                                th_task_repo.release_task_untouched(task.task_id, owner_id)
                                 time.sleep(10.0)
                             except CircuitOpenError:
-                                th_task_repo.release_task_untouched(task_id, owner_id)
+                                th_task_repo.release_task_untouched(task.task_id, owner_id)
                                 time.sleep(5.0)
-                            except Exception as e:
-                                logger.error(f"Falla en sub-tarea {node_id[:8]}: {str(e)[:250]}")
+                            except Exception as exc:
+                                logger.exception("G3_B4_3A_STAGE_FAILURE: %s", chunk_id[:8])
                                 try:
-                                    th_task_repo.abandon_execution(task_id, owner_id, str(e)[:250])
+                                    th_task_repo.abandon_execution(task.task_id, owner_id,
+                                                                   str(exc)[:250])
                                 except OptimisticLockError:
                                     pass
+                            else:
+                                logger.info("G3_B4_3A_RESULT_STAGED: %s", chunk_id[:8])
                             finally:
                                 ctx_execution_id.reset(t_exec)
                                 ctx_worker_id.reset(t_work)
                                 ctx_task_id.reset(t_task)
                                 ctx_node_id.reset(t_node)
                     finally:
-                        for c in (th_queue_conn, th_evt_conn, th_mat_conn):
-                            try:
-                                c.close()
-                            except Exception:
-                                pass
-                                
-                with ThreadPoolExecutor(max_workers=max_threads) as executor:
-                    futures = [executor.submit(chunk_worker_thread) for _ in range(max_threads)]
-                    for future in futures:
-                        future.result() 
+                        th_queue_conn.close()
+
+                if has_runnable_work:
+                    max_threads = int(os.getenv("MAX_CONCURRENT_CHUNKS", "4"))
+                    with ThreadPoolExecutor(max_workers=max_threads) as executor:
+                        futures = [executor.submit(chunk_worker_thread) for _ in range(max_threads)]
+                        for future in futures:
+                            future.result()
                 
-                doc_status = fsm_repo.get_status(document_id, ast_hash)
-                current_version = doc_status.state_version if doc_status else current_version
-                
-                cursor = queue_conn.execute(
-                    """SELECT 
-                        SUM(CASE WHEN task_state = 'FAILED' THEN 1 ELSE 0 END),
-                        SUM(CASE WHEN task_state IN ('PENDING', 'PROCESSING', 'RETRYABLE_ERROR') THEN 1 ELSE 0 END)
-                       FROM chunk_tasks WHERE document_id = ? AND ast_hash = ?""",
-                    (document_id, ast_hash)
-                )
-                row = cursor.fetchone()
-                failed_chunks = row[0] or 0
-                active_chunks = row[1] or 0
-                if failed_chunks > 0 and active_chunks == 0:
-                    logger.critical(f"Poison Pill confirmada: {failed_chunks} fallidos, {active_chunks} activos. Promoviendo a FAILED_FATAL.")
+                # Strictly read-only readiness check. No publication/ACK in B4/3a.
+                states = queue_conn.execute(
+                    "SELECT task_state FROM chunk_tasks WHERE document_id=? AND ast_hash=? "
+                    "AND worker_type='LLM'", (document_id, ast_hash),
+                ).fetchall()
+                if len(states) != len(plan.units):
+                    raise PipelineIntegrityError("G3_B4_3A_QUEUE_COVERAGE_DRIFT")
+                # Preserve the pre-G3 poison-pill decision, scoped to LLM tasks.
+                # A staged receipt is not a completed task, and it is not retried.
+                failed = sum(state == "FAILED" for (state,) in states)
+                runnable = sum(state in ("PENDING", "PROCESSING", "RETRYABLE_ERROR")
+                               for (state,) in states)
+                if failed and not runnable:
                     fsm_repo.transition_to(
-                        document_id, ast_hash, current_state.value, DocumentState.FAILED_FATAL.value,
-                        current_version, owner_id, is_terminal=True, failure_reason=f"Colapso de pipeline por {failed_chunks} tareas muertas."
+                        document_id, ast_hash, current_state.value,
+                        DocumentState.FAILED_FATAL.value, doc_status.state_version,
+                        owner_id, is_terminal=True,
+                        failure_reason=f"G3 staging aborted: {failed} LLM tasks failed.",
                     )
+                    current_state = DocumentState.FAILED_FATAL
+                    logger.error("G3_B4_3A_FAILED_FATAL: %s poisoned LLM tasks", failed)
                     break
-                valid_chunks_data = mat_repo.get_assemblable_chunks(
-                    document_id, ast_hash, ordered_node_ids, required_projection_v=1
-                )
-                returned_ids = [n.node_id for n in valid_chunks_data]
-                set_expected = set(ordered_node_ids)
-                set_returned = set(returned_ids)
-                
-                if len(returned_ids) != len(set_returned):
-                    raise PipelineIntegrityError("CRÍTICO: El Query Model devolvió IDs duplicados.")
-                
-                unexpected = set_returned - set_expected
-                if unexpected:
-                    raise PipelineIntegrityError(f"CRÍTICO: Nodos fantasma inyectados: {list(unexpected)}")
-                
-                if set_expected == set_returned:
-                    if os.getenv("IS_BENCHMARK") == "1":
-                        logger.info(f"[BENCHMARK] Documento {document_id[:8]} forzando transición terminal en repositorio.")
-                        fsm_repo.transition_to(
-                            document_id=document_id,
-                            ast_hash=ast_hash,
-                            old_state=current_state.value,
-                            new_state=DocumentState.COMPLETED.value,
-                            current_version=current_version,
-                            owner_id=owner_id,
-                            is_terminal=True
-                        )
-                        fsm_conn.commit()
-                        current_state = DocumentState.COMPLETED  
-                        break
-                        
-                    doc_status = fsm_repo.get_status(document_id, ast_hash)
-                    if not doc_status:
-                        break
-                    
-                    cmd = MarkAssemblyReadyCommand(document_id, ast_hash, owner_id, doc_status.state_version)
-                    cmd_handler.handle(cmd)
-                    current_state = DocumentState.READY_FOR_ASSEMBLY  
-                    break 
+                all_staged = bool(states) and all(state == "RESULT_STAGED" for (state,) in states)
+                if all_staged or (states and all(state == "COMPLETED" for (state,) in states)):
+                    mat_conn = get_connection(MAT_DB_PATH, timeout=30)
+                    try:
+                        advance_staged_document(task_repo, mat_conn, fsm_repo,
+                                                plan, ast, owner_id)
+                    finally:
+                        mat_conn.close()
+                    current_state = DocumentState.READY_FOR_ASSEMBLY
                 else:
-                    sleep_sec = min(30.0, 2.0 * (1.5 ** retry_attempt)) + random.uniform(0.1, 1.0)
-                    missing_count = len(set_expected - set_returned)
-                    logger.info("assembly_barrier_waiting", extra={"extra_data": {"missing_chunks": missing_count, "sleep_sec": round(sleep_sec, 2)}})
-                    time.sleep(sleep_sec)
-                    retry_attempt += 1
-                    
+                    logger.info("G3_B4_3B_INCOMPLETE: %s", [state for (state,) in states])
+                break
+
             elif current_state == DocumentState.FAILED_RETRYABLE:
                 target_recovery = doc_status.suspended_state or DocumentState.PROCESSING.value
                 logger.warning(f"Auto-recuperación de FAILED_RETRYABLE detectada. Retornando flujo hacia: {target_recovery}")
@@ -367,10 +286,12 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
                 break
                 
         except OptimisticLockError as e:
+            failure = "optimistic_lock"
             logger.warning(f"Lock de concurrencia optimista interceptado. Abortando ejecutor local: {e}")
             break
             
         except Exception as e:
+            failure = type(e).__name__
             import traceback
             print("\n!!! CRASH EN INICIALIZACION DE PIPELINE !!!", flush=True)
             traceback.print_exc()
@@ -380,16 +301,23 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
 
     total_time = time.time() - pipeline_start
     final_state_val = current_state.value if current_state else "UNKNOWN"
-    processor.shutdown()
-    
-    for conn in (fsm_conn, queue_conn, evt_conn, mat_conn, rl_conn):
-        try:
-            conn.close()
-        except Exception:
-            pass
+    if processor is not None:
+        processor.shutdown()
+
+    for conn in (fsm_conn, queue_conn, quota_store):
+        if conn is not None:
+            try:
+                conn.close()
+            except Exception:
+                pass
             
-    logger.info("pipeline_complete", extra={"extra_data": {"status": "success" if current_state == DocumentState.COMPLETED else "failed", "total_time_sec": round(total_time, 2)}})
-    return {"status": "terminal_reached", "final_state": final_state_val}
+    outcome = ("failed" if failure is not None else
+               "ready_for_assembly" if current_state == DocumentState.READY_FOR_ASSEMBLY else
+               "staging_incomplete" if current_state == DocumentState.PROCESSING else
+               "terminal_reached" if current_state in TERMINAL_STATES else "not_completed")
+    logger.info("pipeline_complete", extra={"extra_data": {"status": outcome,
+                "total_time_sec": round(total_time, 2)}})
+    return {"status": outcome, "final_state": final_state_val}
 
 if __name__ == "__main__":
     setup_distributed_logger()
@@ -407,6 +335,8 @@ if __name__ == "__main__":
             queue_conn = get_connection(QUEUE_DB_PATH, timeout=30)
             task_repo = ControlPlaneRepository(queue_conn)
             candidates = task_repo.find_documents_with_pending_chunks(sample_size=10)
+            recovery = task_repo.find_documents_ready_for_g3_recovery(sample_size=10)
+            candidates = list(dict.fromkeys([*recovery, *candidates]))
             queue_conn.close()
             
             if not candidates:

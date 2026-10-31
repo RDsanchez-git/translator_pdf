@@ -14,15 +14,24 @@ from typing import List, Set, Optional, Tuple, Sequence
 
 # DESPUÉS:
 from core.ast.models import (
-    ASTNode, TranslationUnit,
+    ASTNode, TranslationUnit, ChunkMember,
     TranslationTaskType, OverflowPolicy, ChunkingReport,
     HeadingPayload, ParagraphPayload, MathPayload,
     CodePayload, TablePayload, ListPayload, ASTPayload
 )
 from core.validation.protocols import TokenEstimatorProtocol  # NUEVO
-from core.ast.enums import ContentNodeType
+from core.ast.enums import ContentNodeType, TranslationStrategy
 from core.ast.grouper import SemanticGroup, ContextAwareSemanticGrouper
 from core.shared.crypto import compute_sha256, compute_md5
+from core.chunking.manifest_contract import build_target_payload
+
+
+def _member_for(node: ASTNode, text: str, index: int = 0, count: int = 1) -> ChunkMember:
+    return ChunkMember(
+        node_id=str(node.node_id), sequence_id=node.sequence_id,
+        segment_index=index, segment_count=count, source_text=text,
+        node_type=node.node_type.value, strategy=node.strategy.value,
+    )
 
 
 @dataclass(frozen=True)
@@ -59,22 +68,24 @@ class TokenBudgetChunker:
 
     def _split_by_sentence(self, text: str) -> List[str]:
         """Partición heurística ligera sin depender de NLP pesados (spaCy)."""
-        sentences = re.split(r'(?<=[.!?])\s+(?=[A-Z0-9])', text)
-        return [s.strip() for s in sentences if s.strip()]
+        # Mantener los espacios y saltos de linea en el segmento siguiente.
+        # El join de los segmentos reconstruye EXACTAMENTE el contenido padre.
+        return [s for s in re.split(r'(?<=[.!?])(?=\s+[A-Z0-9])', text) if s]
 
     def chunk_group(self, group: SemanticGroup, start_index: int) -> List[TranslationUnit]:
         units = []
         current_nodes: List[ASTNode] = []
+        current_members: List[ChunkMember] = []
         current_tokens = 0
         chunk_index = start_index
         available_payload_tokens = self.policy.max_tokens - self.policy.prompt_overhead_tokens
 
         def flush_translate_chunk():
-            nonlocal chunk_index, current_nodes, current_tokens
+            nonlocal chunk_index, current_nodes, current_members, current_tokens
             if not current_nodes:
                 return
 
-            payload_text = "\n\n".join([n.text_content or "" for n in current_nodes])
+            payload_text = build_target_payload(current_members)
             first_seq = current_nodes[0].sequence_id
             last_seq = current_nodes[-1].sequence_id
 
@@ -95,7 +106,8 @@ class TokenBudgetChunker:
                 context_depth=len(group.structural_path),
                 target_payload=payload_text,
                 estimated_tokens=current_tokens,
-                payload_sha256=full_hash
+                payload_sha256=full_hash,
+                members=tuple(current_members)
             ))
 
             self.report.total_chunks += 1
@@ -103,17 +115,27 @@ class TokenBudgetChunker:
 
             chunk_index += 1
             current_nodes = []
+            current_members = []
             current_tokens = 0
 
         for node in group.nodes:
+            if node.strategy == TranslationStrategy.OMIT:
+                continue
             content = node.text_content or ""
+            if node.strategy == TranslationStrategy.DEFER:
+                raise ValueError(f"G3_UNRESOLVED_STRATEGY: {node.node_id}")
             if not content:
                 continue
 
-            if node.node_type in self.protected_types or node.node_type in self.boundaries or node.node_type in self.partial_types:
+            if (node.node_type in self.protected_types or node.node_type in self.boundaries
+                    or node.node_type in self.partial_types or node.strategy in
+                    (TranslationStrategy.PASSTHROUGH, TranslationStrategy.KEEP_ORIGINAL)):
                 flush_translate_chunk()
 
-                task_type = TranslationTaskType.PARTIAL if node.node_type in self.partial_types else TranslationTaskType.PRESERVE
+                task_type = (TranslationTaskType.PRESERVE if node.strategy in
+                             (TranslationStrategy.PASSTHROUGH, TranslationStrategy.KEEP_ORIGINAL)
+                             else TranslationTaskType.PARTIAL if node.node_type in self.partial_types
+                             else TranslationTaskType.PRESERVE)
                 node_tokens = self.estimator.estimate_tokens(content)
                 # Punto único de entrada criptográfico (core.shared.crypto)
                 full_hash = compute_sha256(content.encode("utf-8"))
@@ -130,7 +152,8 @@ class TokenBudgetChunker:
                     context_depth=len(group.structural_path),
                     target_payload=content,
                     estimated_tokens=node_tokens,
-                    payload_sha256=full_hash
+                    payload_sha256=full_hash,
+                    members=(_member_for(node, content),)
                 ))
 
                 self.report.total_chunks += 1
@@ -147,8 +170,12 @@ class TokenBudgetChunker:
 
                 if self.policy.overflow_policy == OverflowPolicy.BY_SENTENCE:
                     sentences = self._split_by_sentence(content)
-                    for sentence in sentences:
+                    for segment_index, sentence in enumerate(sentences):
                         s_tokens = self.estimator.estimate_tokens(sentence)
+                        if s_tokens > available_payload_tokens:
+                            raise ValueError(
+                                f"G3_SENTENCE_EXCEEDS_BUDGET: {node.node_id} segment={segment_index}"
+                            )
                         if current_tokens + s_tokens > available_payload_tokens and current_nodes:
                             flush_translate_chunk()
 
@@ -169,25 +196,34 @@ class TokenBudgetChunker:
                             new_payload = ParagraphPayload(content=sentence)
 
                         sub_node = ASTNode(
-                            node_id=f"{node.node_id}_sub_{len(current_nodes)}",
+                            node_id=f"{node.node_id}_sub_{segment_index}",
                             sequence_id=node.sequence_id,
                             node_type=node.node_type,
                             payload=new_payload,
                             metadata=node.metadata,
-                            control_plane=node.control_plane
+                            control_plane=node.control_plane,
+                            strategy=node.strategy,
+                            depth=node.depth,
+                            parent_node_id=node.node_id,
+                            segment_index=segment_index,
+                            segment_count=len(sentences),
                         )
                         current_nodes.append(sub_node)
+                        current_members.append(_member_for(node, sentence, segment_index, len(sentences)))
                         current_tokens += s_tokens
                 else:
-                    current_nodes.append(node)
-                    current_tokens += node_tokens
-                    flush_translate_chunk()
+                    # El chunker no implementa actualmente otro fraccionamiento
+                    # seguro. No emitir unidades que excedan el presupuesto.
+                    raise ValueError(
+                        f"G3_UNSUPPORTED_OVERFLOW_POLICY: {self.policy.overflow_policy.value}"
+                    )
                 continue
 
             if current_tokens + node_tokens > available_payload_tokens and current_nodes:
                 flush_translate_chunk()
 
             current_nodes.append(node)
+            current_members.append(_member_for(node, content))
             current_tokens += node_tokens
 
         flush_translate_chunk()

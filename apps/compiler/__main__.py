@@ -3,12 +3,14 @@ import time
 import uuid
 import random
 import logging
+import threading
 
 from core.utils.telemetry import setup_distributed_logger
 from core.execution.exceptions import OptimisticLockError
 
 from infra.db.connection import get_connection
 from infra.db.control_repo import ControlPlaneRepository
+from infra.db.assembly_recovery import AssemblyLeaseRepository
 from infra.db.materialized_repo import MaterializedPlaneRepository
 from infra.db.fsm_repository import FSMRepository
 from core.ast.registry import ASTRegistry
@@ -17,20 +19,13 @@ from core.compiler.rendering.models import RenderGeometry, AssetReference
 
 
 from core.execution.handlers import DocumentCommandHandler
-from core.execution.state import (
-    DocumentState,
-    StartAssemblyCommand,
-    MarkCompilationReadyCommand,
-    StartCompilationCommand,
-    CompleteDocumentCommand,
-    FailDocumentCommand
-) 
+from core.execution.state import FailDocumentCommand
 
 from core.compiler.service import CompilationService
 from core.compiler.context_resolver import CQRSAssemblyContextResolver
 from core.compiler.assembler import DocumentAssembler, AssemblyPolicy
 from core.compiler.rendering.mapper import DefaultRenderUnitMapper
-from infra.db.profile_store import InMemoryProfileStore
+from infra.db.profile_store import SQLiteProfileStore
 from infra.db.document_repository import SQLiteDocumentRepository
 
 
@@ -42,8 +37,11 @@ class AssemblerWorkerDaemon:
     SOTA: Orquestador físico del Worker Assembler (CPU/IO Bound).
     Espera la tarea trigger, recolecta las proyecciones y compila Tectonic.
     """
-    def __init__(self, control_repo, fsm_repo, cmd_handler, mat_repo, ast_registry,
-                 runner, compilation_service, context_resolver):
+    def __init__(self, control_repo: ControlPlaneRepository, fsm_repo: FSMRepository,
+                 cmd_handler: DocumentCommandHandler, mat_repo: MaterializedPlaneRepository,
+                 ast_registry: ASTRegistry, runner: HostTectonicRunner,
+                 compilation_service: CompilationService,
+                 context_resolver: CQRSAssemblyContextResolver):
         self.control = control_repo
         self.fsm = fsm_repo
         self.cmd_handler = cmd_handler
@@ -106,77 +104,73 @@ class AssemblerWorkerDaemon:
                 logger.critical(f"DOOMSDAY: No se pudo abortar el documento en la FSM: {fsm_err}")
 
     def _process_assembly_task(self, doc_id: str, ast_hash: str):
-        """
-        NADR-06 §5.3 R9-R12: Procesamiento gobernado por CompilationService.
-        El daemon orquesta FSM, no ensambla.
-        """
+        """Lease-fenced assembly and private PDF promotion (G5/2)."""
+        leases = AssemblyLeaseRepository(self.control.conn)
+        lease = leases.claim(doc_id, ast_hash, self.node_id)
+        if lease is None:  # Another assembler already claimed this generation.
+            return
+
         start_assembly = time.perf_counter()
-        logger.info("Iniciando compilación del documento...", extra={"extra_data": {"doc": doc_id}})
+        stop_heartbeat = threading.Event()
+        lease_lost = threading.Event()
+        staged_pdf = None
 
-        current_version = None
+        def heartbeat():
+            # The heartbeat MUST own a separate thread-confined SQLite connection.
+            connection = None
+            try:
+                connection = get_connection(os.getenv("QUEUE_DB_PATH", "infra/db/queue.db"), timeout=30)
+                renewal = AssemblyLeaseRepository(connection)
+                while not stop_heartbeat.wait(30.0):
+                    if not renewal.renew(lease):
+                        lease_lost.set()
+                        return
+            except Exception:
+                logger.exception("G5_ASSEMBLER_HEARTBEAT_FAILED")
+                lease_lost.set()
+            finally:
+                if connection is not None:
+                    connection.close()
+
+        thread = threading.Thread(target=heartbeat, name="assembler_lease_heartbeat", daemon=True)
+        thread.start()
         try:
-            status = self.fsm.get_status(doc_id, ast_hash)
-            if not status:
-                raise ValueError("No se encontró el estado del documento en la FSM.")
-
-            current_version = status.state_version
-
-            if status.current_state == DocumentState.READY_FOR_ASSEMBLY.value:
-                cmd_start = StartAssemblyCommand(doc_id, ast_hash, self.node_id, current_version)
-                current_version = self.cmd_handler.handle(cmd_start)
-
-            # Resolver contexto desde Execution Plane
             context = self.context_resolver.resolve(
-                document_id=doc_id,
-                ast_hash=ast_hash,
-                projection_version=1
+                document_id=doc_id, ast_hash=ast_hash, projection_version=1,
             )
-
-            # Compilar vía servicio canónico
             tex_content = self.compilation_service.compile_document(context)
+            if lease_lost.is_set() or not leases.advance(lease, "ASSEMBLING", "READY_FOR_COMPILATION"):
+                raise OptimisticLockError("G5_ASSEMBLER_AUTHORITY_LOST_BEFORE_COMPILATION")
+            if lease_lost.is_set() or not leases.advance(lease, "READY_FOR_COMPILATION", "COMPILING"):
+                raise OptimisticLockError("G5_ASSEMBLER_AUTHORITY_LOST_AT_COMPILATION")
 
-            # Transiciones FSM y compilación física
-            status = self.fsm.get_status(doc_id, ast_hash)
-            if not status:
-                raise ValueError("FSM desincronizada antes de empaquetar TeX.")
-
-            cmd_ready = MarkCompilationReadyCommand(doc_id, ast_hash, self.node_id, status.state_version)
-            current_version = self.cmd_handler.handle(cmd_ready)
-
-            status = self.fsm.get_status(doc_id, ast_hash)
-            if not status:
-                raise ValueError("FSM desincronizada antes de compilar PDF.")
-
-            cmd_compile = StartCompilationCommand(doc_id, ast_hash, self.node_id, status.state_version)
-            current_version = self.cmd_handler.handle(cmd_compile)
-
-            output_filename = f"translated_{doc_id}.pdf"
             output_dir = os.getenv("COMPILER_OUTPUT_DIR", "output")
             os.makedirs(output_dir, exist_ok=True)
-
-            final_pdf_path = self.runner.compile(
-                tex_content,
-                output_dir=output_dir,
-                output_filename=output_filename
+            # Tectonic may only copy to this execution-private name.
+            staged_pdf = os.path.join(output_dir, f".assembly_{uuid.uuid4().hex}.pdf")
+            self.runner.compile(
+                tex_content, output_dir=output_dir,
+                output_filename=os.path.basename(staged_pdf),
             )
-
-            logger.info(f"Compilación exitosa: {final_pdf_path}",
-                         extra={"extra_data": {"latency": time.perf_counter() - start_assembly}})
-
-            status = self.fsm.get_status(doc_id, ast_hash)
-            if not status:
-                raise ValueError("FSM desincronizada en fase final de guardado.")
-
-            cmd_complete = CompleteDocumentCommand(doc_id, ast_hash, self.node_id, status.state_version)
-            self.cmd_handler.handle(cmd_complete)
-
-        except Exception as err:
-            logger.error(f"Fallo crítico durante el ensamblado/compilación para {doc_id}: {err}")
-            self._fail_document_safely(doc_id, ast_hash, current_version, str(err)[:250])
-            raise err
-            
+            final_pdf = os.path.join(output_dir, f"translated_{doc_id}.pdf")
+            if lease_lost.is_set() or not leases.publish(lease, staged_pdf, final_pdf):
+                raise OptimisticLockError("G5_ASSEMBLER_STALE_PDF_PROMOTION_REJECTED")
+            logger.info("G5_ASSEMBLER_PDF_PUBLISHED", extra={"extra_data": {
+                "document_id": doc_id, "latency": time.perf_counter() - start_assembly,
+            }})
+        except Exception as error:
+            # A stale owner must never mark another owner's generation FAILED.
+            try:
+                leases.fail_authorized(lease, str(error))
+            except Exception:
+                logger.exception("G5_ASSEMBLER_FAILURE_RECORDING_FAILED")
+            raise
         finally:
-            pass
+            stop_heartbeat.set()
+            thread.join(timeout=2.0)
+            # Never remove another attempt's artifacts, including the final PDF.
+            if staged_pdf and os.path.isfile(staged_pdf):
+                os.unlink(staged_pdf)
 
 class RenderGeometryAdapter:
     """Extrae RenderGeometry desde ASTNode.metadata.bboxes para el compiler."""
@@ -264,7 +258,7 @@ if __name__ == "__main__":
     asset_adapter = RenderAssetAdapter()
     mapper = DefaultRenderUnitMapper(geom_adapter, asset_adapter)
 
-    profile_store = InMemoryProfileStore()
+    profile_store = SQLiteProfileStore(doc_conn)
 
     compilation_service = CompilationService(
         assembler=assembler,
