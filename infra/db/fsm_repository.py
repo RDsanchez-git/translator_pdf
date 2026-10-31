@@ -1,6 +1,7 @@
 from typing import Optional
 import time
 import logging
+import sqlite3
 from contextlib import contextmanager
 import uuid
 from core.execution.exceptions import OptimisticLockError
@@ -17,7 +18,7 @@ class DocumentStatusDTO:
     suspended_state: Optional[str]
 
 class FSMRepository:
-    def __init__(self, db_connection):
+    def __init__(self, db_connection: sqlite3.Connection):
         self.db = db_connection
 
     @contextmanager

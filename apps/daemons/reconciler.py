@@ -4,6 +4,12 @@ import random
 import logging
 import os
 import threading
+import sqlite3
+from typing import Callable
+from infra.db.system_repo import SystemPlaneRepository
+from infra.db.control_repo import ControlPlaneRepository
+from infra.db.event_repo import EventPlaneRepository
+from core.execution.handlers import ReconciliationCommandHandler, DocumentCommandHandler
 from contextvars import copy_context
 from core.utils.telemetry import ctx_worker_id
 from core.execution.state import RecoverZombieTaskCommand, RematerializeTaskCommand
@@ -14,8 +20,12 @@ from core.execution.state import MarkAssemblyReadyCommand
 logger = logging.getLogger(__name__)
 
 class ReconcilerDaemon:
-    def __init__(self, system_repo, task_repo, event_repo, recon_cmd_handler, doc_cmd_handler,
-                 ttl_sec: int = 120, heartbeat_system_factory=None):
+    def __init__(self, system_repo: SystemPlaneRepository,
+                 task_repo: ControlPlaneRepository, event_repo: EventPlaneRepository,
+                 recon_cmd_handler: ReconciliationCommandHandler,
+                 doc_cmd_handler: DocumentCommandHandler,
+                 ttl_sec: int = 120,
+                 heartbeat_system_factory: Callable[[], tuple[SystemPlaneRepository, sqlite3.Connection]] | None = None):
         self.system = system_repo
         # The heartbeat must own its SQLite connection in its own thread.
         self.heartbeat_system_factory = heartbeat_system_factory

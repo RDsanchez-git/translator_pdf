@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import time
 from threading import Semaphore
-from typing import Protocol, Sequence
+from typing import Protocol, Sequence, cast
 
 from core.ast.models import ASTNode, TranslationTaskType, TranslationUnit
 from core.chunking.manifest_contract import ChunkPlan
@@ -38,7 +38,7 @@ def stage_claimed_unit(
     """
     if unit.chunk_id != lease.node_id:
         raise ValueError("G3_B4_3A_LEASE_CHUNK_MISMATCH")
-    expected_task_id = repo._chunk_plan_task_ids(plan).get(unit.chunk_id)
+    expected_task_id = repo.chunk_plan_task_ids(plan).get(unit.chunk_id)
     if expected_task_id != lease.task_id:
         raise ValueError("G3_B4_3A_LEASE_TASK_MISMATCH")
     if lease.lease_expires_at <= time.time():
@@ -51,7 +51,7 @@ def stage_claimed_unit(
             raise ValueError("G3_B4_3A_PROVIDER_REQUIRED")
         with llm_semaphore:
             raw_response = processor.execute_chunk(plan, unit)
-        if not isinstance(raw_response, str):
+        if not isinstance(cast(object, raw_response), str):
             raise ValueError("G3_B4_3A_PROVIDER_RESPONSE_NOT_TEXT")
     else:
         raise ValueError("G3_B4_3A_UNSUPPORTED_TASK_TYPE")

@@ -3,7 +3,7 @@ import uuid
 import sqlite3
 import logging
 from contextlib import contextmanager
-from typing import Optional, List, Sequence
+from typing import Optional, List, Sequence, Generator
 from core.execution.ports import ControlPlanePort, TaskLease
 from core.execution.exceptions import OptimisticLockError 
 from core.ast.models import ASTNode
@@ -63,7 +63,13 @@ class ControlPlaneRepository(ControlPlanePort):
         self.conn.commit()
 
     @contextmanager
-    def _chunk_plan_write_scope(self):
+    def chunk_plan_write_scope(self) -> Generator[None, None, None]:
+        """Public transaction boundary for verified G3 publication."""
+        with self._chunk_plan_write_scope():
+            yield
+
+    @contextmanager
+    def _chunk_plan_write_scope(self) -> Generator[None, None, None]:
         """Reserve the WAL writer before plan reads; preserve caller-owned transactions."""
         if not self.conn.in_transaction:
             # A deferred SAVEPOINT may read a WAL snapshot, then fail with
@@ -105,6 +111,10 @@ class ControlPlaneRepository(ControlPlanePort):
         if len(task_ids) != len(plan.units) or len(set(task_ids.values())) != len(task_ids):
             raise ValueError("G3_B2_DUPLICATE_TASK_ID")
         return task_ids
+
+    def chunk_plan_task_ids(self, plan: ChunkPlan) -> dict[str, str]:
+        """Public validated task identity mapping for G3 consumers."""
+        return self._chunk_plan_task_ids(plan)
 
     def _verify_chunk_plan_tasks(self, plan: ChunkPlan) -> None:
         expected = self._chunk_plan_task_ids(plan)

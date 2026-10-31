@@ -3,6 +3,7 @@ from core.document_profile.models import InferredDocumentProfile, PageLayout
 from core.domain.document import DocumentType
 from hashlib import sha256
 import json
+from typing import cast
 import sqlite3
 
 class InMemoryProfileStore:
@@ -52,18 +53,18 @@ class SQLiteProfileStore:
 
     @staticmethod
     def _fields(profile: InferredDocumentProfile) -> tuple[str, str | None]:
-        if not isinstance(profile, InferredDocumentProfile):
+        if not isinstance(cast(object, profile), InferredDocumentProfile):
             raise TypeError("G3_B4_4_INVALID_PROFILE")
-        if not isinstance(profile.layout, PageLayout) or (
+        if not isinstance(cast(object, profile.layout), PageLayout) or (
             profile.document_type is not None
-            and not isinstance(profile.document_type, DocumentType)
+            and not isinstance(cast(object, profile.document_type), DocumentType)
         ):
             raise ValueError("G3_B4_4_INVALID_PROFILE_ENUM")
         return (profile.layout.value,
                 profile.document_type.value if profile.document_type is not None else None)
 
     def save(self, document_id: str, profile: InferredDocumentProfile) -> None:
-        if not isinstance(document_id, str) or not document_id:
+        if not isinstance(cast(object, document_id), str) or not document_id:
             raise ValueError("G3_B4_4_INVALID_DOCUMENT_ID")
         layout, kind = self._fields(profile)
         digest = self._digest(document_id, layout, kind)

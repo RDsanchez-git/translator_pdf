@@ -15,10 +15,10 @@ class InlineMathProtector:
     INLINE_MATH_PATTERN = re.compile(r'(?<!\$)(?<!\\)\$(?!\$)(.+?)(?<!\\)\$(?!\$)')
 
     @classmethod
-    def mask(cls, text: str) -> tuple[str, dict]:
-        mapping = {}
+    def mask(cls, text: str) -> tuple[str, dict[str, str]]:
+        mapping: dict[str, str] = {}
         
-        def _replacer(match):
+        def _replacer(match: re.Match[str]) -> str:
             idx = len(mapping)
             token = f"__MATH_{idx}__"
             mapping[token] = match.group(0)

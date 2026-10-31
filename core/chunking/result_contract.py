@@ -7,7 +7,7 @@ The input ChunkPlan MUST have been validated with ChunkPlan.build/from_json.
 from dataclasses import dataclass
 from hashlib import sha256
 import json
-from typing import Any, Mapping
+from typing import Any, Mapping, cast
 
 from core.ast.models import ChunkMember, TranslationTaskType
 from core.chunking.manifest_contract import ChunkPlan
@@ -92,14 +92,15 @@ def parse_chunk_response(plan: ChunkPlan, chunk_id: str, raw_json: str) -> Chunk
     except UnicodeError as exc:
         raise ValueError("G3_B3_INVALID_UNICODE") from exc
     try:
-        envelope = json.loads(
+        decoded: Any = json.loads(
             raw_json, object_pairs_hook=_reject_duplicate_keys,
             parse_constant=_reject_constant,
         )
     except (TypeError, json.JSONDecodeError, RecursionError) as exc:
         raise ValueError("G3_B3_INVALID_RESPONSE_JSON") from exc
-    if type(envelope) is not dict or envelope.keys() != _ENVELOPE_FIELDS:
+    if type(decoded) is not dict or decoded.keys() != _ENVELOPE_FIELDS:
         raise ValueError("G3_B3_INVALID_RESPONSE_ENVELOPE")
+    envelope = cast(dict[str, Any], decoded)
     if type(envelope["schema_version"]) is not int or envelope["schema_version"] != _SCHEMA_VERSION:
         raise ValueError("G3_B3_UNSUPPORTED_RESPONSE_SCHEMA")
     if (envelope["document_id"] != plan.document_id
@@ -108,15 +109,16 @@ def parse_chunk_response(plan: ChunkPlan, chunk_id: str, raw_json: str) -> Chunk
             or envelope["chunk_id"] != chunk_id):
         raise ValueError("G3_B3_RESPONSE_BINDING_MISMATCH")
     raw_members = envelope["members"]
-    if type(raw_members) is not list or len(raw_members) != len(unit.members):
+    if type(raw_members) is not list or len(cast(list[Any], raw_members)) != len(unit.members):
         raise ValueError("G3_B3_MEMBER_COVERAGE_MISMATCH")
     expected = {(m.node_id, m.segment_index): m for m in unit.members}
     if len(expected) != len(unit.members):
         raise ValueError("G3_B3_INVALID_PLAN_DUPLICATE_MEMBERS")
     seen: dict[tuple[str, int], str] = {}
-    for item in raw_members:
-        if type(item) is not dict or item.keys() != _MEMBER_FIELDS:
+    for item_value in cast(list[Any], raw_members):
+        if type(item_value) is not dict or item_value.keys() != _MEMBER_FIELDS:
             raise ValueError("G3_B3_INVALID_MEMBER_ENVELOPE")
+        item = cast(dict[str, Any], item_value)
         node_id, segment_index = item["node_id"], item["segment_index"]
         source_sha256, translated_text = item["source_sha256"], item["translated_text"]
         if (type(node_id) is not str or not node_id or type(segment_index) is not int
@@ -165,7 +167,7 @@ def materialize_node_results(
     Does not write the materialized plane. Callers must persist these outputs
     with their own transaction/fencing protocol after this function succeeds.
     """
-    if not isinstance(raw_responses, Mapping):
+    if not isinstance(cast(object, raw_responses), Mapping):
         raise ValueError("G3_B3_RESPONSES_NOT_MAPPING")
     _index_chunks(plan)
     required = {u.chunk_id for u in plan.units if u.chunk_type != TranslationTaskType.PRESERVE}

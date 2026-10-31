@@ -191,11 +191,11 @@ def finalize_published_plan(
     if materialized_conn.in_transaction:
         raise ValueError("G3_B3_3B_UNCOMMITTED_PUBLICATION")
 
-    with queue_repo._chunk_plan_write_scope():
+    with queue_repo.chunk_plan_write_scope():
         verified = queue_repo.load_chunk_plan(plan.document_id, plan.ast_hash, ast)
         if verified != plan:
             raise ValueError("G3_B3_3B_PLAN_DRIFT")
-        expected = queue_repo._chunk_plan_task_ids(verified)
+        expected = queue_repo.chunk_plan_task_ids(verified)
         rows = queue_repo.conn.execute(
             "SELECT task_id,node_id,task_state,execution_id,lease_owner,"
             "lease_expires_at,state_version FROM chunk_tasks "

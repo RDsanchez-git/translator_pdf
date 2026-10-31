@@ -1,6 +1,7 @@
 import time
 import hashlib
 import logging
+from typing import Protocol
 
 # Imports del Document FSM
 from core.execution.state import (
@@ -106,17 +107,24 @@ class DocumentCommandHandler:
 # HANDLER 2: REPARACIÓN DE CHUNKS (RECONCILIADOR)
 # =====================================================================
 
+class ReconciliationTaskRepository(Protocol):
+    """Task capabilities for legacy reconciliation and G3 fencing."""
+    def is_g3_chunk_task(self, task_id: str) -> bool: ...
+    def mark_cqrs_reconciled(self, task_id: str, reconciliation_id: str) -> bool: ...
+    def mark_zombie_recovered(self, task_id: str, reconciliation_id: str) -> bool: ...
+
+
 class ReconciliationCommandHandler:
     """SOTA: Mutaciones idempotentes para recuperación de entropía."""
-    
-    def __init__(self, system_repo, task_repo, event_repo, mat_repo, metrics: Metrics):
+
+    def __init__(self, system_repo, task_repo: ReconciliationTaskRepository, event_repo, mat_repo, metrics: Metrics):
         self.system = system_repo
         self.task = task_repo
         self.event = event_repo
         self.mat = mat_repo
         self.metrics = metrics
     
-    def handle(self, cmd):
+    def handle(self, cmd: object) -> None:
         if isinstance(cmd, RematerializeTaskCommand):
             return self.handle_rematerialize(cmd)
 

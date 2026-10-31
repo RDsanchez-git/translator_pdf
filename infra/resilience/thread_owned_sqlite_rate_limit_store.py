@@ -6,6 +6,10 @@ RateLimitStore load/save protocol stays synchronous and unchanged.
 """
 from concurrent.futures import ThreadPoolExecutor
 from threading import Lock
+from typing import Callable, ParamSpec, TypeVar
+
+_P = ParamSpec('_P')
+_T = TypeVar('_T')
 
 from core.resilience.rate_limit_store import BucketState
 from infra.db.connection import get_connection
@@ -33,20 +37,20 @@ class ThreadOwnedSQLiteRateLimitStore:
         self._conn = conn
         self._store = store
 
-    def _submit(self, method, *args):
+    def _submit(self, method: Callable[_P, _T], *args: _P.args, **kwargs: _P.kwargs) -> _T:
         with self._gate:
             if self._closed:
                 raise RuntimeError("G3_B4_7B_RATE_LIMIT_STORE_CLOSED")
-            future = self._executor.submit(method, *args)
+            future = self._executor.submit(method, *args, **kwargs)
         return future.result()
 
-    def _load_in_owner(self, bucket_id: str):
+    def _load_in_owner(self, bucket_id: str) -> BucketState | None:
         return self._store.load(bucket_id)
 
     def _save_in_owner(self, bucket_id: str, state: BucketState) -> None:
         self._store.save(bucket_id, state)
 
-    def load(self, bucket_id: str):
+    def load(self, bucket_id: str) -> BucketState | None:
         return self._submit(self._load_in_owner, bucket_id)
 
     def save(self, bucket_id: str, state: BucketState) -> None:

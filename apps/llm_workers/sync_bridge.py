@@ -5,6 +5,7 @@ import json
 from dataclasses import replace
 from hashlib import sha256
 import re
+from typing import Any
 from core.ast.models import ASTNode, TranslationTaskType, TranslationUnit
 from apps.llm_workers.routing import LLMProvider
 from apps.llm_workers.prompt_builder import PromptBuilder
@@ -123,7 +124,7 @@ class SyncProviderBridge:
             raise ValueError("G3_B4_3A_UNIT_NOT_IN_MANIFEST")
 
         math_maps: dict[tuple[str, int], dict[str, str]] = {}
-        prompt_members = []
+        prompt_members: list[dict[str, str | int]] = []
         next_math_index = 0
         for member in unit.members:
             # Reserve the complete placeholder namespace across the entire unit.
@@ -158,7 +159,7 @@ class SyncProviderBridge:
                 "source_text": masked_text,
             })
 
-        protocol = {
+        protocol: dict[str, Any] = {
             "protocol": "G3_CHUNK_RESPONSE_V1",
             "transport": {
                 "root_key": "content",
