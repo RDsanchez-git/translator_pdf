@@ -2,7 +2,7 @@
 
 ## Reconstrucción AS-IS, viabilidad de componentes y reconciliación del motor PDF → PDF
 
-**Versión:** 0.2.15
+**Versión:** 0.2.16
 **Estado:** IN_PROGRESS — investigación forense  
 **Fecha de apertura:** 2026-10-14  
 **Fecha de congelamiento:** N/A  
@@ -17,7 +17,7 @@
 **Metodología:** `docs/architecture/1.2_METH_FOR_FORENSIC_HITOs.md` (archivo leído; cabecera interna: `METHODOLOGY_FOR_FORENSIC_HITOs.md`, v1.2.0 FROZEN)  
 **Naturaleza:** evidencia forense AS-IS, read-only; no especificación TO-BE, ADR, NADR ni Execution Plan.  
 **Mandato:** reconstruir y contrastar las rutas CLI, OCR→Engine→Assembler y OCR→LLMWorkerDaemon→Assembler hasta el PDF traducido; documentar sus contratos, discontinuidades y capacidades reutilizables.  
-**Alcance de esta actualización:** Documento en revisión.
+**Alcance de esta actualización:** Documento en revisión; adenda dinámica de progreso 2026-11-03 en §13. §§0–12 conservan su corte histórico y no se reinterpretan retrospectivamente.
 
 ### Changelog
 
@@ -40,6 +40,7 @@
 | 0.2.13 | 2026-10-15 | Población forense de §11: registro federado de fuentes y modalidades; trazabilidad de enlaces L-01…14 hacia CAP/CTR/B8/W sin duplicar hallazgos; reconciliación delta de P1/P7, GAP-0.2-01/DF-34, F18.2 RESOLVED y Charter; hipótesis abiertas con prueba falsable y límites de cierre. Sin nuevos E-/GAP-IDs, E2E-0, decisiones canónicas ni cambios funcionales. |
 | 0.2.14 | 2026-10-15 | Población de §12: dictamen forense estático sin certificación PDF→PDF; matriz de completitud y techos de inferencia; derivación federada a registros históricos, testigos y docket D-1…D-7; checklist de congelamiento conforme a 1.2_METH §8 y declaración expresa de no cierre formal. E2E-0/L0/L2/L3 NO EJECUTADOS; sin nuevos folios E-/GAP-, severidades, disposiciones KEEP/RETIRE, decisiones ni cambios funcionales. |
 | 0.2.15 | 2026-10-16 | Reconciliación editorial post-auditoría de consistencia (informe sobre commit 99a3e493, v0.2.14): renombrado de HITO_{ID} a PRODUCTION_PIPELINE_EXECUTION_ATLAS.md; actualización de tabla de progreso §0.4 al corte efectivo; sustitución de metadatos «Versión propuesta v0.2.XX» por «Integración documental» en §§9, 11 y 12; eliminación de párrafos obsoletos sobre cabecera 0.2.11 (§§10.6.2, 12.4.2); eliminación de footer «Fin del esqueleto v0.1.0»; nota de límite de gobernanza tras changelog; registro de identidad formal como DECISION REQUIRED (DOC-01). Sin cambios funcionales, sin decisiones D-1…D-7, sin E2E-0. |
+| 0.2.16 | 2026-11-03 | **Adenda dinámica de avance**, sin cierre: L0/HV D1 y C/L1; P0–P5 R2 escalonado; E2E-0 `A` físico con preservación matemática `FAIL`; checkpoints y trazas pendientes. Se mantiene el corte histórico §§0–12, el Charter `DRAFT` y el Atlas `IN_PROGRESS`; R1/R3 y garantías no ejercitadas continúan abiertos. |
 
 **Límite de gobernanza:** este Atlas no modifica el Charter v0.1.0 `DRAFT` ni supone la aprobación de D-1…D-7. Las conclusiones de §§0–12 son evidencia forense provisional y no sustituyen la formalización de la unidad, la caracterización E2E-0 o el acto de cierre del HITO.
 
@@ -79,7 +80,7 @@ Los IDs `R-*`, `CAP-*` y `ATLAS-RTE-*` aquí son **etiquetas locales provisional
 9. Conservar las hipótesis no resueltas como `TO BE VERIFIED` hasta revisar mecanismos alternativos o realizar pruebas reproducibles.
 10. No introducir infraestructura distribuida ni recomendaciones TO-BE bajo la apariencia de análisis AS-IS.
 
-## 0.4 Progreso del Atlas v0.2.14 — corte documental 2026-10-15
+## 0.4 Progreso del Atlas v0.2.15 — corte documental 2026-10-15
 
 | Superficie | Población documental | Estado probatorio / pendiente |
 |---|---|---|
@@ -2513,3 +2514,36 @@ Estados: `SATISFECHO` = la evidencia/documentación local cumple el criterio en 
 
 
 ---
+
+# 13. ADENDA DE AVANCE DINÁMICO — 2026-11-03 (NO CIERRE)
+
+**Naturaleza:** esta sección actualiza la investigación con observaciones posteriores al corte estático v0.2.15. No reescribe las referencias históricas de §§0–12 (`NO EJECUTADO` corresponde al corte en que fueron escritas), ni altera los criterios preregistrados de §9. **Estado global del Atlas: `IN_PROGRESS`; HITO/Charter no congelados.**
+
+## 13.1 Avance L0/HV y perímetro
+
+La reconciliación D1/HV y la instancia C/L1 R2 aportaron evidencia de identidad de imagen/Compose, estado aislado por RUN-ID, red interna, egress TCP público IPv4/IPv6 denegado en sondas, fake interno y SQLite snapshot al final de la corrida. **No** significa `HV-01…HV-16 = PASS` ni L0/AS-IS concurrente certificado. La etapa B de seguridad quedó probada en su alcance focal; las etapas A/C avanzaron instrumentalmente y persisten brechas de reversibilidad, comparación y suministro.
+
+**Matriz de detalle (no normativa):** [`working-observations/L0_HV_R2_D1_C_L1_AVANCE_20261103.md`](working-observations/L0_HV_R2_D1_C_L1_AVANCE_20261103.md).
+
+## 13.2 Primer testigo R2 escalonado
+
+- **RUN-ID:** `9cf15cac6b12`; proyecto `i0l19cf15cac6b12`; commit R2 `d4cda2c379c0efd93a70e795d31c37a0ede7a192` (distinto del baseline histórico del encabezado); imagen local `sha256:abe5b5dbbc65e8920e0948b189bd9bd090eb395e99420918190128a2ec12b4bd`.
+- PDF `doc_01_single.pdf`: SHA-256 `2a1bab7fb7093146f62c6155c802abe6a56addab8937d45c8145560391c9fcd3` (3 páginas). P2 OCR persistió 61 nodos y cinco unidades: 3 `translate` y 2 `preserve`. P3 materializó 61 proyecciones; P4 publicó PDF final de 20.900 bytes y cuatro páginas, SHA-256 `8c9f81dfcc2cfc200211894bad65a46bdd82fa45c36a9bfee1a1d454ce2d6c47`.
+- **P0–P4:** PASS operacionales en su alcance; **P5 V3:** `PASS_EXPORT_ONLY`, cinco snapshots SQLite íntegros. El ZIP de custodia P5 tiene SHA-256 `b1fe0603732493cdacc749c116c9694be53061eef5d40fa9d1315cfafd1bb65f` y se conserva fuera de Git. P2 V1 y P5 V1/V2 tuvieron STOP instrumentales; se mantuvo el mismo run sin repetir el trabajo ya realizado.
+- **`execution_outcome = A`** según §9.2.3: PDF físico válido atribuible al run. **`scientific_verdict = FAIL`**: pérdida visual de símbolos, exponentes y composición de ecuaciones. **`contract_verdict` integral = UNKNOWN** (preservación matemática incumplida en este caso); **`product_readiness = NOT_DEMONSTRATED`**. El fake devolvió texto idéntico para los miembros traducibles: no se mide calidad lingüística.
+- **Advertencia CP-08:** 5 recibos durables en `queue.chunk_result_receipts`, **0 eventos** en `event.chunk_events_log`; no declarar por ello completado el journal del Atlas sin reconciliar la modalidad y la obligación aplicable. Los otros CP alcanzados se detallan con sus límites en la nota de corrida.
+
+**Acta técnica de trabajo con matriz CP-00…12 (no normativa):** [`working-observations/E2E0_R2_ESCALONADO_AVANCE_20261103.md`](working-observations/E2E0_R2_ESCALONADO_AVANCE_20261103.md).
+
+## 13.3 Actualización del programa, sin cierre
+
+| Frente | Estado con evidencia de 2026-11-03 | Próximo contraste pendiente |
+|---|---|---|
+| L0/HV R2 | **AVANCE — controles focales acreditados; matriz global abierta.** | Reconciliar 16 HV por sujeto/configuración, sin convertir resultados limitados en PASS universal. |
+| Preregistro operativo E2E-0 | **R2 escalonado autorizado y documentado**, Charter formal `DRAFT`. | Decisiones/autoridad de Board pendientes y protocolo comparable R1/R3. |
+| E2E-0 R2 | **EJECUTADO en variante instrumental**, clasificación operacional A y científico FAIL. | Diferenciar AS-IS concurrente, garantías normativas y calidad lingüística no probadas. |
+| R1/R3 | **NO EJECUTADO bajo este marco**. | L0, equivalencia de deps/entrypoints, ejecutar solo donde exista elegibilidad y autoridad. |
+| Diagnóstico/arquitectura | **Iniciado por evidencia real de pérdida matemática.** | L2 focal de extracción/clasificación/render; CP-08, recuperación y fencing; convergencia posterior con datos comparables. |
+| Cold builds/SBOM/portabilidad | **DIFERIDO**, sin afirmar cumplimiento. | Cuando se necesite distribuir/reconstruir o probar segundo host, con presupuesto autorizado. |
+
+**Gobernanza:** ningún resultado aquí modifica el Charter v0.1.0 `DRAFT`, aprueba D-1…D-7, crea folios E-/GAP oficiales, revoca resultados históricos F18, selecciona R2 como ruta canónica, ejecuta proveedor real o declara producto listo. **El Atlas permanece activamente `IN_PROGRESS`; no se solicita su cierre ni congelamiento.**
