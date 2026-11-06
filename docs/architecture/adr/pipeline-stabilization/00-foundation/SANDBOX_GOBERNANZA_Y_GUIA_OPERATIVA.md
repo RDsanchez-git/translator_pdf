@@ -382,3 +382,11 @@ Esta es la **lista cerrada de brechas de empaquetado operativo**, no una orden p
 ---
 
 **Fin de la guía v0.1.0 — `DRAFT`. El sandbox está acreditado como perímetro de referencia para R2 escalonado, no como producto ni traductor canónico. El Atlas sigue abierto.**
+
+## 16. Variante de laboratorio B03.2 de un solo contenedor — observación 2026-11-06
+
+La variante `apps.lab.offline_pdf_lab` reutiliza la imagen R2 fijada por digest, caché histórica G4 verificada selectivamente, Groq fake local en `127.0.0.1:8080` y `docker run --network none`. Monta el checkout actual de Git en `/workspace` como solo lectura, mientras `/app/data`, `/app/state`, `/app/output` y cachés corresponden a un directorio temporal nuevo de cada intento. `PYTHONPATH=/workspace` evita importar la instantánea histórica de la imagen; B03.2.4 lee `APP_ROOT=/app` solo en `translate --run`. Esta variante **no equivale** al Compose de cinco servicios del ensayo C/L1 ni usa sus volúmenes históricos.
+
+Según la transcripción del owner, el `--run-smoke` obtuvo `B032_OPERATIONAL_PASS`, PDF legible y FSM `COMPLETED`; `--run-pdf` sobre Amor/`doc_02_double.pdf` se detuvo intencionalmente en cobertura vectorial `B02_UNREPRESENTED_VECTOR_DRAWING`. El primero acredita conectividad operacional para el fixture, y el segundo documenta un límite de extracción; ninguno prueba traducción lingüística real, cobertura STEM general, seguridad F18 integral ni elección normativa D-1/D-2.
+
+**Trazabilidad:** [observación B03 posterior al corte](working-observations/B03_20261106_CONVERGENCIA_FUNCIONAL_OFFLINE_NO_CIERRE_GOBIERNO.md). La guía conserva `DRAFT`, el perímetro C/L1 conserva sus resultados propios y el Atlas continúa `IN_PROGRESS`. No ejecutar scripts históricos ni reutilizar recursos previos como destinos de escritura.

@@ -2547,3 +2547,11 @@ La reconciliación D1/HV y la instancia C/L1 R2 aportaron evidencia de identidad
 | Cold builds/SBOM/portabilidad | **DIFERIDO**, sin afirmar cumplimiento. | Cuando se necesite distribuir/reconstruir o probar segundo host, con presupuesto autorizado. |
 
 **Gobernanza:** ningún resultado aquí modifica el Charter v0.1.0 `DRAFT`, aprueba D-1…D-7, crea folios E-/GAP oficiales, revoca resultados históricos F18, selecciona R2 como ruta canónica, ejecuta proveedor real o declara producto listo. **El Atlas permanece activamente `IN_PROGRESS`; no se solicita su cierre ni congelamiento.**
+
+## 13.4 Evidencia posterior al corte — laboratorio B03, 2026-11-06 (no cierre)
+
+El owner comunicó la ejecución de `apps.lab.offline_pdf_lab --run-smoke` sobre el código de `pipeline_stabilization` (commit `f6d258e87cc7479b55c0354bae71db5d37597611`): recorrido real `CLI → OCR/AST/ChunkPlan → G3 Groq fake → G5/Tectonic → PDF` mediante un contenedor sin red externa, estado SQLite nuevo y FSM `COMPLETED`. El programa registró `B032_OPERATIONAL_PASS`, una solicitud al fake con HTTP 200 y PDF exportado; el owner lo abrió y confirmó texto legible en inglés. Son observaciones de ejecución aportadas por el operador, **no** examen forense independiente de los bytes del PDF ni prueba de traducción.
+
+Un segundo ensayo con `[Amoretal_2023]_3hojas.pdf` (misma identidad Git que `doc_02_double.pdf`) terminó con `B02_UNREPRESENTED_VECTOR_DRAWING` en extracción de página 1: G3/G5 no alcanzados y sin PDF final. La política de integridad evitó una omisión vectorial silenciosa; la cobertura de figuras y ecuaciones sigue abierta.
+
+**Proveniencia y límites:** [observación de trabajo B03](working-observations/B03_20261106_CONVERGENCIA_FUNCIONAL_OFFLINE_NO_CIERRE_GOBIERNO.md). La ejecución B03 es un testigo funcional adicional, no reemplaza el E2E-0 preregistrado, no revisa el `execution_outcome=A`/científico `FAIL` del sujeto C/L1 anterior, ni certifica recuperación, concurrencia, efectos inciertos, calidad científica, idioma o Compose productivo. Se conserva `ATLAS=IN_PROGRESS`, `BOARD_DECISION_D1_D2=PENDING` y `PRODUCT_READINESS=NOT_DEMONSTRATED`.
