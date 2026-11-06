@@ -23,7 +23,8 @@ from core.compiler.exceptions import AssemblyRejectedError, ProfileNotFoundError
 from core.document_profile.ports import ProfileStore
 from core.compiler.rendering.mapper import RenderUnitMapper
 from core.compiler.rendering.context import RenderContextFactory
-from core.compiler.rendering.models import RenderUnit
+from core.compiler.rendering.models import RenderUnit, AssetReference
+from core.ast.enums import ContentNodeType
 from apps.compiler.tex_builder import TexBuilder
 
 logger = logging.getLogger(__name__)
@@ -57,11 +58,18 @@ class CompilationService:
         self._mapper = mapper
 
     def compile_document(self, context: AssemblyExecutionContext) -> str:
-        """
-        Compila el documento desde el contexto de ensamblado validado.
+        """Legacy text-only caller: refuse to silently omit image dependencies."""
+        tex, assets = self.compile_document_with_assets(context)
+        if assets:
+            raise ASTConsistencyError("B02_G5_IMAGE_BUNDLE_REQUIRED")
+        return tex
 
-        NADR-06 §5.3 R9: Ensamblado gobernado por servicio canónico.
-        NADR-06 §5.3 R10: Sin ensamblado ad-hoc en el plano de ejecución.
+    def compile_document_with_assets(
+        self, context: AssemblyExecutionContext
+    ) -> tuple[str, tuple[AssetReference, ...]]:
+        """Render an isolated TeX document plus its explicit asset dependencies.
+
+        This is still an assembler read, not publication or execution authority.
         """
         log_ctx = {"document_id": context.document_id[:12], "ast_hash": context.ast_hash[:12]}
         logger.info("Iniciando compilación LaTeX", extra=log_ctx)
@@ -103,4 +111,10 @@ class CompilationService:
         render_context = RenderContextFactory.create(profile)
         builder = TexBuilder(render_context)
 
-        return builder.build(render_units)
+        assets: list[AssetReference] = []
+        for unit in render_units:
+            if unit.node_type == ContentNodeType.IMAGE:
+                if unit.asset is None:
+                    raise ASTConsistencyError("B02_G5_IMAGE_ASSET_REFERENCE_MISSING")
+                assets.append(unit.asset)
+        return builder.build(render_units), tuple(assets)

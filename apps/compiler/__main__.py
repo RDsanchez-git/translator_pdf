@@ -138,7 +138,7 @@ class AssemblerWorkerDaemon:
             context = self.context_resolver.resolve(
                 document_id=doc_id, ast_hash=ast_hash, projection_version=1,
             )
-            tex_content = self.compilation_service.compile_document(context)
+            tex_content, image_assets = self.compilation_service.compile_document_with_assets(context)
             if lease_lost.is_set() or not leases.advance(lease, "ASSEMBLING", "READY_FOR_COMPILATION"):
                 raise OptimisticLockError("G5_ASSEMBLER_AUTHORITY_LOST_BEFORE_COMPILATION")
             if lease_lost.is_set() or not leases.advance(lease, "READY_FOR_COMPILATION", "COMPILING"):
@@ -151,6 +151,7 @@ class AssemblerWorkerDaemon:
             self.runner.compile(
                 tex_content, output_dir=output_dir,
                 output_filename=os.path.basename(staged_pdf),
+                image_assets=image_assets,
             )
             final_pdf = os.path.join(output_dir, f"translated_{doc_id}.pdf")
             if lease_lost.is_set() or not leases.publish(lease, staged_pdf, final_pdf):

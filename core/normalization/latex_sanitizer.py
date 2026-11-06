@@ -1,10 +1,8 @@
 import re
+from core.normalization.explicit_math import find_explicit_math_spans
 
 class InlineMathProtector:
-    """
-    SOTA: Máscara inyectora de tokens opacos.
-    Inmune a escapes internos (\\$) y colisiones de backslashes en la restauración.
-    """
+    """Preserves exact explicit LaTeX spans in G3 prompt placeholders."""
     # Explicación de la regex:
     # (?<!\$)       : Que no empiece con un $ (ignora $$)
     # (?<!\\)\$     : Un $ literal que no esté escapado por \
@@ -16,16 +14,18 @@ class InlineMathProtector:
 
     @classmethod
     def mask(cls, text: str) -> tuple[str, dict[str, str]]:
+        """Mask all whitelisted math delimiters; reject unbalanced formulas."""
         mapping: dict[str, str] = {}
-        
-        def _replacer(match: re.Match[str]) -> str:
-            idx = len(mapping)
-            token = f"__MATH_{idx}__"
-            mapping[token] = match.group(0)
-            return token
-            
-        masked_text = cls.INLINE_MATH_PATTERN.sub(_replacer, text)
-        return masked_text, mapping
+        fragments: list[str] = []
+        position = 0
+        for start, end in find_explicit_math_spans(text):
+            fragments.append(text[position:start])
+            token = f"__MATH_{len(mapping)}__"
+            mapping[token] = text[start:end]
+            fragments.append(token)
+            position = end
+        fragments.append(text[position:])
+        return "".join(fragments), mapping
 
     @classmethod
     def restore(cls, translated_text: str, mapping: dict) -> str:

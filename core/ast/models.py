@@ -210,6 +210,8 @@ class ASTNode(BaseModel):
 
     @property
     def text_content(self) -> str:
+        if self.node_type == ContentNodeType.IMAGE and isinstance(self.payload, ImagePayload):
+            return self.payload.asset_path or ""
         return getattr(self.payload, "content", "")
 
     def with_strategy(self, new_strategy: TranslationStrategy) -> "ASTNode":

@@ -71,6 +71,11 @@ def validate_chunk_coverage(ast: Sequence[ASTNode], units: Sequence[TranslationU
         if n.node_id in nodes:
             raise ValueError(f"G3_DUPLICATE_AST_NODE: {n.node_id}")
         nodes[n.node_id] = n
+        if n.node_type == ContentNodeType.IMAGE:
+            if not n.text_content:
+                raise ValueError(f"G3_IMAGE_ASSET_REFERENCE_MISSING: {n.node_id}")
+            if n.strategy not in (TranslationStrategy.PASSTHROUGH, TranslationStrategy.KEEP_ORIGINAL):
+                raise ValueError(f"G3_IMAGE_MUST_PRESERVE: {n.node_id}")
         if n.text_content and n.strategy != TranslationStrategy.OMIT:
             ordered_node_ids.append(n.node_id)
 
