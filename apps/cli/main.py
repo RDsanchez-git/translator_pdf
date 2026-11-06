@@ -189,6 +189,11 @@ def handle_translate(args):
         raise SystemExit(2)
 
     repo_root = Path(__file__).resolve().parents[2]
+    if getattr(args, "run", False) and os.getenv("APP_ROOT"):
+        # Foreground uses the runtime workspace (/app in the offline lab),
+        # while Python sources may live in a read-only checkout (/workspace).
+        # Admission-only CLI preserves its original repository-root behavior.
+        repo_root = Path(os.environ["APP_ROOT"]).expanduser().resolve()
     inbox = (Path(args.inbox_dir).expanduser() if args.inbox_dir
              else repo_root / "data" / "inbox")
     if getattr(args, "run", False):
