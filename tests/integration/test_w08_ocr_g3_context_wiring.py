@@ -178,6 +178,37 @@ def test_w08_context_from_other_generation_fails_before_fake(tmp_path):
         assert provider.calls == 0
 
 
+def test_w08_ast_cache_and_sqlite_rehydrate_across_fresh_instances(tmp_path):
+    from core.ast.hashing import compute_ast_hash
+    from core.ast.registry import ASTRegistry
+
+    prepared, conn = _setup(tmp_path)
+    with closing(conn):
+        registry = ASTRegistry(workspace_dir=str(tmp_path))
+        registry.register_ast(
+            prepared.plan.document_id, prepared.plan.ast_hash,
+            list(prepared.ast),
+        )
+
+    # New ASTRegistry and SQLite connection: no shared in-process cache.
+    fresh = ASTRegistry(workspace_dir=str(tmp_path)).get_document_ast(
+        prepared.plan.document_id, prepared.plan.ast_hash,
+    )
+    assert len(fresh) == len(prepared.ast)
+    assert compute_ast_hash(fresh) == prepared.plan.ast_hash
+    assert [node.control_plane for node in fresh] == [
+        node.control_plane for node in prepared.ast
+    ]
+    with closing(sqlite3.connect(tmp_path / "queue.db")) as reopened:
+        plan, snapshots = DurableContextPlanRepository(
+            ControlPlaneRepository(reopened),
+        ).load_verified(
+            prepared.plan.document_id, prepared.plan.ast_hash, fresh,
+        )
+    assert plan == prepared.plan
+    assert {u.context_id for u in plan.units if u.chunk_type == TranslationTaskType.TRANSLATE} == set(snapshots)
+
+
 def test_w08_ocr_contextual_ast_hash_matches_raw_semantic_identity():
     from core.ast.hashing import compute_ast_hash
     raw = _raw_ast()
