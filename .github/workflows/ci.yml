@@ -154,6 +154,12 @@ jobs:
             tests/integration/test_g3_b4_3b_publication_recovery.py \
             -q -ra
 
+      # W08 witness is diagnostic: known gaps are strict XFAIL, never PASS.
+      # Disposable SQLite and fakes only; no real provider or private PDF input.
+      - name: W08 context/cache/replay offline diagnostic witnesses
+        run: |
+          python -m pytest tests/integration/test_w08_context_cache_replay_witness.py -q -ra
+
       - name: Run integration tests (pytest marker, excluding regression)
         run: |
           python -m pytest -m "integration and not regression" -v --tb=short --no-header
