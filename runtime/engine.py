@@ -191,8 +191,8 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
                             t_work = ctx_worker_id.set(owner_id)
                             t_task = ctx_task_id.set(task.task_id)
                             t_node = ctx_node_id.set(chunk_id)
+                            unit = unit_index.get(chunk_id)
                             try:
-                                unit = unit_index.get(chunk_id)
                                 if unit is None:
                                     raise PipelineIntegrityError("G3_B4_3A_UNEXPECTED_CLAIMED_CHUNK")
                                 stage_claimed_unit(th_task_repo, plan, ast, unit, task,
