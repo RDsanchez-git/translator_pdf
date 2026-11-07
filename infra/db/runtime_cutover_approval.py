@@ -13,6 +13,7 @@ from dataclasses import dataclass
 from hashlib import sha256
 import hmac
 import json
+import math
 import os
 import secrets
 import sqlite3
@@ -62,6 +63,16 @@ class QueueCutoverInventory:
 
 def _rows(conn: sqlite3.Connection, query: str) -> list[tuple[object, ...]]:
     return [tuple(row) for row in conn.execute(query).fetchall()]
+
+
+def _live_lease_expiry(value: object, at_time: float) -> bool:
+    if value is None:
+        return False
+    if (type(value) not in (int, float)
+            or not isinstance(value, (int, float))
+            or not math.isfinite(value)):
+        raise PipelineIntegrityError("W08_CUTOVER_LEASE_EXPIRY_MALFORMED")
+    return value >= at_time
 
 
 def inventory_in_transaction(
@@ -119,12 +130,12 @@ def inventory_in_transaction(
     time_now = time.time() if now is None else now
     active_leases = sum(
         isinstance(row[1], str) and bool(row[1])
-        and row[2] is not None and float(row[2]) >= time_now
+        and _live_lease_expiry(row[2], time_now)
         for row in lease_rows
     )
     active_task_leases = sum(
         isinstance(row[8], str) and bool(row[8])
-        and row[9] is not None and float(row[9]) >= time_now
+        and _live_lease_expiry(row[9], time_now)
         for row in task_rows
     )
     fingerprint = sha256(_canonical({
