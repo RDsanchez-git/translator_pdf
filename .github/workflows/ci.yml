@@ -160,6 +160,11 @@ jobs:
         run: |
           python -m pytest tests/integration/test_w08_durable_context_boundary.py -q -ra
 
+      # W08-2c: cross-process OCR/G3 context without paid providers or PDFs.
+      - name: Verify W08-2c OCR and G3 context wiring offline
+        run: |
+          python -m pytest tests/integration/test_w08_ocr_g3_context_wiring.py -q -ra
+
       - name: Run integration tests (pytest marker, excluding regression)
         run: |
           python -m pytest -m "integration and not regression" -v --tb=short --no-header
