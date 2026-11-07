@@ -12,6 +12,11 @@ from __future__ import annotations
 
 import sqlite3
 import time
+from typing import Mapping
+
+from infra.db.runtime_cutover_approval import (
+    SignedCutoverApproval, inventory_in_transaction, verify_cutover_approval,
+)
 
 from core.execution.exceptions import PipelineIntegrityError
 
@@ -79,18 +84,18 @@ def verify_runtime_protocol(conn: sqlite3.Connection) -> None:
 
 
 def activate_runtime_protocol_fence(
-    conn: sqlite3.Connection, *, operator_id: str, change_ticket: str,
+    conn: sqlite3.Connection, *,
+    approval: SignedCutoverApproval,
+    trusted_operator_keys: Mapping[str, bytes],
     drained_legacy_runtimes: bool,
 ) -> None:
-    """Transactional opt-in after external stop-the-world + human decision.
+    """Signed, inventory-bound activation; external process drain still required.
 
-    A checked boolean is NOT authentication and cannot prove process shutdown.
-    We require zero PROCESSING tasks and no active in-process transaction.
-    Restarting old processes after activation is still a forbidden deployment.
+    No unsigned operator_id/change_ticket or bare boolean can activate the
+    fence. The trusted registry is supplied by a separately controlled operator
+    channel; this function does not supply/derive operator keys or IAM.
     """
-    if (type(drained_legacy_runtimes) is not bool or not drained_legacy_runtimes
-            or not isinstance(operator_id, str) or not operator_id.strip()
-            or not isinstance(change_ticket, str) or not change_ticket.strip()):
+    if type(drained_legacy_runtimes) is not bool or not drained_legacy_runtimes:
         raise PipelineIntegrityError("W08_RUNTIME_PROTOCOL_ACTIVATION_NOT_AUTHORIZED")
     if conn.in_transaction:
         raise PipelineIntegrityError("W08_RUNTIME_PROTOCOL_ACTIVE_TRANSACTION")
@@ -105,26 +110,27 @@ def activate_runtime_protocol_fence(
     try:
         conn.execute("BEGIN IMMEDIATE")
         if conn.execute(
-            "SELECT 1 FROM chunk_tasks WHERE task_state='PROCESSING' LIMIT 1",
+            "SELECT 1 FROM sqlite_master WHERE type='table' "
+            "AND name='g3_runtime_protocol_fence'"
         ).fetchone() is not None:
+            raise PipelineIntegrityError("W08_RUNTIME_PROTOCOL_ALREADY_ACTIVATED")
+        inventory = inventory_in_transaction(conn)
+        verify_cutover_approval(
+            approval, inventory, trusted_operator_keys=trusted_operator_keys,
+        )
+        if inventory.processing_count:
             raise PipelineIntegrityError("W08_RUNTIME_PROTOCOL_ACTIVE_CLAIMS")
+        if inventory.active_leases:
+            raise PipelineIntegrityError("W08_RUNTIME_PROTOCOL_ACTIVE_LEASES")
 
         # No schema auto-upgrade/migration of existing plans or receipts.
         conn.execute(_DDL)
-        current = conn.execute(
-            "SELECT required_protocol,operator_id,change_ticket "
-            "FROM g3_runtime_protocol_fence WHERE slot=1",
-        ).fetchone()
-        if current is not None:
-            if current != (_PROTOCOL, operator_id, change_ticket):
-                raise PipelineIntegrityError("W08_RUNTIME_PROTOCOL_ACTIVATION_CONFLICT")
-        else:
-            conn.execute(
-                "INSERT INTO g3_runtime_protocol_fence "
-                "(slot,required_protocol,operator_id,change_ticket,activated_at) "
-                "VALUES (1,?,?,?,?)",
-                (_PROTOCOL, operator_id, change_ticket, time.time()),
-            )
+        conn.execute(
+            "INSERT INTO g3_runtime_protocol_fence "
+            "(slot,required_protocol,operator_id,change_ticket,activated_at) "
+            "VALUES (1,?,?,?,?)",
+            (_PROTOCOL, approval.operator_id, approval.change_ticket, time.time()),
+        )
 
         # W08-2b's snapshot table is added only if not yet present. It stays
         # empty for legacy generations; it never backfills or makes them runnable.
