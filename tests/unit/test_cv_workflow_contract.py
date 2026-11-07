@@ -131,6 +131,31 @@ class TestRegressionGatesJobContract:
             assert step.get("if") == "always()"
 
 
+
+
+@pytest.mark.unit
+class TestInformationalCvJobIsolation:
+    """Los gates científicos siguen visibles sin bloquear los tests de integración.
+
+    ENFORCEMENT_CONTRACT §3: regression-gates es informativo durante la transición.
+    Una regresión no debe impedir la ejecución de integration-tests, mientras que
+    las dependencias static-analysis -> unit-tests -> integration-tests se conservan.
+    """
+
+    def test_integration_runs_independently_of_regression_outcome(self) -> None:
+        data = _load_yaml(CI_WORKFLOW)
+        jobs = data["jobs"]
+        assert jobs["integration-tests"]["needs"] == ["unit-tests"]
+        assert jobs["regression-gates"]["needs"] == "static-analysis"
+
+    def test_integration_keeps_unit_and_static_prerequisites(self) -> None:
+        data = _load_yaml(CI_WORKFLOW)
+        jobs = data["jobs"]
+        assert jobs["unit-tests"]["needs"] == "static-analysis"
+        integration_command = _get_run_commands(jobs["integration-tests"])
+        assert 'pytest -m "integration and not regression"' in integration_command
+
+
 @pytest.mark.unit
 class TestCvFullProfileWorkflowContract:
     """NADR-29 §5.1 R1-R7, §5.7 R32-R35: Workflow de FULL profile."""
