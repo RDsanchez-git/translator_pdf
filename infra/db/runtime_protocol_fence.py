@@ -34,6 +34,10 @@ _DDL = """CREATE TABLE IF NOT EXISTS g3_runtime_protocol_fence (
     required_protocol TEXT NOT NULL,
     operator_id TEXT NOT NULL,
     change_ticket TEXT NOT NULL,
+    inventory_sha256 TEXT NOT NULL CHECK(length(inventory_sha256)=64),
+    approval_hmac_sha256 TEXT NOT NULL CHECK(length(approval_hmac_sha256)=64),
+    approval_nonce TEXT NOT NULL CHECK(length(approval_nonce)=32),
+    approval_expires_at INTEGER NOT NULL,
     activated_at REAL NOT NULL
 )"""
 
@@ -127,9 +131,13 @@ def activate_runtime_protocol_fence(
         conn.execute(_DDL)
         conn.execute(
             "INSERT INTO g3_runtime_protocol_fence "
-            "(slot,required_protocol,operator_id,change_ticket,activated_at) "
-            "VALUES (1,?,?,?,?)",
-            (_PROTOCOL, approval.operator_id, approval.change_ticket, time.time()),
+            "(slot,required_protocol,operator_id,change_ticket,"
+            "inventory_sha256,approval_hmac_sha256,approval_nonce,"
+            "approval_expires_at,activated_at) "
+            "VALUES (1,?,?,?,?,?,?,?,?)",
+            (_PROTOCOL, approval.operator_id, approval.change_ticket,
+             inventory.inventory_sha256, approval.hmac_sha256, approval.nonce,
+             approval.expires_at, time.time()),
         )
 
         # W08-2b's snapshot table is added only if not yet present. It stays
