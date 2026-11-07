@@ -1,7 +1,7 @@
 """W-06: three G3 effect-certainty witnesses with *only* disposable SQLite and fakes.
 
 No Docker, real API keys, network, production databases, or historical volumes.
-The contract oracle is STRICT XFAIL until recovery differentiates UNKNOWN effects.
+The contract oracle must PASS: UNKNOWN effects never retry automatically.
 """
 from dataclasses import replace
 from hashlib import sha256
@@ -185,26 +185,110 @@ def _run_post_send_loss(subject, monkeypatch):
     return fake, result
 
 
-def test_w06_observed_uncertain_effect_gets_replayed_in_same_engine_run(subject, monkeypatch):
-    """Characterization of current behavior; NOT an assertion of safety."""
+def test_w06_lost_reply_is_quarantined_without_second_provider_call(subject, monkeypatch):
+    """A provider-accepted first call has no second automatic effect."""
     fake, result = _run_post_send_loss(subject, monkeypatch)
-    # One accepted-but-unconfirmed fake effect plus a second accepted effect.
-    assert len(fake.accepted_calls) == 2, (
-        "W-06 behavior changed: review the strict contract oracle below")
-    assert fake.accepted_calls[0] == fake.accepted_calls[1] == subject.plan.units[0].chunk_id
-    assert _row(subject) == ("COMPLETED", 1)
-    assert subject.queue.execute("SELECT COUNT(*) FROM chunk_result_receipts").fetchone()[0] == 1
-    assert result["status"] == "ready_for_assembly"
+    assert len(fake.accepted_calls) == 1
+    assert _row(subject) == ("G3_EXTERNAL_UNKNOWN", 0)
+    assert subject.queue.execute("SELECT COUNT(*) FROM chunk_result_receipts").fetchone()[0] == 0
+    row = subject.queue.execute(
+        "SELECT execution_id,error_log FROM chunk_tasks WHERE worker_type='LLM'"
+    ).fetchone()
+    audit = json.loads(row[1])
+    assert audit["execution_id"] == row[0]
+    assert audit["first_detected_at"] > 0
+    assert audit["code"] == "G3_W06_EXTERNAL_UNKNOWN"
+    assert result["status"] == "staging_incomplete"
+    assert subject.repo.pick_task("w06_retry", subject.plan.document_id, subject.plan.ast_hash) is None
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="W-06 pending: an UNKNOWN provider effect must not be retried without disposition",
-)
 def test_w06_contract_oracle_never_automatically_repeats_unknown_effect(subject, monkeypatch):
-    """Normative oracle intentionally XFAILs on the currently inspected code."""
+    """The former strict XFAIL is an actual PASS only after W06-R1."""
     fake, _result = _run_post_send_loss(subject, monkeypatch)
     assert len(fake.accepted_calls) == 1, (
         "W06_UNSAFE_RETRY: provider accepted first call, reply was lost, "
         "but Engine made another call without an authorized UNKNOWN disposition"
     )
+
+
+def test_w06_restart_never_reinitializes_provider_for_unknown(subject, monkeypatch):
+    fake, _ = _run_post_send_loss(subject, monkeypatch)
+    initial = subject.queue.execute(
+        "SELECT task_state,execution_id,error_log FROM chunk_tasks"
+    ).fetchone()
+    assert len(fake.accepted_calls) == 1
+    monkeypatch.setattr(subject.engine, "_create_chunk_processor",
+                        lambda: pytest.fail("UNKNOWN initiated paid inference"))
+    result = subject.engine.run_pipeline(subject.plan.document_id, subject.plan.ast_hash)
+    assert result["status"] == "staging_incomplete"
+    assert subject.queue.execute(
+        "SELECT task_state,execution_id,error_log FROM chunk_tasks"
+    ).fetchone() == initial
+    assert len(fake.accepted_calls) == 1
+
+
+def _set_reconciler_expiry(subject, *, worker="w06_worker"):
+    """Establish a real lease, expired snapshot, and independent FSM attachment."""
+    import time
+    lease = subject.repo.pick_task(worker, subject.plan.document_id, subject.plan.ast_hash)
+    assert lease is not None
+    now = time.time()
+    subject.queue.execute(
+        "UPDATE system_leases SET owner_id='recon_w06',lease_version=7,"
+        "lease_expires_at=?,updated_at=? WHERE lease_name='global_reconciler'",
+        (now + 300, now),
+    )
+    subject.queue.execute(
+        "UPDATE chunk_tasks SET lease_expires_at=?,updated_at=? WHERE task_id=?",
+        (now - 500, now - 500, lease.task_id),
+    )
+    dbfile = subject.fsm.execute("PRAGMA database_list").fetchone()[2]
+    subject.queue.execute("ATTACH DATABASE ? AS fsm_db", (dbfile,))
+    subject.queue.commit()
+    return lease
+
+
+def test_w06_reconciler_quarantines_expired_translate_without_receipt(subject):
+    """A crashed TRANSLATE may have called provider; missing receipt proves nothing."""
+    from apps.daemons.reconciler import ReconcilerDaemon
+    import time
+
+    lease = _set_reconciler_expiry(subject)
+    before = subject.queue.execute(
+        "SELECT execution_id FROM chunk_tasks WHERE task_id=?", (lease.task_id,)
+    ).fetchone()[0]
+    recon = ReconcilerDaemon(None, subject.repo, None, None, None)
+    recon.is_leader = True
+    recon.node_id = "recon_w06"
+    recon.current_epoch = 7
+    recon._sweep_tasks(time.time() - 180)
+    row = subject.queue.execute(
+        "SELECT task_state,execution_id,error_log FROM chunk_tasks "
+        "WHERE task_id=?", (lease.task_id,)
+    ).fetchone()
+    assert row[0] == "G3_EXTERNAL_UNKNOWN"
+    assert row[1] == before
+    audit = json.loads(row[2])
+    assert audit["first_detected_at"] > 0
+    assert audit["execution_id"] == lease.execution_id
+    assert audit["cause"] == "LEASE_EXPIRED_WITHOUT_RECEIPT"
+    assert subject.repo.pick_task("replay_worker", subject.plan.document_id, subject.plan.ast_hash) is None
+    previous = row
+    recon._sweep_tasks(time.time() - 180)
+    assert subject.queue.execute(
+        "SELECT task_state,execution_id,error_log FROM chunk_tasks "
+        "WHERE task_id=?", (lease.task_id,)
+    ).fetchone() == previous
+
+
+def test_w06_unknown_survives_new_sqlite_connection(subject, monkeypatch):
+    """Quarantine and provenance survive connection close/reopen, not only memory."""
+    fake, _ = _run_post_send_loss(subject, monkeypatch)
+    assert len(fake.accepted_calls) == 1
+    path = subject.queue.execute("PRAGMA database_list").fetchone()[2]
+    with sqlite3.connect(path) as conn:
+        row = conn.execute("SELECT task_state,execution_id,error_log FROM chunk_tasks").fetchone()
+        assert row[0] == "G3_EXTERNAL_UNKNOWN"
+        assert json.loads(row[2])["execution_id"] == row[1]
+        repo = ControlPlaneRepository(conn)
+        assert repo.pick_task("restarted", subject.plan.document_id, subject.plan.ast_hash) is None

@@ -191,24 +191,42 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
                             t_work = ctx_worker_id.set(owner_id)
                             t_task = ctx_task_id.set(task.task_id)
                             t_node = ctx_node_id.set(chunk_id)
+                            unit = unit_index.get(chunk_id)
                             try:
-                                unit = unit_index.get(chunk_id)
                                 if unit is None:
                                     raise PipelineIntegrityError("G3_B4_3A_UNEXPECTED_CLAIMED_CHUNK")
                                 stage_claimed_unit(th_task_repo, plan, ast, unit, task,
                                                    owner_id, processor, GLOBAL_LLM_SEMAPHORE)
                             except CircuitTripError as exc:
+                                # A circuit trip may follow an external effect: never
+                                # classify it as a proven no-start or blindly requeue.
                                 logger.critical("Circuit tripped for %s: %s", chunk_id[:8], exc)
-                                th_task_repo.release_task_untouched(task.task_id, owner_id)
+                                if unit is not None and unit.chunk_type != TranslationTaskType.PRESERVE:
+                                    if not th_task_repo.mark_g3_external_unknown(
+                                        task_id=task.task_id, worker_id=owner_id,
+                                        execution_id=task.execution_id, cause="CircuitTripError",
+                                    ):
+                                        logger.error("G3_W06_UNKNOWN_CAS_LOST: %s", chunk_id[:8])
+                                else:
+                                    th_task_repo.release_task_untouched(task.task_id, owner_id)
                                 time.sleep(10.0)
                             except CircuitOpenError:
+                                # CircuitOpenError is a local pre-provider rejection.
                                 th_task_repo.release_task_untouched(task.task_id, owner_id)
                                 time.sleep(5.0)
                             except Exception as exc:
                                 logger.exception("G3_B4_3A_STAGE_FAILURE: %s", chunk_id[:8])
                                 try:
-                                    th_task_repo.abandon_execution(task.task_id, owner_id,
-                                                                   str(exc)[:250])
+                                    if unit is not None and unit.chunk_type != TranslationTaskType.PRESERVE:
+                                        if not th_task_repo.mark_g3_external_unknown(
+                                            task_id=task.task_id, worker_id=owner_id,
+                                            execution_id=task.execution_id,
+                                            cause=type(exc).__name__,
+                                        ):
+                                            logger.error("G3_W06_UNKNOWN_CAS_LOST: %s", chunk_id[:8])
+                                    else:
+                                        th_task_repo.abandon_execution(
+                                            task.task_id, owner_id, str(exc)[:250])
                                 except OptimisticLockError:
                                     pass
                             else:
@@ -235,6 +253,10 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
                 ).fetchall()
                 if len(states) != len(plan.units):
                     raise PipelineIntegrityError("G3_B4_3A_QUEUE_COVERAGE_DRIFT")
+                # External UNKNOWN is non-runnable and requires operator disposition.
+                unknown = sum(state == "G3_EXTERNAL_UNKNOWN" for (state,) in states)
+                if unknown:
+                    logger.error("G3_W06_EXTERNAL_UNKNOWN_REQUIRES_OPERATOR: %s", unknown)
                 # Preserve the pre-G3 poison-pill decision, scoped to LLM tasks.
                 # A staged receipt is not a completed task, and it is not retried.
                 failed = sum(state == "FAILED" for (state,) in states)

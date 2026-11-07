@@ -2,6 +2,8 @@ import time
 import uuid
 import sqlite3
 import logging
+import json
+from hashlib import sha256
 from contextlib import contextmanager
 from typing import Optional, List, Sequence, Generator
 from core.execution.ports import ControlPlanePort, TaskLease
@@ -12,6 +14,19 @@ from core.chunking.result_contract import parse_chunk_response
 from infra.db.connection import ensure_fsm_database_attached
 
 logger = logging.getLogger(__name__)
+
+# Task-level quarantine for G3; deliberately outside all runnable selectors.
+_G3_EXTERNAL_UNKNOWN = "G3_EXTERNAL_UNKNOWN"
+
+
+def _g3_unknown_audit(now: float, execution_id: str, cause: str) -> str:
+    """Small recoverable record, with no provider payload or secret material."""
+    return json.dumps(
+        {"code": "G3_W06_EXTERNAL_UNKNOWN", "execution_id": execution_id,
+         "first_detected_at": now, "cause": cause},
+        sort_keys=True, separators=(",", ":"),
+    )
+
 
 _G3_RESULT_RECEIPTS_DDL = """CREATE TABLE IF NOT EXISTS chunk_result_receipts (
     document_id TEXT NOT NULL,
@@ -386,6 +401,73 @@ class ControlPlaneRepository(ControlPlanePort):
         if cursor.rowcount == 0:
             raise OptimisticLockError(f"Zombie write interceptado: El lease de la tarea {task_id} expiró o fue robado.")
 
+    def mark_g3_external_unknown(
+        self, *, task_id: str, worker_id: str, execution_id: str,
+        cause: str,
+    ) -> bool:
+        """Quarantine an attempt after provider-side uncertainty, never requeue it.
+
+        The claim is already durable before provider I/O. Keep the original
+        execution_id and first detection timestamp in the authoritative queue.
+        Do not require a currently unexpired lease: an effect may finish after TTL.
+        The owner/execution CAS still fences competing recovery.
+        """
+        if not (task_id and worker_id and execution_id and cause):
+            raise ValueError("G3_W06_INVALID_ATTEMPT_IDENTITY")
+        now = time.time()
+        with self._chunk_plan_write_scope():
+            self.conn.execute(_G3_RESULT_RECEIPTS_DDL)
+            cursor = self.conn.execute(
+                "UPDATE chunk_tasks SET task_state=?, lease_owner=NULL, "
+                "lease_expires_at=NULL, error_log=?, updated_at=?, "
+                "state_version=state_version+1 "
+                "WHERE task_id=? AND task_state='PROCESSING' "
+                "AND worker_type='LLM' AND lease_owner=? AND execution_id=? "
+                "AND EXISTS (SELECT 1 FROM chunk_plans AS p "
+                "WHERE p.document_id=chunk_tasks.document_id "
+                "AND p.ast_hash=chunk_tasks.ast_hash) "
+                "AND NOT EXISTS (SELECT 1 FROM chunk_result_receipts AS r "
+                "WHERE r.task_id=chunk_tasks.task_id)",
+                (_G3_EXTERNAL_UNKNOWN, _g3_unknown_audit(now, execution_id, cause),
+                 now, task_id, worker_id, execution_id),
+            )
+            return cursor.rowcount == 1
+
+    def _g3_is_proven_preserve_unit(
+        self, document_id: str, ast_hash: str, chunk_id: str,
+    ) -> bool:
+        """Recover PRESERVE-only units without treating absent receipts as no I/O.
+
+        A bad, missing or ambiguous manifest fails closed to UNKNOWN for LLM units.
+        """
+        from core.chunking.manifest_contract import _canonical, _reject_duplicate_keys
+        row = self.conn.execute(
+            "SELECT manifest_json, manifest_sha256 FROM chunk_plans "
+            "WHERE document_id=? AND ast_hash=?",
+            (document_id, ast_hash),
+        ).fetchone()
+        if row is None:
+            return False
+        try:
+            decoded = json.loads(row[0], object_pairs_hook=_reject_duplicate_keys)
+            if not isinstance(decoded, dict):
+                return False
+            claimed_sha = decoded.pop("manifest_sha256", None)
+            if (decoded.get("document_id") != document_id
+                    or decoded.get("ast_hash") != ast_hash
+                    or claimed_sha != row[1]
+                    or sha256(_canonical(decoded)).hexdigest() != claimed_sha):
+                return False
+            units = decoded.get("units")
+            if not isinstance(units, list):
+                return False
+            matches = [u for u in units if isinstance(u, dict)
+                       and u.get("chunk_id") == chunk_id]
+            return (len(matches) == 1
+                    and matches[0].get("chunk_type") == "preserve")
+        except (ValueError, TypeError, KeyError):
+            return False
+
     def abandon_execution(self, task_id: str, worker_id: str, error: str) -> None:
         now = time.time()
         cursor = self.conn.execute(
@@ -477,11 +559,12 @@ class ControlPlaneRepository(ControlPlanePort):
         expected_updated_at: float, expected_version: int,
         reconciler_owner: str, reconciler_epoch: int, stale_before: float,
     ) -> bool:
-        """Recover a G3 PROCESSING lease only under exact snapshot and epoch fencing.
+        """Classify expired G3 work under snapshot/epoch fencing.
 
-        Never alter durable RESULT_STAGED receipts; legacy CQRS is not a G3 ACK.
+        A demonstrably PRESERVE unit can be safely requeued. Any expired
+        TRANSLATE/PARTIAL unit without a durable receipt is conservatively
+        quarantined as external UNKNOWN; no automatic paid retry is possible.
         The queue connection must have fsm_db attached by its composition root.
-        A requeued inference may be retried: no exactly-once paid call is claimed.
         """
         if (not all((task_id, document_id, ast_hash, chunk_id, expected_owner,
                      expected_execution_id, reconciler_owner))
@@ -495,10 +578,16 @@ class ControlPlaneRepository(ControlPlanePort):
             self.conn.execute('BEGIN IMMEDIATE')
             # Older SQLite queues can have a plan but no receipt table until staging.
             self.conn.execute(_G3_RESULT_RECEIPTS_DDL)
+            preserve = self._g3_is_proven_preserve_unit(document_id, ast_hash, chunk_id)
+            next_state = "PENDING" if preserve else _G3_EXTERNAL_UNKNOWN
+            retained_execution = None if preserve else expected_execution_id
+            unknown_record = None if preserve else _g3_unknown_audit(
+                now, expected_execution_id, "LEASE_EXPIRED_WITHOUT_RECEIPT")
             updated = self.conn.execute(
-                "UPDATE chunk_tasks SET task_state='PENDING', lease_owner=NULL, "
-                "lease_expires_at=NULL, execution_id=NULL, "
-                "retry_count=retry_count+1, state_version=state_version+1, updated_at=? "
+                "UPDATE chunk_tasks SET task_state=?, lease_owner=NULL, "
+                "lease_expires_at=NULL, execution_id=?, "
+                "error_log=COALESCE(?, error_log), "
+                "retry_count=retry_count+?, state_version=state_version+1, updated_at=? "
                 "WHERE task_id=? AND document_id=? AND ast_hash=? AND node_id=? "
                 "AND worker_type='LLM' AND task_state='PROCESSING' "
                 "AND lease_owner=? AND execution_id=? AND lease_expires_at=? "
@@ -514,7 +603,8 @@ class ControlPlaneRepository(ControlPlanePort):
                 "AND EXISTS (SELECT 1 FROM fsm_db.document_fsm AS f "
                 "WHERE f.document_id=chunk_tasks.document_id AND f.ast_hash=chunk_tasks.ast_hash "
                 "AND f.current_state='PROCESSING')",
-                (now, task_id, document_id, ast_hash, chunk_id,
+                (next_state, retained_execution, unknown_record,
+                 1 if preserve else 0, now, task_id, document_id, ast_hash, chunk_id,
                  expected_owner, expected_execution_id, expected_expiry,
                  expected_updated_at, expected_version, now, stale_before,
                  reconciler_owner, reconciler_epoch, now),
