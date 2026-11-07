@@ -18,7 +18,8 @@ from core.ast.enums import ContentNodeType
 from core.ast.models import ASTNode, ParagraphPayload, TranslationTaskType
 from core.ast.grouper import SemanticGroup
 from core.chunking.manifest_contract import ChunkPlan
-from core.chunking.semantic_chunking import ChunkPolicy, TokenBudgetChunker
+from core.chunking.contextual_plan import prepare_contextual_plan
+from infra.db.context_snapshot_repo import DurableContextPlanRepository
 from infra.db.control_repo import ControlPlaneRepository
 from runtime.chunk_staging import stage_claimed_unit
 
@@ -52,10 +53,11 @@ def subject(tmp_path, monkeypatch):
     ast = [ASTNode(node_id="body_w06", sequence_id=1,
                    node_type=ContentNodeType.PARAGRAPH,
                    payload=ParagraphPayload(content="Observe carefully."))]
-    units = TokenBudgetChunker(
-        _Estimator(), ChunkPolicy(max_tokens=80, prompt_overhead_tokens=0),
-    ).chunk_group(SemanticGroup(structural_path=(), context_id="ctx_w06", nodes=ast), 1)
-    plan = ChunkPlan.build("doc_w06", "ast_w06", ast, units)
+    prepared = prepare_contextual_plan(
+        document_id="doc_w06", raw_ast=ast, estimator=_Estimator(),
+    )
+    ast = list(prepared.ast)
+    plan = prepared.plan
     assert len(plan.units) == 1
     assert plan.units[0].chunk_type == TranslationTaskType.TRANSLATE
 
@@ -77,7 +79,7 @@ def subject(tmp_path, monkeypatch):
               "VALUES (?, ?, 'PROCESSING', 1, 1.0, 1.0)", (plan.document_id, plan.ast_hash))
     f.commit()
     repo = ControlPlaneRepository(q)
-    repo.enqueue_chunk_plan(plan, ast)
+    DurableContextPlanRepository(repo).enqueue_verified(plan, ast)
 
     import runtime.engine as engine
     monkeypatch.setenv("MAX_CONCURRENT_CHUNKS", "1")
@@ -176,10 +178,15 @@ class _AcceptedThenResponseLost:
 def _run_post_send_loss(subject, monkeypatch):
     unit = subject.plan.units[0]
     fake = _AcceptedThenResponseLost(_response(subject.plan, unit))
-    bridge = SyncProviderBridge(fake, _Builder(), timeout_sec=1.0)
+    snapshots = DurableContextPlanRepository(subject.repo).load_verified(
+        subject.plan.document_id, subject.plan.ast_hash, subject.ast,
+    )[1]
+    bridge = SyncProviderBridge(
+        fake, _Builder(), timeout_sec=1.0, context_snapshots=snapshots,
+    )
     monkeypatch.setattr(
         subject.engine, "_create_chunk_processor",
-        lambda: (bridge, SimpleNamespace(close=lambda: None)),
+        lambda _contexts: (bridge, SimpleNamespace(close=lambda: None)),
     )
     result = subject.engine.run_pipeline(subject.plan.document_id, subject.plan.ast_hash)
     return fake, result
@@ -218,7 +225,7 @@ def test_w06_restart_never_reinitializes_provider_for_unknown(subject, monkeypat
     ).fetchone()
     assert len(fake.accepted_calls) == 1
     monkeypatch.setattr(subject.engine, "_create_chunk_processor",
-                        lambda: pytest.fail("UNKNOWN initiated paid inference"))
+                        lambda _contexts: pytest.fail("UNKNOWN initiated paid inference"))
     result = subject.engine.run_pipeline(subject.plan.document_id, subject.plan.ast_hash)
     assert result["status"] == "staging_incomplete"
     assert subject.queue.execute(
