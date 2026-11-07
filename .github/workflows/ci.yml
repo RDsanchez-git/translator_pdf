@@ -119,7 +119,10 @@ jobs:
   integration-tests:
     name: Integration Test Suite
     runs-on: ubuntu-latest
-    needs: [regression-gates, unit-tests]
+    # CV es informativa durante Fase 6 (ENFORCEMENT_CONTRACT §3).
+    # La suite de integracion sigue dependiendo de unit-tests (y, por transitividad,
+    # de static-analysis), pero no del veredicto cientifico/regression-gates.
+    needs: [unit-tests]
     steps:
       - uses: actions/checkout@v4
 
