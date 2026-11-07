@@ -11,6 +11,8 @@ from dataclasses import dataclass
 import sqlite3
 from typing import Sequence
 
+from infra.db.fsm_repository import FSMRepository
+
 from core.ast.models import ASTNode, TranslationTaskType
 from core.chunking.manifest_contract import ChunkPlan
 from core.context.snapshot_contract import ContextSnapshotV1
@@ -113,3 +115,46 @@ def preflight_g3_context(
         raise PipelineIntegrityError("W08_LEGACY_RECOVERY_RECEIPTS_UNVERIFIED") from exc
 
     return G3ContextPreflight(plan, {}, True)
+
+
+def recover_legacy_staged_document(
+    queue_repo: ControlPlaneRepository,
+    materialized_conn: sqlite3.Connection,
+    fsm_repo: "FSMRepository",
+    document_id: str,
+    ast_hash: str,
+    ast: Sequence[ASTNode],
+    *,
+    approved_by_operator: bool,
+    owner_id: str,
+) -> bool:
+    """Operator-only B4/3b replay, never inference or automatic migration.
+
+    This function deliberately has no provider argument. The caller owns the
+    exclusive deployment barrier, backing up data, and operator audit; these
+    controls are NOT supplied by a boolean flag alone.
+    """
+    if type(approved_by_operator) is not bool or not approved_by_operator:
+        raise PipelineIntegrityError("W08_LEGACY_RECOVERY_OPERATOR_APPROVAL_REQUIRED")
+    if not owner_id or not owner_id.strip():
+        raise PipelineIntegrityError("W08_LEGACY_RECOVERY_MISSING_OWNER")
+    status = fsm_repo.get_status(document_id, ast_hash)
+    if status is None or status.current_state != "PROCESSING":
+        raise PipelineIntegrityError("W08_LEGACY_RECOVERY_FSM_NOT_PROCESSING")
+
+    eligible = preflight_g3_context(
+        queue_repo, document_id, ast_hash, ast,
+        allow_receipt_only_legacy=True,
+    )
+    if not eligible.receipt_only_legacy:
+        raise PipelineIntegrityError("W08_LEGACY_RECOVERY_NOT_LEGACY")
+
+    # Revalidate under the existing B4/3b publisher. It fences queue/fsm,
+    # verifies every original receipt and the durable materialized projection.
+    # No cache, new claim, LLM bridge or untrusted response is involved.
+    from runtime.publication_pipeline import advance_staged_document
+
+    return advance_staged_document(
+        queue_repo, materialized_conn, fsm_repo,
+        eligible.plan, ast, owner_id,
+    )
