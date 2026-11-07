@@ -201,6 +201,20 @@ def test_w08_approval_expires_before_activation(tmp_path):
         ).fetchone() is None
 
 
+def test_w08_inventory_rejects_malformed_lease_instead_of_ignoring_it(tmp_path):
+    with closing(_db(tmp_path)) as conn:
+        conn.execute(
+            "INSERT INTO chunk_tasks "
+            "(task_id,document_id,ast_hash,node_id,task_state,lease_owner,"
+            "lease_expires_at,created_at,updated_at) "
+            "VALUES ('t','d','h','n','PENDING','old-worker','not-a-time',1,1)"
+        )
+        conn.commit()
+        with pytest.raises(PipelineIntegrityError, match="LEASE_EXPIRY_MALFORMED"):
+            inspect_queue_cutover(conn)
+        assert not conn.in_transaction
+
+
 def test_w08_activation_forbids_live_task_lease_even_if_not_processing(tmp_path):
     import time
     with closing(_db(tmp_path)) as conn:
