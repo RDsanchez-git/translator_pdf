@@ -131,8 +131,6 @@ class TestRegressionGatesJobContract:
             assert step.get("if") == "always()"
 
 
-
-
 @pytest.mark.unit
 class TestInformationalCvJobIsolation:
     """Los gates científicos siguen visibles sin bloquear los tests de integración.
