@@ -18,7 +18,8 @@ from core.ast.hashing import compute_ast_hash
 from core.ast.models import ASTNode, ParagraphPayload
 from core.ast.registry import ASTRegistry
 from core.chunking.manifest_contract import ChunkPlan
-from core.chunking.semantic_chunking import build_semantic_chunks_as_units
+from core.chunking.contextual_plan import prepare_contextual_plan
+from infra.db.context_snapshot_repo import DurableContextPlanRepository
 from infra.db.control_repo import ControlPlaneRepository
 from infra.db.fsm_repository import FSMRepository
 from core.execution.handlers import DocumentCommandHandler
@@ -147,8 +148,11 @@ def _harness(tmp_path, monkeypatch, *, initial=None, previous_hash=None):
     )
     pdf = daemon.inbox_dir / 'sample.pdf'
     pdf.write_bytes(pdf_bytes)
-    units, _ = build_semantic_chunks_as_units(ast, _Estimator())
-    plan = ChunkPlan.build(doc_id, ast_hash, ast, units)
+    prepared = prepare_contextual_plan(
+        document_id=doc_id, raw_ast=ast, estimator=_Estimator(),
+    )
+    plan = prepared.plan
+    ast = list(prepared.ast)
     assert len(plan.units) == 1
     return SimpleNamespace(ast=ast, doc_id=doc_id, ast_hash=ast_hash, db=db,
                            repo=repo, fsm=fsm, handler=handler, parser=parser,
@@ -190,7 +194,7 @@ def test_incomplete_generation_retries_without_illegal_cas(tmp_path, monkeypatch
 def test_replay_existing_identical_manifest_is_idempotent(tmp_path, monkeypatch):
     h = _harness(tmp_path, monkeypatch, initial='PARSING')
     with closing(h.db):
-        h.repo.enqueue_chunk_plan(h.plan, h.ast)
+        DurableContextPlanRepository(h.repo).enqueue_verified(h.plan, h.ast)
         h.daemon._process_document(h.pdf)
         _assert_durable_plan(h)
         assert h.db.execute('SELECT COUNT(*) FROM chunk_plans').fetchone()[0] == 1
