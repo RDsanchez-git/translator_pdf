@@ -45,10 +45,17 @@ class DurableContextPlanRepository:
         """
         snapshots = derive_verified_plan_contexts(plan, ast)
         with self._repo.chunk_plan_write_scope():
+            # Detect legacy/incomplete generations *before* attempting adoption.
+            was_present = self._repo.conn.execute(
+                "SELECT 1 FROM chunk_plans WHERE document_id=? AND ast_hash=?",
+                (plan.document_id, plan.ast_hash),
+            ).fetchone() is not None
             self._repo.enqueue_chunk_plan(plan, ast)
             self._repo.conn.execute(_CONTEXT_SNAPSHOTS_DDL)
 
             existing = self._read_rows(plan.document_id, plan.ast_hash)
+            if was_present and snapshots and not existing:
+                raise ValueError("W08_CONTEXT_LEGACY_PLAN_WITHOUT_SNAPSHOTS")
             expected = {
                 context_id: (plan.digest, snapshot.snapshot_sha256, snapshot.to_json())
                 for context_id, snapshot in snapshots.items()
