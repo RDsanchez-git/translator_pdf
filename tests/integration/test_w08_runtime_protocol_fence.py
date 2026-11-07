@@ -7,6 +7,13 @@ import pytest
 
 from core.execution.exceptions import PipelineIntegrityError
 from infra.db.connection import get_connection
+from infra.db.runtime_cutover_approval import (
+    SignedCutoverApproval, inspect_queue_cutover, issue_cutover_approval,
+    verify_cutover_approval,
+)
+
+_TEST_SIGNING_SECRET = b"offline-fixture-32-bytes-operator-secret-value"
+_TEST_TRUST = {"reviewer": _TEST_SIGNING_SECRET}
 from infra.db.runtime_protocol_fence import (
     activate_runtime_protocol_fence, bind_runtime_protocol,
     verify_runtime_protocol,
@@ -33,10 +40,20 @@ def _setup(tmp_path: Path) -> Path:
     return path
 
 
+def _sign(conn: sqlite3.Connection, *, operator: str = "reviewer",
+          ticket: str = "W08-CHANGE-001") -> SignedCutoverApproval:
+    return issue_cutover_approval(
+        inspect_queue_cutover(conn), operator_id=operator,
+        change_ticket=ticket, signing_secret=_TEST_SIGNING_SECRET,
+    )
+
+
 def _activate(conn: sqlite3.Connection, *, operator: str = "reviewer",
-              ticket: str = "W08-CHANGE-001") -> None:
+              ticket: str = "W08-CHANGE-001",
+              approval: SignedCutoverApproval | None = None) -> None:
+    signed = approval if approval is not None else _sign(conn, operator=operator, ticket=ticket)
     activate_runtime_protocol_fence(
-        conn, operator_id=operator, change_ticket=ticket,
+        conn, approval=signed, trusted_operator_keys=_TEST_TRUST,
         drained_legacy_runtimes=True,
     )
 
@@ -132,7 +149,7 @@ def test_w08_fence_rejects_unapproved_and_caller_transaction(tmp_path):
     with closing(_queue(path, current=True)) as conn:
         with pytest.raises(PipelineIntegrityError, match="ACTIVATION_NOT_AUTHORIZED"):
             activate_runtime_protocol_fence(
-                conn, operator_id="reviewer", change_ticket="ticket",
+                conn, approval=_sign(conn), trusted_operator_keys=_TEST_TRUST,
                 drained_legacy_runtimes=False,
             )
         conn.execute("BEGIN")
@@ -144,20 +161,23 @@ def test_w08_fence_rejects_unapproved_and_caller_transaction(tmp_path):
 def test_w08_fence_activation_is_idempotent_and_audited(tmp_path):
     path = _setup(tmp_path)
     with closing(_queue(path, current=True)) as conn:
-        _activate(conn)
+        approval = _sign(conn)
+        _activate(conn, approval=approval)
         record = conn.execute(
             "SELECT required_protocol,operator_id,change_ticket,activated_at "
             "FROM g3_runtime_protocol_fence"
         ).fetchone()
         assert record[:3] == ("w08-context-durable-v1", "reviewer", "W08-CHANGE-001")
         assert record[3] > 0
-        _activate(conn)
+        # A signed cutover is single-use, not an idempotent administrative write.
+        with pytest.raises(PipelineIntegrityError, match="ALREADY_ACTIVATED"):
+            _activate(conn, approval=approval)
         assert conn.execute(
             "SELECT COUNT(*) FROM sqlite_master WHERE type='trigger' "
             "AND name LIKE 'g3_w08_fence_%'"
         ).fetchone() == (15,)
-        with pytest.raises(PipelineIntegrityError, match="ACTIVATION_CONFLICT"):
-            _activate(conn, ticket="W08-DIFFERENT")
+        with pytest.raises(PipelineIntegrityError, match="ALREADY_ACTIVATED"):
+            _activate(conn, approval=approval)
         assert conn.execute(
             "SELECT operator_id,change_ticket FROM g3_runtime_protocol_fence"
         ).fetchone() == ("reviewer", "W08-CHANGE-001")
@@ -239,7 +259,7 @@ def test_w08_missing_guarded_table_rolls_back_activation(tmp_path):
     with closing(_queue(path, current=True)) as conn:
         conn.execute("DROP TABLE chunk_result_receipts")
         conn.commit()
-        with pytest.raises(sqlite3.OperationalError):
+        with pytest.raises(PipelineIntegrityError, match="INVENTORY_TABLE_MISSING"):
             _activate(conn)
         assert conn.execute(
             "SELECT 1 FROM sqlite_master WHERE name='g3_runtime_protocol_fence'"
