@@ -57,6 +57,25 @@ def verify_runtime_protocol(conn: sqlite3.Connection) -> None:
         raise PipelineIntegrityError("W08_RUNTIME_PROTOCOL_NOT_REGISTERED") from exc
     if actual != (_PROTOCOL,):
         raise PipelineIntegrityError("W08_RUNTIME_PROTOCOL_INCOMPATIBLE")
+    # An activation record without all 12 matching triggers is an invalid
+    # fence, never an invitation to run or to repair it silently.
+    triggers = conn.execute(
+        "SELECT name,sql FROM sqlite_master "
+        "WHERE type='trigger' AND name LIKE 'g3_w08_fence_%'",
+    ).fetchall()
+    expected = {
+        f"g3_w08_fence_{table}_{action.lower()}"
+        for table in _GUARDED_TABLES for action in _ACTIONS
+    }
+    actual_names = {name for name, _ in triggers}
+    if (actual_names != expected
+            or any(
+                not isinstance(sql, str)
+                or _FUNCTION_NAME not in sql
+                or _PROTOCOL not in sql
+                for _, sql in triggers
+            )):
+        raise PipelineIntegrityError("W08_RUNTIME_PROTOCOL_TRIGGERS_INCOMPLETE")
 
 
 def activate_runtime_protocol_fence(
