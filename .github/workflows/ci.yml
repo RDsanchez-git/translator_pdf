@@ -142,6 +142,18 @@ jobs:
         run: |
           python -m pytest tests/unit/test_b031_g3_reusable_fake.py tests/unit/test_b032_offline_pdf_lab.py -q -ra
 
+      # W06/G3 tests use disposable SQLite and fake providers, not real egress.
+      # They have no pytest "integration" marker, so run them explicitly.
+      - name: Verify W06-R1 uncertain-effect recovery offline (no Docker / LLM)
+        run: |
+          python -m pytest \
+            tests/integration/test_w06_g3_uncertain_effect_offline.py \
+            tests/integration/test_g3_b4_9_reconciler_fencing.py \
+            tests/integration/test_g3_b4_8_preserve_engine.py \
+            tests/integration/test_g3_b4_3a_engine_staging.py \
+            tests/integration/test_g3_b4_3b_publication_recovery.py \
+            -q -ra
+
       - name: Run integration tests (pytest marker, excluding regression)
         run: |
           python -m pytest -m "integration and not regression" -v --tb=short --no-header
