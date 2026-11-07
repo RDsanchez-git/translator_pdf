@@ -20,7 +20,7 @@ _PROTOCOL = "w08-context-durable-v1"
 _FUNCTION_NAME = "w08_runtime_protocol"
 _GUARDED_TABLES = (
     "chunk_tasks", "chunk_plans", "chunk_result_receipts",
-    "g3_context_snapshots",
+    "g3_context_snapshots", "g3_runtime_protocol_fence",
 )
 _ACTIONS = ("INSERT", "UPDATE", "DELETE")
 
@@ -57,7 +57,7 @@ def verify_runtime_protocol(conn: sqlite3.Connection) -> None:
         raise PipelineIntegrityError("W08_RUNTIME_PROTOCOL_NOT_REGISTERED") from exc
     if actual != (_PROTOCOL,):
         raise PipelineIntegrityError("W08_RUNTIME_PROTOCOL_INCOMPATIBLE")
-    # An activation record without all 12 matching triggers is an invalid
+    # An activation record without all matching triggers is an invalid
     # fence, never an invitation to run or to repair it silently.
     triggers = conn.execute(
         "SELECT name,sql FROM sqlite_master "
@@ -96,6 +96,12 @@ def activate_runtime_protocol_fence(
         raise PipelineIntegrityError("W08_RUNTIME_PROTOCOL_ACTIVE_TRANSACTION")
 
     verify_runtime_protocol(conn)  # Reject drift if already activated.
+    try:
+        current = conn.execute("SELECT w08_runtime_protocol()").fetchone()
+    except sqlite3.OperationalError as exc:
+        raise PipelineIntegrityError("W08_RUNTIME_PROTOCOL_NOT_REGISTERED") from exc
+    if current != (_PROTOCOL,):
+        raise PipelineIntegrityError("W08_RUNTIME_PROTOCOL_INCOMPATIBLE")
     try:
         conn.execute("BEGIN IMMEDIATE")
         if conn.execute(
