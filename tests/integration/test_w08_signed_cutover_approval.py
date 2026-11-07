@@ -182,6 +182,35 @@ def test_w08_approval_expires_before_activation(tmp_path):
         ).fetchone() is None
 
 
+def test_w08_activation_forbids_live_task_lease_even_if_not_processing(tmp_path):
+    import time
+    with closing(_db(tmp_path)) as conn:
+        conn.execute(
+            "INSERT INTO chunk_tasks "
+            "(task_id,document_id,ast_hash,node_id,task_state,lease_owner,"
+            "lease_expires_at,created_at,updated_at) "
+            "VALUES ('t','d','h','n','PENDING','old-worker',?,1,1)",
+            (time.time() + 600,),
+        )
+        conn.commit()
+        inventory = inspect_queue_cutover(conn)
+        assert inventory.processing_count == 0
+        assert inventory.active_task_leases == 1
+        signed = issue_cutover_approval(
+            inventory, operator_id="operator-1",
+            change_ticket="ticket", signing_secret=_SECRET,
+            issued_at=int(time.time()),
+        )
+        with pytest.raises(PipelineIntegrityError, match="ACTIVE_LEASES"):
+            _activate(conn, signed)
+        assert conn.execute(
+            "SELECT lease_owner,task_state FROM chunk_tasks WHERE task_id='t'"
+        ).fetchone() == ("old-worker", "PENDING")
+        assert conn.execute(
+            "SELECT 1 FROM sqlite_master WHERE name='g3_runtime_protocol_fence'"
+        ).fetchone() is None
+
+
 def test_w08_activation_forbids_nonzero_active_global_lease(tmp_path):
     import time
     with closing(_db(tmp_path)) as conn:
