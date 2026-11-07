@@ -202,7 +202,11 @@ def test_w08_snapshot_write_respects_external_transaction_rollback(tmp_path):
         conn.rollback()
         assert conn.execute("SELECT COUNT(*) FROM chunk_plans").fetchone()[0] == 0
         assert conn.execute("SELECT COUNT(*) FROM chunk_tasks").fetchone()[0] == 0
-        assert conn.execute("SELECT COUNT(*) FROM g3_context_snapshots").fetchone()[0] == 0
+        # SQLite rolls back DDL inside the caller-owned transaction as well.
+        assert conn.execute(
+            "SELECT COUNT(*) FROM sqlite_master WHERE type='table' "
+            "AND name='g3_context_snapshots'"
+        ).fetchone()[0] == 0
 
 
 def test_w08_derived_snapshots_never_claim_a_provider_authority():
