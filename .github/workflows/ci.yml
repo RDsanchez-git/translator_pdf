@@ -176,7 +176,10 @@ jobs:
       # W08-2d: cooperative protocol fence, no Docker or production DB.
       - name: Verify W08-2d queue runtime protocol fence offline
         run: |
-          python -m pytest tests/integration/test_w08_runtime_protocol_fence.py -q -ra
+          python -m pytest \
+            tests/integration/test_w08_runtime_protocol_fence.py \
+            tests/integration/test_w08_signed_cutover_approval.py \
+            -q -ra
 
       - name: Run integration tests (pytest marker, excluding regression)
         run: |
