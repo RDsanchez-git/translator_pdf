@@ -14,6 +14,7 @@ from typing import Sequence
 from infra.db.fsm_repository import FSMRepository
 
 from core.ast.models import ASTNode, TranslationTaskType
+from core.ast.hashing import compute_ast_hash
 from core.chunking.manifest_contract import ChunkPlan
 from core.context.snapshot_contract import ContextSnapshotV1
 from core.execution.exceptions import PipelineIntegrityError
@@ -66,7 +67,10 @@ def preflight_g3_context(
     if type(allow_receipt_only_legacy) is not bool:
         raise ValueError("W08_LEGACY_RECOVERY_INVALID_AUTHORIZATION")
 
-    # Verify durable AST/manifest/task identity even when snapshots are absent.
+    # A caller-supplied AST is not trusted merely because its node IDs/text
+    # happen to satisfy a manifest. Verify the semantic generation first.
+    if not ast or compute_ast_hash(ast) != ast_hash:
+        raise PipelineIntegrityError("W08_LEGACY_RECOVERY_AST_GENERATION_MISMATCH")
     plan = repo.load_chunk_plan(document_id, ast_hash, ast)
     table_exists = _snapshot_table_exists(repo.conn)
     has_snapshots = _has_generation_snapshots(repo.conn, document_id, ast_hash)
