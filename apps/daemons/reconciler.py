@@ -214,7 +214,17 @@ class ReconcilerDaemon:
                         stale_before=now_safe,
                     )
                     if recovered:
-                        logger.info("G3_EXPIRED_LEASE_RECOVERED", extra={"extra_data": {"task": task_id[:8]}})
+                        state = self.task_repo.conn.execute(
+                            "SELECT task_state FROM chunk_tasks WHERE task_id=?",
+                            (task_id,),
+                        ).fetchone()
+                        logger.warning(
+                            "G3_EXPIRED_LEASE_CLASSIFIED",
+                            extra={"extra_data": {
+                                "task": task_id[:8],
+                                "state": state[0] if state else "UNKNOWN",
+                            }},
+                        )
                 else:
                     logger.warning("G3_NON_LLM_STALE_TASK_REQUIRES_SEPARATE_RECOVERY",
                                    extra={"extra_data": {"task": task_id[:8], "worker_type": worker_type}})
