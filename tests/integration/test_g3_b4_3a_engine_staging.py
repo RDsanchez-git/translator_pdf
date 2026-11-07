@@ -366,7 +366,8 @@ def test_openai_dialect_plain_inner_object_is_rejected_by_g3_parser():
 
 
 @pytest.mark.parametrize('source, error', [
-    ('Broken $E=mc^2', 'G3_B4_3A_UNBALANCED_INLINE_MATH'),
+    # B02.4 rejects malformed delimiters inside InlineMathProtector.mask first.
+    ('Broken $E=mc^2', 'B024_UNCLOSED_MATH'),
     ('Literal __MATH_0__ plus $x$', 'G3_B4_3A_MATH_TOKEN_COLLISION'),
 ])
 def test_math_source_uncertain_fails_before_provider(source, error):

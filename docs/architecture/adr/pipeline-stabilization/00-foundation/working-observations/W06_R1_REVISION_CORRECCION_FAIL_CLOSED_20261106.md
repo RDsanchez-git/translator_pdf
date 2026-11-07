@@ -37,3 +37,14 @@ git diff --check origin/pipeline_stabilization...HEAD
 **Criterio:** cero `XFAIL` esperado de W-06, ningún segundo contacto con el fake incierto, reinicio no reintenta, Reconciler no transforma desconocidos a `PENDING`, `PRESERVE` conserva requeue seguro. Si alguna prueba falla, **no fusionar**; registrar traza y diagnosticar sin rebajar el oráculo.
 
 **No cierre:** `W06-R1 = DRAFT REVIEW`; `W06 TEST RESULT = OWNER RUN PENDING`; `F18-INTEGRAL = NOT CERTIFIED`; `D1/D2 FORMAL = UNCHANGED`.
+
+## Resultado comunicado por el owner (primera corrida de regresión)
+
+El owner ejecutó el nuevo testigo W-06 en su `venv` Windows/Python 3.11.9:
+**`7 passed, 2 warnings in 5.18s`**. No queda `XFAIL` en ese fichero. La evidencia procede de la salida compartida en conversación, no de una ejecución independiente del asistente.
+
+En la regresión conjunta de G3 informó **`57 passed, 1 failed, 2 warnings in 6.99s`**. El único caso fallido fue `test_math_source_uncertain_fails_before_provider[Broken $E=mc^2-...]`: el test esperaba `G3_B4_3A_UNBALANCED_INLINE_MATH`, mientras `InlineMathProtector.mask` ya delega en `find_explicit_math_spans`, que rechaza primero con `B024_UNCLOSED_MATH`. Se verificó en GitHub que `apps/llm_workers/sync_bridge.py`, `core/normalization/explicit_math.py` y el test eran idénticos en la base y en este PR antes del ajuste. **No hay evidencia de una regresión funcional introducida por W06-R1 en este caso.**
+
+**Acción mínima de revisión:** corregir únicamente el patrón esperado en el test para `B024_UNCLOSED_MATH`, conservando `assert provider.seen == []`. No cambiar código productivo B02/G3 ni aceptar que el proveedor procese matemáticas sin cerrar.
+
+**Veredicto de este corte:** `W06-FOCUSED=PASS (owner-reported)`; `G3-REGRESSION=RE-RUN REQUIRED AFTER TEST EXPECTATION FIX`; `PR=STILL DRAFT / NOT MERGED`. El resultado de una próxima corrida **no se presume**.
