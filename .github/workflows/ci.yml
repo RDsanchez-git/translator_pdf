@@ -154,6 +154,12 @@ jobs:
             tests/integration/test_g3_b4_3b_publication_recovery.py \
             -q -ra
 
+      # W08-2b: durable context witnesses use only disposable SQLite / synthetic AST.
+      # This step does not activate the adapter in production or authorize LLM egress.
+      - name: Verify W08-2b durable context snapshots offline
+        run: |
+          python -m pytest tests/integration/test_w08_durable_context_boundary.py -q -ra
+
       - name: Run integration tests (pytest marker, excluding regression)
         run: |
           python -m pytest -m "integration and not regression" -v --tb=short --no-header
