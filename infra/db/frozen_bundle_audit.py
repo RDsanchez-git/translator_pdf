@@ -14,8 +14,9 @@ from pathlib import Path
 import sqlite3
 
 from core.ast.hashing import compute_ast_hash
-from core.ast.models import ASTNode
+from core.ast.models import ASTNode, TranslationStrategy
 from core.chunking.manifest_contract import ChunkPlan
+from core.context.snapshot_contract import ContextSnapshotV1
 from core.execution.exceptions import PipelineIntegrityError
 
 
@@ -197,11 +198,41 @@ def audit_frozen_bundle(directory: Path) -> FrozenBundleAudit:
             ):
                 raise PipelineIntegrityError("W08_BUNDLE_PROJECTION_HASH_DRIFT")
             if publication is not None:
-                if publication[0] != plan.digest or len(projections) != len(ast):
+                expected_nodes = {
+                    node.node_id: node
+                    for node in ast if node.strategy != TranslationStrategy.OMIT
+                }
+                actual_nodes = {node_id for node_id, *_ in projections}
+                if (publication[0] != plan.digest or len(projections) != len(expected_nodes)
+                        or actual_nodes != set(expected_nodes)):
                     raise PipelineIntegrityError("W08_BUNDLE_PUBLICATION_DRIFT")
+                if any(
+                    source_hash != sha256(
+                        (expected_nodes[node_id].text_content or "").encode("utf-8")
+                    ).hexdigest()
+                    for node_id, source_hash, _, _ in projections
+                ):
+                    raise PipelineIntegrityError("W08_BUNDLE_PROJECTION_SOURCE_DRIFT")
                 published += 1
             elif projections:
                 raise PipelineIntegrityError("W08_BUNDLE_UNOWNED_PROJECTION")
+            snapshots_exist = queue.execute(
+                "SELECT 1 FROM sqlite_master WHERE type='table' "
+                "AND name='g3_context_snapshots'"
+            ).fetchone() is not None
+            if snapshots_exist:
+                for context_id, manifest_ref, snapshot_ref, snapshot_json in queue.execute(
+                    "SELECT context_id,manifest_sha256,snapshot_sha256,snapshot_json "
+                    "FROM g3_context_snapshots WHERE document_id=? AND ast_hash=?",
+                    (document_id, ast_hash),
+                ):
+                    snapshot = ContextSnapshotV1.from_json(snapshot_json)
+                    if (manifest_ref != plan.digest
+                            or snapshot_ref != snapshot.snapshot_sha256
+                            or snapshot.context_id != context_id
+                            or snapshot.document_id != document_id
+                            or snapshot.ast_hash != ast_hash):
+                        raise PipelineIntegrityError("W08_BUNDLE_CONTEXT_SNAPSHOT_DRIFT")
             if fsm_rows[(document_id, ast_hash)] == "READY_FOR_ASSEMBLY" and (
                 publication is None or states != {"COMPLETED"}
             ):
@@ -217,6 +248,24 @@ def audit_frozen_bundle(directory: Path) -> FrozenBundleAudit:
         ).fetchall()
         if any((doc, ast_hash) not in plan_keys for doc, ast_hash in orphan_tasks):
             raise PipelineIntegrityError("W08_BUNDLE_ORPHAN_TASK")
+        for table, column in (
+            ("chunk_result_receipts", "document_id,ast_hash"),
+            ("g3_plan_publications", "document_id,ast_hash"),
+            ("valid_chunks_cache", "document_id,ast_hash"),
+        ):
+            conn = queue if table == "chunk_result_receipts" else material
+            if any(tuple(row) not in plan_keys for row in conn.execute(
+                f"SELECT DISTINCT {column} FROM {table}"
+            )):
+                raise PipelineIntegrityError("W08_BUNDLE_ORPHAN_DURABLE_EVIDENCE")
+        if queue.execute(
+            "SELECT 1 FROM sqlite_master WHERE type='table' "
+            "AND name='g3_context_snapshots'"
+        ).fetchone() is not None:
+            if any(tuple(row) not in plan_keys for row in queue.execute(
+                "SELECT DISTINCT document_id,ast_hash FROM g3_context_snapshots"
+            )):
+                raise PipelineIntegrityError("W08_BUNDLE_ORPHAN_CONTEXT_SNAPSHOT")
         orphans = len(set(fsm_rows) - plan_keys)
         # The report binds to the actual frozen file bytes, not merely counts.
         # No corpus text or receipt bodies leave the audit DTO.
