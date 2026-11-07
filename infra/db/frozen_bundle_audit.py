@@ -146,11 +146,21 @@ def audit_frozen_bundle(directory: Path) -> FrozenBundleAudit:
             }:
                 raise PipelineIntegrityError("W08_BUNDLE_TASK_COVERAGE")
             states = {t[1] for t in tasks}
-            receipts = queue.execute(
-                "SELECT chunk_id,task_id,execution_id FROM chunk_result_receipts "
-                "WHERE document_id=? AND ast_hash=?",
+            receipt_rows = queue.execute(
+                "SELECT chunk_id,task_id,execution_id,raw_response,response_sha256 "
+                "FROM chunk_result_receipts WHERE document_id=? AND ast_hash=?",
                 (document_id, ast_hash),
             ).fetchall()
+            receipts = [row[:3] for row in receipt_rows]
+            if any(
+                (raw is None and digest_value is not None)
+                or (raw is not None and (
+                    not isinstance(raw, str) or not isinstance(digest_value, str)
+                    or sha256(raw.encode("utf-8")).hexdigest() != digest_value
+                ))
+                for _, _, _, raw, digest_value in receipt_rows
+            ):
+                raise PipelineIntegrityError("W08_BUNDLE_RECEIPT_HASH_DRIFT")
             by_chunk = {row[0]: row for row in tasks}
             if len(receipts) != len({r[0] for r in receipts}):
                 raise PipelineIntegrityError("W08_BUNDLE_RECEIPT_DUPLICATION")
@@ -161,29 +171,31 @@ def audit_frozen_bundle(directory: Path) -> FrozenBundleAudit:
                 for chunk_id, task_id, execution_id in receipts
             ):
                 raise PipelineIntegrityError("W08_BUNDLE_RECEIPT_BINDING")
-            if states <= {"RESULT_STAGED", "COMPLETED"} and len(states) == 1:
+            if "G3_EXTERNAL_UNKNOWN" in states:
+                uncertain += 1
+            elif states in ({"RESULT_STAGED"}, {"COMPLETED"}):
                 if len(receipts) != len(plan.units):
                     raise PipelineIntegrityError("W08_BUNDLE_RECEIPT_COVERAGE")
                 receipt_only += 1
-            elif any(state in {"RESULT_STAGED", "COMPLETED"} for state in states):
-                # Partial states are not an authorisation for provider replay.
-                pending += 1
-            elif "G3_EXTERNAL_UNKNOWN" in states:
-                uncertain += 1
             else:
+                # Partial and idle generations are never eligible for replay.
                 pending += 1
-            if "G3_EXTERNAL_UNKNOWN" in states:
-                uncertain += (0 if len(states) != 1 or "G3_EXTERNAL_UNKNOWN" in states and not states <= {"RESULT_STAGED", "COMPLETED"} and not any(s in {"RESULT_STAGED", "COMPLETED"} for s in states) else 1)
             publication = material.execute(
                 "SELECT manifest_sha256,result_sha256 FROM g3_plan_publications "
                 "WHERE document_id=? AND ast_hash=?",
                 (document_id, ast_hash),
             ).fetchone()
             projections = material.execute(
-                "SELECT node_id,content_hash,normalized_hash FROM valid_chunks_cache "
-                "WHERE document_id=? AND ast_hash=? ORDER BY node_id",
+                "SELECT node_id,content_hash,normalized_response,normalized_hash "
+                "FROM valid_chunks_cache WHERE document_id=? AND ast_hash=? ORDER BY node_id",
                 (document_id, ast_hash),
             ).fetchall()
+            if any(
+                not isinstance(value, str) or not isinstance(digest_value, str)
+                or sha256(value.encode("utf-8")).hexdigest() != digest_value
+                for _, _, value, digest_value in projections
+            ):
+                raise PipelineIntegrityError("W08_BUNDLE_PROJECTION_HASH_DRIFT")
             if publication is not None:
                 if publication[0] != plan.digest or len(projections) != len(ast):
                     raise PipelineIntegrityError("W08_BUNDLE_PUBLICATION_DRIFT")
@@ -206,7 +218,21 @@ def audit_frozen_bundle(directory: Path) -> FrozenBundleAudit:
         if any((doc, ast_hash) not in plan_keys for doc, ast_hash in orphan_tasks):
             raise PipelineIntegrityError("W08_BUNDLE_ORPHAN_TASK")
         orphans = len(set(fsm_rows) - plan_keys)
-        summary = json.dumps(digests, sort_keys=True, separators=(",", ":"))
+        # The report binds to the actual frozen file bytes, not merely counts.
+        # No corpus text or receipt bodies leave the audit DTO.
+        files = [directory / name for name in connections]
+        files.extend(
+            directory / "ast_cache" / f"{document_id}.{ast_hash}.ast.json"
+            for document_id, ast_hash in sorted(plan_keys)
+        )
+        content_fingerprints = [
+            (str(file.relative_to(directory)), sha256(file.read_bytes()).hexdigest())
+            for file in sorted(files)
+        ]
+        summary = json.dumps(
+            {"generations": digests, "files": content_fingerprints},
+            sort_keys=True, separators=(",", ":"),
+        )
         return FrozenBundleAudit(
             bundle_sha256=sha256(summary.encode("utf-8")).hexdigest(),
             generation_count=len(plans), pending_generations=pending,
