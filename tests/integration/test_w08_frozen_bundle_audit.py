@@ -6,8 +6,8 @@ import sqlite3
 
 import pytest
 
-from core.ast.enums import ContentNodeType
-from core.ast.models import ASTNode, ParagraphPayload
+from core.ast.enums import ContentNodeType, HeadingLevel
+from core.ast.models import ASTNode, HeadingPayload, ParagraphPayload
 from core.ast.hashing import compute_ast_hash
 from core.chunking.contextual_plan import prepare_contextual_plan
 from core.execution.exceptions import PipelineIntegrityError
@@ -38,11 +38,18 @@ def frozen(tmp_path):
     with (closing(_db(tmp_path / "queue.db", "schema_queue.sql")) as queue,
           closing(_db(tmp_path / "fsm.db", "schema_fsm.sql")) as fsm,
           closing(_db(tmp_path / "materialized.db", "schema_materialized.sql"))):
-        ast = [ASTNode(
-            node_id="p1", sequence_id=1,
-            node_type=ContentNodeType.PARAGRAPH,
-            payload=ParagraphPayload(content="Scientific content."),
-        )]
+        ast = [
+            ASTNode(
+                node_id="h1", sequence_id=1,
+                node_type=ContentNodeType.HEADING,
+                payload=HeadingPayload(content="Methods", heading_level=HeadingLevel.H1),
+            ),
+            ASTNode(
+                node_id="p1", sequence_id=2,
+                node_type=ContentNodeType.PARAGRAPH,
+                payload=ParagraphPayload(content="Scientific content."),
+            ),
+        ]
         prepared = prepare_contextual_plan(
             document_id=_DOC, raw_ast=ast, estimator=_Estimator(),
         )
