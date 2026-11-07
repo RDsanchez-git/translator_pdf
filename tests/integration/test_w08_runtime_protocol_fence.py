@@ -181,6 +181,25 @@ def test_w08_old_writer_cannot_edit_operator_record(tmp_path):
         ).fetchone() == ("reviewer",)
 
 
+@pytest.mark.parametrize("invalid", [None, "", "w08-incompatible-v0"])
+def test_w08_invalid_protocol_function_cannot_write(tmp_path, invalid):
+    path = _setup(tmp_path)
+    with closing(_queue(path, current=True)) as current:
+        _activate(current)
+    with closing(_queue(path)) as incompatible:
+        incompatible.create_function("w08_runtime_protocol", 0, lambda: invalid)
+        with pytest.raises(sqlite3.IntegrityError, match="W08_RUNTIME_PROTOCOL_INCOMPATIBLE"):
+            incompatible.execute(
+                "INSERT INTO chunk_tasks "
+                "(task_id,document_id,ast_hash,node_id,created_at,updated_at) "
+                "VALUES ('new','doc','hash','chunk',1,1)"
+            )
+        incompatible.rollback()
+        assert incompatible.execute(
+            "SELECT COUNT(*) FROM chunk_tasks WHERE task_id='new'"
+        ).fetchone() == (0,)
+
+
 def test_w08_activation_requires_current_runtime_capability(tmp_path):
     path = _setup(tmp_path)
     with closing(_queue(path)) as legacy:
