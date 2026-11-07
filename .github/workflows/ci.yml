@@ -136,6 +136,12 @@ jobs:
         run: |
           pip install -e ".[dev]"
 
+      # B03 uses loopback HTTP and temporary SQLite, so these are not pure unit tests.
+      # This step runs without Docker containers, model credentials, or real PDF corpus.
+      - name: Verify B03 offline fake and lab contracts (no Docker / LLM)
+        run: |
+          python -m pytest tests/unit/test_b031_g3_reusable_fake.py tests/unit/test_b032_offline_pdf_lab.py -q -ra
+
       - name: Run integration tests (pytest marker, excluding regression)
         run: |
           python -m pytest -m "integration and not regression" -v --tb=short --no-header
