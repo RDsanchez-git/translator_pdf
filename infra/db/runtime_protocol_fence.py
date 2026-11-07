@@ -120,7 +120,7 @@ def activate_runtime_protocol_fence(
         )
         if inventory.processing_count:
             raise PipelineIntegrityError("W08_RUNTIME_PROTOCOL_ACTIVE_CLAIMS")
-        if inventory.active_leases:
+        if inventory.active_leases or inventory.active_task_leases:
             raise PipelineIntegrityError("W08_RUNTIME_PROTOCOL_ACTIVE_LEASES")
 
         # No schema auto-upgrade/migration of existing plans or receipts.
