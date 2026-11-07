@@ -94,7 +94,11 @@ def test_w08_rejects_legacy_manifest_without_snapshots(tmp_path):
         plain.enqueue_chunk_plan(plan, ast)
         with pytest.raises(ValueError, match="W08_CONTEXT_LEGACY_PLAN_WITHOUT_SNAPSHOTS"):
             DurableContextPlanRepository(plain).enqueue_verified(plan, ast)
-        assert conn.execute("SELECT COUNT(*) FROM g3_context_snapshots").fetchone()[0] == 0
+        # The migration DDL is rolled back too: no phantom snapshot table.
+        assert conn.execute(
+            "SELECT COUNT(*) FROM sqlite_master WHERE type='table' "
+            "AND name='g3_context_snapshots'"
+        ).fetchone()[0] == 0
         assert conn.execute("SELECT COUNT(*) FROM chunk_tasks").fetchone()[0] == len(plan.units)
 
 
