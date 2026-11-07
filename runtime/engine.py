@@ -17,6 +17,7 @@ from core.execution.state import (
     DocumentState, TERMINAL_STATES
 )
 from infra.db.control_repo import ControlPlaneRepository
+from infra.db.runtime_protocol_fence import verify_runtime_protocol
 from core.utils.telemetry import (
     setup_distributed_logger, 
     ctx_execution_id, ctx_worker_id, ctx_task_id, ctx_node_id
@@ -111,6 +112,13 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
     for conn in (fsm_conn, queue_conn):
         conn.execute("PRAGMA busy_timeout=30000")
 
+    # Reject incompatible runtime before even reading AST or choosing work.
+    try:
+        verify_runtime_protocol(queue_conn)
+    except BaseException:
+        fsm_conn.close()
+        queue_conn.close()
+        raise
     fsm_repo = FSMRepository(fsm_conn)
     task_repo = ControlPlaneRepository(queue_conn)
     ast_registry = ASTRegistry()
@@ -366,6 +374,7 @@ if __name__ == "__main__":
         queue_conn = None
         try:
             queue_conn = get_connection(QUEUE_DB_PATH, timeout=30)
+            verify_runtime_protocol(queue_conn)
             task_repo = ControlPlaneRepository(queue_conn)
             candidates = task_repo.find_documents_with_pending_chunks(sample_size=10)
             recovery = task_repo.find_documents_ready_for_g3_recovery(sample_size=10)
