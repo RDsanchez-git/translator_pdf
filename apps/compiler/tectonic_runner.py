@@ -18,6 +18,11 @@ import shutil
 import os
 import logging
 import re
+from pathlib import Path
+from typing import Sequence
+
+from core.compiler.rendering.models import AssetReference
+from core.compiler.rendering.image_assets import stage_image_assets
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +36,10 @@ class HostTectonicRunner:
     NADR-09 §5.2 R7: No emite comandos FSM. No muta entidades del dominio.
     """
 
-    def compile(self, tex_content: str, output_dir: str, output_filename: str = "output.pdf") -> str:
+    def compile(
+        self, tex_content: str, output_dir: str, output_filename: str = "output.pdf",
+        *, image_assets: Sequence[AssetReference] = (),
+    ) -> str:
         """
         Compila TeX a PDF en espacio efímero aislado.
 
@@ -64,6 +72,14 @@ class HostTectonicRunner:
         # NADR-09 §5.2 R6: Todo el trabajo ocurre en espacio efímero
         with tempfile.TemporaryDirectory() as tmp:
             tex_path = os.path.join(tmp, "doc.tex")
+
+            # Stage verified content-addressed assets in Tectonic's private cwd.
+            # The rendered TeX contains only controlled assets/<sha256>.png paths.
+            stage_image_assets(
+                image_assets,
+                source_root=Path(os.getenv("APP_ROOT") or "."),
+                execution_dir=Path(tmp),
+            )
 
             with open(tex_path, "w", encoding="utf-8") as f:
                 f.write(tex_content)

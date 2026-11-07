@@ -1,5 +1,6 @@
 import time
 import sqlite3
+from hashlib import sha256
 from typing import List
 from core.execution.ports import MaterializedPlanePort, ProjectionRecord, ProjectionStatus, ProjectionState
 
@@ -42,18 +43,29 @@ class MaterializedPlaneRepository(MaterializedPlanePort):
         self.conn.commit()
 
     def get_assemblable_chunks(self, document_id: str, ast_hash: str, expected_node_ids: List[str], required_projection_v: int) -> List[ProjectionRecord]:
+        if not expected_node_ids:
+            return []
         placeholders = ",".join("?" * len(expected_node_ids))
         query = f"""
-            SELECT node_id, normalized_response, projection_version 
-            FROM valid_chunks_cache 
+            SELECT node_id, normalized_response, projection_version, normalized_hash
+            FROM valid_chunks_cache
             WHERE document_id = ? AND ast_hash = ? AND projection_version = ?
               AND node_id IN ({placeholders})
         """
         params = [document_id, ast_hash, required_projection_v] + expected_node_ids
-        cursor = self.conn.execute(query, params)
-        
-        # SOTA: Emite DTOs. El orquestador ya no manipula tuplas.
-        return [
-            ProjectionRecord(node_id=row[0], normalized_response=row[1], projection_version=row[2])
-            for row in cursor.fetchall()
-        ]
+        rows = self.conn.execute(query, params).fetchall()
+        result: list[ProjectionRecord] = []
+        for node_id, normalized_text, version, stored_hash in rows:
+            # The B4/3b barrier protects the FSM transition, not a later DB edit.
+            # Validate the exact bytes the compiler will consume, before handing
+            # any ProjectionRecord to the assembly resolver.
+            if not isinstance(normalized_text, str) or not isinstance(stored_hash, str):
+                raise ValueError("G3_B4_4_INVALID_PROJECTION: " + str(node_id))
+            actual_hash = sha256(normalized_text.encode("utf-8")).hexdigest()
+            if stored_hash != actual_hash:
+                raise ValueError("G3_B4_4_PROJECTION_HASH_DRIFT: " + str(node_id))
+            result.append(ProjectionRecord(
+                node_id=node_id, normalized_response=normalized_text,
+                projection_version=version,
+            ))
+        return result

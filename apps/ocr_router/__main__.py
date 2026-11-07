@@ -19,6 +19,7 @@ from core.ast.hashing import compute_ast_hash
 
 from core.pipeline.orchestrator import ParserProtocol
 from core.chunking.semantic_chunking import build_semantic_chunks_as_units
+from core.chunking.manifest_contract import ChunkPlan
 from core.validation.estimators import ExactBPEEstimator
 from core.document_profile.models import ProfileInput
 from core.document_profile.profiler import HeuristicDocumentProfiler
@@ -27,7 +28,7 @@ from apps.bootstrap.pipeline_factory import build_document_profiler
 
 # 1. Importaciones actualizadas
 from core.document_profile.ports import ProfileStore
-from infra.db.profile_store import InMemoryProfileStore
+from infra.db.profile_store import SQLiteProfileStore
 
 setup_distributed_logger()
 logger = logging.getLogger("ocr_router")
@@ -81,20 +82,21 @@ class OCRRouterDaemon:
             
         logger.info("Validando estado previo de ingesta...", extra={"extra_data": {"doc_id": document_id[:8]}})
         
-        # SOTA: Cortocircuito defensivo en el segundo cero.
-        # Verifica duplicados por ID documental antes de instanciar los modelos de Marker.
+        # Consultar la FSM dentro del manejo de errores: ante fallo del sondeo,
+        # nunca realizar una segunda ingesta a ciegas.
         try:
-            # Reutilizamos un método genérico o directo para leer registros existentes por ID
-            is_active_or_completed = self.fsm.is_document_already_processed(document_id)
-            if is_active_or_completed:
-                logger.warning(f"Cortocircuito Activo: Documento {document_id[:8]} ya procesado o en cola activa. Evitando Marker.")
-                # Mover de inmediato al archivo con prefijo de duplicado sin gastar CPU
-                shutil.move(str(pdf_path), str(self.archive_dir / f"DUP_SHORT_{document_id[:8]}_{pdf_path.name}"))
-                return
-        except Exception as db_err:
-            logger.error(f"Error consultando cortocircuito en FSM: {db_err}. Continuando por vía lenta de seguridad.")
+            previous = self.fsm.get_by_document_id(document_id)
+            if previous is not None:
+                if previous.current_state in (DocumentState.CREATED.value, DocumentState.PARSING.value):
+                    logger.warning("G3_B4_2_PARTIAL_INGEST_REPLAY: %s (%s)",
+                                   document_id[:8], previous.current_state)
+                elif previous.current_state in ("FAILED_FATAL", "FAILED_RETRYABLE"):
+                    raise ValueError("G3_B4_2_FAILED_GENERATION_REQUIRES_OPERATOR")
+                else:
+                    logger.warning("Documento %s ya activo o terminado; OCR omitido", document_id[:8])
+                    shutil.move(str(pdf_path), str(self.archive_dir / f"DUP_SHORT_{document_id[:8]}_{pdf_path.name}"))
+                    return
 
-        try:
             raw_ast = self.parser.parse(str(pdf_path))
             
             # SOTA Hito 3B: Inferencia y persistencia asíncrona temporal
@@ -107,13 +109,10 @@ class OCRRouterDaemon:
                 f"Layout={profiling_result.profile.layout}, "
                 f"Tipo={profiling_result.profile.document_type}"
             )
-            # NOTA DE INTEGRACIÓN: Como el Router no maneja SQLiteDocumentRepository,
-            # el 'profiling_result.profile' debe guardarse junto al AST o pasarse 
-            # como metadata a self.ast_registry.register_ast(...) para que el 
-            # Assembler lo consuma aguas abajo.
-            # =================================================================
             
             ast_hash = compute_ast_hash(raw_ast)
+            if previous is not None and previous.ast_hash != ast_hash:
+                raise ValueError("G3_B4_2_GENERATION_DRIFT")
             
             # Instanciación de la estrategia de empaquetado semántico por tokens
             estimator = ExactBPEEstimator()
@@ -121,35 +120,35 @@ class OCRRouterDaemon:
             # SOTA FIX: Desempaquetado estricto de la tupla (Unidades, Telemetría)
             translation_units, chunking_report = build_semantic_chunks_as_units(raw_ast, estimator)
             
-            # Iteración O(N) directa sobre la colección materializada List[TranslationUnit]
-            ordered_chunk_ids = [u.chunk_id for u in translation_units]
-            
-            # 2. Persistencia del AST Base estructural
-            self.ast_registry.register_ast(document_id, ast_hash, raw_ast)
+            # El plan valida cobertura, orden y linaje antes de escribir cualquier tarea.
+            plan = ChunkPlan.build(document_id, ast_hash, raw_ast, translation_units)
+            ordered_chunk_ids = [u.chunk_id for u in plan.units]
 
+            # AST canónico persistido exactamente una vez.
             self.ast_registry.register_ast(document_id, ast_hash, raw_ast)
             
-            # 3. Control de Idempotencia de Reingesta via DTO
+            # FSM y cola son commits locales separados: recuperar CREATED/PARSING
+            # sin fingir una transacción entre bases SQLite.
             self.fsm.initialize_document(document_id, ast_hash)
             status = self.fsm.get_status(document_id, ast_hash)
-            
-            if status and status.current_state == DocumentState.PROCESSING.value:
-                logger.warning(f"Documento {document_id[:8]} ya se encuentra en procesamiento activo. Saltando transiciones.")
+            if status is None:
+                raise ValueError("G3_B4_2_FSM_INITIALIZATION_MISSING")
+            if status.current_state == DocumentState.PROCESSING.value:
+                logger.warning("Documento %s ya en PROCESSING; no encolar otra vez", document_id[:8])
                 shutil.move(str(pdf_path), str(self.archive_dir / f"DUP_{document_id[:8]}_{pdf_path.name}"))
                 return
+            if status.current_state == DocumentState.CREATED.value:
+                cmd_parse = StartParsingCommand(
+                    document_id, ast_hash, self.owner_id, status.state_version
+                )
+                self.cmd_handler.handle(cmd_parse)
+            elif status.current_state == DocumentState.PARSING.value:
+                logger.warning("G3_B4_2_RESUME_PARSING: %s", document_id[:8])
+            else:
+                raise ValueError("G3_B4_2_UNSUPPORTED_FSM_STATE: " + status.current_state)
 
-            # 4. Coreografía CQRS gobernada por CAS Duro sin Lease Documental
-            status = self.fsm.get_status(document_id, ast_hash)
-            if not status:
-                raise ValueError("Fallo crítico al recuperar el DTO de inicialización en la FSM.")
-                
-            current_version = status.state_version
-            
-            cmd_parse = StartParsingCommand(document_id, ast_hash, self.owner_id, current_version)
-            current_version = self.cmd_handler.handle(cmd_parse)
-            
-            # Inyección atómica masiva de identificadores únicos deterministas en queue.db
-            self.task_repo.enqueue_tasks(document_id, ast_hash, ordered_chunk_ids)
+            # B2: manifiesto + tareas LLM atómicos en queue.db; retry idéntico no-op.
+            self.task_repo.enqueue_chunk_plan(plan, raw_ast)
             
             # Hot-fetch: Sincronización estricta de versión pre-comando de procesamiento
             status = self.fsm.get_status(document_id, ast_hash)
@@ -207,7 +206,8 @@ if __name__ == "__main__":
     
     # SOTA: Inyección de Profiler y Store
     profiler = build_document_profiler()
-    profile_store = InMemoryProfileStore()
+    profile_conn = get_connection("infra/db/documents.db", timeout=30)
+    profile_store = SQLiteProfileStore(profile_conn)
     
     fsm_repo = FSMRepository(fsm_conn)
     task_repo = ControlPlaneRepository(queue_conn)

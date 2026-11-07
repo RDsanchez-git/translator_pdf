@@ -17,3 +17,14 @@ CREATE TABLE IF NOT EXISTS processed_reconciliation_commands (
     reconciliation_id TEXT PRIMARY KEY,
     processed_at REAL NOT NULL
 );
+
+-- G3-B3/3a: durable attestation of fully materialized chunk plans.
+CREATE TABLE IF NOT EXISTS g3_plan_publications (
+    document_id TEXT NOT NULL,
+    ast_hash TEXT NOT NULL,
+    manifest_sha256 TEXT NOT NULL CHECK(length(manifest_sha256) = 64),
+    result_sha256 TEXT NOT NULL CHECK(length(result_sha256) = 64),
+    projection_version INTEGER NOT NULL CHECK(projection_version > 0),
+    created_at REAL NOT NULL,
+    PRIMARY KEY (document_id, ast_hash)
+);

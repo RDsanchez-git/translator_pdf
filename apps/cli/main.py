@@ -177,7 +177,62 @@ async def handle_translate_async(args):
             pass
 
 def handle_translate(args):
-    asyncio.run(handle_translate_async(args))
+    # D-1: la CLI admite una solicitud. No ejecuta R1 ni llama al LLM.
+    from apps.cli.pdf_inbox import PDFInboxSubmissionError, submit_pdf_to_inbox
+
+    if args.job_id is not None:
+        console.print(
+            "[bold red]PDF_INBOX_JOB_ID_UNSUPPORTED:[/] "
+            "El contrato canónico identifica el PDF por SHA-256 de sus bytes; "
+            "--job-id no puede cambiar document_id."
+        )
+        raise SystemExit(2)
+
+    repo_root = Path(__file__).resolve().parents[2]
+    if getattr(args, "run", False) and os.getenv("APP_ROOT"):
+        # Foreground uses the runtime workspace (/app in the offline lab),
+        # while Python sources may live in a read-only checkout (/workspace).
+        # Admission-only CLI preserves its original repository-root behavior.
+        repo_root = Path(os.environ["APP_ROOT"]).expanduser().resolve()
+    inbox = (Path(args.inbox_dir).expanduser() if args.inbox_dir
+             else repo_root / "data" / "inbox")
+    if getattr(args, "run", False):
+        # Foreground is opt-in: default translate remains admission-only.
+        from apps.cli.pdf_product import PDFProductError, preflight_product_run
+        try:
+            preflight_product_run(repo_root, inbox)
+        except PDFProductError as exc:
+            console.print(f"[bold red]PDF_RUN_PREFLIGHT_FAILED:[/] {exc}")
+            raise SystemExit(2) from exc
+    try:
+        receipt = submit_pdf_to_inbox(Path(args.file_path), inbox)
+    except (PDFInboxSubmissionError, OSError) as exc:
+        console.print(f"[bold red]PDF_INBOX_ADMISSION_FAILED:[/] {exc}")
+        raise SystemExit(2) from exc
+
+    state = "YA PRESENTE EN INBOX" if receipt.already_present else "ENVIADO AL INBOX"
+    console.print(Panel(
+        f"[bold green]{state}[/]\n"
+        f"[bold white]document_id (SHA-256):[/] {receipt.document_id}\n"
+        f"[bold white]Archivo de ingesta:[/] {receipt.inbox_path}\n\n"
+        "[yellow]Esto NO confirma OCR, inferencia, ensamblado ni PDF final. "
+        "La progresión corresponde a OCR→G3→G5.[/]",
+        title="Admisión PDF→PDF — contrato único",
+    ))
+    if getattr(args, "run", False):
+        from apps.cli.pdf_product import PDFProductError, run_admitted_pdf
+        try:
+            result = run_admitted_pdf(receipt, repo_root)
+        except PDFProductError as exc:
+            console.print(f"[bold red]PDF_RUN_FAILED:[/] {exc}")
+            raise SystemExit(1) from exc
+        console.print(Panel(
+            f"[bold green]PDF PUBLICADO (FSM COMPLETED)[/]\n"
+            f"[bold white]Ruta:[/] {result.output_pdf}\n"
+            "[yellow]Calidad científica: NO CERTIFICADA. "
+            "Las ecuaciones visuales requieren investigación adicional.[/]",
+            title="PDF→PDF — resultado operacional",
+        ))
 
 def handle_resume(args):
     from runtime.resumer import OnDemandResumeManager
@@ -210,9 +265,22 @@ def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="SOTA PDF Translator CLI")
     subparsers = parser.add_subparsers(dest="command", required=True, help="Comandos operacionales:")
     
-    t_parser = subparsers.add_parser("translate", help="Ejecuta el pipeline completo de traducción.")
+    t_parser = subparsers.add_parser(
+        "translate", help="Admite un PDF en el recorrido OCR→G3→G5 (no espera salida)."
+    )
     t_parser.add_argument("file_path", type=str, help="Ruta física al archivo PDF de entrada.")
-    t_parser.add_argument("--job-id", type=str, default=None, help="Fuerza un ID único de ejecución.")
+    t_parser.add_argument(
+        "--job-id", type=str, default=None,
+        help="Obsoleto: se rechaza; document_id es SHA-256 de los bytes del PDF.",
+    )
+    t_parser.add_argument(
+        "--inbox-dir", type=str, default=None,
+        help="Directorio de inbox compartido con OCR Router (por defecto data/inbox).",
+    )
+    t_parser.add_argument(
+        "--run", action="store_true", default=False,
+        help="Ejecuta OCR→G3→G5 en primer plano; usa LLM si los chunks lo requieren.",
+    )
     t_parser.set_defaults(func=handle_translate)
     
     sw_parser = subparsers.add_parser("sweep", help="Ejecuta un barrido manual de procesos zombies en la FSM.")

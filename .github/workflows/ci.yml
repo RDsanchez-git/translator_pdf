@@ -4,7 +4,7 @@ on:
   push:
     branches: [main, develop]
   pull_request:
-    branches: [main]
+    branches: [main, pipeline_stabilization]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -119,7 +119,10 @@ jobs:
   integration-tests:
     name: Integration Test Suite
     runs-on: ubuntu-latest
-    needs: [regression-gates, unit-tests]
+    # CV es informativa durante Fase 6 (ENFORCEMENT_CONTRACT §3).
+    # La suite de integracion sigue dependiendo de unit-tests (y, por transitividad,
+    # de static-analysis), pero no del veredicto cientifico/regression-gates.
+    needs: [unit-tests]
     steps:
       - uses: actions/checkout@v4
 
@@ -132,6 +135,24 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -e ".[dev]"
+
+      # B03 uses loopback HTTP and temporary SQLite, so these are not pure unit tests.
+      # This step runs without Docker containers, model credentials, or real PDF corpus.
+      - name: Verify B03 offline fake and lab contracts (no Docker / LLM)
+        run: |
+          python -m pytest tests/unit/test_b031_g3_reusable_fake.py tests/unit/test_b032_offline_pdf_lab.py -q -ra
+
+      # W06/G3 tests use disposable SQLite and fake providers, not real egress.
+      # They have no pytest "integration" marker, so run them explicitly.
+      - name: Verify W06-R1 uncertain-effect recovery offline (no Docker / LLM)
+        run: |
+          python -m pytest \
+            tests/integration/test_w06_g3_uncertain_effect_offline.py \
+            tests/integration/test_g3_b4_9_reconciler_fencing.py \
+            tests/integration/test_g3_b4_8_preserve_engine.py \
+            tests/integration/test_g3_b4_3a_engine_staging.py \
+            tests/integration/test_g3_b4_3b_publication_recovery.py \
+            -q -ra
 
       - name: Run integration tests (pytest marker, excluding regression)
         run: |
