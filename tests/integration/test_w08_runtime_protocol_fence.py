@@ -155,12 +155,52 @@ def test_w08_fence_activation_is_idempotent_and_audited(tmp_path):
         assert conn.execute(
             "SELECT COUNT(*) FROM sqlite_master WHERE type='trigger' "
             "AND name LIKE 'g3_w08_fence_%'"
-        ).fetchone() == (12,)
+        ).fetchone() == (15,)
         with pytest.raises(PipelineIntegrityError, match="ACTIVATION_CONFLICT"):
             _activate(conn, ticket="W08-DIFFERENT")
         assert conn.execute(
             "SELECT operator_id,change_ticket FROM g3_runtime_protocol_fence"
         ).fetchone() == ("reviewer", "W08-CHANGE-001")
+
+
+def test_w08_old_writer_cannot_edit_operator_record(tmp_path):
+    path = _setup(tmp_path)
+    with closing(_queue(path, current=True)) as current:
+        _activate(current)
+    with closing(_queue(path)) as old:
+        with pytest.raises(sqlite3.OperationalError, match="no such function"):
+            old.execute(
+                "UPDATE g3_runtime_protocol_fence SET operator_id='forged' "
+                "WHERE slot=1"
+            )
+        old.rollback()
+    with closing(_queue(path, current=True)) as reopened:
+        verify_runtime_protocol(reopened)
+        assert reopened.execute(
+            "SELECT operator_id FROM g3_runtime_protocol_fence WHERE slot=1"
+        ).fetchone() == ("reviewer",)
+
+
+def test_w08_activation_requires_current_runtime_capability(tmp_path):
+    path = _setup(tmp_path)
+    with closing(_queue(path)) as legacy:
+        with pytest.raises(PipelineIntegrityError, match="NOT_REGISTERED"):
+            _activate(legacy)
+        assert legacy.execute(
+            "SELECT 1 FROM sqlite_master WHERE name='g3_runtime_protocol_fence'"
+        ).fetchone() is None
+
+
+def test_w08_missing_trigger_blocks_current_runtime_startup(tmp_path):
+    path = _setup(tmp_path)
+    with closing(_queue(path, current=True)) as current:
+        _activate(current)
+        # DDL-capable actors can defeat the fence; the *new* runtime must at
+        # least notice tampering and fail closed rather than silently proceed.
+        current.execute("DROP TRIGGER g3_w08_fence_chunk_tasks_insert")
+        current.commit()
+        with pytest.raises(PipelineIntegrityError, match="TRIGGERS_INCOMPLETE"):
+            verify_runtime_protocol(current)
 
 
 def test_w08_new_connection_factory_registers_capability(tmp_path, monkeypatch):
