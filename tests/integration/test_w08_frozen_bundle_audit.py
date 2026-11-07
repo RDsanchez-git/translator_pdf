@@ -147,6 +147,55 @@ def test_frozen_bundle_rejects_modified_ast_semantics(frozen):
         audit_frozen_bundle(path)
 
 
+def test_frozen_bundle_rejects_orphan_receipt(frozen):
+    path, _ = frozen
+    with closing(sqlite3.connect(path / "queue.db")) as conn:
+        conn.execute(
+            "INSERT INTO chunk_tasks "
+            "(task_id,document_id,ast_hash,node_id,created_at,updated_at) "
+            "VALUES ('orphan-task','other','hash','unit',1,1)"
+        )
+        conn.execute(
+            "INSERT INTO chunk_result_receipts "
+            "(document_id,ast_hash,chunk_id,task_id,execution_id,created_at) "
+            "VALUES ('other','hash','chunk','orphan-task','execution',1)"
+        )
+        conn.commit()
+        # Remove the orphan task to ensure the receipt alone is rejected.
+        # FK constraints are not enabled in this isolated corruption witness.
+        conn.execute("DELETE FROM chunk_tasks WHERE task_id='orphan-task'")
+        conn.commit()
+    with pytest.raises(PipelineIntegrityError, match="ORPHAN_DURABLE_EVIDENCE"):
+        audit_frozen_bundle(path)
+
+
+def test_frozen_bundle_rejects_orphan_publication(frozen):
+    path, _ = frozen
+    with closing(sqlite3.connect(path / "materialized.db")) as conn:
+        conn.execute(
+            "INSERT INTO g3_plan_publications "
+            "(document_id,ast_hash,manifest_sha256,result_sha256,"
+            "projection_version,created_at) VALUES ('other','hash',?,?,1,1)",
+            ("a" * 64, "b" * 64),
+        )
+        conn.commit()
+    with pytest.raises(PipelineIntegrityError, match="ORPHAN_DURABLE_EVIDENCE"):
+        audit_frozen_bundle(path)
+
+
+def test_frozen_bundle_rejects_context_snapshot_identity_tampering(frozen):
+    path, plan = frozen
+    with closing(sqlite3.connect(path / "queue.db")) as conn:
+        conn.execute(
+            "UPDATE g3_context_snapshots SET manifest_sha256=? "
+            "WHERE document_id=? AND ast_hash=?",
+            ("f" * 64, _DOC, plan.ast_hash),
+        )
+        conn.commit()
+    with pytest.raises(PipelineIntegrityError, match="CONTEXT_SNAPSHOT_DRIFT"):
+        audit_frozen_bundle(path)
+
+
 def test_frozen_bundle_does_not_create_new_files(frozen):
     path, _ = frozen
     before = {x.relative_to(path): x.read_bytes() for x in path.rglob("*") if x.is_file()}
