@@ -139,7 +139,7 @@ def activate_runtime_protocol_fence(
                 conn.execute(
                     f"CREATE TRIGGER IF NOT EXISTS {name} "
                     f"BEFORE {action} ON {table} BEGIN "
-                    f"SELECT CASE WHEN {_FUNCTION_NAME}() != '{_PROTOCOL}' "
+                    f"SELECT CASE WHEN {_FUNCTION_NAME}() IS NOT '{_PROTOCOL}' "
                     "THEN RAISE(ABORT, 'W08_RUNTIME_PROTOCOL_INCOMPATIBLE') END; "
                     "END"
                 )
