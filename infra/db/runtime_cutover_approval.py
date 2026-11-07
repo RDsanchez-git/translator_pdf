@@ -57,6 +57,7 @@ class QueueCutoverInventory:
     staged_count: int
     completed_count: int
     active_leases: int
+    active_task_leases: int
 
 
 def _rows(conn: sqlite3.Connection, query: str) -> list[tuple[object, ...]]:
@@ -121,6 +122,11 @@ def inventory_in_transaction(
         and row[2] is not None and float(row[2]) >= time_now
         for row in lease_rows
     )
+    active_task_leases = sum(
+        isinstance(row[8], str) and bool(row[8])
+        and row[9] is not None and float(row[9]) >= time_now
+        for row in task_rows
+    )
     fingerprint = sha256(_canonical({
         "schema_version": 1,
         "queue_path_sha256": path_sha,
@@ -140,6 +146,7 @@ def inventory_in_transaction(
         staged_count=states.count("RESULT_STAGED"),
         completed_count=states.count("COMPLETED"),
         active_leases=active_leases,
+        active_task_leases=active_task_leases,
     )
 
 
