@@ -181,6 +181,11 @@ jobs:
             tests/integration/test_w08_signed_cutover_approval.py \
             -q -ra
 
+      # W08-2d: read-only verification of already frozen SQLite and AST copies.
+      - name: Verify W08-2d frozen multi-plane bundle offline
+        run: |
+          python -m pytest tests/integration/test_w08_frozen_bundle_audit.py -q -ra
+
       - name: Run integration tests (pytest marker, excluding regression)
         run: |
           python -m pytest -m "integration and not regression" -v --tb=short --no-header
