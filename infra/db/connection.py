@@ -98,6 +98,11 @@ def get_connection(db_path: str, timeout: int = 15) -> sqlite3.Connection:
     # Determinismo Estricto: Validación por nombre de archivo base
     target_queue_name = Path(_to_absolute_path("QUEUE_DB_PATH", "infra/db/queue.db")).name
     if Path(abs_db_path).name == target_queue_name:
+        # W08-2d: only current runtime versions know this optional protocol.
+        # Legacy SQLite clients cannot satisfy the guarded queue triggers once
+        # the operator enables the fence. No DB state is mutated here.
+        from infra.db.runtime_protocol_fence import bind_runtime_protocol
+        bind_runtime_protocol(conn)
         _attach_fsm_database(conn)
 
     return conn
