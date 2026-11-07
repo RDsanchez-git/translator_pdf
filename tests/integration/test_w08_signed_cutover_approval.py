@@ -172,6 +172,25 @@ def test_w08_approval_invalid_signature_rolls_back_completely(tmp_path):
         ).fetchone() is None
 
 
+def test_w08_activation_records_signature_and_inventory_lineage(tmp_path):
+    import time
+    with closing(_db(tmp_path)) as conn:
+        inventory = inspect_queue_cutover(conn)
+        signed = issue_cutover_approval(
+            inventory, operator_id="operator-1", change_ticket="ticket",
+            signing_secret=_SECRET, issued_at=int(time.time()),
+        )
+        _activate(conn, signed)
+        record = conn.execute(
+            "SELECT inventory_sha256,approval_hmac_sha256,approval_nonce,"
+            "approval_expires_at FROM g3_runtime_protocol_fence WHERE slot=1"
+        ).fetchone()
+        assert record == (
+            inventory.inventory_sha256, signed.hmac_sha256,
+            signed.nonce, signed.expires_at,
+        )
+
+
 def test_w08_approval_expires_before_activation(tmp_path):
     with closing(_db(tmp_path)) as conn:
         signed = _approve(conn, ts=1_000_000)
