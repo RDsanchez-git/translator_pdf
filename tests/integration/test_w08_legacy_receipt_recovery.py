@@ -240,6 +240,25 @@ def test_legacy_rejects_mismatched_fsm_state(legacy):
     assert set(_states(legacy)) == {"RESULT_STAGED"}
 
 
+def test_legacy_rejects_wrong_semantic_ast_generation_before_any_publication(legacy):
+    _stage_all(legacy)
+    altered = [
+        legacy.ast[0],
+        legacy.ast[1].model_copy(
+            update={"payload": ParagraphPayload(content="Different paragraph.")}
+        ),
+    ]
+    with pytest.raises(
+        PipelineIntegrityError, match="W08_LEGACY_RECOVERY_AST_GENERATION_MISMATCH",
+    ):
+        recover_legacy_staged_document(
+            legacy.repo, legacy.m, legacy.fsm,
+            legacy.plan.document_id, legacy.plan.ast_hash, altered,
+            approved_by_operator=True, owner_id="operator_w08",
+        )
+    assert legacy.m.execute("SELECT COUNT(*) FROM valid_chunks_cache").fetchone()[0] == 0
+
+
 def test_legacy_rejects_snapshot_deletion_from_modern_ast(legacy):
     _stage_all(legacy)
     enriched_ast = [
