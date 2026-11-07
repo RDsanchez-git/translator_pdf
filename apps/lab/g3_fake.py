@@ -22,6 +22,7 @@ from pathlib import Path
 import re
 import sqlite3
 import threading
+from typing import NoReturn, cast
 
 DUMMY_KEY = "translator-pdf-g3-offline-fake-only"
 PATH = "/openai/v1/chat/completions"
@@ -36,7 +37,7 @@ class FakeContractError(ValueError):
     """Safe error category; never include input text or tokens in responses."""
 
 
-def _fail(reason: str):
+def _fail(reason: str) -> NoReturn:
     raise FakeContractError(reason)
 
 
@@ -191,7 +192,7 @@ class _Handler(BaseHTTPRequestHandler):
     server_version = "G3ReusableOfflineFake/1.0"
     sys_version = ""
 
-    def log_message(self, *_):
+    def log_message(self, format: str, *args: object) -> None:
         pass  # Do not leak prompts, filenames or authorization values.
 
     def _send(self, code: int, payload: dict):
@@ -213,7 +214,8 @@ class _Handler(BaseHTTPRequestHandler):
             self._send(404, {"error": "unknown_route"})
 
     def do_POST(self):
-        server = self.server
+        # _Handler is installed by FakeServer.__init__; BaseServer lacks these fields.
+        server = cast(FakeServer, self.server)
         with server.lock:
             server.requests += 1
             permitted = server.requests <= server.max_requests
