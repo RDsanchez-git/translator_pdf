@@ -12,6 +12,7 @@ from core.utils.telemetry import setup_distributed_logger
 from infra.db.connection import get_connection
 from infra.db.fsm_repository import FSMRepository
 from infra.db.control_repo import ControlPlaneRepository
+from infra.db.runtime_protocol_fence import verify_runtime_protocol
 from core.execution.handlers import DocumentCommandHandler
 from core.execution.state import StartParsingCommand, StartProcessingCommand, DocumentState
 from core.ast.registry import ASTRegistry
@@ -73,6 +74,8 @@ class OCRRouterDaemon:
                 time.sleep(10.0)
 
     def _process_document(self, pdf_path: Path):
+        # Fail before parsing/archiving/intake if the persistent protocol differs.
+        verify_runtime_protocol(self.task_repo.conn)
         start_time = time.perf_counter()
         document_id = None
         ast_hash = None
