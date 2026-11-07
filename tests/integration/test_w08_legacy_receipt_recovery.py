@@ -106,9 +106,11 @@ def legacy(tmp_path):
 
 
 def _stage_all(d):
-    for unit in d.plan.units:
+    by_chunk = {unit.chunk_id: unit for unit in d.plan.units}
+    for _ in d.plan.units:
         lease = d.repo.pick_task("worker", d.plan.document_id, d.plan.ast_hash)
-        assert lease is not None and lease.node_id == unit.chunk_id
+        assert lease is not None and lease.node_id in by_chunk
+        unit = by_chunk[lease.node_id]
         d.repo.stage_chunk_result(
             d.plan, d.ast, chunk_id=unit.chunk_id, task_id=lease.task_id,
             worker_id="worker", execution_id=lease.execution_id,
