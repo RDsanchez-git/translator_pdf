@@ -90,6 +90,9 @@ def _create_chunk_processor(context_snapshots: Mapping[str, ContextSnapshotV1]):
             rpm_limit=rpm_limit,
             tpm_limit=tpm_limit,
             rate_limit_store=quota_store,
+            # W08-3: G3 must not read legacy prompt_hash-only cache rows.
+            # Re-enable only after full inference reuse identity is verified.
+            cache_db_path=None,
         ))
         processor = SyncProviderBridge(
             async_provider=provider_stack,
