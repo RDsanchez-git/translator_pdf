@@ -315,7 +315,10 @@ def test_frozen_bundle_rejects_missing_modern_context_snapshots(frozen):
 
 def test_frozen_bundle_rejects_noncanonical_task_id(frozen):
     with closing(sqlite3.connect(frozen[0] / "queue.db")) as queue:
-        queue.execute("UPDATE chunk_tasks SET task_id='different-task'")
+        queue.execute(
+            "UPDATE chunk_tasks SET task_id='different-task' WHERE node_id=?",
+            (frozen[1].units[-1].chunk_id,),
+        )
         queue.commit()
     with pytest.raises(ValueError, match="QUEUE_MANIFEST_DRIFT"):
         audit_frozen_bundle(frozen[0])
