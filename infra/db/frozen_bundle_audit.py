@@ -10,14 +10,20 @@ from contextlib import ExitStack
 from dataclasses import dataclass
 from hashlib import sha256
 import json
+import re
 from pathlib import Path
 import sqlite3
 
 from core.ast.hashing import compute_ast_hash
-from core.ast.models import ASTNode, TranslationStrategy
+from core.ast.models import ASTNode, TranslationTaskType
 from core.chunking.manifest_contract import ChunkPlan
+from core.chunking.result_contract import materialize_node_results, parse_chunk_response
+from core.context.plan_context_contract import derive_verified_plan_contexts
 from core.context.snapshot_contract import ContextSnapshotV1
 from core.execution.exceptions import PipelineIntegrityError
+from core.execution.state import DocumentState
+from infra.db.control_repo import ControlPlaneRepository
+from infra.db.staged_publication import verify_published_nodes
 
 
 _DB_NAMES = ("queue.db", "fsm.db", "materialized.db", "event.db")
@@ -63,9 +69,8 @@ def _require_tables(conn: sqlite3.Connection, tables: tuple[str, ...]) -> None:
 
 def _ast_from_copy(directory: Path, document_id: str, ast_hash: str) -> list[ASTNode]:
     # Never allow generation strings to navigate out of an isolated bundle.
-    if (not document_id or not ast_hash
-            or any(c not in "0123456789abcdef" for c in document_id)
-            or any(c not in "0123456789abcdef" for c in ast_hash)):
+    if (not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,127}", document_id)
+            or not re.fullmatch(r"[0-9a-f]{64}", ast_hash)):
         raise PipelineIntegrityError("W08_BUNDLE_UNSAFE_GENERATION_ID")
     path = directory / "ast_cache" / f"{document_id}.{ast_hash}.ast.json"
     if not path.is_file() or path.is_symlink():
@@ -118,13 +123,22 @@ def audit_frozen_bundle(directory: Path) -> FrozenBundleAudit:
                 "SELECT document_id,ast_hash,current_state FROM document_fsm"
             )
         }
+        valid_fsm_states = {state.value for state in DocumentState}
+        if any(state not in valid_fsm_states for state in fsm_rows.values()):
+            raise PipelineIntegrityError("W08_BUNDLE_UNKNOWN_FSM_STATE")
         plans = queue.execute(
             "SELECT document_id,ast_hash,manifest_sha256,manifest_json "
             "FROM chunk_plans ORDER BY document_id,ast_hash"
         ).fetchall()
+        snapshot_table_exists = queue.execute(
+            "SELECT 1 FROM sqlite_master WHERE type='table' "
+            "AND name='g3_context_snapshots'"
+        ).fetchone() is not None
+        queue_repo = ControlPlaneRepository(queue)
         pending = uncertain = receipt_only = published = 0
         digests: list[dict[str, object]] = []
         plan_keys: set[tuple[str, str]] = set()
+
         for document_id, ast_hash, digest, manifest_json in plans:
             if not isinstance(document_id, str) or not isinstance(ast_hash, str):
                 raise PipelineIntegrityError("W08_BUNDLE_GENERATION_INVALID")
@@ -137,6 +151,10 @@ def audit_frozen_bundle(directory: Path) -> FrozenBundleAudit:
                 raise PipelineIntegrityError("W08_BUNDLE_MANIFEST_DRIFT")
             if (document_id, ast_hash) not in fsm_rows:
                 raise PipelineIntegrityError("W08_BUNDLE_FSM_GENERATION_MISSING")
+
+            # Existing B2 reader enforces the deterministic task IDs, manifest
+            # and generation with SELECT only; no queue write scope is entered.
+            queue_repo.load_chunk_plan(document_id, ast_hash, ast)
             tasks = queue.execute(
                 "SELECT node_id,task_state,task_id,execution_id "
                 "FROM chunk_tasks WHERE document_id=? AND ast_hash=? AND worker_type='LLM'",
@@ -146,107 +164,127 @@ def audit_frozen_bundle(directory: Path) -> FrozenBundleAudit:
                 unit.chunk_id for unit in plan.units
             }:
                 raise PipelineIntegrityError("W08_BUNDLE_TASK_COVERAGE")
-            states = {t[1] for t in tasks}
+            states = {task[1] for task in tasks}
+            by_chunk = {task[0]: task for task in tasks}
+            units = {unit.chunk_id: unit for unit in plan.units}
+
             receipt_rows = queue.execute(
                 "SELECT chunk_id,task_id,execution_id,raw_response,response_sha256 "
                 "FROM chunk_result_receipts WHERE document_id=? AND ast_hash=?",
                 (document_id, ast_hash),
             ).fetchall()
-            receipts = [row[:3] for row in receipt_rows]
-            if any(
-                (raw is None and digest_value is not None)
-                or (raw is not None and (
-                    not isinstance(raw, str) or not isinstance(digest_value, str)
-                    or sha256(raw.encode("utf-8")).hexdigest() != digest_value
-                ))
-                for _, _, _, raw, digest_value in receipt_rows
-            ):
-                raise PipelineIntegrityError("W08_BUNDLE_RECEIPT_HASH_DRIFT")
-            by_chunk = {row[0]: row for row in tasks}
-            if len(receipts) != len({r[0] for r in receipts}):
+            if len(receipt_rows) != len({row[0] for row in receipt_rows}):
                 raise PipelineIntegrityError("W08_BUNDLE_RECEIPT_DUPLICATION")
-            if any(
-                chunk_id not in by_chunk
-                or (by_chunk[chunk_id][2], by_chunk[chunk_id][3]) != (task_id, execution_id)
-                or by_chunk[chunk_id][1] not in ("RESULT_STAGED", "COMPLETED")
-                for chunk_id, task_id, execution_id in receipts
-            ):
-                raise PipelineIntegrityError("W08_BUNDLE_RECEIPT_BINDING")
-            if "G3_EXTERNAL_UNKNOWN" in states:
-                uncertain += 1
-            elif states in ({"RESULT_STAGED"}, {"COMPLETED"}):
-                if len(receipts) != len(plan.units):
-                    raise PipelineIntegrityError("W08_BUNDLE_RECEIPT_COVERAGE")
-                receipt_only += 1
-            else:
-                # Partial and idle generations are never eligible for replay.
-                pending += 1
-            publication = material.execute(
-                "SELECT manifest_sha256,result_sha256 FROM g3_plan_publications "
-                "WHERE document_id=? AND ast_hash=?",
-                (document_id, ast_hash),
-            ).fetchone()
-            projections = material.execute(
-                "SELECT node_id,content_hash,normalized_response,normalized_hash "
-                "FROM valid_chunks_cache WHERE document_id=? AND ast_hash=? ORDER BY node_id",
-                (document_id, ast_hash),
-            ).fetchall()
-            if any(
-                not isinstance(value, str) or not isinstance(digest_value, str)
-                or sha256(value.encode("utf-8")).hexdigest() != digest_value
-                for _, _, value, digest_value in projections
-            ):
-                raise PipelineIntegrityError("W08_BUNDLE_PROJECTION_HASH_DRIFT")
-            if publication is not None:
-                expected_nodes = {
-                    node.node_id: node
-                    for node in ast if node.strategy != TranslationStrategy.OMIT
-                }
-                actual_nodes = {node_id for node_id, *_ in projections}
-                if (publication[0] != plan.digest or len(projections) != len(expected_nodes)
-                        or actual_nodes != set(expected_nodes)):
-                    raise PipelineIntegrityError("W08_BUNDLE_PUBLICATION_DRIFT")
-                if any(
-                    source_hash != sha256(
-                        (expected_nodes[node_id].text_content or "").encode("utf-8")
-                    ).hexdigest()
-                    for node_id, source_hash, _, _ in projections
-                ):
-                    raise PipelineIntegrityError("W08_BUNDLE_PROJECTION_SOURCE_DRIFT")
-                published += 1
-            elif projections:
-                raise PipelineIntegrityError("W08_BUNDLE_UNOWNED_PROJECTION")
-            snapshots_exist = queue.execute(
-                "SELECT 1 FROM sqlite_master WHERE type='table' "
-                "AND name='g3_context_snapshots'"
-            ).fetchone() is not None
-            if snapshots_exist:
-                for context_id, manifest_ref, snapshot_ref, snapshot_json in queue.execute(
+            for chunk_id, task_id, execution_id, raw, response_hash in receipt_rows:
+                task = by_chunk.get(chunk_id)
+                unit = units.get(chunk_id)
+                if (task is None or unit is None
+                        or (task[2], task[3]) != (task_id, execution_id)
+                        or task[1] not in ("RESULT_STAGED", "COMPLETED")):
+                    raise PipelineIntegrityError("W08_BUNDLE_RECEIPT_BINDING")
+                if unit.chunk_type == TranslationTaskType.PRESERVE:
+                    if raw is not None or response_hash is not None:
+                        raise PipelineIntegrityError("W08_BUNDLE_PRESERVE_RECEIPT_DRIFT")
+                else:
+                    if not isinstance(raw, str) or not isinstance(response_hash, str):
+                        raise PipelineIntegrityError("W08_BUNDLE_RECEIPT_PAYLOAD_DRIFT")
+                    if sha256(raw.encode("utf-8")).hexdigest() != response_hash:
+                        raise PipelineIntegrityError("W08_BUNDLE_RECEIPT_HASH_DRIFT")
+                    # A correct checksum is not proof of a valid G3 response.
+                    parse_chunk_response(plan, chunk_id, raw)
+
+            snapshot_rows = (
+                queue.execute(
                     "SELECT context_id,manifest_sha256,snapshot_sha256,snapshot_json "
                     "FROM g3_context_snapshots WHERE document_id=? AND ast_hash=?",
                     (document_id, ast_hash),
-                ):
+                ).fetchall()
+                if snapshot_table_exists else []
+            )
+            modern_context = (
+                bool(snapshot_rows)
+                or any(node.control_plane.get("context_id") is not None for node in ast)
+                or any(unit.context_id.startswith("CTX_") for unit in plan.units)
+            )
+            if modern_context:
+                # The production W08-2b verifier derives required contexts from
+                # this same AST. Missing modern rows must not masquerade as legacy.
+                expected_snapshots = derive_verified_plan_contexts(plan, ast)
+                actual_contexts = {row[0] for row in snapshot_rows}
+                if (len(snapshot_rows) != len(actual_contexts)
+                        or actual_contexts != set(expected_snapshots)):
+                    raise PipelineIntegrityError("W08_BUNDLE_CONTEXT_SNAPSHOT_COVERAGE")
+                for context_id, manifest_ref, snapshot_ref, snapshot_json in snapshot_rows:
+                    expected_snapshot = expected_snapshots[context_id]
                     snapshot = ContextSnapshotV1.from_json(snapshot_json)
                     if (manifest_ref != plan.digest
-                            or snapshot_ref != snapshot.snapshot_sha256
-                            or snapshot.context_id != context_id
-                            or snapshot.document_id != document_id
-                            or snapshot.ast_hash != ast_hash):
+                            or snapshot_ref != expected_snapshot.snapshot_sha256
+                            or snapshot != expected_snapshot):
                         raise PipelineIntegrityError("W08_BUNDLE_CONTEXT_SNAPSHOT_DRIFT")
-            if fsm_rows[(document_id, ast_hash)] == "READY_FOR_ASSEMBLY" and (
+            # A pre-W08 plan without CTX provenance and without snapshots is
+            # historical, not authorized for inference or automatic recovery.
+
+            publication = material.execute(
+                "SELECT manifest_sha256,result_sha256,projection_version "
+                "FROM g3_plan_publications WHERE document_id=? AND ast_hash=?",
+                (document_id, ast_hash),
+            ).fetchone()
+            has_projections = material.execute(
+                "SELECT 1 FROM valid_chunks_cache "
+                "WHERE document_id=? AND ast_hash=? LIMIT 1",
+                (document_id, ast_hash),
+            ).fetchone() is not None
+
+            if publication is not None:
+                if states not in ({"RESULT_STAGED"}, {"COMPLETED"}):
+                    raise PipelineIntegrityError("W08_BUNDLE_PUBLICATION_TASK_STATES")
+                if len(receipt_rows) != len(plan.units):
+                    raise PipelineIntegrityError("W08_BUNDLE_RECEIPT_COVERAGE")
+                # Use the B3 publication verifier rather than a weaker parallel
+                # hash check: this rebuilds node outputs from original receipts.
+                responses = queue_repo.load_staged_chunk_responses(
+                    plan, ast, allow_completed=True,
+                )
+                nodes = materialize_node_results(plan, responses)
+                verify_published_nodes(
+                    material, plan, ast, nodes,
+                    projection_version=publication[2],
+                )
+                published += 1
+            elif has_projections:
+                raise PipelineIntegrityError("W08_BUNDLE_UNOWNED_PROJECTION")
+            elif states in ({"RESULT_STAGED"}, {"COMPLETED"}):
+                if len(receipt_rows) != len(plan.units):
+                    raise PipelineIntegrityError("W08_BUNDLE_RECEIPT_COVERAGE")
+                queue_repo.load_staged_chunk_responses(
+                    plan, ast, allow_completed=True,
+                )
+                receipt_only += 1
+            elif "G3_EXTERNAL_UNKNOWN" in states:
+                uncertain += 1
+            else:
+                pending += 1
+
+            # Any FSM state beyond the G3 barrier requires committed and
+            # finalized publication, not only READY_FOR_ASSEMBLY.
+            post_g3_states = {
+                "READY_FOR_ASSEMBLY", "ASSEMBLING",
+                "READY_FOR_COMPILATION", "COMPILING", "COMPLETED",
+            }
+            if fsm_rows[(document_id, ast_hash)] in post_g3_states and (
                 publication is None or states != {"COMPLETED"}
             ):
                 raise PipelineIntegrityError("W08_BUNDLE_READY_WITHOUT_PUBLICATION")
+
             digests.append({
                 "document_id": document_id, "ast_hash": ast_hash,
                 "manifest": plan.digest, "states": sorted(states),
-                "receipts": len(receipts), "published": publication is not None,
+                "receipts": len(receipt_rows), "published": publication is not None,
             })
 
-        orphan_tasks = queue.execute(
+        if any((doc, ast_hash) not in plan_keys for doc, ast_hash in queue.execute(
             "SELECT document_id,ast_hash FROM chunk_tasks"
-        ).fetchall()
-        if any((doc, ast_hash) not in plan_keys for doc, ast_hash in orphan_tasks):
+        )):
             raise PipelineIntegrityError("W08_BUNDLE_ORPHAN_TASK")
         for table, column in (
             ("chunk_result_receipts", "document_id,ast_hash"),
@@ -258,26 +296,31 @@ def audit_frozen_bundle(directory: Path) -> FrozenBundleAudit:
                 f"SELECT DISTINCT {column} FROM {table}"
             )):
                 raise PipelineIntegrityError("W08_BUNDLE_ORPHAN_DURABLE_EVIDENCE")
-        if queue.execute(
-            "SELECT 1 FROM sqlite_master WHERE type='table' "
-            "AND name='g3_context_snapshots'"
-        ).fetchone() is not None:
-            if any(tuple(row) not in plan_keys for row in queue.execute(
+        if snapshot_table_exists and any(
+            tuple(row) not in plan_keys for row in queue.execute(
                 "SELECT DISTINCT document_id,ast_hash FROM g3_context_snapshots"
-            )):
-                raise PipelineIntegrityError("W08_BUNDLE_ORPHAN_CONTEXT_SNAPSHOT")
+            )
+        ):
+            raise PipelineIntegrityError("W08_BUNDLE_ORPHAN_CONTEXT_SNAPSHOT")
         orphans = len(set(fsm_rows) - plan_keys)
-        # The report binds to the actual frozen file bytes, not merely counts.
-        # No corpus text or receipt bodies leave the audit DTO.
-        files = [directory / name for name in connections]
-        files.extend(
-            directory / "ast_cache" / f"{document_id}.{ast_hash}.ast.json"
-            for document_id, ast_hash in sorted(plan_keys)
-        )
-        content_fingerprints = [
-            (str(file.relative_to(directory)), sha256(file.read_bytes()).hexdigest())
-            for file in sorted(files)
-        ]
+
+        # Include EVERY file in the isolated bundle, including custody metadata
+        # and unreferenced ASTs. Reject symlinks rather than dereferencing files
+        # outside the supplied immutable snapshot. Stream hashes for large DBs.
+        content_fingerprints: list[tuple[str, str]] = []
+        for file in sorted(directory.rglob("*")):
+            if file.is_symlink():
+                raise PipelineIntegrityError("W08_BUNDLE_SYMLINK_FORBIDDEN")
+            if file.is_file():
+                file_hash = sha256()
+                with file.open("rb") as source:
+                    for block in iter(lambda: source.read(1024 * 1024), b""):
+                        file_hash.update(block)
+                content_fingerprints.append((
+                    file.relative_to(directory).as_posix(), file_hash.hexdigest(),
+                ))
+            elif not file.is_dir():
+                raise PipelineIntegrityError("W08_BUNDLE_UNSUPPORTED_FILE")
         summary = json.dumps(
             {"generations": digests, "files": content_fingerprints},
             sort_keys=True, separators=(",", ":"),

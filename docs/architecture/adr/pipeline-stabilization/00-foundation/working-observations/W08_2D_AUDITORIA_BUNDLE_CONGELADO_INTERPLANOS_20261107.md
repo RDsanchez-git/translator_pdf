@@ -30,3 +30,19 @@ El auditor verifica integridad física SQLite y tablas requeridas, correspondenc
 - No modifica una ruta automática de recuperación legacy y no resuelve cache v2/replay W06.
 
 **Gate de aceptación pendiente:** testigos offline y CI sobre head exacto; posteriormente revisión operativa verificable de stop-the-world, backup/restore, IAM/custodia y no reintento. PR #40–#43 y este corte deben continuar Draft hasta que esa evidencia exista.
+
+## Endurecimiento de integridad (revisión adicional del mismo PR)
+
+La revisión de código posterior a los primeros 12 PASS detectó que se comparaban hashes
+locales sin aplicar las validaciones B2/B3 ya existentes de identidad de tareas, parser
+de receipts, resultado materializado y versión de publicación. También faltaba exigir la
+cobertura completa de snapshots para generaciones W08 modernas.
+
+El auditor reutiliza ahora validadores de **solo lectura**: carga B2 de plan/tareas,
+parser de respuestas G3, rehidratación de nodos y verificación B3 de publicación;
+derivación pura de snapshots W08-2b. Diferencia generaciones legacy sin provenance CTX
+de generaciones modernas, mantiene receipt_only como categoría no autorizante y
+cubre todos los archivos aislados en la huella (incluyendo metadatos de custodia).
+Las pruebas adversarias adicionales ejercitan publicados, completos, staged y
+falsificaciones con checksum coherente. Ninguna garantía operativa externa nueva
+se declara acreditada: DRAFT / NO MERGE / NO DEPLOY.
