@@ -179,9 +179,11 @@ def test_cli_foreground_context_receipts_projections_and_pdf_same_generation(
     # Actual public CLI command drives actual OCR, G3 and G5 composition roots.
     cli.main()
 
-    with closing(sqlite3.connect(state_dir / "fsm.db")) as fsm, \\
-         closing(sqlite3.connect(state_dir / "queue.db")) as queue, \\
-         closing(sqlite3.connect(state_dir / "materialized.db")) as materialized:
+    with (
+        closing(sqlite3.connect(state_dir / "fsm.db")) as fsm,
+        closing(sqlite3.connect(state_dir / "queue.db")) as queue,
+        closing(sqlite3.connect(state_dir / "materialized.db")) as materialized,
+    ):
         status = fsm.execute(
             "SELECT ast_hash,current_state,is_terminal FROM document_fsm "
             "WHERE document_id=?", (document_id,),
