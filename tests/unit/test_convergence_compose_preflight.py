@@ -72,7 +72,7 @@ def test_rejects_legacy_worker_and_benchmark() -> None:
     bad["services"]["llm_worker"]["environment"]["IS_BENCHMARK"] = "1"
     issues = inspect_topology(bad)
     assert "llm_worker:UNEXPECTED_COMMAND" in issues
-    assert "llm_worker:PROVIDER_CONFIGURATION_DRIFT" in issues
+    assert "llm_worker:BENCHMARK_MODE_NOT_DISABLED" in issues
 
 
 def test_rejects_split_state_and_real_egress() -> None:
@@ -93,3 +93,32 @@ def test_rejects_fake_write_access_and_old_services() -> None:
     issues = inspect_topology(bad)
     assert "g3_fake:STATE_MUST_BE_READ_ONLY" in issues
     assert "toxiproxy:HISTORICAL_SERVICE_ENABLED" in issues
+
+
+def test_inactive_profile_services_may_be_omitted_by_compose() -> None:
+    config = _good()
+    config["services"].pop("toxiproxy")
+    config["services"].pop("fake-gemini")
+    assert inspect_topology(config) == []
+
+
+def test_unexpected_service_not_ignored() -> None:
+    config = _good()
+    config["services"]["legacy_r3_worker"] = {"command": ["python", "apps/llm_workers/__main__.py"]}
+    assert "COMPOSE_UNEXPECTED_SERVICES" in inspect_topology(config)
+
+
+def test_provider_diagnostics_do_not_include_secret_values() -> None:
+    bad = _good()
+    env = bad["services"]["llm_worker"]["environment"]
+    env["GROQ_API_KEY"] = "not-the-test-token"
+    env["GROQ_BASE_URL"] = "https://example.invalid"
+    env["GEMINI_API_KEY"] = "unwanted-secret"
+    env["GEMINI_API_URL"] = "https://example.invalid"
+    issues = inspect_topology(bad)
+    assert "llm_worker:GROQ_KEY_NOT_DUMMY" in issues
+    assert "llm_worker:GROQ_URL_NOT_PRIVATE_FAKE" in issues
+    assert "llm_worker:GEMINI_KEY_STILL_PRESENT" in issues
+    assert "llm_worker:GEMINI_URL_STILL_PRESENT" in issues
+    assert "not-the-test-token" not in repr(issues)
+    assert "unwanted-secret" not in repr(issues)
