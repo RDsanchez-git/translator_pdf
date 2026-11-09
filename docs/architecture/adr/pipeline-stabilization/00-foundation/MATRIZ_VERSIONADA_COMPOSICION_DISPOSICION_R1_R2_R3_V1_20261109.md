@@ -1,17 +1,17 @@
 # Matriz versionada de composición y disposición de archivos — convergencia PDF→PDF
 
-**Versión:** v1.0.0 · **Fecha:** 2026-11-09 · **Estado:** inventario técnico prescriptivo, disposición **propuesta** / no borrado autorizado.  
-**Sujeto:** \`RDsanchez-git/translator_pdf\` / \`pipeline_stabilization\` @ \`6a5ee41886b935c2c0f3a107a42620d93de31efb\` (#40 integrado).  
-**Plan vinculante por referencia:** [PLAN_IMPLEMENTACION_CONVERGENCIA_OPERATIVA_UNICA_PDF_PDF_V1_20261109.md](PLAN_IMPLEMENTACION_CONVERGENCIA_OPERATIVA_UNICA_PDF_PDF_V1_20261109.md), v1.0.0.  
+**Versión:** v1.0.1 · **Fecha:** 2026-11-09 · **Estado:** inventario técnico prescriptivo, disposición **propuesta** / no borrado autorizado.  
+**Sujeto:** `RDsanchez-git/translator_pdf` / `pipeline_stabilization` @ `6a5ee41886b935c2c0f3a107a42620d93de31efb` (#40 integrado).  
+**Plan vinculante por referencia:** [PLAN_IMPLEMENTACION_CONVERGENCIA_OPERATIVA_UNICA_PDF_PDF_V1_20261109.md](PLAN_IMPLEMENTACION_CONVERGENCIA_OPERATIVA_UNICA_PDF_PDF_V1_20261109.md), v1.0.1.  
 **Decisión de producto:** [D-1/D-2, cabecera vigente](DECISION_CANDIDATE_CONVERGENCIA_PDF_PDF_D1_D2_20261105.md): una CLI, G3→G5, sin motores productivos rivales. Este inventario **no** equivale a ejecución, censo exhaustivo de consumidores externos o certificación científica.
 
 ## 1. Cómo se usa esta matriz
 
-Cada fila establece una identidad de símbolo o path exacto (salvo las filas con \`/*\`, que son **grupos** declarados), origen histórico orientativo, rol, consumidor, **disposición TO-BE**, **evidencia AS-IS** y testigo del plan. \`R1 compartido\` y \`R2+R1\` señalan reutilización; el nombre de ruta **no** es una propiedad normativa del archivo. Las rutas de #41–#44 están **en ramas Draft, no en el HEAD**. No usar \`NO_PRODUCTIVO\` como sinónimo de borrar, ni \`KEEP\` como prueba de funcionamiento.
+Cada fila establece una identidad de símbolo o path exacto (salvo las filas con `/*`, que son **grupos** declarados), origen histórico orientativo, rol, consumidor, **disposición TO-BE**, **evidencia AS-IS** y testigo del plan. `R1 compartido` y `R2+R1` señalan reutilización; el nombre de ruta **no** es una propiedad normativa del archivo. Las rutas de #41–#44 están **en ramas Draft, no en el HEAD**. No usar `NO_PRODUCTIVO` como sinónimo de borrar, ni `KEEP` como prueba de funcionamiento.
 
-**Estados de disposición:** \`KEEP\` (sobrevive y participa), \`KEEP_VERIFICAR\` (sobrevive sujeto a ensayo), \`ADAPT_CONDICIONAL\` (solo mecanismo aislado ante brecha), \`ADAPT_OPERACION\` (root/config para corregir), \`NO_PRODUCTIVO\` (excluido de entrypoints soportados), \`HISTORICO_COMPAT\` (permanece por consumidores/tests hasta censo), \`RETIRE_CANDIDATE\` (posible futura retirada, no ejecutada), \`KEEP_LAB\` (laboratorio; nunca motor prod), \`NO_ROOT\`/\`NO_ROOT_OFICIAL\` (no seleccionado), \`DEFER_PR\` (no merge), \`DEFER_EVALUACION_INDEPENDIENTE\` (auditar propio delta).
+**Estados de disposición:** `KEEP` (sobrevive y participa), `KEEP_VERIFICAR` (sobrevive sujeto a ensayo), `ADAPT_CONDICIONAL` (solo mecanismo aislado ante brecha), `ADAPT_OPERACION` (root/config para corregir), `NO_PRODUCTIVO` (excluido de entrypoints soportados), `HISTORICO_COMPAT` (permanece por consumidores/tests hasta censo), `RETIRE_CANDIDATE` (posible futura retirada, no ejecutada), `KEEP_LAB` (laboratorio; nunca motor prod), `NO_ROOT`/`NO_ROOT_OFICIAL` (no seleccionado), `DEFER_PR` (no merge), `DEFER_EVALUACION_INDEPENDIENTE` (auditar propio delta).
 
-**Los tests T01–T07 y deltas C0–C4 se definen en el plan; son checklists técnicos, no nuevos gates normativos.** \`AS-IS\` viene de inspección estática y evidencia histórica delimitada; no se ejecutó la composición multiproceso.
+**Los tests T01–T07 y deltas C0–C4 se definen en el plan; son checklists técnicos, no nuevos gates normativos.** `AS-IS` viene de inspección estática y evidencia histórica delimitada; no se ejecutó la composición multiproceso.
 
 ## 2. Inventario numerado v1.0.0 (94 filas)
 
@@ -116,18 +116,18 @@ Cada fila establece una identidad de símbolo o path exacto (salvo las filas con
 
 | Hecho | Única autoridad lógica seleccionada | Producer | Consumidor | Lo que NO hacer |
 |---|---|---|---|---|
-| Identidad PDF | SHA256 bytes en admisión | \`apps/cli/pdf_inbox.py\` | OCR/FSM | \`--job-id\` alternativo |
-| Extracción/AST y perfil | ASTRegistry + perfil en documents.db | \`OCRRouterDaemon\` + factory PyMuPDF | G3/G5 | Orquestador \`TranslationPipeline\` R1 duplicado |
-| Plan+contexto+tareas | queue.db (\`DurableContextPlanRepository\`) | OCR | Engine | Generar otro plan desde CLI |
-| Claim/efecto/receipt | queue.db / G3 claims y receipts | \`runtime/engine.py\` | materializer/recovery | \`AsyncDispatcher\` / \`LLMWorkerDaemon\` como escritor paralelo |
+| Identidad PDF | SHA256 bytes en admisión | `apps/cli/pdf_inbox.py` | OCR/FSM | `--job-id` alternativo |
+| Extracción/AST y perfil | ASTRegistry + perfil en documents.db | `OCRRouterDaemon` + factory PyMuPDF | G3/G5 | Orquestador `TranslationPipeline` R1 duplicado |
+| Plan+contexto+tareas | queue.db (`DurableContextPlanRepository`) | OCR | Engine | Generar otro plan desde CLI |
+| Claim/efecto/receipt | queue.db / G3 claims y receipts | `runtime/engine.py` | materializer/recovery | `AsyncDispatcher` / `LLMWorkerDaemon` como escritor paralelo |
 | Proyecciones | materialized.db con receipts G3 | publication_pipeline | CQRS G5 | Otro journal de resultado sin autoridad |
-| Estado FSM | fsm.db + CAS | command handlers | OCR/G3/G5/sweeper | \`COMPLETED\` como ciencia |
+| Estado FSM | fsm.db + CAS | command handlers | OCR/G3/G5/sweeper | `COMPLETED` como ciencia |
 | PDF | salida en volumen y publicación fenced G5 | G5/Tectonic | CLI/operador | PDF fake como traducción/ciencia |
-| Incertidumbre | estado e historial causal persistentes | Engine/Reconciler según contrato | operador | retry automático de \`G3_EXTERNAL_UNKNOWN\` |
+| Incertidumbre | estado e historial causal persistentes | Engine/Reconciler según contrato | operador | retry automático de `G3_EXTERNAL_UNKNOWN` |
 
 ## 4. Composición mínima autoritativa
 
-\`\`\`text
+```text
 PRODUCTO: apps.cli.main:main / translate
    ├─ apps.cli.pdf_inbox.submit_pdf_to_inbox
    └─ data/inbox compartido
@@ -147,25 +147,44 @@ PRODUCTO: apps.cli.main:main / translate
 TRANSVERSALES: apps.daemons.reconciler / runtime.sweeper
 MODALIDAD CONTROLADA: apps.cli.pdf_product (llama las MISMAS clases)
 NO PRODUCTIVOS: R1 AsyncDispatcher/TranslationPipeline y R3 LLMWorkerDaemon
-\`\`\`
+```
 
 ## 5. Registro de consumidores que falta comprobar antes de retirar
 
-Para \`E02/E06/E09/E13/E47/E71\`, inspeccionar importadores y lanzadores en todo el árbol (\`apps\`, \`core\`, \`runtime\`, \`tests\`, \`tools\`, \`configs\`, workflows, Docker y empaquetado), además de procesos externos si se conoce instalación viva. El hallazgo de una referencia **no** implica actividad: clasificarla como \`ENTRYPOINT_PRODUCTIVO\`, \`LIBRERIA_TRANSITIVA\`, \`TEST/LAB\`, \`DOC\`, \`EXTERNO_DESCONOCIDO\`.
+Para `E02/E06/E09/E13/E47/E71`, inspeccionar importadores y lanzadores en todo el árbol (`apps`, `core`, `runtime`, `tests`, `tools`, `configs`, workflows, Docker y empaquetado), además de procesos externos si se conoce instalación viva. El hallazgo de una referencia **no** implica actividad: clasificarla como `ENTRYPOINT_PRODUCTIVO`, `LIBRERIA_TRANSITIVA`, `TEST/LAB`, `DOC`, `EXTERNO_DESCONOCIDO`.
 
-\`\`\`bash
+```bash
 rg -n 'AsyncDispatcher|LLMWorkerDaemon|handle_translate_async|build_pipeline\(|TranslationPipeline\(' apps core runtime tests tools configs .github pyproject.toml
 rg -n 'apps/llm_workers/__main__|core/pipeline/orchestrator|runtime/engine.py|apps/compiler/__main__|apps/ocr_router/__main__' docker-compose*.yml Dockerfile .github apps
-\`\`\`
+```
 
-Las declaraciones \`EXTERNO_DESCONOCIDO\` o \`NO_EN_COMPOSE\` no autorizan borrar símbolos. Las filas de grupo \`/*\` no sustituyen al listado de cada archivo cuando se vaya a editar esa zona: antes de un PR, desplegar los módulos concretos y consumidores impactados.
+Las declaraciones `EXTERNO_DESCONOCIDO` o `NO_EN_COMPOSE` no autorizan borrar símbolos. Las filas de grupo `/*` no sustituyen al listado de cada archivo cuando se vaya a editar esa zona: antes de un PR, desplegar los módulos concretos y consumidores impactados.
 
 ## 6. Definición de cierre y política de revisión
 
-Una fila \`KEEP\` solo cambia a \`VERIFICADO_EN_TOPOLOGIA\` con commit, proceso/servicio, env y paths efectivos, testigo que use productor/consumidor reales y evidencia publicada. Una fila \`ADAPT_CONDICIONAL\` **no** exige trabajo si no aparece el falsador especificado; evitar sobreingeniería. Una fila \`NO_PRODUCTIVO\` se considera cerrada para este hito solo cuando no figura en el root soportado y sus consumidores son conocidos o su incertidumbre está declarada sin despliegue compatible; eliminar código es fase distinta.
+Una fila `KEEP` solo cambia a `VERIFICADO_EN_TOPOLOGIA` con commit, proceso/servicio, env y paths efectivos, testigo que use productor/consumidor reales y evidencia publicada. Una fila `ADAPT_CONDICIONAL` **no** exige trabajo si no aparece el falsador especificado; evitar sobreingeniería. Una fila `NO_PRODUCTIVO` se considera cerrada para este hito solo cuando no figura en el root soportado y sus consumidores son conocidos o su incertidumbre está declarada sin despliegue compatible; eliminar código es fase distinta.
 
 **Invariantes de cierre operativo:** CLI→OCR→G3→G5 multiproceso real sobre volúmenes aislados, mismo documento/generación, snapshots/receipts/proyecciones coherentes, Tectonic físico, recuperación safe/fail-closed, ausencia de ejecutor R1/R3 productivo. **No implica** validez científica, aceptación lingüística, W09 ni producto listo.
 
-**Actualización:** añadir columna por testigo real \`veredicto/evidencia_sha\` en próxima revisión; la presente versión mantiene sus estados históricos honestos. Correcciones documentales v1.0.x; cambio de disposición, contrato o alcance v1.x. Nunca declarar \`RETIRE\` definitivo sin censo y autorización puntual. Todos los enlaces a código tienen sujeto \`6a5ee418…\` y deben revisarse contra el HEAD antes de modificar.
+**Actualización:** la trazabilidad de avance se registra en el tablero **§8.1 del plan** (C0–C4 y T01–T07), sin agregar 94 columnas o duplicar un tablero en esta matriz. Solo al cambiar una fila se actualizan su disposición/estado y la evidencia concreta de un consumidor o testigo, con SHA y fecha. Esta versión mantiene honestamente sus estados históricos; no hay evidencia nueva de runtime. Correcciones documentales v1.0.x; cambio de disposición, contrato o alcance v1.x. Nunca declarar `RETIRE` definitivo sin censo y autorización puntual. Todos los enlaces a código tienen sujeto `6a5ee418…` y deben revisarse contra el HEAD antes de modificar.
 
-**Límites documentales:** #41–#44 Draft no merged; #45 closed; \`PROJECT_SCOPE.md\` y \`ENGINEERING_PRINCIPLES.md\` del owner, D-1/D-2, Atlas y NADR FROZEN conservan primacía. No se modifican scripts, bases, oráculos, Compose, PRs ni despliegues al publicar esta matriz.
+## 6.1 Convención mínima de actualización de la matriz
+
+**La fuente única de avance es el plan §8.1**: allí se actualizan `PENDIENTE / EN_CURSO / BLOQUEADO / COMPLETADO / NO_APLICA` para C0–C4 y T01–T07. **Esta matriz no copia esos estados en sus 94 filas**. La matriz expresa decisiones de composición por componente, no el estado de una campaña de tests. `KEEP` es una disposición, no `COMPLETADO`.
+
+Cuando una ejecución, modificación o inventario cambie una fila de esta matriz:
+
+1. Conservar su ID `E01…E94` y su path; actualizar exclusivamente la fila impactada (consumidor real, evidencia AS-IS, decisión TO-BE, testigo y motivo), con referencia verificable a **commit probado + testigo del plan + fecha**. Si el resultado revela un consumidor imprevisto, registrar esa evidencia antes de cambiar `NO_PRODUCTIVO`, `ADAPT_CONDICIONAL` o `RETIRE_CANDIDATE`.
+2. No marcar `VERIFICADO_EN_TOPOLOGIA` sin ejecución real de su productor y consumidor sobre el root soportado. Un PASS de CI anterior, un import estático o una ejecución foreground simulada no prueban el modo Compose.
+3. Nunca eliminar implementaciones por una disposición `NO_PRODUCTIVO`: la retirada física exige censo de referencias y autorización puntual. Un símbolo históricamente R1/R3 puede ser una librería compartida legítima.
+4. Registrar el avance de C0–C4 y T01–T07 **solo en plan §8.1**; actualizar allí también el historial y el enlace a evidencia del mismo cambio. Si no cambia ninguna fila aquí, **no editar la matriz solo para incrementar porcentajes**.
+5. Versiones: v1.0.x para precisión y evidencia nueva sin cambio de alcance; v1.x para cambio sustantivo de contratos, disposiciones o criterios. No modificar el identificador del archivo por una revisión menor. No editar oráculos FROZEN.
+
+**Historial de esta matriz:**
+
+| Fecha | Versión | Cambio | Evidencia |
+|---|---|---|---|
+| 2026-11-09 | v1.0.0 | Inventario inicial de 94 entradas basado en #40 integrado | `adbb61a88c179d3a11a31e78cd470b590024a4be` |
+| 2026-11-09 | v1.0.1 | Formato Markdown corregido; convención ligera de disposición y enlace al tablero del plan | Commit documental; sin pruebas de ejecución nuevas |
+
+**Límites documentales:** #41–#44 Draft no merged; #45 closed; `PROJECT_SCOPE.md` y `ENGINEERING_PRINCIPLES.md` del owner, D-1/D-2, Atlas y NADR FROZEN conservan primacía. No se modifican scripts, bases, oráculos, Compose, PRs ni despliegues al publicar esta matriz.
