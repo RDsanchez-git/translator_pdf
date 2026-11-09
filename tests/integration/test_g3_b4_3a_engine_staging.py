@@ -19,6 +19,7 @@ from apps.llm_workers.prompt_builder import PromptBuilder
 from core.ast.enums import ContentNodeType, TranslationStrategy
 from core.ast.models import ASTNode, MathPayload, ParagraphPayload, TranslationTaskType
 from core.ast.grouper import SemanticGroup
+from core.context.snapshot_contract import ContextSnapshotV1, ContextBreadcrumbV1
 from core.chunking.manifest_contract import ChunkPlan
 from core.chunking.semantic_chunking import ChunkPolicy, TokenBudgetChunker
 from runtime.chunk_staging import stage_claimed_unit
@@ -44,7 +45,7 @@ def _fixture():
     ]
     units = TokenBudgetChunker(
         _Estimator(), ChunkPolicy(max_tokens=80, prompt_overhead_tokens=0),
-    ).chunk_group(SemanticGroup(structural_path=(), context_id="ctx", nodes=nodes), 1)
+    ).chunk_group(SemanticGroup(structural_path=("root",), context_id="CTX_AABBCCDDEEFF", nodes=nodes), 1)
     plan = ChunkPlan.build("doc_b4_3a", "ast_b4_3a", nodes, units)
     assert len(plan.units) == 2
     return nodes, plan
@@ -213,9 +214,22 @@ class _FakeProvider:
                                content=self.content)
 
 
-def _bridge(provider: _FakeProvider, builder: _FakeBuilder) -> SyncProviderBridge:
-    # The focused fakes expose only the seam exercised by these tests.
-    return SyncProviderBridge(cast(LLMProvider, provider), cast(PromptBuilder, builder))
+def _bridge(provider: _FakeProvider, builder: _FakeBuilder, plan: ChunkPlan) -> SyncProviderBridge:
+    # These existing tests exercise transport/placeholder semantics. They
+    # inject explicit synthetic snapshots; real producer verification is
+    # exercised independently in test_w08_ocr_g3_context_wiring.py.
+    snapshots = {
+        unit.context_id: ContextSnapshotV1(
+            document_id=plan.document_id, ast_hash=plan.ast_hash,
+            context_id=unit.context_id,
+            breadcrumbs=(ContextBreadcrumbV1(0, "[ROOT_DOCUMENT_CONTEXT]"),),
+        )
+        for unit in plan.units if unit.chunk_type != TranslationTaskType.PRESERVE
+    }
+    return SyncProviderBridge(
+        cast(LLMProvider, provider), cast(PromptBuilder, builder),
+        context_snapshots=snapshots,
+    )
 
 
 def test_bridge_prompt_contains_manifest_binding_and_all_member_sources():
@@ -223,7 +237,7 @@ def test_bridge_prompt_contains_manifest_binding_and_all_member_sources():
     unit = next(u for u in plan.units if u.chunk_type == TranslationTaskType.TRANSLATE)
     builder = _FakeBuilder()
     provider = _FakeProvider(_response(plan, unit))
-    bridge = _bridge(provider, builder)
+    bridge = _bridge(provider, builder, plan)
     try:
         assert bridge.execute_chunk(plan, unit) == provider.content
     finally:
@@ -248,7 +262,7 @@ def test_bridge_rejects_unbound_provider_output(mutation):
     nodes, plan = _fixture()
     unit = next(u for u in plan.units if u.chunk_type == TranslationTaskType.TRANSLATE)
     content = "traduccion libre" if mutation == "plain_text" else _response(plan, unit, bad_hash=mutation == "bad_response")
-    bridge = _bridge(_FakeProvider(content, drift=mutation == "wrong_chunk"), _FakeBuilder())
+    bridge = _bridge(_FakeProvider(content, drift=mutation == "wrong_chunk"), _FakeBuilder(), plan)
     try:
         with pytest.raises(ValueError):
             bridge.execute_chunk(plan, unit)
@@ -260,7 +274,7 @@ def test_bridge_preserve_unit_is_never_sent():
     nodes, plan = _fixture()
     unit = next(u for u in plan.units if u.chunk_type == TranslationTaskType.PRESERVE)
     provider = _FakeProvider("unused")
-    bridge = _bridge(provider, _FakeBuilder())
+    bridge = _bridge(provider, _FakeBuilder(), plan)
     try:
         with pytest.raises(ValueError, match="G3_B4_3A_PRESERVE_PROVIDER_FORBIDDEN"):
             bridge.execute_chunk(plan, unit)
@@ -278,7 +292,7 @@ def _fixture_with_inline_math():
     ]
     units = TokenBudgetChunker(
         _Estimator(), ChunkPolicy(max_tokens=80, prompt_overhead_tokens=0),
-    ).chunk_group(SemanticGroup(structural_path=(), context_id="math", nodes=nodes), 1)
+    ).chunk_group(SemanticGroup(structural_path=("root",), context_id="CTX_001122334455", nodes=nodes), 1)
     plan = ChunkPlan.build("doc_math", "ast_math", nodes, units)
     assert len(plan.units) == 1 and len(plan.units[0].members) == 2
     return plan, plan.units[0]
@@ -291,7 +305,7 @@ def test_bridge_masks_and_restores_exact_inline_math_in_each_member():
     member_response["members"][0]["translated_text"] = "Energia __MATH_0__ se mantiene."
     member_response["members"][1]["translated_text"] = "Y __MATH_1__ varia."
     provider = _FakeProvider(json.dumps(member_response, ensure_ascii=False))
-    bridge = _bridge(provider, builder)
+    bridge = _bridge(provider, builder, plan)
     try:
         restored = bridge.execute_chunk(plan, unit)
     finally:
@@ -313,7 +327,7 @@ def test_bridge_rejects_lost_or_modified_math_token(mutation):
     raw["members"][0]["translated_text"] = value
     raw["members"][1]["translated_text"] = "Y __MATH_1__ varia"
     provider = _FakeProvider(json.dumps(raw))
-    bridge = _bridge(provider, _FakeBuilder())
+    bridge = _bridge(provider, _FakeBuilder(), plan)
     try:
         with pytest.raises(ValueError, match="G3_B4_3A_MATH_TOKEN_LOST_OR_DUPLICATED"):
             bridge.execute_chunk(plan, unit)
@@ -375,10 +389,10 @@ def test_math_source_uncertain_fails_before_provider(source, error):
                    node_type=ContentNodeType.PARAGRAPH, payload=ParagraphPayload(content=source))]
     units = TokenBudgetChunker(
         _Estimator(), ChunkPolicy(max_tokens=80, prompt_overhead_tokens=0),
-    ).chunk_group(SemanticGroup(structural_path=(), context_id='ctx', nodes=ast), 1)
+    ).chunk_group(SemanticGroup(structural_path=("root",), context_id="CTX_AABBCCDDEEFF", nodes=ast), 1)
     plan = ChunkPlan.build('doc_uncertain', 'ast_uncertain', ast, units)
     provider = _FakeProvider('should not be used')
-    bridge = _bridge(provider, _FakeBuilder())
+    bridge = _bridge(provider, _FakeBuilder(), plan)
     try:
         with pytest.raises(ValueError, match=error):
             bridge.execute_chunk(plan, plan.units[0])
@@ -395,7 +409,7 @@ def test_math_token_cannot_move_between_two_members():
     raw["members"][0]["translated_text"] = "Wrong __MATH_1__"
     raw["members"][1]["translated_text"] = "Wrong __MATH_0__"
     provider = _FakeProvider(json.dumps(raw))
-    bridge = _bridge(provider, _FakeBuilder())
+    bridge = _bridge(provider, _FakeBuilder(), plan)
     try:
         with pytest.raises(ValueError, match="G3_B4_3A_MATH_TOKEN_LOST_OR_DUPLICATED"):
             bridge.execute_chunk(plan, unit)
@@ -408,7 +422,7 @@ def test_math_token_injection_is_rejected_even_when_expected_tokens_survive():
     raw = json.loads(_response(plan, unit))
     raw["members"][0]["translated_text"] = "OK __MATH_0__ EXTRA __MATH_999__"
     raw["members"][1]["translated_text"] = "OK __MATH_1__"
-    bridge = _bridge(_FakeProvider(json.dumps(raw)), _FakeBuilder())
+    bridge = _bridge(_FakeProvider(json.dumps(raw)), _FakeBuilder(), plan)
     try:
         with pytest.raises(ValueError, match="G3_B4_3A_MATH_TOKEN_LOST_OR_DUPLICATED"):
             bridge.execute_chunk(plan, unit)
@@ -421,7 +435,7 @@ def test_hallucinated_math_token_rejected_in_no_math_unit():
     unit = next(u for u in plan.units if u.chunk_type == TranslationTaskType.TRANSLATE)
     raw = json.loads(_response(plan, unit))
     raw["members"][0]["translated_text"] = "Hallucinated __MATH_0__"
-    bridge = _bridge(_FakeProvider(json.dumps(raw)), _FakeBuilder())
+    bridge = _bridge(_FakeProvider(json.dumps(raw)), _FakeBuilder(), plan)
     try:
         with pytest.raises(ValueError, match="G3_B4_3A_MATH_TOKEN_LOST_OR_DUPLICATED"):
             bridge.execute_chunk(plan, unit)

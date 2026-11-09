@@ -5,7 +5,8 @@ import json
 from dataclasses import replace
 from hashlib import sha256
 import re
-from typing import Any
+from typing import Any, Mapping
+from core.context.snapshot_contract import ContextSnapshotV1
 from core.ast.models import ASTNode, TranslationTaskType, TranslationUnit
 from apps.llm_workers.routing import LLMProvider
 from apps.llm_workers.prompt_builder import PromptBuilder
@@ -20,10 +21,16 @@ logger = logging.getLogger(__name__)
 class SyncProviderBridge:
     """SOTA: Adaptador de impedancia Thread-Safe con ciclo de vida asíncrono controlado."""
     
-    def __init__(self, async_provider: LLMProvider, prompt_builder: PromptBuilder, timeout_sec: float = 180.0):
+    def __init__(
+        self, async_provider: LLMProvider, prompt_builder: PromptBuilder,
+        timeout_sec: float = 180.0,
+        context_snapshots: Mapping[str, ContextSnapshotV1] | None = None,
+    ):
         self._provider = async_provider
         self._builder = prompt_builder
         self._timeout = timeout_sec
+        # None is NOT a root context. Unbound G3 inference is always forbidden.
+        self._context_snapshots = dict(context_snapshots or {})
         
         self.prompt_v = prompt_builder.prompt_version
         self.model_v = prompt_builder.model_name
@@ -191,7 +198,20 @@ class SyncProviderBridge:
         payload = json.dumps(protocol, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
         prompt_unit = replace(unit, target_payload=payload,
                               payload_sha256=sha256(payload.encode("utf-8")).hexdigest())
-        context = ResolvedContext(context_id=unit.context_id, breadcrumbs=())
+        snapshot = self._context_snapshots.get(unit.context_id)
+        if (snapshot is None or snapshot.document_id != plan.document_id
+                or snapshot.ast_hash != plan.ast_hash
+                or snapshot.context_id != unit.context_id
+                or unit.context_depth != len(snapshot.breadcrumbs)):
+            raise ValueError("W08_G3_UNVERIFIED_CONTEXT_BEFORE_PROVIDER")
+        # Keep levels explicit; never stringify raw dictionaries or invent [].
+        context = ResolvedContext(
+            context_id=snapshot.context_id,
+            breadcrumbs=tuple(
+                f"H{frame.level}: {frame.title}" if frame.level else frame.title
+                for frame in snapshot.breadcrumbs
+            ),
+        )
         built = self._builder.build(prompt_unit, resolved_context=context, target_lang_expansion=2.0)
         if built.status != "success":
             raise RuntimeError(f"G3_B4_3A_PROMPT_REJECTED: {built.message}")

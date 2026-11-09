@@ -14,7 +14,8 @@ from core.ast.enums import ContentNodeType, TranslationStrategy
 from core.ast.models import ASTNode, MathPayload, ParagraphPayload, TranslationTaskType
 from core.ast.grouper import SemanticGroup
 from core.chunking.manifest_contract import ChunkPlan
-from core.chunking.semantic_chunking import ChunkPolicy, TokenBudgetChunker
+from core.chunking.contextual_plan import prepare_contextual_plan
+from infra.db.context_snapshot_repo import DurableContextPlanRepository
 from infra.db.control_repo import ControlPlaneRepository
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -35,11 +36,12 @@ def _plan(mixed):
                        node_type=ContentNodeType.DISPLAY_EQUATION,
                        strategy=TranslationStrategy.PASSTHROUGH,
                        payload=MathPayload(content="E=mc^2")))
-    units = TokenBudgetChunker(
-        _Estimator(), ChunkPolicy(max_tokens=80, prompt_overhead_tokens=0),
-    ).chunk_group(SemanticGroup(structural_path=(), context_id="ctx", nodes=ast), 1)
-    plan = ChunkPlan.build("doc_preserve_mixed" if mixed else "doc_preserve_only",
-                           "ast_g3_b48", ast, units)
+    prepared = prepare_contextual_plan(
+        document_id="doc_preserve_mixed" if mixed else "doc_preserve_only",
+        raw_ast=ast, estimator=_Estimator(),
+    )
+    ast = list(prepared.ast)
+    plan = prepared.plan
     assert len(plan.units) == (2 if mixed else 1)
     assert plan.units[-1].chunk_type == TranslationTaskType.PRESERVE
     return ast, plan
@@ -81,7 +83,7 @@ def _dbs(tmp_path, plan, ast):
                 (plan.document_id, plan.ast_hash))
     fsm.commit()
     repo = ControlPlaneRepository(queue)
-    repo.enqueue_chunk_plan(plan, ast)
+    DurableContextPlanRepository(repo).enqueue_verified(plan, ast)
     return SimpleNamespace(queue=queue, fsm=fsm, materialized=materialized, repo=repo)
 
 
@@ -114,9 +116,10 @@ def test_engine_preserve_provider_decision_and_full_publication(tmp_path, monkey
 
         calls = []
         shutdowns = []
-        def _provider_factory():
+        def _provider_factory(context_snapshots):
             if mode != "mixed_runnable":
                 pytest.fail("PRESERVE path initialized an unnecessary provider")
+            assert context_snapshots[plan.units[0].context_id].document_id == plan.document_id
             def execute_chunk(actual_plan, unit):
                 calls.append(unit.chunk_id)
                 return _translation(actual_plan, unit)

@@ -15,7 +15,8 @@ from core.ast.enums import ContentNodeType, TranslationStrategy
 from core.ast.models import ASTNode, MathPayload, ParagraphPayload, TranslationTaskType
 from core.ast.grouper import SemanticGroup
 from core.chunking.manifest_contract import ChunkPlan
-from core.chunking.semantic_chunking import ChunkPolicy, TokenBudgetChunker
+from core.chunking.contextual_plan import prepare_contextual_plan
+from infra.db.context_snapshot_repo import DurableContextPlanRepository
 from runtime.publication_pipeline import advance_staged_document
 from infra.db.control_repo import ControlPlaneRepository
 from infra.db.fsm_repository import FSMRepository
@@ -39,10 +40,10 @@ def _plan():
         ASTNode(node_id="b", sequence_id=3, node_type=ContentNodeType.PARAGRAPH,
                 payload=ParagraphPayload(content=" Beta.")),
     ]
-    units = TokenBudgetChunker(
-        _Estimator(), ChunkPolicy(max_tokens=80, prompt_overhead_tokens=0),
-    ).chunk_group(SemanticGroup(structural_path=(), context_id="ctx", nodes=ast), 1)
-    return ast, ChunkPlan.build("doc_b43b", "ast_b43b", ast, units)
+    prepared = prepare_contextual_plan(
+        document_id="doc_b43b", raw_ast=ast, estimator=_Estimator(),
+    )
+    return list(prepared.ast), prepared.plan
 
 
 def _source_result(plan, unit):
@@ -85,7 +86,7 @@ def dbs(tmp_path):
     mc.executescript((ROOT / "infra/db/schema_materialized.sql").read_text(encoding="utf8"))
     _create_fsm(fc, plan)
     repo = ControlPlaneRepository(qc)
-    repo.enqueue_chunk_plan(plan, ast)
+    DurableContextPlanRepository(repo).enqueue_verified(plan, ast)
     data = SimpleNamespace(ast=ast, plan=plan, q=qc, m=mc, f=fc,
                            repo=repo, fsm=FSMRepository(fc), root=tmp_path)
     try:

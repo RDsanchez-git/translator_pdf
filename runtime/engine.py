@@ -32,6 +32,9 @@ from core.ast.hashing import compute_ast_hash
 from runtime.chunk_staging import stage_claimed_unit
 from runtime.publication_pipeline import advance_staged_document
 from apps.bootstrap.provider_stack_factory import build_provider_stack
+from core.context.snapshot_contract import ContextSnapshotV1
+from infra.db.context_snapshot_repo import DurableContextPlanRepository
+from typing import Mapping
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +46,7 @@ MAT_DB_PATH = "infra/db/materialized.db"
 GLOBAL_LLM_SEMAPHORE = threading.Semaphore(int(os.getenv("MAX_GLOBAL_LLM_CONCURRENCY", "4")))
 
 
-def _create_chunk_processor():
+def _create_chunk_processor(context_snapshots: Mapping[str, ContextSnapshotV1]):
     """Initialize paid provider only if at least one unit needs inference."""
     from apps.llm_workers.sync_bridge import SyncProviderBridge
     from core.validation.estimators import ExactBPEEstimator
@@ -86,8 +89,14 @@ def _create_chunk_processor():
             rpm_limit=rpm_limit,
             tpm_limit=tpm_limit,
             rate_limit_store=quota_store,
+            # W08-3 interim: legacy prompt_hash-only cache cannot prove reuse identity.
+            cache_db_path=None,
         ))
-        processor = SyncProviderBridge(async_provider=provider_stack, prompt_builder=builder)
+        processor = SyncProviderBridge(
+            async_provider=provider_stack,
+            prompt_builder=builder,
+            context_snapshots=context_snapshots,
+        )
     except BaseException:
         quota_store.close()
         raise
@@ -116,7 +125,11 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
         ast = ast_registry.get_document_ast(document_id, ast_hash)
         if not ast or compute_ast_hash(ast) != ast_hash:
             raise PipelineIntegrityError("G3_B4_3A_AST_MISSING_OR_HASH_MISMATCH")
-        plan = task_repo.load_chunk_plan(document_id, ast_hash, ast)
+        # A missing, stale or altered snapshot is an integrity failure before
+        # any worker claim and before any paid provider is initialized.
+        plan, context_snapshots = DurableContextPlanRepository(
+            task_repo,
+        ).load_verified(document_id, ast_hash, ast)
         unit_index = {unit.chunk_id: unit for unit in plan.units}
         if len(unit_index) != len(plan.units):
             raise PipelineIntegrityError("G3_B4_3A_DUPLICATE_CHUNKS")
@@ -176,7 +189,7 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
                     for chunk_id, _ in runnable_rows
                 )
                 if needs_inference:
-                    processor, quota_store = _create_chunk_processor()
+                    processor, quota_store = _create_chunk_processor(context_snapshots)
                 def chunk_worker_thread():
                     th_queue_conn = get_connection(QUEUE_DB_PATH, timeout=30)
                     th_queue_conn.execute("PRAGMA busy_timeout=30000")

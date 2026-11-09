@@ -18,8 +18,8 @@ from core.ast.registry import ASTRegistry
 from core.ast.hashing import compute_ast_hash
 
 from core.pipeline.orchestrator import ParserProtocol
-from core.chunking.semantic_chunking import build_semantic_chunks_as_units
-from core.chunking.manifest_contract import ChunkPlan
+from core.chunking.contextual_plan import prepare_contextual_plan
+from infra.db.context_snapshot_repo import DurableContextPlanRepository
 from core.validation.estimators import ExactBPEEstimator
 from core.document_profile.models import ProfileInput
 from core.document_profile.profiler import HeuristicDocumentProfiler
@@ -118,14 +118,18 @@ class OCRRouterDaemon:
             estimator = ExactBPEEstimator()
             
             # SOTA FIX: Desempaquetado estricto de la tupla (Unidades, Telemetría)
-            translation_units, chunking_report = build_semantic_chunks_as_units(raw_ast, estimator)
-            
-            # El plan valida cobertura, orden y linaje antes de escribir cualquier tarea.
-            plan = ChunkPlan.build(document_id, ast_hash, raw_ast, translation_units)
+            prepared = prepare_contextual_plan(
+                document_id=document_id, raw_ast=raw_ast, estimator=estimator,
+            )
+            if prepared.plan.ast_hash != ast_hash:
+                raise ValueError("W08_OCR_AST_HASH_DRIFT")
+            plan = prepared.plan
             ordered_chunk_ids = [u.chunk_id for u in plan.units]
 
-            # AST canónico persistido exactamente una vez.
-            self.ast_registry.register_ast(document_id, ast_hash, raw_ast)
+            # The contextual AST and the plan refer to one semantic generation.
+            # The AST persists separately; queue.db commits plan/tasks/snapshots
+            # together, without pretending that these are one cross-file commit.
+            self.ast_registry.register_ast(document_id, ast_hash, list(prepared.ast))
             
             # FSM y cola son commits locales separados: recuperar CREATED/PARSING
             # sin fingir una transacción entre bases SQLite.
@@ -148,7 +152,9 @@ class OCRRouterDaemon:
                 raise ValueError("G3_B4_2_UNSUPPORTED_FSM_STATE: " + status.current_state)
 
             # B2: manifiesto + tareas LLM atómicos en queue.db; retry idéntico no-op.
-            self.task_repo.enqueue_chunk_plan(plan, raw_ast)
+            DurableContextPlanRepository(self.task_repo).enqueue_verified(
+                plan, prepared.ast,
+            )
             
             # Hot-fetch: Sincronización estricta de versión pre-comando de procesamiento
             status = self.fsm.get_status(document_id, ast_hash)
