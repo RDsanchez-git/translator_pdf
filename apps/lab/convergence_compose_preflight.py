@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from pathlib import Path
 import re
 import subprocess
@@ -43,8 +44,11 @@ def inspect_topology(config: dict[str, Any]) -> list[str]:
     networks = config.get("networks")
     if not isinstance(services, dict) or not isinstance(networks, dict):
         return ["COMPOSE_CONFIG_INVALID"]
-    if set(services) != set(_COMMANDS) | {"toxiproxy", "fake-gemini"}:
-        errors.append("COMPOSE_SERVICE_SET_DRIFT")
+    # Compose may omit services behind inactive profiles from `config`.
+    # Only the seven selected services are required; historical lab roots are optional.
+    unexpected = set(services) - (set(_COMMANDS) | {"toxiproxy", "fake-gemini"})
+    if unexpected:
+        errors.append("COMPOSE_UNEXPECTED_SERVICES")
     net = networks.get("chaos_net")
     if not isinstance(net, dict) or net.get("internal") is not True:
         errors.append("COMPOSE_NETWORK_NOT_INTERNAL")
@@ -97,12 +101,17 @@ def inspect_topology(config: dict[str, Any]) -> list[str]:
         if name != "g3_fake" and any(env.get(k) != v for k, v in _DB_PATHS.items()):
             errors.append(f"{name}:DB_NAMESPACE_DRIFT")
         if name == "llm_worker":
-            if (str(env.get("IS_BENCHMARK")) != "0"
-                    or env.get("GROQ_API_KEY") != _DUMMY
-                    or env.get("GROQ_BASE_URL") != "http://g3_fake:8080/openai/v1"
-                    or env.get("GEMINI_API_KEY") not in (None, "")
-                    or env.get("GEMINI_API_URL") not in (None, "")):
-                errors.append("llm_worker:PROVIDER_CONFIGURATION_DRIFT")
+            # Output reason codes only; never print the effective credential/URL.
+            if str(env.get("IS_BENCHMARK")) != "0":
+                errors.append("llm_worker:BENCHMARK_MODE_NOT_DISABLED")
+            if env.get("GROQ_API_KEY") != _DUMMY:
+                errors.append("llm_worker:GROQ_KEY_NOT_DUMMY")
+            if env.get("GROQ_BASE_URL") != "http://g3_fake:8080/openai/v1":
+                errors.append("llm_worker:GROQ_URL_NOT_PRIVATE_FAKE")
+            if env.get("GEMINI_API_KEY") not in (None, ""):
+                errors.append("llm_worker:GEMINI_KEY_STILL_PRESENT")
+            if env.get("GEMINI_API_URL") not in (None, ""):
+                errors.append("llm_worker:GEMINI_URL_STILL_PRESENT")
             deps = service.get("depends_on", {})
             if not isinstance(deps, dict) or set(deps) != {"db_bootstrap", "g3_fake"}:
                 errors.append("llm_worker:UNEXPECTED_DEPENDENCY")
@@ -114,7 +123,11 @@ def inspect_topology(config: dict[str, Any]) -> list[str]:
                 errors.append("g3_fake:FAKE_CONFIGURATION_DRIFT")
 
     for name in ("toxiproxy", "fake-gemini"):
-        service = services.get(name, {})
+        # Omitted by inactive profiles is safe. If present in the model, it
+        # must remain tagged as a historical lab-only service.
+        if name not in services:
+            continue
+        service = services[name]
         if not isinstance(service, dict) or "lab" not in service.get("profiles", []):
             errors.append(f"{name}:HISTORICAL_SERVICE_ENABLED")
     return errors
@@ -124,6 +137,9 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="C0/T01 read-only Compose topology preflight")
     parser.add_argument("--run-id", required=True, help="Unique lowercase a-z0-9 id (8-16 chars)")
     args = parser.parse_args()
+    if os.getenv("COMPOSE_PROFILES"):
+        print("C0_T01_BLOCKED:HOST_COMPOSE_PROFILES_SET")
+        return 2
     if re.fullmatch(r"[a-z0-9]{8,16}", args.run_id) is None:
         parser.error("run-id must match [a-z0-9]{8,16}")
     command = [
