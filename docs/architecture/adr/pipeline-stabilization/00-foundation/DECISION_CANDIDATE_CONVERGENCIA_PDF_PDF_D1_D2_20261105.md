@@ -1,5 +1,11 @@
 # Decision Candidate — Convergencia de un único contrato de producto PDF→PDF (D-1 / D-2)
 
+**ESTADO VIGENTE — DIRECCIÓN D-1/D-2 APROBADA POR EL OWNER (confirmación 2026-11-08).** El owner ratificó expresamente que la convergencia ya había sido aprobada y que se está implementando conforme a esta decisión. Por tanto, **D-1 (un único contrato PDF→PDF desde la CLI) y D-2 (continuidad G3→G5 como referencia técnica condicionada, con transferencia selectiva R1/R3) no están pendientes de nueva aprobación de dirección**. Se preservan sus límites técnicos, las garantías FROZEN y la separación entre integración de código, activación productiva y certificación científica.
+
+**Trazabilidad de autoridad:** esta actualización registra la confirmación explícita del owner; no inventa fecha/acta/voto independiente del Architecture Board. Las etiquetas `CANDIDATE / NON-NORMATIVE / NOT APPROVED` y menciones a G-1/G-2 pendientes que figuran más abajo describen **el estado histórico al corte del 2026-11-05**, no la dirección vigente. Las obligaciones de implementación, validación y operación G-3/G-4/G-5 siguen siendo evaluables por separado. El nombre original del archivo se conserva para no romper enlaces.
+
+---
+
 **Fecha de corte:** 2026-11-05 (evidencia histórica; revisión documental sobre ese corte)  
 **Edición:** `v0.2.1 — PRECISIÓN FORENSE + EVALUACIÓN G-1…G-5 PARA BOARD` (artefacto de trabajo; **no** versionado normativo)  
 **Estado:** `CANDIDATE / NON-NORMATIVE / NOT APPROVED`  
