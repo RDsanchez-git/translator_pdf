@@ -89,6 +89,8 @@ def _create_chunk_processor(context_snapshots: Mapping[str, ContextSnapshotV1]):
             rpm_limit=rpm_limit,
             tpm_limit=tpm_limit,
             rate_limit_store=quota_store,
+            # W08-3 interim: legacy prompt_hash-only cache cannot prove reuse identity.
+            cache_db_path=None,
         ))
         processor = SyncProviderBridge(
             async_provider=provider_stack,
