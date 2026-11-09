@@ -1,6 +1,6 @@
 # Plan de implementación de la convergencia operativa única PDF→PDF — R1/R2/R3
 
-**Versión:** v1.0.1 · **Fecha:** 2026-11-09 · **Estado:** especificación operativa versionada; **implementación futura, no cierre ni certificación**  
+**Versión:** v1.0.2 · **Fecha:** 2026-11-09 · **Estado:** especificación operativa versionada; **implementación futura, no cierre ni certificación**  
 **Repositorio / rama de referencia:** `RDsanchez-git/translator_pdf` / `pipeline_stabilization`  
 **Commit inspeccionado:** `6a5ee41886b935c2c0f3a107a42620d93de31efb` (#40 MERGED). Los caminos, configuraciones y tests descritos se refieren a **ese commit**, no a una instalación desplegada.  
 **Documento rector:** [Decisión D-1/D-2, cabecera vigente, §§0, 2, 6–8](DECISION_CANDIDATE_CONVERGENCIA_PDF_PDF_D1_D2_20261105.md). El nombre histórico `CANDIDATE` no revoca la **aprobación del owner del 2026-11-08**.  
@@ -241,7 +241,7 @@ Este documento es el **único tablero de avance de la convergencia operativa**. 
 
 | Delta | Estado | Pruebas para cerrarlo | Evidencia PASS / bloqueo | Última revisión |
 |---|---|---|---|---|
-| C0 — Root/configuración | PENDIENTE | T01; comando/volúmenes/DB/proveedor/entrada efectivos | — | 2026-11-09 |
+| C0 — Root/configuración | EN_CURSO | T01; comando/volúmenes/DB/proveedor/entrada efectivos | [PR #46](https://github.com/RDsanchez-git/translator_pdf/pull/46): candidato Compose + preflight; sin Docker ni runtime comprobados | 2026-11-09 |
 | C1 — Entrada CLI→OCR | PENDIENTE | T02; inbox compartido, una generación | — | 2026-11-09 |
 | C2 — OCR→G3→G5 multiproceso | PENDIENTE | T03 + T04; PDF Tectonic real y receipts completos | — | 2026-11-09 |
 | C3 — Recuperación/modalidades | PENDIENTE | T05 + T07; recuperación segura y foreground aislado | — | 2026-11-09 |
@@ -251,7 +251,7 @@ Este documento es el **único tablero de avance de la convergencia operativa**. 
 
 | Testigo | Estado | Evidencia verificable o bloqueo |
 |---|---|---|
-| T01 — Root/config | PENDIENTE | — |
+| T01 — Root/config | EN_CURSO | [PR #46](https://github.com/RDsanchez-git/translator_pdf/pull/46): inspección estática implementada, ejecución en Docker pendiente |
 | T02 — CLI→OCR | PENDIENTE | — |
 | T03 — G3 fake HTTP | PENDIENTE | — |
 | T04 — G5 + Tectonic | PENDIENTE | — |
@@ -274,6 +274,7 @@ Este documento es el **único tablero de avance de la convergencia operativa**. 
 |---|---|---|---|
 | 2026-11-09 | v1.0.0 | Primera especificación y matriz, sin prueba operativa nueva | `adbb61a88c179d3a11a31e78cd470b590024a4be` |
 | 2026-11-09 | v1.0.1 | Convención de avance, registros iniciales, root canónico, requisitos del fake/fixture y Markdown corregido | Este commit documental; no ejecución nueva |
+| 2026-11-09 | v1.0.2 | C0/T01 pasa a EN_CURSO; preparación del override y validación estática en Draft #46 | [PR #46](https://github.com/RDsanchez-git/translator_pdf/pull/46); no existe PASS de Compose ni del PDF multiproceso |
 
 ## 9. Registro de cambios propuestos y disciplina de integración
 
