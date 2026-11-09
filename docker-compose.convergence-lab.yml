@@ -1,0 +1,92 @@
+# C0/T01: laboratorio EXCLUSIVO para composición CLI -> OCR -> G3 -> G5.
+# Usar SOLO después de docker-compose.yml + docker-compose.runtime.yml.
+# Nunca aplicar este override a una instalación persistente.
+# Ningún servicio de producto publica puertos; la red no tiene egress.
+services:
+  db_bootstrap:
+    restart: "no"
+
+  ocr_router:
+    restart: "no"
+
+  llm_worker:
+    restart: "no"
+    depends_on: !override
+      db_bootstrap:
+        condition: service_completed_successfully
+      g3_fake:
+        condition: service_healthy
+    environment:
+      IS_BENCHMARK: "0"
+      GROQ_API_KEY: translator-pdf-g3-offline-fake-only
+      GROQ_BASE_URL: http://g3_fake:8080/openai/v1
+      GROQ_RPM_LIMIT: "1000"
+      GROQ_TPM_LIMIT: "200000"
+      GEMINI_API_KEY: !reset null
+      HTTP_PROXY: ""
+      HTTPS_PROXY: ""
+      ALL_PROXY: ""
+      http_proxy: ""
+      https_proxy: ""
+      all_proxy: ""
+      NO_PROXY: g3_fake,localhost,127.0.0.1
+      no_proxy: g3_fake,localhost,127.0.0.1
+
+  assembler:
+    restart: "no"
+
+  reconciler:
+    restart: "no"
+
+  sweeper:
+    restart: "no"
+
+  g3_fake:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    working_dir: /app
+    command: ["python", "-m", "apps.lab.g3_fake", "--serve"]
+    # SQLite manifest read-only; no output, inbox or PDF source mounted.
+    volumes:
+      - type: volume
+        source: g3_runtime_state
+        target: /app/state
+        read_only: true
+    environment:
+      PYTHONPATH: /app
+      GROQ_API_KEY: translator-pdf-g3-offline-fake-only
+      TPDF_OFFLINE_LAB: EXPLICIT_OFFLINE_TEST_ONLY
+      TPDF_FAKE_PRIVATE_DOCKER: EXPLICIT_INTERNAL_NETWORK_ONLY
+      TPDF_FAKE_BIND: "0.0.0.0"
+      TPDF_FAKE_QUEUE_DB: /app/state/db/queue.db
+      TPDF_FAKE_MAX_REQUESTS: "128"
+      HTTP_PROXY: ""
+      HTTPS_PROXY: ""
+      ALL_PROXY: ""
+      NO_PROXY: g3_fake,localhost,127.0.0.1
+    depends_on:
+      db_bootstrap:
+        condition: service_completed_successfully
+    networks:
+      - chaos_net
+    restart: "no"
+    init: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    pids_limit: 64
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=2).close()"
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+# No nuevos puentes de salida: toda la composición del laboratorio es interna.
+networks:
+  chaos_net:
+    internal: true
+    enable_ipv6: false
