@@ -1,4 +1,4 @@
-# Decision Candidate — Convergencia de un único contrato de producto PDF→PDF (D-1 / D-2)
+# Decisión de convergencia D-1 / D-2 — Contrato único de producto PDF→PDF
 
 **ESTADO VIGENTE — DIRECCIÓN D-1/D-2 APROBADA POR EL OWNER (confirmación 2026-11-08).** El owner ratificó expresamente que la convergencia ya había sido aprobada y que se está implementando conforme a esta decisión. Por tanto, **D-1 (un único contrato PDF→PDF desde la CLI) y D-2 (continuidad G3→G5 como referencia técnica condicionada, con transferencia selectiva R1/R3) no están pendientes de nueva aprobación de dirección**. Se preservan sus límites técnicos, las garantías FROZEN y la separación entre integración de código, activación productiva y certificación científica.
 
@@ -8,8 +8,8 @@
 
 **Fecha de corte:** 2026-11-05 (evidencia histórica; revisión documental sobre ese corte)  
 **Edición:** `v0.2.1 — PRECISIÓN FORENSE + EVALUACIÓN G-1…G-5 PARA BOARD` (artefacto de trabajo; **no** versionado normativo)  
-**Estado:** `CANDIDATE / NON-NORMATIVE / NOT APPROVED`  
-**Destinatario:** Architecture Board; decisión D-1/D-2 pendiente  
+**Estado del expediente al 2026-11-05:** `CANDIDATE / NON-NORMATIVE / NOT APPROVED` (estado histórico, supersedido para la dirección D-1/D-2 por la aprobación del owner arriba)  
+**Destinatario histórico del expediente:** Architecture Board; D-1/D-2 estaban pendientes al 2026-11-05  
 **Repositorio:** `RDsanchez-git/translator_pdf`, rama `pipeline_stabilization`  
 **Sujeto funcional:** [`d4cda2c379c0efd93a70e795d31c37a0ede7a192`](https://github.com/RDsanchez-git/translator_pdf/tree/d4cda2c379c0efd93a70e795d31c37a0ede7a192)  
 **Gobierno:** Charter v0.1.0 `DRAFT`, Atlas v0.2.16 `IN_PROGRESS`, NADR-F18-02/03/04/05 `FROZEN`.  
