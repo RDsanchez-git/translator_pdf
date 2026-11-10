@@ -19,15 +19,18 @@ _FILES = (
     "docker-compose.convergence-lab.yml",
 )
 _DUMMY = "translator-pdf-g3-offline-fake-only"
+_IMAGE = "i0-1d/translator-pdf-runtime:r2-d4cda2c-20261031_211824"
+_IMAGE_ID = "sha256:abe5b5dbbc65e8920e0948b189bd9bd090eb395e99420918190128a2ec12b4bd"
 _COMMANDS = {
-    "db_bootstrap": ["python", "infra/db/bootstrap.py"],
-    "ocr_router": ["python", "apps/ocr_router/__main__.py"],
-    "llm_worker": ["python", "runtime/engine.py"],
-    "assembler": ["python", "apps/compiler/__main__.py"],
-    "reconciler": ["python", "apps/daemons/reconciler.py"],
-    "sweeper": ["python", "runtime/sweeper.py"],
-    "g3_fake": ["python", "-m", "apps.lab.g3_fake", "--serve"],
+    "db_bootstrap": ["python", "-B", "/workspace/infra/db/bootstrap.py"],
+    "ocr_router": ["python", "-B", "/workspace/apps/ocr_router/__main__.py"],
+    "llm_worker": ["python", "-B", "/workspace/runtime/engine.py"],
+    "assembler": ["python", "-B", "/workspace/apps/compiler/__main__.py"],
+    "reconciler": ["python", "-B", "/workspace/apps/daemons/reconciler.py"],
+    "sweeper": ["python", "-B", "/workspace/runtime/sweeper.py"],
+    "g3_fake": ["python", "-B", "-m", "apps.lab.g3_fake", "--serve"],
 }
+
 _DB_PATHS = {
     "SQLITE_STATE_DIR": "/app/state/db",
     "FSM_DB_PATH": "/app/state/db/fsm.db",
@@ -60,6 +63,14 @@ def inspect_topology(config: dict[str, Any]) -> list[str]:
             continue
         if service.get("command") != command:
             errors.append(f"{name}:UNEXPECTED_COMMAND")
+        if service.get("build") is not None:
+            errors.append(f"{name}:BUILD_FORBIDDEN")
+        if service.get("image") != _IMAGE:
+            errors.append(f"{name}:HISTORICAL_IMAGE_DRIFT")
+        if service.get("pull_policy") != "never":
+            errors.append(f"{name}:PULL_FORBIDDEN")
+        if service.get("working_dir") != "/app":
+            errors.append(f"{name}:WORKDIR_DRIFT")
         if service.get("ports") or service.get("network_mode") or service.get("extra_hosts"):
             errors.append(f"{name}:NETWORK_EXPOSURE")
         if set(service.get("networks", {})) != {"chaos_net"}:
@@ -73,14 +84,24 @@ def inspect_topology(config: dict[str, Any]) -> list[str]:
             errors.append(f"{name}:VOLUMES_INVALID")
             continue
         targets = {v.get("target"): v for v in volumes if isinstance(v, dict)}
-        if len(targets) != len(volumes) or any(
-            not isinstance(v, dict) or v.get("type") != "volume"
+        if len(targets) != len(volumes):
+            errors.append(f"{name}:DUPLICATE_MOUNT_TARGET")
+        code = targets.get("/workspace", {})
+        if (code.get("type") != "bind" or not code.get("read_only")
+                or Path(str(code.get("source", ""))).resolve() != _BASE.resolve()):
+            errors.append(f"{name}:CURRENT_CODE_MUST_BE_READ_ONLY")
+        # Only one checkout bind is allowed; state and caches must be volumes.
+        if any(
+            not isinstance(v, dict) or
+            (v.get("type") != "volume" and v is not code) or
+            (v.get("type") == "bind" and v.get("target") != "/workspace")
             for v in volumes
         ):
             errors.append(f"{name}:NON_ISOLATED_MOUNT")
         required = {"/app/state", "/app/data", "/app/output"}
         if name == "g3_fake":
-            if set(targets) != {"/app/state"} or not targets["/app/state"].get("read_only"):
+            if (set(targets) != {"/workspace", "/app/state"}
+                    or not targets.get("/app/state", {}).get("read_only")):
                 errors.append("g3_fake:STATE_MUST_BE_READ_ONLY")
         elif not required.issubset(targets):
             errors.append(f"{name}:MISSING_SHARED_VOLUME")
@@ -98,6 +119,10 @@ def inspect_topology(config: dict[str, Any]) -> list[str]:
         if not isinstance(env, dict):
             errors.append(f"{name}:ENV_INVALID")
             continue
+        if (env.get("PYTHONPATH") != "/workspace"
+                or str(env.get("PYTHONSAFEPATH")) != "1"
+                or str(env.get("PYTHONDONTWRITEBYTECODE")) != "1"):
+            errors.append(f"{name}:CURRENT_CODE_IMPORT_DRIFT")
         if name != "g3_fake" and any(env.get(k) != v for k, v in _DB_PATHS.items()):
             errors.append(f"{name}:DB_NAMESPACE_DRIFT")
         if name == "llm_worker":
@@ -136,6 +161,10 @@ def inspect_topology(config: dict[str, Any]) -> list[str]:
 def main() -> int:
     parser = argparse.ArgumentParser(description="C0/T01 read-only Compose topology preflight")
     parser.add_argument("--run-id", required=True, help="Unique lowercase a-z0-9 id (8-16 chars)")
+    parser.add_argument(
+        "--verify-local-image", action="store_true",
+        help="Read-only docker image inspect; require pre-existing pinned image ID",
+    )
     args = parser.parse_args()
     if os.getenv("COMPOSE_PROFILES"):
         print("C0_T01_BLOCKED:HOST_COMPOSE_PROFILES_SET")
@@ -166,6 +195,19 @@ def main() -> int:
         for issue in issues:
             print("C0_T01_FAIL:" + issue)
         return 1
+    if args.verify_local_image:
+        # No pull, build, container, or volume creation.
+        try:
+            image = subprocess.run(
+                ["docker", "image", "inspect", _IMAGE, "--format", "{{.Id}}"],
+                capture_output=True, text=True, check=False, timeout=30,
+            )
+        except (OSError, subprocess.TimeoutExpired):
+            print("C0_T01_BLOCKED:LOCAL_IMAGE_UNAVAILABLE")
+            return 2
+        if image.returncode or image.stdout.strip() != _IMAGE_ID:
+            print("C0_T01_BLOCKED:LOCAL_IMAGE_MISSING_OR_ID_DRIFT")
+            return 2
     print("C0_T01_STATIC_CANDIDATE_PASS: no containers started; runtime still unverified")
     return 0
 
