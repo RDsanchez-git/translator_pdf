@@ -1,6 +1,6 @@
 # Plan de implementación de la convergencia operativa única PDF→PDF — R1/R2/R3
 
-**Versión:** v1.0.2 · **Fecha:** 2026-11-09 · **Estado:** especificación operativa versionada; **implementación futura, no cierre ni certificación**  
+**Versión:** v1.0.3 · **Fecha:** 2026-11-09 · **Estado:** especificación operativa versionada; **implementación futura, no cierre ni certificación**  
 **Repositorio / rama de referencia:** `RDsanchez-git/translator_pdf` / `pipeline_stabilization`  
 **Commit inspeccionado:** `6a5ee41886b935c2c0f3a107a42620d93de31efb` (#40 MERGED). Los caminos, configuraciones y tests descritos se refieren a **ese commit**, no a una instalación desplegada.  
 **Documento rector:** [Decisión D-1/D-2, cabecera vigente, §§0, 2, 6–8](DECISION_CANDIDATE_CONVERGENCIA_PDF_PDF_D1_D2_20261105.md). El nombre histórico `CANDIDATE` no revoca la **aprobación del owner del 2026-11-08**.  
@@ -133,6 +133,18 @@ rg -n 'IS_BENCHMARK|SQLITE_STATE_DIR|APP_ROOT|GROQ_BASE_URL|GROQ_API_KEY|COMPILE
 
 **Atención:** `docker compose config` podría mostrar valores interpolados sensibles en otros entornos: censurar cualquier secreto antes de conservar logs. No ejecutar `up`, `bootstrap`, `run` ni manipular un volumen vivo como parte de esta inspección estática. Revalidar SHA y diffs antes de proponer cambios.
 
+### 4.3 Restricción operativa obligatoria: reutilización de imágenes y presupuesto de almacenamiento (2026-11-09)
+
+**Prioridad absoluta para C0–C4: NO construir ni descargar imágenes/dependencias si el owner ya dispone de una imagen histórica compatible.** Antes de proponer o ejecutar `docker compose build`, `docker build`, `docker pull`, `apt-get`, `pip install` en contenedor o acciones que disparen esas operaciones, el operador/asistente **debe consultar primero** al owner su disponibilidad real de espacio, imágenes existentes y autorización explícita para cualquier descarga o reconstrucción. No se permite presumir disponibilidad de disco. Un `build:` heredado de Compose no habilita ejecutar `build` automáticamente.
+
+**Inventario confirmado en host por el owner (2026-11-09, etiquetas/IDs abreviados, no evidencia de compatibilidad funcional):** `i0-1d/translator-pdf-runtime:r2-d4cda2c-20261031_211824` (`abe5b5dbbc65`, 17.7 GB); `g3-b4-10/translator-pdf-runtime:fbf166b-derived-r0` (`b476a8ceedb6`, 17.7 GB); `i0-1d/translator-pdf-audit:d1-01-01` (`95300da97b59`, 17.6 GB), además de imágenes `translator_pdf-*` de ~810 MB y `fake-gemini` de 225 MB. No eliminar ni recrear estas imágenes a partir de un nombre, tag o tamaño; cotejar ID completo/digest, dependencias, arquitectura y presencia de PyMuPDF/Tectonic. **No sumar tamaños de imágenes como si fueran uso exclusivo**: pueden compartir capas.
+
+**Regla de implementación:** usar la imagen histórica seleccionada por ID/digest verificado con `image:` y `pull_policy: never`; quitar o neutralizar el `build:` heredado **en la composición efectiva del laboratorio**. Ejecutar el código **convergido actual** mediante un montaje explícito del checkout en solo lectura (según la variante B03.2), ajustando `PYTHONPATH`/comandos y separando rutas de escritura: SQLite, inbox, AST, cachés y PDF en volúmenes nuevos por RUN-ID. Verificar en modo de solo lectura que las dependencias instaladas son compatibles con HEAD; un desajuste se registra como `PRECONDITION_BLOCKED` y se propone la opción de menor consumo **antes** de pedir autorización, nunca como build reactivo. Reutilizar cachés históricas **solo** cuando se puedan montar en modo RO sin escrituras ni colisión; no duplicar cachés pesadas por defecto.
+
+**Higiene/custodia del disco:** registrar antes de cualquier operación creadora `docker system df` y el inventario de objetos/espacio recuperable; estimar el incremento y el umbral libre autorizado por el owner. Un `build` interrumpido puede dejar caché BuildKit sin imagen etiquetada. Para recuperar espacio, inspeccionar `docker buildx du --verbose` y borrar **solo registros identificados** con filtro `id` y consentimiento explícito; no usar `docker system prune`, `docker builder prune -a`, `docker image prune -a`, `docker compose down -v`, borrados masivos o `docker volume prune` sobre un host con evidencia histórica. No atribuir automáticamente toda la caché al intento actual. Si no puede determinarse la procedencia de una capa, **preservar y solicitar identificación**, no barrer.
+
+**Incidente de alcance:** se recomendó `docker compose ... build db_bootstrap` antes de consultar el almacenamiento; el owner detuvo esa ejecución después de descargas. **La recomendación fue incorrecta y queda expresamente prohibida sin inventario y autorización.** La inspección estática `C0_T01_STATIC_CANDIDATE_PASS` sí fue reportada por el owner (Compose v2.40.3 / Docker Engine 28.5.1, proyecto `tpdfconvconv0911a`, seis volúmenes y red con nombres libres); no acredita arranque, imagen runtime ni PDF físico.
+
 ## 5. Deltas implementables, mínimos y secuenciados
 
 ### C0 — Fijar root y contrato, antes de editar ejecutores
@@ -241,7 +253,7 @@ Este documento es el **único tablero de avance de la convergencia operativa**. 
 
 | Delta | Estado | Pruebas para cerrarlo | Evidencia PASS / bloqueo | Última revisión |
 |---|---|---|---|---|
-| C0 — Root/configuración | EN_CURSO | T01; comando/volúmenes/DB/proveedor/entrada efectivos | [PR #46](https://github.com/RDsanchez-git/translator_pdf/pull/46): candidato Compose + preflight; sin Docker ni runtime comprobados | 2026-11-09 |
+| C0 — Root/configuración | EN_CURSO | T01; comando/volúmenes/DB/proveedor/entrada efectivos | [PR #46](https://github.com/RDsanchez-git/translator_pdf/pull/46): `C0_T01_STATIC_CANDIDATE_PASS` reportado por el owner; imagen histórica y ejecución aún no verificadas; build descartado por restricción de disco §4.3 | 2026-11-09 |
 | C1 — Entrada CLI→OCR | PENDIENTE | T02; inbox compartido, una generación | — | 2026-11-09 |
 | C2 — OCR→G3→G5 multiproceso | PENDIENTE | T03 + T04; PDF Tectonic real y receipts completos | — | 2026-11-09 |
 | C3 — Recuperación/modalidades | PENDIENTE | T05 + T07; recuperación segura y foreground aislado | — | 2026-11-09 |
@@ -251,7 +263,7 @@ Este documento es el **único tablero de avance de la convergencia operativa**. 
 
 | Testigo | Estado | Evidencia verificable o bloqueo |
 |---|---|---|
-| T01 — Root/config | EN_CURSO | [PR #46](https://github.com/RDsanchez-git/translator_pdf/pull/46): inspección estática implementada, ejecución en Docker pendiente |
+| T01 — Root/config | EN_CURSO | Preflight estático PASS en Docker Compose v2.40.3 (owner); recursos nuevos libres, sin contenedores; falta fijar imagen histórica sin build/pull y verificar ejecución |
 | T02 — CLI→OCR | PENDIENTE | — |
 | T03 — G3 fake HTTP | PENDIENTE | — |
 | T04 — G5 + Tectonic | PENDIENTE | — |
@@ -276,7 +288,7 @@ Este documento es el **único tablero de avance de la convergencia operativa**. 
 | 2026-11-09 | v1.0.1 | Convención de avance, registros iniciales, root canónico, requisitos del fake/fixture y Markdown corregido | Este commit documental; no ejecución nueva |
 | 2026-11-09 | v1.0.2 | C0/T01 pasa a EN_CURSO; preparación del override y validación estática en Draft #46 | [PR #46](https://github.com/RDsanchez-git/translator_pdf/pull/46); no existe PASS de Compose ni del PDF multiproceso |
 
-## 9. Registro de cambios propuestos y disciplina de integración
+| 2026-11-09 | v1.0.3 | Restricción obligatoria de reutilizar imágenes históricas, ahorrar disco, pedir autorización antes de build/pull y limpieza selectiva de BuildKit; se registra C0 estático PASS (no cierre) | Inventario Docker y preflight enviados por el owner; Draft #46; no se ejecutaron contenedores nuevos desde esta sesión |\n\n## 9. Registro de cambios propuestos y disciplina de integración
 
 Este documento y la matriz son **documentación exclusivamente**. No suponen cambios funcionales, despliegue, restauración de volúmenes, cierre de PRs ni borrado de rutas.
 
