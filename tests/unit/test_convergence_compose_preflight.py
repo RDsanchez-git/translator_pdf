@@ -1,18 +1,20 @@
 """C0/T01 contract tests; no Docker and no environment secrets."""
 from copy import deepcopy
 
+from apps.lab.convergence_compose_preflight import _BASE, _IMAGE
+
 from apps.lab.convergence_compose_preflight import inspect_topology
 
 
 def _good() -> dict:
     commands = {
-        "db_bootstrap": ["python", "infra/db/bootstrap.py"],
-        "ocr_router": ["python", "apps/ocr_router/__main__.py"],
-        "llm_worker": ["python", "runtime/engine.py"],
-        "assembler": ["python", "apps/compiler/__main__.py"],
-        "reconciler": ["python", "apps/daemons/reconciler.py"],
-        "sweeper": ["python", "runtime/sweeper.py"],
-        "g3_fake": ["python", "-m", "apps.lab.g3_fake", "--serve"],
+        "db_bootstrap": ["python", "-B", "/workspace/infra/db/bootstrap.py"],
+        "ocr_router": ["python", "-B", "/workspace/apps/ocr_router/__main__.py"],
+        "llm_worker": ["python", "-B", "/workspace/runtime/engine.py"],
+        "assembler": ["python", "-B", "/workspace/apps/compiler/__main__.py"],
+        "reconciler": ["python", "-B", "/workspace/apps/daemons/reconciler.py"],
+        "sweeper": ["python", "-B", "/workspace/runtime/sweeper.py"],
+        "g3_fake": ["python", "-B", "-m", "apps.lab.g3_fake", "--serve"],
     }
     common = {
         "SQLITE_STATE_DIR": "/app/state/db",
@@ -22,6 +24,7 @@ def _good() -> dict:
         "MAT_DB_PATH": "/app/state/db/materialized.db",
     }
     shared = [
+        {"type": "bind", "source": str(_BASE), "target": "/workspace", "read_only": True},
         {"type": "volume", "source": "g3_runtime_state", "target": "/app/state"},
         {"type": "volume", "source": "g3_runtime_data", "target": "/app/data"},
         {"type": "volume", "source": "g3_runtime_output", "target": "/app/output"},
@@ -29,9 +32,13 @@ def _good() -> dict:
     services = {
         name: {
             "command": command,
+            "image": _IMAGE,
+            "pull_policy": "never",
+            "working_dir": "/app",
             "restart": "no",
             "networks": {"chaos_net": None},
-            "environment": deepcopy(common),
+            "environment": {**deepcopy(common), "PYTHONPATH": "/workspace",
+                            "PYTHONSAFEPATH": "1", "PYTHONDONTWRITEBYTECODE": "1"},
             "volumes": deepcopy(shared),
         }
         for name, command in commands.items()
@@ -45,11 +52,15 @@ def _good() -> dict:
         "db_bootstrap": {"condition": "service_completed_successfully"},
         "g3_fake": {"condition": "service_healthy"},
     }
-    services["g3_fake"]["volumes"] = [{
-        "type": "volume", "source": "g3_runtime_state",
-        "target": "/app/state", "read_only": True,
-    }]
+    services["g3_fake"]["volumes"] = [
+        {"type": "bind", "source": str(_BASE), "target": "/workspace", "read_only": True},
+        {"type": "volume", "source": "g3_runtime_state",
+         "target": "/app/state", "read_only": True},
+    ]
     services["g3_fake"]["environment"] = {
+        "PYTHONPATH": "/workspace",
+        "PYTHONSAFEPATH": "1",
+        "PYTHONDONTWRITEBYTECODE": "1",
         "GROQ_API_KEY": "translator-pdf-g3-offline-fake-only",
         "TPDF_OFFLINE_LAB": "EXPLICIT_OFFLINE_TEST_ONLY",
         "TPDF_FAKE_PRIVATE_DOCKER": "EXPLICIT_INTERNAL_NETWORK_ONLY",
@@ -88,7 +99,7 @@ def test_rejects_split_state_and_real_egress() -> None:
 
 def test_rejects_fake_write_access_and_old_services() -> None:
     bad = _good()
-    bad["services"]["g3_fake"]["volumes"][0]["read_only"] = False
+    bad["services"]["g3_fake"]["volumes"][1]["read_only"] = False
     bad["services"]["toxiproxy"]["profiles"] = []
     issues = inspect_topology(bad)
     assert "g3_fake:STATE_MUST_BE_READ_ONLY" in issues
@@ -104,7 +115,7 @@ def test_inactive_profile_services_may_be_omitted_by_compose() -> None:
 
 def test_unexpected_service_not_ignored() -> None:
     config = _good()
-    config["services"]["legacy_r3_worker"] = {"command": ["python", "apps/llm_workers/__main__.py"]}
+    config["services"]["legacy_r3_worker"] = {"command": ["python", "-B", "/workspace/apps/llm_workers/__main__.py"]}
     assert "COMPOSE_UNEXPECTED_SERVICES" in inspect_topology(config)
 
 
@@ -122,3 +133,36 @@ def test_provider_diagnostics_do_not_include_secret_values() -> None:
     assert "llm_worker:GEMINI_URL_STILL_PRESENT" in issues
     assert "not-the-test-token" not in repr(issues)
     assert "unwanted-secret" not in repr(issues)
+
+
+def test_rejects_build_and_pull_attempts() -> None:
+    bad = _good()
+    bad["services"]["llm_worker"]["build"] = {"context": ".", "dockerfile": "Dockerfile"}
+    bad["services"]["ocr_router"]["pull_policy"] = "always"
+    bad["services"]["assembler"]["image"] = "python:3.11-slim"
+    issues = inspect_topology(bad)
+    assert "llm_worker:BUILD_FORBIDDEN" in issues
+    assert "ocr_router:PULL_FORBIDDEN" in issues
+    assert "assembler:HISTORICAL_IMAGE_DRIFT" in issues
+
+
+def test_rejects_writable_or_wrong_source_checkout() -> None:
+    bad = _good()
+    bad["services"]["assembler"]["volumes"][0]["read_only"] = False
+    bad["services"]["db_bootstrap"]["volumes"][0]["source"] = "/tmp/other-code"
+    bad["services"]["ocr_router"]["environment"]["PYTHONPATH"] = "/app"
+    issues = inspect_topology(bad)
+    assert "assembler:CURRENT_CODE_MUST_BE_READ_ONLY" in issues
+    assert "db_bootstrap:CURRENT_CODE_MUST_BE_READ_ONLY" in issues
+    assert "ocr_router:CURRENT_CODE_IMPORT_DRIFT" in issues
+
+
+def test_rejects_writable_host_bind_outside_checkout() -> None:
+    bad = _good()
+    bad["services"]["reconciler"]["volumes"].append({
+        "type": "bind", "source": "/tmp/host-output",
+        "target": "/app/output",
+        "read_only": False,
+    })
+    issues = inspect_topology(bad)
+    assert "reconciler:NON_ISOLATED_MOUNT" in issues
