@@ -88,7 +88,7 @@ def test_rejects_legacy_worker_and_benchmark() -> None:
 
 def test_rejects_split_state_and_real_egress() -> None:
     bad = _good()
-    bad["services"]["ocr_router"]["volumes"][0]["source"] = "wrong_state"
+    bad["services"]["ocr_router"]["volumes"][1]["source"] = "wrong_state"
     bad["networks"]["chaos_net"]["internal"] = False
     bad["services"]["llm_worker"]["ports"] = [{"published": "8080", "target": 8080}]
     issues = inspect_topology(bad)
