@@ -98,6 +98,15 @@ def inspect_topology(config: dict[str, Any]) -> list[str]:
             for v in volumes
         ):
             errors.append(f"{name}:NON_ISOLATED_MOUNT")
+        # Docker populates empty named volumes from image paths unless
+        # nocopy is set. Historical runtime layers and caches must not
+        # silently duplicate into this storage-constrained lab.
+        if any(
+            v.get("type") == "volume"
+            and not v.get("volume", {}).get("nocopy", False)
+            for v in volumes if isinstance(v, dict)
+        ):
+            errors.append(f"{name}:VOLUME_COPYUP_FORBIDDEN")
         required = {"/app/state", "/app/data", "/app/output"}
         if name == "g3_fake":
             if (set(targets) != {"/workspace", "/app/state"}
