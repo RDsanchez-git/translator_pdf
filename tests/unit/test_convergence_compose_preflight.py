@@ -25,9 +25,9 @@ def _good() -> dict:
     }
     shared = [
         {"type": "bind", "source": str(_BASE), "target": "/workspace", "read_only": True},
-        {"type": "volume", "source": "g3_runtime_state", "target": "/app/state"},
-        {"type": "volume", "source": "g3_runtime_data", "target": "/app/data"},
-        {"type": "volume", "source": "g3_runtime_output", "target": "/app/output"},
+        {"type": "volume", "source": "g3_runtime_state", "target": "/app/state", "volume": {"nocopy": True}},
+        {"type": "volume", "source": "g3_runtime_data", "target": "/app/data", "volume": {"nocopy": True}},
+        {"type": "volume", "source": "g3_runtime_output", "target": "/app/output", "volume": {"nocopy": True}},
     ]
     services = {
         name: {
@@ -55,7 +55,7 @@ def _good() -> dict:
     services["g3_fake"]["volumes"] = [
         {"type": "bind", "source": str(_BASE), "target": "/workspace", "read_only": True},
         {"type": "volume", "source": "g3_runtime_state",
-         "target": "/app/state", "read_only": True},
+         "target": "/app/state", "read_only": True, "volume": {"nocopy": True}},
     ]
     services["g3_fake"]["environment"] = {
         "PYTHONPATH": "/workspace",
@@ -133,6 +133,15 @@ def test_provider_diagnostics_do_not_include_secret_values() -> None:
     assert "llm_worker:GEMINI_URL_STILL_PRESENT" in issues
     assert "not-the-test-token" not in repr(issues)
     assert "unwanted-secret" not in repr(issues)
+
+
+def test_rejects_named_volume_copy_up() -> None:
+    bad = _good()
+    bad["services"]["ocr_router"]["volumes"][1]["volume"]["nocopy"] = False
+    bad["services"]["g3_fake"]["volumes"][1]["volume"]["nocopy"] = False
+    issues = inspect_topology(bad)
+    assert "ocr_router:VOLUME_COPYUP_FORBIDDEN" in issues
+    assert "g3_fake:VOLUME_COPYUP_FORBIDDEN" in issues
 
 
 def test_rejects_build_and_pull_attempts() -> None:
