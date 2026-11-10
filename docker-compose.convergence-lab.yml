@@ -2,6 +2,46 @@
 # Nunca build/pull; código de HEAD en /workspace:ro, /app sigue escribible.
 # Usar después de docker-compose.yml + docker-compose.runtime.yml; solo laboratorio.
 # Los servicios seleccionados no publican puertos; red interna sin egress.
+# No copiar datos de /app desde la imagen a volúmenes nuevos: evita duplicar
+# cachés históricas al arrancar. Los volúmenes solo reciben escrituras del run.
+x-convergence-worker-volumes: &convergence-worker-volumes
+  - type: bind
+    source: .
+    target: /workspace
+    read_only: true
+    bind:
+      create_host_path: false
+  - type: volume
+    source: g3_runtime_state
+    target: /app/state
+    volume:
+      nocopy: true
+  - type: volume
+    source: g3_runtime_data
+    target: /app/data
+    volume:
+      nocopy: true
+  - type: volume
+    source: g3_runtime_output
+    target: /app/output
+    volume:
+      nocopy: true
+  - type: volume
+    source: hf_models_cache
+    target: /app/.cache/hf
+    volume:
+      nocopy: true
+  - type: volume
+    source: torch_cache
+    target: /app/.cache/torch
+    volume:
+      nocopy: true
+  - type: volume
+    source: tectonic_cache
+    target: /app/.cache/tectonic
+    volume:
+      nocopy: true
+
 services:
   db_bootstrap:
     # !reset removes the inherited worker-base Dockerfile build.
@@ -11,13 +51,7 @@ services:
     working_dir: /app
     command: ["python", "-B", "/workspace/infra/db/bootstrap.py"]
     restart: "no"
-    volumes:
-      - type: bind
-        source: .
-        target: /workspace
-        read_only: true
-        bind:
-          create_host_path: false
+    volumes: *convergence-worker-volumes
     environment:
       PYTHONPATH: /workspace
       PYTHONSAFEPATH: "1"
@@ -31,13 +65,7 @@ services:
     working_dir: /app
     command: ["python", "-B", "/workspace/apps/ocr_router/__main__.py"]
     restart: "no"
-    volumes:
-      - type: bind
-        source: .
-        target: /workspace
-        read_only: true
-        bind:
-          create_host_path: false
+    volumes: *convergence-worker-volumes
     environment:
       PYTHONPATH: /workspace
       PYTHONSAFEPATH: "1"
@@ -51,13 +79,7 @@ services:
     working_dir: /app
     command: ["python", "-B", "/workspace/runtime/engine.py"]
     restart: "no"
-    volumes:
-      - type: bind
-        source: .
-        target: /workspace
-        read_only: true
-        bind:
-          create_host_path: false
+    volumes: *convergence-worker-volumes
     environment:
       PYTHONPATH: /workspace
       PYTHONSAFEPATH: "1"
@@ -90,13 +112,7 @@ services:
     working_dir: /app
     command: ["python", "-B", "/workspace/apps/compiler/__main__.py"]
     restart: "no"
-    volumes:
-      - type: bind
-        source: .
-        target: /workspace
-        read_only: true
-        bind:
-          create_host_path: false
+    volumes: *convergence-worker-volumes
     environment:
       PYTHONPATH: /workspace
       PYTHONSAFEPATH: "1"
@@ -110,13 +126,7 @@ services:
     working_dir: /app
     command: ["python", "-B", "/workspace/apps/daemons/reconciler.py"]
     restart: "no"
-    volumes:
-      - type: bind
-        source: .
-        target: /workspace
-        read_only: true
-        bind:
-          create_host_path: false
+    volumes: *convergence-worker-volumes
     environment:
       PYTHONPATH: /workspace
       PYTHONSAFEPATH: "1"
@@ -130,13 +140,7 @@ services:
     working_dir: /app
     command: ["python", "-B", "/workspace/runtime/sweeper.py"]
     restart: "no"
-    volumes:
-      - type: bind
-        source: .
-        target: /workspace
-        read_only: true
-        bind:
-          create_host_path: false
+    volumes: *convergence-worker-volumes
     environment:
       PYTHONPATH: /workspace
       PYTHONSAFEPATH: "1"
@@ -160,6 +164,8 @@ services:
         source: g3_runtime_state
         target: /app/state
         read_only: true
+        volume:
+          nocopy: true
     environment:
       PYTHONPATH: /workspace
       PYTHONSAFEPATH: "1"
