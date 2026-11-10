@@ -1,29 +1,72 @@
-# C0/T01: laboratorio EXCLUSIVO para composición CLI -> OCR -> G3 -> G5.
-# Usar SOLO después de docker-compose.yml + docker-compose.runtime.yml.
-# Nunca aplicar este override a una instalación persistente.
-# Ningún servicio de producto publica puertos; la red no tiene egress.
+# C0/T01: SOLO la imagen histórica R2 local (ID sha256:abe5b5dbbc65...).
+# Nunca build/pull; código de HEAD en /workspace:ro, /app sigue escribible.
+# Usar después de docker-compose.yml + docker-compose.runtime.yml; solo laboratorio.
+# Los servicios seleccionados no publican puertos; red interna sin egress.
 services:
   db_bootstrap:
+    # !reset removes the inherited worker-base Dockerfile build.
+    build: !reset null
+    image: i0-1d/translator-pdf-runtime:r2-d4cda2c-20261031_211824
+    pull_policy: never
+    working_dir: /app
+    command: ["python", "-B", "/workspace/infra/db/bootstrap.py"]
     restart: "no"
+    volumes:
+      - type: bind
+        source: .
+        target: /workspace
+        read_only: true
+        bind:
+          create_host_path: false
+    environment:
+      PYTHONPATH: /workspace
+      PYTHONSAFEPATH: "1"
+      PYTHONDONTWRITEBYTECODE: "1"
 
   ocr_router:
+    # !reset removes the inherited worker-base Dockerfile build.
+    build: !reset null
+    image: i0-1d/translator-pdf-runtime:r2-d4cda2c-20261031_211824
+    pull_policy: never
+    working_dir: /app
+    command: ["python", "-B", "/workspace/apps/ocr_router/__main__.py"]
     restart: "no"
+    volumes:
+      - type: bind
+        source: .
+        target: /workspace
+        read_only: true
+        bind:
+          create_host_path: false
+    environment:
+      PYTHONPATH: /workspace
+      PYTHONSAFEPATH: "1"
+      PYTHONDONTWRITEBYTECODE: "1"
 
   llm_worker:
+    # !reset removes the inherited worker-base Dockerfile build.
+    build: !reset null
+    image: i0-1d/translator-pdf-runtime:r2-d4cda2c-20261031_211824
+    pull_policy: never
+    working_dir: /app
+    command: ["python", "-B", "/workspace/runtime/engine.py"]
     restart: "no"
-    depends_on: !override
-      db_bootstrap:
-        condition: service_completed_successfully
-      g3_fake:
-        condition: service_healthy
+    volumes:
+      - type: bind
+        source: .
+        target: /workspace
+        read_only: true
+        bind:
+          create_host_path: false
     environment:
+      PYTHONPATH: /workspace
+      PYTHONSAFEPATH: "1"
+      PYTHONDONTWRITEBYTECODE: "1"
       IS_BENCHMARK: "0"
       GROQ_API_KEY: translator-pdf-g3-offline-fake-only
       GROQ_BASE_URL: http://g3_fake:8080/openai/v1
       GROQ_RPM_LIMIT: "1000"
       GROQ_TPM_LIMIT: "200000"
-      # The base Compose defines a dummy Gemini key; override to an explicitly
-      # empty value instead of relying on !reset merge interpretation.
       GEMINI_API_KEY: ""
       HTTP_PROXY: ""
       HTTPS_PROXY: ""
@@ -34,29 +77,93 @@ services:
       NO_PROXY: g3_fake,localhost,127.0.0.1
       no_proxy: g3_fake,localhost,127.0.0.1
 
+    depends_on: !override
+      db_bootstrap:
+        condition: service_completed_successfully
+      g3_fake:
+        condition: service_healthy
   assembler:
+    # !reset removes the inherited worker-base Dockerfile build.
+    build: !reset null
+    image: i0-1d/translator-pdf-runtime:r2-d4cda2c-20261031_211824
+    pull_policy: never
+    working_dir: /app
+    command: ["python", "-B", "/workspace/apps/compiler/__main__.py"]
     restart: "no"
+    volumes:
+      - type: bind
+        source: .
+        target: /workspace
+        read_only: true
+        bind:
+          create_host_path: false
+    environment:
+      PYTHONPATH: /workspace
+      PYTHONSAFEPATH: "1"
+      PYTHONDONTWRITEBYTECODE: "1"
 
   reconciler:
+    # !reset removes the inherited worker-base Dockerfile build.
+    build: !reset null
+    image: i0-1d/translator-pdf-runtime:r2-d4cda2c-20261031_211824
+    pull_policy: never
+    working_dir: /app
+    command: ["python", "-B", "/workspace/apps/daemons/reconciler.py"]
     restart: "no"
+    volumes:
+      - type: bind
+        source: .
+        target: /workspace
+        read_only: true
+        bind:
+          create_host_path: false
+    environment:
+      PYTHONPATH: /workspace
+      PYTHONSAFEPATH: "1"
+      PYTHONDONTWRITEBYTECODE: "1"
 
   sweeper:
+    # !reset removes the inherited worker-base Dockerfile build.
+    build: !reset null
+    image: i0-1d/translator-pdf-runtime:r2-d4cda2c-20261031_211824
+    pull_policy: never
+    working_dir: /app
+    command: ["python", "-B", "/workspace/runtime/sweeper.py"]
     restart: "no"
+    volumes:
+      - type: bind
+        source: .
+        target: /workspace
+        read_only: true
+        bind:
+          create_host_path: false
+    environment:
+      PYTHONPATH: /workspace
+      PYTHONSAFEPATH: "1"
+      PYTHONDONTWRITEBYTECODE: "1"
 
   g3_fake:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    build: !reset null
+    image: i0-1d/translator-pdf-runtime:r2-d4cda2c-20261031_211824
+    pull_policy: never
     working_dir: /app
-    command: ["python", "-m", "apps.lab.g3_fake", "--serve"]
-    # SQLite manifest read-only; no output, inbox or PDF source mounted.
+    command: ["python", "-B", "-m", "apps.lab.g3_fake", "--serve"]
     volumes:
+      - type: bind
+        source: .
+        target: /workspace
+        read_only: true
+        bind:
+          create_host_path: false
+      # Solo el manifiesto SQLite; sin acceso a PDF, inbox ni output.
       - type: volume
         source: g3_runtime_state
         target: /app/state
         read_only: true
     environment:
-      PYTHONPATH: /app
+      PYTHONPATH: /workspace
+      PYTHONSAFEPATH: "1"
+      PYTHONDONTWRITEBYTECODE: "1"
       GROQ_API_KEY: translator-pdf-g3-offline-fake-only
       TPDF_OFFLINE_LAB: EXPLICIT_OFFLINE_TEST_ONLY
       TPDF_FAKE_PRIVATE_DOCKER: EXPLICIT_INTERNAL_NETWORK_ONLY
@@ -87,7 +194,6 @@ services:
       timeout: 3s
       retries: 10
 
-# No nuevos puentes de salida: toda la composición del laboratorio es interna.
 networks:
   chaos_net:
     internal: true
