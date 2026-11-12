@@ -286,3 +286,56 @@ def test_engine_recovery_never_initializes_provider(dbs, monkeypatch):
     assert result["status"] == "ready_for_assembly"
     assert _states(dbs) == {"COMPLETED"}
     assert _fsm_state(dbs) == "READY_FOR_ASSEMBLY"
+
+
+
+@pytest.mark.parametrize("other_state", [
+    "G3_EXTERNAL_UNKNOWN", "PENDING", "COMPLETED", "RESULT_STAGED",
+])
+def test_g3_scheduler_excludes_unknown_generation(dbs, monkeypatch, other_state):
+    """Unknown external effect poisons the generation, even with runnable work.
+
+    Both selectors must be safe for a long-running daemon. A direct pick_task()
+    check is not enough: the scheduler itself must not choose the generation.
+    """
+    monkeypatch.setenv("FSM_DB_PATH", str(dbs.root / "fsm.db"))
+    rows = dbs.q.execute(
+        "SELECT task_id FROM chunk_tasks WHERE worker_type='LLM' ORDER BY task_id"
+    ).fetchall()
+    assert len(rows) == 2
+    dbs.q.execute(
+        "UPDATE chunk_tasks SET task_state='G3_EXTERNAL_UNKNOWN' WHERE task_id=?",
+        (rows[0][0],),
+    )
+    dbs.q.execute(
+        "UPDATE chunk_tasks SET task_state=? WHERE task_id=?",
+        (other_state, rows[1][0]),
+    )
+    dbs.q.commit()
+
+    before = dbs.q.execute(
+        "SELECT task_id,task_state,execution_id,lease_owner FROM chunk_tasks "
+        "WHERE worker_type='LLM' ORDER BY task_id"
+    ).fetchall()
+    assert dbs.repo.find_documents_with_pending_chunks() == []
+    assert dbs.repo.find_documents_ready_for_g3_recovery() == []
+    assert dbs.q.execute(
+        "SELECT task_id,task_state,execution_id,lease_owner FROM chunk_tasks "
+        "WHERE worker_type='LLM' ORDER BY task_id"
+    ).fetchall() == before
+    assert _fsm_state(dbs) == "PROCESSING"
+
+
+def test_g3_scheduler_keeps_valid_pending_and_completed_generations(dbs, monkeypatch):
+    """Guard cannot hide runnable plans or durable completion recovery."""
+    monkeypatch.setenv("FSM_DB_PATH", str(dbs.root / "fsm.db"))
+    generation = [(dbs.plan.document_id, dbs.plan.ast_hash)]
+    assert dbs.repo.find_documents_with_pending_chunks() == generation
+    assert dbs.repo.find_documents_ready_for_g3_recovery() == []
+
+    dbs.q.execute(
+        "UPDATE chunk_tasks SET task_state='COMPLETED' WHERE worker_type='LLM'"
+    )
+    dbs.q.commit()
+    assert dbs.repo.find_documents_with_pending_chunks() == generation
+    assert dbs.repo.find_documents_ready_for_g3_recovery() == generation
