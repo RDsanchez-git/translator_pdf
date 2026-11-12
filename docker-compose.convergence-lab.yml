@@ -92,7 +92,7 @@ services:
       TIKTOKEN_CACHE_DIR: /app/data/tiktoken-cache
       IS_BENCHMARK: "0"
       GROQ_API_KEY: translator-pdf-g3-offline-fake-only
-      GROQ_BASE_URL: http://g3_fake:8080/openai/v1
+      GROQ_BASE_URL: http://g3_fake:8080
       GROQ_RPM_LIMIT: "1000"
       GROQ_TPM_LIMIT: "200000"
       GEMINI_API_KEY: ""

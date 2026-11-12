@@ -52,7 +52,7 @@ def _good() -> dict:
     services["llm_worker"]["environment"].update({
         "IS_BENCHMARK": "0",
         "GROQ_API_KEY": "translator-pdf-g3-offline-fake-only",
-        "GROQ_BASE_URL": "http://g3_fake:8080/openai/v1",
+        "GROQ_BASE_URL": "http://g3_fake:8080",
     })
     services["llm_worker"]["depends_on"] = {
         "db_bootstrap": {"condition": "service_completed_successfully"},
@@ -102,6 +102,16 @@ def test_rejects_legacy_worker_and_benchmark() -> None:
     assert "llm_worker:UNEXPECTED_COMMAND" in issues
     assert "llm_worker:BENCHMARK_MODE_NOT_DISABLED" in issues
 
+
+
+def test_rejects_double_prefixed_groq_sdk_route() -> None:
+    bad = _good()
+    # The installed Groq SDK appends /openai/v1/chat/completions.
+    # Adding /openai/v1 here would double the prefix and return fake HTTP 422.
+    bad["services"]["llm_worker"]["environment"]["GROQ_BASE_URL"] = (
+        "http://g3_fake:8080/openai/v1"
+    )
+    assert "llm_worker:GROQ_URL_NOT_PRIVATE_FAKE" in inspect_topology(bad)
 
 def test_rejects_split_state_and_real_egress() -> None:
     bad = _good()

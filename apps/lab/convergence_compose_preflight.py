@@ -153,7 +153,7 @@ def inspect_topology(config: dict[str, Any]) -> list[str]:
                 errors.append("llm_worker:BENCHMARK_MODE_NOT_DISABLED")
             if env.get("GROQ_API_KEY") != _DUMMY:
                 errors.append("llm_worker:GROQ_KEY_NOT_DUMMY")
-            if env.get("GROQ_BASE_URL") != "http://g3_fake:8080/openai/v1":
+            if env.get("GROQ_BASE_URL") != "http://g3_fake:8080":
                 errors.append("llm_worker:GROQ_URL_NOT_PRIVATE_FAKE")
             if env.get("GEMINI_API_KEY") not in (None, ""):
                 errors.append("llm_worker:GEMINI_KEY_STILL_PRESENT")
