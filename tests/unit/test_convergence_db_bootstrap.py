@@ -23,7 +23,7 @@ def _fixture(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> tuple[tuple[str
     monkeypatch.setattr(init, "_BOOTSTRAP", str(bootstrap))
     monkeypatch.setattr(init, "_AUDIT_UID", tmp_path.stat().st_uid)
     monkeypatch.setattr(init, "_AUDIT_GID", tmp_path.stat().st_gid)
-    monkeypatch.setattr(init.os, "geteuid", lambda: 0)
+    monkeypatch.setattr(init.os, "geteuid", lambda: 0, raising=False)
     monkeypatch.setenv("TPDF_C0_VOLUME_INIT", init._OPT_IN)
     return volumes, dirs
 
@@ -61,7 +61,7 @@ def test_denies_non_root(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path,
 ) -> None:
     volumes, _ = _fixture(monkeypatch, tmp_path)
-    monkeypatch.setattr(init.os, "geteuid", lambda: 10001)
+    monkeypatch.setattr(init.os, "geteuid", lambda: 10001, raising=False)
     with pytest.raises(RuntimeError, match="REQUIRES_EXPLICIT_LAB_ROOT"):
         init.prepare_volume_owners(set(volumes) | {"/workspace"})
 
@@ -80,9 +80,9 @@ def test_drop_privileges_precedes_real_bootstrap_exec(monkeypatch: pytest.Monkey
     calls: list[str] = []
     monkeypatch.setattr(init, "_mount_targets", lambda: {"/workspace"})
     monkeypatch.setattr(init, "prepare_volume_owners", lambda _mounts: calls.append("prepared"))
-    monkeypatch.setattr(init.os, "setgroups", lambda _: calls.append("setgroups"))
-    monkeypatch.setattr(init.os, "setgid", lambda _: calls.append("setgid"))
-    monkeypatch.setattr(init.os, "setuid", lambda _: calls.append("setuid"))
+    monkeypatch.setattr(init.os, "setgroups", lambda _: calls.append("setgroups"), raising=False)
+    monkeypatch.setattr(init.os, "setgid", lambda _: calls.append("setgid"), raising=False)
+    monkeypatch.setattr(init.os, "setuid", lambda _: calls.append("setuid"), raising=False)
     monkeypatch.setattr(init.os, "execv", lambda _python, _args: calls.append("execv"))
     init.main()
     assert calls == ["prepared", "setgroups", "setgid", "setuid", "execv"]
