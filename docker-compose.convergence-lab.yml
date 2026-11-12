@@ -49,10 +49,14 @@ services:
     image: i0-1d/translator-pdf-runtime:r2-d4cda2c-20261031_211824
     pull_policy: never
     working_dir: /app
-    command: ["python", "-B", "/workspace/infra/db/bootstrap.py"]
+    # Root solo para tomar ownership de los seis volúmenes nuevos (no recursivo).
+    # El wrapper baja a uid/gid 10001 ANTES de ejecutar infra/db/bootstrap.py.
+    user: "0:0"
+    command: ["python", "-B", "/workspace/apps/lab/convergence_db_bootstrap.py"]
     restart: "no"
     volumes: *convergence-worker-volumes
     environment:
+      TPDF_C0_VOLUME_INIT: EXPLICIT_CONVERGENCE_C0_LAB_ONLY
       PYTHONPATH: /workspace
       PYTHONSAFEPATH: "1"
       PYTHONDONTWRITEBYTECODE: "1"
