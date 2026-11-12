@@ -33,7 +33,7 @@ def test_prepares_only_expected_volume_roots_and_db(
 ) -> None:
     volumes, dirs = _fixture(monkeypatch, tmp_path)
     changed: list[Path] = []
-    monkeypatch.setattr(init.os, "chown", lambda path, _uid, _gid: changed.append(Path(path)))
+    monkeypatch.setattr(init.os, "chown", lambda path, _uid, _gid: changed.append(Path(path)), raising=False)
     init.prepare_volume_owners(set(volumes) | {"/workspace"})
     assert (dirs[0] / "db").is_dir()
     assert changed == dirs + [dirs[0] / "db"]
@@ -43,7 +43,7 @@ def test_denies_missing_mount_before_any_mutation(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path,
 ) -> None:
     volumes, _ = _fixture(monkeypatch, tmp_path)
-    monkeypatch.setattr(init.os, "chown", lambda *_: pytest.fail("unexpected chown"))
+    monkeypatch.setattr(init.os, "chown", lambda *_: pytest.fail("unexpected chown"), raising=False)
     with pytest.raises(RuntimeError, match="MOUNT_MISMATCH"):
         init.prepare_volume_owners(set(volumes[:-1]) | {"/workspace"})
 
@@ -74,7 +74,7 @@ def test_denies_symlink_state_db_before_chown(
         (dirs[0] / "db").symlink_to(tmp_path, target_is_directory=True)
     except (OSError, NotImplementedError):
         pytest.skip("Host does not allow symlink creation")
-    monkeypatch.setattr(init.os, "chown", lambda *_: pytest.fail("unexpected chown"))
+    monkeypatch.setattr(init.os, "chown", lambda *_: pytest.fail("unexpected chown"), raising=False)
     with pytest.raises(RuntimeError, match="DB_SYMLINK_FORBIDDEN"):
         init.prepare_volume_owners(set(volumes) | {"/workspace"})
 
