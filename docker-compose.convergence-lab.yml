@@ -74,6 +74,7 @@ services:
       PYTHONPATH: /workspace
       PYTHONSAFEPATH: "1"
       PYTHONDONTWRITEBYTECODE: "1"
+      TIKTOKEN_CACHE_DIR: /app/data/tiktoken-cache
 
   llm_worker:
     # !reset removes the inherited worker-base Dockerfile build.
@@ -88,6 +89,7 @@ services:
       PYTHONPATH: /workspace
       PYTHONSAFEPATH: "1"
       PYTHONDONTWRITEBYTECODE: "1"
+      TIKTOKEN_CACHE_DIR: /app/data/tiktoken-cache
       IS_BENCHMARK: "0"
       GROQ_API_KEY: translator-pdf-g3-offline-fake-only
       GROQ_BASE_URL: http://g3_fake:8080/openai/v1

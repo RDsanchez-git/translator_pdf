@@ -133,6 +133,9 @@ def inspect_topology(config: dict[str, Any]) -> list[str]:
         if not isinstance(env, dict):
             errors.append(f"{name}:ENV_INVALID")
             continue
+        if name in ("ocr_router", "llm_worker"):
+            if env.get("TIKTOKEN_CACHE_DIR") != "/app/data/tiktoken-cache":
+                errors.append(f"{name}:TIKTOKEN_CACHE_DIR_DRIFT")
         if (env.get("PYTHONPATH") != "/workspace"
                 or str(env.get("PYTHONSAFEPATH")) != "1"
                 or str(env.get("PYTHONDONTWRITEBYTECODE")) != "1"):

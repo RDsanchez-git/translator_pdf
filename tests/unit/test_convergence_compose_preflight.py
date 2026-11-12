@@ -43,6 +43,8 @@ def _good() -> dict:
         }
         for name, command in commands.items()
     }
+    for name in ("ocr_router", "llm_worker"):
+        services[name]["environment"]["TIKTOKEN_CACHE_DIR"] = "/app/data/tiktoken-cache"
     services["db_bootstrap"]["user"] = "0:0"
     services["db_bootstrap"]["environment"]["TPDF_C0_VOLUME_INIT"] = (
         "EXPLICIT_CONVERGENCE_C0_LAB_ONLY"
@@ -77,6 +79,17 @@ def _good() -> dict:
 
 def test_current_candidate_topology_contract() -> None:
     assert inspect_topology(_good()) == []
+
+
+def test_rejects_missing_or_wrong_tiktoken_cache_dir() -> None:
+    bad = _good()
+    bad["services"]["ocr_router"]["environment"].pop("TIKTOKEN_CACHE_DIR")
+    bad["services"]["llm_worker"]["environment"]["TIKTOKEN_CACHE_DIR"] = "/tmp/wrong-cache"
+
+    issues = inspect_topology(bad)
+
+    assert "ocr_router:TIKTOKEN_CACHE_DIR_DRIFT" in issues
+    assert "llm_worker:TIKTOKEN_CACHE_DIR_DRIFT" in issues
 
 
 def test_rejects_legacy_worker_and_benchmark() -> None:
