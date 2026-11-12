@@ -70,7 +70,10 @@ def test_denies_symlink_state_db_before_chown(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path,
 ) -> None:
     volumes, dirs = _fixture(monkeypatch, tmp_path)
-    (dirs[0] / "db").symlink_to(tmp_path, target_is_directory=True)
+    try:
+        (dirs[0] / "db").symlink_to(tmp_path, target_is_directory=True)
+    except (OSError, NotImplementedError):
+        pytest.skip("Host does not allow symlink creation")
     monkeypatch.setattr(init.os, "chown", lambda *_: pytest.fail("unexpected chown"))
     with pytest.raises(RuntimeError, match="DB_SYMLINK_FORBIDDEN"):
         init.prepare_volume_owners(set(volumes) | {"/workspace"})
