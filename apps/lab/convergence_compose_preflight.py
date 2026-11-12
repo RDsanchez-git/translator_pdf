@@ -22,7 +22,7 @@ _DUMMY = "translator-pdf-g3-offline-fake-only"
 _IMAGE = "i0-1d/translator-pdf-runtime:r2-d4cda2c-20261031_211824"
 _IMAGE_ID = "sha256:abe5b5dbbc65e8920e0948b189bd9bd090eb395e99420918190128a2ec12b4bd"
 _COMMANDS = {
-    "db_bootstrap": ["python", "-B", "/workspace/infra/db/bootstrap.py"],
+    "db_bootstrap": ["python", "-B", "/workspace/apps/lab/convergence_db_bootstrap.py"],
     "ocr_router": ["python", "-B", "/workspace/apps/ocr_router/__main__.py"],
     "llm_worker": ["python", "-B", "/workspace/runtime/engine.py"],
     "assembler": ["python", "-B", "/workspace/apps/compiler/__main__.py"],
@@ -71,6 +71,11 @@ def inspect_topology(config: dict[str, Any]) -> list[str]:
             errors.append(f"{name}:PULL_FORBIDDEN")
         if service.get("working_dir") != "/app":
             errors.append(f"{name}:WORKDIR_DRIFT")
+        if name == "db_bootstrap":
+            if str(service.get("user")) not in ("0:0", "0"):
+                errors.append("db_bootstrap:ROOT_INIT_USER_REQUIRED")
+        elif str(service.get("user") or "") in ("0", "0:0", "root"):
+            errors.append(f"{name}:ROOT_WORKER_FORBIDDEN")
         if service.get("ports") or service.get("network_mode") or service.get("extra_hosts"):
             errors.append(f"{name}:NETWORK_EXPOSURE")
         if set(service.get("networks", {})) != {"chaos_net"}:
@@ -132,6 +137,11 @@ def inspect_topology(config: dict[str, Any]) -> list[str]:
                 or str(env.get("PYTHONSAFEPATH")) != "1"
                 or str(env.get("PYTHONDONTWRITEBYTECODE")) != "1"):
             errors.append(f"{name}:CURRENT_CODE_IMPORT_DRIFT")
+        if name == "db_bootstrap":
+            if env.get("TPDF_C0_VOLUME_INIT") != "EXPLICIT_CONVERGENCE_C0_LAB_ONLY":
+                errors.append("db_bootstrap:VOLUME_INIT_OPT_IN_MISSING")
+        elif env.get("TPDF_C0_VOLUME_INIT") is not None:
+            errors.append(f"{name}:VOLUME_INIT_PRIVILEGE_LEAK")
         if name != "g3_fake" and any(env.get(k) != v for k, v in _DB_PATHS.items()):
             errors.append(f"{name}:DB_NAMESPACE_DRIFT")
         if name == "llm_worker":
