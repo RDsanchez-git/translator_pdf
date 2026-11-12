@@ -310,3 +310,77 @@ def test_full_pdf_promoted_before_db_commit_is_recoverable(sandbox):
     assert r.publish(new,str(fresh),str(dst))
     assert dst.read_bytes()==b'%PDF-1.4\nrecovered complete pdf\n'
     assert _fsm(c)[0]=='COMPLETED' and _row(c)[0]=='COMPLETED'
+
+
+
+def test_missing_projection_blocks_real_g5_worker_before_pdf(sandbox, monkeypatch):
+    """A missing CURRENT projection fails before Tectonic or PDF publication.
+
+    Run the actual G5 daemon method and the real resolver, logical assembler,
+    compilation policy and fenced SQLite lease against disposable state.
+    This is deliberately not a daemon loop or a live-volume failure injection.
+    """
+    from types import SimpleNamespace
+
+    from apps.compiler.__main__ import AssemblerWorkerDaemon
+    from core.ast.enums import ContentNodeType
+    from core.ast.models import ASTNode, ParagraphPayload
+    from core.compiler.assembler import AssemblyPolicy, DocumentAssembler
+    from core.compiler.context_resolver import CQRSAssemblyContextResolver
+    from core.compiler.exceptions import AssemblyRejectedError
+    from core.compiler.service import CompilationService
+
+    c, _connect, tmp = sandbox
+    monkeypatch.setenv("COMPILER_OUTPUT_DIR", str(tmp))
+
+    class AstProvider:
+        def get_document_ast(self, document_id, ast_hash):
+            assert (document_id, ast_hash) == ("doc", "ast")
+            return [ASTNode(
+                node_id="missing_translate", sequence_id=1,
+                node_type=ContentNodeType.PARAGRAPH,
+                payload=ParagraphPayload(content="Scientific source text."),
+            )]
+
+    class EmptyMaterialized:
+        def get_assemblable_chunks(self, *, document_id, ast_hash,
+                                   expected_node_ids, required_projection_v):
+            assert (document_id, ast_hash) == ("doc", "ast")
+            assert expected_node_ids == ["missing_translate"]
+            assert required_projection_v == 1
+            return []
+
+    class NeverInvoked:
+        def __getattr__(self, name):
+            raise AssertionError("G5_MISSING_PROJECTION_UNEXPECTED_SIDE_EFFECT:" + name)
+
+    no_side_effects = NeverInvoked()
+    compilation = CompilationService(
+        assembler=DocumentAssembler(
+            repository=no_side_effects,
+            policy=AssemblyPolicy(tolerance_ratio=0.05, allow_fallback=True),
+        ),
+        payload_repository=no_side_effects,
+        profile_store=no_side_effects,
+        mapper=no_side_effects,
+    )
+    worker = AssemblerWorkerDaemon(
+        control_repo=SimpleNamespace(conn=c),
+        fsm_repo=no_side_effects,
+        cmd_handler=no_side_effects,
+        mat_repo=no_side_effects,
+        ast_registry=no_side_effects,
+        runner=no_side_effects,
+        compilation_service=compilation,
+        context_resolver=CQRSAssemblyContextResolver(
+            ast_provider=AstProvider(), materialized_plane=EmptyMaterialized(),
+        ),
+    )
+
+    with pytest.raises(AssemblyRejectedError, match="Ensamblado denegado"):
+        worker._process_assembly_task("doc", "ast")
+
+    assert _fsm(c)[0] == "FAILED_RETRYABLE"
+    assert _row(c)[0] == "FAILED"
+    assert not (tmp / "translated_doc.pdf").exists()
+    assert not list(tmp.glob(".assembly_*.pdf"))
