@@ -1,6 +1,6 @@
 # Plan de implementación de la convergencia operativa única PDF→PDF — R1/R2/R3
 
-**Versión:** v1.0.12 · **Fecha:** 2026-11-09 · **Estado:** especificación operativa versionada; **implementación futura, no cierre ni certificación**  
+**Versión:** v1.0.13 · **Fecha:** 2026-11-09 · **Estado:** especificación operativa versionada; **testigo funcional PDF→PDF acreditado en laboratorio el 2026-11-12, sin cierre global ni certificación**  
 **Repositorio / rama de referencia:** `RDsanchez-git/translator_pdf` / `pipeline_stabilization`  
 **Commit inspeccionado:** `6a5ee41886b935c2c0f3a107a42620d93de31efb` (#40 MERGED). Los caminos, configuraciones y tests descritos se refieren a **ese commit**, no a una instalación desplegada.  
 **Documento rector:** [Decisión D-1/D-2, cabecera vigente, §§0, 2, 6–8](DECISION_CANDIDATE_CONVERGENCIA_PDF_PDF_D1_D2_20261105.md). El nombre histórico `CANDIDATE` no revoca la **aprobación del owner del 2026-11-08**.  
@@ -273,24 +273,24 @@ Este documento es el **único tablero de avance de la convergencia operativa**. 
 
 **Estados permitidos:** `PENDIENTE` (sin evidencia de cierre en el HEAD), `EN_CURSO` (se trabaja en ese delta, sin cierre), `BLOQUEADO` (impedimento reproducible con causa/evidencia), `COMPLETADO` (criterios PASS cubiertos y evidencia verificable) y `NO_APLICA` (solo para una prueba opcional, con justificación y sin eludir un invariante obligatorio). Un FAIL o PRECONDITION_BLOCKED **nunca** es `COMPLETADO`. No se deduce `COMPLETADO` de un documento, PR abierto, CI histórica, salida PDF fake ni ausencia de errores visibles.
 
-**Registro de deltas — actualizado 2026-11-12:** C0 y C1 permanecen `EN_CURSO` con bootstrap automático, lectura SQLite intercontenedor y primera admisión CLI por SHA-256 acreditados; C2–C4 siguen `PENDIENTE` y no hay acreditación de la composición multiproceso completa.
+**Registro de deltas — actualizado 2026-11-12 (PR #46 @ `eb264aa531c7495887864ee5034404fab1c90f8e`):** C1/T02 queda `COMPLETADO` por handoff CLI→OCR y persistencia verificada entre contenedores. C0/T01 y C2/T03–T04 siguen `EN_CURSO`: existe un testigo funcional PDF→PDF en procesos efímeros independientes, pero faltan el censo/root productivo, el conteo HTTP independiente del fake y los falsadores negativos de G5. C3/T05–T07 y C4/T06 siguen `PENDIENTE`; no se declara `CONVERGENCIA_OPERATIVA_ACREDITADA`.
 
 | Delta | Estado | Pruebas para cerrarlo | Evidencia PASS / bloqueo | Última revisión |
 |---|---|---|---|---|
-| C0 — Root/configuración | EN_CURSO | T01; comando/volúmenes/DB/proveedor/entrada efectivos | [PR #46](https://github.com/RDsanchez-git/translator_pdf/pull/46): 18 PASS/1 SKIP, bootstrap automático, cuatro SQLite en otro contenedor y CLI→inbox compartido (SHA-256, PDF 869 bytes) PASS; falta certificar consumidores y contrato de daemon OCR | 2026-11-12 |
-| C1 — Entrada CLI→OCR | EN_CURSO | T02; inbox compartido, una generación | CLI/inbox intercontenedor PASS (869 bytes, SHA-256); parser real `PdfParserAdapter` produce 1 AST node, exit 0, sin daemon. Pendiente OCR real→AST/plan/FSM | 2026-11-12 |
-| C2 — OCR→G3→G5 multiproceso | PENDIENTE | T03 + T04; PDF Tectonic real y receipts completos | — | 2026-11-09 |
+| C0 — Root/configuración | EN_CURSO | T01; comando/volúmenes/DB/proveedor/entrada efectivos | [PR #46](https://github.com/RDsanchez-git/translator_pdf/pull/46) @ `eb264aa`: Compose lab `chaos_net` interna y sin puertos, UID 10001, SQLite/AST/inbox/output compartidos, SDK Groq corregido y testigo PDF→PDF PASS; falta censo integral de consumidores/arranque productivo continuo | 2026-11-12 |
+| C1 — Entrada CLI→OCR | COMPLETADO | T02; inbox compartido, una generación | [Acta PR #46](https://github.com/RDsanchez-git/translator_pdf/pull/46): CLI `translate --inbox-dir /app/data/inbox` sin `--run` admitió SHA-256 `50a7305f…084ef9`; OCR one-shot en otro contenedor: 4 nodos AST, 2 tareas, 1 plan/snapshot, FSM `PROCESSING` v2, archive hash igual; `C2_T03_FRESH_OCR_ONE_SHOT_PASS` y `C2_T03_MIXED_PLAN_CROSS_CONTAINER_PASS`, exit 0 | 2026-11-12 |
+| C2 — OCR→G3→G5 multiproceso | EN_CURSO | T03 + T04; PDF Tectonic real y receipts completos | [Acta PR #46](https://github.com/RDsanchez-git/translator_pdf/pull/46): G3 `READY_FOR_ASSEMBLY` v3, 2 receipts (PRESERVE nulo / TRANSLATE validado), 1 publicación, 4 proyecciones; G5 real `COMPLETED` v7 y PDF 1 pág./5912 bytes SHA-256 `cdaad9f…1c9fb`; auditado desde otro contenedor `C2_T03_PDF_TO_PDF_CROSS_CONTAINER_PASS` exit 0. Pendiente conteo POST fake y falsadores negativos G5; no se ensayaron daemons continuos | 2026-11-12 |
 | C3 — Recuperación/modalidades | PENDIENTE | T05 + T07; recuperación segura y foreground aislado | — | 2026-11-09 |
 | C4 — Exclusividad productiva | PENDIENTE | T06; inventario de entrypoints/consumidores | — | 2026-11-09 |
 
-**Registro de testigos — corte 2026-11-12:** T01 acredita bootstrap automático, SQLite intercontenedor y admisión CLI explícita en RUN-ID nuevo; T02 está `EN_CURSO` con publicación al inbox, sin prueba de consumo OCR. Los testigos históricos offline no acreditan OCR/G3/G5 multiproceso.
+**Registro de testigos — corte 2026-11-12:** T02 acredita CLI→OCR con estado durable entre contenedores. T03/T04 acreditan el camino positivo OCR→G3→G5 y PDF final, pero sus criterios negativos y el contador HTTP independiente del fake siguen pendientes. T01 precisa todavía el censo/root operativo; T05–T07 no se cierran con el testigo feliz. Las ejecuciones se hicieron con procesos one-shot en contenedores independientes, no con los daemons concurrentes durante todo su ciclo de vida.
 
 | Testigo | Estado | Evidencia verificable o bloqueo |
 |---|---|---|
-| T01 — Root/config | EN_CURSO | Preflight/digest, UID, bootstrap y cuatro SQLite intercontenedor PASS; `documents.db`/AST resuelven al volumen; CLI explícita publicó PDF y segundo contenedor comprobó bytes/hash (%PDF-, 869 bytes). Falta consumer OCR efectivo; no PDF multiproceso |
-| T02 — CLI→OCR | EN_CURSO | Admisión, lectura intercontenedor y parser real PASS (`C1_T02_PARSER_PREFLIGHT_PASS`, 1 AST node, exit 0). Pendiente composición OCR y persistencia completa de AST/contexto/plan/FSM/queue |
-| T03 — G3 fake HTTP | PENDIENTE | — |
-| T04 — G5 + Tectonic | PENDIENTE | — |
+| T01 — Root/config | EN_CURSO | Configuración efectiva del laboratorio: `chaos_net` interna sin puertos, solo `g3_fake` como servicio persistente, imagen local pinneada, volúmenes compartidos y UID 10001; OCR/G3/G5 ejecutados en contenedores one-shot independientes; falta inventario de consumidores/contrato canónico de arranque continuo |
+| T02 — CLI→OCR | COMPLETADO | Fixture mixto `50a7305f…084ef9` admitido por CLI; OCR one-shot en distinto contenedor persistió AST 4, plan 2 (`preserve`/`translate`), snapshot 1, perfil y FSM `PROCESSING` v2; lectura independiente de identidades/tareas `PENDING` y archivo archivado por SHA; exit 0 |
+| T03 — G3 fake HTTP | EN_CURSO | SDK Groq con `GROQ_BASE_URL=http://g3_fake:8080` (sin duplicar `/openai/v1`); `run_pipeline()` one-shot → `READY_FOR_ASSEMBLY` v3; 2 tareas `COMPLETED`, receipts validados (`PRESERVE` `NULL`, `TRANSLATE` JSON/hash), 1 publicación y 4 proyecciones verificadas desde otro contenedor (`C2_T03_G3_DURABLE_CROSS_CONTAINER_PASS`, exit 0). Falta contador independiente de POST aceptados por fake (≥1 TRANSLATE, 0 PRESERVE) y prueba negativa de contexto inválido sin proveedor |
+| T04 — G5 + Tectonic | EN_CURSO | Caché Tectonic histórica validada por SHA del ZIP y 294 archivos/43.350.180 bytes importados sin build/pull; render del contenido real y compilación offline previa PASS; `AssemblerWorkerDaemon._process_assembly_task` publicó PDF real `%PDF-`, PyMuPDF 1 página/5912 bytes/texto extraíble, SHA-256 `cdaad9f36c1374f40994e1a9eba297b7dd1baf42df25213ea76a56b912c1c9fb`, FSM `COMPLETED` v7, 1 tarea G5 `COMPLETED`; auditoría independiente `C2_T03_PDF_TO_PDF_CROSS_CONTAINER_PASS`, exit 0. Falta negativo de proyección ausente/lease obsoleto |
 | T05 — Reinicio/authority | PENDIENTE | — |
 | T06 — Superficie única | PENDIENTE | — |
 | T07 — Foreground aislado | PENDIENTE | B03 histórico es antecedente, no PASS de este HEAD |
@@ -322,6 +322,7 @@ Este documento es el **único tablero de avance de la convergencia operativa**. 
 | 2026-11-12 | v1.0.10 | Segundo contenedor UID10001 confirma un PDF sintético de 869 bytes con hash/header correcto; handoff de volumen probado, aún no OCR real | Salida local owner `C1_T02_INBOX_CROSS_CONTAINER_PASS`, exit 0; proyecto `tpdfconvconv1211b` |
 | 2026-11-12 | v1.0.11 | Preflight del parser real sobre el PDF admitido: 1 nodo AST, exit 0; siguiente paso OCR one-shot y verificaciones independientes, sin G3/G5 | Salida local owner `C1_T02_PARSER_PREFLIGHT_PASS`; `PdfParserAdapter`, `AST_NODE_COUNT=1` |
 | 2026-11-12 | v1.0.12 | Sonda read-only confirma PDF con hash válido, fsm/queue presentes y 0 filas FSM previas para la generación; autorización operativa de una única ingesta OCR con falsadores explícitos, sin atribuir PASS anticipado | Salida local owner `C1_T02_OCR_ONE_SHOT_PRECONDITIONS_PASS`, `PREEXISTING_FSM_ROWS: 0`, exit 0 |
+| 2026-11-12 | v1.0.13 | Testigo CLI→OCR→G3(fake)→publicación→G5/Tectonic con verificación intercontenedor del PDF final; T02 `COMPLETADO`, T03/T04/C2 `EN_CURSO` por falsadores/contador HTTP pendientes. Incidente del doble prefijo Groq corregido; generación `G3_EXTERNAL_UNKNOWN` previa preservada sin reintento. No hubo despliegue productivo ni cierre del DoD | [PR #46](https://github.com/RDsanchez-git/translator_pdf/pull/46) @ `eb264aa531c7495887864ee5034404fab1c90f8e`; owner: `C2_T03_FRESH_OCR_ONE_SHOT_PASS`, `C2_T03_MIXED_PLAN_CROSS_CONTAINER_PASS`, `C2_T03_G3_DURABLE_CROSS_CONTAINER_PASS`, `C2_T03_G5_ONE_SHOT_PUBLISH_PASS`, `C2_T03_PDF_TO_PDF_CROSS_CONTAINER_PASS` (exit 0); PDF SHA-256 `cdaad9f…1c9fb` |
 
 ## 9. Registro de cambios propuestos y disciplina de integración
 
