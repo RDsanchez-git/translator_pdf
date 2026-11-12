@@ -1,6 +1,6 @@
 # Plan de implementación de la convergencia operativa única PDF→PDF — R1/R2/R3
 
-**Versión:** v1.0.8 · **Fecha:** 2026-11-09 · **Estado:** especificación operativa versionada; **implementación futura, no cierre ni certificación**  
+**Versión:** v1.0.9 · **Fecha:** 2026-11-09 · **Estado:** especificación operativa versionada; **implementación futura, no cierre ni certificación**  
 **Repositorio / rama de referencia:** `RDsanchez-git/translator_pdf` / `pipeline_stabilization`  
 **Commit inspeccionado:** `6a5ee41886b935c2c0f3a107a42620d93de31efb` (#40 MERGED). Los caminos, configuraciones y tests descritos se refieren a **ese commit**, no a una instalación desplegada.  
 **Documento rector:** [Decisión D-1/D-2, cabecera vigente, §§0, 2, 6–8](DECISION_CANDIDATE_CONVERGENCIA_PDF_PDF_D1_D2_20261105.md). El nombre histórico `CANDIDATE` no revoca la **aprobación del owner del 2026-11-08**.  
@@ -157,7 +157,11 @@ rg -n 'IS_BENCHMARK|SQLITE_STATE_DIR|APP_ROOT|GROQ_BASE_URL|GROQ_API_KEY|COMPILE
 
 **Sonda de estado auxiliar reportada por owner (2026-11-12):** desde `ocr_router python -B -`, ejecutado con usuario UID 10001 y sin arrancar daemon, `APP_ROOT=/app`, `SQLITE_STATE_DIR=/app/state/db`, `resolve_sqlite_path("infra/db/documents.db")=/app/state/db/documents.db`, `DOCUMENTS_DB_CORRECT=True`, `AST_DIR=/app/data/ast_cache`, `AST_PARENT_WRITABLE=True`, `INBOX_PARENT_WRITABLE=True`, exit 0. Esto acredita solo **resolución y permisos de rutas**, no existencia ni esquema de `documents.db` ni persistencia de un AST real. Antes de iniciar el daemon debe probarse la inicialización/esquema efectiva del perfil de documentos, ya que el bootstrap base crea cuatro SQLite, no una quinta demostrada.
 
-**Siguiente falsador C0/T01 / transición a C1/T02:** ejecutar la CLI canónica **solo admisión** (sin `--run`) con un PDF sintético pequeño y `--inbox-dir /app/data/inbox` explícito, verificar SHA-256 del contenido publicado, ruta del volumen y lectura desde otro contenedor, **sin levantar OCR/G3/G5**. Después investigar el esquema y persistencia de `documents.db` antes del arranque real de OCR. T01 permanece `EN_CURSO`; las comprobaciones de rutas no prueban un handoff.
+**Testigo de admisión C1/T02 — parcial PASS reportado por el owner (2026-11-12):** con la imagen histórica y los volúmenes ya existentes del proyecto `tpdfconvconv1211b`, un contenedor efímero `ocr_router python -B -` (UID 10001, sin levantar daemon) generó en un directorio temporal un PDF sintético mínimo con `pymupdf`, calculó SHA-256 de sus bytes, invocó la **CLI canónica** `python -B -m apps.cli.main translate <ruta-temporal> --inbox-dir /app/data/inbox` **sin `--run`**, y comparó el hash de los bytes publicados. Resultado: `C0_T01_CLI_ADMISSION_PASS`, exit **0**, `document_id=2a21f24dc0741da5c6c6cbb849c48375a224fd065aeaed548be3108d8ebd67f9`, destino `/app/data/inbox/2a21f24dc0741da5c6c6cbb849c48375a224fd065aeaed548be3108d8ebd67f9.pdf`. La CLI reportó `ENVIADO AL INBOX`. No se ejecutaron OCR, G3 o G5; el origen temporal se destruyó tras la prueba y el PDF del inbox **persiste** hasta su tratamiento o retención autorizada. Las advertencias `fitz/google` no invalidaron el resultado, pero serán deuda separada.
+
+**Inspección de perfil documental (fuente de código):** `infra/db/bootstrap.py` inicializa expresamente solo las cuatro SQLite principales; `SQLiteProfileStore.__init__` crea la tabla `inferred_document_profiles` mediante `CREATE TABLE IF NOT EXISTS` sobre `get_connection("infra/db/documents.db")` al crear el OCR composition root. No inventar una quinta base preinicializada ni modificar bootstrap solo por su ausencia: comprobar este side effect y su esquema en una fase controlada cuando se inicie el OCR, con manejo fail-closed si falla.
+
+**Siguiente falsador C1/T02:** con otro contenedor efímero no-daemon y el volumen compartido, leer en modo solo lectura exactamente el PDF publicado por su `document_id`, comprobar hash, encabezado y número de ficheros `*.pdf`; después planificar y ejecutar el consumo real por OCR con sus precondiciones, sin arrancar G3/G5 todavía. `C0/T01` y `C1/T02` permanecen `EN_CURSO` hasta evidenciar consumidores/rutas efectivos y el handoff OCR. No declarar producto PDF→PDF acreditado.
 
 ## 5. Deltas implementables, mínimos y secuenciados
 
@@ -263,22 +267,22 @@ Este documento es el **único tablero de avance de la convergencia operativa**. 
 
 **Estados permitidos:** `PENDIENTE` (sin evidencia de cierre en el HEAD), `EN_CURSO` (se trabaja en ese delta, sin cierre), `BLOQUEADO` (impedimento reproducible con causa/evidencia), `COMPLETADO` (criterios PASS cubiertos y evidencia verificable) y `NO_APLICA` (solo para una prueba opcional, con justificación y sin eludir un invariante obligatorio). Un FAIL o PRECONDITION_BLOCKED **nunca** es `COMPLETADO`. No se deduce `COMPLETADO` de un documento, PR abierto, CI histórica, salida PDF fake ni ausencia de errores visibles.
 
-**Registro de deltas — actualizado 2026-11-12:** C0 permanece `EN_CURSO` con bootstrap automático y lectura persistente acreditados en RUN-ID fresco; C1–C4 siguen `PENDIENTE` y no hay acreditación de la composición multiproceso completa.
+**Registro de deltas — actualizado 2026-11-12:** C0 y C1 permanecen `EN_CURSO` con bootstrap automático, lectura SQLite intercontenedor y primera admisión CLI por SHA-256 acreditados; C2–C4 siguen `PENDIENTE` y no hay acreditación de la composición multiproceso completa.
 
 | Delta | Estado | Pruebas para cerrarlo | Evidencia PASS / bloqueo | Última revisión |
 |---|---|---|---|---|
-| C0 — Root/configuración | EN_CURSO | T01; comando/volúmenes/DB/proveedor/entrada efectivos | [PR #46](https://github.com/RDsanchez-git/translator_pdf/pull/46) @ `2b70ca1`: 18 PASS/1 SKIP, bootstrap automático y SQLite RO intercontenedor PASS; ruta CLI por defecto no coincide con OCR, `--inbox-dir` disponible; `documents.db` resuelve en `/app/state/db`, AST en `/app/data/ast_cache`, directorios escribibles; sin prueba de admisión ni inicialización real de perfil | 2026-11-12 |
-| C1 — Entrada CLI→OCR | PENDIENTE | T02; inbox compartido, una generación | — | 2026-11-09 |
+| C0 — Root/configuración | EN_CURSO | T01; comando/volúmenes/DB/proveedor/entrada efectivos | [PR #46](https://github.com/RDsanchez-git/translator_pdf/pull/46) @ `2b70ca1`: 18 PASS/1 SKIP, bootstrap automático y SQLite RO intercontenedor PASS; ruta explícita `/app/data/inbox` verificada por CLI sobre fixture real; falta test de lector independiente y consumidores OCR | 2026-11-12 |
+| C1 — Entrada CLI→OCR | EN_CURSO | T02; inbox compartido, una generación | CLI canónica sin foreground publica PDF sintético por SHA-256 en `/app/data/inbox` (exit 0, doc `2a21f24d…d67f9`); aún falta lectura por otro contenedor y consumo real OCR | 2026-11-12 |
 | C2 — OCR→G3→G5 multiproceso | PENDIENTE | T03 + T04; PDF Tectonic real y receipts completos | — | 2026-11-09 |
 | C3 — Recuperación/modalidades | PENDIENTE | T05 + T07; recuperación segura y foreground aislado | — | 2026-11-09 |
 | C4 — Exclusividad productiva | PENDIENTE | T06; inventario de entrypoints/consumidores | — | 2026-11-09 |
 
-**Registro de testigos — corte 2026-11-12:** T01 acredita bootstrap automático y lectura SQLite desde otro contenedor en RUN-ID nuevo, pero no acredita handoff CLI→OCR ni OCR/G3/G5 multiproceso; los testigos históricos offline no revalidan esa composición.
+**Registro de testigos — corte 2026-11-12:** T01 acredita bootstrap automático, SQLite intercontenedor y admisión CLI explícita en RUN-ID nuevo; T02 está `EN_CURSO` con publicación al inbox, sin prueba de consumo OCR. Los testigos históricos offline no acreditan OCR/G3/G5 multiproceso.
 
 | Testigo | Estado | Evidencia verificable o bloqueo |
 |---|---|---|
-| T01 — Root/config | EN_CURSO | Preflight/digest, UID, bootstrap y 4 SQLite intercontenedor PASS; `documents.db` resuelto bajo estado compartido y directorios AST/inbox escribibles (sonda sin escrituras). Falta acreditar admisión CLI explícita, esquema perfil y consumidores; no PDF multiproceso |
-| T02 — CLI→OCR | PENDIENTE | — |
+| T01 — Root/config | EN_CURSO | Preflight/digest, UID, bootstrap y 4 SQLite intercontenedor PASS; `documents.db`/AST resolvieron al volumen y CLI explícita publicó PDF SHA-256 en inbox (exit 0). Falta verificar lector OCR y contrato efectivo de consumidores; no PDF multiproceso |
+| T02 — CLI→OCR | EN_CURSO | CLI-only admisión de PDF sintético PASS, SHA-256 verificado y ruta explícita `/app/data/inbox`; falta consumidor OCR, AST/contexto/plan, estado FSM/queue y persistencia interproceso |
 | T03 — G3 fake HTTP | PENDIENTE | — |
 | T04 — G5 + Tectonic | PENDIENTE | — |
 | T05 — Reinicio/authority | PENDIENTE | — |
@@ -308,6 +312,7 @@ Este documento es el **único tablero de avance de la convergencia operativa**. 
 | 2026-11-12 | v1.0.6 | Primer bootstrap automático en RUN-ID nuevo y lectura persistente entre contenedores PASS; no se infiere handoff PDF→PDF; siguientes pruebas: root/inbox compartido y consumidores | Owner sobre PR #46 @ `2b70ca1`; 18 PASS/1 SKIP y preflight PASS, proyecto `tpdfconvconv1211b` |
 | 2026-11-12 | v1.0.7 | Sonda de rutas `UID10001` confirma inbox CLI por defecto diferente del OCR; CLI admite `--inbox-dir` explícito; queda abierta ubicación real de `documents.db`/AST antes de emitir testigo T02 | Salida local owner `SAME_INBOX=False`, exit 0; lectura de `apps/cli/main.py`, `apps/ocr_router/__main__.py` |
 | 2026-11-12 | v1.0.8 | Sonda sin escrituras acredita resolución de documents.db en volumen estado y rutas AST/inbox escribibles; siguiente paso admisión PDF sintético sin daemons | Salida local owner `DOCUMENTS_DB_CORRECT=True`, `AST_PARENT_WRITABLE=True`, `INBOX_PARENT_WRITABLE=True`, exit 0 |
+| 2026-11-12 | v1.0.9 | CLI one-shot sin `--run` publicó PDF sintético en inbox con SHA-256 verificado; C1/T02 pasa a EN_CURSO, sin inferir consumo OCR; esquema de perfil es lazy en SQLiteProfileStore | Salida local owner `C0_T01_CLI_ADMISSION_PASS` exit 0, `document_id=2a21f24d…d67f9` y revisión de código `infra/db/profile_store.py` |
 
 ## 9. Registro de cambios propuestos y disciplina de integración
 
