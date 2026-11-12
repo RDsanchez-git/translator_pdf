@@ -8,7 +8,7 @@ from apps.lab.convergence_compose_preflight import inspect_topology
 
 def _good() -> dict:
     commands = {
-        "db_bootstrap": ["python", "-B", "/workspace/infra/db/bootstrap.py"],
+        "db_bootstrap": ["python", "-B", "/workspace/apps/lab/convergence_db_bootstrap.py"],
         "ocr_router": ["python", "-B", "/workspace/apps/ocr_router/__main__.py"],
         "llm_worker": ["python", "-B", "/workspace/runtime/engine.py"],
         "assembler": ["python", "-B", "/workspace/apps/compiler/__main__.py"],
@@ -43,6 +43,10 @@ def _good() -> dict:
         }
         for name, command in commands.items()
     }
+    services["db_bootstrap"]["user"] = "0:0"
+    services["db_bootstrap"]["environment"]["TPDF_C0_VOLUME_INIT"] = (
+        "EXPLICIT_CONVERGENCE_C0_LAB_ONLY"
+    )
     services["llm_worker"]["environment"].update({
         "IS_BENCHMARK": "0",
         "GROQ_API_KEY": "translator-pdf-g3-offline-fake-only",
@@ -175,3 +179,23 @@ def test_rejects_writable_host_bind_outside_checkout() -> None:
     })
     issues = inspect_topology(bad)
     assert "reconciler:NON_ISOLATED_MOUNT" in issues
+
+
+def test_root_is_restricted_to_bootstrap_init() -> None:
+    bad = _good()
+    bad["services"]["db_bootstrap"]["user"] = "10001:10001"
+    bad["services"]["llm_worker"]["user"] = "0:0"
+    issues = inspect_topology(bad)
+    assert "db_bootstrap:ROOT_INIT_USER_REQUIRED" in issues
+    assert "llm_worker:ROOT_WORKER_FORBIDDEN" in issues
+
+
+def test_volume_init_token_must_not_leak_to_workers() -> None:
+    bad = _good()
+    bad["services"]["db_bootstrap"]["environment"]["TPDF_C0_VOLUME_INIT"] = ""
+    bad["services"]["ocr_router"]["environment"]["TPDF_C0_VOLUME_INIT"] = (
+        "EXPLICIT_CONVERGENCE_C0_LAB_ONLY"
+    )
+    issues = inspect_topology(bad)
+    assert "db_bootstrap:VOLUME_INIT_OPT_IN_MISSING" in issues
+    assert "ocr_router:VOLUME_INIT_PRIVILEGE_LEAK" in issues
