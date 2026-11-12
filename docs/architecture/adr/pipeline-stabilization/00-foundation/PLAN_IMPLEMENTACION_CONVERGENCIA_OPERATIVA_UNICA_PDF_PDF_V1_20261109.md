@@ -1,6 +1,6 @@
 # Plan de implementación de la convergencia operativa única PDF→PDF — R1/R2/R3
 
-**Versión:** v1.0.10 · **Fecha:** 2026-11-09 · **Estado:** especificación operativa versionada; **implementación futura, no cierre ni certificación**  
+**Versión:** v1.0.11 · **Fecha:** 2026-11-09 · **Estado:** especificación operativa versionada; **implementación futura, no cierre ni certificación**  
 **Repositorio / rama de referencia:** `RDsanchez-git/translator_pdf` / `pipeline_stabilization`  
 **Commit inspeccionado:** `6a5ee41886b935c2c0f3a107a42620d93de31efb` (#40 MERGED). Los caminos, configuraciones y tests descritos se refieren a **ese commit**, no a una instalación desplegada.  
 **Documento rector:** [Decisión D-1/D-2, cabecera vigente, §§0, 2, 6–8](DECISION_CANDIDATE_CONVERGENCIA_PDF_PDF_D1_D2_20261105.md). El nombre histórico `CANDIDATE` no revoca la **aprobación del owner del 2026-11-08**.  
@@ -163,7 +163,9 @@ rg -n 'IS_BENCHMARK|SQLITE_STATE_DIR|APP_ROOT|GROQ_BASE_URL|GROQ_API_KEY|COMPILE
 
 **Lectura intercontenedor de inbox C1/T02 — parcial PASS (2026-11-12):** el owner abrió un **segundo contenedor temporal** UID `10001` sobre el proyecto `tpdfconvconv1211b` y, sin iniciar el daemon, verificó `PDF_COUNT=1`, `PDF_BYTES=869`, encabezado `%PDF-` y contenido SHA-256 idéntico al nombre `2a21f24dc0741da5c6c6cbb849c48375a224fd065aeaed548be3108d8ebd67f9` en `/app/data/inbox`. Resultado `C1_T02_INBOX_CROSS_CONTAINER_PASS`, exit **0**. Esto acredita el transporte de entrada entre la CLI y otro proceso que monta el mismo volumen; **NO** acredita que el OCR haya interpretado el documento, persistido AST/plan o avanzado la FSM.
 
-**Siguiente falsador C1/T02:** revisar las precondiciones del daemon OCR seleccionado (constructor de `SQLiteProfileStore`/tabla `inferred_document_profiles`, estado FSM previo del documento, provisión local de parser PyMuPDF y aislamiento del proyecto), luego ejecutar una **única** recepción controlada del PDF actual con OCR, sin arrancar G3/G5 ni inferir éxito por la salida de un contenedor. Inspeccionar `/app/data/{archive,error,ast_cache}`, la FSM y el plan/cola desde otra conexión. Detener ante perfil/document_id conflictivo, parser no disponible o persistencia incompleta; no borrar el inbox ni resetear bases por defecto. `C0/T01` y `C1/T02` siguen `EN_CURSO` hasta la evidencia de consumidores/receipts y el handoff OCR.
+**Preflight del parser seleccionado C1/T02 — PASS (2026-11-12):** desde un contenedor temporal UID 10001 sobre `tpdfconvconv1211b`, el owner verificó SHA-256 del PDF publicado y ejecutó `apps.bootstrap.pipeline_factory.build_extraction_pipeline().parse()` sin daemon ni escritura FSM/queue: `PARSER: PdfParserAdapter`, `AST_NODE_COUNT: 1`, `C1_T02_PARSER_PREFLIGHT_PASS`, exit **0**. Aviso `fitz` de deprecación, no fallo. Esta sonda acredita el parser básico **solamente**; no demuestra que el nodo supere `prepare_contextual_plan`, que el OCR archive el archivo ni que existan tareas persistidas.
+
+**Siguiente falsador C1/T02:** antes de ejecutar por primera vez `OCRRouterDaemon._process_document` sobre el PDF actual, comprobar que su document_id carece de estado previo en `fsm.db`, que el inbox contiene exactamente el PDF esperado y que los módulos de perfil/tokenización/plan están disponibles sin descargar dependencias. Ejecutar **una sola** recepción con el composition root existente en el laboratorio, sin iniciar G3/G5; la función interna captura excepciones y puede mover el archivo a `data/error`, por tanto **un exit 0 solo no demuestra PASS**. Comprobar después en segunda conexión la FSM, el AST, `documents.db`, `queue.db` y la ubicación final del PDF; no resetear volúmenes ni asumir reintento seguro si falla. `C0/T01` y `C1/T02` siguen `EN_CURSO`.
 
 ## 5. Deltas implementables, mínimos y secuenciados
 
@@ -274,7 +276,7 @@ Este documento es el **único tablero de avance de la convergencia operativa**. 
 | Delta | Estado | Pruebas para cerrarlo | Evidencia PASS / bloqueo | Última revisión |
 |---|---|---|---|---|
 | C0 — Root/configuración | EN_CURSO | T01; comando/volúmenes/DB/proveedor/entrada efectivos | [PR #46](https://github.com/RDsanchez-git/translator_pdf/pull/46): 18 PASS/1 SKIP, bootstrap automático, cuatro SQLite en otro contenedor y CLI→inbox compartido (SHA-256, PDF 869 bytes) PASS; falta certificar consumidores y contrato de daemon OCR | 2026-11-12 |
-| C1 — Entrada CLI→OCR | EN_CURSO | T02; inbox compartido, una generación | CLI sin `--run` publicó el PDF sintético y un segundo contenedor UID10001 leyó exactamente 1 PDF, 869 bytes, `%PDF-`, hash coherente (`C1_T02_INBOX_CROSS_CONTAINER_PASS`, exit 0). Pendiente OCR real→AST/plan/FSM | 2026-11-12 |
+| C1 — Entrada CLI→OCR | EN_CURSO | T02; inbox compartido, una generación | CLI/inbox intercontenedor PASS (869 bytes, SHA-256); parser real `PdfParserAdapter` produce 1 AST node, exit 0, sin daemon. Pendiente OCR real→AST/plan/FSM | 2026-11-12 |
 | C2 — OCR→G3→G5 multiproceso | PENDIENTE | T03 + T04; PDF Tectonic real y receipts completos | — | 2026-11-09 |
 | C3 — Recuperación/modalidades | PENDIENTE | T05 + T07; recuperación segura y foreground aislado | — | 2026-11-09 |
 | C4 — Exclusividad productiva | PENDIENTE | T06; inventario de entrypoints/consumidores | — | 2026-11-09 |
@@ -284,7 +286,7 @@ Este documento es el **único tablero de avance de la convergencia operativa**. 
 | Testigo | Estado | Evidencia verificable o bloqueo |
 |---|---|---|
 | T01 — Root/config | EN_CURSO | Preflight/digest, UID, bootstrap y cuatro SQLite intercontenedor PASS; `documents.db`/AST resuelven al volumen; CLI explícita publicó PDF y segundo contenedor comprobó bytes/hash (%PDF-, 869 bytes). Falta consumer OCR efectivo; no PDF multiproceso |
-| T02 — CLI→OCR | EN_CURSO | Admisión CLI y lectura intercontenedor del inbox PASS (`C1_T02_INBOX_CROSS_CONTAINER_PASS`, exit 0, PDF 869 bytes, SHA-256 exacto), sin daemon. Pendiente OCR real, AST/contexto/plan y FSM/queue |
+| T02 — CLI→OCR | EN_CURSO | Admisión, lectura intercontenedor y parser real PASS (`C1_T02_PARSER_PREFLIGHT_PASS`, 1 AST node, exit 0). Pendiente composición OCR y persistencia completa de AST/contexto/plan/FSM/queue |
 | T03 — G3 fake HTTP | PENDIENTE | — |
 | T04 — G5 + Tectonic | PENDIENTE | — |
 | T05 — Reinicio/authority | PENDIENTE | — |
@@ -316,6 +318,7 @@ Este documento es el **único tablero de avance de la convergencia operativa**. 
 | 2026-11-12 | v1.0.8 | Sonda sin escrituras acredita resolución de documents.db en volumen estado y rutas AST/inbox escribibles; siguiente paso admisión PDF sintético sin daemons | Salida local owner `DOCUMENTS_DB_CORRECT=True`, `AST_PARENT_WRITABLE=True`, `INBOX_PARENT_WRITABLE=True`, exit 0 |
 | 2026-11-12 | v1.0.9 | CLI one-shot sin `--run` publicó PDF sintético en inbox con SHA-256 verificado; C1/T02 pasa a EN_CURSO, sin inferir consumo OCR; esquema de perfil es lazy en SQLiteProfileStore | Salida local owner `C0_T01_CLI_ADMISSION_PASS` exit 0, `document_id=2a21f24d…d67f9` y revisión de código `infra/db/profile_store.py` |
 | 2026-11-12 | v1.0.10 | Segundo contenedor UID10001 confirma un PDF sintético de 869 bytes con hash/header correcto; handoff de volumen probado, aún no OCR real | Salida local owner `C1_T02_INBOX_CROSS_CONTAINER_PASS`, exit 0; proyecto `tpdfconvconv1211b` |
+| 2026-11-12 | v1.0.11 | Preflight del parser real sobre el PDF admitido: 1 nodo AST, exit 0; siguiente paso OCR one-shot y verificaciones independientes, sin G3/G5 | Salida local owner `C1_T02_PARSER_PREFLIGHT_PASS`; `PdfParserAdapter`, `AST_NODE_COUNT=1` |
 
 ## 9. Registro de cambios propuestos y disciplina de integración
 
