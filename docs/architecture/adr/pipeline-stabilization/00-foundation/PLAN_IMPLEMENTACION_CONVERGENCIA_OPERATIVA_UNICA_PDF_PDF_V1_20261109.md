@@ -1,6 +1,6 @@
 # Plan de implementación de la convergencia operativa única PDF→PDF — R1/R2/R3
 
-**Versión:** v1.0.4 · **Fecha:** 2026-11-09 · **Estado:** especificación operativa versionada; **implementación futura, no cierre ni certificación**  
+**Versión:** v1.0.5 · **Fecha:** 2026-11-09 · **Estado:** especificación operativa versionada; **implementación futura, no cierre ni certificación**  
 **Repositorio / rama de referencia:** `RDsanchez-git/translator_pdf` / `pipeline_stabilization`  
 **Commit inspeccionado:** `6a5ee41886b935c2c0f3a107a42620d93de31efb` (#40 MERGED). Los caminos, configuraciones y tests descritos se refieren a **ese commit**, no a una instalación desplegada.  
 **Documento rector:** [Decisión D-1/D-2, cabecera vigente, §§0, 2, 6–8](DECISION_CANDIDATE_CONVERGENCIA_PDF_PDF_D1_D2_20261105.md). El nombre histórico `CANDIDATE` no revoca la **aprobación del owner del 2026-11-08**.  
@@ -149,9 +149,11 @@ rg -n 'IS_BENCHMARK|SQLITE_STATE_DIR|APP_ROOT|GROQ_BASE_URL|GROQ_API_KEY|COMPILE
 
 **Testigo local del owner sobre Draft #46 @ `146868e5aaa257d8aae78f1c3ec1787a16e863a9` (NO implica cierre de T01):** `python -m pytest tests/unit/test_convergence_compose_preflight.py -q` → **11 passed in 0.52s**; `python -m apps.lab.convergence_compose_preflight --run-id conv0911a --verify-local-image` → `C0_T01_STATIC_CANDIDATE_PASS`. Proyecto aislado `tpdfconvconv0911a`, imagen R2 local pinneada (`sha256:abe5b5dbbc65e8920e0948b189bd9bd090eb395e99420918190128a2ec12b4bd`), sin build/pull. El primer `docker compose ... run --rm --no-deps --pull never -T db_bootstrap` creó una red y seis volúmenes nombrados y falló `PermissionError` en `/app/state/db`: `uid=10001(audit)`, pero los seis volúmenes nuevos tenían raíz `uid=0,gid=0,mode=755`. La configuración `nocopy: true` es intencional para evitar replicación de datos de la imagen; no debe suprimirse para esconder el problema.
 
-**Recuperación acotada comprobada:** el owner ejecutó **una sola vez** en ese proyecto `docker compose ... run --rm --no-deps --pull never -T --user 0:0 db_bootstrap sh -ec 'chown 10001:10001 /app/state /app/data /app/output /app/.cache/hf /app/.cache/torch /app/.cache/tectonic; mkdir -p /app/state/db; chown 10001:10001 /app/state/db'`, **sin `chown -R` ni bootstrap como root**. El bootstrap posterior con el usuario por defecto terminó **exit 0** e inicializó `/app/state/db/{fsm,queue,event,materialized}.db`, leyendo los cuatro SQL desde `/workspace/infra/db/`. No hay aún prueba independiente de lectura desde otro contenedor, handoff entre procesos, ni PDF de esa composición. Documentar una forma repetible y acotada de inicialización de permisos para un RUN-ID fresco sin crear servicio innecesario; evitar reutilización de volúmenes con nombre histórico.
+**Recuperación acotada comprobada:** el owner ejecutó **una sola vez** en ese proyecto `docker compose ... run --rm --no-deps --pull never -T --user 0:0 db_bootstrap sh -ec 'chown 10001:10001 /app/state /app/data /app/output /app/.cache/hf /app/.cache/torch /app/.cache/tectonic; mkdir -p /app/state/db; chown 10001:10001 /app/state/db'`, **sin `chown -R` ni bootstrap como root**. El bootstrap posterior con el usuario por defecto terminó **exit 0** e inicializó `/app/state/db/{fsm,queue,event,materialized}.db`, leyendo los cuatro SQL desde `/workspace/infra/db/`. El owner verificó después, desde **otro contenedor** y UID 10001, las cuatro SQLite vía URI `mode=ro`: `fsm.db` 1 tabla, `queue.db` 4, `event.db` 1, `materialized.db` 3, todas con `PRAGMA quick_check=ok`; `C0_T01_SQLITE_PERSISTENCE_PASS`, exit 0. **No** hay todavía handoff OCR/G3/G5 ni PDF multiproceso. Documentar una forma repetible y acotada de inicialización de permisos para un RUN-ID fresco sin crear servicio innecesario; evitar reutilización de volúmenes con nombre histórico.
 
-**Siguiente falsador C0/T01:** abrir los cuatro SQLite desde **otro** contenedor de la misma composición en modo solo lectura y verificar integridad/rutas, la capacidad del usuario `10001` y la coherencia de los mounts. El uso de `docker compose run --rm` crea contenedores efímeros pero no borra volúmenes. No ejecutar `down -v`, prune, rebuild ni ensayos de OCR/G3/G5 con estado legado.
+**Cambio propuesto en Draft #46, pendiente de ejecución local en RUN-ID fresco:** `apps/lab/convergence_db_bootstrap.py` prepara solo las raíces de los seis mounts nombrados con `nocopy` bajo UID 0, comprueba opt-in expreso/mounts/owner y hace `setgroups([])` → `setgid(10001)` → `setuid(10001)` → `execv(..., /workspace/infra/db/bootstrap.py)`. El override del laboratorio limita `user: 0:0` a `db_bootstrap`; OCR/G3/G5 siguen como UID no privilegiado. Ningún cambio en Dockerfile o Compose de producto. **La primera prueba del wrapper aún no pasó en la máquina del owner; no registrar PASS anticipado.** El uso de `docker compose run --rm` crea contenedores efímeros pero no borra volúmenes. No ejecutar `down -v`, prune, rebuild ni ensayos de OCR/G3/G5 con estado legado.
+
+**Siguiente falsador C0/T01:** validar tests unitarios y preflight de este commit, probar inicializador con volúmenes realmente nuevos y revisar `uid`, cuatro SQLite, y lectura independiente; corregir solo si falla. Handoff entre procesos corresponde al siguiente testigo, no se infiere de `quick_check`.
 
 ## 5. Deltas implementables, mínimos y secuenciados
 
@@ -257,21 +259,21 @@ Este documento es el **único tablero de avance de la convergencia operativa**. 
 
 **Estados permitidos:** `PENDIENTE` (sin evidencia de cierre en el HEAD), `EN_CURSO` (se trabaja en ese delta, sin cierre), `BLOQUEADO` (impedimento reproducible con causa/evidencia), `COMPLETADO` (criterios PASS cubiertos y evidencia verificable) y `NO_APLICA` (solo para una prueba opcional, con justificación y sin eludir un invariante obligatorio). Un FAIL o PRECONDITION_BLOCKED **nunca** es `COMPLETADO`. No se deduce `COMPLETADO` de un documento, PR abierto, CI histórica, salida PDF fake ni ausencia de errores visibles.
 
-**Registro de deltas — actualizado 2026-11-12:** C0 permanece `EN_CURSO` con bootstrap real acreditado; C1–C4 siguen `PENDIENTE` y no hay acreditación de la composición multiproceso completa.
+**Registro de deltas — actualizado 2026-11-12:** C0 permanece `EN_CURSO` con bootstrap y lectura persistente acreditados; C1–C4 siguen `PENDIENTE` y no hay acreditación de la composición multiproceso completa.
 
 | Delta | Estado | Pruebas para cerrarlo | Evidencia PASS / bloqueo | Última revisión |
 |---|---|---|---|---|
-| C0 — Root/configuración | EN_CURSO | T01; comando/volúmenes/DB/proveedor/entrada efectivos | [PR #46](https://github.com/RDsanchez-git/translator_pdf/pull/46) @ `146868e5`: 11 unit PASS y preflight con imagen local PASS; bootstrap real exit 0 tras reparación acotada de permisos; **falta** lectura independiente/persistencia y handoff | 2026-11-12 |
+| C0 — Root/configuración | EN_CURSO | T01; comando/volúmenes/DB/proveedor/entrada efectivos | [PR #46](https://github.com/RDsanchez-git/translator_pdf/pull/46) @ `146868e5`: 11 unit PASS y preflight con imagen local PASS; bootstrap real exit 0 tras reparación acotada de permisos; **falta** validar el inicializador automatizado en RUN-ID nuevo y el handoff | 2026-11-12 |
 | C1 — Entrada CLI→OCR | PENDIENTE | T02; inbox compartido, una generación | — | 2026-11-09 |
 | C2 — OCR→G3→G5 multiproceso | PENDIENTE | T03 + T04; PDF Tectonic real y receipts completos | — | 2026-11-09 |
 | C3 — Recuperación/modalidades | PENDIENTE | T05 + T07; recuperación segura y foreground aislado | — | 2026-11-09 |
 | C4 — Exclusividad productiva | PENDIENTE | T06; inventario de entrypoints/consumidores | — | 2026-11-09 |
 
-**Registro de testigos — corte 2026-11-12:** T01 tiene bootstrap real en laboratorio nuevo, pero aún no acredita un handoff ni lectura independiente; los testigos históricos offline no revalidan la composición multiproceso.
+**Registro de testigos — corte 2026-11-12:** T01 tiene bootstrap y lectura SQLite independientes en laboratorio aislado, pero aún no acredita handoff OCR/G3/G5 ni la inicialización automatizada en RUN-ID nuevo; los testigos históricos offline no revalidan la composición multiproceso.
 
 | Testigo | Estado | Evidencia verificable o bloqueo |
 |---|---|---|
-| T01 — Root/config | EN_CURSO | Preflight y digest local R2 PASS; laboratorio `tpdfconvconv0911a` creó seis volúmenes y red; bootstrap real exit 0 con cuatro SQLite tras corrección uid 10001 (detalle §4.4). Pendiente lectura independiente y prueba entre procesos; no hay PDF multiproceso |
+| T01 — Root/config | EN_CURSO | Preflight y digest local R2 PASS; laboratorio `tpdfconvconv0911a` creó seis volúmenes y red; bootstrap real exit 0 con cuatro SQLite tras corrección uid 10001 (detalle §4.4). Lectura SQLite independiente PASS en UID 10001; pendiente inicialización reproducible en RUN-ID fresco; no hay PDF multiproceso |
 | T02 — CLI→OCR | PENDIENTE | — |
 | T03 — G3 fake HTTP | PENDIENTE | — |
 | T04 — G5 + Tectonic | PENDIENTE | — |
@@ -298,6 +300,7 @@ Este documento es el **único tablero de avance de la convergencia operativa**. 
 
 | 2026-11-09 | v1.0.3 | Restricción obligatoria de reutilizar imágenes históricas, ahorrar disco, pedir autorización antes de build/pull y limpieza selectiva de BuildKit; se registra C0 estático PASS (no cierre) | Inventario Docker y preflight enviados por el owner; Draft #46; no se ejecutaron contenedores nuevos en ese corte |
 | 2026-11-12 | v1.0.4 | Evidencia local C0/T01: 11 tests PASS, preflight con digest PASS y bootstrap real de cuatro bases exit 0 tras resolver uid 10001 en volúmenes vacíos; mantiene EN_CURSO | PR #46 @ `146868e5`; acta del owner en conversación; pendiente testigo independiente/persistencia |
+| 2026-11-12 | v1.0.5 | Evidencia de SQLite en otro contenedor (4 quick_check OK, tablas 1/4/1/3, exit 0) y candidato de inicialización efímera de permisos solo para C0/T01; sin atribuirle PASS de runtime aún | Conversación owner; Draft #46; wrapper pendiente de validación local en RUN-ID fresco |
 
 ## 9. Registro de cambios propuestos y disciplina de integración
 
