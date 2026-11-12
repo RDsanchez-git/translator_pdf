@@ -42,7 +42,7 @@ def prepare_volume_owners(mounts: set[str]) -> None:
         raise RuntimeError("C0_VOLUME_INIT_CURRENT_BOOTSTRAP_MISSING")
 
     directories = [Path(x) for x in _VOLUMES]
-    db = Path("/app/state/db")
+    db = directories[0] / "db"
     if db.is_symlink():
         raise RuntimeError("C0_VOLUME_INIT_DB_SYMLINK_FORBIDDEN")
     for path in directories + ([db] if db.exists() else []):
