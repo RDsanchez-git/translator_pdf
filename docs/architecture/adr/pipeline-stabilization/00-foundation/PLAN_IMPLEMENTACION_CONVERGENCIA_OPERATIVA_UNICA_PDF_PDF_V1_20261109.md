@@ -1,6 +1,6 @@
 # Plan de implementación de la convergencia operativa única PDF→PDF — R1/R2/R3
 
-**Versión:** v1.0.7 · **Fecha:** 2026-11-09 · **Estado:** especificación operativa versionada; **implementación futura, no cierre ni certificación**  
+**Versión:** v1.0.8 · **Fecha:** 2026-11-09 · **Estado:** especificación operativa versionada; **implementación futura, no cierre ni certificación**  
 **Repositorio / rama de referencia:** `RDsanchez-git/translator_pdf` / `pipeline_stabilization`  
 **Commit inspeccionado:** `6a5ee41886b935c2c0f3a107a42620d93de31efb` (#40 MERGED). Los caminos, configuraciones y tests descritos se refieren a **ese commit**, no a una instalación desplegada.  
 **Documento rector:** [Decisión D-1/D-2, cabecera vigente, §§0, 2, 6–8](DECISION_CANDIDATE_CONVERGENCIA_PDF_PDF_D1_D2_20261105.md). El nombre histórico `CANDIDATE` no revoca la **aprobación del owner del 2026-11-08**.  
@@ -155,9 +155,9 @@ rg -n 'IS_BENCHMARK|SQLITE_STATE_DIR|APP_ROOT|GROQ_BASE_URL|GROQ_API_KEY|COMPILE
 
 **Testigo de rutas reportado por owner (2026-11-12, sobre el Compose del laboratorio `tpdfconvconv1211b`):** con `ocr_router python -B -` (sin iniciar daemon), `uid=10001`, `cwd=/app`, `CLI_DEFAULT=/workspace/data/inbox`, `OCR_INBOX=/app/data/inbox`, `SHARED_DATA_EXISTS=True`, `SHARED_DATA_WRITABLE=True`, `SAME_INBOX=False`, exit 0. Las advertencias de `fitz`, `google.api_core` y `google.generativeai` son deprecaciones y **no** constituyen el fallo de esta sonda. `apps/cli/main.py::handle_translate` utiliza el checkout de la ubicación del archivo salvo que `--run` defina root; el CLI de admisión admite `--inbox-dir /app/data/inbox` para apuntar al volumen compartido **sin activar foreground**. Esta prueba es lectura/importación de rutas, no envío de PDF, ni recepción del OCR.
 
-**Riesgo adicional a discriminar antes de levantar OCR:** en `apps/ocr_router/__main__.py` el composition root crea `get_connection("infra/db/documents.db")` para `SQLiteProfileStore` y `ASTRegistry()`; verificar la resolución real y persistencia de ambos bajo `/app/state`/ `/app/data` frente a `/workspace` y la capa de imagen. No promover a PASS por configurar solo `FSM_DB_PATH` y `QUEUE_DB_PATH`: el perfil y el AST también son estado crítico.
+**Sonda de estado auxiliar reportada por owner (2026-11-12):** desde `ocr_router python -B -`, ejecutado con usuario UID 10001 y sin arrancar daemon, `APP_ROOT=/app`, `SQLITE_STATE_DIR=/app/state/db`, `resolve_sqlite_path("infra/db/documents.db")=/app/state/db/documents.db`, `DOCUMENTS_DB_CORRECT=True`, `AST_DIR=/app/data/ast_cache`, `AST_PARENT_WRITABLE=True`, `INBOX_PARENT_WRITABLE=True`, exit 0. Esto acredita solo **resolución y permisos de rutas**, no existencia ni esquema de `documents.db` ni persistencia de un AST real. Antes de iniciar el daemon debe probarse la inicialización/esquema efectiva del perfil de documentos, ya que el bootstrap base crea cuatro SQLite, no una quinta demostrada.
 
-**Siguiente falsador C0/T01 / transición a C1/T02:** comprobar que la CLI one-shot y OCR resuelven la misma ruta de inbox y bases en esta composición, sin ejecutar foreground en paralelo. T01 se mantiene `EN_CURSO` hasta corroborar rutas/consumidores efectivos; `quick_check` no acredita ejecución de OCR, G3 ni G5.
+**Siguiente falsador C0/T01 / transición a C1/T02:** ejecutar la CLI canónica **solo admisión** (sin `--run`) con un PDF sintético pequeño y `--inbox-dir /app/data/inbox` explícito, verificar SHA-256 del contenido publicado, ruta del volumen y lectura desde otro contenedor, **sin levantar OCR/G3/G5**. Después investigar el esquema y persistencia de `documents.db` antes del arranque real de OCR. T01 permanece `EN_CURSO`; las comprobaciones de rutas no prueban un handoff.
 
 ## 5. Deltas implementables, mínimos y secuenciados
 
@@ -267,7 +267,7 @@ Este documento es el **único tablero de avance de la convergencia operativa**. 
 
 | Delta | Estado | Pruebas para cerrarlo | Evidencia PASS / bloqueo | Última revisión |
 |---|---|---|---|---|
-| C0 — Root/configuración | EN_CURSO | T01; comando/volúmenes/DB/proveedor/entrada efectivos | [PR #46](https://github.com/RDsanchez-git/translator_pdf/pull/46) @ `2b70ca1`: 18 PASS/1 SKIP; bootstrap automático y SQLite RO intercontenedor PASS; sonda rutas UID10001 revela `CLI_DEFAULT=/workspace/data/inbox` frente a `OCR_INBOX=/app/data/inbox`; evaluar `--inbox-dir` explícito y resolver documents.db/AST antes de arrancar OCR | 2026-11-12 |
+| C0 — Root/configuración | EN_CURSO | T01; comando/volúmenes/DB/proveedor/entrada efectivos | [PR #46](https://github.com/RDsanchez-git/translator_pdf/pull/46) @ `2b70ca1`: 18 PASS/1 SKIP, bootstrap automático y SQLite RO intercontenedor PASS; ruta CLI por defecto no coincide con OCR, `--inbox-dir` disponible; `documents.db` resuelve en `/app/state/db`, AST en `/app/data/ast_cache`, directorios escribibles; sin prueba de admisión ni inicialización real de perfil | 2026-11-12 |
 | C1 — Entrada CLI→OCR | PENDIENTE | T02; inbox compartido, una generación | — | 2026-11-09 |
 | C2 — OCR→G3→G5 multiproceso | PENDIENTE | T03 + T04; PDF Tectonic real y receipts completos | — | 2026-11-09 |
 | C3 — Recuperación/modalidades | PENDIENTE | T05 + T07; recuperación segura y foreground aislado | — | 2026-11-09 |
@@ -277,7 +277,7 @@ Este documento es el **único tablero de avance de la convergencia operativa**. 
 
 | Testigo | Estado | Evidencia verificable o bloqueo |
 |---|---|---|
-| T01 — Root/config | EN_CURSO | Preflight/digest, UID, bootstrap y 4 SQLite intercontenedor PASS; sonda de rutas reveló desajuste del inbox CLI por defecto frente al OCR; falta validar ruta CLI explícita, `documents.db`, AST y consumidores, sin PDF multiproceso |
+| T01 — Root/config | EN_CURSO | Preflight/digest, UID, bootstrap y 4 SQLite intercontenedor PASS; `documents.db` resuelto bajo estado compartido y directorios AST/inbox escribibles (sonda sin escrituras). Falta acreditar admisión CLI explícita, esquema perfil y consumidores; no PDF multiproceso |
 | T02 — CLI→OCR | PENDIENTE | — |
 | T03 — G3 fake HTTP | PENDIENTE | — |
 | T04 — G5 + Tectonic | PENDIENTE | — |
@@ -307,6 +307,7 @@ Este documento es el **único tablero de avance de la convergencia operativa**. 
 | 2026-11-12 | v1.0.5 | Evidencia de SQLite en otro contenedor (4 quick_check OK, tablas 1/4/1/3, exit 0) y candidato de inicialización efímera de permisos solo para C0/T01; sin atribuirle PASS de runtime aún | Conversación owner; Draft #46; wrapper pendiente de validación local en RUN-ID fresco |
 | 2026-11-12 | v1.0.6 | Primer bootstrap automático en RUN-ID nuevo y lectura persistente entre contenedores PASS; no se infiere handoff PDF→PDF; siguientes pruebas: root/inbox compartido y consumidores | Owner sobre PR #46 @ `2b70ca1`; 18 PASS/1 SKIP y preflight PASS, proyecto `tpdfconvconv1211b` |
 | 2026-11-12 | v1.0.7 | Sonda de rutas `UID10001` confirma inbox CLI por defecto diferente del OCR; CLI admite `--inbox-dir` explícito; queda abierta ubicación real de `documents.db`/AST antes de emitir testigo T02 | Salida local owner `SAME_INBOX=False`, exit 0; lectura de `apps/cli/main.py`, `apps/ocr_router/__main__.py` |
+| 2026-11-12 | v1.0.8 | Sonda sin escrituras acredita resolución de documents.db en volumen estado y rutas AST/inbox escribibles; siguiente paso admisión PDF sintético sin daemons | Salida local owner `DOCUMENTS_DB_CORRECT=True`, `AST_PARENT_WRITABLE=True`, `INBOX_PARENT_WRITABLE=True`, exit 0 |
 
 ## 9. Registro de cambios propuestos y disciplina de integración
 
