@@ -1,6 +1,6 @@
 # Atlas de la Ruta Operativa Única PDF→PDF — arquitectura implementada
 
-**Versión:** 1.0.1 (revisión estática de contratos y diagramas) · **corte técnico:** 2026-11-13 · **estado:** CURRENT IMPLEMENTED ROUTE / DOCUMENTACIÓN DESCRIPTIVA  
+**Versión:** 1.0.2 (rutas de tests auditadas; diagramas verificados estructuralmente) · **corte técnico:** 2026-11-13 · **estado:** CURRENT IMPLEMENTED ROUTE / DOCUMENTACIÓN DESCRIPTIVA  
 **Código anclado:** [PR #46 fusionado, commit `6818e86e21b14e77a606f0c863e9c199b4627601`](https://github.com/RDsanchez-git/translator_pdf/commit/6818e86e21b14e77a606f0c863e9c199b4627601), rama `pipeline_stabilization`. **Alcance de esta revisión:** correspondencia estática entre código pinneado, diagramas, contratos y Compose; sin reejecución de C2/T07.  
 **Dirección:** D-1/D-2 aprobada por el owner el 2026-11-08; ejecución C0–C4 y DoD §8 (9/9) acreditados en laboratorio con fake.  
 **Clase:** mapa AS-IMPLEMENTED de composición, código, flujos, fronteras y riesgos para mantenimiento. **No** es NADR, nuevo plan, autorización de despliegue ni certificación científica.
@@ -47,6 +47,8 @@ flowchart TD
 ~~~
 
 La topología anterior es **lógica**: la misma SQLite puede recibir escrituras de varios procesos bajo CAS/fencing, pero no existe transacción global con filesystem y proveedor. Las flechas representan **lectura/escritura o dependencia**, no una llamada RPC implícita. En Compose OCR, G3, G5 y auxiliares se declaran como procesos independientes; el positivo C2 observó efectivamente OCR, G3, G5 y fake, **no** acredita que Reconciler/Sweeper estuvieran corriendo en ese mismo positivo. La CLI normal **solo admite y vuelve**: no confirma procesamiento ni éxito científico. Para que OCR vea el PDF, **inbox de CLI y daemon deben resolver al mismo volumen real**: la ruta local por defecto de la CLI fuera de Docker puede no compartir el volumen del contenedor; usar `--inbox-dir` solo después de verificar la ruta efectiva y el workspace, sin duplicar documentos.
+
+**Legibilidad y nivel de validación de diagramas (v1.0.2):** los tres bloques son Mermaid (flujo lógico, secuencia positiva y FSM positiva) y fueron revisados contra funciones del commit pinneado. Los nombres largos se limitaron a etiquetas cortas y los nodos de persistencia se distinguen de los procesos; el diagrama de flujo conserva flechas de ida y vuelta porque ambos componentes leen/escriben. **No se pudo verificar visualmente el renderizado real en GitHub** desde el entorno de revisión; esta comprobación queda explícitamente abierta antes de aprobar el PR. No cambiar la semántica de la secuencia para acomodar el layout: si GitHub muestra un fallo de render, corregir solo el bloque afectado y registrarlo.
 
 ### 1.1 Secuencia de contratos realmente relevantes
 
