@@ -187,6 +187,25 @@ class FakeServer(ThreadingHTTPServer):
         self.lock = threading.Lock()
         super().__init__(address, _Handler)
 
+    def audit_post(self, event: str, request_number: int, *,
+                   binding: dict | None = None, reason: str | None = None) -> None:
+        """Emit one bounded, prompt-free JSON line per HTTP result.
+
+        Identity is attached only after _resolve() verifies the plan and unit.
+        Rejected requests never emit untrusted document/chunk identifiers.
+        """
+        record = {"event": event, "request_number": request_number}
+        if binding is not None:
+            record.update({key: binding[key] for key in
+                           ("document_id", "ast_hash", "manifest_sha256", "chunk_id")})
+            record["status"] = 200
+        else:
+            record["status"] = 422
+            if reason is not None:
+                record["reason"] = reason
+        with self.lock:
+            print(_compact(record), flush=True)
+
 
 class _Handler(BaseHTTPRequestHandler):
     server_version = "G3ReusableOfflineFake/1.0"
@@ -218,9 +237,15 @@ class _Handler(BaseHTTPRequestHandler):
         server = cast(FakeServer, self.server)
         with server.lock:
             server.requests += 1
-            permitted = server.requests <= server.max_requests
+            request_number = server.requests
+            permitted = request_number <= server.max_requests
+            # Count every POST, including rejects, without logging request bodies.
+            print(_compact({"event": "G3_FAKE_POST_ATTEMPT",
+                            "request_number": request_number}), flush=True)
         if not permitted:
             self._send(422, {"error": "request_limit_exceeded"})
+            server.audit_post("G3_FAKE_REQUEST_REJECTED", request_number,
+                              reason="request_limit_exceeded")
             return
         try:
             if self.path != PATH or self.headers.get("Authorization") != "Bearer " + DUMMY_KEY:
@@ -238,9 +263,11 @@ class _Handler(BaseHTTPRequestHandler):
                              "finish_reason": "stop"}],
                 "usage": {"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2},
             })
+            server.audit_post("G3_FAKE_REQUEST_ACCEPTED", request_number, binding=result)
         except (ValueError, TypeError, KeyError, UnicodeError, sqlite3.Error, RecursionError) as exc:
             reason = str(exc) if isinstance(exc, FakeContractError) else "invalid_request"
             self._send(422, {"error": reason})
+            server.audit_post("G3_FAKE_REQUEST_REJECTED", request_number, reason=reason)
 
 
 def main() -> None:

@@ -705,6 +705,15 @@ class ControlPlaneRepository(ControlPlanePort):
             SELECT DISTINCT f.document_id, f.ast_hash
             FROM fsm_db.document_fsm f
             WHERE f.current_state = 'PROCESSING'
+              -- A single uncertain external effect poisons this generation:
+              -- neither routine work nor recovery may retry or reinterpret it.
+              AND NOT EXISTS (
+                  SELECT 1 FROM chunk_tasks uncertain
+                  WHERE uncertain.document_id = f.document_id
+                    AND uncertain.ast_hash = f.ast_hash
+                    AND uncertain.worker_type = 'LLM'
+                    AND uncertain.task_state = 'G3_EXTERNAL_UNKNOWN'
+              )
               AND (
                   EXISTS (
                       SELECT 1 FROM chunk_tasks t2
@@ -744,6 +753,9 @@ class ControlPlaneRepository(ControlPlanePort):
             "SELECT f.document_id, f.ast_hash FROM fsm_db.document_fsm AS f "
             "JOIN chunk_plans AS p ON p.document_id=f.document_id AND p.ast_hash=f.ast_hash "
             "WHERE f.current_state='PROCESSING' "
+            "AND NOT EXISTS (SELECT 1 FROM chunk_tasks uncertain "
+            "WHERE uncertain.document_id=f.document_id AND uncertain.ast_hash=f.ast_hash "
+            "AND uncertain.worker_type='LLM' AND uncertain.task_state='G3_EXTERNAL_UNKNOWN') "
             "AND EXISTS (SELECT 1 FROM chunk_tasks t WHERE t.document_id=f.document_id "
             "AND t.ast_hash=f.ast_hash AND t.worker_type='LLM') "
             "AND ( "

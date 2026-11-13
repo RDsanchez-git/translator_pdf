@@ -170,3 +170,85 @@ def test_private_docker_bind_requires_explicit_opt_in(tmp_path, monkeypatch):
     monkeypatch.setenv("TPDF_FAKE_PRIVATE_DOCKER", "EXPLICIT_INTERNAL_NETWORK_ONLY")
     with FakeServer(("0.0.0.0", 0), db) as server:
         assert server.server_address[1] > 0
+
+
+def _audit_records(capfd):
+    output = capfd.readouterr().out
+    return [json.loads(line) for line in output.splitlines() if line.strip()], output
+
+
+def test_http_audit_success_binds_whitelisted_identity_only(tmp_path, capfd):
+    p = _plan()
+    db = tmp_path / "queue.db"
+    _install(db, p)
+    with _http_server(db) as port:
+        code, _ = _http(port, _request(p))
+    assert code == 200
+    records, output = _audit_records(capfd)
+    assert records == [
+        {"event": "G3_FAKE_POST_ATTEMPT", "request_number": 1},
+        {
+            "event": "G3_FAKE_REQUEST_ACCEPTED",
+            "request_number": 1, "status": 200,
+            "document_id": p["document_id"], "ast_hash": p["ast_hash"],
+            "manifest_sha256": p["manifest_sha256"],
+            "chunk_id": p["units"][0]["chunk_id"],
+        },
+    ]
+    assert DUMMY_KEY not in output
+    assert "Alpha" not in output
+    assert "translated_text" not in output
+
+
+def test_http_audit_preserve_attempt_is_rejected_not_accepted(tmp_path, capfd):
+    p = _plan(kind="preserve")
+    db = tmp_path / "queue.db"
+    _install(db, p)
+    with _http_server(db) as port:
+        code, data = _http(port, _request(p))
+    assert code == 422
+    assert data["error"] == "preserve_must_not_call_provider"
+    records, output = _audit_records(capfd)
+    assert records == [
+        {"event": "G3_FAKE_POST_ATTEMPT", "request_number": 1},
+        {"event": "G3_FAKE_REQUEST_REJECTED", "request_number": 1,
+         "status": 422, "reason": "preserve_must_not_call_provider"},
+    ]
+    assert p["document_id"] not in output
+    assert DUMMY_KEY not in output
+
+
+def test_http_audit_unauthorized_never_exposes_untrusted_identity(tmp_path, capfd):
+    p = _plan()
+    db = tmp_path / "queue.db"
+    _install(db, p)
+    with _http_server(db) as port:
+        code, _ = _http(port, _request(p), token="wrong-token")
+    assert code == 422
+    records, output = _audit_records(capfd)
+    assert [r["event"] for r in records] == [
+        "G3_FAKE_POST_ATTEMPT", "G3_FAKE_REQUEST_REJECTED",
+    ]
+    assert records[1]["status"] == 422
+    assert "document_id" not in records[1]
+    assert "chunk_id" not in records[1]
+    assert p["document_id"] not in output
+    assert "wrong-token" not in output
+
+
+def test_http_audit_limit_logs_all_attempts_and_only_one_accept(tmp_path, capfd):
+    p = _plan()
+    db = tmp_path / "queue.db"
+    _install(db, p)
+    with _http_server(db, max_requests=1) as port:
+        assert _http(port, _request(p))[0] == 200
+        assert _http(port, _request(p))[0] == 422
+    records, _ = _audit_records(capfd)
+    assert [r["request_number"] for r in records
+            if r["event"] == "G3_FAKE_POST_ATTEMPT"] == [1, 2]
+    assert [r["request_number"] for r in records
+            if r["event"] == "G3_FAKE_REQUEST_ACCEPTED"] == [1]
+    rejects = [r for r in records if r["event"] == "G3_FAKE_REQUEST_REJECTED"]
+    assert len(rejects) == 1
+    assert rejects[0]["request_number"] == 2
+    assert rejects[0]["reason"] == "request_limit_exceeded"

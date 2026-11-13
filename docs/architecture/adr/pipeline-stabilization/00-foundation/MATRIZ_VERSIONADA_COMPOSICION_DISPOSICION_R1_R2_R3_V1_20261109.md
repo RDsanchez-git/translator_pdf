@@ -1,8 +1,8 @@
 # Matriz versionada de composición y disposición de archivos — convergencia PDF→PDF
 
-**Versión:** v1.0.1 · **Fecha:** 2026-11-09 · **Estado:** inventario técnico prescriptivo, disposición **propuesta** / no borrado autorizado.  
+**Versión:** v1.0.3 · **Fecha:** 2026-11-09 · **Estado:** inventario técnico prescriptivo, disposición **propuesta** / no borrado autorizado.  
 **Sujeto:** `RDsanchez-git/translator_pdf` / `pipeline_stabilization` @ `6a5ee41886b935c2c0f3a107a42620d93de31efb` (#40 integrado).  
-**Plan vinculante por referencia:** [PLAN_IMPLEMENTACION_CONVERGENCIA_OPERATIVA_UNICA_PDF_PDF_V1_20261109.md](PLAN_IMPLEMENTACION_CONVERGENCIA_OPERATIVA_UNICA_PDF_PDF_V1_20261109.md), v1.0.1.  
+**Plan vinculante por referencia:** [PLAN_IMPLEMENTACION_CONVERGENCIA_OPERATIVA_UNICA_PDF_PDF_V1_20261109.md](PLAN_IMPLEMENTACION_CONVERGENCIA_OPERATIVA_UNICA_PDF_PDF_V1_20261109.md), versión operativa v1.0.20 tras el cotejo DoD §8. Matriz de disposición, no tablero duplicado.  
 **Decisión de producto:** [D-1/D-2, cabecera vigente](DECISION_CANDIDATE_CONVERGENCIA_PDF_PDF_D1_D2_20261105.md): una CLI, G3→G5, sin motores productivos rivales. Este inventario **no** equivale a ejecución, censo exhaustivo de consumidores externos o certificación científica.
 
 ## 1. Cómo se usa esta matriz
@@ -11,25 +11,25 @@ Cada fila establece una identidad de símbolo o path exacto (salvo las filas con
 
 **Estados de disposición:** `KEEP` (sobrevive y participa), `KEEP_VERIFICAR` (sobrevive sujeto a ensayo), `ADAPT_CONDICIONAL` (solo mecanismo aislado ante brecha), `ADAPT_OPERACION` (root/config para corregir), `NO_PRODUCTIVO` (excluido de entrypoints soportados), `HISTORICO_COMPAT` (permanece por consumidores/tests hasta censo), `RETIRE_CANDIDATE` (posible futura retirada, no ejecutada), `KEEP_LAB` (laboratorio; nunca motor prod), `NO_ROOT`/`NO_ROOT_OFICIAL` (no seleccionado), `DEFER_PR` (no merge), `DEFER_EVALUACION_INDEPENDIENTE` (auditar propio delta).
 
-**Los tests T01–T07 y deltas C0–C4 se definen en el plan; son checklists técnicos, no nuevos gates normativos.** `AS-IS` viene de inspección estática y evidencia histórica delimitada; no se ejecutó la composición multiproceso.
+**Los tests T01–T07 y deltas C0–C4 se definen en el plan; son checklists técnicos, no nuevos gates normativos.** `AS-IS` de las 94 filas nació de inspección estática e historia @ `6a5ee418`; las actualizaciones focales C4 reflejan el HEAD `1b515cb`. El testigo multiproceso real OCR→G3→G5 **sí fue ejecutado por el owner** el 2026-11-12 (C2 @ `93a8f902`, [acta](https://github.com/RDsanchez-git/translator_pdf/pull/46#issuecomment-6837871200)). Las filas no actualizadas conservan su sujeto histórico; el resultado global se gobierna exclusivamente en el plan §8.1. Logs brutos no adjuntos: actas basadas en salidas locales del owner.
 
 ## 2. Inventario numerado v1.0.0 (94 filas)
 
 | ID | Origen | Archivo / símbolo | Responsabilidad | Consumidor / salida | Disposición TO-BE | AS-IS | Condición de integración | Testigo | Reserva |
 |---|---|---|---|---|---|---|---|---|---|
 | E01 | R1 | apps/cli/main.py::handle_translate | Entrada | CLI→inbox; OCR | KEEP | ACTIVO | D1; SHA PDF; no G3 propio | T01,T02 | No eliminar archivo |
-| E02 | R1 | apps/cli/main.py::handle_translate_async | Ejecutor R1 | TranslationPipeline | RETIRE_CANDIDATE | CODIGO_INACTIVO_CLI | No handler en parse_arguments; otros callers no censados | T06 | Retiro solo tras censo |
+| E02 | R1 | apps/cli/main.py::handle_translate_async | Stub R1 deshabilitado | Legacy R1 ahora en apps/cli/legacy_translate_async.py | RETIRE_CANDIDATE | C4_FAIL_CLOSED_VERIFICADO_1b515cb | No handler en parse_arguments, llamada directa rechaza con C4_T06_R1_LEGACY_ENTRYPOINT_DISABLED; implementación histórica conservada sin import productivo | T06 | No borrar legacy sin autorización; externos UNKNOWN |
 | E03 | R1 | apps/cli/main.py::parse_arguments | CLI | translate→handle_translate | KEEP | ACTIVO | --run opt-in; translate admisión | T01,T02,T07 | Única entrada declarada |
 | E04 | Convergencia | apps/cli/pdf_inbox.py | Admisión por bytes | OCR inbox | KEEP | ACTIVO | SHA256, copia atómica; misma raíz que OCR | T02 | Host vs volumen Compose: probar |
 | E05 | Convergencia | apps/cli/pdf_product.py | Foreground | OCR→G3→G5 | KEEP | ACTIVO_FOREGROUND | Usa implementaciones existentes; preflight workspace/DB/Tectonic | T07 | No certificar Compose con foreground |
-| E06 | R1 compartido | apps/bootstrap/pipeline_factory.py::build_pipeline | Composition root R1 | AsyncDispatcher | NO_PRODUCTIVO | EXISTE_NO_INVOCADO_POR_CLI | No llamar desde translate ni Compose | T06 | Mantener pruebas/consumidores hasta censo |
+| E06 | R1 compartido | apps/bootstrap/pipeline_factory.py::build_pipeline | Composition root R1 | AsyncDispatcher; módulo apps/cli/legacy_translate_async.py | NO_PRODUCTIVO | FUERA_DE_CLI_CANONICA_VERIFICADO_1b515cb | CLI productiva no lo importa/invoca; conserva composición R1 de compatibilidad y tests | T06 | Consumidores externos UNKNOWN; no borrar |
 | E07 | R1 compartido | apps/bootstrap/pipeline_factory.py::build_extraction_pipeline | Parser factory | OCRRouterDaemon | KEEP | ACTIVO | PyMuPDF→Layout→FlatAST | T02,T03 | Retener aunque se aísle build_pipeline |
 | E08 | R1 compartido | apps/bootstrap/pipeline_factory.py::build_document_profiler | Profiler factory | OCRRouterDaemon | KEEP | ACTIVO | Inyecta perfilador | T02 | Mismo archivo root mixto |
-| E09 | R1 | core/pipeline/orchestrator.py | TranslationPipeline R1 | build_pipeline | NO_PRODUCTIVO | EXISTE_SIN_ROOT_PRODUCTIVO_ACREDITADO | No convertir en wrapper de G3 | T06 | Censo consumidores |
+| E09 | R1 | core/pipeline/orchestrator.py | TranslationPipeline R1 | build_pipeline, tests legacy | NO_PRODUCTIVO | SIN_ROOT_PRODUCTIVO_EN_GIT_1b515cb | Sin import/call CLI productiva ni Compose; no wrapper G3 | T06 | Consumidores externos UNKNOWN |
 | E10 | R1 | core/pipeline/job.py | Job R1 | TranslationPipeline | HISTORICO_COMPAT | NO_ROOT_PRODUCTIVO | Conservar por consumidores R1 y tests | T06 | Revisar antes de retiro |
 | E11 | R1 | core/pipeline/workflow.py | Workflow R1 | TranslationPipeline | HISTORICO_COMPAT | NO_ROOT_PRODUCTIVO | No usar como segunda FSM G3 | T06 | Consumidores sin auditar |
 | E12 | R1 | core/pipeline/state_store.py | FSM R1 adaptador | TranslationPipeline | HISTORICO_COMPAT | NO_ROOT_PRODUCTIVO | No introducir segunda fuente de autoridad | T06 | Preservar mientras haya consumidores |
-| E13 | R1 | apps/llm_workers/dispatcher.py::AsyncDispatcher | Executor R1 | build_pipeline | NO_PRODUCTIVO | NO_EN_COMPOSE | No llamar LLM en paralelo a G3 | T06 | No borrar sin censo |
+| E13 | R1 | apps/llm_workers/dispatcher.py::AsyncDispatcher | Executor R1 | build_pipeline, apps/benchmark/runners/{groq,gemini}_runner.py, tests | NO_PRODUCTIVO | BENCHMARK_AISLADO_DE_ROOTS_1b515cb | Runners de benchmark tienen despacho LLM propio sin configurar como producto PDF→PDF; no está en Compose productivo | T06 | No borrar ni lanzar benchmark sobre generación G3; externos UNKNOWN |
 | E14 | R1/G3 | apps/llm_workers/prompt_builder.py | Prompt estructurado | SyncProviderBridge.execute_chunk | KEEP | ACTIVO_G3 | Prompt y budgets; identidad de contexto verificada por bridge | T03 | No confundir con segunda vía |
 | E15 | R1→G3 | core/normalization/enrichers/context_enricher.py | Jerarquía/contexto | prepare_contextual_plan | KEEP | INTEGRADO_40 | Anota CTX; no cambia hash semántico | T02,T03 | Beneficio reutilizado |
 | E16 | R1/G3 | core/context/snapshot_contract.py | DTO contexto | DurableContextPlanRepository / bridge | KEEP | ACTIVO_G3 | Snapshot durable de contexto | T03 | No fallback GLOBAL_ROOT |
@@ -63,7 +63,7 @@ Cada fila establece una identidad de símbolo o path exacto (salvo las filas con
 | E44 | R2 | runtime/engine.py::run_pipeline | Ejecutor G3 | queue→receipt/publicación | KEEP | ACTIVO_COMPOSE | Control W06 y preflight plan/snapshots | T03,T05 | IS_BENCHMARK=0 indispensable |
 | E45 | R2 | runtime/engine.py::__main__ | Polling G3 | G3 docs pendientes | KEEP | COMPOSE | Worker service llm_worker | T01,T03 | No reemplazar por R3 |
 | E46 | R2 | apps/llm_workers/sync_bridge.py::execute_chunk | Bridge G3 | G3→provider | KEEP | ACTIVO | Snapshot CTX, respuesta JSON por miembro | T03 | execute(node) no productivo |
-| E47 | Legacy compartido | apps/llm_workers/sync_bridge.py::execute | Bridge nodo legacy | Legacy consumers | HISTORICO_COMPAT | EXISTE_NO_G3 | Mantener aislado; no reintroducir fallback | T06 | Censo consumidores |
+| E47 | Legacy compartido | apps/llm_workers/sync_bridge.py::execute | Bridge nodo legacy | R3 LLMWorkerDaemon, tools/evaluation/benchmark_sync_bridge.py (mock) | HISTORICO_COMPAT | CONSUMIDORES_CENSADOS_1b515cb | runtime.engine llama a execute_chunk(plan,unit), no a execute(node); conservar histórico | T06 | Externos UNKNOWN; no reintroducir fallback |
 | E48 | R2 | apps/bootstrap/provider_stack_factory.py | Provider stack | runtime.engine | KEEP | ACTIVO_G3 | G3 llama cache_db_path=None | T03 | Default cache sigue riesgoso otros callers |
 | E49 | R2 | apps/llm_workers/adapters.py | Groq provider | provider_stack_factory | KEEP | ACTIVO_G3 | Fake HTTP test; real solo con autorización | T03 | No credenciales en Git |
 | E50 | R2 | apps/llm_workers/cache_provider.py | Cache v1 | Provider stack opcional | NO_G3_CACHE | DESACTIVADA_G3 | W08-3 abierto; no habilitar | T03 | No borrar esquema a ciegas |
@@ -87,7 +87,7 @@ Cada fila establece una identidad de símbolo o path exacto (salvo las filas con
 | E68 | R2 | apps/daemons/reconciler.py | Recuperación | queue/fsm/event | KEEP_VERIFICAR | COMPOSE | Distinguir G3 vs legacy en recovery | T05 | No retry UNKNOWN |
 | E69 | R2 | runtime/sweeper.py | Sweeper/WAL | queue/fsm | KEEP_VERIFICAR | COMPOSE | TTL stalled y WAL | T05 | No restaurar G3 incierto |
 | E70 | R2 | runtime/resumer.py | Resume manual | CLI resume | KEEP_VERIFICAR | CLI | Solo disposición autorizada | T05 | Cuidado STALLED/UNKNOWN |
-| E71 | R3 | apps/llm_workers/__main__.py::LLMWorkerDaemon | Executor alternativo R3 | Legacy queue | NO_PRODUCTIVO | NO_EN_COMPOSE | No segundo motor | T06 | No borrar sin censo |
+| E71 | R3 | apps/llm_workers/__main__.py::LLMWorkerDaemon | Executor alternativo R3 | __main__ invocable manualmente; cola legacy | NO_PRODUCTIVO | NO_SELECCIONADO_ROOTS_1b515cb | Compose/Dockerfile/CLI productivos seleccionan runtime.engine; módulo ejecutable directo fuera de la whitelist, no fue borrado | T06 | Posibles lanzadores externos UNKNOWN; nunca ejecutarlo junto a G3 |
 | E72 | R3 | apps/llm_workers/__main__.py::TaskLeaseHeartbeat | Heartbeat R3 | R3 daemon | ADAPT_CONDICIONAL | NO_EN_G3 | G3 y G5 tienen leases propios | T05 | No transplantar literal |
 | E73 | R3 | runtime/admission_mechanism.py | RSS admission | R3 | ADAPT_CONDICIONAL | NO_EN_G3 | Secuencial pre-claim; G3 threadpool | T05 | Requerir brecha F18-02 |
 | E74 | R3 | runtime/backpressure_mechanism.py | Wait backpressure | R3 | ADAPT_CONDICIONAL | NO_EN_G3 | Secuencial HOLD de pull | T05 | No presume equivalencia |
@@ -105,7 +105,7 @@ Cada fila establece una identidad de símbolo o path exacto (salvo las filas con
 | E86 | Root | pyproject.toml | CLI packaging | apps.cli.main:main | KEEP | ACTIVO | Entry point translator-pdf | T01,T06 | Revisar scripts externos |
 | E87 | Root | apps/api/server.py | API stub | — | NO_ROOT | STUB_1_LINE | No API productiva acreditada | T06 | No inventar servicio |
 | E88 | Root | apps/ocr_workers/router.py | OCR legacy stub | — | NO_ROOT | STUB_1_LINE | No confundir con OCRRouterDaemon | T06 | No borrar sin censo |
-| E89 | Bench | apps/benchmark/__main__.py | Benchmark | Harness | KEEP_LAB | NO_PRODUCTIVO | Fuera de whitelist operativa | T06 | No declarar ruta alternativa productiva |
+| E89 | Bench | apps/benchmark/__main__.py | Benchmark | GroqBenchmarkRunner/AsyncDispatcher; GeminiBenchmarkRunner disponible | KEEP_LAB | FUERA_DE_PRODUCTO_PDF_PDF_1b515cb | Ejecutable laboratorio separado y no seleccionado por CLI/Compose de producto | T06 | Puede efectuar llamadas externas; no ejecutar para T06 |
 | E90 | Bench | tools/evaluation/* | Regresión/oráculos | Test harness | KEEP_LAB | NO_PRODUCTIVO | Separado de operación | T06 | No alterar baselines |
 | E91 | Draft | runtime/legacy_context_recovery.py (#41) | Recuperación legacy | No en base | DEFER_PR | DRAFT_UNMERGED | Solo si legacy real requiere recovery receipts | C3 | Nunca merge stack completo |
 | E92 | Draft | infra/db/runtime_protocol_fence.py (#42) | Fencing de runtimes incompatibles | No en base | DEFER_PR | DRAFT_UNMERGED | Considerar downgrade/restart old writer sobre misma DB | C0/C3 | No equiparar preflight sin fence activada |
@@ -159,6 +159,8 @@ rg -n 'apps/llm_workers/__main__|core/pipeline/orchestrator|runtime/engine.py|ap
 ```
 
 Las declaraciones `EXTERNO_DESCONOCIDO` o `NO_EN_COMPOSE` no autorizan borrar símbolos. Las filas de grupo `/*` no sustituyen al listado de cada archivo cuando se vaya a editar esa zona: antes de un PR, desplegar los módulos concretos y consumidores impactados.
+
+**Actualización focal C4/T06 — 2026-11-12, HEAD `1b515cb2f93a3121da9682d5024dd4509eb8e47f`:** censo `git grep` local reportado por owner y lectura de roots Compose/Dockerfile/CLI/pyproject. Se comprobó que `translate` y `--run` usan la ruta canónica; el comando `sweep` llama a `AbandonedProcessWatchdog`, NO a `build_pipeline`. La implementación R1 de CLI se movió a `apps/cli/legacy_translate_async.py`, mientras `apps/cli/main.py::handle_translate_async` es un stub fail-closed y no tiene dispatch en `argparse`. Groq/Gemini benchmark consumen `AsyncDispatcher`; `tools/evaluation/benchmark_sync_bridge.py` usa `execute(node)` con mock y R3 lo invoca desde su propio `__main__`, pero no hay selección de esos ejecutores en roots productivos Git. **Pruebas locales del owner:** `python -B -m pytest -q tests/unit/test_c4_t06_supported_roots.py tests/integration/test_cli_router.py -p no:cacheprovider` → **6 passed in 0.77s, exit 0**. [Acta C4/T06](https://github.com/RDsanchez-git/translator_pdf/pull/46#issuecomment-6841122597). Los consumidores externos/manuales no inventariables siguen `EXTERNO_DESCONOCIDO`: ninguna declaración aquí concede permiso para retirar físicamente módulos ni demuestra ausencia universal de procesos externos. No se reejecutó PDF→PDF ni Docker.
 
 ## 6. Definición de cierre y política de revisión
 
