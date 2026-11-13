@@ -32,6 +32,10 @@ from apps.bootstrap.provider_stack_factory import build_provider_stack
 from infra.resilience.sqlite_rate_limit_store import SQLiteRateLimitStore
 
 
+# Retained local UX dependency of the isolated legacy compatibility executor.
+console = Console()
+
+
 class ChunkerProtocolAdapter:
     """SOTA Adapter Pattern: Cierra la brecha estructural para la Fase 13.00."""
     def __init__(self, estimator: TokenEstimatorProtocol):
