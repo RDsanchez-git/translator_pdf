@@ -58,7 +58,7 @@ La comparación documental del DoD registra que los blobs OCR/G3/G5/foreground e
 - Llamadores externos a Git de R1/R3 siguen UNKNOWN; NO retirar módulos de compatibilidad por inferencia.
 - Atlas AS-IS y Charter DRAFT siguen siendo históricos con fecha/autoridad propias; la etiqueta de convergencia no los convierte en FROZEN ni reemplaza NADR.
 
-**Cierre administrativo propuesto:** plan de C0–C4 marcado COMPLETADO/MERGED y archivado como registro ejecutado. Ver la [ruta vigente](RUTA_CANONICA_PDF_PDF.md) y el [runbook](LABORATORIO_Y_REPRODUCCION.md).
+**Cierre administrativo propuesto:** plan de C0–C4 marcado COMPLETADO/MERGED y archivado como registro ejecutado. Ver la [ruta vigente](ATLAS_RUTA_OPERATIVA_UNICA_PDF_PDF.md) y el [runbook](LABORATORIO_Y_REPRODUCCION.md).
 
 
 ## 5. Índice de custodia y condiciones para evidencia futura
