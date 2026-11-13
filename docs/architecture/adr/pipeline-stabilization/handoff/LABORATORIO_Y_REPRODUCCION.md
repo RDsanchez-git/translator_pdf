@@ -507,6 +507,63 @@ if ($LASTEXITCODE -ne 0) {
 }
 ~~~
 
+### C.9 bis. Oráculo exacto por identidades, además del auditor C.9
+
+**[COMPLEMENTO ESTÁTICO DERIVADO DEL CONTRATO ACTUAL].** Se ejecuta **solo después de un C.9 exitoso**: comprueba que los receipts correspondan exactamente a los `chunk_id` del plan, que las tareas incluyan una LLM por chunk y una ASSEMBLER, y que el conjunto de `node_id` de `valid_chunks_cache` coincida con los miembros del plan. Es una consulta RO y no vuelve a admitir ni llamar a G3.
+
+~~~powershell
+$coverageCode = @'
+from contextlib import closing
+from hashlib import sha256
+from pathlib import Path
+import json, sqlite3, sys
+
+source = Path("/app/data/lab_fixtures") / ("smoke_" + sys.argv[1] + ".pdf")
+if not source.is_file(): raise SystemExit("STOP_SOURCE_MISSING")
+doc = sha256(source.read_bytes()).hexdigest()
+def ro(name):
+    p = Path("/app/state/db") / name
+    c = sqlite3.connect(p.as_uri() + "?mode=ro", uri=True, timeout=8)
+    c.execute("PRAGMA query_only=ON")
+    return c
+with closing(ro("fsm.db")) as fsm, closing(ro("queue.db")) as q, closing(ro("materialized.db")) as mat:
+    rows = fsm.execute("SELECT ast_hash,current_state FROM document_fsm WHERE document_id=?", (doc,)).fetchall()
+    if len(rows) != 1 or rows[0][1] != "COMPLETED": raise SystemExit("STOP_NOT_COMPLETED")
+    ast = rows[0][0]
+    plans = q.execute("SELECT manifest_json,manifest_sha256 FROM chunk_plans WHERE document_id=? AND ast_hash=?", (doc,ast)).fetchall()
+    if len(plans) != 1: raise SystemExit("STOP_PLAN_NOT_UNIQUE")
+    plan = json.loads(plans[0][0])
+    body = {k:v for k,v in plan.items() if k != "manifest_sha256"}
+    digest = sha256(json.dumps(body,ensure_ascii=False,sort_keys=True,separators=(",",":")).encode("utf-8")).hexdigest()
+    if digest != plans[0][1] or digest != plan.get("manifest_sha256"): raise SystemExit("STOP_PLAN_HASH")
+    units = plan["units"]
+    chunks = [u["chunk_id"] for u in units]
+    nodes = {m["node_id"] for u in units for m in u["members"]}
+    if not chunks or len(chunks) != len(set(chunks)) or not nodes: raise SystemExit("STOP_PLAN_COVERAGE")
+    kinds = {u["chunk_id"]:u["chunk_type"] for u in units}
+    receipts = q.execute("SELECT chunk_id,raw_response IS NULL FROM chunk_result_receipts WHERE document_id=? AND ast_hash=?", (doc,ast)).fetchall()
+    tasks = q.execute("SELECT worker_type,node_id,task_state FROM chunk_tasks WHERE document_id=? AND ast_hash=?", (doc,ast)).fetchall()
+    pubs = mat.execute("SELECT manifest_sha256,result_sha256,projection_version FROM g3_plan_publications WHERE document_id=? AND ast_hash=?", (doc,ast)).fetchall()
+    projections = mat.execute("SELECT node_id,content_hash,normalized_response,normalized_hash,projection_version FROM valid_chunks_cache WHERE document_id=? AND ast_hash=?", (doc,ast)).fetchall()
+    if len(receipts) != len(chunks) or {x[0] for x in receipts} != set(chunks): raise SystemExit("STOP_RECEIPT_COVERAGE")
+    for chunk,raw_null in receipts:
+        if bool(raw_null) != (kinds[chunk] == "preserve"): raise SystemExit("STOP_RECEIPT_POLICY")
+    expected_tasks = {("LLM",chunk,"COMPLETED") for chunk in chunks} | {("ASSEMBLER","ROOT_ASSEMBLY","COMPLETED")}
+    if len(tasks) != len(expected_tasks) or set(tasks) != expected_tasks: raise SystemExit("STOP_TASK_COVERAGE")
+    if len(pubs) != 1 or pubs[0][0] != digest or pubs[0][2] != 1: raise SystemExit("STOP_PUBLICATION_IDENTITY")
+    if len(projections) != len(nodes) or {p[0] for p in projections} != nodes: raise SystemExit("STOP_NODE_COVERAGE")
+    for node,source_hash,content,normalized_hash,version in projections:
+        if (version != 1 or not isinstance(source_hash,str) or len(source_hash) != 64
+                or normalized_hash != sha256(content.encode("utf-8")).hexdigest()):
+            raise SystemExit("STOP_PROJECTION_HASH_VERSION")
+    print("C2_EXACT_COVERAGE_PASS", "chunks",len(chunks),"nodes",len(nodes))
+'@
+$coverageCode | & docker @dc run --rm --no-deps --pull never -T --user 10001:10001 ocr_router python -B - $RunId
+if ($LASTEXITCODE -ne 0) { throw "STOP: cobertura por identidad no coincide" }
+~~~
+
+**Alcance:** verifica conjuntos de identidades, versión v1 y SHA de contenido normalizado, pero **no** reconstruye el `result_sha256` de publicación con el AST completo ni prueba semántica lingüística. Esa diferencia frente a una auditoría completa del protocolo queda explícita. `PRESERVE` con respuesta nula se verifica aquí y la ausencia de POST para esa unidad se prueba por separado con el fake en C.10.
+
 **Alcance del oráculo:** validación estructural y durable, no cobertura científica. `COMPLETED`, receipt y PDF real pueden coexistir con traducción fake. El testigo C2 histórico tenía 4 nodos, 2 unidades y 4 proyecciones; **no** exigir esos números a una fixture distinta. Para una prueba mixta deberá añadirse además una aserción por `chunk_id`: `PRESERVE` con `raw_response NULL` y **cero POST** asociado.
 
 ### C.10. Conteo HTTP fake independiente de SQLite
