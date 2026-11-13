@@ -643,6 +643,68 @@ $fakeLogs | Select-String -SimpleMatch '"event":"G3_FAKE_REQUEST_ACCEPTED"'
 if ($rejected -ne 0) { throw "STOP: fake rechazó algún POST" }
 ~~~
 
+**Auditoría automática de identidades HTTP (sin depender del conteo manual):** del plan persistente extrae los chunks que requieren inferencia. Luego, en PowerShell, convierte las líneas JSON del fake y coteja **número de POST, IDs, manifest, AST y status 200**. Este procedimiento complementario está construido con los mismos campos que el control histórico `C2_AUTO_HTTP_AUDIT_PASS`; **no** es un nuevo POST.
+
+~~~powershell
+$httpBindings = @'
+from pathlib import Path
+from hashlib import sha256
+import sqlite3, json, sys
+source = Path("/app/data/lab_fixtures") / ("smoke_" + sys.argv[1] + ".pdf")
+document_id = sha256(source.read_bytes()).hexdigest()
+db = sqlite3.connect("file:/app/state/db/queue.db?mode=ro", uri=True)
+try:
+    db.execute("PRAGMA query_only=ON")
+    row = db.execute("SELECT ast_hash,manifest_json,manifest_sha256 FROM chunk_plans WHERE document_id=?", (document_id,)).fetchall()
+finally:
+    db.close()
+if len(row) != 1: raise SystemExit("STOP_HTTP_EXPECTED_PLAN_MISSING")
+ast, raw_manifest, manifest_sha = row[0]
+units = json.loads(raw_manifest)["units"]
+expected = [u["chunk_id"] for u in units if u["chunk_type"] in ("translate","partial_translate")]
+if len(expected) != len(set(expected)): raise SystemExit("STOP_HTTP_EXPECTED_DUPLICATE")
+print(json.dumps({"document_id": document_id, "ast_hash": ast,
+                  "manifest_sha256": manifest_sha, "chunks": expected}, sort_keys=True))
+'@
+$bindingLines = @($httpBindings | & docker @dc run --rm --no-deps --pull never -T --user 10001:10001 ocr_router python -B - $RunId)
+if ($LASTEXITCODE -ne 0) { throw "STOP: no hay plan esperado para HTTP" }
+$expectedHttp = $bindingLines[-1] | ConvertFrom-Json -ErrorAction Stop
+
+# Todos los logs del fake, nunca solo --tail.
+$fakeId = (& docker @dc ps -q g3_fake | Select-Object -First 1)
+if (-not $fakeId) { throw "STOP: fake no localizado" }
+$rawHttp = @(docker logs $fakeId 2>&1)
+if ($LASTEXITCODE -ne 0) { throw "STOP: no se pudieron leer logs completos" }
+$httpEvents = @(
+    foreach ($line in $rawHttp) {
+        $lineText = [string]$line
+        if ($lineText.StartsWith('{"')) { $lineText | ConvertFrom-Json -ErrorAction Stop }
+    }
+)
+$attemptEvents = @($httpEvents | Where-Object { $_.event -eq "G3_FAKE_POST_ATTEMPT" })
+$acceptEvents = @($httpEvents | Where-Object { $_.event -eq "G3_FAKE_REQUEST_ACCEPTED" })
+$rejectEvents = @($httpEvents | Where-Object { $_.event -eq "G3_FAKE_REQUEST_REJECTED" })
+$expectedChunks = @($expectedHttp.chunks)
+$receivedChunks = @($acceptEvents | ForEach-Object { $_.chunk_id })
+if ($rejectEvents.Count -ne 0 -or
+    $acceptEvents.Count -ne $expectedChunks.Count -or
+    $attemptEvents.Count -ne $expectedChunks.Count -or
+    (Compare-Object $expectedChunks $receivedChunks).Count -ne 0) {
+    throw "C2_HTTP_STOP: cardinalidad o cobertura de chunks incongruente"
+}
+foreach ($event in $acceptEvents) {
+    if ($event.document_id -ne $expectedHttp.document_id -or
+        $event.ast_hash -ne $expectedHttp.ast_hash -or
+        $event.manifest_sha256 -ne $expectedHttp.manifest_sha256 -or
+        $event.status -ne 200) {
+        throw "C2_HTTP_STOP: identidad o HTTP status incongruente"
+    }
+}
+Write-Output "C2_HTTP_EXACT_BINDING_AUDIT_PASS"
+~~~
+
+**Condiciones:** fake iniciado en proyecto fresco y sin recreaciones que fragmenten los logs; solo un documento admitido en esa corrida. Si esas condiciones no se cumplen, la comparación no es concluyente y exige auditoría manual antes de reclamar un PASS. Este cotejo explica por qué **PRESERVE tiene receipt, pero no aparece en ningún evento POST aceptado**.
+
 Para una ejecución **fresca con fake no reiniciado**, la cardinalidad esperada de HTTP aceptados se obtiene de las unidades `translate`/`partial_translate` del plan **no de la cantidad de receipts** (PRESERVE no hace POST). `attempts != accepted`, varios POST para la misma unidad, ausencia de aceptación con unidades TRANSLATE, o identidad inesperada de `document_id`/`ast_hash`/`manifest_sha256`/`chunk_id` = **STOP y auditoría, sin reingesta**. Este bloque **no** presume que la nueva fixture contenga dos tipos de unidades.
 
 **Referencia original C2, NO ORÁCULO DE NUEVA FIXTURE:** fuente 1544 bytes SHA `28a53af840244e4022afb08eb800e6348a866b957779e5b5753215afbc158d0f`; AST `b0b4cb12ea5e2a871a8789e5228e428b10eca04380e5a95503ff4f61c89f9c4a`, manifiesto `7724718fd66aff7b570f70a1dad828b2d3391abd14c47ef32fd12fb4a487229d`; una PRESERVE + una TRANSLATE, un POST 200, dos receipts, una publicación, 4 proyecciones, FSM COMPLETED v7 y PDF 7050 bytes SHA `71f209255c923daef84e44e1ae1bf642dfe5270e862eadedb0709b94ee62bfe3`. [Acta íntegra C2](https://github.com/RDsanchez-git/translator_pdf/pull/46#issuecomment-6837871200).
