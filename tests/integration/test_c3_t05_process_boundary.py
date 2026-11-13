@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from contextlib import closing
 import os
 from pathlib import Path
 import sqlite3
@@ -198,11 +199,11 @@ def test_t05_g3_staged_publication_crash_and_recovery_between_processes():
         assert "C3_T05_INDEPENDENT_RECOVERY_NO_PROVIDER_PASS" in second.stdout
 
         # Parent is a third independent SQLite reader.
-        with sqlite3.connect((folder / "fsm.db").as_uri() + "?mode=ro", uri=True) as conn:
+        with closing(sqlite3.connect((folder / "fsm.db").as_uri() + "?mode=ro", uri=True)) as conn:
             assert conn.execute(
                 "SELECT current_state FROM document_fsm"
             ).fetchone() == ("READY_FOR_ASSEMBLY",)
-        with sqlite3.connect((folder / "queue.db").as_uri() + "?mode=ro", uri=True) as conn:
+        with closing(sqlite3.connect((folder / "queue.db").as_uri() + "?mode=ro", uri=True)) as conn:
             assert conn.execute(
                 "SELECT COUNT(*) FROM chunk_result_receipts"
             ).fetchone()[0] == 2
