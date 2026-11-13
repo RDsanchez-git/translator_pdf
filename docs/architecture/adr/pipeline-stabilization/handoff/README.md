@@ -6,7 +6,7 @@ Esta es la **puerta de entrada documental vigente** a la ruta única. No es una 
 
 ## Lectura recomendada
 
-1. [RUTA_CANONICA_PDF_PDF.md](RUTA_CANONICA_PDF_PDF.md): arquitectura y responsabilidades implementadas.
+1. [ATLAS_RUTA_OPERATIVA_UNICA_PDF_PDF.md](ATLAS_RUTA_OPERATIVA_UNICA_PDF_PDF.md): Atlas de ruta implementada, diagramas, archivos, contratos, persistencia, riesgos y mapa de cambios.
 2. [LABORATORIO_Y_REPRODUCCION.md](LABORATORIO_Y_REPRODUCCION.md): sandbox, controles, comandos y límites de reproducción.
 3. [EVIDENCIA_Y_CIERRE.md](EVIDENCIA_Y_CIERRE.md): actas, identidades, DoD y merge.
 
