@@ -310,3 +310,184 @@ Write-Output "C2_CLI_ADMISSION_RETURNED (no significa COMPLETED)"
 ~~~
 
 OCR sondea el inbox y archiva o envía a `error`; G3 procesa el `ChunkPlan` y G5 compila a PDF. **No repetir admisión** para forzar progreso. Leer FSM/receipts/logs del proyecto nuevo con los próximos bloques. Un HTTP 422 o `G3_EXTERNAL_UNKNOWN` obliga STOP sin segundo POST.
+
+### C.7 bis. Guardia obligatoria ANTES de ejecutar la admisión de C.7
+
+**Este bloque debe ejecutarse entre C.6 y C.7, ANTES de la primera admisión.** Comprueba identidad, ausencia de generación anterior, inbox vacío y SQLite ya inicializado, desde un **proceso RO separado**. El RUN-ID nuevo no basta por sí solo para demostrar que la fuente no tiene una fila previa.
+
+~~~powershell
+$guardCode = @'
+from pathlib import Path
+from hashlib import sha256
+from contextlib import closing
+import sqlite3
+import sys
+source = Path("/app/data/lab_fixtures") / ("smoke_" + sys.argv[1] + ".pdf")
+if not source.is_file():
+    raise SystemExit("STOP_FIXTURE_ABSENT")
+document_id = sha256(source.read_bytes()).hexdigest()
+inbox = Path("/app/data/inbox")
+if not inbox.is_dir() or list(inbox.iterdir()):
+    raise SystemExit("STOP_INBOX_NOT_EMPTY")
+for name, query in (
+    ("fsm.db", "SELECT COUNT(*) FROM document_fsm WHERE document_id=?"),
+    ("queue.db", "SELECT COUNT(*) FROM chunk_plans WHERE document_id=?"),
+):
+    db = Path("/app/state/db") / name
+    if not db.is_file():
+        raise SystemExit("STOP_DB_MISSING:" + name)
+    with closing(sqlite3.connect(db.as_uri() + "?mode=ro", uri=True)) as conn:
+        conn.execute("PRAGMA query_only=ON")
+        count = conn.execute(query, (document_id,)).fetchone()[0]
+        if count != 0:
+            raise SystemExit("STOP_SOURCE_ALREADY_PRESENT_IN_" + name)
+print("C2_PRE_ADMISSION_FRESH_GENERATION_PASS:", document_id)
+'@
+& docker @dc run --rm --no-deps --no-build --pull never -T --user 10001:10001 ocr_router python -B -c $guardCode $RunId
+if ($LASTEXITCODE -ne 0) { throw "STOP: no se permite la admisión de C.7" }
+~~~
+
+**Interpretación:** este guard **no** crea ni modifica generación; solo verifica condiciones previas. Si falla, no enviar el PDF ni reactivar un proyecto con estado desconocido.
+
+### C.8. Auditoría durable SQLite + PDF desde contenedor separado (RO)
+
+**[AUDITOR PROPUESTO, NUEVO].** Reusar exactamente `$dc` y `$RunId` de C.1; ejecutarlo **sin volver a admitir**. Imprime FSM, plan, tareas, receipts, publicación/proyecciones y PDF. Si aún está procesando, devuelve `NOT_YET_COMPLETED_NO_REINGEST`: esperar dentro de un plazo acotado y **repetir únicamente esta lectura**. Una excepción, un PDF corrupto o `UNKNOWN` no son permiso para arrancar otra vez.
+
+~~~powershell
+$auditCode = @'
+from contextlib import closing
+from hashlib import sha256
+from pathlib import Path
+import json
+import sqlite3
+import sys
+import pymupdf
+
+source = Path("/app/data/lab_fixtures") / ("smoke_" + sys.argv[1] + ".pdf")
+if not source.is_file():
+    raise SystemExit("STOP_SOURCE_MISSING")
+document_id = sha256(source.read_bytes()).hexdigest()
+
+def ro(name):
+    p = Path("/app/state/db") / name
+    if not p.is_file() or p.is_symlink():
+        raise SystemExit("STOP_DB_MISSING:" + name)
+    conn = sqlite3.connect(p.as_uri() + "?mode=ro", uri=True, timeout=8)
+    conn.execute("PRAGMA query_only=ON")
+    return conn
+
+with closing(ro("fsm.db")) as fsm, closing(ro("queue.db")) as queue, closing(ro("materialized.db")) as mat:
+    rows = fsm.execute(
+        "SELECT ast_hash,current_state,state_version FROM document_fsm WHERE document_id=?",
+        (document_id,),
+    ).fetchall()
+    print("FSM:", rows)
+    if not rows:
+        raise SystemExit("NOT_YET_COMPLETED_NO_REINGEST")
+    if len(rows) != 1:
+        raise SystemExit("STOP_GENERATION_AMBIGUOUS")
+    ast_hash, state, version = rows[0]
+    plans = queue.execute(
+        "SELECT manifest_json,manifest_sha256 FROM chunk_plans WHERE document_id=? AND ast_hash=?",
+        (document_id, ast_hash),
+    ).fetchall()
+    if not plans:
+        raise SystemExit("NOT_YET_COMPLETED_NO_REINGEST")
+    if len(plans) != 1:
+        raise SystemExit("STOP_PLAN_AMBIGUOUS")
+    plan = json.loads(plans[0][0])
+    units = {u["chunk_id"]: u["chunk_type"] for u in plan["units"]}
+    if len(units) != len(plan["units"]):
+        raise SystemExit("STOP_CHUNK_ID_COLLISION")
+    tasks = queue.execute(
+        "SELECT worker_type,node_id,task_state FROM chunk_tasks WHERE document_id=? AND ast_hash=?",
+        (document_id, ast_hash),
+    ).fetchall()
+    receipts = queue.execute(
+        "SELECT chunk_id,raw_response IS NULL FROM chunk_result_receipts WHERE document_id=? AND ast_hash=?",
+        (document_id, ast_hash),
+    ).fetchall()
+    publication = mat.execute(
+        "SELECT manifest_sha256,projection_version FROM g3_plan_publications WHERE document_id=? AND ast_hash=?",
+        (document_id, ast_hash),
+    ).fetchall()
+    projections = mat.execute(
+        "SELECT COUNT(*) FROM valid_chunks_cache WHERE document_id=? AND ast_hash=?",
+        (document_id, ast_hash),
+    ).fetchone()[0]
+    print("IDENTITY:", document_id, ast_hash, plans[0][1])
+    print("UNITS:", units)
+    print("TASKS:", sorted(tasks))
+    print("RECEIPTS (chunk, raw_response_is_null):", sorted(receipts))
+    print("PUBLICATIONS:", publication)
+    print("PROJECTIONS:", projections)
+    if any(t[2] == "G3_EXTERNAL_UNKNOWN" for t in tasks):
+        raise SystemExit("STOP_G3_EXTERNAL_UNKNOWN_NO_RETRY")
+    if state != "COMPLETED":
+        raise SystemExit("NOT_YET_COMPLETED_NO_REINGEST")
+
+pdf_path = Path("/app/output") / ("translated_" + document_id + ".pdf")
+if not pdf_path.is_file() or pdf_path.is_symlink():
+    raise SystemExit("STOP_OUTPUT_MISSING")
+pdf_bytes = pdf_path.read_bytes()
+if not pdf_bytes.startswith(b"%PDF-"):
+    raise SystemExit("STOP_INVALID_PDF_HEADER")
+with pymupdf.open(stream=pdf_bytes, filetype="pdf") as pdf:
+    pages = len(pdf)
+    has_text = any(isinstance(t, str) and bool(t.strip()) for t in (p.get_text() for p in pdf))
+if pages < 1 or not has_text:
+    raise SystemExit("STOP_PDF_STRUCTURE")
+if not tasks or any(t[2] != "COMPLETED" for t in tasks):
+    raise SystemExit("STOP_TASKS_NOT_COMPLETED")
+if len(receipts) != len(units) or len(publication) != 1 or projections < 1:
+    raise SystemExit("STOP_G3_DURABILITY_NOT_COMPLETE")
+if publication[0][0] != plans[0][1]:
+    raise SystemExit("STOP_PUBLICATION_MANIFEST_DRIFT")
+print("PDF:", pdf_path, "bytes:", len(pdf_bytes), "pages:", pages,
+      "text:", has_text, "sha256:", sha256(pdf_bytes).hexdigest())
+print("C2_NEW_GENERATION_SQLITE_AND_PDF_AUDIT_PASS")
+'@
+& docker @dc run --rm --no-deps --no-build --pull never -T --user 10001:10001 ocr_router python -B -c $auditCode $RunId
+if ($LASTEXITCODE -ne 0) {
+    Write-Warning "Auditoría NO PASS: clasificar FSM, tasks y logs antes de decidir"
+}
+~~~
+
+**Alcance del oráculo:** validación estructural y durable, no cobertura científica. `COMPLETED`, receipt y PDF real pueden coexistir con traducción fake. El testigo C2 histórico tenía 4 nodos, 2 unidades y 4 proyecciones; **no** exigir esos números a una fixture distinta. Para una prueba mixta deberá añadirse además una aserción por `chunk_id`: `PRESERVE` con `raw_response NULL` y **cero POST** asociado.
+
+### C.9. Conteo HTTP fake independiente de SQLite
+
+**[CÓDIGO / OBSERVADO EN C2]:** el fake escribe una línea JSON compacta para cada `G3_FAKE_POST_ATTEMPT`, `G3_FAKE_REQUEST_ACCEPTED` o `G3_FAKE_REQUEST_REJECTED`. El recuento de POST **no se infiere de receipts ni de un `logs --tail`**. El siguiente comando inspecciona los **logs completos del fake de este proyecto nuevo**; no imprimir el cuerpo del prompt ni env.
+
+~~~powershell
+$fakeLogs = @(& docker @dc logs --no-color g3_fake 2>&1 | ForEach-Object { $_.ToString() })
+if ($LASTEXITCODE -ne 0) { throw "STOP: logs fake inaccesibles" }
+$attempts = @($fakeLogs | Select-String -SimpleMatch '"event":"G3_FAKE_POST_ATTEMPT"').Count
+$accepted = @($fakeLogs | Select-String -SimpleMatch '"event":"G3_FAKE_REQUEST_ACCEPTED"').Count
+$rejected = @($fakeLogs | Select-String -SimpleMatch '"event":"G3_FAKE_REQUEST_REJECTED"').Count
+Write-Output "C2_HTTP_ATTEMPTS=$attempts; ACCEPTED=$accepted; REJECTED=$rejected"
+$fakeLogs | Select-String -SimpleMatch '"event":"G3_FAKE_REQUEST_ACCEPTED"'
+if ($rejected -ne 0) { throw "STOP: fake rechazó algún POST" }
+~~~
+
+Para una ejecución **fresca con fake no reiniciado**, la cardinalidad esperada de HTTP aceptados se obtiene de las unidades `translate`/`partial_translate` del plan **no de la cantidad de receipts** (PRESERVE no hace POST). `attempts != accepted`, varios POST para la misma unidad, ausencia de aceptación con unidades TRANSLATE, o identidad inesperada de `document_id`/`ast_hash`/`manifest_sha256`/`chunk_id` = **STOP y auditoría, sin reingesta**. Este bloque **no** presume que la nueva fixture contenga dos tipos de unidades.
+
+**Referencia original C2, NO ORÁCULO DE NUEVA FIXTURE:** fuente 1544 bytes SHA `28a53af840244e4022afb08eb800e6348a866b957779e5b5753215afbc158d0f`; AST `b0b4cb12ea5e2a871a8789e5228e428b10eca04380e5a95503ff4f61c89f9c4a`, manifiesto `7724718fd66aff7b570f70a1dad828b2d3391abd14c47ef32fd12fb4a487229d`; una PRESERVE + una TRANSLATE, un POST 200, dos receipts, una publicación, 4 proyecciones, FSM COMPLETED v7 y PDF 7050 bytes SHA `71f209255c923daef84e44e1ae1bf642dfe5270e862eadedb0709b94ee62bfe3`. [Acta íntegra C2](https://github.com/RDsanchez-git/translator_pdf/pull/46#issuecomment-6837871200).
+
+### C.10. Detener, preservar y limpiar solo recursos nuevos
+
+Después del PASS o de cualquier STOP, **no lanzar otra admisión**. Guardar primero resultados, IDs, stdout, logs saneados, timestamp UTC, SHA de la fuente/AST/plan/PDF, estados/receipts y presupuesto usado. Para una snapshot SQLite con `-wal`/`-shm`, **no copiar un .db aislado mientras hay escritores**; usar mecanismo consistente autorizado.
+
+~~~powershell
+# Solo el proyecto $Project de ESTA corrida. No incluir proyectos históricos.
+& docker @dc stop ocr_router llm_worker assembler g3_fake
+if ($LASTEXITCODE -ne 0) { throw "STOP: comprobar escritores antes de limpiar" }
+& docker @dc ps -a
+~~~
+
+**Dos opciones de custodia distintas:**
+
+- **Preservar** (predeterminado): dejar los volúmenes con su RUN-ID; no volver a usar ese RUN-ID.
+- **Retirar SOLO la nueva corrida con aprobación expresa:** después de archivar evidencia y confirmar que no aloja otra generación, `docker compose down` **sin `-v`** puede retirar contenedores/red del proyecto **dejando volúmenes**. Para eliminar cada uno de esos seis volúmenes haría falta validación de pertenencia, lista explícita y aprobación; **este runbook no proporciona un borrado general de volúmenes**. No tocar `tpdfconvconv1211b`, laboratorio R2/C-L1 ni `G3_EXTERNAL_UNKNOWN` histórico. `$SeedDir` puede eliminarse únicamente tras confirmar que su contenido ya no es evidencia necesaria.
+
+**El host `%TEMP%` del launcher B03 es un mecanismo diferente:** `--run-smoke` retiene workspace y PDF exportado; T07 elimina su scratch al salir normalmente. No aplicar la misma limpieza a los tres laboratorios.
