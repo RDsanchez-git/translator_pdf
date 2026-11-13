@@ -401,6 +401,68 @@ Write-Output "C2_CLI_ADMISSION_RETURNED (no significa COMPLETED)"
 
 OCR sondea el inbox y archiva o envía a `error`; G3 procesa el `ChunkPlan` y G5 compila a PDF. **No repetir admisión** para forzar progreso. Leer FSM/receipts/logs del proyecto nuevo con los próximos bloques. Un HTTP 422 o `G3_EXTERNAL_UNKNOWN` obliga STOP sin segundo POST.
 
+### C.8 bis. Polling acotado sin repetir la admisión
+
+**[BLOQUE DE DIAGNÓSTICO NUEVO; NO REQUIERE NUEVO C2].** La corrida histórica se completó de forma automática; este bloque solo evita esperas indefinidas y la interpretación manual de un `PROCESSING`. Lee FSM/queue desde otro proceso del **mismo contenedor OCR**, mediante conexiones SQLite RO. **Nunca** envía un PDF ni llama al proveedor. Resultado: `PASS` (FSM COMPLETED), `PENDING` (estado de avance), `STOP` (fallo/incertidumbre), `TIMEOUT` (plazo sin completar). Tiempo máximo de consulta: 120 segundos de espera acumulada, más latencias de cada consulta.
+
+~~~powershell
+$stateCode = @'
+from pathlib import Path
+from hashlib import sha256
+from contextlib import closing
+import sqlite3
+import sys
+src = Path("/app/data/lab_fixtures") / ("smoke_" + sys.argv[1] + ".pdf")
+if not src.is_file(): raise SystemExit("C2_POLL_STOP:SOURCE_MISSING")
+doc = sha256(src.read_bytes()).hexdigest()
+try:
+    with closing(sqlite3.connect(Path("/app/state/db/fsm.db").as_uri() + "?mode=ro", uri=True)) as fsm:
+        fsm.execute("PRAGMA query_only=ON")
+        rows = fsm.execute("SELECT ast_hash,current_state,state_version FROM document_fsm WHERE document_id=?", (doc,)).fetchall()
+    with closing(sqlite3.connect(Path("/app/state/db/queue.db").as_uri() + "?mode=ro", uri=True)) as q:
+        q.execute("PRAGMA query_only=ON")
+        uncertain = q.execute("SELECT COUNT(*) FROM chunk_tasks WHERE document_id=? AND task_state='G3_EXTERNAL_UNKNOWN'", (doc,)).fetchone()[0]
+except sqlite3.Error as exc:
+    print("C2_POLL_STOP:DB_ERROR", type(exc).__name__)
+    sys.exit(21)
+if uncertain:
+    print("C2_POLL_STOP:G3_EXTERNAL_UNKNOWN")
+    sys.exit(21)
+if not rows:
+    print("C2_POLL_PENDING:NO_FSM_YET")
+    sys.exit(20)
+if len(rows) != 1:
+    print("C2_POLL_STOP:GENERATION_AMBIGUOUS")
+    sys.exit(21)
+ast, state, version = rows[0]
+print("C2_POLL_STATE:", state, "VERSION:", version)
+if state == "COMPLETED":
+    print("C2_POLL_PASS:FSM_COMPLETED")
+    sys.exit(0)
+if state in ("FAILED_FATAL","FAILED_RETRYABLE","STALLED","CANCELLED"):
+    print("C2_POLL_STOP:FAILED_OR_STALLED")
+    sys.exit(21)
+if state not in ("CREATED","PARSING","PROCESSING","READY_FOR_ASSEMBLY","ASSEMBLING","COMPILING"):
+    print("C2_POLL_STOP:UNEXPECTED_STATE")
+    sys.exit(21)
+print("C2_POLL_PENDING")
+sys.exit(20)
+'@
+$PollComplete = $false
+for ($attempt = 1; $attempt -le 13; $attempt++) {
+    $stateCode | & docker @dc exec -T ocr_router python -B - $RunId
+    $statusCode = $LASTEXITCODE
+    if ($statusCode -eq 0) { $PollComplete = $true; break }
+    if ($statusCode -ne 20) { throw "C2_POLL_STOP: code=$statusCode (NO reingresar)" }
+    if ($attempt -eq 13) { throw "C2_POLL_TIMEOUT_120S (NO reingresar)" }
+    Start-Sleep -Seconds 10
+}
+if (-not $PollComplete) { throw "C2_POLL_NOT_COMPLETE" }
+# Solo tras PASS de FSM, correr el auditor RO C.9 y la cobertura C.9 bis.
+~~~
+
+**No declarar PASS operacional solo por FSM COMPLETED**: el paso obligatorio siguiente es C.9 (PDF + SQLite), luego C.9 bis (cobertura) y C.10 (HTTP). Si el poll termina STOP o TIMEOUT, conservar logs/volúmenes e inspeccionar, sin repetir la CLI.
+
 ### C.9. Auditoría durable SQLite + PDF desde contenedor separado (RO)
 
 **[AUDITOR PROPUESTO, NUEVO].** Reusar exactamente `$dc` y `$RunId` de C.1; ejecutarlo **sin volver a admitir**. Imprime FSM, plan, tareas, receipts, publicación/proyecciones y PDF. Si aún está procesando, devuelve `NOT_YET_COMPLETED_NO_REINGEST`: esperar dentro de un plazo acotado y **repetir únicamente esta lectura**. Una excepción, un PDF corrupto o `UNKNOWN` no son permiso para arrancar otra vez.
