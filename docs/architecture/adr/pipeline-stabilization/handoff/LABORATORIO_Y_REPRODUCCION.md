@@ -491,3 +491,94 @@ if ($LASTEXITCODE -ne 0) { throw "STOP: comprobar escritores antes de limpiar" }
 - **Retirar SOLO la nueva corrida con aprobación expresa:** después de archivar evidencia y confirmar que no aloja otra generación, `docker compose down` **sin `-v`** puede retirar contenedores/red del proyecto **dejando volúmenes**. Para eliminar cada uno de esos seis volúmenes haría falta validación de pertenencia, lista explícita y aprobación; **este runbook no proporciona un borrado general de volúmenes**. No tocar `tpdfconvconv1211b`, laboratorio R2/C-L1 ni `G3_EXTERNAL_UNKNOWN` histórico. `$SeedDir` puede eliminarse únicamente tras confirmar que su contenido ya no es evidencia necesaria.
 
 **El host `%TEMP%` del launcher B03 es un mecanismo diferente:** `--run-smoke` retiene workspace y PDF exportado; T07 elimina su scratch al salir normalmente. No aplicar la misma limpieza a los tres laboratorios.
+
+## 7. D — Comparación foreground T07 frente al C2 original
+
+**T07 NO es un runner reutilizable para nuevos RUN-ID:** `apps/lab/t07_foreground_compare.py` tiene fijados por código el proyecto `tpdfconvconv1211b`, la fixture `/app/data/c2_auto_fixtures/c2_auto_7bde7a829408de26521dc0d5.pdf` y sus SHA. Exige **exactamente cuatro servicios** en funcionamiento: `assembler`, `g3_fake`, `llm_worker` y `ocr_router`, y que OCR aún conserve esa fixture. No recrear el proyecto histórico para satisfacerlo.
+
+~~~powershell
+# Solo para el sujeto histórico intacto con sus precondiciones presentes:
+python -B -m apps.lab.t07_foreground_compare
+if ($LASTEXITCODE -ne 0) { throw "STOP: consultar T07_STOP; no reconstruir C2 antiguo" }
+~~~
+
+**[OBSERVADO 2026-11-12, owner Windows]:** `T07_FOREGROUND_CONTRACT_EQUIVALENCE_PASS`, `T07_TEMP_WORKSPACE_CLEANUP_PASS` y `C3_T07_FOREGROUND_ISOLATED_PASS`, exit 0; un contenedor `docker run --rm --pull never --network none`, sin nuevos volúmenes Docker, fake de loopback y checkout RO. Copió la fuente 1544 bytes de C2, recuperó el mismo AST/manifest, receipts y proyecciones, un POST TRANSLATE y un PDF físico de 7050 bytes SHA `9f70c22525358f7134020ad1ef511067037eca35cfe6636acd2494178a5325b4`. Diferente al hash de C2 (convergen **contratos**, no bytes idénticos). El workspace temporal T07 se elimina cuando termina normalmente; no atribuirle la retención de B03.
+
+Para nueva prueba foreground usar **`offline_pdf_lab --run-smoke` o `--run-pdf`** en un workspace nuevo según `5`. No añadir un falso parámetro de RUN-ID a T07: su script **no lo soporta**.
+
+## 8. E — Falsadores de recuperación/G5, sin ejecutar otro laboratorio
+
+La misma arquitectura incluye `ReconcilerDaemon` y `RecoveryDaemon`, pero **no** formaron parte de los cuatro servicios del C2 positivo. Sus pruebas deben hacerse con SQLite de test y recursos acotados, no con SIGKILL sobre contenedores históricos.
+
+**G3 y efecto remoto incierto:** la unidad `PRESERVE` genera receipt sin `raw_response` ni POST. Una unidad `TRANSLATE` exige plan/contexto verificados antes de llamar al proveedor. `RESULT_STAGED` puede publicarse/reconciliarse desde otro proceso **sin segundo efecto externo**; `G3_EXTERNAL_UNKNOWN` se mantiene en cuarentena y no es runnable. El test T05 provocó `os._exit(73)` en un subprocess y comprobó reapertura/finalización desde otro, no reinicios exhaustivos de OCR y todos los daemons.
+
+**G5 y crash entre archivos/DB:** `AssemblyLeaseRepository.publish` toma autoridad fenced, compila un PDF a ruta privada `.assembly_<uuid>.pdf` y hace `os.replace` antes del COMMIT SQLite (con FSM adjunta). Si el proceso muere en esa ventana, el fichero físico podría existir mientras FSM no está `COMPLETED`. El G5/2 anterior acreditó dos SIGKILL y recuperación sobre **otra imagen y fixtures sintéticas**, no todas las ventanas del C2 actual. No importar su imagen/TAR grande ni ejecutar sus scripts one-shot sobre volúmenes vigentes. Ante `FAILED_RETRYABLE`/task `FAILED` por error normal, **no** asumir reintento automático universal; clasificar y requerir autoridad.
+
+**Tests focales — ejecutar solo los necesarios**, desde raíz del repo y sin Docker, con venv compatible:
+
+~~~powershell
+# Configuración C0, volumen nuevo y bootstrap
+python -B -m pytest -q tests/unit/test_convergence_compose_preflight.py tests/unit/test_convergence_db_bootstrap.py -p no:cacheprovider
+
+# Foreground, aislamiento y fake
+python -B -m pytest -q tests/unit/test_b032_offline_pdf_lab.py -p no:cacheprovider
+
+# Recuperación G3 entre procesos
+python -B -m pytest -q tests/integration/test_c3_t05_process_boundary.py -p no:cacheprovider
+
+# G3 externo incierto y publicación desde staging
+python -B -m pytest -q tests/integration/test_w06_g3_uncertain_effect_offline.py tests/integration/test_g3_b4_3b_publication_recovery.py -p no:cacheprovider
+
+# G5 lease/rollback, contexto OCR→G3
+python -B -m pytest -q tests/integration/test_g5_assembler_lease_recovery.py tests/integration/test_w08_ocr_g3_context_wiring.py -p no:cacheprovider
+
+# Rutas productivas y CLI
+python -B -m pytest -q tests/unit/test_c4_t06_supported_roots.py tests/integration/test_cli_router.py -p no:cacheprovider
+~~~
+
+Estos son comandos de test, **no afirmaciones de PASS del nuevo HEAD**. Un test que cambie por contrato debe revisarse junto al [Atlas](ATLAS_RUTA_OPERATIVA_UNICA_PDF_PDF.md) y los NADR FROZEN. No correr el CI científico completo ni modificar B02/corpus para una prueba de composición.
+
+## 9. Diagnóstico rápido y política STOP
+
+| Síntoma | Causa o riesgo probable | Acción permitida |
+|---|---|---|
+| `C0_T01_BLOCKED/FAIL` | Compose, imagen, mounts, red o credenciales no cumplen el contrato | STOP sin iniciar recursos; revisar reason code |
+| Imagen local o ZIP no coinciden | El sujeto offline de referencia cambió | STOP; no descargar ni usar TAR G5 como sustituto |
+| `db_bootstrap` no termina `exited 0` | Inicialización, ownership, DDL, mount, permisos | Preservar logs/DB; NO repetir bootstrap |
+| No se puede sembrar cache | Volumen no vacío, ownership, Docker Desktop bind, falta ZIP | STOP; no sobrescribir/no habilitar egress |
+| `g3_fake` no healthy | queue.db ausente, opt-in, mount RO o servicio errado | NO arrancar G3 |
+| OCR ignora PDF | Inbox diferente, poll, deduplicación, parser B02, error de perfil | Inspeccionar `data/archive`, `data/error`, queue/FSM y logs sin reingesta |
+| `B02_UNREPRESENTED_VECTOR_DRAWING` | Región vectorial no representable con seguridad | Rechazo correcto; no silenciar extractor |
+| Fake 422 / intentos duplicados | URL/protocolo/plan/manifest equivocados o efecto incierto | STOP, preservar logs; no repetir POST |
+| `G3_EXTERNAL_UNKNOWN` | Se desconoce resultado externo y está cuarentenado | STOP definitivo sin disposición autorizada |
+| `READY_FOR_ASSEMBLY` sin PDF | Worker G5, cache, lease, proyección o payload | Inspeccionar tarea/estado/caché; no segundo ensamblador competitivo |
+| PDF existe, FSM no COMPLETED | Posible ventana `os.replace` ↔ COMMIT SQLite | No declarar PASS, conservar PDF y DB/WAL |
+| FSM COMPLETED pero PDF incorrecto | Estado lógico no garantiza estructura/calidad | FAIL material; revisar PDF sin tocar FROZEN |
+| `B032_EXPORT_ALREADY_EXISTS` | Launcher protege PDF exportado de sobrescritura | Nuevo destino autorizado; no borrar evidencia |
+| Disco/RAM insuficientes | Riesgo de degradar Docker Desktop o volúmenes | STOP; no `prune` ni reconstrucciones automáticas |
+
+## 10. Registro obligatorio y mantenimiento futuro del laboratorio
+
+**Una corrida nueva se considera observada, no «automáticamente acreditada» por leer este manual.** Capturar en el acta propia:
+
+| Campo | Debe registrarse |
+|---|---|
+| Sujeto | SHA de código, hora UTC, Windows/Docker/Compose/Python, imagen ID exacta |
+| Aislamiento | RUN-ID nuevo, proyecto, red interna, volúmenes, mounts RO/nocopy, ausencia de puertos |
+| Recursos | Disco y RAM antes/después; presupuesto, creaciones y desvíos |
+| Cache | ZIP SHA, archivos Tectonic/tiktoken, rutas, ownership; sin restauración de SQLite histórico |
+| Entrada | PDF autorizado, tamaño/SHA, `document_id`, `ast_hash`, `manifest_sha256` y unidades |
+| Procesos | exit code bootstrap, fake health, OCR/G3/G5 ejecutándose por separado |
+| Persistencia | FSM+versiones, tareas, receipts, publicación, proyecciones, fencing |
+| HTTP | Todos los POST del fake (intentos, aceptados, rechazados), identidad exacta y **cero PRESERVE** |
+| PDF | Path, cabecera, páginas, texto extraíble, bytes y SHA; correlación con FSM |
+| Fallos | Código STOP, no reingesta, registros preservados, limpieza/acceso a volúmenes |
+| Alcance | Diferenciar PASS de topología con fake de traducción real/W09/product readiness |
+
+**Qué sabemos del ensayo original [OBSERVADO 2026-11-12]:** C0–C4 y DoD 9/9 acreditados con fake, OCR/G3/G5 independientes, un POST de `TRANSLATE` aceptado, cero a `PRESERVE`, PDF físico Tectonic, recuperación focal T05 y comparación T07. Ver [actas del PR #46](https://github.com/RDsanchez-git/translator_pdf/pull/46) y [evidencia final](EVIDENCIA_Y_CIERRE.md).
+
+**Qué NO sabemos todavía para la receta nueva de `6`:** no se ha ejecutado aquí su orquestación completa sobre **un RUN-ID fresco** (incluidos bind Windows, extracción, ownership, contenedores, auditor/HTTP). Por eso **no** se publica `C2_REPRODUCIBLE_FROM_ZERO_PASS` ni se promete que una modificación futura se pruebe sin nuevos ajustes. La receta sí contiene las precondiciones, comandos derivados del código y criterios STOP/PASS necesarios para que no haya que redescubrir la arquitectura. Si el owner la valida una vez en entorno descartable, registrar exactamente el HEAD, los comandos ejecutados, el tiempo/espacio y las correcciones realizadas antes de elevarla a procedimiento acreditado.
+
+**Política de mantenimiento:** este mismo runbook se actualiza con cada cambio de Compose, bootstrap, proveedor fake, fixture o evidencia; no restaurar manuales R2/C-L1/G5 antiguos ni crear documentos de sandbox paralelos. El Atlas sigue siendo la autoridad descriptiva de la ruta y el cierre sigue siendo el documento de evidencia de la convergencia.
+
+**Fin del procedimiento.**
