@@ -118,3 +118,195 @@ if ($LASTEXITCODE -ne 0) { throw "STOP: revisar B032_STOP y conservar evidencias
 
 **Efectos y salida:** `--preflight` no crea contenedores. `--run-smoke`/`--run-pdf` crean carpeta `%TEMP%\translator_pdf_b032_*` y **LA RETIENEN**, además de exportar PDF bajo `Downloads/translator_pdf_offline` sin sobrescribir. Se valida `%PDF-` y FSM `COMPLETED`. El fake hace eco: no certifica calidad científica/lingüística ni el C2 multiproceso. No limpiar esos temporales sin constatar titularidad.
 
+
+## 6. C — Procedimiento C2 multiproceso sobre proyecto nuevo
+
+**[RECETA NUEVA: todavía SIN E2E acreditado en un RUN-ID nuevo].** Se basa en los comandos de arranque observados en el [acta C2](https://github.com/RDsanchez-git/translator_pdf/pull/46#issuecomment-6837358365), el [testigo físico](https://github.com/RDsanchez-git/translator_pdf/pull/46#issuecomment-6837649853) y los scripts/Compose reales. La siembra y fixture que siguen son una composición **nueva**, no una reejecución certificada. Cada fallo implica **STOP sin repetir bootstrap, admisión ni POST**. Esta sección escribe nuevas carpetas, volúmenes, SQLite, logs y PDF; requiere autorización y presupuesto de disco/RAM antes de comenzar.
+
+### C.1. Preparar un RUN-ID nuevo y verificar aislamiento sin escritura
+
+Ejecutar en PowerShell desde la raíz del checkout. Cambiar `ensayoa01` por un RUN-ID **nunca usado** (8–16 letras minúsculas/números). El prefijo `tpdfconv` lo genera el preflight y debe coincidir con el proyecto Compose. No aceptar recursos de otras ejecuciones.
+
+~~~powershell
+$ErrorActionPreference = "Stop"
+$RunId = "ensayoa01"  # CAMBIAR por uno propio nuevo
+$Project = "tpdfconv$RunId"
+$dc = @("compose", "-p", $Project,
+    "-f", "docker-compose.yml",
+    "-f", "docker-compose.runtime.yml",
+    "-f", "docker-compose.convergence-lab.yml")
+if ($env:COMPOSE_PROFILES) { throw "STOP: COMPOSE_PROFILES activo" }
+python -B -m apps.lab.convergence_compose_preflight --run-id $RunId --verify-local-image
+if ($LASTEXITCODE -ne 0) { throw "STOP: preflight de Compose/imagen" }
+& docker @dc config --quiet
+if ($LASTEXITCODE -ne 0) { throw "STOP: Compose inválido" }
+
+$existingContainers = @(docker ps -a --filter "label=com.docker.compose.project=$Project" --format '{{.ID}}' | Where-Object { $_ })
+$existingVolumes = @(docker volume ls --filter "label=com.docker.compose.project=$Project" --format '{{.Name}}' | Where-Object { $_ })
+$existingNetworks = @(docker network ls --filter "label=com.docker.compose.project=$Project" --format '{{.Name}}' | Where-Object { $_ })
+if ($existingContainers.Count -or $existingVolumes.Count -or $existingNetworks.Count) {
+    throw "STOP: colisión de proyecto/RUN-ID"
+}
+Write-Output "C2_NEW_PROJECT_COLLISION_GUARD_PASS: $Project"
+~~~
+
+**Antes del primer comando con escritura:** comprobar también que ningún objeto Docker tiene nombres calculados iguales pero carece de las etiquetas de Compose; reservar espacio y memoria efectivos, identificar fuente ZIP y cache, y registrar SHA de git e imagen. `docker compose config --quiet` no inicia contenedores; el preflight es **solo estático**. No publicar una salida completa de `config` con secretos.
+
+### C.2. Extraer solo caches desde ZIP autorizado a una carpeta host nueva
+
+El extractor del código actual `offline_pdf_lab._check_history` confirma SHA-256, y `_seed_caches` extrae únicamente 294 archivos Tectonic y uno tiktoken. **Sí escribe** en `%TEMP%`; no restaura DB/AST/PDF/receipts del ZIP anterior.
+
+~~~powershell
+$Zip = Join-Path $HOME "Downloads\PAQUETE_HISTORICO_G4_B03_PDF_A_PDF_FBF166B_R1.zip"
+$SeedDir = Join-Path $env:TEMP ("tpdf_seed_" + $RunId)
+if (Test-Path -LiteralPath $SeedDir) { throw "STOP: semilla ya existe" }
+New-Item -ItemType Directory -Path $SeedDir -ErrorAction Stop | Out-Null
+
+$seedCode = @'
+from pathlib import Path
+import sys
+from apps.lab.offline_pdf_lab import _check_history, _seed_caches
+archive, workspace = map(Path, sys.argv[1:3])
+_check_history(archive)
+counts = _seed_caches(archive, workspace)
+if counts != (294, 1):
+    raise SystemExit("STOP_CACHE_COUNT_MISMATCH")
+print("C2_HOST_CACHE_SEED_PASS", counts)
+'@
+python -B -c $seedCode $Zip $SeedDir
+if ($LASTEXITCODE -ne 0) { throw "STOP: cache no verificada" }
+~~~
+
+**Esperado:** `C2_HOST_CACHE_SEED_PASS (294, 1)`; `$SeedDir\cache` contiene Tectonic y `$SeedDir\data\tiktoken-cache` contiene tiktoken. Reutiliza el extractor verificado por B03 pero **aún no se ha validado este procedimiento conjunto C2**.
+
+### C.3. Crear seis volúmenes nuevos y realizar bootstrap UNA sola vez
+
+**[ESCRITURA DOCKER].** Solo con presupuesto/autorización. El wrapper valida montajes, toma ownership de raíces de los seis volúmenes y **baja a UID10001** antes de aplicar el esquema SQLite. El servicio ha de salir `exited 0`; ante fallo, **no repetir sobre esos volúmenes**.
+
+~~~powershell
+& docker @dc up -d --no-deps --no-build --pull never db_bootstrap
+if ($LASTEXITCODE -ne 0) { throw "STOP: bootstrap no inició" }
+$boot = (& docker @dc ps -a -q db_bootstrap | Select-Object -First 1)
+if (-not $boot) { throw "STOP: bootstrap container no localizado" }
+$bootState = ""
+for ($i = 0; $i -lt 60; $i++) {
+    $bootState = (& docker inspect --format '{{.State.Status}} {{.State.ExitCode}}' $boot).Trim()
+    if ($bootState.StartsWith("exited")) { break }
+    Start-Sleep -Seconds 1
+}
+if ($bootState -ne "exited 0") { throw "STOP: bootstrap no exit 0: $bootState" }
+& docker @dc logs --tail 40 db_bootstrap
+Write-Output "C2_FRESH_BOOTSTRAP_EXIT0"
+~~~
+
+### C.4. Transferir solo caches a los volúmenes frescos
+
+**[RECETA NUEVA, ESCRITURA EN LOS NUEVOS VOLUMENES].** El override define `nocopy:true`, de modo que Tectonic/tiktoken no se copiarán solos. Se utiliza un contenedor efímero basado en `ocr_router` con su **comando reemplazado** (no inicia el daemon), con mount adicional **RO** del seed y usuario 10001. Rechazar destinos ya poblados.
+
+~~~powershell
+$copyCode = @'
+from pathlib import Path
+import shutil
+root = Path("/lab_seed")
+pairs = (
+    (root / "cache", Path("/app/.cache/tectonic"), 294),
+    (root / "data" / "tiktoken-cache", Path("/app/data/tiktoken-cache"), 1),
+)
+for src, dst, expected in pairs:
+    if not src.is_dir():
+        raise SystemExit("STOP_CACHE_SOURCE_MISSING")
+    files = sorted(p for p in src.rglob("*") if p.is_file() and not p.is_symlink())
+    if len(files) != expected:
+        raise SystemExit("STOP_CACHE_SOURCE_COUNT")
+    if dst.exists() and any(dst.rglob("*")):
+        raise SystemExit("STOP_CACHE_TARGET_ALREADY_POPULATED")
+    dst.mkdir(parents=True, exist_ok=True)
+    for item in files:
+        target = dst / item.relative_to(src)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        with item.open("rb") as source, target.open("xb") as output:
+            shutil.copyfileobj(source, output)
+print("C2_CONTAINER_CACHE_SEED_PASS: tectonic=294 tiktoken=1")
+'@
+& docker @dc run --rm --no-deps --no-build --pull never -T --user 10001:10001 -v "$($SeedDir):/lab_seed:ro" ocr_router python -B -c $copyCode
+if ($LASTEXITCODE -ne 0) { throw "STOP: cache no sembrada" }
+~~~
+
+Si la copia falla (montaje Windows, permisos, disco), **STOP**: no activar red, no sobrescribir. `--no-deps` evita volver a iniciar `db_bootstrap`; la imagen es la pinneada por Compose y no se permite build/pull.
+
+### C.5. Generar fixture sintética nueva fuera de inbox
+
+El generador `offline_pdf_lab._smoke_source` es código existente; se reutiliza en el nuevo volumen `data`. **Esta fixture puede no tener dos unidades PRESERVE/TRANSLATE como el C2 histórico**; no aplicar sus contadores como PASS obligatorio para este PDF.
+
+~~~powershell
+$fixtureCode = @'
+from pathlib import Path
+from hashlib import sha256
+import sys
+from apps.lab.offline_pdf_lab import _smoke_source
+runid = sys.argv[1]
+path = Path("/app/data/lab_fixtures") / ("smoke_" + runid + ".pdf")
+path.parent.mkdir(parents=True, exist_ok=True)
+if path.exists():
+    raise SystemExit("STOP_FIXTURE_ALREADY_EXISTS")
+_smoke_source(path)
+data = path.read_bytes()
+if not data.startswith(b"%PDF-"):
+    raise SystemExit("STOP_FIXTURE_HEADER")
+print("C2_FIXTURE_PATH:", path)
+print("C2_FIXTURE_BYTES:", len(data))
+print("C2_DOCUMENT_ID:", sha256(data).hexdigest())
+'@
+& docker @dc run --rm --no-deps --no-build --pull never -T --user 10001:10001 ocr_router python -B -c $fixtureCode $RunId
+if ($LASTEXITCODE -ne 0) { throw "STOP: fixture no creada" }
+$InsidePdf = "/app/data/lab_fixtures/smoke_$RunId.pdf"
+~~~
+
+**STOP si** no está vacío `/app/data/inbox` o si ya hay FSM con ese `document_id`. El OCR no debe reabrir generaciones completadas/incertidumbres para «probar otra vez»; ver bloque de auditoría RO en C.7 antes de tomar una decisión de reingesta.
+
+### C.6. Arrancar fake y tres daemons de la ruta oficial
+
+**[ARRANQUE OBSERVADO EN C2]:** fake healthy → OCR Router + G3 + G5. Reconciler/sweeper no se iniciaron en el positivo C2; son sujetos de pruebas focales de recovery.
+
+~~~powershell
+& docker @dc up -d --no-deps --no-build --pull never g3_fake
+if ($LASTEXITCODE -ne 0) { throw "STOP: fake no iniciado" }
+$fake = (& docker @dc ps -q g3_fake | Select-Object -First 1)
+if (-not $fake) { throw "STOP: fake no localizado" }
+$health = ""
+for ($i = 0; $i -lt 30; $i++) {
+    $health = (& docker inspect --format '{{.State.Health.Status}}' $fake).Trim()
+    if ($health -eq "healthy") { break }
+    Start-Sleep -Seconds 2
+}
+if ($health -ne "healthy") { throw "STOP: fake no saludable" }
+& docker @dc up -d --no-deps --no-build --pull never ocr_router llm_worker assembler
+if ($LASTEXITCODE -ne 0) { throw "STOP: daemons no iniciados" }
+$running = @(& docker @dc ps --status running --services | Where-Object { $_ })
+$expected = @("assembler", "g3_fake", "llm_worker", "ocr_router")
+if (($running | Sort-Object) -join "," -ne ($expected | Sort-Object) -join ",") {
+    throw "STOP: conjunto real de servicios no coincide con C2"
+}
+Write-Output "C2_DAEMONS_RUNNING_SET_PASS"
+~~~
+
+Para lectura de estados y logs acotados (sin imprimir env):
+
+~~~powershell
+& docker @dc ps -a
+& docker @dc logs --tail 30 g3_fake ocr_router llm_worker assembler
+~~~
+
+**Cuatro servicios `running` no prueban resultado PDF.** No levantar `toxiproxy`/`fake-gemini` ni publicar puertos.
+
+### C.7. Única admisión CLI, sin foreground ni repetición
+
+**[PATRÓN EJECUTADO POR OWNER EN C2].** La CLI debe ejecutarse **en el contenedor OCR ya iniciado**, compartiendo realmente `/app/data/inbox` con los daemons. `--run` está prohibido para esta modalidad.
+
+~~~powershell
+& docker @dc exec -T ocr_router python -B -m apps.cli.main translate $InsidePdf --inbox-dir /app/data/inbox
+if ($LASTEXITCODE -ne 0) { throw "STOP: admisión fallida, NO repetir" }
+Write-Output "C2_CLI_ADMISSION_RETURNED (no significa COMPLETED)"
+~~~
+
+OCR sondea el inbox y archiva o envía a `error`; G3 procesa el `ChunkPlan` y G5 compila a PDF. **No repetir admisión** para forzar progreso. Leer FSM/receipts/logs del proyecto nuevo con los próximos bloques. Un HTTP 422 o `G3_EXTERNAL_UNKNOWN` obliga STOP sin segundo POST.
