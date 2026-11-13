@@ -150,7 +150,16 @@ if ($existingContainers.Count -or $existingVolumes.Count -or $existingNetworks.C
 Write-Output "C2_NEW_PROJECT_COLLISION_GUARD_PASS: $Project"
 ~~~
 
-**Antes del primer comando con escritura:** comprobar también que ningún objeto Docker tiene nombres calculados iguales pero carece de las etiquetas de Compose; reservar espacio y memoria efectivos, identificar fuente ZIP y cache, y registrar SHA de git e imagen. `docker compose config --quiet` no inicia contenedores; el preflight es **solo estático**. No publicar una salida completa de `config` con secretos.
+**Antes del primer comando con escritura:** comprobar también que ningún objeto Docker tiene nombres calculados iguales pero carece de las etiquetas de Compose; reservar espacio y memoria efectivos, identificar fuente ZIP y cache, y registrar SHA de git e imagen. **Lecturas PowerShell útiles de presupuesto (sin modificar recursos):**
+
+~~~powershell
+Get-PSDrive -Name C | Select-Object Name,Used,Free
+Get-CimInstance Win32_OperatingSystem | Select-Object TotalVisibleMemorySize,FreePhysicalMemory
+docker info --format '{{.MemTotal}}'
+docker system df
+~~~
+
+Las magnitudes deben interpretarse en sus unidades: RAM WMI en KiB, RAM Docker en bytes y espacio PowerShell en bytes. **No** ejecutar nuevas pruebas si el presupuesto de Docker Desktop es insuficiente para los límites del Compose. `docker compose config --quiet` no inicia contenedores; el preflight es **solo estático**. No publicar una salida completa de `config` con secretos.
 
 ### C.2. Extraer solo caches desde ZIP autorizado a una carpeta host nueva
 
@@ -387,6 +396,8 @@ with closing(ro("fsm.db")) as fsm, closing(ro("queue.db")) as queue, closing(ro(
     if len(rows) != 1:
         raise SystemExit("STOP_GENERATION_AMBIGUOUS")
     ast_hash, state, version = rows[0]
+    if state in ("FAILED_FATAL", "FAILED_RETRYABLE", "STALLED", "CANCELLED"):
+        raise SystemExit("STOP_DOCUMENT_STATE_" + state)
     plans = queue.execute(
         "SELECT manifest_json,manifest_sha256 FROM chunk_plans WHERE document_id=? AND ast_hash=?",
         (document_id, ast_hash),
