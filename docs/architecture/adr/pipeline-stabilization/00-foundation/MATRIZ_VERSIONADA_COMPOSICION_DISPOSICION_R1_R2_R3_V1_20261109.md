@@ -1,9 +1,11 @@
 # Matriz versionada de composición y disposición de archivos — convergencia PDF→PDF
 
-**Versión:** v1.0.3 · **Fecha:** 2026-11-09 · **Estado:** inventario técnico prescriptivo, disposición **propuesta** / no borrado autorizado.  
+**Versión:** v1.0.4 · **Fecha inicial:** 2026-11-09 · **Corte de cierre:** 2026-11-13 · **Estado:** inventario de composición y consumidores de la convergencia integrada, disposiciones **sin autorización de retiro físico**.  
 **Sujeto:** `RDsanchez-git/translator_pdf` / `pipeline_stabilization` @ `6a5ee41886b935c2c0f3a107a42620d93de31efb` (#40 integrado).  
-**Plan vinculante por referencia:** [PLAN_IMPLEMENTACION_CONVERGENCIA_OPERATIVA_UNICA_PDF_PDF_V1_20261109.md](PLAN_IMPLEMENTACION_CONVERGENCIA_OPERATIVA_UNICA_PDF_PDF_V1_20261109.md), versión operativa v1.0.20 tras el cotejo DoD §8. Matriz de disposición, no tablero duplicado.  
+**Plan vinculante por referencia:** [PLAN_IMPLEMENTACION_CONVERGENCIA_OPERATIVA_UNICA_PDF_PDF_V1_20261109.md](PLAN_IMPLEMENTACION_CONVERGENCIA_OPERATIVA_UNICA_PDF_PDF_V1_20261109.md), v1.0.21 PLAN_EJECUTADO_Y_CERRADO tras el merge PR #46. Matriz de disposición, no tablero duplicado.  
 **Decisión de producto:** [D-1/D-2, cabecera vigente](DECISION_CANDIDATE_CONVERGENCIA_PDF_PDF_D1_D2_20261105.md): una CLI, G3→G5, sin motores productivos rivales. Este inventario **no** equivale a ejecución, censo exhaustivo de consumidores externos o certificación científica.
+
+**Interpretación posterior al merge:** la base histórica de las 94 filas es #40; las actualizaciones focales C4 se acreditaron sobre #46 y quedaron integradas en [merge 6818e86](https://github.com/RDsanchez-git/translator_pdf/commit/6818e86e21b14e77a606f0c863e9c199b4627601). Para la ruta y pruebas **vigentes**, entrar por [handoff/README.md](../handoff/README.md). Este inventario no afirma verificación dinámica individual de las 94 filas ni autorización de borrar R1/R3, y sus consumidores externos permanecen UNKNOWN.
 
 ## 1. Cómo se usa esta matriz
 
@@ -188,5 +190,8 @@ Cuando una ejecución, modificación o inventario cambie una fila de esta matriz
 |---|---|---|---|
 | 2026-11-09 | v1.0.0 | Inventario inicial de 94 entradas basado en #40 integrado | `adbb61a88c179d3a11a31e78cd470b590024a4be` |
 | 2026-11-09 | v1.0.1 | Formato Markdown corregido; convención ligera de disposición y enlace al tablero del plan | Commit documental; sin pruebas de ejecución nuevas |
+| 2026-11-12 | v1.0.2 | Censo focal E02/E06/E09/E13/E47/E71/E89, CLI R1 fail-closed y consumidores benchmark/históricos | PR #46, [acta T06](https://github.com/RDsanchez-git/translator_pdf/pull/46#issuecomment-6841122597) |
+| 2026-11-12 | v1.0.3 | Corrección de la historia AS-IS tras testigo real C2; aún sin cierre de merge | PR #46, [acta C2](https://github.com/RDsanchez-git/translator_pdf/pull/46#issuecomment-6837871200) |
+| 2026-11-13 | v1.0.4 | Cierre documental de matriz tras integración C0–C4; plan v1.0.21 y guía vigente en handoff | [Merge #46](https://github.com/RDsanchez-git/translator_pdf/pull/46) |
 
 **Límites documentales:** #41–#44 Draft no merged; #45 closed; `PROJECT_SCOPE.md` y `ENGINEERING_PRINCIPLES.md` del owner, D-1/D-2, Atlas y NADR FROZEN conservan primacía. No se modifican scripts, bases, oráculos, Compose, PRs ni despliegues al publicar esta matriz.
