@@ -1,15 +1,15 @@
 # Atlas de la Ruta Operativa Única PDF→PDF — arquitectura implementada
 
-**Versión:** 1.0.0 · **corte técnico:** 2026-11-13 · **estado:** CURRENT IMPLEMENTED ROUTE / DOCUMENTACIÓN DESCRIPTIVA  
+**Versión:** 1.0.1 (revisión estática de contratos y diagramas) · **corte técnico:** 2026-11-13 · **estado:** CURRENT IMPLEMENTED ROUTE / DOCUMENTACIÓN DESCRIPTIVA  
 **Código anclado:** [PR #46 fusionado, commit `6818e86e21b14e77a606f0c863e9c199b4627601`](https://github.com/RDsanchez-git/translator_pdf/commit/6818e86e21b14e77a606f0c863e9c199b4627601), rama `pipeline_stabilization`.  
-**Dirección:** D-1/D-2 aprobada por el owner el 2026-11-08; ejecución C0–C4 y DoD `8 9/9 acreditados en laboratorio con fake.  
+**Dirección:** D-1/D-2 aprobada por el owner el 2026-11-08; ejecución C0–C4 y DoD §8 (9/9) acreditados en laboratorio con fake.  
 **Clase:** mapa AS-IMPLEMENTED de composición, código, flujos, fronteras y riesgos para mantenimiento. **No** es NADR, nuevo plan, autorización de despliegue ni certificación científica.
 
 > **Cómo leer este Atlas.** «Código verificado» = comportamiento que puede seguirse en el commit pinneado. «Observado por owner» = salida local atribuible a una corrida C0–C4 y conservada en actas. «No demostrado» = propiedad que los ensayos/código no permiten afirmar. Si el código evoluciona, este Atlas no certifica automáticamente el nuevo HEAD. Los paths y símbolos son una instantánea, no un mecanismo universal de descubrimiento de servicios externos.
 
 ## 0. Qué es el producto y dónde termina la acreditación
 
-**Contrato operativo:** admitir un PDF identificado por SHA-256 de sus bytes, convertirlo en AST y plan contextual durables, resolver unidades `PRESERVE`/`TRANSLATE` en G3, materializar proyecciones por nodo y entregar el PDF ensamblado por G5 mediante una única línea de ejecución soportada.
+**Contrato operativo:** admitir un PDF identificado por SHA-256 de sus bytes, convertirlo en AST y plan contextual durables, resolver unidades `PRESERVE`/`TRANSLATE`/`PARTIAL` en G3, materializar proyecciones por nodo y entregar el PDF ensamblado por G5 mediante una única línea de ejecución soportada.
 
 **No acreditado:** fidelidad matemática, integridad del corpus científico, traducción lingüística real, proveedor de pago, toda figura/tablas/vector, coste/SLO productivo, despliegue/cutover, actualización segura de cualquier generación anterior ni ejecución en otra máquina. El rechazo `B02_UNREPRESENTED_VECTOR_DRAWING` es una barrera válida, no motivo para falsear el AST.
 
@@ -19,69 +19,82 @@
 
 ~~~mermaid
 flowchart TD
-    OP["Operador / CLI translate"] --> AD["apps/cli/main.py + pdf_inbox.py<br/>SHA bytes; admisión atómica"]
-    AD --> IN["data/inbox/&lt;document_id&gt;.pdf"]
-    IN --> OCR["OCR Router daemon<br/>apps/ocr_router/__main__.py"]
-    OCR --> PA["Parser → AST + perfil + activos<br/>ChunkPlan + contexto durable"]
-    PA --> AST["Filesystem ASTRegistry"]
-    PA --> Q["queue.db<br/>planes / snapshots / tasks / receipts"]
-    PA --> FSM["fsm.db<br/>estado y versión"]
-    Q --> G3["G3 runtime/engine.py<br/>claims / staging / publicación"]
+    OP["CLI translate<br/>admisión por SHA de bytes"] --> IN["data/inbox/<document_id>.pdf"]
+    IN --> OCR["OCR Router<br/>poll + parser + contexto"]
+    OCR --> AST["data/ast_cache<br/>AST versionado + activos"]
+    OCR --> DOC["documents.db<br/>perfil/payloads"]
+    OCR --> Q["queue.db<br/>plan, snapshots, tasks, receipts"]
+    OCR --> FSM["fsm.db<br/>generación, estado, CAS"]
+    Q --> G3["G3 runtime/engine.py<br/>claim y staging"]
     AST --> G3
-    G3 --> PROVIDER["ProviderStack via SyncProviderBridge<br/>solo TRANSLATE/PARTIAL"]
+    G3 --> Q
+    G3 -- "SOLO TRANSLATE / PARTIAL" --> PROVIDER["SyncProviderBridge<br/>proveedor externo o fake"]
     PROVIDER --> G3
-    G3 --> MAT["materialized.db<br/>proyecciones por node_id"]
+    G3 --> MAT["materialized.db<br/>publicación por node_id"]
     G3 --> FSM
-    MAT --> G5["G5 apps/compiler/__main__.py<br/>context resolver → TeX → Tectonic"]
+    MAT --> G5["G5 Assembler<br/>resolver, TeX, Tectonic, lease"]
     AST --> G5
+    DOC --> G5
     FSM --> G5
     Q --> G5
-    G5 --> OUT["output/translated_&lt;document_id&gt;.pdf"]
+    G5 --> Q
+    G5 --> OUT["output/translated_<document_id>.pdf"]
     G5 --> FSM
-    REC["reconciler.py + sweeper.py<br/>recovery/maintenance"] -. "autoridad y clasificación" .-> Q
+    REC["Reconciler / Sweeper<br/>servicios auxiliares"] -. "recuperación / mantenimiento" .-> Q
     REC -.-> FSM
     classDef data fill:#edf5fc,stroke:#597f9a,color:#243846
-    class IN,AST,Q,FSM,MAT,OUT data
+    class IN,AST,DOC,Q,FSM,MAT,OUT data
 ~~~
 
-La topología anterior es **lógica**. En Compose los daemons OCR, G3, G5 y reconciler/sweeper son procesos separados; no existe transacción global entre todos los nodos del diagrama. La CLI **normal** entrega una admisión y vuelve: no significa documento procesado ni éxito científico.
+La topología anterior es **lógica**: la misma SQLite puede recibir escrituras de varios procesos bajo CAS/fencing, pero no existe transacción global con filesystem y proveedor. Las flechas representan **lectura/escritura o dependencia**, no una llamada RPC implícita. En Compose OCR, G3, G5 y auxiliares se declaran como procesos independientes; el positivo C2 observó efectivamente OCR, G3, G5 y fake, **no** acredita que Reconciler/Sweeper estuvieran corriendo en ese mismo positivo. La CLI normal **solo admite y vuelve**: no confirma procesamiento ni éxito científico. Para que OCR vea el PDF, **inbox de CLI y daemon deben resolver al mismo volumen real**: la ruta local por defecto de la CLI fuera de Docker puede no compartir el volumen del contenedor; usar `--inbox-dir` solo después de verificar la ruta efectiva y el workspace, sin duplicar documentos.
 
 ### 1.1 Secuencia de contratos realmente relevantes
 
 ~~~mermaid
 sequenceDiagram
-    participant CLI as CLI/inbox
+    participant CLI as CLI
+    participant IN as Inbox
     participant OCR as OCR Router
-    participant FS as AST/filesystem
+    participant FS as AST/activos
     participant Q as queue.db
     participant F as fsm.db
-    participant G3 as G3 Runtime
+    participant G3 as G3
+    participant P as Proveedor
     participant M as materialized.db
     participant G5 as G5/Tectonic
-    CLI->>OCR: Publica PDF por SHA-256
-    OCR->>FS: Parser + registro de AST contextual
-    OCR->>F: CREATED -> PARSING (CAS)
-    OCR->>Q: ChunkPlan + tasks + snapshots (transacción local)
-    OCR->>F: PROCESSING (CAS)
-    G3->>FS: Reabre y verifica AST
-    G3->>Q: Reabre/verifica plan/snapshots; claim con execution_id
-    alt Unidad PRESERVE
-        G3->>Q: Staging sin POST externo
-    else TRANSLATE/PARTIAL
-        G3-->>G3: Provider validado, receipt y staging
-        G3->>Q: Staging fenced
+    participant OUT as PDF output
+    CLI->>IN: Temporal + fsync + hard link por document_id
+    Note over CLI,OCR: La CLI retorna; OCR sondea el inbox compartido
+    IN-->>OCR: Detecta PDF nuevo
+    OCR->>FS: Parser + registro AST contextual
+    OCR->>F: Initialize CREATED; PARSING por CAS
+    OCR->>Q: Plan + tasks + snapshots (commit local)
+    OCR->>F: PROCESSING (CAS separado)
+    G3->>FS: Reabre/verifica AST de la generacion
+    G3->>Q: Verifica plan + snapshots durables
+    loop Por unidad reclamable
+        G3->>Q: pick_task + execution_id + lease
+        alt PRESERVE
+            G3->>Q: stage_chunk_result(receipt NULL, fenced)
+        else TRANSLATE/PARTIAL
+            G3->>P: SyncProviderBridge.execute_chunk(plan, unit)
+            P-->>G3: Respuesta G3 validada
+            G3->>Q: stage_chunk_result(receipt, fenced)
+        end
     end
-    G3->>M: Publicación de nodos
-    G3->>Q: Finalización de tasks/receipts
-    G3->>F: READY_FOR_ASSEMBLY (CAS)
-    G5->>Q: Lease assembler/fases fenced
-    G5->>FS: Recupera AST/activos
-    G5->>M: Lee proyecciones de la generación
-    G5-->>G5: Compila con Tectonic a PDF privado
-    G5->>F: Publicación fenced; COMPLETED
+    G3->>M: publish_staged_plan (commit materialized)
+    G3->>Q: finalize_published_plan (commit queue)
+    G3->>F: MarkAssemblyReadyCommand (CAS)
+    G5->>Q: Claim assembler (FSM ATTACH, lease/fencing)
+    G5->>FS: Reabre AST/activos
+    G5->>M: Lee proyecciones; aplica politica de faltantes
+    G5->>OUT: Tectonic escribe .assembly_<uuid>.pdf
+    G5->>Q: BEGIN + CAS queue y FSM adjunta
+    G5->>OUT: os.replace(temporal, final)
+    G5->>Q: COMMIT queue y FSM adjunta
 ~~~
 
-En G5, la promoción del archivo y el commit SQLite están coordinados bajo el lock de escritura, **pero no son una transacción distribuida atómica** frente a un crash. El código contempla recuperación y rechazo de propietarios obsoletos; no prometer semántica exactly-once universal.
+**Lectura de la secuencia:** resume el **camino positivo completo**; si hay recuperación de un plan `RESULT_STAGED`/`COMPLETED`, G3 puede saltar la rama del proveedor y reanudar la publicación desde datos durables. Si aparece `G3_EXTERNAL_UNKNOWN`, el flujo se detiene para esa generación y **no** ejecuta una segunda inferencia. OCR también guarda el perfil en `documents.db` antes del plan, omitido solo del diagrama de secuencia por legibilidad (sí figura en el estructural). G5 utiliza `queue.db` con `fsm_db` ATTACH: la transacción contiene sus UPDATE de queue/FSM, y hace `os.replace` **antes** del COMMIT; la promoción física no es parte de una transacción distribuida atómica. Ante crash, hacen falta pruebas de autoridad y recuperación, no una promesa universal de exactly-once.
 
 ## 2. Mapa de entrypoints y selección de topología
 
@@ -100,8 +113,8 @@ En G5, la promoción del archivo y el commit SQLite están coordinados bajo el l
 
 ### 2.1 Los tres Compose NO son equivalentes
 
-- `docker-compose.yml`: composición base, contiene dependencias y servicios históricos de laboratorio/chaos; **no** asumir que es despliegue productivo validado.
-- `docker-compose.runtime.yml`: override del root de estado compartido (`g3_runtime_state`, `g3_runtime_data`, `g3_runtime_output`), entorno de SQLite y exclusión por perfil del fake-gemini/toxiproxy. Sus `!override`/`!reset` necesitan versión de Compose compatible.
+- `docker-compose.yml`: composición base, contiene dependencias y servicios históricos de laboratorio/chaos; incluye `IS_BENCHMARK=1` para `llm_worker`, puertos publicados de servicios fake/chaos y un `build` heredado. **No es por sí solo un lanzamiento canónico G3 verificado ni un despliegue productivo validado**.
+- `docker-compose.runtime.yml`: override del root de estado compartido (`g3_runtime_state`, `g3_runtime_data`, `g3_runtime_output`), entorno de SQLite y selección de G3 con `IS_BENCHMARK=0`; reemplaza dependencias del `llm_worker` y pone fake-gemini/toxiproxy bajo perfil `lab`. Sus `!override`/`!reset` necesitan versión de Compose compatible. **Inspeccionar el Compose efectivo** antes de asumir que un servicio fue desactivado.
 - `docker-compose.convergence-lab.yml`: **override instrumental de C0–C2**, con imagen local pinneada, fuentes actuales en `/workspace:ro`, red `chaos_net internal:true`, `g3_fake` interno, UID10001 y volúmenes aislados. Nunca confundirlo con instalación productiva.
 
 El servicio que en Compose se llama `llm_worker` ejecuta **`runtime/engine.py`** y **NO** `apps/llm_workers/__main__.py`. Tampoco se autoriza usar `docker-compose.golden.yml` como raíz productiva. [Runbook seguro](LABORATORIO_Y_REPRODUCCION.md).
@@ -164,7 +177,7 @@ El servicio que en Compose se llama `llm_worker` ejecuta **`runtime/engine.py`**
 | `apps/compiler/tectonic_runner.py::HostTectonicRunner` | compilación física PDF por Tectonic |
 | `core/compiler/assembler.py` / `core/compiler/rendering/*` | geometría, activos y ensamblado documental |
 
-**Matiz sobre G5:** `CQRSAssemblyContextResolver` registra proyecciones faltantes y construye el contexto; **no atribuirle rechazo absoluto si ese chequeo lo ejecuta una capa posterior**. Seguir `CompilationService`/`DocumentAssembler` antes de modificar la política de ausencia de materialización.
+**Política G5 real (importante al cambiar el assembler):** `CQRSAssemblyContextResolver.resolve` verifica AST, unicidad, continuidad de `sequence_id` **antes** de filtrar `OMIT`, y obtiene las proyecciones requeridas por versión. Si faltan, **las registra**, pero no decide el rechazo. En la composición de `apps/compiler/__main__.py` y del foreground `apps/cli/pdf_product.py`, `DocumentAssembler` tiene `AssemblyPolicy(tolerance_ratio=0.05, allow_fallback=True, degradable_failures=frozenset())`: **si falta más del 5 % de nodos ensamblables, rechaza; si falta hasta el 5 %, puede aceptar como `DEGRADED`**, pero `CompilationService` debe obtener el payload de fallback con integridad por `chunk_id`/`payload_sha256` y aún puede fallar. **No afirmar** que cualquier falta de proyección causa rechazo inmediato ni que la tolerancia permite reconstruir información arbitraria. No se acreditó calidad científica en casos degradados.
 
 ## 4. Mapa de datos, IDs y autoridad
 
@@ -192,7 +205,7 @@ La clave de un resultado legítimo está ligada a una **generación** y a su ide
 | Materialized | `materialized.db` / `MAT_DB_PATH` | proyecciones por `node_id` y versión; publicación G3 verificada |
 | Documentos/perfil | `documents.db` y perfil | perfil generado en OCR; datos auxiliares para G5 |
 | Event/system | `event.db` y plano de sistema | eventos, conciliación y autoridad auxiliar; no es fuente única del documento |
-| AST/activos | `ASTRegistry` + filesystem del workspace | generación inmutable por documento/AST y recursos de render |
+| AST/activos | `data/ast_cache/<document_id>.<ast_hash>.ast.json` + recursos de render | `ASTRegistry.register_ast` usa temporal + `os.replace` y una caché RAM por proceso; G3/G5 reabren desde archivo por identidad. El registro AST no comparte commit con `queue.db`/`fsm.db` |
 | PDF | `COMPILER_OUTPUT_DIR` → `translated_<document_id>.pdf` | publicación física G5 fenced, no certificado de fidelidad |
 
 `infra/db/connection.py` redirige **solo** archivos `infra/db/*.db` cuando está declarado `SQLITE_STATE_DIR`; fuera de opt-in resuelve contra `APP_ROOT` o el root de código. **No** asumir que una variable del host configura automáticamente todos los servicios: revisar Compose efectivo. `get_connection` usa SQLite WAL, `synchronous=NORMAL`, busy timeout y conexiones restringidas por hilo. Para queue, `fsm_db` se adjunta si existe; una consulta de autoridad debe verificar el alias y no crear la FSM silenciosamente.
@@ -214,7 +227,7 @@ stateDiagram-v2
     COMPLETED --> [*]
 ~~~
 
-La figura muestra el **camino positivo**. El grafo completo de transiciones, incluidos `FAILED_RETRYABLE`, `FAILED_FATAL`, `STALLED` y `CANCELLED`, está en `core/execution/state.py::LEGAL_TRANSITIONS`. Las transiciones no deben codificarse nuevamente fuera de esa autoridad.
+La figura muestra **solo el camino positivo de la FSM documental**; no es el estado de las unidades G3 ni de las tareas ASSEMBLER. El grafo legal con `FAILED_RETRYABLE`, `FAILED_FATAL`, `STALLED` y `CANCELLED` se define en `core/execution/state.py::LEGAL_TRANSITIONS` para el validador de comandos. **G5 también cambia estados mediante SQL fenced directamente en `AssemblyLeaseRepository`**, bajo CAS/lease y `fsm_db` ATTACH: si cambia el grafo legal, hay que comprobar **ambos mecanismos**, no asumir que todo pasa por `DocumentCommandHandler`.
 
 **Máquina de tareas G3 (simplificada):** `PENDING/RETRYABLE_ERROR` → claim `PROCESSING` con `execution_id` → `RESULT_STAGED` con receipt → `COMPLETED`, después de publicación verificada. En error de efecto remoto incierto: `G3_EXTERNAL_UNKNOWN` **no runnable**, requiere disposición humana; no equivale a retry seguro. En G5 las fases de ensamblado se protegen con lease y `state_version`, y un worker anterior no puede publicar ni marcar FAILED al nuevo propietario.
 
@@ -275,9 +288,9 @@ La evidencia operativa fue reportada por el owner; no existen logs brutos comple
 
 ## 10. Regla editorial para el próximo cambio arquitectónico
 
-1. Identificar commit exacto, archivo y **productor/consumidor** afectados en `3 y `6.
+1. Identificar commit exacto, archivo y **productor/consumidor** afectados en las secciones 3 y 6.
 2. Revisar D-1/D-2 y NADR FROZEN aplicables; un Atlas descriptivo no habilita alterar normas.
-3. Demostrar con código y test focal que la identidad, autoridad y barreras `5` siguen válidas; una desviación debe clasificarse, no esconderse.
+3. Demostrar con código y test focal que la identidad, autoridad y barreras de la sección 5 siguen válidas; una desviación debe clasificarse, no esconderse.
 4. Actualizar **este Atlas en el mismo PR de cambio de ruta**: diff de nodos/edges, interfaces, estado, evidencia y cobertura. No abrir una segunda guía de arquitectura competidora.
 5. Registrar fecha, commit testificado, prueba y límites; si no hubo test dinámico, escribir `INSPECCIÓN ESTÁTICA`, nunca `ACREDITADO`.
 6. Mantener el runbook de Docker separado para comandos; conservar el expediente forense anterior sin reescribir observaciones históricas.
