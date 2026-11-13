@@ -414,10 +414,10 @@ if ($LASTEXITCODE -ne 0) { throw "STOP: no se permite la admisión de C.8" }
 
 ### C.8. Única admisión CLI, sin foreground ni repetición
 
-**[PATRÓN EJECUTADO POR OWNER EN C2].** La CLI debe ejecutarse **en el contenedor OCR ya iniciado**, compartiendo realmente `/app/data/inbox` con los daemons. `--run` está prohibido para esta modalidad.
+**[INTERFAZ CLI ACREDITADA; INVOCACIÓN FUTURA SIMPLIFICADA].** En el C2 original, el owner utilizó un **contenedor efímero de `ocr_router` mediante `docker compose run`**, con guardas de preadmisión y una única llamada a `subprocess.run` sobre la CLI. Aquí las guardas están separadas en C.7 y se ejecuta directamente la misma CLI desde otro contenedor efímero, usando los **mismos volúmenes de inbox y SQLite** que los daemons. **No** se ejecuta `translate --run` ni se usa `exec` sobre el proceso daemon. El comando exacto abreviado todavía no es un testigo independiente de E2E futuro.
 
 ~~~powershell
-& docker @dc exec -T ocr_router python -B -m apps.cli.main translate $InsidePdf --inbox-dir /app/data/inbox
+& docker @dc run --rm --no-deps --pull never -T --user 10001:10001 ocr_router python -B -m apps.cli.main translate $InsidePdf --inbox-dir /app/data/inbox
 if ($LASTEXITCODE -ne 0) { throw "STOP: admisión fallida, NO repetir" }
 Write-Output "C2_CLI_ADMISSION_RETURNED (no significa COMPLETED)"
 ~~~
@@ -465,7 +465,7 @@ if state == "COMPLETED":
 if state in ("FAILED_FATAL","FAILED_RETRYABLE","STALLED","CANCELLED"):
     print("C2_POLL_STOP:FAILED_OR_STALLED")
     sys.exit(21)
-if state not in ("CREATED","PARSING","PROCESSING","READY_FOR_ASSEMBLY","ASSEMBLING","COMPILING"):
+if state not in ("CREATED","PARSING","PROCESSING","READY_FOR_ASSEMBLY","ASSEMBLING","READY_FOR_COMPILATION","COMPILING"):
     print("C2_POLL_STOP:UNEXPECTED_STATE")
     sys.exit(21)
 print("C2_POLL_PENDING")
@@ -588,7 +588,7 @@ print("C2_NEW_GENERATION_SQLITE_AND_PDF_AUDIT_PASS")
 '@
 & docker @dc run --rm --no-deps --pull never -T --user 10001:10001 ocr_router python -B -c $auditCode $RunId
 if ($LASTEXITCODE -ne 0) {
-    Write-Warning "Auditoría NO PASS: clasificar FSM, tasks y logs antes de decidir"
+    throw "STOP: auditoría C.9 NO PASS; clasificar FSM, tasks y logs. No continuar a C.9 bis ni C.10 como PASS"
 }
 ~~~
 
