@@ -299,21 +299,9 @@ Para lectura de estados y logs acotados (sin imprimir env):
 
 **Cuatro servicios `running` no prueban resultado PDF.** No levantar `toxiproxy`/`fake-gemini` ni publicar puertos.
 
-### C.7. Única admisión CLI, sin foreground ni repetición
+### C.7. Guardia obligatoria antes de admitir un PDF
 
-**[PATRÓN EJECUTADO POR OWNER EN C2].** La CLI debe ejecutarse **en el contenedor OCR ya iniciado**, compartiendo realmente `/app/data/inbox` con los daemons. `--run` está prohibido para esta modalidad.
-
-~~~powershell
-& docker @dc exec -T ocr_router python -B -m apps.cli.main translate $InsidePdf --inbox-dir /app/data/inbox
-if ($LASTEXITCODE -ne 0) { throw "STOP: admisión fallida, NO repetir" }
-Write-Output "C2_CLI_ADMISSION_RETURNED (no significa COMPLETED)"
-~~~
-
-OCR sondea el inbox y archiva o envía a `error`; G3 procesa el `ChunkPlan` y G5 compila a PDF. **No repetir admisión** para forzar progreso. Leer FSM/receipts/logs del proyecto nuevo con los próximos bloques. Un HTTP 422 o `G3_EXTERNAL_UNKNOWN` obliga STOP sin segundo POST.
-
-### C.7 bis. Guardia obligatoria ANTES de ejecutar la admisión de C.7
-
-**Este bloque debe ejecutarse entre C.6 y C.7, ANTES de la primera admisión.** Comprueba identidad, ausencia de generación anterior, inbox vacío y SQLite ya inicializado, desde un **proceso RO separado**. El RUN-ID nuevo no basta por sí solo para demostrar que la fuente no tiene una fila previa.
+**Este bloque debe ejecutarse después de C.6 y antes de C.8, ANTES de la primera admisión.** Comprueba identidad, ausencia de generación anterior, inbox vacío y SQLite ya inicializado, desde un **proceso RO separado**. El RUN-ID nuevo no basta por sí solo para demostrar que la fuente no tiene una fila previa.
 
 ~~~powershell
 $guardCode = @'
@@ -344,12 +332,24 @@ for name, query in (
 print("C2_PRE_ADMISSION_FRESH_GENERATION_PASS:", document_id)
 '@
 & docker @dc run --rm --no-deps --no-build --pull never -T --user 10001:10001 ocr_router python -B -c $guardCode $RunId
-if ($LASTEXITCODE -ne 0) { throw "STOP: no se permite la admisión de C.7" }
+if ($LASTEXITCODE -ne 0) { throw "STOP: no se permite la admisión de C.8" }
 ~~~
 
 **Interpretación:** este guard **no** crea ni modifica generación; solo verifica condiciones previas. Si falla, no enviar el PDF ni reactivar un proyecto con estado desconocido.
 
-### C.8. Auditoría durable SQLite + PDF desde contenedor separado (RO)
+### C.8. Única admisión CLI, sin foreground ni repetición
+
+**[PATRÓN EJECUTADO POR OWNER EN C2].** La CLI debe ejecutarse **en el contenedor OCR ya iniciado**, compartiendo realmente `/app/data/inbox` con los daemons. `--run` está prohibido para esta modalidad.
+
+~~~powershell
+& docker @dc exec -T ocr_router python -B -m apps.cli.main translate $InsidePdf --inbox-dir /app/data/inbox
+if ($LASTEXITCODE -ne 0) { throw "STOP: admisión fallida, NO repetir" }
+Write-Output "C2_CLI_ADMISSION_RETURNED (no significa COMPLETED)"
+~~~
+
+OCR sondea el inbox y archiva o envía a `error`; G3 procesa el `ChunkPlan` y G5 compila a PDF. **No repetir admisión** para forzar progreso. Leer FSM/receipts/logs del proyecto nuevo con los próximos bloques. Un HTTP 422 o `G3_EXTERNAL_UNKNOWN` obliga STOP sin segundo POST.
+
+### C.9. Auditoría durable SQLite + PDF desde contenedor separado (RO)
 
 **[AUDITOR PROPUESTO, NUEVO].** Reusar exactamente `$dc` y `$RunId` de C.1; ejecutarlo **sin volver a admitir**. Imprime FSM, plan, tareas, receipts, publicación/proyecciones y PDF. Si aún está procesando, devuelve `NOT_YET_COMPLETED_NO_REINGEST`: esperar dentro de un plazo acotado y **repetir únicamente esta lectura**. Una excepción, un PDF corrupto o `UNKNOWN` no son permiso para arrancar otra vez.
 
@@ -455,7 +455,7 @@ if ($LASTEXITCODE -ne 0) {
 
 **Alcance del oráculo:** validación estructural y durable, no cobertura científica. `COMPLETED`, receipt y PDF real pueden coexistir con traducción fake. El testigo C2 histórico tenía 4 nodos, 2 unidades y 4 proyecciones; **no** exigir esos números a una fixture distinta. Para una prueba mixta deberá añadirse además una aserción por `chunk_id`: `PRESERVE` con `raw_response NULL` y **cero POST** asociado.
 
-### C.9. Conteo HTTP fake independiente de SQLite
+### C.10. Conteo HTTP fake independiente de SQLite
 
 **[CÓDIGO / OBSERVADO EN C2]:** el fake escribe una línea JSON compacta para cada `G3_FAKE_POST_ATTEMPT`, `G3_FAKE_REQUEST_ACCEPTED` o `G3_FAKE_REQUEST_REJECTED`. El recuento de POST **no se infiere de receipts ni de un `logs --tail`**. El siguiente comando inspecciona los **logs completos del fake de este proyecto nuevo**; no imprimir el cuerpo del prompt ni env.
 
@@ -474,7 +474,7 @@ Para una ejecución **fresca con fake no reiniciado**, la cardinalidad esperada 
 
 **Referencia original C2, NO ORÁCULO DE NUEVA FIXTURE:** fuente 1544 bytes SHA `28a53af840244e4022afb08eb800e6348a866b957779e5b5753215afbc158d0f`; AST `b0b4cb12ea5e2a871a8789e5228e428b10eca04380e5a95503ff4f61c89f9c4a`, manifiesto `7724718fd66aff7b570f70a1dad828b2d3391abd14c47ef32fd12fb4a487229d`; una PRESERVE + una TRANSLATE, un POST 200, dos receipts, una publicación, 4 proyecciones, FSM COMPLETED v7 y PDF 7050 bytes SHA `71f209255c923daef84e44e1ae1bf642dfe5270e862eadedb0709b94ee62bfe3`. [Acta íntegra C2](https://github.com/RDsanchez-git/translator_pdf/pull/46#issuecomment-6837871200).
 
-### C.10. Detener, preservar y limpiar solo recursos nuevos
+### C.11. Detener, preservar y limpiar solo recursos nuevos
 
 Después del PASS o de cualquier STOP, **no lanzar otra admisión**. Guardar primero resultados, IDs, stdout, logs saneados, timestamp UTC, SHA de la fuente/AST/plan/PDF, estados/receipts y presupuesto usado. Para una snapshot SQLite con `-wal`/`-shm`, **no copiar un .db aislado mientras hay escritores**; usar mecanismo consistente autorizado.
 
