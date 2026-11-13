@@ -1,6 +1,6 @@
 # Plan de implementación de la convergencia operativa única PDF→PDF — R1/R2/R3
 
-**Versión:** v1.0.19 · **Fecha:** 2026-11-09 · **Estado:** especificación operativa versionada; **testigo funcional PDF→PDF acreditado en laboratorio el 2026-11-12, sin cierre global ni certificación**  
+**Versión:** v1.0.20 · **Fecha:** 2026-11-09 · **Estado:** especificación operativa versionada; **testigo funcional PDF→PDF acreditado en laboratorio el 2026-11-12, sin cierre global ni certificación**  
 **Repositorio / rama de referencia:** `RDsanchez-git/translator_pdf` / `pipeline_stabilization`  
 **Commit inspeccionado:** `6a5ee41886b935c2c0f3a107a42620d93de31efb` (#40 MERGED). Los caminos, configuraciones y tests descritos se refieren a **ese commit**, no a una instalación desplegada.  
 **Documento rector:** [Decisión D-1/D-2, cabecera vigente, §§0, 2, 6–8](DECISION_CANDIDATE_CONVERGENCIA_PDF_PDF_D1_D2_20261105.md). El nombre histórico `CANDIDATE` no revoca la **aprobación del owner del 2026-11-08**.  
@@ -253,15 +253,17 @@ La instalación ya aprobada del código #40 **no** es autorización automática 
 5. **C4 / T06:** sellar arranques y documentar `KEEP/ADAPT/NO_PRODUCTIVO/RETIRE_CANDIDATE` por consumidor real. Cambios pequeños y separados solo si los falsadores lo piden.
 
 **Definition of Done — etiqueta interna `CONVERGENCIA_OPERATIVA_ACREDITADA`:**
-- [ ] CLI única entrega PDF al inbox realmente compartido, identidad por bytes reproducida.
-- [ ] OCR único construye AST, perfil y manifest/snapshots verificables.
-- [ ] Un solo G3 consume y publica con identidad/receipt/fencing; cache antigua deshabilitada.
-- [ ] Un solo G5 usa proyecciones y activos de la generación y publica PDF real.
-- [ ] Testigo multiproceso en volúmenes nuevos, con parser/Tectonic reales y proveedor controlado.
-- [ ] Reinicios/STOP focales no producen egress repetido incierto, stale writes ni falsa publicación.
-- [ ] Compose efectivo y entrypoints no seleccionan ejecutores productivos R1/R3.
-- [ ] Logs/artefactos pinneados y matriz actualizada con `AS-IS verificado` vs `TO-BE implementado`.
-- [ ] No se alteraron oráculos STEM ni contratos FROZEN, ni se hizo despliegue/cutover silencioso.
+- [x] CLI única entrega PDF al inbox realmente compartido, identidad por bytes reproducida.
+- [x] OCR único construye AST, perfil y manifest/snapshots verificables.
+- [x] Un solo G3 consume y publica con identidad/receipt/fencing; cache antigua deshabilitada.
+- [x] Un solo G5 usa proyecciones y activos de la generación y publica PDF real.
+- [x] Testigo multiproceso en volúmenes nuevos, con parser/Tectonic reales y proveedor controlado.
+- [x] Reinicios/STOP focales no producen egress repetido incierto, stale writes ni falsa publicación.
+- [x] Compose efectivo y entrypoints no seleccionan ejecutores productivos R1/R3.
+- [x] Logs/artefactos pinneados y matriz actualizada con `AS-IS verificado` vs `TO-BE implementado`.
+- [x] No se alteraron oráculos STEM ni contratos FROZEN, ni se hizo despliegue/cutover silencioso.
+
+**Cotejo de cierre DoD, 2026-11-12:** 9/9 condiciones satisfechas dentro del laboratorio de convergencia. [Acta final de contraste](https://github.com/RDsanchez-git/translator_pdf/pull/46#issuecomment-6841545770) @ código `f20b2aaa618726e72b205b241595a98d2112903a`: C0–C4 y T01–T07 COMPLETADOS, 6/6 tests C4 (exit 0) y evidencias C2/C3 registradas por el owner. **Etiqueta interna alcanzada: `CONVERGENCIA_OPERATIVA_ACREDITADA` — solo topología/control de laboratorio PDF→PDF con fake.** El punto 8 es PASS documental por actas, hashes y trazas resumidas; no hay volcado completo de logs brutos adjunto a Git ni ejecución de CI independiente. Consumidores externos de R1/R3 siguen `UNKNOWN`; el PR #46 continúa OPEN · DRAFT, sin merge ni cutover. La etiqueta no autoriza producción, proveedor real, científica/STEM, W09, ni modifica generaciones históricas inciertas.
 
 **Resultado que NO se obtiene con este DoD:** `PRODUCT_READINESS=PASS`, traducción lingüística evaluada, equivalencia matemática W09, soporte de todos los PDFs, costos/proveedor real acreditados, política universal de rollback, eliminación total de código legacy, o aprobación de actividades fuera de D-1/D-2.
 
@@ -273,7 +275,7 @@ Este documento es el **único tablero de avance de la convergencia operativa**. 
 
 **Estados permitidos:** `PENDIENTE` (sin evidencia de cierre en el HEAD), `EN_CURSO` (se trabaja en ese delta, sin cierre), `BLOQUEADO` (impedimento reproducible con causa/evidencia), `COMPLETADO` (criterios PASS cubiertos y evidencia verificable) y `NO_APLICA` (solo para una prueba opcional, con justificación y sin eludir un invariante obligatorio). Un FAIL o PRECONDITION_BLOCKED **nunca** es `COMPLETADO`. No se deduce `COMPLETADO` de un documento, PR abierto, CI histórica, salida PDF fake ni ausencia de errores visibles.
 
-**Registro de deltas — actualizado 2026-11-12 (PR #46, runtime @ `93a8f9021cbb95c92c9242d68fd6f1dfe9eb3d0f`, test adicional @ `21eb7da8baf1ac86a288916e112f9e67ca652494`):** **C0/T01, C1/T02 y C2/T03–T04 `COMPLETADO`**. C0 ratificado por el owner y respaldado por preflight Compose, bootstrap fresco UID10001, SQLite persistente, rutas, dependencia fake/worker y testigo multiproceso; el inventario de todos los consumidores y ejecutores R1/R3 es **C4/T06**, no precondición adicional de C0. C2 cerrado por cadena automática y falsadores negativos, con PDF Tectonic real y HTTP fake independiente. **C3/T05–T07 `COMPLETADO`** por recuperación segura/STOP y equivalencia foreground en workspace independiente con el mismo documento, AST, manifest, receipts y proyecciones del testigo multiproceso C2. **C4/T06 `COMPLETADO`** en el alcance de roots soportados en Git: censo R1/R3, CLI R1 fail-closed, benchmarks segregados, R3 no seleccionado en Compose/Dockerfile y 6 tests de entrada/AST PASS. **C0–C4 están `COMPLETADO` como deltas, pero el DoD §8 requiere cotejo final explícito antes de asignar `CONVERGENCIA_OPERATIVA_ACREDITADA`**. Consumidores externos `UNKNOWN`; PR sigue Draft; no readiness científica/productiva.
+**Registro de deltas — actualizado 2026-11-12 (PR #46, runtime @ `93a8f9021cbb95c92c9242d68fd6f1dfe9eb3d0f`, test adicional @ `21eb7da8baf1ac86a288916e112f9e67ca652494`):** **C0/T01, C1/T02 y C2/T03–T04 `COMPLETADO`**. C0 ratificado por el owner y respaldado por preflight Compose, bootstrap fresco UID10001, SQLite persistente, rutas, dependencia fake/worker y testigo multiproceso; el inventario de todos los consumidores y ejecutores R1/R3 es **C4/T06**, no precondición adicional de C0. C2 cerrado por cadena automática y falsadores negativos, con PDF Tectonic real y HTTP fake independiente. **C3/T05–T07 `COMPLETADO`** por recuperación segura/STOP y equivalencia foreground en workspace independiente con el mismo documento, AST, manifest, receipts y proyecciones del testigo multiproceso C2. **C4/T06 `COMPLETADO`** en el alcance de roots soportados en Git: censo R1/R3, CLI R1 fail-closed, benchmarks segregados, R3 no seleccionado en Compose/Dockerfile y 6 tests de entrada/AST PASS. **C0–C4 están `COMPLETADO`** y, tras cotejo documental explícito de las nueve casillas DoD §8, se registra la etiqueta interna **`CONVERGENCIA_OPERATIVA_ACREDITADA`**, exclusivamente laboratorio PDF→PDF con fake; no hay volcado de logs brutos a Git ni CI independiente y los consumidores externos permanecen `UNKNOWN`. PR sigue OPEN · DRAFT; no readiness científica/productiva.
 
 | Delta | Estado | Pruebas para cerrarlo | Evidencia PASS / bloqueo | Última revisión |
 |---|---|---|---|---|
@@ -335,6 +337,8 @@ Este documento es el **único tablero de avance de la convergencia operativa**. 
 | 2026-11-12 | v1.0.18 | **T07 y C3 COMPLETADO**: foreground `translate --run` aislado sobre la misma fixture C2, invariantes plan/FSM/receipts/publicación/PDF y fake HTTP verificados; 1 ejecución exit 0 y limpieza temporal PASS. T05 ya completo; C4/T06 sigue pendiente; PR Draft sin cierre global ni certificación | [Acta T07](https://github.com/RDsanchez-git/translator_pdf/pull/46#issuecomment-6840717576); testigo `ff277936`; PDF foreground `9f70c225…5325b4` |
 
 | 2026-11-12 | v1.0.19 | **T06 y C4 COMPLETADO (roots versionados)** tras censo `git grep` y refactor mínimo de CLI R1 a módulo compat; 6 tests focales PASS/exit 0. Matriz v1.0.2 actualizada solo consumidores E02/E06/E09/E13/E47/E71/E89; R3 no seleccionado y externos UNKNOWN. C0–C4 completados; **pendiente cotejo DoD §8 antes de etiquetar convergencia global**. PR Draft, sin cutover | [Acta T06](https://github.com/RDsanchez-git/translator_pdf/pull/46#issuecomment-6841122597); `1b515cb2`; matriz `a666b635` |
+
+| 2026-11-12 | v1.0.20 | **DoD §8 cotejado 9/9 y etiqueta interna `CONVERGENCIA_OPERATIVA_ACREDITADA` registrada** para el laboratorio PDF→PDF con proveedor fake, sin cutover ni certificación científica. Los 17 archivos del PR no modifican oráculos STEM/FROZEN; blobs OCR/G3/G5/PDF product iguales al sujeto C2; la CLI conserva `handle_translate` y `parse_arguments` tras C4. Matriz v1.0.3 corrige su contexto histórico. Evidencia de owner en actas, sin logs brutos anexos ni CI independiente; externos UNKNOWN | [Acta de cotejo DoD](https://github.com/RDsanchez-git/translator_pdf/pull/46#issuecomment-6841545770); matriz `23331048`; runtime `f20b2aa` |
 
 ## 9. Registro de cambios propuestos y disciplina de integración
 
