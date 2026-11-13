@@ -4,6 +4,28 @@
 
 **Commit de integración:** [6818e86e21b14e77a606f0c863e9c199b4627601](https://github.com/RDsanchez-git/translator_pdf/commit/6818e86e21b14e77a606f0c863e9c199b4627601), PR [#46](https://github.com/RDsanchez-git/translator_pdf/pull/46), HEAD del PR probado b01f1ca740db7f048fcb0f3a83505977d27d72af.
 
+## 0. Decisión final y DoD de la única ruta
+
+**D-1 aprobada por el owner el 2026-11-08:** una entrada contractual PDF→PDF mediante CLI, con procesos especializados OCR, G3 y G5; «única ruta» no significa «único proceso». Ningún ejecutor R1/R3 alternativo queda seleccionado como root productivo en la configuración versionada acreditada.
+
+**D-2:** continuidad OCR → G3 → G5 sobre planes, contexto, receipts, proyecciones y versiones durables. Capacidades históricas de R1 (validación/semántica) y R3 (operación/recovery) pueden permanecer como **bibliotecas**, sin levantar otros engines. Los posibles lanzadores externos a Git continúan `UNKNOWN`.
+
+**Definition of Done (C0–C4, 9/9):**
+
+| # | Criterio acreditado en el laboratorio con fake |
+|---|---|
+| 1 | CLI identifica bytes por SHA-256 y admite PDF en inbox realmente compartido |
+| 2 | OCR produce AST, perfil, plan y snapshots verificables |
+| 3 | G3 único con receipts, fencing y caché legacy deshabilitada |
+| 4 | G5 único usa proyecciones y activos para producir PDF físico |
+| 5 | Testigo multiproceso con volúmenes nuevos, parser y Tectonic reales, proveedor controlado |
+| 6 | Falsadores focales de recuperación y STOP sin reenvío externo incierto, stale writes ni falsa publicación |
+| 7 | Compose efectivo y roots soportados excluyen ejecutores productivos R1/R3 |
+| 8 | Actas, hashes, estados y censo de consumidores identificables |
+| 9 | Sin alterar oráculos STEM/NADR FROZEN ni realizar despliegue/cutover silencioso |
+
+**Dictamen:** `CONVERGENCIA_OPERATIVA_ACREDITADA` en **laboratorio**; no `PRODUCT_READINESS=PASS`. La acreditación no cubre traducción real, calidad STEM/W09, cobertura de todos los PDFs, proveedor pago, despliegue ni una prueba independiente con logs íntegros. [Acta DoD 9/9 de PR #46](https://github.com/RDsanchez-git/translator_pdf/pull/46#issuecomment-6841545770).
+
 ## 1. Testigos y actas
 
 | Hito | Hecho acreditado | Acta |
@@ -56,9 +78,9 @@ La comparación documental del DoD registra que los blobs OCR/G3/G5/foreground e
 - W09, preservación de ecuaciones/tablas/figuras en corpus heterogéneo, evaluación lingüística con proveedor real, costos y límites productivos, aprobación de operación/rollout/cutover.
 - Efecto externo incierto de generaciones históricas: G3_EXTERNAL_UNKNOWN conserva su cuarentena sin retry.
 - Llamadores externos a Git de R1/R3 siguen UNKNOWN; NO retirar módulos de compatibilidad por inferencia.
-- Atlas AS-IS y Charter DRAFT siguen siendo históricos con fecha/autoridad propias; la etiqueta de convergencia no los convierte en FROZEN ni reemplaza NADR.
+- La evidencia se circunscribe a los commits y ensayos identificados; no reemplaza NADR FROZEN ni asegura todas las ventanas de fallo del producto.
 
-**Cierre administrativo propuesto:** plan de C0–C4 marcado COMPLETADO/MERGED y archivado como registro ejecutado. Ver la [ruta vigente](ATLAS_RUTA_OPERATIVA_UNICA_PDF_PDF.md) y el [runbook](LABORATORIO_Y_REPRODUCCION.md).
+**Cierre administrativo efectivo:** C0–C4 y DoD 9/9 completos; PR #46 y PR #47 fusionados en `pipeline_stabilization`. **Documentos vigentes:** [Atlas único](ATLAS_RUTA_OPERATIVA_UNICA_PDF_PDF.md) y [runbook del laboratorio](LABORATORIO_Y_REPRODUCCION.md). No persiste ningún plan de convergencia activo.
 
 
 ## 5. Índice de custodia y condiciones para evidencia futura
@@ -66,6 +88,6 @@ La comparación documental del DoD registra que los blobs OCR/G3/G5/foreground e
 - **Fuente primaria:** actas y discusión del PR #46, referenciadas arriba, más los commits exactos; los ZIP históricos G3/G4/G5 y la evidencia host Windows siguen siendo antecedentes de custodia externos a Git, no anexos nuevos de la campaña C0–C4.
 - **Ausencias declaradas:** no se adjuntó un volcado íntegro de los logs brutos ni todos los binarios del laboratorio C2 al repositorio; los contadores/hashes/actas no deben describirse como reproducción forense completa independiente.
 - **Para una corrida futura:** conservar commit, digests, versión y modelo de Compose, RUN-ID no reciclado, hash de input, hashes AST/manifiesto, IDs de tareas/leases, estados/resultados persistidos, conteo HTTP, PDF hash/estructura, códigos de salida y STOP; separar factibilidad del fixture de cobertura científica. Consultar [runbook](LABORATORIO_Y_REPRODUCCION.md).
-- **Retención documental:** no reemplazar ni eliminar actas I0, manifiestos o firmas SHA con un resumen de handoff. El inventario histórico se conserva hasta un censo de referencias y decisión de archivo/borrado independiente.
+- **Documentación consolidada:** los documentos experimentales previos a la ruta unificada se retiraron del árbol actual por decisión del owner. Para auditoría de la convergencia vigente se conservan los enlaces a actas/commits de PR #46/#47; este handoff no restablece aquellos planes como instrucciones.
 
 El siguiente cambio del pipeline debe crear **evidencia nueva sobre su propio SHA**, no heredar una etiqueta PASS de 2026-11-12. El cierre aquí es solo convergencia de topología/control con proveedor simulado.

@@ -13,7 +13,7 @@
 
 **No acreditado:** fidelidad matemática, integridad del corpus científico, traducción lingüística real, proveedor de pago, toda figura/tablas/vector, coste/SLO productivo, despliegue/cutover, actualización segura de cualquier generación anterior ni ejecución en otra máquina. El rechazo `B02_UNREPRESENTED_VECTOR_DRAWING` es una barrera válida, no motivo para falsear el AST.
 
-**Jerarquía:** contratos/NADR FROZEN aplicables → decisión D-1/D-2 aprobada → código y ensayos con commit identificable → [plan C0–C4 ejecutado](../00-foundation/PLAN_IMPLEMENTACION_CONVERGENCIA_OPERATIVA_UNICA_PDF_PDF_V1_20261109.md) → observaciones históricas. El [Atlas forense anterior](../00-foundation/PRODUCTION_PIPELINE_EXECUTION_ATLAS.md) sigue archivado como historia AS-IS de rutas competidoras; **este** Atlas documenta la ruta integrada. Para repetir ensayos consultar el [runbook separado](LABORATORIO_Y_REPRODUCCION.md); para sus pruebas e identidades consultar [acta final](EVIDENCIA_Y_CIERRE.md). No duplicar esos documentos aquí.
+**Jerarquía de uso vigente:** NADR FROZEN y normas aplicables → [decisión final D-1/D-2, DoD y actas C0–C4](EVIDENCIA_Y_CIERRE.md) → código del commit pinneado → **este Atlas** como mapa descriptivo de la ruta única. Para ensayos consultar el [runbook](LABORATORIO_Y_REPRODUCCION.md). Los documentos de variantes investigadas ya cumplieron su propósito y no deben utilizarse para cambiar el runtime actual.
 
 ## 1. Mapa estructural y fronteras de proceso
 
@@ -123,7 +123,7 @@ El servicio que en Compose se llama `llm_worker` ejecuta **`runtime/engine.py`**
 
 ## 3. Inventario ejecutable: archivo → símbolo → consumidor
 
-**Convención:** todas las rutas siguientes se verificaron frente al código fusionado en `6818e86`. Ruta en columna = archivo a inspeccionar antes de editar el contrato; funciones = puntos de unión relevantes, no un catálogo exhaustivo de 94 filas. El inventario histórico ampliado se conserva en la [matriz R1/R2/R3](../00-foundation/MATRIZ_VERSIONADA_COMPOSICION_DISPOSICION_R1_R2_R3_V1_20261109.md).
+**Convención:** las rutas y símbolos siguientes se verificaron frente al código fusionado en `6818e86`. Cada fila identifica archivo, frontera y consumidores relevantes de la **ruta única implementada**; no pretende ser un censo universal de código legacy o herramientas externas. Ante un cambio futuro, inspeccionar imports/callers en el HEAD real y los tests de la sección 6.
 
 ### 3.1 Admisión y parser
 
@@ -305,4 +305,4 @@ La evidencia operativa fue reportada por el owner; no existen logs brutos comple
 - [G5](https://github.com/RDsanchez-git/translator_pdf/blob/6818e86e21b14e77a606f0c863e9c199b4627601/apps/compiler/__main__.py), [lease/publish](https://github.com/RDsanchez-git/translator_pdf/blob/6818e86e21b14e77a606f0c863e9c199b4627601/infra/db/assembly_recovery.py), [resolver](https://github.com/RDsanchez-git/translator_pdf/blob/6818e86e21b14e77a606f0c863e9c199b4627601/core/compiler/context_resolver.py), [SQLite paths](https://github.com/RDsanchez-git/translator_pdf/blob/6818e86e21b14e77a606f0c863e9c199b4627601/infra/db/connection.py).
 - [Compose base](https://github.com/RDsanchez-git/translator_pdf/blob/6818e86e21b14e77a606f0c863e9c199b4627601/docker-compose.yml), [runtime](https://github.com/RDsanchez-git/translator_pdf/blob/6818e86e21b14e77a606f0c863e9c199b4627601/docker-compose.runtime.yml), [override laboratorio](https://github.com/RDsanchez-git/translator_pdf/blob/6818e86e21b14e77a606f0c863e9c199b4627601/docker-compose.convergence-lab.yml); [evidencias PR #46](EVIDENCIA_Y_CIERRE.md).
 
-**Decisión de mantenimiento:** **un Atlas vivo**, un runbook operativo, una acta de evidencia. El viejo Atlas queda como fuente de historia, no otra SSOT de rutas actuales.
+**Decisión de mantenimiento:** **un Atlas vivo**, un runbook operativo y un documento de evidencia/decisión. No mantener otro Atlas de variantes históricas en el árbol actual. Actualizar esta referencia en el mismo PR que cambie el runtime o sus contratos.
