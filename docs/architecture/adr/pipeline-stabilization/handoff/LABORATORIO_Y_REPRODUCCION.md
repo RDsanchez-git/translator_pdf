@@ -243,35 +243,78 @@ if ($LASTEXITCODE -ne 0) { throw "STOP: cache no sembrada" }
 
 Si la copia falla (montaje Windows, permisos, disco), **STOP**: no activar red, no sobrescribir. `--no-deps` evita volver a iniciar `db_bootstrap`; la imagen es la pinneada por Compose y no se permite build/pull.
 
-### C.5. Generar fixture sintética nueva fuera de inbox
+### C.5. Fixture mixta históricamente probada (PRESERVE + TRANSLATE)
 
-El generador `offline_pdf_lab._smoke_source` es código existente; se reutiliza en el nuevo volumen `data`. **Esta fixture puede no tener dos unidades PRESERVE/TRANSLATE como el C2 histórico**; no aplicar sus contadores como PASS obligatorio para este PDF.
+**[GENERADOR PROBADO EL 2026-11-12, adaptado a un proyecto futuro].** La conversación y el [acta original](https://github.com/RDsanchez-git/translator_pdf/pull/46#issuecomment-6837448665) contienen el generador del testigo automático, su `C2_AUTO_FIXTURE_PREFLIGHT_PASS` y exit 0. Produjo 4 nodos AST, 1 unidad PRESERVE, 1 TRANSLATE, 1544 bytes y SHA `28a53af840244e4022afb08eb800e6348a866b957779e5b5753215afbc158d0f`. **El mismo escenario ya se probó** y luego recorrió los tres daemons hasta el PDF.
+
+El código siguiente recupera el mismo diseño de PDF y las **mismas verificaciones de parser y plan** del testigo. Solo adapta el nombre del fichero a `/app/data/lab_fixtures/smoke_<RunId>.pdf` (referido en C.7–C.9). El nonce se genera nuevo, de modo que **no** se esperan los SHA históricos. El criterio de esta fase es **al menos un PRESERVE y un TRANSLATE/PARTIAL_TRANSLATE, comprobados con el parser real ANTES de admitir**. El generador `_smoke_source` queda para B03, no sustituye este falsador mixto C2. La variante de nombre futura no se ha ejecutado en otro RUN-ID.
 
 ~~~powershell
 $fixtureCode = @'
 from pathlib import Path
-from hashlib import sha256
-import sys
-from apps.lab.offline_pdf_lab import _smoke_source
+import hashlib, secrets, sqlite3, sys
+import pymupdf
+from apps.bootstrap.pipeline_factory import build_extraction_pipeline
+from core.ast.hashing import compute_ast_hash
+from core.chunking.contextual_plan import prepare_contextual_plan
+from core.validation.estimators import ExactBPEEstimator
+
 runid = sys.argv[1]
+inbox = Path("/app/data/inbox")
 path = Path("/app/data/lab_fixtures") / ("smoke_" + runid + ".pdf")
+fsm = Path("/app/state/db/fsm.db")
+def check(value, reason):
+    if not value:
+        raise SystemExit("C2_AUTO_FIXTURE_BLOCKED:" + reason)
+check(inbox.is_dir() and not list(inbox.glob("*.pdf")), "INBOX_NOT_EMPTY")
+check(fsm.is_file(), "FSM_MISSING")
+check(not path.parent.is_symlink(), "FIXTURE_DIR_SYMLINK")
 path.parent.mkdir(parents=True, exist_ok=True)
-if path.exists():
-    raise SystemExit("STOP_FIXTURE_ALREADY_EXISTS")
-_smoke_source(path)
+check(not path.exists() and not path.is_symlink(), "SOURCE_ALREADY_EXISTS")
+nonce = secrets.token_hex(12)
+with pymupdf.open() as pdf:
+    page = pdf.new_page(width=595, height=842)
+    page.insert_text((147, 145), "Automatic Pipeline Witness", fontsize=20)
+    page.insert_text((62, 210), "Scientific observations require careful and repeatable analysis.", fontsize=11)
+    page.insert_text((62, 255), "Researchers examine evidence before reporting their conclusions.", fontsize=11)
+    page.insert_text((62, 300), "This controlled laboratory fixture contains identifier " + nonce + ".", fontsize=11)
+    pdf.save(str(path))
+
 data = path.read_bytes()
-if not data.startswith(b"%PDF-"):
-    raise SystemExit("STOP_FIXTURE_HEADER")
-print("C2_FIXTURE_PATH:", path)
-print("C2_FIXTURE_BYTES:", len(data))
-print("C2_DOCUMENT_ID:", sha256(data).hexdigest())
+check(data.startswith(b"%PDF-") and not path.is_symlink(), "INVALID_SOURCE")
+document_id = hashlib.sha256(data).hexdigest()
+with sqlite3.connect(fsm.as_uri() + "?mode=ro", uri=True) as db:
+    db.execute("PRAGMA query_only=ON")
+    previous = db.execute("SELECT COUNT(*) FROM document_fsm WHERE document_id=?", (document_id,)).fetchone()[0]
+check(previous == 0, "PREEXISTING_FSM")
+ast = build_extraction_pipeline().parse(str(path))
+check(len(ast) >= 2, "INSUFFICIENT_AST")
+plan = prepare_contextual_plan(document_id=document_id, raw_ast=ast, estimator=ExactBPEEstimator()).plan
+ast_hash = compute_ast_hash(ast)
+check(plan.ast_hash == ast_hash, "AST_HASH_DRIFT")
+types = [getattr(u.chunk_type, "value", str(u.chunk_type)).lower() for u in plan.units]
+preserve = sum(t == "preserve" for t in types)
+translate = sum(t in ("translate", "partial_translate") for t in types)
+print("SOURCE_PATH:", path)
+print("DOCUMENT_ID:", document_id)
+print("AST_HASH:", ast_hash)
+print("PDF_BYTES:", len(data))
+print("AST_NODES:", len(ast))
+print("UNIT_TYPES:", types)
+print("PRESERVE_UNITS:", preserve)
+print("TRANSLATE_UNITS:", translate)
+print("PREEXISTING_FSM_ROWS:", previous)
+check(preserve >= 1, "NO_PRESERVE_UNIT")
+check(translate >= 1, "NO_TRANSLATE_UNIT")
+check(not list(inbox.glob("*.pdf")), "INBOX_CHANGED")
+print("C2_AUTO_FIXTURE_PREFLIGHT_PASS")
 '@
-& docker @dc run --rm --no-deps --pull never -T --user 10001:10001 ocr_router python -B -c $fixtureCode $RunId
-if ($LASTEXITCODE -ne 0) { throw "STOP: fixture no creada" }
+$fixtureCode | & docker @dc run --rm --no-deps --pull never -T --user 10001:10001 ocr_router python -B - $RunId
+if ($LASTEXITCODE -ne 0) { throw "STOP: parser no acreditó fixture mixta; NO admitir" }
 $InsidePdf = "/app/data/lab_fixtures/smoke_$RunId.pdf"
 ~~~
 
-**STOP si** no está vacío `/app/data/inbox` o si ya hay FSM con ese `document_id`. El OCR no debe reabrir generaciones completadas/incertidumbres para «probar otra vez»; ver bloque de auditoría RO en C.7 antes de tomar una decisión de reingesta.
+Este comando solo deja una fuente en `lab_fixtures`, fuera del inbox; no inicia OCR, G3 o G5 ni hace POST. **Ante un fallo no admitir ni sustituir silenciosamente por un PDF distinto.**
 
 ### C.6. Arrancar fake y tres daemons de la ruta oficial
 
