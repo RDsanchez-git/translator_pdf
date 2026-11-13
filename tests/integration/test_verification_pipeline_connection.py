@@ -1,144 +1,104 @@
-"""
-Verification Pipeline Connection Tests (NADR-F17BIS-25 §5.2 R7, parcial).
+"""Integration smoke for the *production extraction composition root*.
 
-Verifica que la cadena local de Continuous Verification funciona:
+Exercises build_extraction_pipeline() -> PdfParserAdapter -> parse(PDF) -> AST.
+A disposable, text-only PDF tests the happy path without requiring the
+copyright-restricted scientific baseline. A second PDF verifies B02 fail-close.
 
-    build_extraction_pipeline() → PdfParserAdapter → parse(pdf) → AST
-
-Estos tests son de integración: requieren filesystem del proyecto y
-PyMuPDF instalado. No ejecutan evaluación topológica ni consumen la
-baseline sellada (eso es Gate 2). Solo verifican la conexión entre
-el verification entry point y el production pipeline.
-
-NADR-F17BIS-25:
-- R7 (parcial): La cadena ENTRY_POINT → PRODUCTION_PIPELINE → CANDIDATE_AST
-  MUST estar completa y ser demostrable.
-
-Nota: La parte CI de R5-R7 se verifica en Gate 3 (Task 3.2.1-3.2.3).
+This is NOT Continuous Verification: NADR-F17BIS-25 requires the normative
+verification entry point to consume the *sealed canonical corpus* when
+producing scientific regression verdicts. These fixtures never replace it.
 """
 from __future__ import annotations
 
-import pathlib
+from pathlib import Path
 
+import fitz
 import pytest
 
 from apps.bootstrap.pipeline_factory import build_extraction_pipeline
+from core.execution.exceptions import LayoutRecoveryError
 from infra.adapters.pdf_parser import PdfParserAdapter
 
-# ── Paths relativos al root del proyecto ──────────────────────────────────────
-PROJECT_ROOT = pathlib.Path(__file__).resolve().parent.parent.parent
-CANONICAL_PDF_DIR = PROJECT_ROOT / "tests" / "corpus" / "canonical" / "pdf"
 
-# PDF más simple del corpus canónico (single page, trackeado en git)
-SAMPLE_CANONICAL_PDF = CANONICAL_PDF_DIR / "doc_01_single.pdf"
-
-
-def _require_canonical_pdf() -> pathlib.Path:
-    """Retorna el path al PDF canónico de muestra, o skip si no existe.
-
-    14 de 21 PDFs están gitignored (HITO 6.2 E-6.2-001). doc_01_single.pdf
-    está trackeado en git, pero si el workspace no lo tiene, skip.
-    """
-    if not SAMPLE_CANONICAL_PDF.exists():
-        pytest.skip(
-            f"Canonical PDF not available: {SAMPLE_CANONICAL_PDF}. "
-            f"This test requires the canonical corpus PDFs to be present "
-            f"locally. See HITO 6.2 E-6.2-001 for materialization gaps."
+@pytest.fixture
+def text_only_pdf(tmp_path: Path) -> Path:
+    """Representable source; keep vector drawings and external assets absent."""
+    path = tmp_path / "verification_text_only.pdf"
+    with fitz.open() as pdf:
+        page = pdf.new_page(width=595, height=842)
+        page.insert_text(
+            (72, 100),
+            "Controlled production extraction pipeline verification.",
+            fontsize=11,
         )
-    return SAMPLE_CANONICAL_PDF
+        page.insert_text(
+            (72, 140),
+            "Scientific observations must remain traceable.",
+            fontsize=11,
+        )
+        pdf.save(str(path))
+    return path
 
 
-# ── Tests: Conexión Entry Point → Production Pipeline ─────────────────────────
+@pytest.fixture
+def vector_pdf(tmp_path: Path) -> Path:
+    """A drawing the current PyMuPDF->Layout/AST route cannot represent."""
+    path = tmp_path / "verification_vector_unrepresented.pdf"
+    with fitz.open() as pdf:
+        page = pdf.new_page(width=595, height=842)
+        page.insert_text((72, 100), "Text plus an unsupported vector.", fontsize=11)
+        page.draw_line(fitz.Point(100, 160), fitz.Point(230, 220))
+        pdf.save(str(path))
+    return path
 
 
 @pytest.mark.integration
 class TestVerificationPipelineConnection:
-    """NADR-F17BIS-25 §5.2 R7 (parcial): la conexión local
-    build_extraction_pipeline() → parse(pdf) → AST funciona."""
+    """Smoke the actual extraction root, with positive and fail-closed PDFs."""
 
     def test_build_extraction_pipeline_returns_pdf_parser_adapter(self) -> None:
-        """build_extraction_pipeline() retorna un PdfParserAdapter funcional.
-
-        Verifica que la composition root canónica produce el tipo esperado
-        sin invocar I/O externo (no se parsea ningún PDF en este test).
-        """
+        """The production root builds the expected parser adapter."""
         pipeline = build_extraction_pipeline()
         assert isinstance(pipeline, PdfParserAdapter), (
-            f"build_extraction_pipeline() returned "
-            f"{type(pipeline).__name__}, expected PdfParserAdapter. "
-            f"NADR-F17BIS-25 §5.1 R1 requires the verification subject to "
-            f"be the production pipeline canonical composition root."
+            f"build_extraction_pipeline() returned {type(pipeline).__name__}, "
+            "expected PdfParserAdapter"
         )
 
-    def test_pipeline_extracts_nonempty_ast_from_canonical_pdf(self) -> None:
-        """El pipeline extrae un AST no vacío de un PDF del corpus canónico.
-
-        Verifica que la cadena parse() → AST funciona con un documento real.
-        No verifica contra la baseline sellada (eso es Gate 2).
-        """
-        pdf_path = _require_canonical_pdf()
+    def test_pipeline_extracts_nonempty_ast_from_text_pdf(
+        self, text_only_pdf: Path,
+    ) -> None:
+        """The production root maps representable PDF text to nonempty AST."""
         pipeline = build_extraction_pipeline()
+        nodes = pipeline.parse(str(text_only_pdf))
+        assert nodes is not None
+        assert len(nodes) > 0
 
-        nodes = pipeline.parse(str(pdf_path))
-
-        assert nodes is not None, (
-            "pipeline.parse() returned None. "
-            "NADR-F17BIS-25 §5.2 R7 requires a complete chain from "
-            "production pipeline to candidate AST."
-        )
-        assert len(nodes) > 0, (
-            f"pipeline.parse() returned empty AST for {pdf_path.name}. "
-            f"The production pipeline must produce a non-empty candidate AST "
-            f"for a valid PDF document."
-        )
-
-    def test_extracted_ast_nodes_have_minimum_structure(self) -> None:
-        """Los nodos del AST extraído tienen la estructura mínima esperada.
-
-        Verifica que cada nodo tiene los atributos fundamentales de ASTNode
-        (node_id, node_type) sin acoplarse a la implementación completa.
-        """
-        pdf_path = _require_canonical_pdf()
-        pipeline = build_extraction_pipeline()
-
-        nodes = pipeline.parse(str(pdf_path))
-
-        assert len(nodes) > 0, "Expected non-empty AST"
-
+    def test_extracted_ast_nodes_have_minimum_structure(
+        self, text_only_pdf: Path,
+    ) -> None:
+        """Each generated AST node carries a stable identity and type."""
+        nodes = build_extraction_pipeline().parse(str(text_only_pdf))
+        assert len(nodes) > 0
         for i, node in enumerate(nodes):
-            assert hasattr(node, "node_id"), (
-                f"Node {i} lacks 'node_id' attribute. "
-                f"AST nodes must have a stable identifier."
-            )
-            assert hasattr(node, "node_type"), (
-                f"Node {i} lacks 'node_type' attribute. "
-                f"AST nodes must declare their type."
-            )
-            assert node.node_id is not None, (
-                f"Node {i} has None node_id."
-            )
+            assert hasattr(node, "node_id"), f"Node {i} lacks node_id"
+            assert hasattr(node, "node_type"), f"Node {i} lacks node_type"
+            assert node.node_id is not None, f"Node {i} has no identity"
 
-    def test_extracted_ast_is_deterministic(self) -> None:
-        """Dos ejecuciones sobre el mismo PDF producen el mismo AST.
-
-        Verifica determinismo (ADR_F17_BIS_MASTER §5: Determinismo y
-        Reproducibilidad). El AST no debe variar entre ejecuciones.
-        """
-        pdf_path = _require_canonical_pdf()
+    def test_extracted_ast_is_deterministic(self, text_only_pdf: Path) -> None:
+        """Parsing the same physical PDF twice yields the same node IDs."""
         pipeline = build_extraction_pipeline()
+        first = pipeline.parse(str(text_only_pdf))
+        second = pipeline.parse(str(text_only_pdf))
+        assert first and second
+        assert len(first) == len(second)
+        assert [node.node_id for node in first] == [
+            node.node_id for node in second
+        ]
 
-        nodes_first = pipeline.parse(str(pdf_path))
-        nodes_second = pipeline.parse(str(pdf_path))
-
-        assert len(nodes_first) == len(nodes_second), (
-            f"AST node count differs between executions: "
-            f"{len(nodes_first)} vs {len(nodes_second)}. "
-            f"The production pipeline must be deterministic."
-        )
-
-        ids_first = [n.node_id for n in nodes_first]
-        ids_second = [n.node_id for n in nodes_second]
-        assert ids_first == ids_second, (
-            "AST node IDs differ between executions on the same PDF. "
-            "The production pipeline must be deterministic."
-        )
+    def test_production_root_rejects_unrepresented_vector_pdf(
+        self, vector_pdf: Path,
+    ) -> None:
+        """B02 must remain fail-closed through the production parser root."""
+        pipeline = build_extraction_pipeline()
+        with pytest.raises(LayoutRecoveryError, match="B02_UNREPRESENTED_VECTOR_DRAWING"):
+            pipeline.parse(str(vector_pdf))
