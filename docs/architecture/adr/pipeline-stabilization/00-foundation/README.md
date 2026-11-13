@@ -39,7 +39,7 @@ El subdirectorio [working-observations](working-observations/) contiene **11 reg
 
 ## Política editorial
 
-1. **Una sola ruta operativa vigente:** [handoff/RUTA_CANONICA_PDF_PDF.md](../handoff/RUTA_CANONICA_PDF_PDF.md).
+1. **Un solo Atlas de ruta operativa vigente:** [handoff/ATLAS_RUTA_OPERATIVA_UNICA_PDF_PDF.md](../handoff/ATLAS_RUTA_OPERATIVA_UNICA_PDF_PDF.md).
 2. **Un solo runbook del laboratorio vigente:** [handoff/LABORATORIO_Y_REPRODUCCION.md](../handoff/LABORATORIO_Y_REPRODUCCION.md).
 3. **Una sola entrada a las actas finales:** [handoff/EVIDENCIA_Y_CIERRE.md](../handoff/EVIDENCIA_Y_CIERRE.md); evidencias fuente permanecen en GitHub PR #46.
 4. No alterar oráculos/NADR FROZEN, no reescribir actas de evidencia para que «parezcan» actuales, no eliminar firmas de SHA, ni convertir el PR de documentación en remediación de CI o del runtime.
