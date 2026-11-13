@@ -123,6 +123,26 @@ if ($LASTEXITCODE -ne 0) { throw "STOP: revisar B032_STOP y conservar evidencias
 
 **[RECETA NUEVA: todavía SIN E2E acreditado en un RUN-ID nuevo].** Se basa en los comandos de arranque observados en el [acta C2](https://github.com/RDsanchez-git/translator_pdf/pull/46#issuecomment-6837358365), el [testigo físico](https://github.com/RDsanchez-git/translator_pdf/pull/46#issuecomment-6837649853) y los scripts/Compose reales. La siembra y fixture que siguen son una composición **nueva**, no una reejecución certificada. Cada fallo implica **STOP sin repetir bootstrap, admisión ni POST**. Esta sección escribe nuevas carpetas, volúmenes, SQLite, logs y PDF; requiere autorización y presupuesto de disco/RAM antes de comenzar.
 
+### C0–C4: relación exacta con los pasos que ya ejecutó el owner
+
+**C2 YA ESTÁ ACREDITADO (2026-11-12)**; el resto de esta sección es una **adaptación reutilizable** de esa experiencia para otra generación, **no** una condición retroactiva de acreditación ni una obligación de ejecutar Docker antes de integrar documentación. En la transcripción adjunta por el owner constan comandos y salidas que prueban la siguiente cadena:
+
+| Fase efectivamente ejecutada | Comando/patrón acreditado | Resultado real |
+|---|---|---|
+| C0 | `python -B -m apps.lab.convergence_compose_preflight --run-id ... --verify-local-image` | `C0_T01_STATIC_CANDIDATE_PASS`; ID local de imagen verificado |
+| C0/C1 | Override de tres Compose, `db_bootstrap` con UID10001, volúmenes aislados `nocopy` | persistencia SQLite/estado entre contenedores, sin build/pull |
+| C2 / G5 offline | extracción selectiva del ZIP histórico **solo Tectonic**, no importar DB ni PDF anteriores | **294 archivos, 43.350.180 bytes**, `C2_T03_G5_TECTONIC_CACHE_SEED_PASS` |
+| C2 fake | `docker compose ... up -d --no-deps --no-build --pull never --force-recreate g3_fake`, después de preservar sus logs previos | `g3_fake healthy`, **0 POST de partida** |
+| C2 daemons | `docker compose ... up -d --no-deps --no-build --pull never ocr_router llm_worker assembler` | `C2_DAEMONS_RUNNING_SET_PASS` con los cuatro servicios (fake + OCR/G3/G5) |
+| C2 fixture | here-string Python con `pymupdf` + `build_extraction_pipeline` + `prepare_contextual_plan`, ejecutada vía `docker compose ... run --rm --no-deps --pull never -T --user 10001:10001 ocr_router python -B -` | `C2_AUTO_FIXTURE_PREFLIGHT_PASS`, 4 AST, PRESERVE 1, TRANSLATE 1, 0 FSM previa |
+| C2 admisión | una sola `python -B -m apps.cli.main translate <source> --inbox-dir /app/data/inbox`, sin `--run`, invocada desde contenedor efímero contra mismo namespace | `C2_AUTO_ADMISSION_PRECONDITIONS_PASS`; CLI 0 |
+| C2 observación | logs completos del fake y lector SQLite independiente desde otro contenedor `run --rm --no-deps --pull never -T` | HTTP 1/1/0; 3 tareas completadas, 2 receipts, 1 publicación, 4 proyecciones v1, FSM COMPLETED v7, PDF 7050 bytes de una página |
+| C3/T05/T07 y C4 | pruebas focales de recovery, comparador foreground y raíces de consumidor | DoD 9/9 en el alcance del laboratorio |
+
+**Procedencia:** [arranque C2](https://github.com/RDsanchez-git/translator_pdf/pull/46#issuecomment-6837358365), [fixture](https://github.com/RDsanchez-git/translator_pdf/pull/46#issuecomment-6837448665), [auditoría completa](https://github.com/RDsanchez-git/translator_pdf/pull/46#issuecomment-6837649853), [cierre DoD](https://github.com/RDsanchez-git/translator_pdf/pull/46#issuecomment-6841545770). **No se reconstruye ni se reabre** el sujeto histórico para aprobar este runbook.
+
+**Adaptaciones explícitas respecto al comando original:** el RUN-ID es nuevo; la fixture mantiene el generador/parser probados pero usa nombre distinto; la siembra actual propuesta extrae también un fichero de tiktoken por el extractor existente en vez de reproducir literalmente la siembra G5 de 294 Tectonic; los guards por identidad, el polling y el cotejo JSON son endurecimientos de la futura receta. Como no se ejecutaron juntos sobre otro proyecto, se marcan **[RECETA FUTURA]**. Esto **no niega ni reduce** la acreditación del testigo C2 existente.
+
 ### C.1. Preparar un RUN-ID nuevo y verificar aislamiento sin escritura
 
 Ejecutar en PowerShell desde la raíz del checkout. Cambiar `ensayoa01` por un RUN-ID **nunca usado** (8–16 letras minúsculas/números). El prefijo `tpdfconv` lo genera el preflight y debe coincidir con el proyecto Compose. No aceptar recursos de otras ejecuciones.
