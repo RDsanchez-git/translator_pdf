@@ -25,7 +25,6 @@
 - No se afirma transacción común entre proveedor, filesystem y SQLite. RESULT_STAGED se puede recuperar sin reinferencia; old-owner no puede publicar. G3_EXTERNAL_UNKNOWN no autoriza segundo POST ni reconciliación automática.
 - El G3 canónico mantiene cache_db_path=None para evitar replay de caché legacy insuficientemente identificada.
 
-
 ## Contrato de handoff y autoridades — lectura desde proceso nuevo
 
 | Límite | Producido y persistido por | Verificación antes de consumir |
@@ -43,7 +42,7 @@ El modelo de persistencia utiliza SQLite **separadas** (queue, fsm, materialized
 - **Multiproceso canónico:** translate solo admite el PDF; los workers OCR/G3/G5 continúan de forma independiente. Compose de producto declarado: docker-compose.yml **más** docker-compose.runtime.yml; no se demostró despliegue/cutover de esa composición sobre bases legacy productivas.
 - **Composición de laboratorio:** añade docker-compose.convergence-lab.yml con imagen local fijada, proveedor fake privado y volúmenes nuevos. Es una prueba de la **misma ruta lógica**, no un entrypoint de producción alternativo.
 - **Foreground aislado:** translate --run recorre los mismos contratos con la misma lógica; la equivalencia T07 se acreditó sobre un workspace separado, no coexistencia sobre las mismas DB/lease.
-- **Legacy:** handle_translate_async bloqueado en la CLI; TranslationPipeline y AsyncDispatcher conservados para tests/benchmarks/compatibilidad. LLMWorkerDaemon R3 puede invocarse manualmente, pero no es seleccionado por roots soportados. No se afirma ausencia de consumidores fuera de Git ni autorización de borrado.
+- **Legacy:** handle_translate_async bloqueado con C4_T06_R1_LEGACY_ENTRYPOINT_DISABLED en apps/cli/main.py; implementación R1 conservada en apps/cli/legacy_translate_async.py; TranslationPipeline y AsyncDispatcher conservados para tests/benchmarks/compatibilidad. LLMWorkerDaemon R3 puede invocarse manualmente, pero no es seleccionado por roots soportados. No se afirma ausencia de consumidores fuera de Git ni autorización de borrado.
 
 **Prevalencia:** NADR FROZEN aplicables → D-1/D-2 aprobadas (dirección) → implementación integrada y pruebas sobre SHA específico → plan cerrado y expediente forense histórico. La documentación de handoff explica el estado actual; no sustituye decisiones normativas ni inventa garantías nuevas.
 
@@ -52,13 +51,3 @@ El modelo de persistencia utiliza SQLite **separadas** (queue, fsm, materialized
 La acreditación del PR #46 corresponde al **laboratorio con fake**, con PDF sintético representable, inferencia TRANSLATE simulada y PRESERVE sin POST. Quedan pendientes traducción lingüística evaluable, preservación matemática/vectorial W09, cobertura del corpus, coste y comportamiento del proveedor real, compatibilidad con generaciones legacy y autorización de producción. La protección B02 sigue fail-closed ante contenido vectorial que no puede conservarse en Layout/AST.
 
 Si se modifica un productor o consumidor, volver a acreditar **esa frontera** con identidad y oráculos propios sobre el nuevo commit; no extender por inferencia el PASS de C2. Para diagnóstico y futuro ensayo consultar [LABORATORIO_Y_REPRODUCCION.md](LABORATORIO_Y_REPRODUCCION.md); para autoridad y testigos, [EVIDENCIA_Y_CIERRE.md](EVIDENCIA_Y_CIERRE.md).
-
-## Código que NO es root productivo
-
-El símbolo handle_translate_async en apps/cli/main.py falla con C4_T06_R1_LEGACY_ENTRYPOINT_DISABLED. La implementación histórica R1 fue separada a apps/cli/legacy_translate_async.py. AsyncDispatcher y TranslationPipeline sirven a compatibilidad/tests y benchmark. LLMWorkerDaemon R3 conserva un main ejecutable manualmente, pero no lo eligen los roots soportados en Git. Posibles lanzadores externos siguen UNKNOWN: no declarar retirada total.
-
-## Límites de aceptación
-
-Un HTTP 200 del fake, un PDF de una página y FSM COMPLETED no certifican traducción auténtica, cobertura vectorial, matemática, fidelidad STEM, costes de proveedor real ni readiness de producción. B02_UNREPRESENTED_VECTOR_DRAWING es rechazo seguro cuando no se puede representar una región; no deshabilitarlo para conseguir un PASS. Los NADR FROZEN y oráculos científicos conservan precedencia.
-
-Véanse [el runbook del laboratorio](LABORATORIO_Y_REPRODUCCION.md) y [las actas del cierre](EVIDENCIA_Y_CIERRE.md).
