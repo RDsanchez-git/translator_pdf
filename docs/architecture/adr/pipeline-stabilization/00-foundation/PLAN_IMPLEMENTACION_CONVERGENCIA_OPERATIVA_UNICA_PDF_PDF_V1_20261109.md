@@ -4,7 +4,7 @@
 **Repositorio / rama de referencia:** `RDsanchez-git/translator_pdf` / `pipeline_stabilization`  
 **Commit inspeccionado:** `6a5ee41886b935c2c0f3a107a42620d93de31efb` (#40 MERGED). Los caminos, configuraciones y tests descritos se refieren a **ese commit**, no a una instalación desplegada.  
 **Documento rector:** [Decisión D-1/D-2, cabecera vigente, §§0, 2, 6–8](DECISION_CANDIDATE_CONVERGENCIA_PDF_PDF_D1_D2_20261105.md). El nombre histórico `CANDIDATE` no revoca la **aprobación del owner del 2026-11-08**.  
-**Matriz compañera obligatoria:** [MATRIZ_VERSIONADA_COMPOSICION_DISPOSICION_R1_R2_R3_V1_20261109.md](MATRIZ_VERSIONADA_COMPOSICION_DISPOSICION_R1_R2_R3_V1_20261109.md), v1.0.3. **Guía operativa posterior al cierre:** [handoff/README.md](../handoff/README.md); el presente plan queda conservado como expediente histórico de la implementación.  
+**Matriz compañera obligatoria:** [MATRIZ_VERSIONADA_COMPOSICION_DISPOSICION_R1_R2_R3_V1_20261109.md](MATRIZ_VERSIONADA_COMPOSICION_DISPOSICION_R1_R2_R3_V1_20261109.md), v1.0.4. **Guía operativa posterior al cierre:** [handoff/README.md](../handoff/README.md); el presente plan queda conservado como expediente histórico de la implementación.  
 **Carácter de las decisiones de este plan:** recomendaciones de integración sobre código observado. Las disposiciones `RETIRE_CANDIDATE` **no** autorizan borrar archivos; las condiciones de despliegue son independientes. No se aprueba modificar NADR FROZEN ni ejecutar inferencia paga.
 
 ## 0. Decisión ejecutiva — el objetivo que NO debe desplazarse
