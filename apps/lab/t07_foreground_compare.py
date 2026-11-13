@@ -172,7 +172,10 @@ def _audit(workspace: Path, stdout: str) -> None:
     require(len(pdf_bytes) > 1000 and pdf_bytes.startswith(b"%PDF-"), "PDF_INVALID")
     import pymupdf
     with pymupdf.open(stream=pdf_bytes, filetype="pdf") as pdf:
-        require(len(pdf) == 1 and bool(pdf[0].get_text().strip()), "PDF_STRUCTURE_INVALID")
+        require(len(pdf) == 1, "PDF_STRUCTURE_INVALID")
+        extracted_text = pdf[0].get_text()
+        require(isinstance(extracted_text, str) and bool(extracted_text.strip()),
+                "PDF_STRUCTURE_INVALID")
 
     print("T07_SOURCE_SHA:", SOURCE_SHA, flush=True)
     print("T07_AST_SHA:", AST_SHA, flush=True)
