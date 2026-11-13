@@ -201,7 +201,7 @@ Write-Output "C2_FRESH_BOOTSTRAP_EXIT0"
 
 ### C.4. Transferir solo caches a los volúmenes frescos
 
-**[RECETA NUEVA, ESCRITURA EN LOS NUEVOS VOLUMENES].** El override define `nocopy:true`, de modo que Tectonic/tiktoken no se copiarán solos. Se utiliza un contenedor efímero basado en `ocr_router` con su **comando reemplazado** (no inicia el daemon), con mount adicional **RO** del seed y usuario 10001. Rechazar destinos ya poblados.
+**[RECETA NUEVA, ESCRITURA EN LOS NUEVOS VOLUMENES].** Docker Compose `run` no expone la opción `--no-build`: se usa `--no-deps --pull never`; en los tres YAML el preflight verifica que el servicio seleccionado tiene `build` eliminado e imagen local con `pull_policy: never`. La opción `--no-build` sí es válida en `compose up`. El override define `nocopy:true`, de modo que Tectonic/tiktoken no se copiarán solos. Se utiliza un contenedor efímero basado en `ocr_router` con su **comando reemplazado** (no inicia el daemon), con mount adicional **RO** del seed y usuario 10001. Rechazar destinos ya poblados.
 
 ~~~powershell
 $copyCode = @'
@@ -228,7 +228,7 @@ for src, dst, expected in pairs:
             shutil.copyfileobj(source, output)
 print("C2_CONTAINER_CACHE_SEED_PASS: tectonic=294 tiktoken=1")
 '@
-& docker @dc run --rm --no-deps --no-build --pull never -T --user 10001:10001 -v "$($SeedDir):/lab_seed:ro" ocr_router python -B -c $copyCode
+& docker @dc run --rm --no-deps --pull never -T --user 10001:10001 -v "$($SeedDir):/lab_seed:ro" ocr_router python -B -c $copyCode
 if ($LASTEXITCODE -ne 0) { throw "STOP: cache no sembrada" }
 ~~~
 
@@ -257,7 +257,7 @@ print("C2_FIXTURE_PATH:", path)
 print("C2_FIXTURE_BYTES:", len(data))
 print("C2_DOCUMENT_ID:", sha256(data).hexdigest())
 '@
-& docker @dc run --rm --no-deps --no-build --pull never -T --user 10001:10001 ocr_router python -B -c $fixtureCode $RunId
+& docker @dc run --rm --no-deps --pull never -T --user 10001:10001 ocr_router python -B -c $fixtureCode $RunId
 if ($LASTEXITCODE -ne 0) { throw "STOP: fixture no creada" }
 $InsidePdf = "/app/data/lab_fixtures/smoke_$RunId.pdf"
 ~~~
@@ -331,7 +331,7 @@ for name, query in (
             raise SystemExit("STOP_SOURCE_ALREADY_PRESENT_IN_" + name)
 print("C2_PRE_ADMISSION_FRESH_GENERATION_PASS:", document_id)
 '@
-& docker @dc run --rm --no-deps --no-build --pull never -T --user 10001:10001 ocr_router python -B -c $guardCode $RunId
+& docker @dc run --rm --no-deps --pull never -T --user 10001:10001 ocr_router python -B -c $guardCode $RunId
 if ($LASTEXITCODE -ne 0) { throw "STOP: no se permite la admisión de C.8" }
 ~~~
 
@@ -447,7 +447,7 @@ print("PDF:", pdf_path, "bytes:", len(pdf_bytes), "pages:", pages,
       "text:", has_text, "sha256:", sha256(pdf_bytes).hexdigest())
 print("C2_NEW_GENERATION_SQLITE_AND_PDF_AUDIT_PASS")
 '@
-& docker @dc run --rm --no-deps --no-build --pull never -T --user 10001:10001 ocr_router python -B -c $auditCode $RunId
+& docker @dc run --rm --no-deps --pull never -T --user 10001:10001 ocr_router python -B -c $auditCode $RunId
 if ($LASTEXITCODE -ne 0) {
     Write-Warning "Auditoría NO PASS: clasificar FSM, tasks y logs antes de decidir"
 }
