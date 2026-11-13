@@ -241,13 +241,13 @@ La figura muestra **solo el camino positivo de la FSM documental**; no es el est
 
 | Si modificás... | Frontera vulnerable y pregunta a resolver | Testigos/versiones a revisar |
 |---|---|---|
-| CLI, argumento de inbox, deduplicación | ¿Sigue el mismo SHA bytes y la publicación atómica sin sobrescritura? | `tests/integration/test_pdf_inbox_submission.py`; `test_cli_router.py` |
-| PyMuPDF, mapper o AST hashing | ¿Cambio semántico o cosmético? ¿Permanecen `node_id`/hash/activos representables? | `test_g3_b4_2_ocr_router_durable_plan.py`; `test_w08_ocr_g3_context_wiring.py`; B02 científicos aparte |
-| Enriquecimiento/contexto/plan | ¿Snapshot, manifest y cobertura tienen misma generación? | `test_w08_durable_context_boundary.py`; `test_g3_b2_sqlite_plan_contract.py` |
-| Scheduler, claims, quotas, provider | ¿Existe una ruta que haga POST sin receipt/lease? ¿Bajo incertidumbre se repite? | `test_w06_g3_uncertain_effect_offline.py`; `test_g3_b4_3a_engine_staging.py`; `test_g3_b3_2_fenced_receipts.py` |
-| Staging y publish G3 | ¿Se puede reabrir la publicación sin reenvío y sin duplicar proyecciones? | `test_g3_b4_3b_publication_recovery.py`; `test_c3_t05_process_boundary.py` |
-| Resolver materializado, G5, Tectonic | ¿El G5 lee misma generación y nunca promueve el PDF de un lease viejo? | `test_g3_b4_4_profile_projection_assembly.py`; `test_g5_assembler_lease_recovery.py` |
-| Reconciler, Sweeper, FSM | ¿Se preserva cuarentena UNKNOWN; CAS y transición legal? | `test_g3_b4_9_reconciler_fencing.py`; `test_w06_g3_uncertain_effect_offline.py` |
+| CLI, argumento de inbox, deduplicación | ¿Sigue el mismo SHA bytes y la publicación atómica sin sobrescritura? | `tests/integration/test_pdf_inbox_submission.py`; `tests/integration/test_cli_router.py` |
+| PyMuPDF, mapper o AST hashing | ¿Cambio semántico o cosmético? ¿Permanecen `node_id`/hash/activos representables? | `tests/integration/test_g3_b4_2_ocr_router_durable_plan.py`; `tests/integration/test_w08_ocr_g3_context_wiring.py`; B02 científicos aparte |
+| Enriquecimiento/contexto/plan | ¿Snapshot, manifest y cobertura tienen misma generación? | `tests/integration/test_w08_durable_context_boundary.py`; `tests/integration/test_g3_b2_sqlite_plan_contract.py` |
+| Scheduler, claims, quotas, provider | ¿Existe una ruta que haga POST sin receipt/lease? ¿Bajo incertidumbre se repite? | `tests/integration/test_w06_g3_uncertain_effect_offline.py`; `tests/integration/test_g3_b4_3a_engine_staging.py`; `tests/integration/test_g3_b3_2_fenced_receipts.py` |
+| Staging y publish G3 | ¿Se puede reabrir la publicación sin reenvío y sin duplicar proyecciones? | `tests/integration/test_g3_b4_3b_publication_recovery.py`; `tests/integration/test_c3_t05_process_boundary.py` |
+| Resolver materializado, G5, Tectonic | ¿El G5 lee misma generación y nunca promueve el PDF de un lease viejo? | `tests/integration/test_g3_b4_4_profile_projection_assembly.py`; `tests/integration/test_g5_assembler_lease_recovery.py` |
+| Reconciler, Sweeper, FSM | ¿Se preserva cuarentena UNKNOWN; CAS y transición legal? | `tests/integration/test_g3_b4_9_reconciler_fencing.py`; `tests/integration/test_w06_g3_uncertain_effect_offline.py` |
 | Compose, imagen, mounts, fake | ¿La config efectiva sigue aislada; bootstrap solo volumen nuevo; no hay R3? | `apps/lab/convergence_compose_preflight.py`; `tests/unit/test_c4_t06_supported_roots.py` |
 | Modalidad foreground | ¿Mismas clases/contratos con entorno aislado? | `tests/integration/test_w08_cli_foreground_single_generation_offline.py`; T07 [acta](EVIDENCIA_Y_CIERRE.md) |
 
