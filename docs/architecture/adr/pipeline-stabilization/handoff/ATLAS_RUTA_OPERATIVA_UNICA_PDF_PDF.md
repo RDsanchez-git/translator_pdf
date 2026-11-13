@@ -1,7 +1,7 @@
 # Atlas de la Ruta Operativa Única PDF→PDF — arquitectura implementada
 
 **Versión:** 1.0.1 (revisión estática de contratos y diagramas) · **corte técnico:** 2026-11-13 · **estado:** CURRENT IMPLEMENTED ROUTE / DOCUMENTACIÓN DESCRIPTIVA  
-**Código anclado:** [PR #46 fusionado, commit `6818e86e21b14e77a606f0c863e9c199b4627601`](https://github.com/RDsanchez-git/translator_pdf/commit/6818e86e21b14e77a606f0c863e9c199b4627601), rama `pipeline_stabilization`.  
+**Código anclado:** [PR #46 fusionado, commit `6818e86e21b14e77a606f0c863e9c199b4627601`](https://github.com/RDsanchez-git/translator_pdf/commit/6818e86e21b14e77a606f0c863e9c199b4627601), rama `pipeline_stabilization`. **Alcance de esta revisión:** correspondencia estática entre código pinneado, diagramas, contratos y Compose; sin reejecución de C2/T07.  
 **Dirección:** D-1/D-2 aprobada por el owner el 2026-11-08; ejecución C0–C4 y DoD §8 (9/9) acreditados en laboratorio con fake.  
 **Clase:** mapa AS-IMPLEMENTED de composición, código, flujos, fronteras y riesgos para mantenimiento. **No** es NADR, nuevo plan, autorización de despliegue ni certificación científica.
 
@@ -19,7 +19,7 @@
 
 ~~~mermaid
 flowchart TD
-    OP["CLI translate<br/>admisión por SHA de bytes"] --> IN["data/inbox/<document_id>.pdf"]
+    OP["CLI translate<br/>admisión por SHA de bytes"] --> IN["data/inbox/&lt;document_id&gt;.pdf"]
     IN --> OCR["OCR Router<br/>poll + parser + contexto"]
     OCR --> AST["data/ast_cache<br/>AST versionado + activos"]
     OCR --> DOC["documents.db<br/>perfil/payloads"]
@@ -38,7 +38,7 @@ flowchart TD
     FSM --> G5
     Q --> G5
     G5 --> Q
-    G5 --> OUT["output/translated_<document_id>.pdf"]
+    G5 --> OUT["output/translated_&lt;document_id&gt;.pdf"]
     G5 --> FSM
     REC["Reconciler / Sweeper<br/>servicios auxiliares"] -. "recuperación / mantenimiento" .-> Q
     REC -.-> FSM
@@ -94,7 +94,7 @@ sequenceDiagram
     G5->>Q: COMMIT queue y FSM adjunta
 ~~~
 
-**Lectura de la secuencia:** resume el **camino positivo completo**; si hay recuperación de un plan `RESULT_STAGED`/`COMPLETED`, G3 puede saltar la rama del proveedor y reanudar la publicación desde datos durables. Si aparece `G3_EXTERNAL_UNKNOWN`, el flujo se detiene para esa generación y **no** ejecuta una segunda inferencia. OCR también guarda el perfil en `documents.db` antes del plan, omitido solo del diagrama de secuencia por legibilidad (sí figura en el estructural). G5 utiliza `queue.db` con `fsm_db` ATTACH: la transacción contiene sus UPDATE de queue/FSM, y hace `os.replace` **antes** del COMMIT; la promoción física no es parte de una transacción distribuida atómica. Ante crash, hacen falta pruebas de autoridad y recuperación, no una promesa universal de exactly-once.
+**Lectura de la secuencia:** resume el **camino positivo completo**, no el orden cronológico de todos los commits intermedios en cada error/restart; si hay recuperación de un plan `RESULT_STAGED`/`COMPLETED`, G3 puede saltar la rama del proveedor y reanudar la publicación desde datos durables. Si aparece `G3_EXTERNAL_UNKNOWN`, el flujo se detiene para esa generación y **no** ejecuta una segunda inferencia. OCR también guarda el perfil en `documents.db` antes del plan, omitido solo del diagrama de secuencia por legibilidad (sí figura en el estructural). G5 utiliza `queue.db` con `fsm_db` ATTACH: la transacción contiene sus UPDATE de queue/FSM, y hace `os.replace` **antes** del COMMIT; la promoción física no es parte de una transacción distribuida atómica. Ante crash, hacen falta pruebas de autoridad y recuperación, no una promesa universal de exactly-once.
 
 ## 2. Mapa de entrypoints y selección de topología
 
