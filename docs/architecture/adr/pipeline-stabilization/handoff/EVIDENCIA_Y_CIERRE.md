@@ -19,6 +19,24 @@
 
 **Naturaleza de la evidencia:** salidas operativas reportadas por owner en Windows/Docker Desktop, inspección del código/actas GitHub; no una reejecución independiente de las máquinas ni anexos completos de logs brutos/PDF.
 
+
+## 1.1 Trazabilidad de sujetos: no equiparar commits y ejecuciones
+
+| Evidencia | Sujeto acreditado | Resultado y límites |
+|---|---|---|
+| C0/T01 | override y bootstrap del PR #46, imagen sha256:abe5b5... | Preflight/config + persistencia entre contenedores en laboratorio descartable; cierre por ratificación del owner, no censo global de ejecutores |
+| C1/T02 | misma composición compartida; admisión CLI, OCR independiente | SHA de bytes, AST y plan persistentes con lecturas externas; no prueba de traducción |
+| C2/T03–T04 | runtime funcional del PR #46 @ 93a8f9021cbb95c92c9242d68fd6f1dfe9eb3d0f; negativo adicional @ 21eb7da8baf1ac86a288916e112f9e67ca652494 | Daemons independientes y PDF físico; testigo C2 con fake, G5 negativos y selector fail-closed. Acta principal C2; no se ejecutó sobre cada commit documental posterior |
+| C3/T05 | c146f0efbb2754484653721e92d6854c51f7ddd8 | 1 passed, 1.66 s, exit 0, Windows; subprocess que abandona antes de FSM final + proceso nuevo recupera; W06/G5 son falsadores focales reutilizados. No reinicio universal |
+| C3/T07 | ff277936ee949312ca73f3f183f96fe78d8ea41b | Comparación foreground aislada exit 0, PDF válido; misma identidad/contrato, **no** identidad binaria del PDF |
+| C4/T06 | 1b515cb2f93a3121da9682d5024dd4509eb8e47f | Censo de roots versionados y 6 passed, 0.77 s, exit 0; externos UNKNOWN |
+| DoD 9/9 | f20b2aaa618726e72b205b241595a98d2112903a | Cotejo documental; logs brutos de C2 no adjuntos al PR |
+| Merge | HEAD del PR #46 b01f1ca740db7f048fcb0f3a83505977d27d72af; merge commit 6818e86e21b14e77a606f0c863e9c199b4627601 | Merge a pipeline_stabilization; no merge a main, despliegue ni cutover |
+
+La comparación documental del DoD registra que los blobs OCR/G3/G5/foreground esenciales permanecieron sin modificación funcional desde el testigo C2 hasta el cierre, con aislamiento focal del legacy R1 en CLI. **Eso no constituye una ejecución dinámica de C2 sobre el HEAD final.** Siempre asociar cada PASS al commit y al proceso específicos; preservar diferencias entre resultados del owner, tests de CI, revisión estática y artefactos realmente archivados.
+
+**Precisión sobre los receipts C2:** hubo dos tareas LLM completadas (PRESERVE y TRANSLATE), una tarea ASSEMBLER completada y dos registros receipt; la unidad PRESERVE no transportó respuesta LLM ni produjo POST. No interpretar la cardinalidad de receipts como dos inferencias pagadas.
+
 ## 2. Identidades del testigo positivo C2
 
 - Fuente sintética de 1544 bytes: SHA-256 28a53af840244e4022afb08eb800e6348a866b957779e5b5753215afbc158d0f.
@@ -41,3 +59,13 @@
 - Atlas AS-IS y Charter DRAFT siguen siendo históricos con fecha/autoridad propias; la etiqueta de convergencia no los convierte en FROZEN ni reemplaza NADR.
 
 **Cierre administrativo propuesto:** plan de C0–C4 marcado COMPLETADO/MERGED y archivado como registro ejecutado. Ver la [ruta vigente](RUTA_CANONICA_PDF_PDF.md) y el [runbook](LABORATORIO_Y_REPRODUCCION.md).
+
+
+## 5. Índice de custodia y condiciones para evidencia futura
+
+- **Fuente primaria:** actas y discusión del PR #46, referenciadas arriba, más los commits exactos; los ZIP históricos G3/G4/G5 y la evidencia host Windows siguen siendo antecedentes de custodia externos a Git, no anexos nuevos de la campaña C0–C4.
+- **Ausencias declaradas:** no se adjuntó un volcado íntegro de los logs brutos ni todos los binarios del laboratorio C2 al repositorio; los contadores/hashes/actas no deben describirse como reproducción forense completa independiente.
+- **Para una corrida futura:** conservar commit, digests, versión y modelo de Compose, RUN-ID no reciclado, hash de input, hashes AST/manifiesto, IDs de tareas/leases, estados/resultados persistidos, conteo HTTP, PDF hash/estructura, códigos de salida y STOP; separar factibilidad del fixture de cobertura científica. Consultar [runbook](LABORATORIO_Y_REPRODUCCION.md).
+- **Retención documental:** no reemplazar ni eliminar actas I0, manifiestos o firmas SHA con un resumen de handoff. El inventario histórico se conserva hasta un censo de referencias y decisión de archivo/borrado independiente.
+
+El siguiente cambio del pipeline debe crear **evidencia nueva sobre su propio SHA**, no heredar una etiqueta PASS de 2026-11-12. El cierre aquí es solo convergencia de topología/control con proveedor simulado.
