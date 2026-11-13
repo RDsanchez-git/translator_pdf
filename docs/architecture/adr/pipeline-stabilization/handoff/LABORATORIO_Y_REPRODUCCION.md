@@ -369,9 +369,12 @@ document_id = sha256(source.read_bytes()).hexdigest()
 inbox = Path("/app/data/inbox")
 if not inbox.is_dir() or list(inbox.iterdir()):
     raise SystemExit("STOP_INBOX_NOT_EMPTY")
+if (Path("/app/output") / ("translated_" + document_id + ".pdf")).exists():
+    raise SystemExit("STOP_OUTPUT_ALREADY_EXISTS")
 for name, query in (
     ("fsm.db", "SELECT COUNT(*) FROM document_fsm WHERE document_id=?"),
     ("queue.db", "SELECT COUNT(*) FROM chunk_plans WHERE document_id=?"),
+    ("queue.db", "SELECT COUNT(*) FROM chunk_tasks WHERE document_id=?"),
 ):
     db = Path("/app/state/db") / name
     if not db.is_file():
