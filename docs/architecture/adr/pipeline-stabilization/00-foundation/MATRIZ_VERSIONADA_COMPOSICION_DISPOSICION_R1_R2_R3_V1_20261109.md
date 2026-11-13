@@ -1,8 +1,8 @@
 # Matriz versionada de composición y disposición de archivos — convergencia PDF→PDF
 
-**Versión:** v1.0.2 · **Fecha:** 2026-11-09 · **Estado:** inventario técnico prescriptivo, disposición **propuesta** / no borrado autorizado.  
+**Versión:** v1.0.3 · **Fecha:** 2026-11-09 · **Estado:** inventario técnico prescriptivo, disposición **propuesta** / no borrado autorizado.  
 **Sujeto:** `RDsanchez-git/translator_pdf` / `pipeline_stabilization` @ `6a5ee41886b935c2c0f3a107a42620d93de31efb` (#40 integrado).  
-**Plan vinculante por referencia:** [PLAN_IMPLEMENTACION_CONVERGENCIA_OPERATIVA_UNICA_PDF_PDF_V1_20261109.md](PLAN_IMPLEMENTACION_CONVERGENCIA_OPERATIVA_UNICA_PDF_PDF_V1_20261109.md), versión operativa v1.0.18 al ejecutar el testigo C4; avance v1.0.19 sujeto a cierre DoD. Matriz de disposición, no tablero duplicado.  
+**Plan vinculante por referencia:** [PLAN_IMPLEMENTACION_CONVERGENCIA_OPERATIVA_UNICA_PDF_PDF_V1_20261109.md](PLAN_IMPLEMENTACION_CONVERGENCIA_OPERATIVA_UNICA_PDF_PDF_V1_20261109.md), versión operativa v1.0.20 tras el cotejo DoD §8. Matriz de disposición, no tablero duplicado.  
 **Decisión de producto:** [D-1/D-2, cabecera vigente](DECISION_CANDIDATE_CONVERGENCIA_PDF_PDF_D1_D2_20261105.md): una CLI, G3→G5, sin motores productivos rivales. Este inventario **no** equivale a ejecución, censo exhaustivo de consumidores externos o certificación científica.
 
 ## 1. Cómo se usa esta matriz
@@ -11,7 +11,7 @@ Cada fila establece una identidad de símbolo o path exacto (salvo las filas con
 
 **Estados de disposición:** `KEEP` (sobrevive y participa), `KEEP_VERIFICAR` (sobrevive sujeto a ensayo), `ADAPT_CONDICIONAL` (solo mecanismo aislado ante brecha), `ADAPT_OPERACION` (root/config para corregir), `NO_PRODUCTIVO` (excluido de entrypoints soportados), `HISTORICO_COMPAT` (permanece por consumidores/tests hasta censo), `RETIRE_CANDIDATE` (posible futura retirada, no ejecutada), `KEEP_LAB` (laboratorio; nunca motor prod), `NO_ROOT`/`NO_ROOT_OFICIAL` (no seleccionado), `DEFER_PR` (no merge), `DEFER_EVALUACION_INDEPENDIENTE` (auditar propio delta).
 
-**Los tests T01–T07 y deltas C0–C4 se definen en el plan; son checklists técnicos, no nuevos gates normativos.** `AS-IS` viene de inspección estática y evidencia histórica delimitada; no se ejecutó la composición multiproceso.
+**Los tests T01–T07 y deltas C0–C4 se definen en el plan; son checklists técnicos, no nuevos gates normativos.** `AS-IS` de las 94 filas nació de inspección estática e historia @ `6a5ee418`; las actualizaciones focales C4 reflejan el HEAD `1b515cb`. El testigo multiproceso real OCR→G3→G5 **sí fue ejecutado por el owner** el 2026-11-12 (C2 @ `93a8f902`, [acta](https://github.com/RDsanchez-git/translator_pdf/pull/46#issuecomment-6837871200)). Las filas no actualizadas conservan su sujeto histórico; el resultado global se gobierna exclusivamente en el plan §8.1. Logs brutos no adjuntos: actas basadas en salidas locales del owner.
 
 ## 2. Inventario numerado v1.0.0 (94 filas)
 
