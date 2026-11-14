@@ -31,15 +31,19 @@ class TestPipelineFidelity(unittest.TestCase):
             self.assertTrue(has_adjacency, f"Desplazamiento semántico crítico detectado: {restored}")
 
     def test_mixed_inline_and_block_math(self):
-        """Garantizar que la regex ignora bloques $$ y solo captura inline $."""
-        original = "The value $x$ is computed from\n$$\nx = y+z\n$$\nand $z$."
+        """B02.4: protect inline AND display math without changing source bytes."""
+        original = "The value $x$ is computed from\n$\nx = y+z\n$\nand $z$."
         masked, mapping = InlineMathProtector.mask(original)
-        
-        self.assertEqual(len(mapping), 2)
-        self.assertIn("__MATH_0__", masked)
-        self.assertIn("__MATH_1__", masked)
-        self.assertIn("$$\nx = y+z\n$$", masked)
-        
+
+        self.assertEqual(mapping, {
+            "__MATH_0__": "$x$",
+            "__MATH_1__": "$\nx = y+z\n$",
+            "__MATH_2__": "$z$",
+        })
+        self.assertEqual(masked.count("__MATH_"), 3)
+        for explicit_math in mapping.values():
+            self.assertNotIn(explicit_math, masked)
+
         restored = InlineMathProtector.restore(masked, mapping)
         self.assertEqual(original, restored)
 
