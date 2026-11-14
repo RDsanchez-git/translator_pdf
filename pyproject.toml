@@ -81,28 +81,10 @@ markers = [
 
 # ─────────────────────────────────────────────────────────────────────────────
 # PYRIGHT (Static Type Checking)
+# Única fuente efectiva: pyrightconfig.json. Pyright prioriza ese archivo sobre
+# [tool.pyright], así que se elimina la duplicación que declaraba strict sin
+# aplicarlo. Migración a strict requiere auditoría y PR separado.
 # ─────────────────────────────────────────────────────────────────────────────
-
-[tool.pyright]
-include = ["core", "apps", "infra", "runtime"]
-exclude = [
-  "tests",
-  "tools",
-  "graveyard",
-  "experiments",
-  "venv",
-  ".venv",
-  "reports",
-  "build",
-  "dist",
-  "**/node_modules",
-  "**/__pycache__",
-  "**/.*"
-]
-typeCheckingMode = "strict"
-reportMissingImports = true
-reportMissingTypeStubs = false
-pythonVersion = "3.11"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # IMPORT-LINTER (Hexagonal Boundary Contracts)

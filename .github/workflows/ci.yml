@@ -33,8 +33,10 @@ jobs:
           pip install .[dev]
           pip list # <-- Nos imprimirá la lista de lo que instaló para poder auditarlo
 
-      - name: Type check (pyright strict)
-        run: pyright core/ apps/ infra/ runtime/
+      # pyrightconfig.json: único alcance efectivo core/apps/infra/runtime,
+      # Python 3.11 Linux, modo standard. Strict queda fuera de este PR.
+      - name: Type check (pyright; Linux standard)
+        run: pyright
 
       - name: Architecture contract (import-linter)
         run: lint-imports --config pyproject.toml
