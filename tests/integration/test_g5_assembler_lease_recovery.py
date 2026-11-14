@@ -320,15 +320,24 @@ def test_missing_projection_blocks_real_g5_worker_before_pdf(sandbox, monkeypatc
     compilation policy and fenced SQLite lease against disposable state.
     This is deliberately not a daemon loop or a live-volume failure injection.
     """
-    from types import SimpleNamespace
+    from typing import NoReturn, cast
 
     from apps.compiler.__main__ import AssemblerWorkerDaemon
+    from apps.compiler.tectonic_runner import HostTectonicRunner
     from core.ast.enums import ContentNodeType
     from core.ast.models import ASTNode, ParagraphPayload
+    from core.ast.registry import ASTRegistry
     from core.compiler.assembler import AssemblyPolicy, DocumentAssembler
     from core.compiler.context_resolver import CQRSAssemblyContextResolver
     from core.compiler.exceptions import AssemblyRejectedError
+    from core.compiler.rendering.models import RenderUnit
     from core.compiler.service import CompilationService
+    from core.document_profile.models import InferredDocumentProfile
+    from core.execution.handlers import DocumentCommandHandler
+    from core.execution.ports import ProjectionRecord, ProjectionStatus
+    from infra.db.control_repo import ControlPlaneRepository
+    from infra.db.fsm_repository import FSMRepository
+    from infra.db.materialized_repo import MaterializedPlaneRepository
 
     c, _connect, tmp = sandbox
     monkeypatch.setenv("COMPILER_OUTPUT_DIR", str(tmp))
@@ -343,16 +352,52 @@ def test_missing_projection_blocks_real_g5_worker_before_pdf(sandbox, monkeypatc
             )]
 
     class EmptyMaterialized:
-        def get_assemblable_chunks(self, *, document_id, ast_hash,
-                                   expected_node_ids, required_projection_v):
+        """Empty CURRENT projection view; all other operations are forbidden."""
+
+        def get_projection_status(
+            self, document_id: str, ast_hash: str, node_id: str, required_version: int,
+        ) -> ProjectionStatus:
+            raise AssertionError("G5_MISSING_PROJECTION_UNEXPECTED_STATUS_READ")
+
+        def upsert_projection(
+            self, document_id: str, ast_hash: str, node_id: str,
+            content_hash: str, normalized_text: str, normalized_hash: str,
+            projection_v: int,
+        ) -> None:
+            raise AssertionError("G5_MISSING_PROJECTION_UNEXPECTED_PROJECTION_WRITE")
+
+        def get_assemblable_chunks(
+            self, document_id: str, ast_hash: str,
+            expected_node_ids: list[str], required_projection_v: int,
+        ) -> list[ProjectionRecord]:
             assert (document_id, ast_hash) == ("doc", "ast")
             assert expected_node_ids == ["missing_translate"]
             assert required_projection_v == 1
             return []
 
     class NeverInvoked:
-        def __getattr__(self, name):
-            raise AssertionError("G5_MISSING_PROJECTION_UNEXPECTED_SIDE_EFFECT:" + name)
+        """Fail immediately if a service below the projection gate is reached."""
+
+        def _forbid(self, method: str) -> NoReturn:
+            raise AssertionError("G5_MISSING_PROJECTION_UNEXPECTED_SIDE_EFFECT:" + method)
+
+        # Structural ports used by the assembler and compilation service.
+        def get_verified_payload(
+            self, job_id: str, chunk_id: str, expected_sha256: str,
+        ) -> str:
+            self._forbid("get_verified_payload")
+
+        def save(self, document_id: str, profile: InferredDocumentProfile) -> None:
+            self._forbid("save")
+
+        def get(self, document_id: str) -> InferredDocumentProfile | None:
+            self._forbid("get")
+
+        def map_to_unit(self, nodes: list[ASTNode], final_text: str) -> RenderUnit:
+            self._forbid("map_to_unit")
+
+        def __getattr__(self, name: str) -> NoReturn:
+            self._forbid(name)
 
     no_side_effects = NeverInvoked()
     compilation = CompilationService(
@@ -364,13 +409,16 @@ def test_missing_projection_blocks_real_g5_worker_before_pdf(sandbox, monkeypatc
         profile_store=no_side_effects,
         mapper=no_side_effects,
     )
+    # Keep the real worker constructor and the real control repo on sandbox
+    # SQLite. Nominal services are deliberate fail-fast fakes unreachable on
+    # this projection-rejection path; casts are confined to that boundary.
     worker = AssemblerWorkerDaemon(
-        control_repo=SimpleNamespace(conn=c),
-        fsm_repo=no_side_effects,
-        cmd_handler=no_side_effects,
-        mat_repo=no_side_effects,
-        ast_registry=no_side_effects,
-        runner=no_side_effects,
+        control_repo=ControlPlaneRepository(c),
+        fsm_repo=cast(FSMRepository, no_side_effects),
+        cmd_handler=cast(DocumentCommandHandler, no_side_effects),
+        mat_repo=cast(MaterializedPlaneRepository, no_side_effects),
+        ast_registry=cast(ASTRegistry, no_side_effects),
+        runner=cast(HostTectonicRunner, no_side_effects),
         compilation_service=compilation,
         context_resolver=CQRSAssemblyContextResolver(
             ast_provider=AstProvider(), materialized_plane=EmptyMaterialized(),
