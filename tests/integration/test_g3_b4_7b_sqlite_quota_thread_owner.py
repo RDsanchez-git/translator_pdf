@@ -18,8 +18,8 @@ from apps.llm_workers.routing import LLMProvider
 from apps.llm_workers.prompt_builder import PromptBuilder
 from core.ast.enums import ContentNodeType
 from core.ast.models import ASTNode, ParagraphPayload
-from core.chunking.manifest_contract import ChunkPlan
-from core.chunking.semantic_chunking import build_semantic_chunks_as_units
+from core.chunking.contextual_plan import prepare_contextual_plan
+from core.context.snapshot_contract import ContextBreadcrumbV1, ContextSnapshotV1
 from infra.resilience.thread_owned_sqlite_rate_limit_store import ThreadOwnedSQLiteRateLimitStore
 from infra.resilience.sqlite_rate_limit_store import SQLiteRateLimitStore
 
@@ -43,10 +43,26 @@ def _one_member_plan():
         node_type=ContentNodeType.PARAGRAPH,
         payload=ParagraphPayload(content="Hello world."),
     )]
-    units, _ = build_semantic_chunks_as_units(ast, _Estimator())
-    plan = ChunkPlan.build("quota_doc", "quota_ast_hash", ast, units)
+    # Use the same contextual preparation as the real OCR -> G3 route.
+    prepared = prepare_contextual_plan(
+        document_id="quota_doc", raw_ast=ast, estimator=_Estimator(),
+    )
+    plan = prepared.plan
     assert len(plan.units) == 1 and len(plan.units[0].members) == 1
-    return plan, plan.units[0]
+    unit = plan.units[0]
+    # A heading-free synthetic document has one explicit root breadcrumb,
+    # not the legacy GLOBAL_ROOT fallback. Bind it to this plan generation.
+    snapshot = ContextSnapshotV1(
+        document_id=plan.document_id,
+        ast_hash=plan.ast_hash,
+        context_id=unit.context_id,
+        breadcrumbs=(ContextBreadcrumbV1(
+            level=0, title="[ROOT_DOCUMENT_CONTEXT]",
+        ),),
+    )
+    assert unit.context_id.startswith("CTX_")
+    assert unit.context_depth == len(snapshot.breadcrumbs)
+    return plan, unit, snapshot
 
 
 class _QuotaFakeProvider:
@@ -80,9 +96,12 @@ def test_bridge_worker_threads_persist_quota_on_single_owner(tmp_path):
     bridge = None
     try:
         manager = QuotaManager(rpm_limit=30, tpm_limit=6000, store=store)
-        plan, unit = _one_member_plan()
-        bridge = SyncProviderBridge(cast(LLMProvider, _QuotaFakeProvider(manager, plan, unit)),
-                                     cast(PromptBuilder, _Builder()))
+        plan, unit, snapshot = _one_member_plan()
+        bridge = SyncProviderBridge(
+            cast(LLMProvider, _QuotaFakeProvider(manager, plan, unit)),
+            cast(PromptBuilder, _Builder()),
+            context_snapshots={unit.context_id: snapshot},
+        )
         # Actual Engine shape: multiple sync worker threads submit to one bridge loop.
         with ThreadPoolExecutor(max_workers=2) as workers:
             results = list(workers.map(lambda _: bridge.execute_chunk(plan, unit), range(2)))

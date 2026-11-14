@@ -170,6 +170,15 @@ jobs:
             tests/integration/test_g3_b4_2_ocr_router_durable_plan.py \
             -q -ra
 
+      # These G3/G5 offline regression witnesses predate pytest integration
+      # markers. Run them explicitly so CI cannot silently omit their guards.
+      - name: Verify G3 quota threads and G5 fenced publication offline
+        run: |
+          python -m pytest \
+            tests/integration/test_g3_b4_7b_sqlite_quota_thread_owner.py \
+            tests/integration/test_g5_assembler_worker_integration.py \
+            -q -ra
+
       - name: Run integration tests (pytest marker, excluding regression)
         run: |
           python -m pytest -m "integration and not regression" -v --tb=short --no-header
