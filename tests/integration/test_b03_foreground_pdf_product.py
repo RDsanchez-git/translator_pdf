@@ -17,7 +17,7 @@ def admitted(tmp_path: Path) -> PDFInboxSubmission:
     return PDFInboxSubmission(hashlib.sha256(payload).hexdigest(), pdf, False)
 
 
-def mock_pipeline(monkeypatch, tmp_path, *, initial=None, after_ocr="PROCESSING",
+def mock_pipeline(monkeypatch, tmp_path, *, initial=None, after_ocr: str | None = "PROCESSING",
                   after_g3="READY_FOR_ASSEMBLY", after_g5="COMPLETED", pdf=True):
     states = {"current": initial}
     events = []
