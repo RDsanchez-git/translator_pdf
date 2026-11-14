@@ -10,12 +10,16 @@ from pathlib import Path
 import sqlite3
 from threading import Semaphore
 from types import SimpleNamespace
+from typing import cast
 
 import pytest
 
 from apps.llm_workers.sync_bridge import SyncProviderBridge
+from apps.llm_workers.prompt_builder import PromptBuilder, PromptEnvelope
+from core.prompting.inference_result import InferenceResult
+from tests.integration._reconciler_test_factory import make_reconciler_with_test_doubles
 from core.ast.enums import ContentNodeType
-from core.ast.models import ASTNode, ParagraphPayload, TranslationTaskType
+from core.ast.models import ASTNode, ParagraphPayload, TranslationTaskType, TranslationUnit
 from core.ast.grouper import SemanticGroup
 from core.chunking.manifest_contract import ChunkPlan
 from core.chunking.contextual_plan import prepare_contextual_plan
@@ -108,18 +112,29 @@ def _row(subject):
     ).fetchone()
 
 
+class _RecordingChunkProcessor:
+    """A structural ChunkProcessor fake: no provider, only observable calls."""
+
+    def __init__(self, response: str) -> None:
+        self.response = response
+        self.calls: list[tuple[ChunkPlan, TranslationUnit]] = []
+
+    def execute_chunk(self, plan: ChunkPlan, unit: TranslationUnit) -> str:
+        self.calls.append((plan, unit))
+        return self.response
+
+
 def test_w06_not_started_expired_lease_blocks_fake_before_io(subject):
     """A local invalid pre-I/O lease cannot reach a fake provider."""
     unit = subject.plan.units[0]
     lease = subject.repo.pick_task("w06_worker", subject.plan.document_id, subject.plan.ast_hash)
     assert lease is not None
-    fake_calls = []
-    fake = SimpleNamespace(execute_chunk=lambda *args: fake_calls.append(args))
+    processor = _RecordingChunkProcessor("")
     with pytest.raises(ValueError, match="G3_B4_3A_EXPIRED_LEASE"):
         stage_claimed_unit(
             subject.repo, subject.plan, subject.ast, unit,
-            replace(lease, lease_expires_at=0.0), "w06_worker", fake, Semaphore(1))
-    assert fake_calls == []
+            replace(lease, lease_expires_at=0.0), "w06_worker", processor, Semaphore(1))
+    assert processor.calls == []
     assert _row(subject)[0] == "PROCESSING"
     assert subject.queue.execute("SELECT COUNT(*) FROM chunk_result_receipts").fetchone()[0] == 0
 
@@ -129,17 +144,13 @@ def test_w06_confirmed_response_durable_receipt_no_second_claim(subject):
     unit = subject.plan.units[0]
     lease = subject.repo.pick_task("w06_worker", subject.plan.document_id, subject.plan.ast_hash)
     assert lease is not None
-    fake_calls = []
     response = _response(subject.plan, unit)
-
-    def accepted(*args):
-        fake_calls.append(args)
-        return response
+    processor = _RecordingChunkProcessor(response)
 
     assert stage_claimed_unit(
         subject.repo, subject.plan, subject.ast, unit, lease,
-        "w06_worker", SimpleNamespace(execute_chunk=accepted), Semaphore(1))
-    assert len(fake_calls) == 1
+        "w06_worker", processor, Semaphore(1))
+    assert len(processor.calls) == 1
     assert _row(subject) == ("RESULT_STAGED", 0)
     # Verify bytes survive independent SQLite connection (not just a Python object).
     from contextlib import closing
@@ -166,13 +177,19 @@ class _AcceptedThenResponseLost:
     """
     def __init__(self, response):
         self.response = response
-        self.accepted_calls = []
+        self.accepted_calls: list[str] = []
 
-    async def translate(self, envelope):
+    async def translate(self, envelope: PromptEnvelope) -> InferenceResult:
         self.accepted_calls.append(envelope.chunk_id)
         if len(self.accepted_calls) == 1:
             raise TimeoutError("W06_FAKE_ACCEPTED_BUT_RESPONSE_LOST")
-        return SimpleNamespace(chunk_id=envelope.chunk_id, content=self.response)
+        # A forbidden second call remains a valid provider result so the
+        # test oracle, not a malformed fake, detects any unsafe automatic retry.
+        return InferenceResult(
+            chunk_id=envelope.chunk_id, content=self.response,
+            input_tokens=0, output_tokens=0, latency_ms=0.0,
+            finish_reason="stop",
+        )
 
 
 def _run_post_send_loss(subject, monkeypatch):
@@ -181,8 +198,11 @@ def _run_post_send_loss(subject, monkeypatch):
     snapshots = DurableContextPlanRepository(subject.repo).load_verified(
         subject.plan.document_id, subject.plan.ast_hash, subject.ast,
     )[1]
+    # The minimal builder stands in only for this offline UNKNOWN-effect
+    # witness; it intentionally does not initialize production budget services.
     bridge = SyncProviderBridge(
-        fake, _Builder(), timeout_sec=1.0, context_snapshots=snapshots,
+        fake, cast(PromptBuilder, _Builder()),
+        timeout_sec=1.0, context_snapshots=snapshots,
     )
     monkeypatch.setattr(
         subject.engine, "_create_chunk_processor",
@@ -257,14 +277,13 @@ def _set_reconciler_expiry(subject, *, worker="w06_worker"):
 
 def test_w06_reconciler_quarantines_expired_translate_without_receipt(subject):
     """A crashed TRANSLATE may have called provider; missing receipt proves nothing."""
-    from apps.daemons.reconciler import ReconcilerDaemon
     import time
 
     lease = _set_reconciler_expiry(subject)
     before = subject.queue.execute(
         "SELECT execution_id FROM chunk_tasks WHERE task_id=?", (lease.task_id,)
     ).fetchone()[0]
-    recon = ReconcilerDaemon(None, subject.repo, None, None, None)
+    recon = make_reconciler_with_test_doubles(None, subject.repo, None, None, None)
     recon.is_leader = True
     recon.node_id = "recon_w06"
     recon.current_epoch = 7
