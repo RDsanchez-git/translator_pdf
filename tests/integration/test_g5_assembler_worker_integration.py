@@ -21,7 +21,15 @@ from tests.integration.test_g5_assembler_lease_recovery import (
 )
 
 
-def _worker(c, output: Path, crash_stage=None):
+def _worker(
+    c, output: Path, monkeypatch: pytest.MonkeyPatch, crash_stage=None,
+):
+    # The production heartbeat starts its own thread-confined SQLite
+    # connection. Bind BOTH paths to the disposable WAL databases created by
+    # the sandbox fixture, rather than falling back to infra/db/*.db.
+    monkeypatch.setenv("QUEUE_DB_PATH", str(output / "queue.db"))
+    monkeypatch.setenv("FSM_DB_PATH", str(output / "fsm.db"))
+
     class FakeRunner:
         def compile(self, tex, *, output_dir, output_filename, image_assets=()):
             assert tex == "fake tex"
@@ -66,7 +74,7 @@ def _worker(c, output: Path, crash_stage=None):
 def test_real_worker_method_publishes_fenced_document(sandbox, monkeypatch):
     c, _connect, tmp = sandbox
     monkeypatch.setenv("COMPILER_OUTPUT_DIR", str(tmp))
-    worker = _worker(c, tmp)
+    worker = _worker(c, tmp, monkeypatch)
     worker._process_assembly_task("doc", "ast")
     assert _fsm(c) == ("COMPLETED", 4, 1)
     assert _row(c)[0] == "COMPLETED"
@@ -79,7 +87,7 @@ def test_real_worker_method_rejects_expired_lease_without_final_publication(
 ):
     c, _connect, tmp = sandbox
     monkeypatch.setenv("COMPILER_OUTPUT_DIR", str(tmp))
-    worker = _worker(c, tmp, crash_stage="expire_during_compile")
+    worker = _worker(c, tmp, monkeypatch, crash_stage="expire_during_compile")
     with pytest.raises(OptimisticLockError, match="STALE_PDF_PROMOTION"):
         worker._process_assembly_task("doc", "ast")
     assert not (tmp / "translated_doc.pdf").exists()
@@ -92,7 +100,7 @@ def test_real_worker_method_rejects_expired_lease_without_final_publication(
 def test_real_worker_method_fences_failure_state(sandbox, monkeypatch):
     c, _connect, tmp = sandbox
     monkeypatch.setenv("COMPILER_OUTPUT_DIR", str(tmp))
-    worker = _worker(c, tmp, crash_stage="raise")
+    worker = _worker(c, tmp, monkeypatch, crash_stage="raise")
     with pytest.raises(RuntimeError, match="Simulated Tectonic failure"):
         worker._process_assembly_task("doc", "ast")
     assert _fsm(c)[0] == "FAILED_RETRYABLE"
