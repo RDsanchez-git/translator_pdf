@@ -182,3 +182,10 @@ jobs:
       - name: Run integration tests (pytest marker, excluding regression)
         run: |
           python -m pytest -m "integration and not regression" -v --tb=short --no-header
+
+      # Audit all technical tests, including older unmarked fixtures. The
+      # corpus-backed E2E tests run only when explicitly requested; CV remains
+      # a separate, visible gate with no reinterpretation of its verdict.
+      - name: Run complete technical pytest suite (excluding scientific E2E)
+        run: |
+          python -m pytest -m "not e2e" -q -ra
