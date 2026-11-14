@@ -32,12 +32,12 @@ class TestPipelineFidelity(unittest.TestCase):
 
     def test_mixed_inline_and_block_math(self):
         """B02.4: protect inline AND display math without changing source bytes."""
-        original = "The value $x$ is computed from\n$\nx = y+z\n$\nand $z$."
+        original = "The value $x$ is computed from\n$$\nx = y+z\n$$\nand $z$."
         masked, mapping = InlineMathProtector.mask(original)
 
         self.assertEqual(mapping, {
             "__MATH_0__": "$x$",
-            "__MATH_1__": "$\nx = y+z\n$",
+            "__MATH_1__": "$$\nx = y+z\n$$",
             "__MATH_2__": "$z$",
         })
         self.assertEqual(masked.count("__MATH_"), 3)
