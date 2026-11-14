@@ -11,7 +11,7 @@ import pytest
 from apps.bootstrap.pipeline_factory import build_extraction_pipeline
 from core.ast.enums import ContentNodeType, TranslationStrategy
 from core.ast.hashing import compute_ast_hash
-from core.ast.models import TranslationTaskType
+from core.ast.models import ImagePayload, TranslationTaskType
 from core.chunking.manifest_contract import ChunkPlan, validate_chunk_coverage
 from core.chunking.result_contract import materialize_node_results
 from core.chunking.semantic_chunking import build_semantic_chunks_as_units
@@ -54,10 +54,14 @@ def test_raster_survives_ast_plan_preserve_and_g5_staging(tmp_path, monkeypatch)
     assert len(images) == 1
     image = images[0]
     assert image.strategy == TranslationStrategy.PASSTHROUGH
-    assert image.text_content == image.payload.asset_path
-    assert image.metadata.pages == [1]
-    image_ref = image.payload.asset_path
+    # IMAGE nodes carry ImagePayload; the node_type discriminator alone does
+    # not narrow the ASTPayload union for static analysis.
+    payload = image.payload
+    assert isinstance(payload, ImagePayload)
+    image_ref = payload.asset_path
     assert image_ref is not None
+    assert image.text_content == image_ref
+    assert image.metadata.pages == [1]
     assert (tmp_path / image_ref).is_file()
     data = (tmp_path / image_ref).read_bytes()
     assert image_ref == "data/assets/" + sha256(data).hexdigest() + ".png"
