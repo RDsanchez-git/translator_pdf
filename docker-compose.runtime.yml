@@ -1,0 +1,103 @@
+services:
+  db_bootstrap:
+    environment:
+      SQLITE_STATE_DIR: /app/state/db
+      FSM_DB_PATH: /app/state/db/fsm.db
+      QUEUE_DB_PATH: /app/state/db/queue.db
+      EVENT_DB_PATH: /app/state/db/event.db
+      MAT_DB_PATH: /app/state/db/materialized.db
+    volumes: !override
+      - g3_runtime_state:/app/state
+      - hf_models_cache:/app/.cache/hf
+      - torch_cache:/app/.cache/torch
+      - tectonic_cache:/app/.cache/tectonic
+      - g3_runtime_data:/app/data
+      - g3_runtime_output:/app/output
+  reconciler:
+    environment:
+      SQLITE_STATE_DIR: /app/state/db
+      FSM_DB_PATH: /app/state/db/fsm.db
+      QUEUE_DB_PATH: /app/state/db/queue.db
+      EVENT_DB_PATH: /app/state/db/event.db
+      MAT_DB_PATH: /app/state/db/materialized.db
+    volumes: !override
+      - g3_runtime_state:/app/state
+      - hf_models_cache:/app/.cache/hf
+      - torch_cache:/app/.cache/torch
+      - tectonic_cache:/app/.cache/tectonic
+      - g3_runtime_data:/app/data
+      - g3_runtime_output:/app/output
+  ocr_router:
+    environment:
+      SQLITE_STATE_DIR: /app/state/db
+      FSM_DB_PATH: /app/state/db/fsm.db
+      QUEUE_DB_PATH: /app/state/db/queue.db
+      EVENT_DB_PATH: /app/state/db/event.db
+      MAT_DB_PATH: /app/state/db/materialized.db
+    volumes: !override
+      - g3_runtime_state:/app/state
+      - hf_models_cache:/app/.cache/hf
+      - torch_cache:/app/.cache/torch
+      - tectonic_cache:/app/.cache/tectonic
+      - g3_runtime_data:/app/data
+      - g3_runtime_output:/app/output
+  llm_worker:
+    depends_on: !override
+      db_bootstrap:
+        condition: service_completed_successfully
+    environment:
+      SQLITE_STATE_DIR: /app/state/db
+      FSM_DB_PATH: /app/state/db/fsm.db
+      QUEUE_DB_PATH: /app/state/db/queue.db
+      EVENT_DB_PATH: /app/state/db/event.db
+      MAT_DB_PATH: /app/state/db/materialized.db
+      IS_BENCHMARK: "0"
+      GEMINI_API_URL: !reset null
+    volumes: !override
+      - g3_runtime_state:/app/state
+      - hf_models_cache:/app/.cache/hf
+      - torch_cache:/app/.cache/torch
+      - tectonic_cache:/app/.cache/tectonic
+      - g3_runtime_data:/app/data
+      - g3_runtime_output:/app/output
+  assembler:
+    environment:
+      SQLITE_STATE_DIR: /app/state/db
+      FSM_DB_PATH: /app/state/db/fsm.db
+      QUEUE_DB_PATH: /app/state/db/queue.db
+      EVENT_DB_PATH: /app/state/db/event.db
+      MAT_DB_PATH: /app/state/db/materialized.db
+      COMPILER_OUTPUT_DIR: /app/output
+      HOME: /tmp
+      XDG_CONFIG_HOME: /tmp/.config
+      XDG_CACHE_HOME: /app/.cache/tectonic
+      TECTONIC_CACHE_DIR: /app/.cache/tectonic
+    volumes: !override
+      - g3_runtime_state:/app/state
+      - hf_models_cache:/app/.cache/hf
+      - torch_cache:/app/.cache/torch
+      - tectonic_cache:/app/.cache/tectonic
+      - g3_runtime_data:/app/data
+      - g3_runtime_output:/app/output
+  sweeper:
+    environment:
+      SQLITE_STATE_DIR: /app/state/db
+      FSM_DB_PATH: /app/state/db/fsm.db
+      QUEUE_DB_PATH: /app/state/db/queue.db
+      EVENT_DB_PATH: /app/state/db/event.db
+      MAT_DB_PATH: /app/state/db/materialized.db
+    volumes: !override
+      - g3_runtime_state:/app/state
+      - hf_models_cache:/app/.cache/hf
+      - torch_cache:/app/.cache/torch
+      - tectonic_cache:/app/.cache/tectonic
+      - g3_runtime_data:/app/data
+      - g3_runtime_output:/app/output
+  toxiproxy:
+    profiles: [lab]
+  fake-gemini:
+    profiles: [lab]
+volumes:
+  g3_runtime_state:
+  g3_runtime_data:
+  g3_runtime_output:

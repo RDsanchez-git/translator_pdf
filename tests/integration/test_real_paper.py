@@ -1,18 +1,32 @@
 import os
 import unittest
 import logging
+import pytest
 from core.ast.validator import ASTValidator, ASTHealthReport, ASTValidationError
 from apps.bootstrap.pipeline_factory import build_extraction_pipeline
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("integration_test")
 
+@pytest.mark.e2e
 class TestRealPaperIntegration(unittest.TestCase):
+    """Opt-in real-paper fidelity witness; not a representable-PDF smoke.
+
+    A real document can correctly fail B02 on unsupported vector drawings.
+    Do not convert it into a technical PASS with a synthetic substitute: that
+    positive extraction path is already covered by the PR #50 integration test.
+    """
+
     def setUp(self):
-        self.pdf_path = os.getenv("TEST_REAL_PDF_PATH", "tests/fixtures/sample_3_pages.pdf")
-        
-        if not os.path.exists(self.pdf_path):
-            self.skipTest(f"Test de integración abortado: Fixture ausente en '{self.pdf_path}'")
+        self.pdf_path = os.getenv("TEST_REAL_PDF_PATH", "")
+        if not self.pdf_path:
+            self.fail(
+                "REAL_PAPER_INPUT_REQUIRED: set TEST_REAL_PDF_PATH explicitly "
+                "to a PDF whose capabilities you intend to validate, then run "
+                "python -m pytest -m e2e tests/integration/test_real_paper.py"
+            )
+        if not os.path.isfile(self.pdf_path):
+            self.fail(f"REAL_PAPER_INPUT_MISSING: {self.pdf_path}")
 
     def test_parser_and_validation_e2e_local(self):
         """Verifica que el pipeline de extracción de producción produce un AST válido."""

@@ -170,14 +170,27 @@ class TestASTNodeInvariants:
         assert node.sequence_id == -1
         assert node.has_valid_sequence is False
 
-    def test_image_payload_has_empty_text_content(self) -> None:
-        """Nodos IMAGE no exponen contenido textual."""
+    def test_image_payload_exposes_asset_reference_for_preservation(self) -> None:
+        """B02.3: IMAGE uses the asset reference as non-translated source data."""
         node = ASTNode(
             node_id="image-1",
             sequence_id=1,
             node_type=ContentNodeType.IMAGE,
             strategy=TranslationStrategy.PASSTHROUGH,
             payload=ImagePayload(asset_path="figure.png"),
+        )
+        assert node.text_content == "figure.png"
+        assert isinstance(node.payload, ImagePayload)
+        assert node.payload.asset_path == node.text_content
+
+    def test_image_without_asset_reference_has_empty_text_content(self) -> None:
+        """Missing asset references remain empty, never guessed or fabricated."""
+        node = ASTNode(
+            node_id="image-2",
+            sequence_id=2,
+            node_type=ContentNodeType.IMAGE,
+            strategy=TranslationStrategy.PASSTHROUGH,
+            payload=ImagePayload(),
         )
         assert node.text_content == ""
 

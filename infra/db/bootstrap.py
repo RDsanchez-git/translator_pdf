@@ -11,12 +11,15 @@ logger = logging.getLogger("db_bootstrap")
 
 # Matriz de Configuración SOTA para el Triple Plane Split
 BASE_DIR = Path(__file__).resolve().parent
+# El código y los DDL permanecen en la imagen; solo las bases usan el volumen.
+raw_state_dir = Path(os.getenv("SQLITE_STATE_DIR", str(BASE_DIR)))
+STATE_DIR = (raw_state_dir if raw_state_dir.is_absolute() else BASE_DIR.parents[1] / raw_state_dir).resolve()
 
 DB_CONFIGS = {
-    str(BASE_DIR / "fsm.db"): str(BASE_DIR / "schema_fsm.sql"),
-    str(BASE_DIR / "queue.db"): str(BASE_DIR / "schema_queue.sql"),
-    str(BASE_DIR / "event.db"): str(BASE_DIR / "schema_event.sql"),
-    str(BASE_DIR / "materialized.db"): str(BASE_DIR / "schema_materialized.sql"),
+    str(STATE_DIR / "fsm.db"): str(BASE_DIR / "schema_fsm.sql"),
+    str(STATE_DIR / "queue.db"): str(BASE_DIR / "schema_queue.sql"),
+    str(STATE_DIR / "event.db"): str(BASE_DIR / "schema_event.sql"),
+    str(STATE_DIR / "materialized.db"): str(BASE_DIR / "schema_materialized.sql"),
 }
 
 def bootstrap_all_databases():
@@ -24,7 +27,7 @@ def bootstrap_all_databases():
     logger.info("   STARTING TRIPLE PLANE SPLIT INFRASTRUCTURE BOOTSTRAP  ")
     logger.info("=========================================================")
     
-    BASE_DIR.mkdir(parents=True, exist_ok=True)
+    STATE_DIR.mkdir(parents=True, exist_ok=True)
 
     for db_path, schema_path in DB_CONFIGS.items():
         logger.info(f"Evaluando plano de persistencia: {db_path}")

@@ -25,3 +25,10 @@ data/
 # IDEs
 .vscode/
 .idea/
+
+# Excluir secretos y PDFs locales de la raiz
+.env
+.env.*
+**/.env
+**/.env.*
+/*.pdf

@@ -23,11 +23,8 @@ RUN curl -sSL -o tectonic.tar.gz https://github.com/tectonic-typesetting/tectoni
 
 WORKDIR /app
 
-# 3. Dependencias de Python
-COPY requirements.txt .
-RUN pip install --default-timeout=1000 --no-cache-dir -r requirements.txt
-
-# 4. Código fuente
+# 3. Instalacion del proyecto desde pyproject.toml
 COPY . /app/
+RUN python -m pip install --default-timeout=1000 --no-cache-dir .
 
 CMD ["python", "runtime/engine.py"]

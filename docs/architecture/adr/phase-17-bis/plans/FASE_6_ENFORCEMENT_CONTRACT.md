@@ -2,9 +2,10 @@
 ## Continuous Verification — Merge Enforcement Declaration (NADR-F17BIS-30)
 
 **Documento:** `docs/architecture/adr/phase-17-bis/plans/FASE_6_ENFORCEMENT_CONTRACT.md`
-**Versión:** 1.0.0
+**Versión:** 1.0.1
 **Estado:** ACTIVE (transicional)
 **Fecha:** 2026-09-30
+**Actualización operacional:** 2026-11-13 — separación de workflows sin cambiar enforcement, sujeto, baseline ni semántica
 **Derivado de:** NADR-F17BIS-30 (FROZEN), PHASE_17BIS_FASE6_EXECUTION_PLAN.md v1.0.10 (Task 4.1.1, MIG-01, MIG-04)
 **Autoridad:** Architecture Board. Este documento declara el enforcement contract operativo; NO redefine reglas de NADR-30.
 **Ubicación:** `plans/` según Guía de Documentación de Arquitectura v1.0.0 §4 (secuenciación operativa). La evidencia binaria de CI vive en `reports/evidence/` (§4: "evidencia de CI"); los documentos de hallazgos viven en `reviews/`.
@@ -37,8 +38,22 @@ los bloqueantes, y qué huecos de enforcement existen hoy.
 | `static-analysis` | ci.yml | — | **REQUIRED** | Sí | No |
 | `unit-tests` | ci.yml | — | informativo | No | No |
 | `integration-tests` | ci.yml | — | informativo | No | No |
-| `regression-gates` | ci.yml | SMOKE | informativo | No | No |
+| `regression-gates` | continuous-verification.yml | SMOKE | informativo | No | No |
 | `cv-full-profile` | continuous-verification.yml | FULL | informativo | No | No |
+
+**Separación de ejecución (actualización operacional 2026-11-13):**
+`.github/workflows/ci.yml` ejecuta únicamente controles técnicos
+(static-analysis, unit-tests, integration-tests y suite técnica completa)
+en PR a `main`/`pipeline_stabilization` y en los pushes ya configurados.
+`.github/workflows/continuous-verification.yml` ejecuta el mismo entry point
+normativo `tools.evaluation.run_regression`: SMOKE en PR a
+`main`/`pipeline_stabilization`, FULL en pushes a `main` o por
+`workflow_dispatch` manual. Los jobs conservan sus nombres y códigos de
+salida originales (0/1/2/3/4), sin `continue-on-error` ni sustitución del corpus.
+Los controles de inmutabilidad y la carga de evidencias se ejecutan aun cuando
+falla la evaluación científica (`if: always()`). Ambos workflows pueden tener
+resultados distintos en el mismo PR: CI técnico verde y CV rojo **no equivalen**
+a un PASS científico ni modifican qué checks son required.
 
 **Mecanismo:** classic branch protection rule sobre `main` con `static-analysis`
 como único required status check. Se elige classic (no ruleset) en la fase
@@ -80,11 +95,14 @@ se configura con los nombres reportados.
    required**: una regresión estructural que no rompa static-analysis no bloquea
    integración hoy (cláusula 6.1).
 
-3. **Estado basal esperado de los checks CV: ROJO** (exit 2, HARD_FAIL) tanto para
-   `regression-gates` (SMOKE) como `cv-full-profile` (FULL), por el estado basal del
-   extractor. Este rojo es conocido y documentado; no indica regresión nueva.
-   Distinguir una regresión nueva del rojo basal requiere inspección del artifact
-   de evidencia (NSS y verdict en el JSON persistido), no el color del check.
+3. **Estado CV observado: ROJO, con causas que no deben confundirse.**
+   En septiembre de 2026 se observó HARD_FAIL (exit 2, NSS 0.7208)
+   en FULL y SMOKE. En los PR de noviembre de 2026, SMOKE falla por
+   BASELINE_INTEGRITY_FAILURE (exit 3) al faltar 15 PDFs canónicos
+   (`doc_08`–`doc_22`, issue #34): no constituye un veredicto científico.
+   El workflow separado sigue mostrando el fallo real, sin convertirlo
+   en PASS. Distinguir errores operacionales de divergencias reales
+   requiere inspección de los códigos de salida, artifacts e identidades.
 
 ---
 

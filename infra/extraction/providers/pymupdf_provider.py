@@ -1,4 +1,6 @@
+import os
 import re
+from pathlib import Path
 from dataclasses import dataclass
 from typing import cast, Any, List, Dict, Tuple, Optional
 from collections import defaultdict
@@ -26,6 +28,12 @@ from core.domain.document import (
 )
 from core.extraction.provider import ExtractionProvider, ExtractionCapabilities
 from core.layout.classification import LayoutClassifier, BlockClassificationSignals, PageClassificationContext
+from core.execution.exceptions import LayoutRecoveryError
+from infra.extraction.providers.pymupdf_integrity import (
+    UnrepresentedPdfContentError, validate_pymupdf_page_coverage,
+)
+from infra.extraction.providers.pymupdf_image_assets import persist_png_asset
+from infra.extraction.providers.pymupdf_math_visual import classify_math_font_block, render_math_visual_png
 import statistics
 
 @dataclass(frozen=True, slots=True)
@@ -36,6 +44,7 @@ class _PhysicalBlock:
     bbox: tuple[float, float, float, float]
     lines: list[dict]
     rotation: float
+    native_type: int = 0
 
 
 
@@ -51,7 +60,7 @@ class PyMuPDFProvider(ExtractionProvider):
         self._capabilities = ExtractionCapabilities(
             has_bbox=True,
             has_tables=False,
-            has_images=False,
+            has_images=self._write_images,
             has_font_info=True,
             has_vector_text=True,
             supports_math=False,
@@ -70,11 +79,16 @@ class PyMuPDFProvider(ExtractionProvider):
             total_pages = len(doc)
             for page_idx in range(total_pages):
                 page = doc[page_idx]
-                layout_page = self._build_page(
-                    page,
-                    page_number=page_idx + 1,
-                    total_pages=total_pages,
-                )
+                try:
+                    layout_page = self._build_page(
+                        page,
+                        page_number=page_idx + 1,
+                        total_pages=total_pages,
+                    )
+                except UnrepresentedPdfContentError as exc:
+                    raise LayoutRecoveryError(
+                        message=str(exc), provider_name="pymupdf", pdf_path=pdf_path
+                    ) from exc
                 pages.append(layout_page)
 
         profile = DocumentProfile()
@@ -109,17 +123,56 @@ class PyMuPDFProvider(ExtractionProvider):
 
         page_dict = cast(dict[str, Any], page.get_text("dict"))
         raw_blocks = page_dict.get("blocks", [])
+        validate_pymupdf_page_coverage(
+            raw_blocks,
+            page_number=page_number,
+            has_vector_drawings=bool(page.get_drawings()),
+            allow_image_blocks=self._write_images,
+        )
 
-        # Fase 1: Extraer todos los bloques físicos
+        # Preserve native block order, including images. No invisible IMAGE nodes.
         physical_blocks: list[_PhysicalBlock] = []
-        for raw_b in raw_blocks:
-            if raw_b.get("type") != 0:
-                continue
-            phys = self._extract_physical_block(
-                raw_block=raw_b,
-                default_idx=len(physical_blocks),
-                rotation=rotation,
-            )
+        for block_index, raw_b in enumerate(raw_blocks):
+            if raw_b.get("type") == 1:
+                png = self._image_block_to_png(raw_b, page_number=page_number)
+                reference = persist_png_asset(
+                    png, source_root=Path(os.getenv("APP_ROOT") or ".")
+                )
+                phys = _PhysicalBlock(
+                    native_index=int(raw_b.get("number", block_index)),
+                    raw_text=reference,
+                    bbox=tuple(raw_b.get("bbox", ())),
+                    lines=[], rotation=rotation, native_type=1,
+                )
+            else:
+                math_class = classify_math_font_block(raw_b)
+                if math_class == "mixed":
+                    raise UnrepresentedPdfContentError(
+                        f"B025_MIXED_MATH_FONT_BLOCK: page={page_number} "
+                        f"block={raw_b.get('number', block_index)}; "
+                        "no se puede separar matemática y prosa sin alterar lectura"
+                    )
+                if math_class == "visual":
+                    if not self._write_images:
+                        raise UnrepresentedPdfContentError(
+                            f"B025_MATH_VISUAL_DISABLED: page={page_number}"
+                        )
+                    png = render_math_visual_png(page, raw_b, page_number=page_number)
+                    reference = persist_png_asset(
+                        png, source_root=Path(os.getenv("APP_ROOT") or ".")
+                    )
+                    phys = _PhysicalBlock(
+                        native_index=int(raw_b.get("number", block_index)),
+                        raw_text=reference,
+                        bbox=tuple(raw_b.get("bbox", ())),
+                        lines=[], rotation=rotation, native_type=1,
+                    )
+                else:
+                    phys = self._extract_physical_block(
+                        raw_block=raw_b,
+                        default_idx=block_index,
+                        rotation=rotation,
+                    )
             physical_blocks.append(phys)
 
         # Fase 2: Calcular contexto estadístico de la página
@@ -144,7 +197,10 @@ class PyMuPDFProvider(ExtractionProvider):
             )
 
             # Clasificar ANTES de construir el Aggregate
-            logical_type = self._classifier.classify(signals, page_context)
+            logical_type = (
+                LayoutBlockType.IMAGE if phys.native_type == 1
+                else self._classifier.classify(signals, page_context)
+            )
 
             block = self._build_layout_block(
                 phys_block=phys,
@@ -163,6 +219,31 @@ class PyMuPDFProvider(ExtractionProvider):
             dimensions=dimensions,
             blocks=blocks,
         )
+
+    @staticmethod
+    def _image_block_to_png(raw_block: dict, *, page_number: int) -> bytes:
+        """Decode an embedded raster; do not synthesize or OCR image contents.
+
+        Unsupported masks and colour spaces fail rather than dropping detail.
+        """
+        image = raw_block.get("image")
+        if raw_block.get("mask"):
+            raise UnrepresentedPdfContentError(
+                f"B023_IMAGE_ALPHA_MASK_UNSUPPORTED: page={page_number}"
+            )
+        if not isinstance(image, bytes) or not image:
+            raise UnrepresentedPdfContentError(
+                f"B023_IMAGE_BYTES_MISSING: page={page_number}"
+            )
+        try:
+            pixmap = fitz.Pixmap(image)
+            if pixmap.colorspace is None or pixmap.colorspace.n not in (1, 3):
+                raise ValueError("unsupported colorspace")
+            return pixmap.tobytes("png")
+        except Exception as exc:
+            raise UnrepresentedPdfContentError(
+                f"B023_IMAGE_DECODE_UNSUPPORTED: page={page_number}"
+            ) from exc
 
     def _extract_physical_block(
         self, raw_block: dict, default_idx: int, rotation: float
@@ -308,6 +389,8 @@ class PyMuPDFProvider(ExtractionProvider):
         font_sizes: list[float] = []
 
         for phys in physical_blocks:
+            if phys.native_type != 0:
+                continue  # asset references are not textual typography samples.
             typo = self._extract_dominant_typography(phys.lines)
             if typo.font_size is not None and typo.font_size > 0:
                 # Ponderar por cantidad de caracteres visibles
