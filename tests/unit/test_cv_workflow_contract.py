@@ -71,34 +71,34 @@ class TestWorkflowFilesExist:
 
 @pytest.mark.unit
 class TestRegressionGatesJobContract:
-    """GAP-6.3-01 (P0): El job regression-gates invoca el entry point real."""
+    """GAP-6.3-01: SMOKE separado sigue invocando el entry point real."""
 
     def test_regression_gates_job_exists(self) -> None:
-        data = _load_yaml(CI_WORKFLOW)
+        data = _load_yaml(CV_WORKFLOW)
         assert "regression-gates" in data["jobs"]
 
     def test_regression_gates_invokes_run_regression(self) -> None:
         """El job invoca run_regression.py (no pytest -m regression)."""
-        data = _load_yaml(CI_WORKFLOW)
+        data = _load_yaml(CV_WORKFLOW)
         commands = _get_run_commands(data["jobs"]["regression-gates"])
         assert "run_regression" in commands
 
     def test_regression_gates_uses_smoke_profile(self) -> None:
         """El job usa --profile SMOKE para feedback rápido en PRs."""
-        data = _load_yaml(CI_WORKFLOW)
+        data = _load_yaml(CV_WORKFLOW)
         commands = _get_run_commands(data["jobs"]["regression-gates"])
         assert "--profile SMOKE" in commands
 
     def test_regression_gates_does_not_use_pytest_regression_marker(self) -> None:
         """GAP-6.3-01: El job NO ejecuta pytest -m 'regression' (0 tests)."""
-        data = _load_yaml(CI_WORKFLOW)
+        data = _load_yaml(CV_WORKFLOW)
         commands = _get_run_commands(data["jobs"]["regression-gates"])
         assert 'pytest -m "regression"' not in commands
         assert "pytest -m regression" not in commands
 
     def test_regression_gates_uses_persist_credentials_false(self) -> None:
         """NADR-26 §5.4 R16: El corpus es read-only durante la evaluación."""
-        data = _load_yaml(CI_WORKFLOW)
+        data = _load_yaml(CV_WORKFLOW)
         steps = data["jobs"]["regression-gates"]["steps"]
         checkout_steps = [
             s for s in steps if s.get("uses", "").startswith("actions/checkout")
@@ -109,19 +109,19 @@ class TestRegressionGatesJobContract:
 
     def test_regression_gates_verifies_corpus_mutation(self) -> None:
         """NADR-26 §5.4 R16-R19: Verificación de mutación del corpus."""
-        data = _load_yaml(CI_WORKFLOW)
+        data = _load_yaml(CV_WORKFLOW)
         commands = _get_run_commands(data["jobs"]["regression-gates"])
         assert "tests/corpus/canonical/" in commands
 
     def test_regression_gates_verifies_oracle_mutation(self) -> None:
         """NADR-10 §5.1 R2: Verificación de mutación de oráculos (existente)."""
-        data = _load_yaml(CI_WORKFLOW)
+        data = _load_yaml(CV_WORKFLOW)
         commands = _get_run_commands(data["jobs"]["regression-gates"])
         assert "tests/fixtures/" in commands
 
     def test_regression_gates_uploads_artifacts_with_always(self) -> None:
         """NADR-28 §5.3 R14: Evidencia persistente con if: always()."""
-        data = _load_yaml(CI_WORKFLOW)
+        data = _load_yaml(CV_WORKFLOW)
         steps = data["jobs"]["regression-gates"]["steps"]
         upload_steps = [
             s for s in steps if s.get("uses", "").startswith("actions/upload-artifact")
@@ -129,6 +129,36 @@ class TestRegressionGatesJobContract:
         assert len(upload_steps) > 0
         for step in upload_steps:
             assert step.get("if") == "always()"
+
+    def test_regression_gates_integrity_checks_run_after_cv_failure(self) -> None:
+        """NADR-26: failures must not prevent oracle/corpus mutation checks."""
+        steps = _load_yaml(CV_WORKFLOW)["jobs"]["regression-gates"]["steps"]
+        for name in ("Verify oracles were not mutated",
+                     "Verify canonical corpus was not mutated"):
+            matching = [step for step in steps if step.get("name") == name]
+            assert len(matching) == 1
+            assert matching[0].get("if") == "always()"
+
+    def test_regression_gates_runs_on_pr_to_both_targets(self) -> None:
+        """SMOKE remains observable for PRs but does not run on main push."""
+        data = _load_yaml(CV_WORKFLOW)
+        triggers = _get_on_config(data)
+        assert set(triggers["pull_request"]["branches"]) == {
+            "main", "pipeline_stabilization",
+        }
+        smoke = data["jobs"]["regression-gates"]
+        assert smoke.get("if") == "github.event_name == 'pull_request'"
+        assert "needs" not in smoke
+
+    def test_technical_ci_does_not_duplicate_scientific_smoke(self) -> None:
+        """One normative CV job; no second evaluation in the technical CI."""
+        technical = _load_yaml(CI_WORKFLOW)
+        scientific = _load_yaml(CV_WORKFLOW)
+        assert "regression-gates" not in technical["jobs"]
+        assert "regression-gates" in scientific["jobs"]
+        assert "run_regression" not in "\n".join(
+            _get_run_commands(job) for job in technical["jobs"].values()
+        )
 
 
 @pytest.mark.unit
@@ -141,10 +171,12 @@ class TestInformationalCvJobIsolation:
     """
 
     def test_integration_runs_independently_of_regression_outcome(self) -> None:
-        data = _load_yaml(CI_WORKFLOW)
-        jobs = data["jobs"]
-        assert jobs["integration-tests"]["needs"] == ["unit-tests"]
-        assert jobs["regression-gates"]["needs"] == "static-analysis"
+        technical_jobs = _load_yaml(CI_WORKFLOW)["jobs"]
+        scientific_jobs = _load_yaml(CV_WORKFLOW)["jobs"]
+        assert technical_jobs["integration-tests"]["needs"] == ["unit-tests"]
+        assert "regression-gates" not in technical_jobs
+        assert "regression-gates" in scientific_jobs
+        assert "needs" not in scientific_jobs["regression-gates"]
 
     def test_integration_keeps_unit_and_static_prerequisites(self) -> None:
         data = _load_yaml(CI_WORKFLOW)
@@ -181,11 +213,14 @@ class TestCvFullProfileWorkflowContract:
         on_config = _get_on_config(data)
         assert "workflow_dispatch" in on_config
 
-    def test_cv_workflow_not_triggered_on_pull_request(self) -> None:
-        """SMOKE cubre PRs; FULL solo en main (evita ~4 min por PR)."""
+    def test_cv_full_profile_skips_pull_request(self) -> None:
+        """SMOKE is triggered by PR, FULL is not allowed to run on PR."""
         data = _load_yaml(CV_WORKFLOW)
-        on_config = _get_on_config(data)
-        assert "pull_request" not in on_config
+        triggers = _get_on_config(data)
+        assert "pull_request" in triggers
+        assert data["jobs"]["cv-full-profile"].get("if") == (
+            "github.event_name == 'push' || github.event_name == 'workflow_dispatch'"
+        )
 
     def test_cv_workflow_uses_persist_credentials_false(self) -> None:
         data = _load_yaml(CV_WORKFLOW)
@@ -212,6 +247,15 @@ class TestCvFullProfileWorkflowContract:
         for step in upload_steps:
             assert step.get("if") == "always()"
 
+    def test_cv_full_integrity_check_runs_even_on_scientific_failure(self) -> None:
+        steps = _load_yaml(CV_WORKFLOW)["jobs"]["cv-full-profile"]["steps"]
+        matching = [
+            s for s in steps
+            if s.get("name") == "Verify canonical corpus was not mutated"
+        ]
+        assert len(matching) == 1
+        assert matching[0].get("if") == "always()"
+
     def test_cv_workflow_has_concurrency_control(self) -> None:
         """Evita ejecuciones redundantes en el mismo ref."""
         data = _load_yaml(CV_WORKFLOW)
@@ -224,12 +268,40 @@ class TestProfileSeparation:
 
     def test_full_and_smoke_have_different_output_dirs(self) -> None:
         """R11: Diferencia de cobertura observable en evidencia."""
-        ci_data = _load_yaml(CI_WORKFLOW)
         cv_data = _load_yaml(CV_WORKFLOW)
 
-        smoke_commands = _get_run_commands(ci_data["jobs"]["regression-gates"])
+        smoke_commands = _get_run_commands(cv_data["jobs"]["regression-gates"])
         full_commands = _get_run_commands(cv_data["jobs"]["cv-full-profile"])
 
         assert "reports/continuous-verification-smoke" in smoke_commands
         assert "reports/continuous-verification" in full_commands
         assert "reports/continuous-verification-smoke" not in full_commands
+
+    def test_both_profiles_use_same_normative_entry_point(self) -> None:
+        jobs = _load_yaml(CV_WORKFLOW)["jobs"]
+        smoke = _get_run_commands(jobs["regression-gates"])
+        full = _get_run_commands(jobs["cv-full-profile"])
+        for commands in (smoke, full):
+            assert "python -m tools.evaluation.run_regression" in commands
+            assert "--corpus-dir tests/corpus/canonical" in commands
+            assert "--pdf-dir tests/corpus/canonical/pdf" in commands
+
+    def test_both_profiles_keep_readonly_and_distinct_evidence(self) -> None:
+        jobs = _load_yaml(CV_WORKFLOW)["jobs"]
+        for name, evidence in (
+            ("regression-gates", "cv-smoke-profile-evidence"),
+            ("cv-full-profile", "cv-full-profile-evidence"),
+        ):
+            steps = jobs[name]["steps"]
+            evaluate = [
+                s for s in steps
+                if s.get("name", "").startswith("Run Continuous Verification")
+            ]
+            assert len(evaluate) == 1
+            assert evaluate[0].get("env", {}).get("CORPUS_READONLY") == "true"
+            artifact = [
+                s for s in steps
+                if s.get("uses", "").startswith("actions/upload-artifact")
+            ]
+            assert len(artifact) == 1
+            assert artifact[0]["with"]["name"] == evidence
