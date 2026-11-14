@@ -44,7 +44,14 @@ def test_formula_crop_is_valid_png_and_deterministic(tmp_path):
         doc.save(pdf)
     with fitz.open(pdf) as doc:
         p=doc[0]
-        b=p.get_text("dict")["blocks"][0]
+        # PyMuPDF's get_text return type is broader than its "dict" mode.
+        # Validate each structural boundary before using the physical block.
+        text_data = p.get_text("dict")
+        assert isinstance(text_data, dict)
+        blocks = text_data.get("blocks")
+        assert isinstance(blocks, list) and blocks
+        b = blocks[0]
+        assert isinstance(b, dict)
         assert classify_math_font_block(b) == "visual"
         one=render_math_visual_png(p,b,page_number=1)
         two=render_math_visual_png(p,b,page_number=1)
