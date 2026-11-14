@@ -30,7 +30,7 @@ def _worker(c, output: Path, crash_stage=None):
             path = Path(output_dir) / output_filename
             assert path.name.startswith(".assembly_")
             assert output_dir == str(output)
-            path.write_bytes(b"%PDF-1.4\\nsynthetic but valid header\\n")
+            path.write_bytes(b"%PDF-1.4\nsynthetic but valid header\n")
             if crash_stage == "expire_during_compile":
                 _expire(c)
             if crash_stage == "raise":
