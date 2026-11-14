@@ -257,14 +257,14 @@ def test_g3_recovery_selector_rejects_invalid_limit(dbs):
 
 
 def test_reconciler_does_not_bypass_g3_publication_barrier(dbs):
-    from apps.daemons.reconciler import ReconcilerDaemon
+    from tests.integration._reconciler_test_factory import make_reconciler_with_test_doubles
     _stage(dbs)
     dbs.q.execute("UPDATE chunk_tasks SET task_state='COMPLETED'")
     dbs.q.commit()
     dbs.q.execute("ATTACH DATABASE ? AS fsm_db", (str(dbs.root / "fsm.db"),))
     dbs.q.commit()
     handler = SimpleNamespace(handle=lambda command: pytest.fail("unverified G3 barrier bypass"))
-    recon = ReconcilerDaemon(None, dbs.repo, None, None, handler)
+    recon = make_reconciler_with_test_doubles(None, dbs.repo, None, None, handler)
     recon.is_leader = True
     recon._sweep_fsm_stalls(200.0)
     assert _fsm_state(dbs) == "PROCESSING"

@@ -9,7 +9,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from apps.daemons.reconciler import ReconcilerDaemon
+from tests.integration._reconciler_test_factory import make_reconciler_with_test_doubles
 from core.ast.enums import ContentNodeType, TranslationStrategy
 from core.ast.models import ASTNode, MathPayload
 from core.ast.grouper import SemanticGroup
@@ -172,7 +172,7 @@ def test_reconciler_routes_g3_without_legacy_event_or_handler(state):
         pytest.fail('G3 must not call legacy event/handler')
     event = SimpleNamespace(get_latest_event=forbidden)
     handler = SimpleNamespace(handle=forbidden)
-    reconciler = ReconcilerDaemon(None, state.repo, event, handler, None)
+    reconciler = make_reconciler_with_test_doubles(None, state.repo, event, handler, None)
     reconciler.is_leader = True
     reconciler.node_id = 'recon_a'
     reconciler.current_epoch = 7
@@ -227,7 +227,7 @@ def test_reconciler_heartbeat_sqlite_connection_is_owned_by_heartbeat_thread():
         conn = sqlite3.connect(':memory:')  # created inside worker thread
         return _System(conn), conn
 
-    reconciler = ReconcilerDaemon(None, None, None, None, None,
+    reconciler = make_reconciler_with_test_doubles(None, None, None, None, None,
                                    heartbeat_system_factory=factory)
     reconciler.stop_event = _SingleBeat()
     reconciler.is_leader = True
@@ -254,7 +254,7 @@ def test_g3_assembler_trigger_is_never_requeued_by_legacy_handler(state):
     assert state.q.execute("SELECT task_state FROM chunk_tasks WHERE task_id='assembly_trigger_b49'").fetchone() == ('PROCESSING',)
     def forbidden(*args, **kwargs):
         pytest.fail('G3 ASSEMBLER cannot use legacy reconciliation')
-    recon = ReconcilerDaemon(None, state.repo,
+    recon = make_reconciler_with_test_doubles(None, state.repo,
                              SimpleNamespace(get_latest_event=forbidden),
                              SimpleNamespace(handle=forbidden), None)
     recon.is_leader = True
