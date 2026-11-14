@@ -64,10 +64,13 @@ def _worker(
     # method. This tests precisely the version production currently imports.
     worker = AssemblerWorkerDaemon.__new__(AssemblerWorkerDaemon)
     worker.node_id = "worker_smoke"
-    worker.control = types.SimpleNamespace(conn=c)
-    worker.context_resolver = FakeResolver()
-    worker.compilation_service = FakeCompiler()
-    worker.runner = FakeRunner()
+    # These fakes intentionally implement only the methods exercised here, not
+    # the complete concrete service classes. Inject them dynamically into this
+    # __new__-constructed test instance, leaving production type contracts intact.
+    setattr(worker, "control", types.SimpleNamespace(conn=c))
+    setattr(worker, "context_resolver", FakeResolver())
+    setattr(worker, "compilation_service", FakeCompiler())
+    setattr(worker, "runner", FakeRunner())
     return worker
 
 
