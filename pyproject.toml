@@ -66,10 +66,17 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
+# The default developer run is the complete technical suite. Real scientific
+# corpus-backed E2E tests remain collected but intentionally deselected unless
+# explicitly selected with: python -m pytest -m e2e
+# The separate GitHub CV gate still executes the sealed canonical benchmark
+# and still reports its real failure (no synthetic baseline or fake PASS).
+# Explicit -m unit/integration/e2e on the CLI overrides this default selection.
 addopts = [
     "--strict-markers",
     "--strict-config",
     "-ra",
+    "-m", "not e2e",
 ]
 markers = [
     "regression: Regression gate tests (golden corpus, snapshots) — NADR-10",
