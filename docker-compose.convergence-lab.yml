@@ -1,0 +1,212 @@
+# C0/T01: SOLO la imagen histórica R2 local (ID sha256:abe5b5dbbc65...).
+# Nunca build/pull; código de HEAD en /workspace:ro, /app sigue escribible.
+# Usar después de docker-compose.yml + docker-compose.runtime.yml; solo laboratorio.
+# Los servicios seleccionados no publican puertos; red interna sin egress.
+# No copiar datos de /app desde la imagen a volúmenes nuevos: evita duplicar
+# cachés históricas al arrancar. Los volúmenes solo reciben escrituras del run.
+x-convergence-worker-volumes: &convergence-worker-volumes
+  - type: bind
+    source: .
+    target: /workspace
+    read_only: true
+    bind:
+      create_host_path: false
+  - type: volume
+    source: g3_runtime_state
+    target: /app/state
+    volume:
+      nocopy: true
+  - type: volume
+    source: g3_runtime_data
+    target: /app/data
+    volume:
+      nocopy: true
+  - type: volume
+    source: g3_runtime_output
+    target: /app/output
+    volume:
+      nocopy: true
+  - type: volume
+    source: hf_models_cache
+    target: /app/.cache/hf
+    volume:
+      nocopy: true
+  - type: volume
+    source: torch_cache
+    target: /app/.cache/torch
+    volume:
+      nocopy: true
+  - type: volume
+    source: tectonic_cache
+    target: /app/.cache/tectonic
+    volume:
+      nocopy: true
+
+services:
+  db_bootstrap:
+    # !reset removes the inherited worker-base Dockerfile build.
+    build: !reset null
+    image: i0-1d/translator-pdf-runtime:r2-d4cda2c-20261031_211824
+    pull_policy: never
+    working_dir: /app
+    # Root solo para tomar ownership de los seis volúmenes nuevos (no recursivo).
+    # El wrapper baja a uid/gid 10001 ANTES de ejecutar infra/db/bootstrap.py.
+    user: "0:0"
+    command: ["python", "-B", "/workspace/apps/lab/convergence_db_bootstrap.py"]
+    restart: "no"
+    volumes: *convergence-worker-volumes
+    environment:
+      TPDF_C0_VOLUME_INIT: EXPLICIT_CONVERGENCE_C0_LAB_ONLY
+      PYTHONPATH: /workspace
+      PYTHONSAFEPATH: "1"
+      PYTHONDONTWRITEBYTECODE: "1"
+
+  ocr_router:
+    # !reset removes the inherited worker-base Dockerfile build.
+    build: !reset null
+    image: i0-1d/translator-pdf-runtime:r2-d4cda2c-20261031_211824
+    pull_policy: never
+    working_dir: /app
+    command: ["python", "-B", "/workspace/apps/ocr_router/__main__.py"]
+    restart: "no"
+    volumes: *convergence-worker-volumes
+    environment:
+      PYTHONPATH: /workspace
+      PYTHONSAFEPATH: "1"
+      PYTHONDONTWRITEBYTECODE: "1"
+      TIKTOKEN_CACHE_DIR: /app/data/tiktoken-cache
+
+  llm_worker:
+    # !reset removes the inherited worker-base Dockerfile build.
+    build: !reset null
+    image: i0-1d/translator-pdf-runtime:r2-d4cda2c-20261031_211824
+    pull_policy: never
+    working_dir: /app
+    command: ["python", "-B", "/workspace/runtime/engine.py"]
+    restart: "no"
+    volumes: *convergence-worker-volumes
+    environment:
+      PYTHONPATH: /workspace
+      PYTHONSAFEPATH: "1"
+      PYTHONDONTWRITEBYTECODE: "1"
+      TIKTOKEN_CACHE_DIR: /app/data/tiktoken-cache
+      IS_BENCHMARK: "0"
+      GROQ_API_KEY: translator-pdf-g3-offline-fake-only
+      GROQ_BASE_URL: http://g3_fake:8080
+      GROQ_RPM_LIMIT: "1000"
+      GROQ_TPM_LIMIT: "200000"
+      GEMINI_API_KEY: ""
+      HTTP_PROXY: ""
+      HTTPS_PROXY: ""
+      ALL_PROXY: ""
+      http_proxy: ""
+      https_proxy: ""
+      all_proxy: ""
+      NO_PROXY: g3_fake,localhost,127.0.0.1
+      no_proxy: g3_fake,localhost,127.0.0.1
+
+    depends_on: !override
+      db_bootstrap:
+        condition: service_completed_successfully
+      g3_fake:
+        condition: service_healthy
+  assembler:
+    # !reset removes the inherited worker-base Dockerfile build.
+    build: !reset null
+    image: i0-1d/translator-pdf-runtime:r2-d4cda2c-20261031_211824
+    pull_policy: never
+    working_dir: /app
+    command: ["python", "-B", "/workspace/apps/compiler/__main__.py"]
+    restart: "no"
+    volumes: *convergence-worker-volumes
+    environment:
+      PYTHONPATH: /workspace
+      PYTHONSAFEPATH: "1"
+      PYTHONDONTWRITEBYTECODE: "1"
+
+  reconciler:
+    # !reset removes the inherited worker-base Dockerfile build.
+    build: !reset null
+    image: i0-1d/translator-pdf-runtime:r2-d4cda2c-20261031_211824
+    pull_policy: never
+    working_dir: /app
+    command: ["python", "-B", "/workspace/apps/daemons/reconciler.py"]
+    restart: "no"
+    volumes: *convergence-worker-volumes
+    environment:
+      PYTHONPATH: /workspace
+      PYTHONSAFEPATH: "1"
+      PYTHONDONTWRITEBYTECODE: "1"
+
+  sweeper:
+    # !reset removes the inherited worker-base Dockerfile build.
+    build: !reset null
+    image: i0-1d/translator-pdf-runtime:r2-d4cda2c-20261031_211824
+    pull_policy: never
+    working_dir: /app
+    command: ["python", "-B", "/workspace/runtime/sweeper.py"]
+    restart: "no"
+    volumes: *convergence-worker-volumes
+    environment:
+      PYTHONPATH: /workspace
+      PYTHONSAFEPATH: "1"
+      PYTHONDONTWRITEBYTECODE: "1"
+
+  g3_fake:
+    build: !reset null
+    image: i0-1d/translator-pdf-runtime:r2-d4cda2c-20261031_211824
+    pull_policy: never
+    working_dir: /app
+    command: ["python", "-B", "-m", "apps.lab.g3_fake", "--serve"]
+    volumes:
+      - type: bind
+        source: .
+        target: /workspace
+        read_only: true
+        bind:
+          create_host_path: false
+      # Solo el manifiesto SQLite; sin acceso a PDF, inbox ni output.
+      - type: volume
+        source: g3_runtime_state
+        target: /app/state
+        read_only: true
+        volume:
+          nocopy: true
+    environment:
+      PYTHONPATH: /workspace
+      PYTHONSAFEPATH: "1"
+      PYTHONDONTWRITEBYTECODE: "1"
+      GROQ_API_KEY: translator-pdf-g3-offline-fake-only
+      TPDF_OFFLINE_LAB: EXPLICIT_OFFLINE_TEST_ONLY
+      TPDF_FAKE_PRIVATE_DOCKER: EXPLICIT_INTERNAL_NETWORK_ONLY
+      TPDF_FAKE_BIND: "0.0.0.0"
+      TPDF_FAKE_QUEUE_DB: /app/state/db/queue.db
+      TPDF_FAKE_MAX_REQUESTS: "128"
+      HTTP_PROXY: ""
+      HTTPS_PROXY: ""
+      ALL_PROXY: ""
+      NO_PROXY: g3_fake,localhost,127.0.0.1
+    depends_on:
+      db_bootstrap:
+        condition: service_completed_successfully
+    networks:
+      - chaos_net
+    restart: "no"
+    init: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    pids_limit: 64
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=2).close()"
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+networks:
+  chaos_net:
+    internal: true
+    enable_ipv6: false

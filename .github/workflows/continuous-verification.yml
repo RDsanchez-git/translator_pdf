@@ -1,8 +1,10 @@
-name: Continuous Verification — Full Profile
+name: Continuous Verification — Scientific Profiles
 
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main, pipeline_stabilization]
   workflow_dispatch:
 
 concurrency:
@@ -13,9 +15,71 @@ env:
   PYTHON_VERSION: "3.11"
 
 jobs:
+  # Scientific SMOKE remains visible on each eligible PR, but is not required
+  # for merge during Phase 6 transitional enforcement.
+  regression-gates:
+    name: Regression Gates (Continuous Verification — Smoke Profile)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # El corpus es Read-Only: los tests no pueden mutar los oráculos
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: "pip"
+          cache-dependency-path: pyproject.toml
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          pip install .[dev]
+          pip list
+
+      - name: Run Continuous Verification (Smoke Profile)
+        run: |
+          python -m tools.evaluation.run_regression \
+            --corpus-dir tests/corpus/canonical \
+            --pdf-dir tests/corpus/canonical/pdf \
+            --output-dir reports/continuous-verification-smoke \
+            --profile SMOKE
+        env:
+          CORPUS_READONLY: "true"
+
+      - name: Verify oracles were not mutated
+        if: always()
+        run: |
+          git diff --exit-code tests/fixtures/ || {
+            echo "ERROR: Los oráculos de regresión fueron modificados durante la ejecución."
+            echo "Esto viola NADR-10 §5.1 R2. Los oráculos son inmutables."
+            exit 1
+          }
+
+      - name: Verify canonical corpus was not mutated
+        if: always()
+        run: |
+          git diff --exit-code tests/corpus/canonical/ || {
+            echo "ERROR: El corpus canónico fue modificado durante la ejecución."
+            echo "Esto viola NADR-F17BIS-26 §5.4 R16-R19. La baseline es inmutable."
+            exit 1
+          }
+
+      - name: Upload evidence artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cv-smoke-profile-evidence
+          path: reports/continuous-verification-smoke/
+
+  # FULL is independent and runs only on main pushes or manual dispatch.
   cv-full-profile:
     name: Continuous Verification — Full Profile
     runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/checkout@v4
         with:
@@ -46,6 +110,7 @@ jobs:
           CORPUS_READONLY: "true"
 
       - name: Verify canonical corpus was not mutated
+        if: always()
         run: |
           git diff --exit-code tests/corpus/canonical/ || {
             echo "ERROR: El corpus canónico fue modificado durante la ejecución."

@@ -8,7 +8,10 @@ NADR-08 §5.1 R4: RateLimitStore inyectado desde Composition Root.
 NADR-08 §5.2 R7: CircuitBreaker MANDATORY en todas las rutas.
 NADR-08 §5.5: CB antes de RL previene consumo de cuota con circuito abierto.
 """
+import os
 from typing import Literal
+
+from infra.db.connection import resolve_sqlite_path
 
 from apps.llm_workers.adapters import GroqProvider
 from apps.llm_workers.rate_limiter import RateLimitedProvider, QuotaManager
@@ -68,7 +71,7 @@ async def build_provider_stack(
     if cache_db_path is not None:
         cached_provider = CachedLLMProvider(
             underlying=rate_provider,
-            db_path=cache_db_path,
+            db_path=(resolve_sqlite_path(cache_db_path) if os.getenv("SQLITE_STATE_DIR") else cache_db_path),
         )
         await cached_provider.initialize()
         provider: LLMProvider = cached_provider

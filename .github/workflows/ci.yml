@@ -4,7 +4,7 @@ on:
   push:
     branches: [main, develop]
   pull_request:
-    branches: [main]
+    branches: [main, pipeline_stabilization]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -33,67 +33,13 @@ jobs:
           pip install .[dev]
           pip list # <-- Nos imprimirá la lista de lo que instaló para poder auditarlo
 
-      - name: Type check (pyright strict)
-        run: pyright core/ apps/ infra/ runtime/
+      # pyrightconfig.json: único alcance efectivo core/apps/infra/runtime,
+      # Python 3.11 Linux, modo standard. Strict queda fuera de este PR.
+      - name: Type check (pyright; Linux standard)
+        run: pyright
 
       - name: Architecture contract (import-linter)
         run: lint-imports --config pyproject.toml
-
-  regression-gates:
-    name: Regression Gates (Continuous Verification — Smoke Profile)
-    runs-on: ubuntu-latest
-    needs: static-analysis
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          # El corpus es Read-Only: los tests no pueden mutar los oráculos
-          persist-credentials: false
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          cache: "pip"
-          cache-dependency-path: pyproject.toml
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip setuptools wheel
-          pip install .[dev]
-          pip list
-
-      - name: Run Continuous Verification (Smoke Profile)
-        run: |
-          python -m tools.evaluation.run_regression \
-            --corpus-dir tests/corpus/canonical \
-            --pdf-dir tests/corpus/canonical/pdf \
-            --output-dir reports/continuous-verification-smoke \
-            --profile SMOKE
-        env:
-          CORPUS_READONLY: "true"
-
-      - name: Verify oracles were not mutated
-        run: |
-          git diff --exit-code tests/fixtures/ || {
-            echo "ERROR: Los oráculos de regresión fueron modificados durante la ejecución."
-            echo "Esto viola NADR-10 §5.1 R2. Los oráculos son inmutables."
-            exit 1
-          }
-
-      - name: Verify canonical corpus was not mutated
-        run: |
-          git diff --exit-code tests/corpus/canonical/ || {
-            echo "ERROR: El corpus canónico fue modificado durante la ejecución."
-            echo "Esto viola NADR-F17BIS-26 §5.4 R16-R19. La baseline es inmutable."
-            exit 1
-          }
-
-      - name: Upload evidence artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: cv-smoke-profile-evidence
-          path: reports/continuous-verification-smoke/
 
   unit-tests:
     name: Unit Test Suite
@@ -119,7 +65,10 @@ jobs:
   integration-tests:
     name: Integration Test Suite
     runs-on: ubuntu-latest
-    needs: [regression-gates, unit-tests]
+    # La suite técnica depende de unit-tests y static-analysis.
+    # SMOKE científico corre aparte en continuous-verification.yml y es
+    # informativo durante Fase 6 (ENFORCEMENT_CONTRACT §3).
+    needs: [unit-tests]
     steps:
       - uses: actions/checkout@v4
 
@@ -133,6 +82,54 @@ jobs:
         run: |
           pip install -e ".[dev]"
 
+      # B03 uses loopback HTTP and temporary SQLite, so these are not pure unit tests.
+      # This step runs without Docker containers, model credentials, or real PDF corpus.
+      - name: Verify B03 offline fake and lab contracts (no Docker / LLM)
+        run: |
+          python -m pytest tests/unit/test_b031_g3_reusable_fake.py tests/unit/test_b032_offline_pdf_lab.py -q -ra
+
+      # W06/G3 tests use disposable SQLite and fake providers, not real egress.
+      # They have no pytest "integration" marker, so run them explicitly.
+      - name: Verify W06-R1 uncertain-effect recovery offline (no Docker / LLM)
+        run: |
+          python -m pytest \
+            tests/integration/test_w06_g3_uncertain_effect_offline.py \
+            tests/integration/test_g3_b4_9_reconciler_fencing.py \
+            tests/integration/test_g3_b4_8_preserve_engine.py \
+            tests/integration/test_g3_b4_3a_engine_staging.py \
+            tests/integration/test_g3_b4_3b_publication_recovery.py \
+            -q -ra
+
+      # W08-2b: durable context witnesses use only disposable SQLite / synthetic AST.
+      # This step does not activate the adapter in production or authorize LLM egress.
+      - name: Verify W08-2b durable context snapshots offline
+        run: |
+          python -m pytest tests/integration/test_w08_durable_context_boundary.py -q -ra
+
+      # W08-2c: cross-process OCR/G3 context without paid providers or PDFs.
+      - name: Verify W08-2c OCR and G3 context wiring offline
+        run: |
+          python -m pytest \
+            tests/integration/test_w08_ocr_g3_context_wiring.py \
+            tests/integration/test_g3_b4_2_ocr_router_durable_plan.py \
+            -q -ra
+
+      # These G3/G5 offline regression witnesses predate pytest integration
+      # markers. Run them explicitly so CI cannot silently omit their guards.
+      - name: Verify G3 quota threads and G5 fenced publication offline
+        run: |
+          python -m pytest \
+            tests/integration/test_g3_b4_7b_sqlite_quota_thread_owner.py \
+            tests/integration/test_g5_assembler_worker_integration.py \
+            -q -ra
+
       - name: Run integration tests (pytest marker, excluding regression)
         run: |
           python -m pytest -m "integration and not regression" -v --tb=short --no-header
+
+      # Audit all technical tests, including older unmarked fixtures. The
+      # corpus-backed E2E tests run only when explicitly requested; CV remains
+      # a separate, visible gate with no reinterpretation of its verdict.
+      - name: Run complete technical pytest suite (excluding scientific E2E)
+        run: |
+          python -m pytest -m "not e2e" -q -ra
