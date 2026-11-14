@@ -41,62 +41,6 @@ jobs:
       - name: Architecture contract (import-linter)
         run: lint-imports --config pyproject.toml
 
-  regression-gates:
-    name: Regression Gates (Continuous Verification — Smoke Profile)
-    runs-on: ubuntu-latest
-    needs: static-analysis
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          # El corpus es Read-Only: los tests no pueden mutar los oráculos
-          persist-credentials: false
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          cache: "pip"
-          cache-dependency-path: pyproject.toml
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip setuptools wheel
-          pip install .[dev]
-          pip list
-
-      - name: Run Continuous Verification (Smoke Profile)
-        run: |
-          python -m tools.evaluation.run_regression \
-            --corpus-dir tests/corpus/canonical \
-            --pdf-dir tests/corpus/canonical/pdf \
-            --output-dir reports/continuous-verification-smoke \
-            --profile SMOKE
-        env:
-          CORPUS_READONLY: "true"
-
-      - name: Verify oracles were not mutated
-        run: |
-          git diff --exit-code tests/fixtures/ || {
-            echo "ERROR: Los oráculos de regresión fueron modificados durante la ejecución."
-            echo "Esto viola NADR-10 §5.1 R2. Los oráculos son inmutables."
-            exit 1
-          }
-
-      - name: Verify canonical corpus was not mutated
-        run: |
-          git diff --exit-code tests/corpus/canonical/ || {
-            echo "ERROR: El corpus canónico fue modificado durante la ejecución."
-            echo "Esto viola NADR-F17BIS-26 §5.4 R16-R19. La baseline es inmutable."
-            exit 1
-          }
-
-      - name: Upload evidence artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: cv-smoke-profile-evidence
-          path: reports/continuous-verification-smoke/
-
   unit-tests:
     name: Unit Test Suite
     runs-on: ubuntu-latest
@@ -121,9 +65,9 @@ jobs:
   integration-tests:
     name: Integration Test Suite
     runs-on: ubuntu-latest
-    # CV es informativa durante Fase 6 (ENFORCEMENT_CONTRACT §3).
-    # La suite de integracion sigue dependiendo de unit-tests (y, por transitividad,
-    # de static-analysis), pero no del veredicto cientifico/regression-gates.
+    # La suite técnica depende de unit-tests y static-analysis.
+    # SMOKE científico corre aparte en continuous-verification.yml y es
+    # informativo durante Fase 6 (ENFORCEMENT_CONTRACT §3).
     needs: [unit-tests]
     steps:
       - uses: actions/checkout@v4
