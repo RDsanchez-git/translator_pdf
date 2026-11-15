@@ -130,7 +130,25 @@ El archivo `tests/integration/test_pdf_inbox_submission.py` contiene numerosos u
 
 Son **dos eliminaciones locales de archivos versionados**; no se debe hacer checkout para restaurarlas, `git clean`, `git reset --hard` ni un commit que las incorpore sin decisión del owner. El clon del commit puede contener archivos que faltan en el working tree local. El resultado de `git status --short` aportado tras la preparación no revela nuevas modificaciones.
 
-**Bloqueo actual A05-P4:** identificar los doce módulos no parseables y explicar las 101 señales no incluidas en el resumen compartido; después revisar import-time code, decoradores, plugins, rutas absolutas y subprocess. **No ejecutar `--collect` todavía**.
+**Bloqueo actual A05-P4:** ya reconciliadas las 390 señales e identificada la causa de los 12 errores de escáner; falta repetir el análisis v2 y revisar import-time code, decoradores, plugins, rutas absolutas y subprocess. **No ejecutar `--collect` todavía**.
+
+## 4.3 Triage reconciliado y corrección del scanner (2026-11-15)
+
+**Datos del owner confirmados:** `static_signals.json` contenía **390 registros**, y el agrupamiento completo sumó **390**. Los **101** ausentes del primer listado eran de tipo `connect`; no hay descuadre real. El scanner original agrupaba por nombre de método y no distinguía `sqlite3.connect(...)`, otras conexiones o métodos homónimos. **No atribuir egress de red a esas 101 señales**.
+
+**Causa de los 12 `syntax_error` verificada con fuentes GitHub:** los doce archivos reportados comienzan con **BOM UTF-8 U+FEFF** (incluido `tests/unit/test_idempotency_replacement.py`, cuya salida PowerShell no mostraba el detalle por formato). Es un defecto del escáner previo (`read_text(encoding="utf-8")` + `ast.parse(text)`), **no evidencia de sintaxis inválida de pytest**. **No se editaron los tests**.
+
+Se actualizó [`collect_a01_isolated.py`](collect_a01_isolated.py) para:
+
+1. Leer los archivos **únicamente en memoria** con `utf-8-sig`, conservando intactos los bytes de origen y el árbol de Git.
+2. Conservar `signal` y `file/line`, agregando `callee` (expresión llamada, p. ej. `sqlite3.connect`), `scope` y `phase_hint` (`function_body` o `definition_time`).
+3. Incluir errores AST remanentes y número de llamadas en contextos de definición en el manifiesto.
+
+**Advertencia:** `phase_hint` es un *indicio estático*, no un análisis de efectos transitivos. Código dentro de funciones puede ejecutarse durante imports si es llamado desde nivel módulo; decoradores, imports de dependencias, metaclases y plugins pueden ejecutar código no evidente para este scanner. La nueva clasificación **no acredita seguridad de colección por sí sola**.
+
+**Estado Git local del owner después de restaurar el test de benchmark:** únicamente se reporta `D translated_c17cb80d10105b3497b142d04fa19078c4573ae0bade70cabc87dba80314aa19.pdf`. Esa eliminación sigue **deliberada y sin staged/commit**, y no se debe restaurar, eliminar de Git ni mezclar con la campaña. El test `test_benchmark_orchestration_integration.py` ya no figura eliminado.
+
+**Evidencia dinámica del scanner v2:** **pendiente de repetir** en la PC del owner con modo `prepare-only` después de `git pull --ff-only`. La conclusión sobre ausencia de errores BOM se refiere al **cambio del código de lectura y a la inspección de archivos**, no a una corrida nueva que todavía no ocurrió. A05-P4/P5/P6 y A-01 permanecen abiertos. **No ejecutar `--collect` todavía.**
 
 ## 5. Gates y seguimiento
 
