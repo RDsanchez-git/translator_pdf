@@ -63,6 +63,24 @@ Este paso crea **otro clon temporal nuevo**, no reutiliza el anterior. No llama 
 - Inspeccionar el clon temporal **antes de borrarlo**. La herramienta no lo borra; sólo eliminarlo cuando se compruebe inequívocamente su ruta temporal y se hayan conservado los logs. **Nunca ejecutar `Remove-Item -Recurse` sobre la raíz del proyecto ni sobre rutas no verificadas**.
 - Los reportes no validan ejecución efectiva de tests, ausencia de red a nivel OS, ni seguridad universal de importación. Si aparecen errores de colección, registrar `INCOMPLETE`, la causa y el SHA, no “PASS”.
 
+## 4.1 Evidencia local aportada por el owner — preparación real, sin importación
+
+**Fecha de registro:** 2026-11-15. **Origen:** salida de consola PowerShell aportada por el owner (los JSON locales aún no fueron inspeccionados de forma independiente).
+
+| Campo | Resultado observado |
+|---|---|
+| Comando | `venv/Scripts/python.exe docs/architecture/adr/tests_stabilization/collect_a01_isolated.py --repo-root .` (sin `--collect`) |
+| Revisión fijada | `268240d2c0018b0f67783a67d5b4386cd7efcd60` |
+| Archivos Python inspeccionados | **188** |
+| Señales de llamadas AST | **390**, **no** equivalen a fallos, escrituras realizadas ni hallazgos de seguridad confirmados |
+| Carpeta separada | `%LOCALAPPDATA%/Temp/translator-a01-isolated-vlqmrcki/repo` (ubicación local observada; no existe en GitHub) |
+| Informes | `%LOCALAPPDATA%/Temp/translator-a01-isolated-vlqmrcki/reports` |
+| Modalidad | **PREPARED ONLY** — ninguna importación de tests ni colección o ejecución pytest |
+
+**Estado de aprobación:** se confirma **sólo que la preparación real terminó**. Todavía falta leer y agrupar `static_signals.json`, contrastar posibles operaciones en import/decoradores y revisar el `manifest.json` para acreditar A05-P4. No se dispone de evidencia de `--collect`, ni de sandbox OS, ni de comparación posterior de `git status`; A05-P4/P5/P6 permanecen [ ].
+
+**Próximo dato requerido:** recuentos de `signal` y archivos con operaciones de riesgo, sin compartir credenciales, rutas privadas adicionales ni el volcado completo de 390 señales. Registrar los resultados antes de habilitar cualquier importación.
+
 ## 5. Gates y seguimiento
 
 - [x] **A05-P1:** riesgos IO-01…IO-06 vinculados al código de A-00 y restricciones de seguridad documentadas.
