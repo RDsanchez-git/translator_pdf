@@ -22,7 +22,7 @@ DOCS = (
     "A01_S5_MATRIZ_SEMANTICA_RUTA_ACTIVA.md",
     "A01_S5_SEGUNDA_TANDA_CONTRATOS_Y_FRAGILIDADES.md",
 )
-ROW_RE = re.compile(r"^\| \*\*TR-(\d{3})\*\*", re.MULTILINE)
+ROW_RE = re.compile(r"^\| \*\*TR-(\d{3})(?=\b|\s|\*)", re.MULTILINE)
 LINK_RE = re.compile(r"\]\(\.\./\.\./\.\./\.\./(tests/(?:unit|integration|smoke)/[^)#?]+\.py)\)")
 # Rows that explicitly say "mismo archivo" or otherwise omit their own path.
 SAME_FILE_AS = {
