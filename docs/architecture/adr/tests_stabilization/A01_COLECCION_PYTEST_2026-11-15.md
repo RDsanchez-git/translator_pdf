@@ -156,17 +156,29 @@ La lectura y presentación no modifica `tests/`. En PowerShell, las salidas tabu
 - [x] **Conteos por los ocho markers consultados:** registrados arriba, con `skipif` correctamente diferenciado de SKIP efectivo.
 - [x] **Nodos con parámetro:** 187.
 - [x] **Estado Git visible tras colección:** proyecto conserva solo PDF `D`, clon sin cambios visibles.
-- [ ] **Identidad de conjuntos de selección** por `nodeid` (`e2e`, `unit`, `integration_nonregression`, `not e2e`).
+- [x] **Identidad de conjuntos de selección** por `nodeid`: cuatro discrepancias = 0, cotejadas con los recuentos por marker; análisis simétrico reproducible disponible en [`analyze_a01_collection.py`](analyze_a01_collection.py).
 - [ ] **Nodos sin marker de nivel** y distribución por archivo; reconciliar declaraciones vs. ítems.
 - [ ] **Selección explícita de paths en CI**, logs y advertencias de colección; clasificar el `skipif` declarado.
 - [ ] **Revisar archivos ignorados/efectos externos** si hay indicios; el estado Git limpio no prueba sandbox OS.
 
 **Alcance:** evidencia de colección **reproducible**, no validación semántica de los tests ni medición de su poder para detectar regresiones.
 
+## 3.2 Identidad de selectores y caso `skipif` investigado (2026-11-15)
+
+**Evidencia aportada por el owner, basada en los JSON del mismo SHA de colección:** las cuatro pruebas de consistencia de seleccionadores dieron **0 discrepancias**: `E2EMissingFromTechnical=0` (ningún ítem marcado e2e quedó en technical), `UnexpectedTechnicalExclusions=0` (ningún ítem no-e2e fue excluido), `UnexpectedUnitSelections=0` y `UnexpectedIntegrationSelections=0`. Junto a los recuentos ya observados **all=1.474**, **unit=225**, **integration_nonregression=70**, **technical=1.454** y **e2e=20**, los selectores se corresponden con sus markers por contenido, no sólo por cantidad.
+
+**Límite metodológico:** las cuatro comprobaciones aportadas prueban la dirección de exclusión/inclusión expresada. Para formalizar igualdad bidireccional de los conjuntos `unit` e `integration_nonregression`, junto a supuestos de unicidad ya confirmados, se usó también la igualdad de cardinalidades con los respectivos markers. Un script de conciliación de solo lectura [`analyze_a01_collection.py`](analyze_a01_collection.py) permite verificar simétricamente `expected - observed` y `observed - expected` con los JSON locales y detectar divergencias por fichero.
+
+**El único marker `skipif`:** `tests/integration/test_parameter_freeze.py::test_repo_freeze_artifact_matches_domain_defaults`. Inspección del [test](../../../../tests/integration/test_parameter_freeze.py): `REAL_FREEZE = Path('reports/calibration/parameter_freeze.json')` (línea 132); `@pytest.mark.skipif(not REAL_FREEZE.exists(), reason='Artefacto de freeze no materializado')` (línea 135). El archivo `reports/calibration/parameter_freeze.json` **existe versionado** en el árbol Git. **Inferencia limitada:** en un clon independiente de ese mismo commit, con el cwd estándar de pytest, la condición debería ser falsa. La prueba se recolectó, pero **no se ejecutó** y no hay evidencia de PASS ni de su resultado efectivo de skip. El caso verifica tooling de congelación/identidad científica; **fuera del alcance activo del refinamiento técnico PDF→PDF**, conservar y reclasificar sin alterar el freeze ni la baseline.
+
+**Estado de selección por markers:** `regression=0` y `smoke=0` son **declaraciones ausentes**, no ausencia de módulos o ejecución seleccionable. Los tests marcados `unit`/`integration` son un subconjunto pequeño; la suite técnica también incluye pruebas sin estos markers. El seguimiento de su validez real permanece en A-02/A-03.
+
+**Pendientes para completar A-01:** distribución de nodos por fichero y comparación con 1.341 declaraciones; identificación de módulos no seleccionados, tests legacy/ciencia vs ruta OCR/G3/G5, paths focales de CI, y lectura de advertencias/plugins en logs. Los reportes locales no necesitan publicarse enteros. **A-01 [ ]**, A-05 [ ].
+
 ## 4. Gate y siguiente acción
 
 - [x] **A01-COLL-01 — Colección real ejecutada** en clon independiente, SHA y cuatro exit codes 0 con conteos explícitos.
-- [ ] **A01-COLL-02 — Conciliación JSON (PARCIAL).** Ver §3.1: 1.474 nodeids únicos, 187 parametrizados y distribución exacta de markers. **Falta comparar conjuntos reales por nodeid, nodos sin nivel y diferencias por módulo**.
+- [ ] **A01-COLL-02 — Conciliación JSON (PARCIAL).** Ver §§3.1-3.2: nodeids únicos, 187 parametrizados, distribución de markers y coherencia de selectores **confirmados**. **Faltan distribución por archivo, nodos sin marker de nivel, diferencias con declaraciones y paths CI**, para los cuales se añadió un analizador de solo lectura.
 - [ ] **A01-COLL-03 — Trazar todos los selectores focales del CI** y los SKIP/XFAIL declarados.
 - [ ] **A01-COLL-04 — Integridad post-colección (PARCIAL).** Ambos `git status --short` fueron observados: solo PDF `D` deliberado en el original, clon sin cambios Git visibles. Faltan posibles archivos ignorados, efectos fuera de Git y logs/advertencias.
 - [ ] **A01-COLL-05 — Fichas SUT/contratos en los casos pertinentes**, sin presuponer oráculo independiente.
