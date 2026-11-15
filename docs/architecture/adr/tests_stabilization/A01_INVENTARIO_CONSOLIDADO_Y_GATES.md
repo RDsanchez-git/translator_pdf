@@ -88,7 +88,7 @@ No ejecutar `pytest` amplio, `--collect-only` ni scripts de estrés en la copia 
 
 ## 5. Bloqueos de A-01 y plan para completarlo rigurosamente
 
-**La colección y selección real ya están conciliadas** (véase §2.1 y [reporte detallado](A01_COLECCION_PYTEST_2026-11-15.md)). **A-01 sigue abierto** porque aún faltan la clasificación de los cuatro módulos sin nodos, la explicación de las 24 diferencias AST y las fichas por SUT/contrato pertinentes. No declarar confianza en tests a partir de que pytest los recolecta.
+**La colección y selección real ya están conciliadas** (véase §2.1 y [reporte detallado](A01_COLECCION_PYTEST_2026-11-15.md)). **A-01 sigue abierto**: los cuatro módulos sin nodos **ya están clasificados** (tres placeholders vacíos y un script manual de estrés; [evidencia §3.4](A01_COLECCION_PYTEST_2026-11-15.md)), pero faltan explicar las 24 diferencias AST y completar fichas por SUT/contrato pertinentes. No declarar confianza en tests a partir de que pytest los recolecta.
 
 Secuencia pendiente (sin incluir ciencia ni nuevo E2E global):
 
@@ -97,7 +97,7 @@ Secuencia pendiente (sin incluir ciencia ni nuevo E2E global):
 - [ ] **A01-S3** — [Preflight A-05](A05_PREFLIGHT_A01_COLECCION_AISLADA.md) **parcialmente preparado**, con herramienta de clon independiente en modo prepare-only y prueba del recolector con repositorio sintético. **Pendiente** comprobar seguridad real de imports/decoradores/plugins, rutas absolutas y aislamiento OS antes de colección. A-05 y A-01 permanecen abiertos.
 - [x] **A01-S4 — Colección y selectores reconciliados.** `pytest --collect-only` en clon a SHA `86cd6867`: 1.474 nodos únicos, 187 con ID de parametrización, 1.159 sin marcador de nivel, cuatro diferencias bidireccionales de selección = 0; 12/12 rutas focales de CI con nodos y 0 señales auditadas de error/warning en logs. [Informe actualizado](A01_COLECCION_PYTEST_2026-11-15.md). **Este check acredita colección, NO ejecución de tests**, ni reemplaza A01-S5/S6.
 - [ ] **A01-S5** — Trazar cada caso crítico al **SUT real** por análisis dirigido y fichas `TR-###` (A-02/A-04), anotar fakes legítimos y efectos/fixture; los casos legacy se reclasifican en lugar de atribuir cobertura PDF→PDF.
-- [ ] **A01-S6** — Contraste de inventarios **parcial**: 173/177 módulos con nodos, 24 archivos con discrepancias entre 1.341 declaraciones y 1.474 nodos; pendiente identificar los cuatro módulos sin nodos y explicar las 24 diferencias por archivo/función, priorizando PDF→PDF. La cifra de 187 ítems parametrizados **no** equivale a 187 expansiones adicionales.
+- [ ] **A01-S6** — Contraste de inventarios **parcial**: 173/177 módulos con nodos; los otros cuatro están explicados (tres placeholders y un script), con [evidencia §3.4](A01_COLECCION_PYTEST_2026-11-15.md). Restan **24 diferencias** entre 1.341 declaraciones y 1.474 nodeids por explicar a nivel archivo/función, priorizando PDF→PDF. Los 187 ítems parametrizados **no** equivalen a 187 expansiones adicionales.
 
 **Regla de seguridad:** no proporcionar una orden de borrado o limpiar la copia del owner. La selección `--collect-only` nunca se ejecuta allí si persisten los riesgos IO-01…IO-06; el aislamiento debe revisarse y documentarse primero.
 
