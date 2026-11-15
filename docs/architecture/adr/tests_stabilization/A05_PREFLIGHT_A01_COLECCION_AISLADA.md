@@ -236,6 +236,14 @@ Se actualizó [`collect_a01_isolated.py`](collect_a01_isolated.py) para:
 
 Para completar A05-P6, comparar inventario de archivos bajo `tests/fixtures`/`infra/db` (incluidos ignorados) y revisar logs de colección para detectar side effects/import errors; no usar una limpieza destructiva. Reutilizar [el registro A-01 de conciliación](A01_COLECCION_PYTEST_2026-11-15.md).
 
+## 4.9 Selector membership verificado, sin ejecución de tests (2026-11-15)
+
+El owner comprobó a partir de los JSON que **ningún ítem marcado `e2e` entra en `technical`**, ningún ítem sin `e2e` fue excluido de `technical`, ningún ítem de `unit` carece del marker `unit` y ningún ítem de `integration_nonregression` carece de `integration` ni lleva `regression`. **Las cuatro cifras de discrepancias fueron cero.** Esta evidencia junto a los recuentos permite afirmar la coherencia de los cuatro selectors **de colección**, no su cobertura de runtime.
+
+Un solo caso declara `skipif`: `tests/integration/test_parameter_freeze.py::test_repo_freeze_artifact_matches_domain_defaults`. Depende de que exista `reports/calibration/parameter_freeze.json`, que figura versionado. Su condición debería ser falsa en el clon limpio, pero **no se ejecutó el test**, y no se puede afirmar PASS. Corresponde al tooling de freeze científico, fuera de esta campaña activa.
+
+Se incorporó el analizador **de solo lectura** [`analyze_a01_collection.py`](analyze_a01_collection.py), que compara selecciones en ambas direcciones y resume distribución de nodos por archivos, marcadores, parametrizaciones, paths focales CI y menciones de advertencias en logs. **No ejecuta pytest ni crea archivos.** El gate A05-P5 sigue parcialmente abierto hasta revisar esos resultados y los efectos de imports.
+
 ## 5. Gates y seguimiento
 
 - [x] **A05-P1:** riesgos IO-01…IO-06 vinculados al código de A-00 y restricciones de seguridad documentadas.
