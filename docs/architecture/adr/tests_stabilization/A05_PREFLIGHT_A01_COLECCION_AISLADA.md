@@ -81,6 +81,57 @@ Este paso crea **otro clon temporal nuevo**, no reutiliza el anterior. No llama 
 
 **Próximo dato requerido:** recuentos de `signal` y archivos con operaciones de riesgo, sin compartir credenciales, rutas privadas adicionales ni el volcado completo de 390 señales. Registrar los resultados antes de habilitar cualquier importación.
 
+## 4.2 Resultado del agrupamiento de señales — evidencia aportada por owner
+
+**Fecha:** 2026-11-15. El owner leyó `static_signals.json` y aportó dos agrupamientos de PowerShell, además del estado del árbol local. **No se ha inspeccionado aquí el JSON completo**. El total de preparación permanece en **390 señales AST sobre 188 archivos Python**.
+
+**Tipos de señal que aparecen en la salida compartida:**
+
+| Señal | Cantidad mostrada | Interpretación |
+|---|---:|---|
+| `get` | 61 | Llamada léxica no necesariamente peligrosa |
+| `mkdir` | 57 | Llamada léxica no necesariamente peligrosa |
+| `open` | 34 | Llamada léxica no necesariamente peligrosa |
+| `write_bytes` | 27 | Revisar contexto, destinatario y fase de ejecución |
+| `replace` | 25 | Revisar contexto, destinatario y fase de ejecución |
+| `save` | 19 | Revisar contexto, destinatario y fase de ejecución |
+| `run` | 16 | Revisar contexto, destinatario y fase de ejecución |
+| `write_text` | 12 | Revisar contexto, destinatario y fase de ejecución |
+| `syntax_error` | 12 | El analizador no pudo parsear el archivo; requiere triage individual |
+| `remove` | 7 | Revisar contexto, destinatario y fase de ejecución |
+| `dump` | 6 | Revisar contexto, destinatario y fase de ejecución |
+| `makedirs` | 5 | Revisar contexto, destinatario y fase de ejecución |
+| `call` | 4 | Revisar contexto, destinatario y fase de ejecución |
+| `unlink` | 4 | Revisar contexto, destinatario y fase de ejecución |
+| **Suma de filas compartidas** | **289** | **Difiere de las 390 señales globales**; faltan **101** en el texto mostrado. Puede haber truncamiento o un recuento parcial; **no interpretar las filas anteriores como exhaustivas** |
+
+**`syntax_error` = 12 registros:** `flagged_calls` emite a lo sumo uno por módulo que `ast.parse` no puede analizar y no inspecciona sus llamadas internas. Hasta conocer **archivo/línea/detalle** no se pueden atribuir esos errores a una causa o considerar exhaustivo el preflight. Un `syntax_error` del scanner **no es prueba** de fallo de ejecución pytest.
+
+**Archivos con mayor número de señales de escritura/borrado identificadas en la salida:**
+
+| Archivo | Señales |
+|---|---:|
+| `tests/integration/test_pdf_inbox_submission.py` | 9 |
+| `tests/integration/test_g3_chunk_identity_contract.py` | 4 |
+| `tests/integration/test_b03_foreground_pdf_product.py` | 4 |
+| `tests/integration/test_g3_b4_3a_engine_staging.py` | 3 |
+| `tests/unit/test_b032_offline_pdf_lab.py` | 3 |
+| `tests/integration/test_g3_b2_sqlite_plan_contract.py` | 3 |
+| `tests/integration/test_g3_b1_policy_guardrails.py` | 3 |
+| `tests/integration/test_baseline_physical_integrity.py` | 3 |
+| `tests/integration/test_b022_image_staging.py` | 3 |
+| `tests/integration/test_recovery_flow.py` | 2 |
+
+El archivo `tests/integration/test_pdf_inbox_submission.py` contiene numerosos usos de `tmp_path` (incluido `write_bytes`), por lo que **nueve señales no equivalen a nueve riesgos de seguridad**. En cambio, `test_recovery_flow.py` conserva la ruta fija de la base SQLite; el número dos no la vuelve segura. El resto de los archivos debe clasificarse por **momento de invocación** (import/collection vs fixture/test body), alcance de ruta y capacidad de salir del clon.
+
+**Estado local aportado por owner:**
+- `D tests/integration/test_benchmark_orchestration_integration.py`
+- `D translated_c17cb80d10105b3497b142d04fa19078c4573ae0bade70cabc87dba80314aa19.pdf`
+
+Son **dos eliminaciones locales de archivos versionados**; no se debe hacer checkout para restaurarlas, `git clean`, `git reset --hard` ni un commit que las incorpore sin decisión del owner. El clon del commit puede contener archivos que faltan en el working tree local. El resultado de `git status --short` aportado tras la preparación no revela nuevas modificaciones.
+
+**Bloqueo actual A05-P4:** identificar los doce módulos no parseables y explicar las 101 señales no incluidas en el resumen compartido; después revisar import-time code, decoradores, plugins, rutas absolutas y subprocess. **No ejecutar `--collect` todavía**.
+
 ## 5. Gates y seguimiento
 
 - [x] **A05-P1:** riesgos IO-01…IO-06 vinculados al código de A-00 y restricciones de seguridad documentadas.
