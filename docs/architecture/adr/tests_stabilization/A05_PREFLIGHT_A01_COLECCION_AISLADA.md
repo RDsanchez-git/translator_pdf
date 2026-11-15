@@ -172,6 +172,22 @@ Se actualizó [`collect_a01_isolated.py`](collect_a01_isolated.py) para:
 
 **Estado local conservado:** el owner restauró el test benchmark; su `git status` más reciente muestra únicamente el PDF deliberadamente eliminado, **sin staged**. No restaurarlo ni introducir ese cambio en commits.
 
+## 4.5 Clasificación de `connect` y guard de ejecución del bootstrap (evidencia 2026-11-15)
+
+**Resultados PowerShell del owner, mismo reporte del scanner v2** (copia `q7774rif`, SHA `2496e8a6aa3ac8245877a737672663da748723c2`):
+
+| Señal | Cantidad | Decisión |
+|---|---:|---|
+| `sqlite3.connect` | **97** | Indicio explícito de SQLite, **no** de egress de red. La ubicación y momento de cada conexión aún importan para hermeticidad. |
+| `connect` (nombre sin calificar) | **4** | **DESCONOCIDO** hasta obtener `file`, `line`, `scope`, `phase_hint`; puede ser un helper/método, no asumir red. |
+| `asyncio.run` en `phase_hint=definition_time` | **1** | **Falso positivo de riesgo en importación directa**: se encuentra en un `if __name__ == "__main__":` y no se invoca cuando el módulo se importa normalmente. |
+
+**Verificación directa en el código remoto:** `tests/helpers/bootstrap_translation_golden.py:63-64` contiene `if __name__ == "__main__": asyncio.run(capture_golden_snapshots())`. El cuerpo del helper, líneas 16-61, sí puede escribir `tests/golden/*.json` y abrir `infra/db/documents.db`/`infra/db/fsm.db` si el script se **ejecuta directamente**. Es herramienta de captura histórica, no test pytest; **no ejecutarla ni generar oráculos en A/B/C**. El scanner v2 reporta contexto de definición porque no modela aún explícitamente el guard de `__main__`.
+
+**Conftest comprobado:** único `conftest.py` versionado en `tests/` detectado en el tree: `tests/smoke/conftest.py`. Importa validadores y define `@pytest.fixture` `reliability_pipeline`; las instanciaciones de validadores ocurren dentro de la función fixture, no al definirla. Los módulos importados pueden poseer efectos secundarios y el descubrimiento automático de plugins también exige precaución.
+
+**Próximo control sin pytest:** identificar las **4 llamadas `connect` genéricas** usando exclusivamente el JSON del reporte actual; ver si alguna ocurre en import/definición o fuera de `tmp_path`/SQLite temporal. **No inferir seguridad general** del proyecto desde el conteo de un nombre. La tarea A05-P4 sigue `[ ]` y A05-P5/A01 siguen pendientes.
+
 ## 5. Gates y seguimiento
 
 - [x] **A05-P1:** riesgos IO-01…IO-06 vinculados al código de A-00 y restricciones de seguridad documentadas.
