@@ -251,7 +251,7 @@ Los cuatro logs `all/unit/integration_nonregression/technical` reportaron, segú
 - [x] Conteo de ítems parametrizados, nodos sin marker de nivel y distribución numérica por archivo.
 - [x] Verificación de **12/12** rutas focales CI con nodos recolectados; revisión automatizada de las tres señales de advertencias/errores en cuatro logs.
 - [x] Identificar y clasificar los **4 módulos** con 0 nodos: 3 placeholders vacíos (`test_ast.py`, `test_dag.py`, `test_fencing.py`) y 1 script manual (`test_pipeline.py`); véase §3.4.
-- [ ] Explicar las **24 diferencias** de nodos versus declaraciones, prioritariamente las de la ruta PDF→PDF, sin atribuirlas automáticamente a parametrización.
+- [x] **24/24 diferencias explicadas:** 133 expansiones parametrizadas; 23 matrices literales y una lista nombrada de 4 elementos. [Matriz completa](A01_RECONCILIACION_EXHAUSTIVA_PARAMETRIZACIONES.md).
 - [ ] Verificar impacto de imports en archivos ignorados o fuera del clon y revisar riesgos transitivos de plugins/host (A-05).
 - [ ] Completar para cada caso relevante SUT, mocks, efectos externos, contrato observable y clasificación (A-02/A-04). **A-01 permanece [ ]** hasta trazabilidad definida en el plan.
 
@@ -309,6 +309,14 @@ $reports = Join-Path $env:TEMP "translator-a01-isolated-k4f4mf10\reports"
 ```
 
 **Gate:** mantener A01-S6 `[ ]` hasta recibir y cotejar la salida real. Un exceso de nodos por parametrización es deseable cuando cada variante falsifica una condición distinta; la mera cantidad de tests no demuestra calidad ni estabilidad frente a refactors.
+
+## 3.6 Conciliación exhaustiva A01-S6 — CERRADA
+
+La evidencia aportada por el owner del script `explain_a01_declaration_differences.py` ha permitido cerrar las diferencias pendientes. **1.341 declaraciones de funciones fuente + 133 expansiones adicionales parametrizadas = 1.474 nodeids**, con **0 funciones declaradas no recolectadas**, **0 nodeids sin función fuente**, **24/24 archivos con diferencias reconciliadas aritméticamente** y **0 llaves de fuente duplicadas**. La lista íntegra de módulos y las 24 causas se encuentra en [A01_RECONCILIACION_EXHAUSTIVA_PARAMETRIZACIONES.md](A01_RECONCILIACION_EXHAUSTIVA_PARAMETRIZACIONES.md).
+
+En 23 archivos coinciden las longitudes de matrices parametrizadas literales. El único caso de longitud no deducible literalmente fue `tests/unit/test_certification_boundary.py::test_no_forbidden_gt_write_symbols`, cuya matriz `CERTIFICATION_MODULES` incluye **4 rutas definidas en el archivo**, y pytest recolectó **4 variantes**. **Ninguna diferencia queda sin explicación** a nivel fuente/nodeid. Esto demuestra consistencia de *colección*, **no** pruebas PASSED, correctitud del test ni cobertura de SUT.
+
+**A01-S6 cerrado; A-01 global continúa pendiente de A01-S5 y revisión de seguridad A-05.** No se alteran tests, runtime, CI ni Ground Truth.
 
 ## 4. Gate y siguiente acción
 
