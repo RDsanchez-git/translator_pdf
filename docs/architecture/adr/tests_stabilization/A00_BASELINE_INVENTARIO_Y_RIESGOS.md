@@ -40,13 +40,13 @@ La declaración del owner de **Pyright local 0 errors/0 warnings/0 informations*
 
 ### 3.1 Configuración de pytest observada
 
-En `pyproject.toml` ``[tool.pytest.ini_options]`:
+En `pyproject.toml`, sección `[tool.pytest.ini_options]`:
 
 - `testpaths = ["tests"]`; `python_files = ["test_*.py"]`, `python_classes = ["Test*"]`, `python_functions = ["test_*"]`.
 - `addopts = ["--strict-markers", "--strict-config", "-ra", "-m", "not e2e"]`: el uso ordinario de pytest deselecciona **marcadores `e2e`**, no nombres de archivo que contienen la cadena «e2e».
 - Markers declarados: `regression`, `integration`, `unit`, `smoke`, `e2e`. Las **asignaciones reales a cada caso** aún no se enumeraron (A-01).
 - Una ejecución de CI con `-m` explícito selecciona la expresión solicitada, en lugar de interpretar `integration` como directorio.
-- El resultado de `pytest --collect-only` está **pendiente**: no se ejecutó sobre la copia del owner por los riesgos de escritura del §5.
+- El resultado de `pytest --collect-only` está **pendiente**: no se ejecutó sobre la copia del owner por los riesgos de escritura del apartado 5.
 
 ### 3.2 CI técnico vigente (comandos exactos)
 
@@ -74,7 +74,7 @@ El workflow `continuous-verification.yml` ejecuta SMOKE en PR a `main/pipeline_s
 
 ## 4. Separación de rutas: raíz soportada vs legacy, benchmark y ciencia
 
-**Fuente:** [Atlas PDF→PDF ``2 y 6](../pipeline-stabilization/handoff/ATLAS_RUTA_OPERATIVA_UNICA_PDF_PDF.md), contrastado con `apps/cli/main.py`, `apps/bootstrap/pipeline_factory.py`, `apps/ocr_router/__main__.py`, `runtime/engine.py` (ruta declarada en Atlas) y `apps/compiler/__main__.py`.
+**Fuente:** [Atlas PDF→PDF `2 y 6](../pipeline-stabilization/handoff/ATLAS_RUTA_OPERATIVA_UNICA_PDF_PDF.md), contrastado con `apps/cli/main.py`, `apps/bootstrap/pipeline_factory.py`, `apps/ocr_router/__main__.py`, `runtime/engine.py` (ruta declarada en Atlas) y `apps/compiler/__main__.py`.
 
 | Ruta o superficie | Entrada/autoridad | Tratamiento en esta campaña |
 |---|---|---|
@@ -135,24 +135,24 @@ Además existen fixtures/candidatos y datos en `tests/corpus/`, incluidos `calib
 
 | Riesgo | Archivo / disparador observado | Superficie e impacto potencial | Dictamen estático y acción pendiente |
 |---|---|---|---|
-| **IO-01** | `test_golden_parser.py` ``setUp`: si falta `tests/fixtures/sample_3_pages.pdf`, crea directorio y escribe PDF ficticio | Fixture versionada; además ``skipTest` si falta `tests/golden/*.fingerprint.json`, hoy no versionado | **CONFIRMADO**; no ejecutarlo sobre working tree antes de A-05; TS-001/B-01 |
-| **IO-02** | `test_real_parser_pipeline.py` ``setUp`: if missing → escribe `tests/fixtures/sample_3_pages.pdf` | Fixture versionada, puede falsear evidencia de ingesta | **CONFIRMADO**; evaluar SUT mockeado y pasar a `tmp_path` si se remedia |
-| **IO-03** | `test_pipeline_orchestration.py` ``setUp`: if missing → escribe `tests/fixtures/sample_3_pages.pdf` | Mismo archivo versionado; parser del test parcheado | **CONFIRMADO**; no contar como integración de PDF real |
+| **IO-01** | `test_golden_parser.py` `setUp`: si falta `tests/fixtures/sample_3_pages.pdf`, crea directorio y escribe PDF ficticio | Fixture versionada; además `skipTest` si falta `tests/golden/*.fingerprint.json`, hoy no versionado | **CONFIRMADO**; no ejecutarlo sobre working tree antes de A-05; TS-001/B-01 |
+| **IO-02** | `test_real_parser_pipeline.py` `setUp`: if missing → escribe `tests/fixtures/sample_3_pages.pdf` | Fixture versionada, puede falsear evidencia de ingesta | **CONFIRMADO**; evaluar SUT mockeado y pasar a `tmp_path` si se remedia |
+| **IO-03** | `test_pipeline_orchestration.py` `setUp`: if missing → escribe `tests/fixtures/sample_3_pages.pdf` | Mismo archivo versionado; parser del test parcheado | **CONFIRMADO**; no contar como integración de PDF real |
 | **IO-04** | `test_chunker_snapshot.py`: si falta `tests/fixtures/sample_chunks.json`, **genera el expected** desde el actual y retorna sin aserciones | Contamina línea de base técnica y puede dar falso verde | **CONFIRMADO** como rama condicional; snapshot existe en el tree actual, **no** se afirma que se haya ejecutado dicha rama; TS-002/B-02 |
-| **IO-05** | `test_e2e_walking_skeleton.py`: si falta `tests/fixtures/sample_3_pages.pdf.ast.json`, la crea; usa ``tests/fixtures/e2e_cache_real.db` y elimina DB/WAL/SHM en teardown | Ruta fija bajo fixtures, base SQLite y borrado por nombre; en caso de falla, residual posible | **CONFIRMADO**; priorizar aislamiento, no asumir comportamiento E2E |
-| **IO-06** | `test_recovery_flow.py` ``setUpClass`/``tearDownClass`: usa ``infra/db/test_fsm.db` y elimina archivo preexistente | **RIESGO ALTO**: colisión/destrucción de archivo de BD en ruta fija fuera de ``tmp_path` | **CONFIRMADO**; **NO ejecutar en la copia del owner** sin aislamiento y revisión previa |
+| **IO-05** | `test_e2e_walking_skeleton.py`: si falta `tests/fixtures/sample_3_pages.pdf.ast.json`, la crea; usa `tests/fixtures/e2e_cache_real.db` y elimina DB/WAL/SHM en teardown | Ruta fija bajo fixtures, base SQLite y borrado por nombre; en caso de falla, residual posible | **CONFIRMADO**; priorizar aislamiento, no asumir comportamiento E2E |
+| **IO-06** | `test_recovery_flow.py` `setUpClass`/`tearDownClass`: usa `infra/db/test_fsm.db` y elimina archivo preexistente | **RIESGO ALTO**: colisión/destrucción de archivo de BD en ruta fija fuera de `tmp_path` | **CONFIRMADO**; **NO ejecutar en la copia del owner** sin aislamiento y revisión previa |
 | **IO-07** | `test_translation_semantics.py`: apunta a `tests/golden/sample_3_pages.semantics.json` y llama a `skipTest` si falta | No escribe el oráculo observado, pero puede convertir una ausencia de cobertura en SKIP | **CONFIRMADO**; clasificación y alcance diferidos a A-01 |
-| **IO-08** | `tests/test_pipeline.py` ejecutado como **script** (`__main__`) crea `tests/output/` y escribe `tests/stress_report.json`, procesa PDFs reales mediante `run_pipeline` | Mutación de outputs históricos/directorios y ejecución potencial fuera de la ruta actual | **CONFIRMADO** como operación invocable **directamente**, no como test ``test_*`` recolectado automáticamente |
-| **IO-09** | `test_real_e2e.py`: ``patch.object(self.pipeline, 'execute', return_value=mock_result)` | Falsa atribución de cobertura de la operación si se presenta como E2E; no se observó escritura destructiva en los fragmentos examinados | **CONFIRMADO** patrón de mock; A-01 debe clasificar |
-| **IO-10** | `test_healing_e2e_telemetry.py`: funciones ``test_e2e_*`` sin ``@pytest.mark.e2e`` visible en sus definiciones | Posible selección en ``not e2e`` pese al nombre; no se acredita E2E por ello | **INDICIO**, a confirmar por marker real en A-01 |
+| **IO-08** | `tests/test_pipeline.py` ejecutado como **script** (`__main__`) crea `tests/output/` y escribe `tests/stress_report.json`, procesa PDFs reales mediante `run_pipeline` | Mutación de outputs históricos/directorios y ejecución potencial fuera de la ruta actual | **CONFIRMADO** como operación invocable **directamente**, no como test `test_*` recolectado automáticamente |
+| **IO-09** | `test_real_e2e.py`: `patch.object(self.pipeline, 'execute', return_value=mock_result)` | Falsa atribución de cobertura de la operación si se presenta como E2E; no se observó escritura destructiva en los fragmentos examinados | **CONFIRMADO** patrón de mock; A-01 debe clasificar |
+| **IO-10** | `test_healing_e2e_telemetry.py`: funciones `test_e2e_*` sin `@pytest.mark.e2e` visible en sus definiciones | Posible selección en `not e2e` pese al nombre; no se acredita E2E por ello | **INDICIO**, a confirmar por marker real en A-01 |
 | **IO-11** | Suite completa y herramientas de bootstrap/sellado/corpus | Pueden existir más escrituras o pasos de collection con side effects | **NO AUDITADO EXHAUSTIVAMENTE**; A-01/A-05 deben identificar todos antes de ejecución amplia |
 
 ### 5.3 Política inmediata de seguridad
 
 1. **No correr `pytest -q`, `--collect-only` o módulos legacy de riesgo en el working tree del owner** hasta A-05 o usar copia/worktree aislado. Importar módulos durante colección puede desencadenar side effects.
-2. Inspeccionar primero el uso de ``tests/fixtures``, ``tests/output``, ``infra/db`` y todo ``open(...,'w')``, ``write_text``, ``write_bytes``, ``unlink``, ``remove``, ``rmtree``, además de funciones llamadas indirectamente. Esta tabla **no sustituye** la búsqueda completa.
-3. Preservar la eliminación local deliberada del PDF previamente acordada, otras diferencias del working tree y todos los oráculos. Prohibido ``git clean``, ``git reset --hard`` o restaurar archivos sin decisión del owner.
-4. Para futuros negativos, usar ``tmp_path``, SQLite disposable y fake loopback; no servicios de pago ni red externa. Verificar estado de árbol antes/después.
+2. Inspeccionar primero el uso de `tests/fixtures`, `tests/output`, `infra/db` y todo `open(...,'w')`, `write_text`, `write_bytes`, `unlink`, `remove`, `rmtree`, además de funciones llamadas indirectamente. Esta tabla **no sustituye** la búsqueda completa.
+3. Preservar la eliminación local deliberada del PDF previamente acordada, otras diferencias del working tree y todos los oráculos. Prohibido `git clean`, `git reset --hard` o restaurar archivos sin decisión del owner.
+4. Para futuros negativos, usar `tmp_path`, SQLite disposable y fake loopback; no servicios de pago ni red externa. Verificar estado de árbol antes/después.
 5. Si falla un test por una precondición obligatoria ausente, registrar el fallo; **no autogenerar un snapshot/corpus** ni suavizarlo con SKIP.
 6. Este censo es **observacional**: ni ejecuté tests ni comprobé runtime; los riesgos son paths y ramas de código vistos por inspección.
 
@@ -160,7 +160,7 @@ Además existen fixtures/candidatos y datos en `tests/corpus/`, incluidos `calib
 
 | Capa/contrato | Riesgo al interpretar un PASS | Evidencia faltante para considerar el test confiable |
 |---|---|---|
-| PDF/AST físico | Parser monkeypatched, PDF ficticio, sólo ``len > 0`` | Invocación real del SUT y oráculo de propiedades relevantes |
+| PDF/AST físico | Parser monkeypatched, PDF ficticio, sólo `len > 0` | Invocación real del SUT y oráculo de propiedades relevantes |
 | G3/UNKNOWN | Fake sin aceptar llamada real o segunda llamada permitida | Una única aceptación y **cero reenvío automático** demostrables |
 | Identidad de plan | Comparar sólo conteos sin binding real | Manipulación de hash/generación que produzca rechazo |
 | G5/lease y publicación | Probar estado en memoria sin artifact/SQLite | Lease/fencing durable y ausencia de publicación vieja |
@@ -168,13 +168,13 @@ Además existen fixtures/candidatos y datos en `tests/corpus/`, incluidos `calib
 | Legacy/benchmark/CV | Nombre “real/e2e/regression” o marker sin garantía | Reclasificar scope y excluir ciencia de la campaña activa |
 | Seguridad de ejecución | CI verde con fixtures aparentemente presentes | No escribe a rutas trackeadas ni borra DB en rutas fijas |
 
-Las tareas B/C **no están empezadas**. Las fichas ``TR-###``, las mutaciones, el resultado de pytest por caso y la matriz contrato×test son A-01…A-07.
+Las tareas B/C **no están empezadas**. Las fichas `TR-###`, las mutaciones, el resultado de pytest por caso y la matriz contrato×test son A-01…A-07.
 
 ## 7. Comprobaciones realizadas y límites de evidencia
 
-- [x] Lectura de ``main`` y ``tests_stabilization`` mediante GitHub: refs comparados, baseline inmóvil.
+- [x] Lectura de `main` y `tests_stabilization` mediante GitHub: refs comparados, baseline inmóvil.
 - [x] Censo del git tree **no truncado**; paths del Anexo A y fixtures/outputs de `5.1.
-- [x] Lectura de workflow técnico, CV, Pyright, pytest y ``.gitignore``.
+- [x] Lectura de workflow técnico, CV, Pyright, pytest y `.gitignore`.
 - [x] Contraste de rutas CLI/OCR/G3/G5, R1/R3 y benchmark contra Atlas y entrypoints visibles.
 - [x] Inspección estática de tests seleccionados que demuestra riesgos de I/O y de atribución de cobertura.
 - [ ] **No ejecutado:** pytest collection, pytest suite, mutations, process-level tests, Docker/lab, Pyright local, validación científica. Corresponde a etapas posteriores y entornos seguros.
@@ -387,7 +387,7 @@ tests/test_pipeline_fidelity.py
 
 ## Anexo B. Procedimiento para reproducir el censo sin ejecutar tests
 
-GitHub: abrir el ref `9495259f1e35419ddf88c02a5649be6444ad062e` y enumerar `git/trees/<sha>?recursive=1` o usar la vista árbol del repo. Regla de filtrado: blobs Python con ``path.startsWith("tests/")``; módulos pytest por patrón ``/test_[^/]+\.py$/``; dividir en `unit`, `integration`, `smoke` y raíz. **Ningún test se ejecuta con este procedimiento**.
+GitHub: abrir el ref `9495259f1e35419ddf88c02a5649be6444ad062e` y enumerar `git/trees/<sha>?recursive=1` o usar la vista árbol del repo. Regla de filtrado: blobs Python con `path.startsWith("tests/")`; módulos pytest por patrón `/test_[^/]+\.py$/`; dividir en `unit`, `integration`, `smoke` y raíz. **Ningún test se ejecuta con este procedimiento**.
 
 Un mantenedor puede comprobar sobre un **clon limpio** (sin ejecutar tests) con herramientas habituales:
 
@@ -402,4 +402,4 @@ La comparación debe estar pinneada al SHA y puede diferir si el clon tiene una 
 
 ## 8. Transición formal
 
-**A-00 puede marcarse [x]** en el plan maestro tras archivar este documento y comprobar que su diff no contiene runtime, tests, corpus, workflows ni oráculos. **Siguiente tarea A-01**: clasificación dinámica/semántica por caso con fichas ``TR-###``, siempre sujeta al veto de seguridad `A-05` y sin mover D-4/D-5 al alcance activo.
+**A-00 puede marcarse [x]** en el plan maestro tras archivar este documento y comprobar que su diff no contiene runtime, tests, corpus, workflows ni oráculos. **Siguiente tarea A-01**: clasificación dinámica/semántica por caso con fichas `TR-###`, siempre sujeta al veto de seguridad `A-05` y sin mover D-4/D-5 al alcance activo.
