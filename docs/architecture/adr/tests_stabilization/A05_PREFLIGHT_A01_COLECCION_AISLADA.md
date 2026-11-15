@@ -130,7 +130,7 @@ El archivo `tests/integration/test_pdf_inbox_submission.py` contiene numerosos u
 
 Son **dos eliminaciones locales de archivos versionados**; no se debe hacer checkout para restaurarlas, `git clean`, `git reset --hard` ni un commit que las incorpore sin decisión del owner. El clon del commit puede contener archivos que faltan en el working tree local. El resultado de `git status --short` aportado tras la preparación no revela nuevas modificaciones.
 
-**Bloqueo actual A05-P4:** ya reconciliadas las 390 señales e identificada la causa de los 12 errores de escáner; falta repetir el análisis v2 y revisar import-time code, decoradores, plugins, rutas absolutas y subprocess. **No ejecutar `--collect` todavía**.
+**Bloqueo actual A05-P4:** los 390 registros del scanner v1 quedaron reconciliados y el scanner v2 ya se ejecutó con 0 errores AST; falta clasificar contextos de definición y destinos de las llamadas del informe v2, además de revisar imports, decoradores, plugins, rutas absolutas y subprocess. **No ejecutar `--collect` todavía**.
 
 ## 4.3 Triage reconciliado y corrección del scanner (2026-11-15)
 
@@ -148,7 +148,29 @@ Se actualizó [`collect_a01_isolated.py`](collect_a01_isolated.py) para:
 
 **Estado Git local del owner después de restaurar el test de benchmark:** únicamente se reporta `D translated_c17cb80d10105b3497b142d04fa19078c4573ae0bade70cabc87dba80314aa19.pdf`. Esa eliminación sigue **deliberada y sin staged/commit**, y no se debe restaurar, eliminar de Git ni mezclar con la campaña. El test `test_benchmark_orchestration_integration.py` ya no figura eliminado.
 
-**Evidencia dinámica del scanner v2:** **pendiente de repetir** en la PC del owner con modo `prepare-only` después de `git pull --ff-only`. La conclusión sobre ausencia de errores BOM se refiere al **cambio del código de lectura y a la inspección de archivos**, no a una corrida nueva que todavía no ocurrió. A05-P4/P5/P6 y A-01 permanecen abiertos. **No ejecutar `--collect` todavía.**
+**Evidencia dinámica del scanner v2:** **ejecutada** por el owner en modo `prepare-only`, con 188 archivos, 400 señales y **0 errores AST**. Ver §4.4. A05-P4/P5/P6 y A-01 permanecen abiertos: **no ejecutar `--collect` todavía**.
+
+## 4.4 Segunda preparación real: scanner v2, sin imports ni colección
+
+**Evidencia de consola aportada por el owner (2026-11-15):**
+
+| Campo | Valor observado |
+|---|---|
+| Intérprete | `venv/Scripts/python.exe` (PowerShell) |
+| Modo | `prepare-only`, sin `--collect` |
+| SHA del código auditado | `2496e8a6aa3ac8245877a737672663da748723c2` |
+| Clon descartable creado | `%LOCALAPPDATA%/Temp/translator-a01-isolated-q7774rif/repo` |
+| Carpeta de reportes | `%LOCALAPPDATA%/Temp/translator-a01-isolated-q7774rif/reports` |
+| Archivos Python leídos | **188** |
+| Señales AST nuevas | **400** (conteo estático, no fallos) |
+| Errores AST | **0** |
+| Tests importados / recolectados / ejecutados | **0 / 0 / 0** |
+
+**Interpretación:** la corrección de decodificación `utf-8-sig` funcionó en el entorno real del owner y eliminó las doce falsas alarmas por BOM del reporte anterior. Las **400 señales no equivalen a 400 riesgos**. La diferencia respecto de las 390 señales anteriores no significa que aparecieron diez defectos nuevos: cambió el scanner, y ahora los doce archivos BOM también se analizan. Ningún output/fixture de tests se editó intencionalmente durante esta preparación.
+
+**Próxima revisión documental y de seguridad, sin ejecutar pytest:** leer sólo el JSON nuevo, clasificar `phase_hint=definition_time` y los grupos `callee` para `connect`, `open`, `run`, `replace` y otras operaciones de escritura. Distinguir `sqlite3.connect` de sockets/red y `tmp_path` de rutas fijas; verificar llamadas transitivas a import-time y plugins por inspección dirigida. **A05-P4 sigue [ ]** hasta esa revisión. A05-P5/P6 y A-01 no se cierran con un resultado de `ast.parse`.
+
+**Estado local conservado:** el owner restauró el test benchmark; su `git status` más reciente muestra únicamente el PDF deliberadamente eliminado, **sin staged**. No restaurarlo ni introducir ese cambio en commits.
 
 ## 5. Gates y seguimiento
 
