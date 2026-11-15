@@ -73,7 +73,7 @@ La ejecución del puente permitirá ordenar **archivos no documentados por volum
 - [x] **S5-N1:** matriz de **35 fichas** existente con archivo y frontera. Cinco relaciones «mismo archivo» comprobadas y **29 archivos testigo distintos**.
 - [x] **S5-N2:** [herramienta de solo lectura](map_a01_s5_nodeids.py) añadida con guard SHA/working tree de tests y clasificación conservadora; **su corrida real está pendiente**.
 - [x] **S5-N3:** documentados **cuatro hallazgos estáticos** por inspección de fuente, separados entre falsos oráculos y exceso de alcance.
-- [ ] **S5-N4:** ejecutar herramienta sobre `all.json` local, verificar partición y registrar top de archivos no mapeados.
+- [x] **S5-N4:** owner ejecutó la herramienta sobre `all.json`; [reporte documentado](A01_S5_RESULTADO_PUENTE_NODEIDS_2026-11-15.md). 1.474 nodos, 277 en 29 archivos testigo, 1.197 en otros 144, 0 semánticamente acreditados.
 - [ ] **S5-N5:** ampliar las fichas a los nodeids relevantes (no acreditar automáticamente todos los nodos de un archivo).
 - [ ] **S5-N6:** auditar oráculos A-03 de los candidatos a intervención B, incluyendo falsadores y sensibilidad para C.
 - [ ] **S5-N7:** clasificar ámbito de los casos no activos, sin evaluar ni modificar GT.
