@@ -91,7 +91,7 @@ Archivo [`test_g3_b3_structured_result_contract.py`](../../../../tests/integrati
 - [x] **S5-N4:** herramienta ejecutada por el owner; partición completa 1.474/1.474 verificada, 277 en 29 archivos testigo y 1.197 en otros 144.
 - [x] **S5-N4A:** 1.159 nodos sin marker de nivel particionados 235+924; 4 alertas estáticas del analizador confirmadas.
 - [x] **S5-N4B:** ocho archivos más poblados inspeccionados y **236 nodos priorizados por ámbito de archivo**, sin elevar ningún caso a confianza.
-- [ ] **S5-N5:** analizar por función los **33 nodeids G3** como siguiente tranche, conectar a fichas contractuales y verificar el oráculo contra mutaciones documentadas.
+- [ ] **S5-N5 — avance estático:** ya se inspeccionaron **12 funciones y 33 escenarios de fuente G3-B3** con entradas, SUT y expected por caso; [matriz de auditoría](A01_S5_AUDITORIA_G3_B3_33_VARIANTES.md) y [verificador de nodeids](verify_a01_s5_g3_b3_nodeids.py). **Falta ejecutar cruce exacto de los sufijos de pytest, ampliar otros contratos y probar sensibilidad**; ninguna prueba corrió.
 - [ ] **S5-N6 / A-03:** revisión dirigida de expected independientes y doble frontera en G3, math, AST y los dos falsos oráculos.
 - [ ] **S5-N7:** clasificar resto por SUT sin confundir `not e2e` con ruta activa; evitar ciencia/GT.
 - [ ] **A01-S5 / A-01 / A-05 globales:** **ABIERTOS**. No hubo ejecución de tests, mutation kills, pipeline físico ni cambios de producción.
