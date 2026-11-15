@@ -88,7 +88,7 @@ Secuencia pendiente (sin incluir ciencia ni nuevo E2E global):
 
 - [x] **A01-S1** — Censo fuente a archivo/línea de las 177 unidades (este dossier y 16 anexos).
 - [x] **A01-S2** — Mapa estático de selección CI, marcas y riesgos, con incertidumbre explícita.
-- [ ] **A01-S3** — Preflight A-05 antes de import/collection en entorno desechable: verificar rutas fijas, writes de fixtures, operaciones de import y exclusión de carpetas del owner. **A-05 no se declara completo** por inspección estática parcial.
+- [ ] **A01-S3** — [Preflight A-05](A05_PREFLIGHT_A01_COLECCION_AISLADA.md) **parcialmente preparado**, con herramienta de clon independiente en modo prepare-only y prueba del recolector con repositorio sintético. **Pendiente** comprobar seguridad real de imports/decoradores/plugins, rutas absolutas y aislamiento OS antes de colección. A-05 y A-01 permanecen abiertos.
 - [ ] **A01-S4** — Ejecutar `pytest --collect-only` **en worktree/clon aislado**, con `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1` sólo si se comprueba que los plugins requeridos no alteran la colección (en otro caso fijar plugin set). Exportar `nodeid`, parametrizaciones, marcas efectivas y diferencias entre `-m unit`, `-m integration and not regression`, `-m not e2e` y los pasos explícitos de CI. Registrar errores de colección, SKIP/XFAIL y entorno.
 - [ ] **A01-S5** — Trazar cada caso crítico al **SUT real** por análisis dirigido y fichas `TR-###` (A-02/A-04), anotar fakes legítimos y efectos/fixture; los casos legacy se reclasifican en lugar de atribuir cobertura PDF→PDF.
 - [ ] **A01-S6** — Confrontar censo estático y dinámico; explicar diferencias, parametrizaciones, collection hooks y filtros antes de marcar `A-01 [x]`.
