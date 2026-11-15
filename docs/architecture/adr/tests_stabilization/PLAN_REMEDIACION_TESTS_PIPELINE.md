@@ -1,8 +1,8 @@
 # Plan de estabilización y remediación de los tests del pipeline PDF→PDF
 
 > **Código del programa:** TST-STAB  
-> **Versión:** 0.1.0 — propuesta inicial, controlada por Git  
-> **Estado:** DRAFT / PLANIFICADO; **ninguna tarea de remediación se considera terminada** por crear este documento.  
+> **Versión:** 0.1.1 — A-00 documentado y cerrado por evidencia estática; resto de tareas pendiente  
+> **Estado:** EN EJECUCIÓN — **A-00 cerrado** como inventario estático; **A-01 a A-07, B y C pendientes**. No se han remediado tests ni modificado runtime.  
 > **Fecha de apertura:** 2026-11-15  
 > **Repositorio:** `RDsanchez-git/translator_pdf`  
 > **Rama de trabajo:** `tests_stabilization` (derivada de `main` @ `83ef0257f795f0d973f9393cc225e7af5b956ade`)  
@@ -224,7 +224,7 @@ Cada cambio de estado debe tener una referencia (PR, commit, informe local o res
 
 ### Etapa A — Auditoría semántica de tests (**PRIMERA**, sólo diagnóstico salvo mitigación urgente)
 
-- [ ] **A-00 — Congelar sujeto auditado.** Registrar HEAD de `tests_stabilization`, baseline `main`, lista de test paths y comandos de CI vigentes, inventario de fixtures/escrituras; separar R1/R3/benchmarks del root OCR/G3/G5.
+- [x] **A-00 — Congelar sujeto auditado.** Baseline y HEAD de observación, censo completo de **177 módulos candidatos** en **188 archivos Python de `tests/`**, workflows/selección CI, fixtures, outputs versionados y riesgos de escritura, con separación explícita de R1/R3/benchmarks frente a OCR/G3/G5. **Evidencia:** [A00_BASELINE_INVENTARIO_Y_RIESGOS.md](A00_BASELINE_INVENTARIO_Y_RIESGOS.md); **sólo auditoría estática**, no Pytest/collect-only ni validación semántica.
 - [ ] **A-01 — Construir inventario completo de pruebas pertinentes.** Enumerar test cases y parametrizaciones, markers, selección real de CI, skipped/xfail, helpers, efectos sobre archivos, uso de red/LLM y SUT. No confundir “188 archivos Pyright” con “188 tests”.
 - [ ] **A-02 — Trazar contratos a tests.** Para cada frontera del `2.4`, registrar cobertura positiva, negativa, evidencia independiente y huecos. Referenciar Atlas, contratos/normas aplicables y consumidor de puerto.
 - [ ] **A-03 — Evaluar independencia de oráculos y mocks.** Inspeccionar `patch`/`monkeypatch`, expected dinámicos, snapshots, assertions débiles, `skip`, `xfail`, escrituras a fixtures, infraestructura real vs fake.
@@ -268,14 +268,14 @@ Cada cambio de estado debe tener una referencia (PR, commit, informe local o res
 
 | Hito | Estado inicial | Responsable | Evidencia de cierre (SHA / PR / informe) | Revisor / decisión |
 |---|---|---|---|---|
-| A — Auditoría | [ ] PENDIENTE | por asignar | — | — |
+| A — Auditoría | [ ] EN CURSO — **A-00 cerrado**, A-01…A-07 pendientes | maintainer / implementación por asignar | [A-00 — inventario y riesgos](A00_BASELINE_INVENTARIO_Y_RIESGOS.md); `main` `83ef0257`, tree `9495259` | Revisión de ejecución pendiente para A-01…A-07 |
 | B — Remediación | [ ] PENDIENTE | por asignar | — | — |
 | C — Controles negativos | [ ] PENDIENTE | por asignar | — | — |
 | Gate de cierre técnico | [ ] PENDIENTE | maintainer | — | — |
 | D-4 — Consolidación ruta única | [ ] DIFERIDO, **no ejecutar ahora** | post-refinamiento | — | — |
 | D-5 — GT y ciencia | [ ] DIFERIDO, **no ejecutar ahora** | post-refinamiento | — | — |
 
-Para tareas individuales, actualizar la casilla del `6` y añadir una entrada al historial `11.1`. La columna de evidencia no puede decir solo “pytest verde”: incluir qué prueba protegió qué contrato y cómo se comprobó la sensibilidad.
+Para tareas individuales, actualizar la casilla del `6 y añadir una entrada al historial `10.2. La columna de evidencia no puede decir solo “pytest verde”: incluir qué prueba protegió qué contrato y cómo se comprobó la sensibilidad.
 
 ---
 
@@ -414,6 +414,7 @@ Una nueva línea de avance en este plan **no** sustituye las evidencias identifi
 | Fecha | Cambio de estado | ID | Commit / PR | Evidencia y decisión |
 |---|---|---|---|---|
 | 2026-11-15 | Apertura de plan, **sin cierre de tareas** | TST-STAB | rama `tests_stabilization`, base `83ef0257` | Inventario semilla estático; revisión/ejecución futura pendiente |
+| 2026-11-15 | **A-00 cerrado — censo y riesgos por inspección estática** | A-00 | [Inventario A-00](A00_BASELINE_INVENTARIO_Y_RIESGOS.md); base `83ef0257`, tree `9495259`, versión Markdown normalizada en `b97430d` | 188 archivos Python, 177 módulos candidatos, selección de CI y rutas R1/R3 contrastadas, fixtures y escrituras potencialmente destructivas registradas; **sin ejecutar tests, sin cerrar A-01…A-07** |
 
 ---
 
