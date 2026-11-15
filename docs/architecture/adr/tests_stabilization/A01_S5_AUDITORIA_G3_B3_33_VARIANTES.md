@@ -106,7 +106,7 @@ Las etiquetas `B3-01…33` son **IDs de auditoría**, no sustituyen los nodeids 
 - [x] **S5-G3-02:** validación por lectura de las ramas correspondientes en `core/chunking/result_contract.py` y del papel asumido de `ChunkPlan.build`.
 - [x] **S5-G3-03:** documentada la independencia **parcial** del expected, el riesgo de `p.units` exactos y la distinción del doble control de miembros duplicados.
 - [x] **S5-G3-04 — Identidad de nodeids VERIFICADA**: salida real del owner del [verificador de solo lectura](verify_a01_s5_g3_b3_nodeids.py) confirma 33/33 IDs únicos, 12 funciones, 10 simples, 17+6 parametrizados, SHA de colección y cardinalidad; cotejo B3-01…33 registrado abajo. **Sin PASS, sin acreditación semántica dinámica ni mutation kill.**
-- [ ] **S5-G3-05:** ensayos focales negativos y sensibilidad ante mutación, posteriores a A-05/etapa C.
+- [ ] **S5-G3-05:** [preauditoría A-03 de independencia de oráculos](A03_PREAUDITORIA_INDEPENDENCIA_ORACULOS_G3_B3.md) realizada **estáticamente**: 4 positivos, 1 mixto, 28 negativos; límites de plan compartido, regex parcial, fronteras del chunker y UTF-8 multibyte. **Ensayos focales negativos y sensibilidad ante mutación pendientes**, posteriores a A-05/etapa C.
 - [ ] **A01-S5 / A-01 / A-03:** **ABIERTOS**. No convertir revisión estática en PASSED.
 
 **Siguiente acción:** usar el JSON de colección existente para asignar **identidad real** a los 33 casos, sin ejecutar pytest; luego trazar los controles normativos más importantes a un puerto de producción estable antes de diseñar B/C.
