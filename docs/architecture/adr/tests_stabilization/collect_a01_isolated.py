@@ -89,6 +89,10 @@ def inside(root: Path, maybe_child: Path) -> bool:
 
 
 def flagged_calls(text: str, name: str) -> list[dict[str, Any]]:
+    """Index AST calls, not observed runtime effects.
+
+    Scope/phase are hints only. A function can be invoked by import-time code.
+    """
     try:
         tree = ast.parse(text, filename=name)
     except SyntaxError as exc:
@@ -100,17 +104,70 @@ def flagged_calls(text: str, name: str) -> list[dict[str, Any]]:
         "post", "get", "urlopen", "open",
     }
     hits: list[dict[str, Any]] = []
-    for node in ast.walk(tree):
-        if not isinstance(node, ast.Call):
-            continue
-        if isinstance(node.func, ast.Name):
-            method = node.func.id
-        elif isinstance(node.func, ast.Attribute):
-            method = node.func.attr
-        else:
-            continue
-        if method in signals:
-            hits.append({"line": node.lineno, "signal": method})
+
+    class CallScanner(ast.NodeVisitor):
+        def __init__(self) -> None:
+            self.scopes: list[str] = []
+
+        def visit_FunctionDef(self, node: ast.FunctionDef | ast.AsyncFunctionDef) -> None:
+            # Decorators/default expressions are evaluated at definition time,
+            # unlike the function body. Preserve that distinction for triage.
+            for expr in node.decorator_list:
+                self.visit(expr)
+            for expr in (*node.args.defaults, *node.args.kw_defaults):
+                if expr is not None:
+                    self.visit(expr)
+            self.scopes.append(f"function:{node.name}")
+            for stmt in node.body:
+                self.visit(stmt)
+            self.scopes.pop()
+
+        def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> None:
+            self.visit_FunctionDef(node)
+
+        def visit_ClassDef(self, node: ast.ClassDef) -> None:
+            for expr in node.decorator_list:
+                self.visit(expr)
+            for expr in node.bases:
+                self.visit(expr)
+            for expr in node.keywords:
+                self.visit(expr.value)
+            self.scopes.append(f"class:{node.name}")
+            for stmt in node.body:
+                self.visit(stmt)
+            self.scopes.pop()
+
+        def visit_Lambda(self, node: ast.Lambda) -> None:
+            for expr in (*node.args.defaults, *node.args.kw_defaults):
+                if expr is not None:
+                    self.visit(expr)
+            self.scopes.append("lambda")
+            self.visit(node.body)
+            self.scopes.pop()
+
+        def visit_Call(self, node: ast.Call) -> None:
+            func = node.func
+            if isinstance(func, ast.Name):
+                method = func.id
+            elif isinstance(func, ast.Attribute):
+                method = func.attr
+            else:
+                method = None
+            if method in signals:
+                deferred = any(
+                    scope.startswith("function:") or scope == "lambda"
+                    for scope in self.scopes
+                )
+                hits.append({
+                    "line": node.lineno,
+                    "signal": method,
+                    "callee": ast.unparse(func)[:180],
+                    "scope": ".".join(self.scopes) or "module",
+                    "phase_hint": "function_body" if deferred else "definition_time",
+                })
+            self.generic_visit(node)
+
+    CallScanner().visit(tree)
     return hits
 
 
@@ -171,7 +228,8 @@ def main(argv: list[str] | None = None) -> int:
     files = sorted((repo / "tests").rglob("*.py"))
     for p in files:
         rel = p.relative_to(repo).as_posix()
-        for hit in flagged_calls(p.read_text(encoding="utf-8"), rel):
+        # Only the scanner's in-memory decoding strips UTF-8 BOM; never change tests.
+        for hit in flagged_calls(p.read_text(encoding="utf-8-sig"), rel):
             signals.append({"file": rel, **hit})
 
     manifest: dict[str, Any] = {
@@ -184,6 +242,11 @@ def main(argv: list[str] | None = None) -> int:
         "source_worktree_status_was_nonempty": bool(original_status),
         "source_worktree_status_preserved_by_design": True,
         "tests_python_files_examined": len(files),
+        "scanner_version": "a05-static-v2-bom-callee-scope",
+        "static_parse_errors": sum(x["signal"] == "syntax_error" for x in signals),
+        "static_calls_in_definition_context": sum(
+            x.get("phase_hint") == "definition_time" for x in signals
+        ),
         "static_call_signals": len(signals),
         "collection_requested": args.collect,
         "network_isolation": "best-effort Python socket guard only; NOT OS-level isolation",
@@ -195,6 +258,7 @@ def main(argv: list[str] | None = None) -> int:
     print(f"Isolated copy: {repo}")
     print(f"Pinned revision: {sha}")
     print(f"Python files statically scanned: {len(files)}; signals: {len(signals)}")
+    print(f"Static AST parse errors: {manifest['static_parse_errors']}")
     if not args.collect:
         (reports / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
         print("PREPARED ONLY: no Python test imports, no pytest collection, no test execution.")
