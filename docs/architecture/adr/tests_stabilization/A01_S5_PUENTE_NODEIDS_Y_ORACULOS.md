@@ -1,6 +1,6 @@
 # A01-S5 — Puente reproducible entre 1.474 nodeids y 35 fichas semánticas
 
-> **Estado:** MÉTODO VERSIONADO; **ejecución sobre los JSON locales del owner PENDIENTE**. NO es evidencia de que se haya completado el mapeo de nodeids. A01-S5 / A-01 / A-05 siguen abiertos.
+> **Estado:** MÉTODO VERSIONADO y **ejecutado por el owner**; la [partición 277/1.197 y el triaje inicial](A01_S5_RESULTADO_PUENTE_NODEIDS_2026-11-15.md) están registrados. **No** implica mapeo semántico individual ni tests ejecutados. A01-S5 / A-01 / A-05 siguen abiertos.
 >
 > **Fecha:** 2026-11-15. **SHA de colección fijado:** `86cd68672ee692f073b62869e7c9bd177e8d9e3b`. Fuente documental: [primera tanda TR-001…019](A01_S5_MATRIZ_SEMANTICA_RUTA_ACTIVA.md) y [segunda tanda TR-020…035](A01_S5_SEGUNDA_TANDA_CONTRATOS_Y_FRAGILIDADES.md). Fuente de nodos: `all.json` / `manifest.json` generados por la colección aislada en el ordenador del owner.
 >
