@@ -175,12 +175,91 @@ La lectura y presentación no modifica `tests/`. En PowerShell, las salidas tabu
 
 **Pendientes para completar A-01:** distribución de nodos por fichero y comparación con 1.341 declaraciones; identificación de módulos no seleccionados, tests legacy/ciencia vs ruta OCR/G3/G5, paths focales de CI, y lectura de advertencias/plugins en logs. Los reportes locales no necesitan publicarse enteros. **A-01 [ ]**, A-05 [ ].
 
+## 3.3 Conciliación ampliada por archivo y selección CI — 2026-11-15
+
+**Fuente:** salida JSON del analizador de sólo lectura `analyze_a01_collection.py` proporcionada por el owner, calculada sobre los reportes de colección SHA `86cd68672ee692f073b62869e7c9bd177e8d9e3b` y el código local. El análisis no ejecutó tests, no escribió archivos y no certifica calidad del pipeline.
+
+### Cierre de igualdad bidireccional por nodeid
+
+| Conjunto | Seleccionados | Únicos | `missing_expected` | `unexpected` | `duplicates` |
+|---|---:|---:|---:|---:|---:|
+| `all` | 1.474 | 1.474 | 0 | 0 | 0 |
+| `unit` | 225 | 225 | 0 | 0 | 0 |
+| `integration_nonregression` | 70 | 70 | 0 | 0 | 0 |
+| `technical` (`not e2e`) | 1.454 | 1.454 | 0 | 0 | 0 |
+
+**Confirmado:** cuatro selecciones correctas **en ambos sentidos**, sin IDs duplicados. Los **187 `parameter_id`** son ítems parametrizados; no equivalen por sí solos a 187 nuevos casos adicionales.
+
+### Cobertura de markers y consecuencia operacional
+
+- **1.159/1.474 nodos sin ninguno de los cinco markers de nivel** (`unit`, `integration`, `e2e`, `regression`, `smoke`). Representan aproximadamente **78,6 %** de los nodos. Se recolectan y, si no están marcados e2e, pueden entrar por la suite global del CI; **sin marker no equivale a «no se ejecuta»**.
+- **225** marcados `unit`, **70** `integration`, **20** `e2e`, **0** `regression`, **0** `smoke`, **1** `skipif`, sin `skip` o `xfail` declarados. El `skipif` de freeze de parámetros sigue siendo una condición, no un SKIP observado.
+- La marca `not e2e` **no excluye por sí misma los tests técnicos del tooling científico** que carecen de `e2e`; por tanto, el nombre «suite técnica» en el CI debe leerse como **selector**, no como garantía de exclusión total del ámbito científico. No cambiar el CI en A-01.
+
+### Módulos y divergencias de fuente
+
+| Medida | Resultado | Interpretación |
+|---|---:|---|
+| Archivos candidatos con `test_*.py` en tree (A-00) | 177 | Archivos fuente, no casos |
+| Archivos con al menos un nodo recolectado | **173** | Pendientes **4 módulos de los 177** de identificar por nombre y explicar |
+| Declaraciones estáticas identificadas | 1.341 | AST aproximado, incluye cuerpos anidados y otras definiciones |
+| Nodos de pytest reales | 1.474 | Parametrizaciones y selección dinámica; diferencia neta **+133** |
+| Archivos con diferencia nodo vs declaración | **24** | Requiere clasificar causa, no se presupone error |
+
+Los archivos con mayor divergencia *nodos menos declaraciones* son:
+
+| Módulo | Nodos | Declaraciones AST | Diferencia |
+|---|---:|---:|---:|
+| `test_g3_b3_structured_result_contract.py` | 33 | 12 | +21 |
+| `test_b024_explicit_math_spans.py` | 18 | 4 | +14 |
+| `test_w08_inference_identity_contract.py` | 21 | 8 | +13 |
+| `test_semantic_classification.py` | 17 | 7 | +10 |
+| `test_g3_b4_3a_engine_staging.py` | 25 | 18 | +7 |
+| `test_b025_math_visual.py` | 15 | 8 | +7 |
+| `test_b032_offline_pdf_lab.py` | 16 | 9 | +7 |
+| `test_provenance_identities.py` | 19 | 12 | +7 |
+
+**No diagnosticar estos +21, +14, etc. automáticamente como duplicación:** varios tests parametrizados generan más nodos que funciones. Se deben explicar diferencias **por función y archivo** antes de cerrar A01-S6; además, los cuatro archivos sin nodos requieren clasificación (script, test no coleccionable u otro caso).
+
+### Doce rutas focales de CI encontradas en workflow, con colección no vacía
+
+| Archivo incluido explícitamente en `.github/workflows/ci.yml` | Nodos recolectados |
+|---|---:|
+| `tests/integration/test_g3_b4_2_ocr_router_durable_plan.py` | 10 |
+| `tests/integration/test_g3_b4_3a_engine_staging.py` | 25 |
+| `tests/integration/test_g3_b4_3b_publication_recovery.py` | 21 |
+| `tests/integration/test_g3_b4_7b_sqlite_quota_thread_owner.py` | 3 |
+| `tests/integration/test_g3_b4_8_preserve_engine.py` | 3 |
+| `tests/integration/test_g3_b4_9_reconciler_fencing.py` | 14 |
+| `tests/integration/test_g5_assembler_worker_integration.py` | 3 |
+| `tests/integration/test_w06_g3_uncertain_effect_offline.py` | 7 |
+| `tests/integration/test_w08_durable_context_boundary.py` | 13 |
+| `tests/integration/test_w08_ocr_g3_context_wiring.py` | 6 |
+| `tests/unit/test_b031_g3_reusable_fake.py` | 17 |
+| `tests/unit/test_b032_offline_pdf_lab.py` | 16 |
+| **12/12 rutas, total de nodos** | **138** |
+
+**Alcance exacto:** los doce paths incluidos explícitamente en CI existen y todos aportaron nodos a la colección. Los **138** son el total por esos archivos, **no** ejecuciones exitosas ni una muestra disjunta respecto de los selectores `unit/integration/technical`, que pueden contener esos mismos casos. Verificación de ausencia de duplicaciones entre pasos de CI, condiciones del job y resultados **no realizada**.
+
+### Reportes y salud de colección
+
+Los cuatro logs `all/unit/integration_nonregression/technical` reportaron, según el analizador: **0 líneas `ERROR collecting`**, **0 secciones `warnings summary`** y **0 menciones `PytestCollectionWarning`**. El resultado no excluye cualquier otro tipo de advertencia, efectos de imports, red o archivos ignorados; es un chequeo textual acotado.
+
+### Pendientes para cerrar la auditoría
+
+- [x] Unicidad de nodeids; igualdad bidireccional de los cuatro selectores y conteos por marker.
+- [x] Conteo de ítems parametrizados, nodos sin marker de nivel y distribución numérica por archivo.
+- [x] Verificación de **12/12** rutas focales CI con nodos recolectados; revisión automatizada de las tres señales de advertencias/errores en cuatro logs.
+- [ ] Identificar y clasificar los **4 módulos** con 0 nodos; explicar las **24 diferencias** de nodos versus declaración, prioritariamente las de la ruta PDF→PDF.
+- [ ] Verificar impacto de imports en archivos ignorados o fuera del clon y revisar riesgos transitivos de plugins/host (A-05).
+- [ ] Completar para cada caso relevante SUT, mocks, efectos externos, contrato observable y clasificación (A-02/A-04). **A-01 permanece [ ]** hasta trazabilidad definida en el plan.
+
 ## 4. Gate y siguiente acción
 
 - [x] **A01-COLL-01 — Colección real ejecutada** en clon independiente, SHA y cuatro exit codes 0 con conteos explícitos.
-- [ ] **A01-COLL-02 — Conciliación JSON (PARCIAL).** Ver §§3.1-3.2: nodeids únicos, 187 parametrizados, distribución de markers y coherencia de selectores **confirmados**. **Faltan distribución por archivo, nodos sin marker de nivel, diferencias con declaraciones y paths CI**, para los cuales se añadió un analizador de solo lectura.
-- [ ] **A01-COLL-03 — Trazar todos los selectores focales del CI** y los SKIP/XFAIL declarados.
-- [ ] **A01-COLL-04 — Integridad post-colección (PARCIAL).** Ambos `git status --short` fueron observados: solo PDF `D` deliberado en el original, clon sin cambios Git visibles. Faltan posibles archivos ignorados, efectos fuera de Git y logs/advertencias.
+- [x] **A01-COLL-02 — Conciliación de colecciones y markers.** Ver §3.3: unicidad, 4 conjuntos con diferencias bidireccionales cero, 187 parametrizados, 1.159 sin marcador de nivel, 173 módulos con nodos y 24 diferencias AST registradas. La **explicación individual de las diferencias** se mantiene como tarea separada A01-S6.
+- [x] **A01-COLL-03 — Selección focal CI y marcadores declarados.** Ver §3.3: 12/12 archivos focales de CI con 138 nodos; markers `skip=0`, `skipif=1` (freeze de parámetros), `xfail=0`. No equivale a ejecución ni a PASS.
+- [ ] **A01-COLL-04 — Integridad post-colección (PARCIAL).** Ambos `git status --short` observados: solo PDF `D` deliberado en original, clon sin cambios Git visibles. Los cuatro logs no presentan las tres señales textuales auditadas. **Faltan archivos ignorados y efectos externos/imports/plugins**; no equivale a aislamiento OS.
 - [ ] **A01-COLL-05 — Fichas SUT/contratos en los casos pertinentes**, sin presuponer oráculo independiente.
 - [ ] **A-01 cerrado**: requiere conciliación y fichas conforme al plan maestro.
 - [ ] **A-05 cerrado**: requiere revisión de seguridad de import/colección y resultados, no sólo conteos.
