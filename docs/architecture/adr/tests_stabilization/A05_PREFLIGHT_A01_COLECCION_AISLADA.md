@@ -218,6 +218,24 @@ Se actualizó [`collect_a01_isolated.py`](collect_a01_isolated.py) para:
 
 **Evidencia de conciliación:** [Informe A-01 de colección](A01_COLECCION_PYTEST_2026-11-15.md). Falta leer `all.json`, `unit.json`, `integration_nonregression.json`, `technical.json` y los logs; sin ello no se pueden calcular duplicados, SKIP/XFAIL declarados, parametrizaciones, ni concluir la selección precisa por caso. La prueba A05-P5 queda **parcialmente ejecutada**, pero **abierta** hasta la revisión de estos registros; A05-P6 permanece abierta hasta comprobar los efectos post-colección y el estado del working tree.
 
+## 4.8 Verificación de nodos, markers y estado Git post-colección (2026-11-15)
+
+**Procedencia:** tres salidas de PowerShell del owner, leyendo los `*.json` locales de `translator-a01-isolated-k4f4mf10/reports` y ejecutando `git status --short` sobre el repositorio habitual y el clon temporal. Se conserva SHA de colección `86cd68672ee692f073b62869e7c9bd177e8d9e3b`.
+
+| Control | Evidencia observada | Alcance verificado |
+|---|---|---|
+| Unicidad | **1.474/1.474 nodeids únicos** | Sin duplicados de ID en `all.json` |
+| Parametrizaciones | **187 nodos con `parameter_id`** | Ítems parametrizados; no equivale a expansión neta de declaraciones |
+| Markers | `unit=225`, `integration=70`, `e2e=20`, `regression=0`, `smoke=0`, `skip=0`, `skipif=1`, `xfail=0` | Marcadores en la colección, **no** resultados de ejecución |
+| Coincidencia cuantitativa | `all=1474`, `unit=225`, `integration_nonregression=70`, `technical=1454` | Las cantidades coinciden con las marcas, falta verificar **identidad de conjuntos por nodeid** |
+| `git status --short` del owner | Sólo `D translated_c17cb80d10105b3497b142d04fa19078c4573ae0bade70cabc87dba80314aa19.pdf` | Eliminación deliberada preexistente, sin cambios visibles nuevos |
+| `git status --short` del clon | **Salida vacía** | Sin cambios Git visibles en el clon después de importar módulos |
+| Tests ejecutados | **Ninguno** | `pytest --collect-only` importa módulos pero no ejecuta tests |
+
+**Conclusión de seguridad limitada:** el working tree habitual preservó la eliminación deliberada del PDF y el clon no muestra cambios versionados/no ignorados. **No demuestra ausencia de archivos ignorados, actividad externa, efectos fuera de Git ni bloqueo de red a nivel OS**. Los tests no han sido ejecutados; el único `skipif` debe inspeccionarse por condición, no contarse como SKIP real.
+
+Para completar A05-P6, comparar inventario de archivos bajo `tests/fixtures`/`infra/db` (incluidos ignorados) y revisar logs de colección para detectar side effects/import errors; no usar una limpieza destructiva. Reutilizar [el registro A-01 de conciliación](A01_COLECCION_PYTEST_2026-11-15.md).
+
 ## 5. Gates y seguimiento
 
 - [x] **A05-P1:** riesgos IO-01…IO-06 vinculados al código de A-00 y restricciones de seguridad documentadas.
@@ -225,7 +243,7 @@ Se actualizó [`collect_a01_isolated.py`](collect_a01_isolated.py) para:
 - [x] **A05-P3:** prueba funcional en un repositorio **sintético** del programa de recopilación, con resultados de markers/parametrize.
 - [ ] **A05-P4:** preflight del conjunto real de imports/decoradores/plugins y rutas absolutas, preferiblemente en host con aislamiento OS.
 - [ ] **A05-P5:** **colección real ejecutada** en clon, 1.474/225/70/1.454 nodos con exit 0; **conciliación pendiente** de `nodeid/markers/parametrizaciones` contra A-01. [Evidencia](A01_COLECCION_PYTEST_2026-11-15.md).
-- [ ] **A05-P6:** demostrar integridad de working tree del owner y registrar divergencias/efectos indirectos de colección.
+- [ ] **A05-P6 — PARCIAL:** ambos `git status --short` comprobados: **solo PDF eliminado deliberadamente** en repo habitual y **salida vacía en el clon**. Falta revisar cambios ignorados, logs, efectos indirectos/no rastreados a nivel OS y evidencias del host.
 - [ ] **A-05 completo:** pendiente revisión de seguridad de **todos** los tests pertinentes, no sólo un prototipo.
 - [ ] **A-01 completo:** pendiente selección real CI, SUT por caso y conciliación dinámica.
 
