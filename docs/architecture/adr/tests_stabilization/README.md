@@ -1,6 +1,6 @@
 # Tests Stabilization — Guía de entrada
 
-**Estado:** EN EJECUCIÓN. **A-00 completado por inventario estático**; A-01…A-07, B y C pendientes. **Sin remediaciones de código ni pruebas dinámicas ejecutadas por esta campaña**.
+**Estado:** EN EJECUCIÓN. **A-00 completado**, **A-01 parcialmente documentado, todavía abierto**, A-02…A-07/B/C pendientes. **Sin remediaciones de código ni pruebas dinámicas ejecutadas por esta campaña**.
 
 **Rama de trabajo:** `tests_stabilization` (desde `main` @ `83ef0257f795f0d973f9393cc225e7af5b956ade`).
 
@@ -18,6 +18,7 @@ Leer el **[Plan de estabilización y remediación de los tests PDF→PDF](PLAN_R
 ## Evidencia de avance
 
 - **[A-00 — Línea base, inventario y riesgos](A00_BASELINE_INVENTARIO_Y_RIESGOS.md)** — completado por lectura de código y árbol Git: 177 módulos `test_*.py` en 188 archivos Python bajo `tests/`, selección CI y superficies peligrosas de I/O. No contiene resultados de ejecución de pytest; **no acredita cobertura ni capacidad falsadora**.
+- **[A-01 — Índice consolidado, 16 anexos](A01_INVENTARIO_CONSOLIDADO_Y_GATES.md)** — **EN CURSO**: lectura de 177 módulos y 1.341 declaraciones estáticas de funciones `test_*` con ubicación, señales de I/O/mocks y marcadores aproximados. **No** son 1.341 casos recolectados; faltan selección real, parametrizaciones expandidas y clasificación por SUT. Por seguridad, colección sólo después del preflight A-05.
 - **[Plan maestro y casillas](PLAN_REMEDIACION_TESTS_PIPELINE.md#6-hoja-de-ruta-ejecutable-checkboxes-de-progreso)** — A-00 marcado `[x]`, etapas restantes pendientes.
 
 ## Primeros pasos
