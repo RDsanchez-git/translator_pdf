@@ -1,6 +1,6 @@
 # Tests Stabilization — Guía de entrada
 
-**Estado:** DRAFT / PLANIFICADO. Programa documental de calidad de tests técnicos; **sin remediaciones ejecutadas** aún.
+**Estado:** EN EJECUCIÓN. **A-00 completado por inventario estático**; A-01…A-07, B y C pendientes. **Sin remediaciones de código ni pruebas dinámicas ejecutadas por esta campaña**.
 
 **Rama de trabajo:** `tests_stabilization` (desde `main` @ `83ef0257f795f0d973f9393cc225e7af5b956ade`).
 
@@ -14,6 +14,11 @@ Leer el **[Plan de estabilización y remediación de los tests PDF→PDF](PLAN_R
 3. **C — Controles negativos y sensibilidad:** demostrar que los tests **fallan ante una violación controlada**.
 
 **Diferidos hasta después del refinamiento del pipeline:** consolidación/ejecución integral de la ruta PDF→PDF (**D-4**) y evaluación científica, corpus canónico/GT, re-baseline y CV (**D-5**). Se documentan, pero **no forman parte del trabajo activo**.
+
+## Evidencia de avance
+
+- **[A-00 — Línea base, inventario y riesgos](A00_BASELINE_INVENTARIO_Y_RIESGOS.md)** — completado por lectura de código y árbol Git: 177 módulos `test_*.py` en 188 archivos Python bajo `tests/`, selección CI y superficies peligrosas de I/O. No contiene resultados de ejecución de pytest; **no acredita cobertura ni capacidad falsadora**.
+- **[Plan maestro y casillas](PLAN_REMEDIACION_TESTS_PIPELINE.md#6-hoja-de-ruta-ejecutable-checkboxes-de-progreso)** — A-00 marcado `[x]`, etapas restantes pendientes.
 
 ## Primeros pasos
 
