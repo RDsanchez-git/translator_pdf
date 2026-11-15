@@ -19,7 +19,8 @@ Leer el **[Plan de estabilización y remediación de los tests PDF→PDF](PLAN_R
 
 - **[A-00 — Línea base, inventario y riesgos](A00_BASELINE_INVENTARIO_Y_RIESGOS.md)** — completado por lectura de código y árbol Git: 177 módulos `test_*.py` en 188 archivos Python bajo `tests/`, selección CI y superficies peligrosas de I/O. No contiene resultados de ejecución de pytest; **no acredita cobertura ni capacidad falsadora**.
 - **[A-01 — Índice consolidado, 16 anexos](A01_INVENTARIO_CONSOLIDADO_Y_GATES.md)** — **EN CURSO**: 177 módulos y 1.341 declaraciones estáticas; falta colección real y SUT por caso.
-- **[A-05 — Preflight de colección en clon separado](A05_PREFLIGHT_A01_COLECCION_AISLADA.md)** y [ejecutor opt-in](collect_a01_isolated.py) — **PREPARADO, NO CERRADO**. El script se probó con un repositorio sintético; `--collect` aún no se ejecutó en `translator_pdf`. Preparar solamente no ejecuta imports ni tests. El clon **no** es una sandbox de seguridad del sistema operativo.
+- **[A-05 — Colección real en clon separado](A05_PREFLIGHT_A01_COLECCION_AISLADA.md)** y [ejecutor opt-in](collect_a01_isolated.py) — **EN CURSO**: el owner ya recolectó pytest sobre el SHA `86cd6867`, con cuatro exit codes 0 y sin ejecutar cuerpos de tests. El clon **no** es una sandbox de seguridad del sistema operativo; faltan revisar logs y efectos de importación.
+- **[Evidencia de colección A-01](A01_COLECCION_PYTEST_2026-11-15.md)** — **1.474** nodos `all`, **225** `unit`, **70** `integration_nonregression`, **1.454** `not e2e`. Falta conciliar JSON/markers/parametrizaciones y selección focal de CI; no es un PASS de tests.
 - **[Plan maestro y casillas](PLAN_REMEDIACION_TESTS_PIPELINE.md#6-hoja-de-ruta-ejecutable-checkboxes-de-progreso)** — A-00 marcado `[x]`, etapas restantes pendientes.
 
 ## Primeros pasos
