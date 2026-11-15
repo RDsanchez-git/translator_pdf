@@ -1,0 +1,41 @@
+# Tests Stabilization — Guía de entrada
+
+**Estado:** DRAFT / PLANIFICADO. Programa documental de calidad de tests técnicos; **sin remediaciones ejecutadas** aún.
+
+**Rama de trabajo:** `tests_stabilization` (desde `main` @ `83ef0257f795f0d973f9393cc225e7af5b956ade`).
+
+## Empezar aquí
+
+Leer el **[Plan de estabilización y remediación de los tests PDF→PDF](PLAN_REMEDIACION_TESTS_PIPELINE.md)**: es el documento rector operativo de esta carpeta. Sus tareas se registran con casillas y evidencias (SHA, PR, test y mutación).
+
+**Secuencia autorizada:**
+1. **A — Auditoría semántica de tests:** contratos, SUT real, mocks, oráculos y cobertura efectiva de CI.
+2. **B — Remediación de falsas garantías:** eliminar tautologías y aprobaciones automáticas, y corregir pruebas que dicen cubrir más de lo que ejercitan.
+3. **C — Controles negativos y sensibilidad:** demostrar que los tests **fallan ante una violación controlada**.
+
+**Diferidos hasta después del refinamiento del pipeline:** consolidación/ejecución integral de la ruta PDF→PDF (**D-4**) y evaluación científica, corpus canónico/GT, re-baseline y CV (**D-5**). Se documentan, pero **no forman parte del trabajo activo**.
+
+## Primeros pasos
+
+1. Revisar §3.2 del plan: inventario semilla `TS-001` a `TS-007`. Son hallazgos/inventario inicial, **no una auditoría exhaustiva**.
+2. Ejecutar con seguridad **A-00 a A-07** y completar las fichas `TR-###` por caso de prueba.
+3. Presentar al owner la matriz de brechas priorizada antes de implementar B.
+4. Aportar evidence de las mutaciones negativas en C. No marcar casillas por tener CI o Pyright verde solamente.
+
+## Reglas que no deben romperse
+
+- **Contract first:** que los tests resistan refactors internos **sin** relajar invariantes funcionales.
+- **Oráculos independientes:** ninguna comparación del resultado consigo mismo, ni autocreación de esperados en pytest.
+- **Mocks en fronteras:** si se simula el SUT, no afirmar que se comprobó el SUT.
+- **Sin efectos peligrosos:** tests aislados; no escribir ni editar corpus científico, fixtures históricas o PDFs locales del owner.
+- **Sin cambios de runtime/CI ni merge automático:** el actual check requerido de GitHub y el CV científico informativo siguen igual.
+- **Sin afirmaciones científicas:** tipado correcto, tests técnicos verdes y experimentos con fake no son certificación STEM.
+
+## Referencias
+
+- [Atlas de la ruta única](../pipeline-stabilization/handoff/ATLAS_RUTA_OPERATIVA_UNICA_PDF_PDF.md).
+- [HITO 0.4.4 — regresión y tests](../phase-17-bis/00-foundation/HITO_0.4.4_REGRESSION_ARCHITECTURE_AUDIT.md).
+- [HITO 4.4 — prerequisitos de tests](../phase-17-bis/00-foundation/HITO_4.4_TESTING_PREREQUISITES_DISCOVERY.md).
+- [Hallazgos diferidos de Fase 17-BIS](../phase-17-bis/reports/FASE_17BIS_DEFERRED_FINDINGS_CONSOLIDATED.md).
+
+**Punto de apertura:** sin tareas A/B/C completadas. La aprobación y la ejecución quedan sujetas a revisión del owner, evidencias por SHA y actualizaciones trazadas al plan.
