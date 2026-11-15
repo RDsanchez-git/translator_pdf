@@ -18,7 +18,8 @@ Leer el **[Plan de estabilización y remediación de los tests PDF→PDF](PLAN_R
 ## Evidencia de avance
 
 - **[A-00 — Línea base, inventario y riesgos](A00_BASELINE_INVENTARIO_Y_RIESGOS.md)** — completado por lectura de código y árbol Git: 177 módulos `test_*.py` en 188 archivos Python bajo `tests/`, selección CI y superficies peligrosas de I/O. No contiene resultados de ejecución de pytest; **no acredita cobertura ni capacidad falsadora**.
-- **[A-01 — Índice consolidado, 16 anexos](A01_INVENTARIO_CONSOLIDADO_Y_GATES.md)** — **EN CURSO**: lectura de 177 módulos y 1.341 declaraciones estáticas de funciones `test_*` con ubicación, señales de I/O/mocks y marcadores aproximados. **No** son 1.341 casos recolectados; faltan selección real, parametrizaciones expandidas y clasificación por SUT. Por seguridad, colección sólo después del preflight A-05.
+- **[A-01 — Índice consolidado, 16 anexos](A01_INVENTARIO_CONSOLIDADO_Y_GATES.md)** — **EN CURSO**: 177 módulos y 1.341 declaraciones estáticas; falta colección real y SUT por caso.
+- **[A-05 — Preflight de colección en clon separado](A05_PREFLIGHT_A01_COLECCION_AISLADA.md)** y [ejecutor opt-in](collect_a01_isolated.py) — **PREPARADO, NO CERRADO**. El script se probó con un repositorio sintético; `--collect` aún no se ejecutó en `translator_pdf`. Preparar solamente no ejecuta imports ni tests. El clon **no** es una sandbox de seguridad del sistema operativo.
 - **[Plan maestro y casillas](PLAN_REMEDIACION_TESTS_PIPELINE.md#6-hoja-de-ruta-ejecutable-checkboxes-de-progreso)** — A-00 marcado `[x]`, etapas restantes pendientes.
 
 ## Primeros pasos
