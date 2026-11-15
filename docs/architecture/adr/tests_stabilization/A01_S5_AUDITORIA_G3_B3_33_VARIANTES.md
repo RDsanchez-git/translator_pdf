@@ -105,8 +105,19 @@ Las etiquetas `B3-01…33` son **IDs de auditoría**, no sustituyen los nodeids 
 - [x] **S5-G3-01:** inspección de **12 funciones y 33 entradas de fuente**; clasificación por contrato, input, oráculo, SUT y falsador, con 33 filas.
 - [x] **S5-G3-02:** validación por lectura de las ramas correspondientes en `core/chunking/result_contract.py` y del papel asumido de `ChunkPlan.build`.
 - [x] **S5-G3-03:** documentada la independencia **parcial** del expected, el riesgo de `p.units` exactos y la distinción del doble control de miembros duplicados.
-- [ ] **S5-G3-04:** correspondencia con **33 nodeids exactos** del `all.json` del owner, incluyendo sufijos de parametrización; ningún nodeid acreditado dinámicamente aún.
+- [ ] **S5-G3-04:** correspondencia con **33 nodeids exactos** del `all.json` del owner, incluyendo sufijos de parametrización. Se añadió [verificador de solo lectura](verify_a01_s5_g3_b3_nodeids.py) que comprueba SHA, 12 funciones, 10 simples, 17+6 parametrizados y unicidad. **Ejecución local pendiente; no hay acreditación dinámica**.
 - [ ] **S5-G3-05:** ensayos focales negativos y sensibilidad ante mutación, posteriores a A-05/etapa C.
 - [ ] **A01-S5 / A-01 / A-03:** **ABIERTOS**. No convertir revisión estática en PASSED.
 
 **Siguiente acción:** usar el JSON de colección existente para asignar **identidad real** a los 33 casos, sin ejecutar pytest; luego trazar los controles normativos más importantes a un puerto de producción estable antes de diseñar B/C.
+
+## 6. Comprobación reproducible de identidad de los 33 nodeids (PENDIENTE)
+
+Después de actualizar `tests_stabilization`, el owner puede ejecutar este comando de **solo lectura** sobre la colección ya existente, sin pytest y sin creación de outputs:
+
+```powershell
+$reports = Join-Path $env:TEMP "translator-a01-isolated-k4f4mf10\reports"
+.\venv\Scripts\python.exe .\docs\architecture\adr\tests_stabilization\verify_a01_s5_g3_b3_nodeids.py --repo-root . --reports $reports
+```
+
+**Antes de cerrar S5-G3-04:** verificar que la salida contenga exactamente 33 nodeids únicos (10 simples, 17 miembros mutados y 6 JSON inválidos), SHA de colección fijado y nombres de función esperados. **No inferir índices de parametrización a partir de sufijos:** los IDs son los emitidos por pytest en `all.json`. La salida no prueba PASSED ni independencia/mutation kill.
