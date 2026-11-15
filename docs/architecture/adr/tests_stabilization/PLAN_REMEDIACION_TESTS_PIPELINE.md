@@ -225,7 +225,7 @@ Cada cambio de estado debe tener una referencia (PR, commit, informe local o res
 ### Etapa A — Auditoría semántica de tests (**PRIMERA**, sólo diagnóstico salvo mitigación urgente)
 
 - [x] **A-00 — Congelar sujeto auditado.** Baseline y HEAD de observación, censo completo de **177 módulos candidatos** en **188 archivos Python de `tests/`**, workflows/selección CI, fixtures, outputs versionados y riesgos de escritura, con separación explícita de R1/R3/benchmarks frente a OCR/G3/G5. **Evidencia:** [A00_BASELINE_INVENTARIO_Y_RIESGOS.md](A00_BASELINE_INVENTARIO_Y_RIESGOS.md); **sólo auditoría estática**, no Pytest/collect-only ni validación semántica.
-- [ ] **A-01 — Construir inventario completo de pruebas pertinentes.** Enumerar test cases y parametrizaciones, markers, selección real de CI, skipped/xfail, helpers, efectos sobre archivos, uso de red/LLM y SUT. No confundir “188 archivos Pyright” con “188 tests”.
+- [ ] **A-01 — Construir inventario completo de pruebas pertinentes (EN CURSO).** Censo estático **177/177 módulos** y **1.341 declaraciones `def test_*`** registrado en [A01_INVENTARIO_CONSOLIDADO_Y_GATES.md](A01_INVENTARIO_CONSOLIDADO_Y_GATES.md) y sus 16 anexos; estas declaraciones **no equivalen a casos coleccionados**. Faltan parametrizaciones expandidas, markers efectivos, selección real de CI, skipped/xfail y SUT por caso; requieren aislamiento A-05 antes de collection A-06. **Mantener [ ] hasta completar esa evidencia.**
 - [ ] **A-02 — Trazar contratos a tests.** Para cada frontera del `2.4`, registrar cobertura positiva, negativa, evidencia independiente y huecos. Referenciar Atlas, contratos/normas aplicables y consumidor de puerto.
 - [ ] **A-03 — Evaluar independencia de oráculos y mocks.** Inspeccionar `patch`/`monkeypatch`, expected dinámicos, snapshots, assertions débiles, `skip`, `xfail`, escrituras a fixtures, infraestructura real vs fake.
 - [ ] **A-04 — Completar fichas `TR-###` y clasificaciones.** Etiquetar cada test pertinente; registrar `UNKNOWN` donde no se haya podido comprobar comportamiento. No proyectar hallazgos históricos automáticamente sobre código nuevo.
@@ -415,6 +415,7 @@ Una nueva línea de avance en este plan **no** sustituye las evidencias identifi
 |---|---|---|---|---|
 | 2026-11-15 | Apertura de plan, **sin cierre de tareas** | TST-STAB | rama `tests_stabilization`, base `83ef0257` | Inventario semilla estático; revisión/ejecución futura pendiente |
 | 2026-11-15 | **A-00 cerrado — censo y riesgos por inspección estática** | A-00 | [Inventario A-00](A00_BASELINE_INVENTARIO_Y_RIESGOS.md); base `83ef0257`, tree `9495259`, versión Markdown normalizada en `b97430d` | 188 archivos Python, 177 módulos candidatos, selección de CI y rutas R1/R3 contrastadas, fixtures y escrituras potencialmente destructivas registradas; **sin ejecutar tests, sin cerrar A-01…A-07** |
+| 2026-11-15 | **A-01 en curso — censo completo de fuentes, no collection dinámica** | A-01 | [Índice A-01](A01_INVENTARIO_CONSOLIDADO_Y_GATES.md), 16 registros; baseline `83ef0257` | 177 módulos inspeccionados, 1.341 declaraciones estáticas; selección dinámica, markers efectivos, SUT, I/O indirectos y resultados de pytest **pendientes**. Check **[ ]** mantenido por DoD. |
 
 ---
 
