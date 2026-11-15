@@ -244,13 +244,23 @@ Un solo caso declara `skipif`: `tests/integration/test_parameter_freeze.py::test
 
 Se incorporó el analizador **de solo lectura** [`analyze_a01_collection.py`](analyze_a01_collection.py), que compara selecciones en ambas direcciones y resume distribución de nodos por archivos, marcadores, parametrizaciones, paths focales CI y menciones de advertencias en logs. **No ejecuta pytest ni crea archivos.** El gate A05-P5 sigue parcialmente abierto hasta revisar esos resultados y los efectos de imports.
 
+## 4.10 Conciliación integral de selectores y registros de colección (2026-11-15)
+
+**Evidencia nueva del owner:** salida de [`analyze_a01_collection.py`](analyze_a01_collection.py) sobre los JSON de SHA `86cd68672ee692f073b62869e7c9bd177e8d9e3b`: **1.474 nodeids únicos**, **187 ítems parametrizados**, **1.159 sin marker de nivel**, **173 archivos con nodos**, cuatro selectores **sin faltantes, inesperados ni duplicados**, y **12/12 paths focales CI con 138 nodos**. El único `skipif` corresponde al freeze histórico, cuya referencia está versionada.
+
+**Logs:** en los cuatro archivos de stdout/stderr no se detectaron las tres señales textuales que el analizador busca: líneas `ERROR collecting`, cabeceras `warnings summary` y menciones `PytestCollectionWarning`. Esto **no equivale a lectura manual de todas las advertencias ni a ausencia de efectos de importación**.
+
+**Veredicto del control A05-P5:** colección real + conciliación de selecciones **completada** y documentada, sin ejecutar cuerpos de tests. **NO cierra A-05 completo**: A05-P4 exige revisar seguridad de imports/plugins/rutas absolutas y A05-P6 conserva la verificación pendiente de archivos ignorados/efectos externos. `git status --short` del clon fue vacío; es evidencia Git, **no sandbox del sistema operativo**.
+
+Para distribución por archivo y divergencias restantes del inventario, véase [A-01, §3.3](A01_COLECCION_PYTEST_2026-11-15.md): cuatro módulos candidatos sin nodeids y 24 archivos con diferencias fuente/nodos deben investigarse antes de cerrar A-01.
+
 ## 5. Gates y seguimiento
 
 - [x] **A05-P1:** riesgos IO-01…IO-06 vinculados al código de A-00 y restricciones de seguridad documentadas.
 - [x] **A05-P2:** script prepare-only y collect opt-in creado, con chequeo SHA, clon sin remoto, entorno depurado, logs externos y sin limpieza automática.
 - [x] **A05-P3:** prueba funcional en un repositorio **sintético** del programa de recopilación, con resultados de markers/parametrize.
 - [ ] **A05-P4:** preflight del conjunto real de imports/decoradores/plugins y rutas absolutas, preferiblemente en host con aislamiento OS.
-- [ ] **A05-P5:** **colección real ejecutada** en clon, 1.474/225/70/1.454 nodos con exit 0; **conciliación pendiente** de `nodeid/markers/parametrizaciones` contra A-01. [Evidencia](A01_COLECCION_PYTEST_2026-11-15.md).
+- [x] **A05-P5 — colección y conciliación de selectores completas:** exit 0 × 4; 1.474/225/70/1.454 nodeids, 0 diferencias bidireccionales, 187 parametrizados, 1.159 sin marker de nivel y 12/12 paths CI con nodos. [Evidencia A-01](A01_COLECCION_PYTEST_2026-11-15.md). **No implica tests PASS ni cierra revisión de side effects**.
 - [ ] **A05-P6 — PARCIAL:** ambos `git status --short` comprobados: **solo PDF eliminado deliberadamente** en repo habitual y **salida vacía en el clon**. Falta revisar cambios ignorados, logs, efectos indirectos/no rastreados a nivel OS y evidencias del host.
 - [ ] **A-05 completo:** pendiente revisión de seguridad de **todos** los tests pertinentes, no sólo un prototipo.
 - [ ] **A-01 completo:** pendiente selección real CI, SUT por caso y conciliación dinámica.
