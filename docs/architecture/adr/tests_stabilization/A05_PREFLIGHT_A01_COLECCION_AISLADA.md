@@ -186,7 +186,22 @@ Se actualizó [`collect_a01_isolated.py`](collect_a01_isolated.py) para:
 
 **Conftest comprobado:** único `conftest.py` versionado en `tests/` detectado en el tree: `tests/smoke/conftest.py`. Importa validadores y define `@pytest.fixture` `reliability_pipeline`; las instanciaciones de validadores ocurren dentro de la función fixture, no al definirla. Los módulos importados pueden poseer efectos secundarios y el descubrimiento automático de plugins también exige precaución.
 
-**Próximo control sin pytest:** identificar las **4 llamadas `connect` genéricas** usando exclusivamente el JSON del reporte actual; ver si alguna ocurre en import/definición o fuera de `tmp_path`/SQLite temporal. **No inferir seguridad general** del proyecto desde el conteo de un nombre. La tarea A05-P4 sigue `[ ]` y A05-P5/A01 siguen pendientes.
+**Control de las 4 llamadas `connect` genéricas: RESUELTO por lectura del SUT de test.** Remitirse a §4.6. Permanecen pendientes los riesgos transitivos de importación, dependencias, plugins y el resultado dinámico de la colección. A05-P4/P5 y A-01 siguen `[ ]`.
+
+## 4.6 Resolución de las cuatro llamadas `connect` sin calificar (2026-11-15)
+
+**Evidencia aportada por el owner:** cuatro filas del scanner v2 (`q7774rif`) en un único archivo, `tests/integration/test_g5_assembler_lease_recovery.py`: línea **56** (`function:sandbox`), **106** (`function:test_claim_double_owner_and_monotonic_versions`), **122** (`function:test_alive_heartbeat_blocks_recovery_even_with_old_fsm_updated_at`) y **235** (`function:test_concurrent_claim_only_one_worker_is_admitted.function:run`). Todas se marcaron `phase_hint=function_body`.
+
+**Revisión directa del archivo versionado:** su fixture `sandbox(tmp_path)` crea `fsm = tmp_path / 'fsm.db'` y `queue = tmp_path / 'queue.db'` (líneas 12-16). Define en líneas 50–54 la función local `connect()`, que usa `sqlite3.connect(queue, timeout=2)`, `PRAGMA busy_timeout` y `ATTACH DATABASE ...` apuntando a `fsm`; después retorna esa conexión. La línea 56 la invoca dentro del cuerpo de la fixture, la línea 106/122 en cuerpos de tests y la línea 235 dentro de la función `run` invocada por hilos **durante el test**, no en la importación del módulo.
+
+**Veredicto de esta señal:** **4/4 resueltas — acceso SQLite de laboratorio, rutas temporales**. Sumadas a las **97** llamadas `sqlite3.connect` explícitas, las **101** llamadas `connect` del scanner v2 quedan identificadas como SQLite **en el corpus de señales inspeccionado**, no como socket/HTTP. Esto **no** garantiza ausencia de otras vías de red en imports, plugins o módulos productivos, ni acredita la ejecución de tests.
+
+**Revisión de efectos al importar:**
+- El bootstrap `tests/helpers/bootstrap_translation_golden.py:63-64` conserva `asyncio.run` bajo `if __name__ == '__main__'`: no se ejecuta en importación normal, pero el script no debe iniciarse directamente.
+- El único `conftest.py` versionado bajo `tests/` es `tests/smoke/conftest.py`; define una fixture, sin creación directa de sus validadores hasta ser invocada. Esto no prueba que las dependencias importadas o los plugins no tengan side effects.
+- Los tests de G5 revisados hacen la inicialización SQLite en una fixture bajo `tmp_path`; su test de concurrencia crea hilos **solo cuando pytest ejecuta ese test**, no en `--collect-only`.
+
+**Decisión operacional:** ya no hay un bloqueo por `connect` genérico ni por un `asyncio.run` sin contexto. Se puede **considerar un intento controlado de `--collect-only`** en un nuevo clon independiente, con entorno de imports restringido y logs fuera de la copia de trabajo, reconociendo que el clon y el guard Python no son sandbox OS. Un host/contenedor con aislamiento de filesystem y red es preferible; **no** ejecutar ningún cuerpo de test ni mezclar resultados con pruebas de regresión. **A05-P4/P5/P6 se mantienen [ ]** hasta que la colección real y su revisión sean documentadas.
 
 ## 5. Gates y seguimiento
 
