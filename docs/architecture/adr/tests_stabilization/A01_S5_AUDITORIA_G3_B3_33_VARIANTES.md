@@ -1,6 +1,6 @@
 # A01-S5 — Auditoría estática de 33 variantes de respuestas estructuradas G3-B3
 
-> **Estado:** **REVISIÓN DE 33 VARIANTES DE FUENTE DOCUMENTADA** (12 funciones: 10 no parametrizadas + 17 mutaciones de miembros + 6 rechazos de JSON). **No** son 33 nodeids acreditados en ejecución. **Sufijos e identidades exactas del `all.json` del owner aún por confirmar** mediante el analizador de solo lectura asociado. A01-S5, A-01, A-03 y A-05 continúan abiertos.
+> **Estado:** **REVISIÓN ESTÁTICA + CORRESPONDENCIA DE 33 NODEIDS VERIFICADAS** (12 funciones: 10 no parametrizadas + 17 mutaciones de miembros + 6 rechazos de JSON). Salida de verificador de solo lectura aportada por el owner. **No** son 33 tests ejecutados ni acreditados dinámicamente. A01-S5, A-01, A-03 y A-05 continúan abiertos.
 >
 > **Origen:** lectura directa sobre commit de colección `86cd68672ee692f073b62869e7c9bd177e8d9e3b` de [`tests/integration/test_g3_b3_structured_result_contract.py`](../../../../tests/integration/test_g3_b3_structured_result_contract.py), [`core/chunking/result_contract.py`](../../../../core/chunking/result_contract.py) y [`core/chunking/manifest_contract.py`](../../../../core/chunking/manifest_contract.py). `test_g3_b3_structured_result_contract.py` da **33 nodos** en la colección previa, confirmados por el owner; la relación **por orden de lista de parámetros con sufijos exactos** requiere aún verificación local.
 >
@@ -105,13 +105,13 @@ Las etiquetas `B3-01…33` son **IDs de auditoría**, no sustituyen los nodeids 
 - [x] **S5-G3-01:** inspección de **12 funciones y 33 entradas de fuente**; clasificación por contrato, input, oráculo, SUT y falsador, con 33 filas.
 - [x] **S5-G3-02:** validación por lectura de las ramas correspondientes en `core/chunking/result_contract.py` y del papel asumido de `ChunkPlan.build`.
 - [x] **S5-G3-03:** documentada la independencia **parcial** del expected, el riesgo de `p.units` exactos y la distinción del doble control de miembros duplicados.
-- [ ] **S5-G3-04:** correspondencia con **33 nodeids exactos** del `all.json` del owner, incluyendo sufijos de parametrización. Se añadió [verificador de solo lectura](verify_a01_s5_g3_b3_nodeids.py) que comprueba SHA, 12 funciones, 10 simples, 17+6 parametrizados y unicidad. **Ejecución local pendiente; no hay acreditación dinámica**.
+- [x] **S5-G3-04 — Identidad de nodeids VERIFICADA**: salida real del owner del [verificador de solo lectura](verify_a01_s5_g3_b3_nodeids.py) confirma 33/33 IDs únicos, 12 funciones, 10 simples, 17+6 parametrizados, SHA de colección y cardinalidad; cotejo B3-01…33 registrado abajo. **Sin PASS, sin acreditación semántica dinámica ni mutation kill.**
 - [ ] **S5-G3-05:** ensayos focales negativos y sensibilidad ante mutación, posteriores a A-05/etapa C.
 - [ ] **A01-S5 / A-01 / A-03:** **ABIERTOS**. No convertir revisión estática en PASSED.
 
 **Siguiente acción:** usar el JSON de colección existente para asignar **identidad real** a los 33 casos, sin ejecutar pytest; luego trazar los controles normativos más importantes a un puerto de producción estable antes de diseñar B/C.
 
-## 6. Comprobación reproducible de identidad de los 33 nodeids (PENDIENTE)
+## 6. Comprobación reproducible de identidad de los 33 nodeids (VERIFICADA POR EL OWNER)
 
 Después de actualizar `tests_stabilization`, el owner puede ejecutar este comando de **solo lectura** sobre la colección ya existente, sin pytest y sin creación de outputs:
 
@@ -120,4 +120,50 @@ $reports = Join-Path $env:TEMP "translator-a01-isolated-k4f4mf10\reports"
 .\venv\Scripts\python.exe .\docs\architecture\adr\tests_stabilization\verify_a01_s5_g3_b3_nodeids.py --repo-root . --reports $reports
 ```
 
-**Antes de cerrar S5-G3-04:** verificar que la salida contenga exactamente 33 nodeids únicos (10 simples, 17 miembros mutados y 6 JSON inválidos), SHA de colección fijado y nombres de función esperados. **No inferir índices de parametrización a partir de sufijos:** los IDs son los emitidos por pytest en `all.json`. La salida no prueba PASSED ni independencia/mutation kill.
+**Resultado recibido:** el owner ejecutó el verificador y compartió la salida completa: **SHA exacto `86cd68672ee692f073b62869e7c9bd177e8d9e3b`**, **12 funciones**, **33 nodeids únicos**, **10 simples**, **17 mutaciones de miembros**, **6 invalidaciones JSON**, y `source_and_collection_cardinality_match=true`. Sin errores del verificador. **No ejecutó ningún cuerpo de test.** Los identificadores son los emitidos por pytest; no usarlos como oráculo normativo resistente a refactors, pues sus sufijos autogenerados pueden variar.
+
+### 6.1 Cruce de IDs de auditoría con `parameter_id` exactos de pytest
+
+**Regla de reconstrucción:** el prefijo del nodeid real es `tests/integration/test_g3_b3_structured_result_contract.py::`. Para las **10 funciones simples**, el nodeid es el prefijo seguido del nombre de función (sin corchetes). Para **las 23 variantes**, el nodeid es el prefijo + nombre de función + `[` + el `parameter_id` textual de esta tabla + `]`.
+
+| ID de auditoría | Función fuente | `parameter_id` emitido por pytest |
+|---|---|---|
+| **B3-01** | `test_two_nodes_one_chunk_response_order_is_identity_based_not_positional` | `null` (caso simple) |
+| **B3-02** | `test_fragments_across_chunks_reassemble_without_added_delimiters` | `null` (caso simple) |
+| **B3-03** | `test_preserve_is_bypassed_and_partial_remains_explicit` | `null` (caso simple) |
+| **B3-04** | `test_only_preserve_nodes_materialize_without_provider_results` | `null` (caso simple) |
+| **B3-05** | `test_invalid_member_responses_fail_closed` | `<lambda>-MEMBER_COVERAGE_MISMATCH0` |
+| **B3-06** | `test_invalid_member_responses_fail_closed` | `<lambda>-MEMBER_COVERAGE_MISMATCH1` |
+| **B3-07** | `test_invalid_member_responses_fail_closed` | `<lambda>-UNEXPECTED_MEMBER` |
+| **B3-08** | `test_invalid_member_responses_fail_closed` | `<lambda>-DUPLICATE_MEMBER` |
+| **B3-09** | `test_invalid_member_responses_fail_closed` | `<lambda>-SOURCE_HASH_MISMATCH` |
+| **B3-10** | `test_invalid_member_responses_fail_closed` | `<lambda>-RESPONSE_BINDING_MISMATCH0` |
+| **B3-11** | `test_invalid_member_responses_fail_closed` | `<lambda>-RESPONSE_BINDING_MISMATCH1` |
+| **B3-12** | `test_invalid_member_responses_fail_closed` | `<lambda>-RESPONSE_BINDING_MISMATCH2` |
+| **B3-13** | `test_invalid_member_responses_fail_closed` | `<lambda>-RESPONSE_BINDING_MISMATCH3` |
+| **B3-14** | `test_invalid_member_responses_fail_closed` | `<lambda>-UNSUPPORTED_RESPONSE_SCHEMA0` |
+| **B3-15** | `test_invalid_member_responses_fail_closed` | `<lambda>-UNSUPPORTED_RESPONSE_SCHEMA1` |
+| **B3-16** | `test_invalid_member_responses_fail_closed` | `<lambda>-INVALID_RESPONSE_ENVELOPE` |
+| **B3-17** | `test_invalid_member_responses_fail_closed` | `<lambda>-INVALID_MEMBER_ENVELOPE` |
+| **B3-18** | `test_invalid_member_responses_fail_closed` | `<lambda>-INVALID_MEMBER_TYPES` |
+| **B3-19** | `test_invalid_member_responses_fail_closed` | `<lambda>-EMPTY_TRANSLATION0` |
+| **B3-20** | `test_invalid_member_responses_fail_closed` | `<lambda>-EMPTY_TRANSLATION1` |
+| **B3-21** | `test_invalid_member_responses_fail_closed` | `<lambda>-TRANSLATION_BOUNDARY_WHITESPACE` |
+| **B3-22** | `test_invalid_json_is_rejected` | `{"schema_version":1,"schema_version":1}-DUPLICATE_JSON_KEY` |
+| **B3-23** | `test_invalid_json_is_rejected` | `{"a":{"key":1,"key":2}}-DUPLICATE_JSON_KEY` |
+| **B3-24** | `test_invalid_json_is_rejected` | `NaN-INVALID_JSON_CONSTANT` |
+| **B3-25** | `test_invalid_json_is_rejected` | `not valid json-INVALID_RESPONSE_JSON` |
+| **B3-26** | `test_invalid_json_is_rejected` | `[]-INVALID_RESPONSE_ENVELOPE` |
+| **B3-27** | `test_invalid_json_is_rejected` | `None-RESPONSE_MUST_BE_JSON_TEXT` |
+| **B3-28** | `test_unknown_chunk_rejected_before_payload_parse` | `null` (caso simple) |
+| **B3-29** | `test_incomplete_or_extra_chunks_never_return_partial_nodes` | `null` (caso simple) |
+| **B3-30** | `test_source_boundary_whitespace_preserved_through_segmented_translation` | `null` (caso simple) |
+| **B3-31** | `test_whitespace_only_source_never_silently_disappears_in_translation` | `null` (caso simple) |
+| **B3-32** | `test_response_size_bound_rejects_uncontrolled_payload` | `null` (caso simple) |
+| **B3-33** | `test_translated_unicode_surrogates_rejected_before_projection` | `null` (caso simple) |
+
+**Comprobación:** 33 filas, 33 nodeids únicos según el verificador, sin discrepancias de cardinalidad. Los dos identificadores `<lambda>-MEMBER_COVERAGE_MISMATCH0/1` designan **eliminar** y **añadir** miembro, respectivamente; la rama `DUPLICATE_MEMBER` corresponde al caso `B3-08`. Los índices son IDs **de colección actual**, no promesa de estabilidad de nombres en futuros refactors.
+
+### 6.2 Frontera del resultado
+
+Este paso verifica **identidad y existencia del ítem** en `all.json`, no el resultado de su ejecución. El número de tests individualmente **acreditados por ejecución o falsación sigue siendo 0**. Para cerrar A-03/C habrá que comprobar oráculo independiente y muerte de mutación por ruptura contractual en entorno descartable, no solamente la presencia de un matcher de error.
