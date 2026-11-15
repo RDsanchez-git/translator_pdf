@@ -270,6 +270,46 @@ Los cuatro logs `all/unit/integration_nonregression/technical` reportaron, segú
 
 **Resolución:** **177 archivos candidatos = 173 con uno o más nodeids + 3 placeholders vacíos + 1 script manual**. **No hubo cuatro fallos de pytest**. Se cierra **exclusivamente la investigación de los cuatro archivos**; los 24 módulos con discrepancias entre AST y nodeids, la clasificación por SUT y el preflight global permanecen pendientes. Los placeholders vacíos no se transforman en cobertura acreditada ni se eliminan automáticamente.
 
+## 3.5 Inspección de las diferencias más relevantes para PDF→PDF (2026-11-15)
+
+**Procedencia:** lectura directa de las fuentes GitHub en el mismo código de tests que el SHA recolectado. Esto confirma **la presencia de parametrizaciones**, no la equivalencia exacta de todos los nodos sin cotejar `all.json`.
+
+| Archivo | Funciones / nodos recolectados | Parametrización inspeccionada y propiedad del contrato | Dictamen |
+|---|---:|---|---|
+| `tests/integration/test_g3_b3_structured_result_contract.py` | **12 / 33** | `test_invalid_member_responses_fail_closed` parametriza mutaciones de respuesta (miembro ausente/duplicado, hash y bindings); `test_invalid_json_is_rejected` parametriza JSON inválido | **Expansión legítima plausible**, verificar conteo por función y oráculo en A-02/A-03 |
+| `tests/unit/test_b024_explicit_math_spans.py` | **4 / 18** | Dos matrices: fórmulas/delimitadores válidos y fuentes malformadas | Variantes técnicas relevantes, no duplicación acreditada |
+| `tests/unit/test_w08_inference_identity_contract.py` | **8 / 21** | Rechazo de `frame` inválido y sensibilidad de dimensiones de identidad de reutilización | Contrato útil; verificar que cada variante falle por campo esperado |
+| `tests/unit/test_semantic_classification.py` | **7 / 17** | Matriz parametrizada de `task_state`, evento generado y evidencia de efecto externo | Puede proteger semántica de incertidumbre G3; sin PASS acreditado |
+| `tests/integration/test_g3_b4_3a_engine_staging.py` | **18 / 25** | Lease inválido, respuesta no vinculada y manipulación de tokens matemáticos | Controles negativos presentes en código; sensibilidad aún no certificada |
+| `tests/unit/test_b025_math_visual.py` | **8 / 15** | Distintas fuentes tipográficas de fórmulas | Expansión esperable |
+| `tests/unit/test_b032_offline_pdf_lab.py` | **9 / 16** | Whitelist de rutas de caché y rechazo de traversal para laboratorio offline | Es el laboratorio técnico, no Ground Truth científico |
+| `tests/unit/test_provenance_identities.py` | **12 / 19** | Sensibilidad de identidades de parámetros y experimentos | Tooling científico; **no convertir en objetivo de GT en esta campaña** |
+| `tests/unit/test_b022_image_rendering.py` | **6 / 12** | Rechazo de referencias de imágenes no canónicas | Contrato técnico de asset path |
+| `tests/integration/test_g3_b3_2_fenced_receipts.py` | **13 / 17** | Estados de lease indebidos y divergencias de recibos vs cola | Frontera de fencing y replay |
+| `tests/integration/test_g3_b4_3b_publication_recovery.py` | **17 / 21** | Estados de recuperación y selección de generaciones no válidas | Frontera de publicación durable |
+| `tests/integration/test_b024_g3_g5_math_roundtrip.py` | **2 / 5** | Cuatro variantes de formato matemático en un test de round-trip | Propiedad observable de math-preservation, no ciencia STEM |
+
+**Conclusión responsable:** las **12 mayores discrepancias** se acompañan de parametrizaciones explícitas en sus archivos fuente. **No** se clasifican como defectos de pytest ni como tests `CONFIABLE_PARA_SU_ALCANCE` por ese motivo. Restan **12 de los 24 archivos** con divergencias no visibles en el resumen anterior, y todos los casos requieren verificar correspondencia **función → variantes de nodeids**.
+
+### Instrumento de conciliación exhaustiva
+
+Se añadió [`explain_a01_declaration_differences.py`](explain_a01_declaration_differences.py), **de solo lectura**:
+
+- Reutiliza **`all.json` y `manifest.json` ya generados**, sin lanzar pytest ni procesar PDFs.
+- Abre el código Python mediante `tokenize.open` (admite BOM) y extrae declaraciones `test_*`, incluidas las de clases, detectando longitud de matrices literales `@pytest.mark.parametrize`.
+- Relaciona cada nombre `path::Clase::test_funcion` con los nodeids y mide expansiones extras, declaraciones no recolectadas, nodos sin función equivalente y la identidad aritmética total.
+- Indica cuándo un número de variantes no corresponde a la longitud literal de los decoradores; **no concluye automáticamente defecto**.
+- No crea outputs ni modifica el repositorio. **La corrida real del owner está pendiente.**
+
+**Comando PowerShell después de actualizar la rama** (no requiere nueva colección):
+
+```powershell
+$reports = Join-Path $env:TEMP "translator-a01-isolated-k4f4mf10\reports"
+.\venv\Scripts\python.exe .\docs\architecture\adr\tests_stabilization\explain_a01_declaration_differences.py --reports $reports --repo-root .
+```
+
+**Gate:** mantener A01-S6 `[ ]` hasta recibir y cotejar la salida real. Un exceso de nodos por parametrización es deseable cuando cada variante falsifica una condición distinta; la mera cantidad de tests no demuestra calidad ni estabilidad frente a refactors.
+
 ## 4. Gate y siguiente acción
 
 - [x] **A01-COLL-01 — Colección real ejecutada** en clon independiente, SHA y cuatro exit codes 0 con conteos explícitos.
