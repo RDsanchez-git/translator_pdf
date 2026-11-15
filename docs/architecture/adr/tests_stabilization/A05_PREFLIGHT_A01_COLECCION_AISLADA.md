@@ -1,7 +1,7 @@
 # A-05 (preflight parcial) — Colección A-01 en clon separado
 
 > **Fecha:** 2026-11-15  
-> **Estado:** PROCEDIMIENTO PREPARADO Y PROBADO CON REPOSITORIO SINTÉTICO. **No ejecutado sobre `translator_pdf`**. No se marca A-05 ni A-01 completos.  
+> **Estado:** COLECCIÓN REAL EFECTUADA EN CLON AISLADO (cuatro exit codes 0); revisión de JSON, seguridad y conciliación **pendientes**. A-05 y A-01 siguen abiertos.  
 > **Ramas:** `tests_stabilization` (trabajo), `main` (intacta).  
 > **Herramienta:** [`collect_a01_isolated.py`](collect_a01_isolated.py).  
 > **Ámbito:** seguridad de **colección de pytest** para contrastar declaraciones estáticas (A-01). **No autoriza ejecución de tests, mutaciones o evaluación científica.**
@@ -203,13 +203,28 @@ Se actualizó [`collect_a01_isolated.py`](collect_a01_isolated.py) para:
 
 **Decisión operacional:** ya no hay un bloqueo por `connect` genérico ni por un `asyncio.run` sin contexto. Se puede **considerar un intento controlado de `--collect-only`** en un nuevo clon independiente, con entorno de imports restringido y logs fuera de la copia de trabajo, reconociendo que el clon y el guard Python no son sandbox OS. Un host/contenedor con aislamiento de filesystem y red es preferible; **no** ejecutar ningún cuerpo de test ni mezclar resultados con pruebas de regresión. **A05-P4/P5/P6 se mantienen [ ]** hasta que la colección real y su revisión sean documentadas.
 
+## 4.7 Evidencia de colección real aportada (2026-11-15)
+
+**Colección real realizada por el owner en un clon Git independiente:** revisión `86cd68672ee692f073b62869e7c9bd177e8d9e3b`, clon temporal `translator-a01-isolated-k4f4mf10/repo`, reportes `.../reports`; scanner: **188 archivos, 400 llamadas estáticas, 0 errores AST**. El programa utilizó `--collect`, lo que implica **imports/decoradores/plugins**, pero **no cuerpos de tests**.
+
+| Selector | Nodos recogidos | Exit |
+|---|---:|---:|
+| `all` | **1.474** | **0** |
+| `unit` | **225** | **0** |
+| `integration and not regression` | **70** | **0** |
+| `not e2e` | **1.454** | **0** |
+
+**Confirmado:** no hubo errores de colección reportados en los cuatro comandos. **No se ha comprobado todavía:** estado Git después de importar, cambios en el clon, plugins/warnings, efectos externos, marcadores y nodeids desde los JSON, ni la ausencia de accesos a rutas externas a nivel OS. No confundir exit=0 con PASS de tests.
+
+**Evidencia de conciliación:** [Informe A-01 de colección](A01_COLECCION_PYTEST_2026-11-15.md). Falta leer `all.json`, `unit.json`, `integration_nonregression.json`, `technical.json` y los logs; sin ello no se pueden calcular duplicados, SKIP/XFAIL declarados, parametrizaciones, ni concluir la selección precisa por caso. La prueba A05-P5 queda **parcialmente ejecutada**, pero **abierta** hasta la revisión de estos registros; A05-P6 permanece abierta hasta comprobar los efectos post-colección y el estado del working tree.
+
 ## 5. Gates y seguimiento
 
 - [x] **A05-P1:** riesgos IO-01…IO-06 vinculados al código de A-00 y restricciones de seguridad documentadas.
 - [x] **A05-P2:** script prepare-only y collect opt-in creado, con chequeo SHA, clon sin remoto, entorno depurado, logs externos y sin limpieza automática.
 - [x] **A05-P3:** prueba funcional en un repositorio **sintético** del programa de recopilación, con resultados de markers/parametrize.
 - [ ] **A05-P4:** preflight del conjunto real de imports/decoradores/plugins y rutas absolutas, preferiblemente en host con aislamiento OS.
-- [ ] **A05-P5:** colección real aislada de `translator_pdf` y conciliación `nodeid/markers/parametrizaciones` contra A-01.
+- [ ] **A05-P5:** **colección real ejecutada** en clon, 1.474/225/70/1.454 nodos con exit 0; **conciliación pendiente** de `nodeid/markers/parametrizaciones` contra A-01. [Evidencia](A01_COLECCION_PYTEST_2026-11-15.md).
 - [ ] **A05-P6:** demostrar integridad de working tree del owner y registrar divergencias/efectos indirectos de colección.
 - [ ] **A-05 completo:** pendiente revisión de seguridad de **todos** los tests pertinentes, no sólo un prototipo.
 - [ ] **A-01 completo:** pendiente selección real CI, SUT por caso y conciliación dinámica.
