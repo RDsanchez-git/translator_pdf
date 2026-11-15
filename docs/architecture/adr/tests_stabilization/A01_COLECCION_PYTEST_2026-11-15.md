@@ -250,9 +250,25 @@ Los cuatro logs `all/unit/integration_nonregression/technical` reportaron, segú
 - [x] Unicidad de nodeids; igualdad bidireccional de los cuatro selectores y conteos por marker.
 - [x] Conteo de ítems parametrizados, nodos sin marker de nivel y distribución numérica por archivo.
 - [x] Verificación de **12/12** rutas focales CI con nodos recolectados; revisión automatizada de las tres señales de advertencias/errores en cuatro logs.
-- [ ] Identificar y clasificar los **4 módulos** con 0 nodos; explicar las **24 diferencias** de nodos versus declaración, prioritariamente las de la ruta PDF→PDF.
+- [x] Identificar y clasificar los **4 módulos** con 0 nodos: 3 placeholders vacíos (`test_ast.py`, `test_dag.py`, `test_fencing.py`) y 1 script manual (`test_pipeline.py`); véase §3.4.
+- [ ] Explicar las **24 diferencias** de nodos versus declaraciones, prioritariamente las de la ruta PDF→PDF, sin atribuirlas automáticamente a parametrización.
 - [ ] Verificar impacto de imports en archivos ignorados o fuera del clon y revisar riesgos transitivos de plugins/host (A-05).
 - [ ] Completar para cada caso relevante SUT, mocks, efectos externos, contrato observable y clasificación (A-02/A-04). **A-01 permanece [ ]** hasta trazabilidad definida en el plan.
+
+## 3.4 Los cuatro módulos sin nodos: investigación cerrada (2026-11-15)
+
+**Fuente:** archivos versionados de `tests_stabilization` inspeccionados directamente a través de GitHub (mismo contenido de tests que el SHA recolectado `86cd68672ee692f073b62869e7c9bd177e8d9e3b`). No se ejecutaron estos archivos.
+
+| Archivo | Evidencia de código | Dictamen | Decisión de esta fase |
+|---|---|---|---|
+| [`tests/test_ast.py`](../../../../tests/test_ast.py) | **0 bytes**, blob Git vacío `e69de29bb2d1d6434b8b29ae775ad8c2e48c5391` | Placeholder sin `test_*` | No suma cobertura; conservar hasta comprobar contratos AST en A-02 |
+| [`tests/test_dag.py`](../../../../tests/test_dag.py) | **0 bytes**, mismo blob vacío | Placeholder sin `test_*` | No suma cobertura; comprobar contratos de plan/DAG en A-02 |
+| [`tests/test_fencing.py`](../../../../tests/test_fencing.py) | **0 bytes**, mismo blob vacío | Placeholder sin `test_*` | No suma cobertura; comprobar fencing G3/G5/W06 en A-02 |
+| [`tests/test_pipeline.py`](../../../../tests/test_pipeline.py) | 68 líneas, función `run_stress_tests()` sin `test_*`; invocación protegida por `if __name__ == "__main__":` | **Script manual de estrés**, no suite pytest | No ejecutarlo para A-01; proponer reclasificación de nombre/ubicación en B solo tras revisar uso/contratos |
+
+**Riesgo de I/O del cuarto archivo:** la ejecución directa crea directorios `tests/corpus/` y `tests/output/`, invoca `runtime.engine.run_pipeline` sobre PDFs encontrados y escribe `tests/stress_report.json`. Esto es ajeno a `pytest --collect-only`, pero sí exige aislamiento si alguna campaña posterior decide correr el script. El código importa `runtime.engine` a nivel módulo, por lo que la ausencia de efectos transitivos de ese import no queda acreditada aquí.
+
+**Resolución:** **177 archivos candidatos = 173 con uno o más nodeids + 3 placeholders vacíos + 1 script manual**. **No hubo cuatro fallos de pytest**. Se cierra **exclusivamente la investigación de los cuatro archivos**; los 24 módulos con discrepancias entre AST y nodeids, la clasificación por SUT y el preflight global permanecen pendientes. Los placeholders vacíos no se transforman en cobertura acreditada ni se eliminan automáticamente.
 
 ## 4. Gate y siguiente acción
 
