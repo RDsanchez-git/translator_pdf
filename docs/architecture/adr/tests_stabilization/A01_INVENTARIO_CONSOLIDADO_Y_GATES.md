@@ -1,6 +1,6 @@
 # A-01 — Índice consolidado del inventario de declaraciones de tests
 
-> **Programa:** TST-STAB. **Estado: A-01 EN CURSO — censo estático completo; colección/selección efectiva y clasificación por SUT pendientes.**
+> **Programa:** TST-STAB. **Estado: A-01 EN CURSO — censo estático completo y colección real efectuada; conciliación JSON, CI focal y clasificación SUT pendientes.**
 > **Fecha:** 2026-11-15. **Ref de lectura de código:** `tests_stabilization` @ `d638c35af2311fb05679aadee375ac2ac0450561` (mismos archivos de tests que `main` @ `83ef0257f795f0d973f9393cc225e7af5b956ade`).
 > **Método:** leer individualmente las fuentes de **177 módulos** en GitHub; detectar declaraciones `def test_*` por expresión de texto, registrar archivo/línea, indicador cercano de decoradores, importaciones productivas y palabras clave de fakes, skip, I/O/SQLite/red. **No ejecuta ni importa código.**
 
@@ -41,6 +41,12 @@ La clave reproducible **archivo + línea + nombre** permite hallar cada declarac
 | **TOTAL** | **177** | **1341** |
 
 Cada dossier contiene tabla por **módulo** y por **declaración**, más las señales textuales de mocks, `tmp_path`, SQLite, scripts y librerías externas. Son inventarios técnicos; su tamaño no se interpreta como cobertura.
+
+## 2.1 Colección real obtenida después del censo inicial
+
+**Evidencia aportada por el owner en `tests_stabilization` @ `86cd68672ee692f073b62869e7c9bd177e8d9e3b`**: `pytest --collect-only` en clon separado dio exit **0** para cuatro modos: **1.474 all**, **225 unit**, **70 integration and not regression**, **1.454 not e2e**. Cuerpos de tests ejecutados: **cero**. Véase [A01_COLECCION_PYTEST_2026-11-15.md](A01_COLECCION_PYTEST_2026-11-15.md) para los JSON locales, las comprobaciones por marker y las tareas de conciliación.
+
+La diferencia entre **1.341 declaraciones estáticas** y **1.474 nodos reales** es **+133 netos**, no necesariamente 133 parametrizaciones: todavía no se inspeccionaron los nodeids ni los registros `parameter_id`. Quedan pendientes los markers efectivos y la selección por rutas focales del workflow. El inventario de declaraciones del §2 es evidencia anterior y se conserva sin reetiquetarlo como cobertura.
 
 ## 3. Selección CI que se puede afirmar sin ejecutar pytest
 
@@ -89,7 +95,7 @@ Secuencia pendiente (sin incluir ciencia ni nuevo E2E global):
 - [x] **A01-S1** — Censo fuente a archivo/línea de las 177 unidades (este dossier y 16 anexos).
 - [x] **A01-S2** — Mapa estático de selección CI, marcas y riesgos, con incertidumbre explícita.
 - [ ] **A01-S3** — [Preflight A-05](A05_PREFLIGHT_A01_COLECCION_AISLADA.md) **parcialmente preparado**, con herramienta de clon independiente en modo prepare-only y prueba del recolector con repositorio sintético. **Pendiente** comprobar seguridad real de imports/decoradores/plugins, rutas absolutas y aislamiento OS antes de colección. A-05 y A-01 permanecen abiertos.
-- [ ] **A01-S4** — Ejecutar `pytest --collect-only` **en worktree/clon aislado**, con `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1` sólo si se comprueba que los plugins requeridos no alteran la colección (en otro caso fijar plugin set). Exportar `nodeid`, parametrizaciones, marcas efectivas y diferencias entre `-m unit`, `-m integration and not regression`, `-m not e2e` y los pasos explícitos de CI. Registrar errores de colección, SKIP/XFAIL y entorno.
+- [ ] **A01-S4 — parcialmente ejecutado.** `pytest --collect-only` en clon independiente sobre SHA `86cd6867`, **cuatro exit=0** con conteos **1.474/225/70/1.454**; faltan inspección de JSON, markers `skip/xfail`, parametrizaciones expandidas y selecciones focales de CI. [Registro de ejecución](A01_COLECCION_PYTEST_2026-11-15.md). **No cerrar [ ]** hasta conciliar esos datos.
 - [ ] **A01-S5** — Trazar cada caso crítico al **SUT real** por análisis dirigido y fichas `TR-###` (A-02/A-04), anotar fakes legítimos y efectos/fixture; los casos legacy se reclasifican en lugar de atribuir cobertura PDF→PDF.
 - [ ] **A01-S6** — Confrontar censo estático y dinámico; explicar diferencias, parametrizaciones, collection hooks y filtros antes de marcar `A-01 [x]`.
 
@@ -99,4 +105,4 @@ Secuencia pendiente (sin incluir ciencia ni nuevo E2E global):
 
 La documentación de esta fecha completa el **inventario de declaraciones estáticas**, no la auditoría semántica ni A-01 en su totalidad. Pueden comenzar A-02/A-03 **en paralelo sólo mediante lectura de código** mientras se prepara A-05. Ningún ajuste al runtime, corpus, GT científico, reglas de CI, ground truth o compilación se autoriza desde este dossier.
 
-**Siguiente acción segura:** realizar el preflight y clasificación I/O de A-05 en una copia aislada para habilitar S3/S4, completar la selección dinámica sin tocar datos del owner y sólo entonces cerrar A-01.
+**Siguiente acción segura:** examinar los JSON y logs de la colección **ya realizada** en la copia aislada, contrastar markers, parametrizaciones y paths de CI, y verificar `git status` post-colección; **no ejecutar cuerpos de tests** hasta cerrar el análisis de riesgos A-05.
