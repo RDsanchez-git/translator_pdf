@@ -90,3 +90,48 @@ El \`CachedLLMProvider\` productivo ([\`apps/llm_workers/cache_provider.py\`](..
 - [ ] **A-05 y A-06:** ABIERTOS. **\`0\` cuerpos de tests ejecutados por este trabajo**.
 
 **Regla de preservación:** no restaurar ni incluir en commits el PDF que figura \`D\` en el working tree del owner, no utilizar \`git clean\`/\`reset --hard\`, no regenerar golden/snapshots, no abrir GT científico ni hacer baseline científica.
+
+## 6. Preparación verificable de A05-Q1/Q2/Q3 (sin habilitar A-06)
+
+**Evidencia de implementación:** [`preflight_a06_guest.py`](preflight_a06_guest.py) está versionado en `tests_stabilization`. Es un preflight **de solo lectura** previsto para ejecutar **dentro de una VM Linux descartable**. No importa tests ni ejecuta pytest o probes de red; guarda `preflight.json` y `focal_nodeids.txt` en un directorio nuevo fuera del checkout. La existencia de este script **no equivale** a tener VM ni firewall verificados. Por tanto **A05-Q1/Q2/P4/P6 y A-06 siguen pendientes**.
+
+**Lo que el preflight verifica dentro del guest:** Git `HEAD`, worktree limpio, ausencia de remotos Git, ejecución sin privilegios, tipo de filesystem visible en `/proc/self/mountinfo`, nombres (no valores) de posibles variables de credenciales, tamaño/hash de archivos de `tests/fixtures`, `tests/golden` e `infra/db`, y ausencia de symlinks en esas rutas inspeccionadas. Coteja `manifest.json` y `all.json` de la colección A-01 (1.474 nodeids) con el SHA de colección y el objeto Git del árbol `tests/`; no toma el orden de declaración como identidad. No recorre ni modifica `tests/corpus/canonical`.
+
+**Condición exterior no verificable desde el guest:** la política de red negada por hipervisor/firewall, ausencia de bind mounts hacia host y de agentes/credenciales externos requiere **inspección del operador del host**. El script acepta un JSON `--host-evidence` con declaraciones explícitas y método de comprobación, pero las etiquetas `DECLARED_NOT_INDEPENDENTLY_VERIFIED` y `READY_FOR_INDEPENDENT_HOST_REVIEW` **no sustituyen** revisión humana. Una prueba de conectividad fallida dentro de Python tampoco certificaría el firewall del host. `BLOCKED` es el estado por defecto cuando faltan datos.
+
+**Selección focal propuesta (A05-Q3, candidatos, NO ejecutados):**
+
+- `tests/integration/test_g3_b3_structured_result_contract.py::test_two_nodes_one_chunk_response_order_is_identity_based_not_positional`
+- `tests/integration/test_g3_b3_structured_result_contract.py::test_only_preserve_nodes_materialize_without_provider_results`
+- `tests/integration/test_g3_b3_structured_result_contract.py::test_unknown_chunk_rejected_before_payload_parse`
+- `tests/integration/test_g3_b3_structured_result_contract.py::test_translated_unicode_surrogates_rejected_before_projection`
+
+Se eligieron por lectura de los cuerpos y ausencia de I/O físico declarado: ejercitan `ChunkPlan`, `parse_chunk_response` y/o `materialize_node_results`, sin provider, SQLite ni PDF. **No se ha probado su seguridad dinámica**, ni se acredita PASS. El script exige que estén en la lista congelada y que no tengan markers `e2e/skip/skipif/xfail`. Otros 29 casos del mismo archivo quedan para una ronda siguiente, no se excluyen definitivamente. No ejecutar `pytest -m "not e2e"` como sustituto.
+
+**Invocación prevista dentro de la VM (solo después de aprovisionamiento y revisión del host):**
+
+```bash
+python docs/architecture/adr/tests_stabilization/preflight_a06_guest.py \
+  --repo-root /guest/work/translator_pdf \
+  --reports /guest/evidence/a01-frozen \
+  --output /guest/evidence/a05-preflight-01 \
+  --host-evidence /guest/evidence/host-isolation.json
+```
+
+Los `reports` son copias independientes de `manifest.json` y `all.json` originados en la colección del owner; deben mantenerse fuera del checkout para no alterar su estado. El script requiere que la revisión congelada esté disponible en el historial Git del guest y que el árbol `tests/` coincida exactamente. Es una **comprobación de preparación** y retorna código 2 si hay bloqueos, 3 si no puede preparar/leer evidencia; no se debe "arreglar" un bloqueo debilitando condiciones.
+
+El JSON `host-isolation.json` debe contener **solo afirmaciones verificadas por el operador y su método**, por ejemplo:
+
+```json
+{
+  "guest_private_disk_no_host_shares": true,
+  "guest_checkout_without_host_bind_mounts": true,
+  "no_host_secrets_or_agents_mounted": true,
+  "network_egress_denied_by_host_or_hypervisor": true,
+  "verification_method": "Describir configuración concreta de hipervisor, NIC/firewall y montajes revisados"
+}
+```
+
+Los valores del ejemplo **no son evidencia real**. No crearlos como afirmación de un host que no se inspeccionó. `--output` se crea solo si todas las entradas básicas pueden ser leídas; puede almacenar resultado `BLOCKED` para análisis. Falta aún captura de `pytest --version`/plugins y del inventario integral tracked/untracked/ignored (el script registra Git limpio y paths técnicos de alto riesgo, **no** una certificación global de efectos). Se requieren OS-level tracing o equivalentes cuando se pretenda acreditar ausencia de escrituras temporales creadas y borradas.
+
+**Estado de avance al añadir este script:** control preliminar reproducible **PREPARADO**; `A05-Q3` contiene cuatro candidatos definidos, pero **no cerrado** hasta reconciliación y revisión en el guest; `A05-Q1/Q2` **no cerrados**; `A06-Q1` **no ejecutado**; `B05` **sin cambios**. La creación y prueba sintética del script fuera del repositorio se registran por separado de un resultado en VM real.
