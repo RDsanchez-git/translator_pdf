@@ -198,6 +198,20 @@ def test_response_size_bound_rejects_uncontrolled_payload():
         parse_chunk_response(p, p.units[0].chunk_id, "x" * (4 * 1024 * 1024 + 1))
 
 
+def test_response_limit_is_utf8_bytes_not_character_count():
+    """A multibyte response under the character cap exceeds the byte cap."""
+    plan = _plan([_node("a", 1, "Alpha.")])
+    unit = plan.units[0]
+    limit = 4 * 1024 * 1024
+    translated = "é" * ((limit // 2) + 1)
+    raw = _json(_response(plan, unit, {("a", 0): translated}))
+
+    assert len(raw) < limit, "G3_B3_TEST_INPUT_CHARACTER_BOUNDARY_INVALID"
+    assert len(raw.encode("utf-8")) > limit, "G3_B3_TEST_INPUT_BYTE_BOUNDARY_INVALID"
+    with pytest.raises(ValueError, match="G3_B3_RESPONSE_TOO_LARGE"):
+        parse_chunk_response(plan, unit.chunk_id, raw)
+
+
 def test_translated_unicode_surrogates_rejected_before_projection():
     p = _plan([_node("a", 1, "Alpha.")])
     u = p.units[0]
