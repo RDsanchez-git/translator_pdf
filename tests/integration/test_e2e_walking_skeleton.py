@@ -19,12 +19,16 @@ from apps.llm_workers.prompt_builder import PromptBuilder, PromptEnvelope
 from apps.llm_workers.rate_limiter import RateLimitedProvider, QuotaManager
 from apps.llm_workers.cache_provider import CachedLLMProvider
 from apps.llm_workers.dispatcher import AsyncDispatcher, NullEventPlane
-from core.validation.estimators import ExactBPEEstimator
 from core.validation.pipeline import ValidationPipeline
 from core.healing.pipeline import HealingPipeline
 
 TEST_DOCUMENT_ID = "test_legacy_cache_dispatch"
 TEST_AST_HASH = "test_hash_legacy_cache"
+
+class _DeterministicTokenEstimator:
+    """Token accounting is external to this legacy cache-hit contract."""
+    def estimate_tokens(self, text: str) -> int:
+        return len(text.split())
 
 
 class FakeLLMProvider:
@@ -54,7 +58,7 @@ class TestLegacyDispatcherCache(unittest.IsolatedAsyncioTestCase):
         from core.finops.measurement import InferenceMeasurementService
         from core.validation.budget import PromptBudgetCalculator, StandardCompressionPolicy
 
-        estimator = ExactBPEEstimator()
+        estimator = _DeterministicTokenEstimator()
         self.prompt_builder = PromptBuilder(
             model_name="bypass_passthrough",
             prompt_version="v1.0",
