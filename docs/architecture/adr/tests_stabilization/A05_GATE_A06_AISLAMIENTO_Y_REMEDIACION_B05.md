@@ -469,3 +469,20 @@ El mismo ejecutor acepta \`-CaptureProtectedPaths\` **solo junto a un modo focal
 - **Si el preflight termina correctamente**, evaluar los metadatos de plugins y decidir un **subconjunto A-06 seguro**, en el que cada test tenga I/O y provider controlados; no correr la selección global \`-m "not e2e"\` automáticamente. En el clon, usar el comando existente y más tarde la opción opcional de hashes protegidos sin convertir ausencia de diferencias en garantía OS.
 - **A05-P4/P6 permanecen formalmente abiertos**, pues requieren evidencia real de imports/plugins seleccionados y seguridad del entorno de la corrida más amplia. Preparación técnica suficiente para *proponer* A-06 focal controlada, **no** aprobación de A-06 global.
 - **Sin resultados nuevos de tests, Pyright o CI en esta modificación.** \`main\`, runtime, \`ci.yml\`, corpus científico, GT y la eliminación deliberada del PDF local quedan intocados.
+
+## 21. A05-P4 — corrección del preflight PowerShell 5.1 (2026-11-16)
+
+**Fallo real reportado por el owner:** al ejecutar \`-PreflightA06\` desde Windows PowerShell 5.1 sobre SHA \`26eb668420f947670f5dd38f3fb3a0d5cf0a6e9b\`, el clon independiente se creó y se fijó al SHA, pero el paso \`python -I -B -c $pluginProbe\` falló con **\`File "<string>", line 1\`** (error de sintaxis por comillas dentro del argumento de un comando nativo). PowerShell señaló la línea 140 del runner. **No se ejecutaron pytest, tests, ni importaciones de plugins**. No se recibió \`preflight_summary.txt\` de esa corrida: **no contar el preflight como PASS**. Clon previo retenido por política; no limpiar a ciegas.
+
+**Corrección mínima, en el mismo ejecutor:** sustituir únicamente el argumento \`python -c\` con comillas anidadas por un **here-string de PowerShell enviado como texto literal a \`python -I -B -\` por stdin**, manteniendo exactamente el propósito: \`importlib.metadata\` enumera pytest, pytest-asyncio y entrypoints \`pytest11\` sin importarlos. Sin nuevo script, sin modificar el clon del owner, tests, runtime, CI, corpus o Ground Truth.
+
+**Validación disponible:** el mismo cuerpo Python se ejecutó correctamente con \`python -I -B -\` en entorno Linux de revisión y listó versiones/entrypoints. **Eso no constituye validación en Windows PowerShell 5.1 ni ejecución del preflight completo**. El owner debe repetir solamente el preflight del nuevo SHA; P4/P6 siguen abiertos.
+
+\`\`\`powershell
+git pull --ff-only origin tests_stabilization
+& .\docs\architecture\adr\tests_stabilization\run_b05_focal_isolated.ps1 \`
+  -RepoRoot (Get-Location).Path \`
+  -PreflightA06
+\`\`\`
+
+Si termina con éxito, conservar \`preflight_summary.txt\`, \`plugin_entrypoints.txt\`, \`protected_before.tsv\`, \`git_before.txt\` y \`git_after.txt\`. **No repetir los once tests focales ni iniciar A-06 global por esta corrección de quoting.**
