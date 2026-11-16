@@ -192,3 +192,28 @@ La ausencia de \`SwitchName\` sugiere que un adaptador Hyper-V no está conectad
 **Señal potencial de fallo que debe investigarse, no silenciarse:** \`AsyncDispatcher\` usa \`NullEventPlane\` para el contrato de caché legacy; \`FakeLLMProvider\` devuelve un \`InferenceResult\` compatible con su puerto real y el test exige una única llamada externa simulada. Si pytest falla por configuración/validación efectiva, mantener el fallo como evidencia y distinguirlo del problema de cache, sin autogenerar un expected ni reducir las aserciones para obtener verde.
 
 **Norma adoptada por el owner:** Docker/Hyper-V no son prerequisitos de pytest ni de CI. El laboratorio C2 PDF→PDF del handoff queda diferido. Mantener \`B05-R1/R2/R3\` como **implementados, pendientes de validación** hasta tener resultados de pytest/Pyright/CI y evidencia de ausencia de escrituras fuera de los temporales.
+
+## 10. A-06 / B05-Q1 — ejecutor focal sin Docker preparado (NO ejecutado)
+
+Se incorporó [\`run_b05_focal_isolated.ps1\`](run_b05_focal_isolated.ps1) para **Windows PowerShell 5.1**. El script crea un clon Git independiente en el directorio temporal del owner **sin hardlinks**, lo fija al \`HEAD\` de la rama \`tests_stabilization\`, elimina el remoto del clon y guarda \`git_before.txt\` antes de llamar a pytest. Requiere que el owner tenga activa su \`venv\` Python y seleccione \`tests_stabilization\`; **no ejecuta la suite general, Docker, Hyper-V, servicios del pipeline ni proveedores reales**.
+
+**Selección exacta** (\`-o addopts=\` desactiva la selección predeterminada de \`pyproject.toml\` solo para esta corrida, sin alterar ese archivo):
+
+1. \`tests/integration/test_recovery_flow.py::TestRecoveryAndResumeEndToEnd::test_complete_crash_recovery_and_resume_lifecycle\`
+2. \`tests/integration/test_e2e_walking_skeleton.py::TestLegacyDispatcherCache::test_legacy_cache_hit_observed_across_two_dispatches\`
+3. \`tests/integration/test_real_e2e.py::TestRealE2EFinOps::test_mocked_pipeline_result_exposes_finops_fields\`
+4. \`tests/integration/test_pipeline_orchestration.py::TestPipelineOrchestration::test_legacy_orchestrator_handoff_with_mocked_parser\`
+
+**Ajustes para evitar una dependencia oculta de red del test:** la caché legacy (commit \`ad8c90db\`) y el test de consumidor FinOps (commit \`2d246698\`) usan un estimador de tokens determinista, sin cargar \`tiktoken.get_encoding\`/su caché remota. Esto **no cambia** la medición real del producto: esos tests no certifican tokenización de proveedor. Si otros imports externos intentan usar red, el script **no afirma que el SO la bloquee**.
+
+Invocación en el **checkout del owner** (después de \`git pull --ff-only origin tests_stabilization\`, con \`venv\` activa):
+
+\`\`\`powershell
+& .\docs\architecture\adr\tests_stabilization\run_b05_focal_isolated.ps1 -RepoRoot (Get-Location).Path
+\`\`\`
+
+El ejecutor orienta \`HOME/USERPROFILE/TMP/TEMP/PYTHONPATH\` al clon, desactiva bytecode y cacheprovider pytest, aparta variables cuyo nombre coincide con patrones de secretos y las restaura al concluir. Registra \`python_version.txt\`, \`pytest_version.txt\`, \`pytest_focal.log\`, \`nodeids.txt\`, \`summary.txt\`, \`git_after.txt\` y \`status_changes.txt\`. Conserva clon e informes para inspección; **no borra recursos, no resetea ni limpia ningún checkout**. El inventario Git post no certifica ausencia de archivos creados-y-borrados durante la ejecución; por ello hay que revisar también las ubicaciones temporales y el código antes de interpretar PASS.
+
+**Límite de seguridad explícito:** el clon es aislamiento de workspace, no una frontera de seguridad fuerte. Se usa solo sobre los cuatro testigos recién inspeccionados y remediados, no se extrapola a otros tests, import hooks o suite completa. No introducir credenciales reales en el proceso. No ejecutar en el checkout principal del owner.
+
+**Estado:** artefacto de prueba focal preparado; **0 tests ejecutados desde esta sesión; exit/PASS/FAIL/SKIP, efectos, Pyright y CI UNKNOWN**. El gate B05/A-05/A-06 **no se cierra** por diseñar el runner. Si el owner entrega \`summary.txt\`, \`pytest_focal.log\` y \`status_changes.txt\`, clasificaremos cada caso por contrato y se documentarán fallos reales sin ajustar oráculos por conveniencia.
