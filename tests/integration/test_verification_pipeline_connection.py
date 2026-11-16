@@ -73,6 +73,19 @@ class TestVerificationPipelineConnection:
         assert nodes is not None
         assert len(nodes) > 0
 
+        # The fixture supplies independent expected text. A merely nonempty
+        # AST is insufficient if extraction silently drops source content.
+        extracted = " ".join(
+            " ".join((node.text_content or "").split()) for node in nodes
+        )
+        for expected_line in (
+            "Controlled production extraction pipeline verification.",
+            "Scientific observations must remain traceable.",
+        ):
+            assert expected_line in extracted, (
+                f"B02_EXTRACTED_SOURCE_TEXT_MISSING: {expected_line!r}"
+            )
+
     def test_extracted_ast_nodes_have_minimum_structure(
         self, text_only_pdf: Path,
     ) -> None:
