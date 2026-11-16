@@ -73,3 +73,41 @@ $reports = Join-Path $env:TEMP "translator-a01-isolated-k4f4mf10\reports"
 - [ ] **A-03/A-04/B-03/B-05:** otras familias, clasificación final y remediaciones aún pendientes. **No declarar PASS.**
 
 **Decisión de gobierno:** se preservan las pruebas de estado y healing realmente ejercitadas; se remedia el oráculo falso/sobrealcance, no la producción para «volver verde». Se mantiene íntegramente fuera de campaña el Ground Truth y CV científico.
+
+## 6. B-03/B-04 — actualización sobre el código remediado (2026-11-16)
+
+**Importante:** §§1–5 describen riesgos del SHA auditado históricamente \`86cd6867\`; no deben interpretarse como defectos que necesariamente persisten en el HEAD actual.
+
+### B-03: test de parser real, ejecución confirmada
+
+El owner compartió los informes del runner \`-CheckB03Parser\`, fijados al SHA \`f713eafc83ea24abdcba040d0f4871b2c3c2df73\`:
+
+| Evidencia | Resultado |
+|---|---|
+| \`pytest_focal.log\` | \`1 passed in 1.69s\` |
+| \`summary.txt\` | \`pytest_exit_code=0\`, \`b03_parser_requested=True\`, \`docker_used=false\`; \`sensitivity_exit_code=-1\` porque no se pidieron mutaciones |
+| \`status_changes.txt\` | Vacío según owner, sin diferencias persistentes Git reportadas |
+| \`pyright tests/integration/test_real_parser_pipeline.py\` | \`0 errors, 0 warnings, 0 informations\` reportados; aviso de actualización Pyright separado |
+
+El test ya usa **extracción real** desde \`build_extraction_pipeline()\` sobre un PDF de dos páginas creado en \`tmp_path\` con cuatro textos literales; ejecuta el parser dos veces y verifica texto, presencia, unicidad y estabilidad de identidades. Ni fabrica archivos en \`tests/fixtures\` ni parchea el SUT. **No constituye un E2E PDF→PDF ni una evaluación científica.** Baseline B-03 focal técnica positiva sobre el SHA indicado; no se ha acreditado aún un control de sensibilidad propio ni CI del HEAD.
+
+### B-04: reclasificación focal de alcance, sin modificar los oráculos
+
+Los siguientes cambios se aplicaron exclusivamente a tests, **sin tocar sus aserciones ni el SUT**:
+
+| Archivo | Contrato real | Corrección de alcance | Estado |
+|---|---|---|---|
+| [\`tests/test_pipeline_fidelity.py\`](../../../../tests/test_pipeline_fidelity.py) | \`InlineMathProtector.mask/restore\`, adyacencia de fórmula y presencia de cuatro miembros de \`ContentNodeType\` | Se sustituyó el nombre amplio de clase por \`TestMathProtectionContracts\`, se aclaró el docstring y se quitó \`sys.path.append\` durante import/colección. Se renombró el caso de adyacencia para especificar su objeto. No es prueba de fidelidad de traducción ni PDF final | Implementado, **sin pytest/Pyright en nuevo SHA** |
+| [\`tests/integration/test_healing_e2e_telemetry.py\`](../../../../tests/integration/test_healing_e2e_telemetry.py) | \`HealingPipeline.heal_and_revalidate\`, estrategias y \`HealingTelemetryRegistry\` reales; validador controlado | Se eliminó el prefijo \`test_e2e_\` en los cinco nombres para declarar \`test_healing_\`; docstring limitado a integración de healing/telemetría. Se preservaron rollback y métricas esperadas | Implementado, **sin pytest/Pyright en nuevo SHA** |
+
+**Selección de validación:** el runner existente admite \`-CheckB04Contracts\` como modo independiente, con **8 nodeids nominales exactos** (3 de matemáticas/enums, 5 de healing). No usar el selector amplio \`not e2e\` en el checkout del owner por los otros riesgos aún no revisados. Con \`venv\` activa y rama actualizada, ejecutar:
+
+\`\`\`powershell
+git pull --ff-only origin tests_stabilization
+& .\docs\architecture\adr\tests_stabilization\run_b05_focal_isolated.ps1 -RepoRoot (Get-Location).Path -CheckB04Contracts
+pyright tests/test_pipeline_fidelity.py tests/integration/test_healing_e2e_telemetry.py
+\`\`\`
+
+Adjuntar \`summary.txt\`, \`pytest_focal.log\`, y \`status_changes.txt\` si no está vacío; registrar la selección real y el SHA. En B-04 no se inventa nueva cobertura: los tests eran de contratos técnicos válidos pero tenían **nombres/scope engañosos**. Al cambiar nodeids, se requiere nueva conciliación A-01/A-04 antes del cierre formal.
+
+**Gates:** B-03 primera baseline positiva; B-04 remediación de nombre/import implementada sin validación dinámica, sensibilidad B-04 no acreditada, A/B/C global y CI del HEAD abiertos.
