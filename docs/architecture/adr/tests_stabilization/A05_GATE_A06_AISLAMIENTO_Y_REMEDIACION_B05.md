@@ -216,4 +216,27 @@ El ejecutor orienta \`HOME/USERPROFILE/TMP/TEMP/PYTHONPATH\` al clon, desactiva 
 
 **Límite de seguridad explícito:** el clon es aislamiento de workspace, no una frontera de seguridad fuerte. Se usa solo sobre los cuatro testigos recién inspeccionados y remediados, no se extrapola a otros tests, import hooks o suite completa. No introducir credenciales reales en el proceso. No ejecutar en el checkout principal del owner.
 
-**Estado:** artefacto de prueba focal preparado; **0 tests ejecutados desde esta sesión; exit/PASS/FAIL/SKIP, efectos, Pyright y CI UNKNOWN**. El gate B05/A-05/A-06 **no se cierra** por diseñar el runner. Si el owner entrega \`summary.txt\`, \`pytest_focal.log\` y \`status_changes.txt\`, clasificaremos cada caso por contrato y se documentarán fallos reales sin ajustar oráculos por conveniencia.
+**Estado al preparar el ejecutor:** artefacto focal listo, sin tests ejecutados durante su construcción. La ejecución posterior del owner se registra en §11. El gate B05/A-05/A-06 no se cierra solo por preparar el runner ni por un PASS focal. Si el owner entrega \`summary.txt\`, \`pytest_focal.log\` y \`status_changes.txt\`, clasificaremos cada caso por contrato y se documentarán fallos reales sin ajustar oráculos por conveniencia.
+
+## 11. Primera evidencia dinámica focal B05 (owner, 2026-11-15 local / 2026-11-16 UTC)
+
+**Sujeto exacto:** rama `tests_stabilization`, SHA `73572285f99c5556691fe91ee56b633cba5a5ffe`. El owner actualizó por fast-forward `ceaa7d8..7357228` y ejecutó `run_b05_focal_isolated.ps1` desde PowerShell con `venv` activa. La primera versión del runner falló previamente por usar `$home`, que colisionaba con la variable de solo lectura `$HOME`; se reparó esa colisión y la comparación de inventarios vacíos en el commit `7357228`.
+
+**Evidencia aportada por el owner**, no ejecución efectuada por el asistente:
+
+| Evidencia | Resultado observado/reportado | Interpretación |
+|---|---|---|
+| `summary.txt` adjunto en conversación | `source_sha=73572285f99c5556691fe91ee56b633cba5a5ffe`, `pytest_exit_code=0`, `docker_used=false`, `no_OS_level_sandbox_claim=true` | Resultado atribuible a ese checkout; no es un certificado del sistema operativo |
+| `pytest_focal.log`, fragmento textual compartido | `.... [100%]` y `4 passed in 2.62s` | Los cuatro nodeids seleccionados pasaron en la misma invocación; sin fallos/skips reportados |
+| `status_changes.txt`, observado por owner como vacío | No diferencias Git pre/post reportadas en el clon | Sin cambios persistentes detectados en el inventario Git; no descarta escritura transitoria, rutas externas al clon ni efectos que no dejen huella |
+
+**Casos seleccionados:** recuperación FSM `test_complete_crash_recovery_and_resume_lifecycle`; caché legacy `test_legacy_cache_hit_observed_across_two_dispatches`; consumidor FinOps mockeado `test_mocked_pipeline_result_exposes_finops_fields`; orquestador legacy con parser mockeado `test_legacy_orchestrator_handoff_with_mocked_parser`. No se ejecutó la suite completa, Docker/Hyper-V, G3/G5 daemon, laboratorio C0–C4 ni evaluación científica.
+
+**Veredicto y pendientes:**
+- [x] **B05-Q1 — Primera ejecución focal técnica acreditada por reporte del owner:** 4 PASS/4 seleccionados, exit 0, Git del clon sin diferencias persistentes reportadas, SHA exacto.
+- [ ] **B05-R1/R2/R3 — cierre formal:** sigue pendiente validación de falsadores específicos, revisión de las aserciones frente al contrato y tipado local/CI. No equiparar `COMPLETED` mockeado con PDF→PDF real ni caché legacy con W08 soportado.
+- [ ] **A05 global y A06 global:** no extrapolar de cuatro pruebas a 1.474 nodeids históricos ni a las rutas de SQLite/fixtures restantes.
+- [ ] **C — sensibilidad:** no se han ejecutado mutaciones ni controles negativos del SUT como parte de este resultado.
+- [ ] **Ausencia total de side effects:** inventario Git pre/post no acredita ausencia de creaciones y borrados temporales, ni efectos externos al clon.
+
+**Siguiente decisión técnica:** revisar tipado de archivos de tests modificados y preparar controles negativos focales que fallen por las razones correctas, sin Docker y sin tocar runtime ni Ground Truth; los ensayos peligrosos restantes siguen fuera del selector de prueba del owner hasta inspección.
