@@ -1,7 +1,10 @@
 # B05 focal validator. Windows PowerShell 5.1; no Docker or full suite.
 # Copies only committed files to a retained independent Git clone.
 [CmdletBinding()]
-param([string] $RepoRoot = ".")
+param(
+    [string] $RepoRoot = ".",
+    [switch] $CheckSensitivity
+)
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
@@ -68,6 +71,7 @@ foreach ($entry in @(Get-ChildItem Env:)) {
     }
 }
 $exitCode = 99
+$sensitivityExitCode = -1
 try {
     foreach ($key in $original.Keys) {
         [Environment]::SetEnvironmentVariable($key, $null, "Process")
@@ -85,6 +89,17 @@ try {
             & $python -B -m pytest -q -ra --no-header -o "addopts=" -p "no:cacheprovider" --basetemp $temp $nodeids *>&1 |
                 Out-File -FilePath (Join-Path $reports "pytest_focal.log") -Encoding utf8
             $exitCode = $LASTEXITCODE
+            if ($exitCode -eq 0 -and $CheckSensitivity) {
+                Write-Host "B05 sensitivity: two in-memory SUT mutations in the cloned workspace."
+                [Environment]::SetEnvironmentVariable("TST_STAB_SENSITIVITY_OPT_IN", "1", "Process")
+                try {
+                    & $python -B "docs/architecture/adr/tests_stabilization/probe_b05_sensitivity.py" --reports $reports *>&1 |
+                        Out-File -FilePath (Join-Path $reports "mutation_runner.log") -Encoding utf8
+                    $sensitivityExitCode = $LASTEXITCODE
+                } finally {
+                    [Environment]::SetEnvironmentVariable("TST_STAB_SENSITIVITY_OPT_IN", $null, "Process")
+                }
+            }
         } finally {
             $ErrorActionPreference = $savedAction
         }
@@ -119,6 +134,8 @@ try {
     @(
         "source_sha=$revision"
         "pytest_exit_code=$exitCode"
+        "sensitivity_requested=$([bool]$CheckSensitivity)"
+        "sensitivity_exit_code=$sensitivityExitCode"
         "clone=$copy"
         "reports=$reports"
         "docker_used=false"
@@ -126,8 +143,13 @@ try {
     ) | Out-File -FilePath (Join-Path $reports "summary.txt") -Encoding utf8
 }
 Write-Host "pytest exit code: $exitCode"
+if ($CheckSensitivity) {
+    Write-Host "Sensitivity exit code: $sensitivityExitCode"
+    Write-Host "Sensitivity report: $(Join-Path $reports 'mutation_summary.json')"
+}
 Write-Host "pytest log: $(Join-Path $reports 'pytest_focal.log')"
 Write-Host "Git diff inventory: $(Join-Path $reports 'status_changes.txt')"
 Write-Host "No files were cleaned up; retain this clone and reports."
 if ($exitCode -ne 0) { exit 2 }
+if ($CheckSensitivity -and $sensitivityExitCode -ne 0) { exit 3 }
 exit 0
