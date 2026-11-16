@@ -136,8 +136,16 @@ if (@(Get-Content (Join-Path $reports "git_before.txt")).Count -ne 0) {
 if ($PreflightA06) {
     # No pytest, no collection, no test imports or bodies in this mode.
     Write-ProtectedInventory -CloneRoot $copy -Output (Join-Path $reports "protected_before.tsv")
-    $pluginProbe = 'import importlib.metadata as m; print("pytest="+m.version("pytest")); print("pytest_asyncio="+m.version("pytest-asyncio")); [print("entrypoint="+e.name+"|"+e.value) for e in sorted(m.entry_points(group="pytest11"), key=lambda x: x.name)]'
-    & $python -I -B -c $pluginProbe 2>&1 |
+    # Windows PowerShell 5.1 strips nested quotes in native -c arguments.
+    # Send literal Python source via stdin; no test imports or plugin loading.
+    $pluginProbe = @'
+import importlib.metadata as m
+print("pytest=" + m.version("pytest"))
+print("pytest_asyncio=" + m.version("pytest-asyncio"))
+for entry in sorted(m.entry_points(group="pytest11"), key=lambda x: x.name):
+    print("entrypoint=" + entry.name + "|" + entry.value)
+'@
+    $pluginProbe | & $python -I -B - 2>&1 |
         Out-File -FilePath (Join-Path $reports "plugin_entrypoints.txt") -Encoding utf8
     if ($LASTEXITCODE -ne 0) { throw "STOP: installed pytest plugin metadata inspection failed" }
     & git -C $copy status --porcelain=v1 --untracked-files=all --ignored |
