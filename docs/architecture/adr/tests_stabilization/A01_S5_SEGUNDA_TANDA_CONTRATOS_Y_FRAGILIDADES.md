@@ -113,3 +113,27 @@ Las etiquetas **E-OBS** (SUT realmente llamado + aserción observable escrita), 
 - [ ] **A01-S5 y A-01 globales cerrados** — NO. A-05 también pendiente.
 
 **Siguiente acción:** consolidar la trazabilidad de la **ruta activa por familias de test**, después auditar independencia de oráculos (A-03). Evitar que ampliar la cantidad de fichas reemplace la evaluación de si un test protege un contrato.
+
+## 7. Foreground/CLI — sensibilidad focal preparada después de A-03 (2026-11-16)
+
+**Motivo de prioridad:** TR-031 ya identifica \`tests/integration/test_b03_foreground_pdf_product.py\` como test del **coordinador real** \`run_admitted_pdf\` con \`_ingest\`, \`_run_g3\`, \`_run_g5\` y \`_read_status\` falsos. Su oráculo sí debe proteger el límite operativo G3/G5: **nunca continuar al ensamblado tras G3 incompleto y nunca declarar éxito sin PDF publicado**. No es ni se promoverá a E2E OCR→G3→G5.
+
+**Fuentes existentes auditadas:** \`apps/cli/pdf_product.py\` comprueba \`_require_state(doc, "READY_FOR_ASSEMBLY")\` antes de lanzar G5, y exige \`_verify_published_pdf\` antes de devolver \`PDFProductResult\`. Las pruebas ya presentes:
+- \`test_foreground_fails_on_incomplete_g3_before_g5\`: fake deja FSM en \`PROCESSING\`, espera \`PDFProductError/STAGE_NOT_COMPLETE\` y \`events=["OCR","G3"]\`.
+- \`test_foreground_fails_when_g5_did_not_publish\`: fake G5 marca \`COMPLETED\` sin crear PDF; espera \`PDFProductError/WITHOUT_PUBLISHED_PDF\` y \`events=["OCR","G3","G5"]\`.
+
+Se reutilizaron **los dos tests originales y sus aserciones**, sin editar SUT ni fixtures. Se preparó [\`probe_foreground_sensitivity.py\`](probe_foreground_sensitivity.py) y bandera \`-CheckForegroundSensitivity\` del runner aislado. Primero se ejecutan esos **dos nodeids** sin mutar y solo con \`pytest exit=0\` se lanzan dos procesos Python con parches efímeros:
+
+| Control | Violación del SUT in-memory | Detector previsto |
+|---|---|---|
+| **FG-NEG-01** | \`_require_state\` informa falsamente \`READY_FOR_ASSEMBLY\` aunque el estado real tras G3 es \`PROCESSING\` | \`test_foreground_fails_on_incomplete_g3_before_g5\` falla por \`Failed: DID NOT RAISE\` (G5 ya se habría invocado) |
+| **FG-NEG-02** | \`_verify_published_pdf\` devuelve \`PDFProductResult(COMPLETED)\` aun sin PDF final | \`test_foreground_fails_when_g5_did_not_publish\` falla por \`Failed: DID NOT RAISE\` |
+
+Cada hijo requiere **exit 1, exactamente \`1 failed\`, marcador \`DID NOT RAISE\`** y ausencia de errores de colección/internos. Reporta \`foreground_mutation_summary.json\` más dos tracebacks individuales. No se cambia runtime/CI/GT ni se requiere Docker. El clon sin hardlinks no es sandbox OS; la comprobación Git post detecta solo cambios persistentes en ese clon.
+
+\`\`\`powershell
+git pull --ff-only origin tests_stabilization
+& .\docs\architecture\adr\tests_stabilization\run_b05_focal_isolated.ps1 -RepoRoot (Get-Location).Path -CheckForegroundSensitivity
+\`\`\`
+
+**Estado:** implementación del falsador, **ninguna baseline nueva ni mutation kills FG acreditados aún**. La evidencia A-03 anterior está en [informe G3-B3 §8](A03_PREAUDITORIA_INDEPENDENCIA_ORACULOS_G3_B3.md): **39 PASS en el mismo SHA y TWO_KILLED inspeccionados directamente desde \`reports.rar\`**, con \`status_changes.txt\` vacío. La colección global A-01 de **1.476 nodeids** corresponde al SHA \`5447963d\`; el test multibyte añadido posteriormente exige nueva colección en otro hito, no reinterpretar el censo antiguo. A/B/C generales, A-05/06 y CI siguen abiertos.
