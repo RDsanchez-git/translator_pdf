@@ -515,3 +515,24 @@ python -B docs/architecture/adr/tests_stabilization/collect_a01_isolated.py --co
 **Leer antes de ejecutar:** \`--collect\` sí importa tests, decoradores, conftests y plugins aunque no corre los cuerpos de tests. Solo ejecutar si se acepta **ese** alcance en clon descartable: el guard de Python y el clon **no bloquean físicamente procesos hijos/egress a nivel SO**. Ante cualquier error, conservar el clon/reportes y **no** ejecutar \`pytest\` directamente en el working tree.
 
 **Evidencia solicitada para el gate siguiente:** \`manifest.json\`, cuatro logs \`all.log\`, \`unit.log\`, \`integration_nonregression.log\`, \`technical.log\`, \`protected_before.json\`, \`protected_after.json\`, \`git_before.txt\`, \`git_after.txt\` (y opcionalmente los JSON de colección). Con ello se decide si P4/P6 están suficientemente controlados para **un subconjunto A-06**, sin inferir que una suite completa sea segura ni declarar CI verde.
+
+## 23. A06-COLLECT — colección con caché Hypothesis detectada y remediación mínima (owner, 2026-11-16)
+
+**Evidencia primaria:** el owner ejecutó \`collect_a01_isolated.py --collect\` sobre \`cffc57f270cbb1bd5ca4fa4d1955518b72a003e5\` y adjuntó \`reports.rar\` RAR5 (14 miembros), leídos directamente: \`manifest.json\`, cuatro \`*.log\`, cuatro \`*.json\` de colección, \`protected_before.json\`, \`protected_after.json\`, \`git_before.txt\`, \`git_after.txt\`, \`static_signals.json\`. **No se ejecutaron cuerpos de tests.**
+
+| Señal | Resultado comprobado | Dictamen honesto |
+|---|---|---|
+| Cuatro colecciones pytest | \`all=1478\`, \`unit=225\`, \`integration_nonregression=72\`, \`technical=1458\`, **exit 0 × 4** | **Colección ejecutada sin error**, 1.478 IDs únicos; **no PASS de tests** |
+| Scanner de fuente | 188 archivos Python, 388 llamadas estáticas, 0 errores AST | Dato de scanner, **no** lista exhaustiva de efectos reales |
+| Protectores de tests | **30 archivos pre / 30 post**, \`protected_file_changes=[]\` (12 \`tests/fixtures\`, 18 \`infra/db\`, 0 \`tests/golden\`) | **No se modificó contenido persistente protegido** durante la colección |
+| Git del clon | \`git_before.txt\` vacío, \`git_after.txt\` con **271 líneas \`!!\`**, todas bajo **\`.hypothesis/\`**: 270 constantes + \`.gitignore\` | **Side effect real, creado durante import/collect**, con artefactos ignorados; el gate **FAIL correctamente** |
+| Plugins realmente cargados | \`--trace-config\` registra \`anyio\`, \`faker\`, \`_hypothesis_pytestplugin\`, \`pytest_asyncio\`, \`pytest_cov\`, el plugin observacional y \`tests/smoke/conftest.py\` | **P4: carga observada**, distinta del catálogo de entrypoints anunciado en el preflight |
+| Warnings | dos mensajes: \`google.api_core\` sobre futuro fin de soporte de Python 3.11 y \`google.generativeai\` deprecated | Son avisos de dependencia; no errores de colección ni autorización para migrar SDK |
+
+**Causa:** al cargar tests/plugins Hypothesis crea \`.hypothesis/constants/\` en el CWD del clon. La salida ignorada no está dentro de los tres árboles de inputs protegidos, pero **viola la política de no dejar artefactos en el checkout**. No imputar el FAIL a cambios de golden, a corrupción de SQLite o a un defecto probado del traductor.
+
+**Cambio focal aplicado en el recolector existente:** \`child_environment()\` fija \`HYPOTHESIS_STORAGE_DIRECTORY\` a \`scratch/hypothesis\` **fuera del clon** y registra ese destino en el manifiesto. No se suprimió el gate, no se ocultaron entradas \`!!\` de Git, no se eliminó la caché ni se hizo \`git clean\`. Se conserva el guard de sockets Python best-effort y el opt-in Groq en 0. **No se han repetido aún las colecciones con esta corrección:** el gate A06-collect sigue **FAIL** en el SHA anterior y **PENDIENTE DE REVALIDACIÓN** en el nuevo SHA.
+
+**Repetición mínima necesaria:** una sola \`python -B docs/architecture/adr/tests_stabilization/collect_a01_isolated.py --collect\` tras \`git pull --ff-only origin tests_stabilization\`, sobre un clon nuevo, sin ejecutar cuerpos de tests. Revisar \`manifest.json\`, los cuatro logs, \`git_before.txt\`, \`git_after.txt\` y \`protected_before/after.json\`. Si la variable de almacenamiento no surte efecto o algún otro import crea archivos, conservar el fallo sin autorizar la suite amplia. **Clones previos retenidos, sin limpieza destructiva ni efecto sobre el PDF eliminado intencionalmente en el working tree original.**
+
+**Límites restantes:** que Git y hashes del clon estén limpios después de la colección **no demuestra ausencia de I/O transitorio, accesos externos ni aislamiento OS de red**. A05-P4/P6 siguen PARCIALES y A-06 ejecución de cuerpos sigue PENDIENTE. No se editó producción, CI, tests, corpus ni Ground Truth.
