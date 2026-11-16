@@ -412,3 +412,29 @@ pyright tests/integration/test_embedding_smoke.py \`
 \`\`\`
 
 **Acreditación pendiente de owner:** \`pytest_focal.log\`, \`summary.txt\`, \`status_changes.txt\`, \`git_before.txt\`, \`git_after.txt\` y Pyright focal. **No afirmar PASS ni ausencia física de egress antes de ejecutarlos**. El opt-in bloquea **esta llamada Groq desde este test**, no todos los posibles caminos de socket/import/plugin. A05-P4/P6 y suite técnica completa siguen abiertos; no ejecutar la suite global en working tree, no modificar GT/corpus ni requerir Docker para estos casos puros. Si se quisiera certificar ausencia de egress de toda la suite sería necesaria una condición adicional del entorno de ejecución (aislamiento de red independiente), no otro mock presentado como firewall.
+
+## 19. A-05 — corrida de once tests verificada y condiciones de paso a A-06 (owner, 2026-11-16)
+
+**Evidencia fuente inspeccionada en el RAR5 adjunto \`reports.rar\`:** \`git_after.txt\` (0 bytes), \`git_before.txt\` (0 bytes), \`pytest_focal.log\`, \`status_changes.txt\` (0 bytes), \`summary.txt\`. El SHA **\`65385307e11cc2db8795c3e6c6343d94ef9d2bdd\`** está presente en \`summary.txt\` con \`a05_safety_requested=True\`, \`pytest_exit_code=0\`, \`docker_used=false\`, \`no_OS_level_sandbox_claim=true\` y \`sensitivity_requested=False\`/\`sensitivity_exit_code=-1\` (no hubo mutaciones). El usuario aportó Pyright explícito: **0 errors, 0 warnings, 0 informations**.
+
+| Testigos seleccionados en A-05 | Resultado del log | Interpretación |
+|---|---|---|
+| Seis pruebas de \`test_tectonic_runner.py\` | **6 PASS** | Subprocess Tectonic mockeado, CWD temporal; no compilación real |
+| \`test_translation_layer.py\` | **1 PASS** | Cache SQLite en temporal, proveedor fake; alcance legacy |
+| \`test_embedding_smoke.py::test_live_provider_requires_explicit_opt_in\` | **1 PASS** | Con credencial sintética y opt-in deshabilitado, verifica \`SkipTest\`/proveedor no construido; no request |
+| \`test_translation_structure.py\` | **1 SKIP** (golden estructural ausente) | No certifica estructura científica, aunque setup SQLite ya no use DB persistente |
+| \`test_translation_technical.py\` | **1 SKIP** (golden técnico ausente) | No certifica tokens/LaTeX científico |
+| \`test_embedding_smoke.py::test_isolated_generation_request\` | **1 SKIP** por \`TRANSLATOR_PDF_RUN_LIVE_PROVIDER_TESTS\` distinto de 1 | Evitó ejecutar request real de Groq en el smoke |
+| **Total** | **\`8 passed, 3 skipped, 2 warnings in 11.34s\`**, \`pytest_exit_code=0\` | **Baseline de 11 casos sin fallos**, tres saltos explícitos; Git antes/después y cambios persistentes del clon vacíos |
+
+Las **dos advertencias** observadas no son resultado de los casos: (1) \`google.api_core\` advierte de soporte futuro de Python 3.11; (2) \`google.generativeai\` advierte de paquete descontinuado. Son deuda de dependencias a gestionar con su proceso propio, **no** permiso para migrar SDK o producción dentro de A-05. El mensaje de actualización disponible de Pyright tampoco es fallo de tipado.
+
+### 19.1 Preflight mínimo para la suite técnica posterior — sin herramienta adicional
+
+1. **No-ejecutar sobre checkout personal:** usar el clon independiente no enlazado, HEAD detached y sin remoto. Conservar la copia y los informes tras cualquier fallo; no reset/clean ni tocar la eliminación PDF intencional del owner.
+2. **Sin red real voluntaria:** \`TRANSLATOR_PDF_RUN_LIVE_PROVIDER_TESTS=0\`, retirar credenciales/secretos como ya hace el runner focal; excluir cualquier test opt-in de proveedor externo. Esto **evita la petición de Groq desde el smoke auditado**, pero **no** demuestra bloqueo de egress físico para imports, otros procesos o sockets inesperados.
+3. **Plugins controlados:** el \`pyproject.toml\` y el runner focal no establecen \`PYTEST_DISABLE_PLUGIN_AUTOLOAD\`; \`tests/smoke/conftest.py\` importa validadores al cargar y construye la fixture al solicitarla. Para una ejecución amplia, **registrar el conjunto de plugins cargados**; si se decide desactivar autoload, habilitar explícitamente los plugins realmente requeridos, especialmente \`pytest-asyncio\`, y no declarar PASS si hay skips/errores por plugins omitidos. No se exige cambiar el CI actual dentro de este expediente.
+4. **Efectos persistentes y transitorios:** verificar inventarios Git antes/después, outputs y SQLite/sidecars en temporales. Un Git limpio y el CWD aislado son garantías acotadas: **no observan todo I/O fuera del clon o creación y borrado entre inventarios**. Control OS independiente de red/host si se exige atestación de ausencia física de egress.
+5. **Selección A-06:** partir de los selectores existentes (\`unit\`, \`integration and not regression\`, \`not e2e\`), identificar qué se selecciona realmente y registrar **PASS, FAIL, SKIP, XFAIL** y SHA. Sin tratar el smoke proveedor omitido como PASS ni extender automáticamente E2E científico/GT. La ejecución completa sigue **pendiente** y debe autorizarse en entorno controlado, no en working tree.
+
+**Estado:** las cuatro ediciones de tests A-05 y el guard explícito Groq cuentan con fuente inspeccionada y baseline focal de 11 nodeids. **A-05-P4/P6 siguen ABIERTOS** en cuanto a una ejecución amplia y control/observación real de imports, plugins, red y efectos transitorios; no se ha certificado aislamiento OS. No se agregaron tests/scripts, no se corrió la suite completa y no se alteraron producción, CI, corpus ni GT en este registro.
