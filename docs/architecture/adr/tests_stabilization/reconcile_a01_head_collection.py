@@ -149,9 +149,12 @@ def main() -> int:
     actual_head = git(root, "rev-parse", "HEAD")
     if new["sha"] != actual_head:
         raise ValueError("Owner checkout HEAD and NEW report SHA differ")
-    if git(root, "merge-base", "--is-ancestor", old["sha"], new["sha"]):
-        # merge-base normally returns no output and exits 0 for ancestor.
-        pass
+    if subprocess.run(
+        ["git", "-C", str(root), "merge-base", "--is-ancestor",
+         old["sha"], new["sha"]],
+        capture_output=True, check=False, timeout=25,
+    ).returncode != 0:
+        raise ValueError("Old collection SHA is not ancestor of new HEAD")
     old_map = old["items"]["all"]
     new_map = new["items"]["all"]
     old_ids, new_ids = set(old_map), set(new_map)
