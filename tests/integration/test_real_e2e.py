@@ -50,7 +50,7 @@ class FakeLLMProvider:
         return mock_res
 
 class TestRealE2EFinOps(unittest.IsolatedAsyncioTestCase):
-    """Certificación E2E usando el Provider Stack simulado (Zero-Cost CI/CD)."""
+    """Consumer/FinOps shape contract with mocked execute; no PDF→PDF E2E."""
 
     def setUp(self):
         self.pdf_real_path = "tests/fixtures/sample_3_pages.pdf"
@@ -98,18 +98,19 @@ class TestRealE2EFinOps(unittest.IsolatedAsyncioTestCase):
         from core.pipeline.orchestrator import TranslationPipeline
         from core.metrics.summary import SummaryBuilder
         from infra.db.document_repository import SQLiteDocumentRepository
-        from infra.db.connection import get_connection
         from infra.db.fsm_repository import FSMRepository
         from core.execution.handlers import DocumentCommandHandler
         from core.pipeline.state_store import FSMStateStore
         import sqlite3
 
         parser = build_extraction_pipeline()
-        doc_conn = get_connection("infra/db/documents.db", timeout=30)
+        doc_conn = sqlite3.connect(":memory:")
+        self.addCleanup(doc_conn.close)
         document_repository = SQLiteDocumentRepository(doc_conn)
     
     
         fsm_db_conn = sqlite3.connect(":memory:")
+        self.addCleanup(fsm_db_conn.close)
         fsm_repo = FSMRepository(fsm_db_conn)
         state_store = FSMStateStore(fsm_repo, DocumentCommandHandler(fsm_repo))
 
@@ -143,10 +144,10 @@ class TestRealE2EFinOps(unittest.IsolatedAsyncioTestCase):
     def tearDown(self):
         self.processor.shutdown()
 
-    async def test_real_pipeline_execution_spends_and_audits_money(self):
+    async def test_mocked_pipeline_result_exposes_finops_fields(self):
         job = TranslationJob(job_id=f"job_e2e_{self.test_id}", source_path=self.pdf_real_path)
         
-        # SOTA FIX: Mock del retorno de ejecución para simular el empaquetado final
+        # El SUT execute() se reemplaza: prueba sólo el contrato del consumidor.
         mock_result = MagicMock()
         mock_result.document.content = "SOTA Translation Success"
         mock_result.summary.total_cost_usd = 0.0375
