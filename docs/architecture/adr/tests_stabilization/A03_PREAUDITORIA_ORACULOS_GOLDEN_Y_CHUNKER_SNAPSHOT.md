@@ -107,3 +107,24 @@
 - [ ] **A-05:** efectos de import, side effects y aislamiento OS pendientes.
 
 **Criterio general:** lo científico se preserva y difiere; una prueba técnica se juzga por lo que su SUT realmente ejecuta. Ni un SKIP ni un archivo expected fabricado en tiempo de prueba constituyen evidencia de estabilidad ante regresiones.
+
+## 7. B-01/B-02 — implementación focal sin resultados de ejecución (2026-11-16)
+
+**Distinción temporal:** §§1–6 conservan la preauditoría histórica hecha sobre el SHA de colección \`86cd6867\`. **No describen el código remediado actual**. Los siguientes cambios corresponden a \`tests_stabilization\`, con los commits indicados; no sustituyen ni modifican el Ground Truth científico.
+
+| Hallazgo | Cambio aplicado | Contrato comprobado y límites | Estado |
+|---|---|---|---|
+| **B-01 / TS-001** | [\`test_golden_parser.py\`](../../../../tests/integration/test_golden_parser.py), commit \`3f06a565\` | Se eliminó por completo \`expected_fingerprint=current_fingerprint\`, el JSON golden no versionado, el \`skipTest\` y el \`patch.object(adapter, "parse")\`. El test crea con PyMuPDF **en \`tmp_path\`** un PDF de una página con dos textos literales conocidos; invoca la composición productiva \`build_extraction_pipeline().parse\`, verifica su presencia en el AST, nodos no vacíos e identidad sin duplicados. **No** certifica geometría, páginas complejas ni fidelidad científica. | **Implementado, sin pytest ni Pyright aún** |
+| **B-02 / TS-002** | [\`test_chunker_snapshot.py\`](../../../../tests/integration/test_chunker_snapshot.py), commit \`03955d90\` | Se eliminó toda escritura/lectura de \`sample_chunks.json\` y de la caché AST histórica; no se genera ningún expected. El AST sintético tipado fija cinco nodos efectivos y uno \`OMIT\`, textos con espacios dobles/saltos de línea, dos contextos, tipos \`TRANSLATE/PRESERVE/PARTIAL\`. Se comprueba cobertura, orden, bytes por miembro, política, digest y roundtrip \`ChunkPlan\`. Dos negativos usan \`dataclasses.replace\` para eliminar miembro y cambiar espacios, exigiendo rechazo por \`G3_MISSING_NODE\`/\`G3_SEGMENT_COVERAGE_ERROR\` o \`G3_SOURCE_LOSS_OR_DUPLICATION\`. **No** acredita snapshots científicos ni mide tokenizer comercial. | **Implementado, sin pytest ni Pyright aún** |
+
+**Conservación de evidencia histórica:** \`tests/fixtures/sample_3_pages.pdf\`, \`tests/fixtures/sample_3_pages.pdf.ast.json\` y \`tests/fixtures/sample_chunks.json\` siguen **versionados e intactos**; ya no se usan como oráculos de estas pruebas. El nombre de los archivos de test es histórico; los nuevos nombres de funciones y docstrings especifican el alcance real. La colección 1.474 nodeids sigue siendo evidencia **del SHA anterior**, no del HEAD remediado.
+
+**Runner reutilizado:** [\`run_b05_focal_isolated.ps1\`](run_b05_focal_isolated.ps1) admite \`-CheckB01B02\`, que elige **exactamente cuatro nodeids** y ejecuta pytest en un clon nuevo fijado al SHA, separado del checkout habitual. No se puede combinar con \`-CheckSensitivity\` (mutaciones de B05 son otro experimento). No usa Docker, no borra clon ni GT. Conserva \`pytest_focal.log\`, \`summary.txt\`, \`status_changes.txt\`, etc. El inventario Git sin cambios no demuestra ausencia de efectos transitorios ni es una sandbox del SO.
+
+\`\`\`powershell
+git pull --ff-only origin tests_stabilization
+& .\docs\architecture\adr\tests_stabilization\run_b05_focal_isolated.ps1 -RepoRoot (Get-Location).Path -CheckB01B02
+pyright tests/integration/test_golden_parser.py tests/integration/test_chunker_snapshot.py
+\`\`\`
+
+**Gates abiertos:** no se ejecutaron los nuevos cuerpos de test desde esta sesión; \`B-01/B-02 PASS=UNKNOWN\`, Pyright focal no ejecutado, ninguna mutación B01/B02 acreditada, ni CI del HEAD comprobado. Una falla real de extracción o chunking debe registrarse con su mensaje/SHA; no reescribir oráculos o generar snapshots para forzar verde. El ensayo B01 es más costoso que B02 porque ejecuta el parser físico, pero se limita a un PDF sintético en temporales.
