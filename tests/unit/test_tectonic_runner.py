@@ -9,6 +9,8 @@ import tempfile
 from unittest.mock import patch, MagicMock
 import subprocess
 
+import pytest
+
 from apps.compiler.tectonic_runner import HostTectonicRunner
 
 
@@ -69,35 +71,26 @@ class TestHostTectonicRunner:
             assert captured_cwd[0] != os.getcwd()
             assert captured_cwd[0] is not None
 
-    def test_no_crash_log_written_to_cwd(self):
-        """No se escribe tectonic_crash.log en el cwd del proceso."""
+    def test_no_crash_log_written_to_cwd(self, monkeypatch, tmp_path):
+        """No se escribe tectonic_crash.log en el cwd temporal del test."""
         runner = self._make_runner()
 
-        crash_log = os.path.join(os.getcwd(), "tectonic_crash.log")
+        # El CWD del test es descartable; jamás borrar el log ajeno del owner.
+        monkeypatch.chdir(tmp_path)
+        crash_log = tmp_path / "tectonic_crash.log"
+        assert not crash_log.exists()
 
-        # Garantizar estado inicial limpio
-        if os.path.exists(crash_log):
-            os.remove(crash_log)
+        with tempfile.TemporaryDirectory() as output_dir:
+            with patch("apps.compiler.tectonic_runner.subprocess.run") as mock_run:
+                mock_run.return_value = MagicMock(returncode=1, stderr="some error")
 
-        try:
-            with tempfile.TemporaryDirectory() as output_dir:
-                with patch("apps.compiler.tectonic_runner.subprocess.run") as mock_run:
-                    mock_run.return_value = MagicMock(returncode=1, stderr="some error")
+                with pytest.raises(Exception, match="Fallo de Tectonic"):
+                    runner.compile(r"\documentclass{article}", output_dir=output_dir)
 
-                    try:
-                        runner.compile(r"\documentclass{article}", output_dir=output_dir)
-                    except Exception:
-                        pass
-
-                # Verificar que el runner NO creó tectonic_crash.log en el cwd
-                assert not os.path.exists(crash_log), (
-                    "tectonic_crash.log no debe existir en cwd. "
-                    "NADR-09 §5.2 R6: el runner no escribe en el directorio del proceso."
-                )
-        finally:
-            # Limpiar después del test
-            if os.path.exists(crash_log):
-                os.remove(crash_log)
+        assert not crash_log.exists(), (
+            "tectonic_crash.log no debe existir en cwd. "
+            "NADR-09 §5.2 R6: el runner no escribe en el directorio del proceso."
+        )
 
     def test_tectonic_failure_propagates(self):
         """Exit code non-zero de tectonic propaga excepción."""
