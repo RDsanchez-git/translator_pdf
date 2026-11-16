@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import ast
 import datetime as dt
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -86,6 +87,29 @@ def inside(root: Path, maybe_child: Path) -> bool:
         return True
     except ValueError:
         return False
+
+
+def protected_snapshot(repo: Path) -> dict[str, dict[str, Any]]:
+    """Snapshot content in protected test/data paths, including ignored files.
+
+    Before/after snapshots detect persistent effects, not transient I/O or egress.
+    """
+    snapshot: dict[str, dict[str, Any]] = {}
+    for relative in ("tests/fixtures", "tests/golden", "infra/db"):
+        base = repo / relative
+        if base.is_symlink():
+            raise RuntimeError(f"Protected directory is a symlink: {base}")
+        if not base.exists():
+            continue
+        for entry in sorted(base.rglob("*")):
+            if entry.is_symlink():
+                raise RuntimeError(f"Protected file/dir is a symlink: {entry}")
+            if entry.is_file():
+                snapshot[entry.relative_to(repo).as_posix()] = {
+                    "size": entry.stat().st_size,
+                    "sha256": hashlib.sha256(entry.read_bytes()).hexdigest(),
+                }
+    return snapshot
 
 
 def flagged_calls(text: str, name: str) -> list[dict[str, Any]]:
@@ -189,6 +213,8 @@ def child_environment(repo: Path, scratch: Path, helpers: Path) -> dict[str, str
     env["PYTHONDONTWRITEBYTECODE"] = "1"
     env["PYTHONNOUSERSITE"] = "1"
     env["PYTEST_ADDOPTS"] = ""
+    # A05: do not inherit live provider authorization from a developer shell.
+    env["TRANSLATOR_PDF_RUN_LIVE_PROVIDER_TESTS"] = "0"
     return env
 
 
@@ -265,6 +291,14 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Reports: {reports}")
         return 0
 
+    protected_before = protected_snapshot(repo)
+    (reports / "protected_before.json").write_text(
+        json.dumps(protected_before, indent=2), encoding="utf-8"
+    )
+    git_before = git("-C", str(repo), "status", "--porcelain=v1",
+                     "--untracked-files=all", "--ignored")
+    (reports / "git_before.txt").write_text(git_before, encoding="utf-8")
+
     (helpers / "a01_pytest_inventory_plugin.py").write_text(PLUGIN_SOURCE, encoding="utf-8")
     (helpers / "sitecustomize.py").write_text(SOCKET_GUARD_SOURCE, encoding="utf-8")
     env = child_environment(repo, scratch, helpers)
@@ -274,6 +308,7 @@ def main(argv: list[str] | None = None) -> int:
         args_pytest = [
             sys.executable, "-m", "pytest", "--collect-only", "-q",
             "-o", "addopts=", "--strict-markers", "--strict-config",
+            "--trace-config",
             "-p", "no:cacheprovider", "-p", "a01_pytest_inventory_plugin",
         ]
         if expr is not None:
@@ -303,6 +338,26 @@ def main(argv: list[str] | None = None) -> int:
         if code != 0:
             failures += 1
             break  # Do not repeat imports if the first collection failed.
+    protected_after = protected_snapshot(repo)
+    (reports / "protected_after.json").write_text(
+        json.dumps(protected_after, indent=2), encoding="utf-8"
+    )
+    git_after = git("-C", str(repo), "status", "--porcelain=v1",
+                    "--untracked-files=all", "--ignored")
+    (reports / "git_after.txt").write_text(git_after, encoding="utf-8")
+    altered = sorted(
+        key for key in protected_before.keys() | protected_after.keys()
+        if protected_before.get(key) != protected_after.get(key)
+    )
+    manifest["protected_file_changes"] = altered
+    manifest["git_status_before_equals_after"] = (git_before == git_after)
+    manifest["plugin_loading_observation"] = "pytest --trace-config in *.log; no OS-level sandbox"
+    if altered or git_before != git_after:
+        failures += 1
+        print(
+            "COLLECTION SAFETY CHECK FAILED: protected paths or clone Git status changed.",
+            file=sys.stderr,
+        )
     (reports / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
     print(f"Reports: {reports}")
     print("The isolated copy is intentionally retained for inspection; no cleanup was run.")
