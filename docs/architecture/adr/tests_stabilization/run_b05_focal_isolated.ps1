@@ -1,11 +1,12 @@
-# B05 focal validator. Windows PowerShell 5.1; no Docker or full suite.
+# Focused stabilization validator. Windows PowerShell 5.1; no Docker or full suite.
 # Copies only committed files to a retained independent Git clone.
 [CmdletBinding()]
 param(
     [string] $RepoRoot = ".",
     [switch] $CheckSensitivity,
     [switch] $CheckB01B02,
-    [switch] $CheckB01B02Sensitivity
+    [switch] $CheckB01B02Sensitivity,
+    [switch] $CheckG3G5
 )
 
 Set-StrictMode -Version Latest
@@ -15,6 +16,9 @@ if ($CheckB01B02Sensitivity) {
 }
 if ($CheckB01B02 -and $CheckSensitivity) {
     throw "STOP: B01/B02 selection and B05 sensitivity are separate controlled runs."
+}
+if ($CheckG3G5 -and ($CheckB01B02 -or $CheckSensitivity)) {
+    throw "STOP: G3/G5 baseline is an independent selection; do not combine runner modes."
 }
 $root = (Resolve-Path -LiteralPath $RepoRoot).ProviderPath
 if (-not (Test-Path -LiteralPath (Join-Path $root "pyproject.toml"))) {
@@ -70,6 +74,19 @@ if ($CheckB01B02) {
         "tests/integration/test_chunker_snapshot.py::test_semantic_chunker_preserves_members_policy_and_source_exactly",
         "tests/integration/test_chunker_snapshot.py::test_semantic_chunker_rejects_lost_member_in_manifest",
         "tests/integration/test_chunker_snapshot.py::test_semantic_chunker_rejects_source_whitespace_mutation"
+    )
+}
+if ($CheckG3G5) {
+    # A02/A03/B06 focal: 2 W06 + 2 G3 publication + 2 G5 guards
+    # plus 3 parametrized G5 recovery phases. All in tmp_path/in-memory SQLite.
+    $nodeids = @(
+        "tests/integration/test_w06_g3_uncertain_effect_offline.py::test_w06_lost_reply_is_quarantined_without_second_provider_call",
+        "tests/integration/test_w06_g3_uncertain_effect_offline.py::test_w06_restart_never_reinitializes_provider_for_unknown",
+        "tests/integration/test_g3_b4_3b_publication_recovery.py::test_completed_with_no_publication_fails_closed",
+        "tests/integration/test_g3_b4_3b_publication_recovery.py::test_corrupt_projection_never_advances_fsm",
+        "tests/integration/test_g5_assembler_lease_recovery.py::test_wrong_epoch_and_wrong_leader_cannot_recover",
+        "tests/integration/test_g5_assembler_lease_recovery.py::test_expired_lease_old_worker_cannot_publish_even_without_takeover",
+        "tests/integration/test_g5_assembler_lease_recovery.py::test_recovery_fences_old_owner_and_new_owner_completes"
     )
 }
 $nodeids | Out-File -FilePath (Join-Path $reports "nodeids.txt") -Encoding utf8
@@ -162,6 +179,7 @@ try {
         "source_sha=$revision"
         "pytest_exit_code=$exitCode"
         "b01_b02_requested=$([bool]$CheckB01B02)"
+        "g3_g5_requested=$([bool]$CheckG3G5)"
         "b01_b02_sensitivity_requested=$([bool]$CheckB01B02Sensitivity)"
         "sensitivity_requested=$([bool]$CheckSensitivity)"
         "sensitivity_exit_code=$sensitivityExitCode"
