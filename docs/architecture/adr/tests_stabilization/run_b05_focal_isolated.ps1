@@ -4,11 +4,15 @@
 param(
     [string] $RepoRoot = ".",
     [switch] $CheckSensitivity,
-    [switch] $CheckB01B02
+    [switch] $CheckB01B02,
+    [switch] $CheckB01B02Sensitivity
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
+if ($CheckB01B02Sensitivity) {
+    $CheckB01B02 = $true
+}
 if ($CheckB01B02 -and $CheckSensitivity) {
     throw "STOP: B01/B02 selection and B05 sensitivity are separate controlled runs."
 }
@@ -101,6 +105,17 @@ try {
             & $python -B -m pytest -q -ra --no-header -o "addopts=" -p "no:cacheprovider" --basetemp $temp $nodeids *>&1 |
                 Out-File -FilePath (Join-Path $reports "pytest_focal.log") -Encoding utf8
             $exitCode = $LASTEXITCODE
+            if ($exitCode -eq 0 -and $CheckB01B02Sensitivity) {
+                Write-Host "B01/B02 sensitivity: two in-memory SUT mutations."
+                [Environment]::SetEnvironmentVariable("TST_STAB_B01B02_OPT_IN", "1", "Process")
+                try {
+                    & $python -B "docs/architecture/adr/tests_stabilization/probe_b01b02_sensitivity.py" --reports $reports *>&1 |
+                        Out-File -FilePath (Join-Path $reports "b01b02_mutation_runner.log") -Encoding utf8
+                    $sensitivityExitCode = $LASTEXITCODE
+                } finally {
+                    [Environment]::SetEnvironmentVariable("TST_STAB_B01B02_OPT_IN", $null, "Process")
+                }
+            }
             if ($exitCode -eq 0 -and $CheckSensitivity) {
                 Write-Host "B05 sensitivity: two in-memory SUT mutations in the cloned workspace."
                 [Environment]::SetEnvironmentVariable("TST_STAB_SENSITIVITY_OPT_IN", "1", "Process")
@@ -147,6 +162,7 @@ try {
         "source_sha=$revision"
         "pytest_exit_code=$exitCode"
         "b01_b02_requested=$([bool]$CheckB01B02)"
+        "b01_b02_sensitivity_requested=$([bool]$CheckB01B02Sensitivity)"
         "sensitivity_requested=$([bool]$CheckSensitivity)"
         "sensitivity_exit_code=$sensitivityExitCode"
         "clone=$copy"
@@ -156,13 +172,14 @@ try {
     ) | Out-File -FilePath (Join-Path $reports "summary.txt") -Encoding utf8
 }
 Write-Host "pytest exit code: $exitCode"
-if ($CheckSensitivity) {
+if ($CheckSensitivity -or $CheckB01B02Sensitivity) {
     Write-Host "Sensitivity exit code: $sensitivityExitCode"
-    Write-Host "Sensitivity report: $(Join-Path $reports 'mutation_summary.json')"
+    $mutationFile = if ($CheckB01B02Sensitivity) { "b01b02_mutation_summary.json" } else { "mutation_summary.json" }
+    Write-Host "Sensitivity report: $(Join-Path $reports $mutationFile)"
 }
 Write-Host "pytest log: $(Join-Path $reports 'pytest_focal.log')"
 Write-Host "Git diff inventory: $(Join-Path $reports 'status_changes.txt')"
 Write-Host "No files were cleaned up; retain this clone and reports."
 if ($exitCode -ne 0) { exit 2 }
-if ($CheckSensitivity -and $sensitivityExitCode -ne 0) { exit 3 }
+if (($CheckSensitivity -or $CheckB01B02Sensitivity) -and $sensitivityExitCode -ne 0) { exit 3 }
 exit 0
