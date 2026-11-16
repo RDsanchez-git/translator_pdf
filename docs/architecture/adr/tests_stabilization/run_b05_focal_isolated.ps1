@@ -17,11 +17,38 @@ param(
     [switch] $CheckG5Worker,
     [switch] $CheckG5WorkerSensitivity,
     [switch] $CheckC3T05Process,
-    [switch] $CheckA05Safety
+    [switch] $CheckA05Safety,
+    [switch] $PreflightA06,
+    [switch] $CaptureProtectedPaths
 )
+
+# A-05 P6: hash only protected technical inputs. Never scan canonical scientific corpus.
+function Write-ProtectedInventory {
+    param([string] $CloneRoot, [string] $Output)
+    $entries = New-Object 'System.Collections.Generic.List[string]'
+    foreach ($relative in @("tests/fixtures", "tests/golden", "infra/db")) {
+        $base = Join-Path $CloneRoot $relative
+        if (-not (Test-Path -LiteralPath $base)) { continue }
+        $items = @(Get-ChildItem -LiteralPath $base -Force -Recurse -ErrorAction Stop |
+            Sort-Object FullName)
+        foreach ($item in $items) {
+            if (($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) {
+                throw "STOP: protected tree contains a reparse point: $($item.FullName)"
+            }
+            if ($item.PSIsContainer) { continue }
+            $rel = $item.FullName.Substring($CloneRoot.Length + 1).Replace('\', '/')
+            $digest = (Get-FileHash -LiteralPath $item.FullName -Algorithm SHA256).Hash
+            $entries.Add(("$rel" + [char]9 + $item.Length + [char]9 + $digest))
+        }
+    }
+    [IO.File]::WriteAllLines($Output, $entries.ToArray(), ([Text.UTF8Encoding]::new($false)))
+}
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
+if ($PreflightA06 -and ($CaptureProtectedPaths -or $CheckA05Safety -or $CheckSensitivity -or $CheckB01B02 -or $CheckB01B02Sensitivity -or $CheckG3G5 -or $CheckG3G5Sensitivity -or $CheckB03Parser -or $CheckB04Contracts -or $CheckA03Boundaries -or $CheckA03Sensitivity -or $CheckForegroundSensitivity -or $CheckCLIAdmissionSensitivity -or $CheckG5Worker -or $CheckG5WorkerSensitivity -or $CheckC3T05Process)) {
+    throw "STOP: A06 preflight is metadata-only and cannot be combined with test selections."
+}
 if ($CheckB01B02Sensitivity) {
     $CheckB01B02 = $true
 }
@@ -104,6 +131,41 @@ if ($LASTEXITCODE -ne 0 -or $actual -ne $revision) {
 if ($LASTEXITCODE -ne 0) { throw "STOP: git inventory failed" }
 if (@(Get-Content (Join-Path $reports "git_before.txt")).Count -ne 0) {
     throw "STOP: clone is dirty before pytest; inspect git_before.txt"
+}
+
+if ($PreflightA06) {
+    # No pytest, no collection, no test imports or bodies in this mode.
+    Write-ProtectedInventory -CloneRoot $copy -Output (Join-Path $reports "protected_before.tsv")
+    $pluginProbe = 'import importlib.metadata as m; print("pytest="+m.version("pytest")); print("pytest_asyncio="+m.version("pytest-asyncio")); [print("entrypoint="+e.name+"|"+e.value) for e in sorted(m.entry_points(group="pytest11"), key=lambda x: x.name)]'
+    & $python -I -B -c $pluginProbe 2>&1 |
+        Out-File -FilePath (Join-Path $reports "plugin_entrypoints.txt") -Encoding utf8
+    if ($LASTEXITCODE -ne 0) { throw "STOP: installed pytest plugin metadata inspection failed" }
+    & git -C $copy status --porcelain=v1 --untracked-files=all --ignored |
+        Out-File -FilePath (Join-Path $reports "git_after.txt") -Encoding utf8
+    if ($LASTEXITCODE -ne 0 -or @(Get-Content (Join-Path $reports "git_after.txt")).Count -ne 0) {
+        throw "STOP: preflight altered the retained clone"
+    }
+    @(
+        "source_sha=$revision"
+        "mode=A06_PREFLIGHT_METADATA_ONLY"
+        "pytest_bodies=NOT_RUN"
+        "pytest_collection=NOT_RUN"
+        "loaded_pytest_plugins=NOT_INSPECTED"
+        "network_os_isolation=NOT_VERIFIED"
+        "external_file_effects=NOT_VERIFIED"
+        "protected_snapshot=protected_before.tsv"
+        "plugin_metadata=plugin_entrypoints.txt"
+        "clone=$copy"
+        "reports=$reports"
+    ) | Out-File -FilePath (Join-Path $reports "preflight_summary.txt") -Encoding utf8
+    Write-Host "A06 preflight complete: no tests or pytest imports executed."
+    Write-Host "Plugin metadata: $(Join-Path $reports 'plugin_entrypoints.txt')"
+    Write-Host "Protected files: $(Join-Path $reports 'protected_before.tsv')"
+    Write-Host "Reports retained: $reports"
+    return
+}
+if ($CaptureProtectedPaths) {
+    Write-ProtectedInventory -CloneRoot $copy -Output (Join-Path $reports "protected_before.tsv")
 }
 
 $nodeids = @(
@@ -213,6 +275,7 @@ foreach ($entry in @(Get-ChildItem Env:)) {
 }
 $exitCode = 99
 $sensitivityExitCode = -1
+$protectedSnapshotMatches = $true
 try {
     foreach ($key in $original.Keys) {
         [Environment]::SetEnvironmentVariable($key, $null, "Process")
@@ -322,6 +385,18 @@ try {
     }
     & git -C $copy status --porcelain=v1 --untracked-files=all --ignored |
         Out-File -FilePath (Join-Path $reports "git_after.txt") -Encoding utf8
+    if ($CaptureProtectedPaths) {
+        Write-ProtectedInventory -CloneRoot $copy -Output (Join-Path $reports "protected_after.tsv")
+        $beforeDigest = (Get-FileHash -LiteralPath (Join-Path $reports "protected_before.tsv") -Algorithm SHA256).Hash
+        $afterDigest = (Get-FileHash -LiteralPath (Join-Path $reports "protected_after.tsv") -Algorithm SHA256).Hash
+        $protectedSnapshotMatches = ($beforeDigest -eq $afterDigest)
+        if (-not $protectedSnapshotMatches) {
+            "Protected paths changed: compare protected_before.tsv and protected_after.tsv" |
+                Out-File (Join-Path $reports "protected_changes.txt") -Encoding utf8
+        } else {
+            [IO.File]::WriteAllText((Join-Path $reports "protected_changes.txt"), "")
+        }
+    }
     # Compare-Object in Windows PowerShell 5.1 does not accept empty arrays.
     $beforeStatus = @(Get-Content -LiteralPath (Join-Path $reports "git_before.txt"))
     $afterStatus = @(Get-Content -LiteralPath (Join-Path $reports "git_after.txt"))
@@ -353,6 +428,8 @@ try {
         "g5_worker_sensitivity_requested=$([bool]$CheckG5WorkerSensitivity)"
         "c3_t05_process_requested=$([bool]$CheckC3T05Process)"
         "a05_safety_requested=$([bool]$CheckA05Safety)"
+        "protected_inventory_requested=$([bool]$CaptureProtectedPaths)"
+        "protected_inventory_unchanged=$protectedSnapshotMatches"
         "g3_g5_sensitivity_requested=$([bool]$CheckG3G5Sensitivity)"
         "b01_b02_sensitivity_requested=$([bool]$CheckB01B02Sensitivity)"
         "sensitivity_requested=$([bool]$CheckSensitivity)"
@@ -387,6 +464,7 @@ Write-Host "pytest log: $(Join-Path $reports 'pytest_focal.log')"
 Write-Host "Git diff inventory: $(Join-Path $reports 'status_changes.txt')"
 Write-Host "No files were cleaned up; retain this clone and reports."
 if ($exitCode -ne 0) { exit 2 }
+if ($CaptureProtectedPaths -and -not $protectedSnapshotMatches) { exit 5 }
 # A-05 requires the isolated checkout to remain Git-clean after these tests.
 if ($CheckA05Safety -and @(Get-Content -LiteralPath (Join-Path $reports "status_changes.txt")).Count -ne 0) {
     Write-Host "STOP: A05 tests changed the isolated Git checkout. Inspect status_changes.txt."
