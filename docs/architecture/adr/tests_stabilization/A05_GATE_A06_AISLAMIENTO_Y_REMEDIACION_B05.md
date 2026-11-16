@@ -337,3 +337,22 @@ Registrar stdout/stderr y código de salida, incluyendo cualquier dependencia ar
 **Próxima comprobación estrictamente focal, no otra campaña:** ejecutar únicamente los **9 tests existentes** en un clon independiente sin hardlinks, sin credenciales/proveedor real y con CWD controlado: seis \`test_*\` de \`test_tectonic_runner.py\`, uno de cada test legacy \`translation_structure\`, \`translation_technical\`, y uno de \`translation_layer\`. Registrar SHA, conteo **PASS/FAIL/SKIP** (los goldens pueden causar SKIP), Pyright local sobre los cuatro archivos, \`status_changes.txt\` y residuos SQLite/log bajo clon. **SKIP no es PASS de contrato científico**, pero la ausencia de DB persistente debe poder verificarse por inspección de código y de inventario. No usar \`-m "not e2e"\` global.
 
 **Riesgo residual A05-P4/P6:** no hay sandbox OS/egress acreditado; Git limpio no prueba ausencia de efectos creados-y-borrados. La selección CI global y los imports/plug-ins todavía requieren revisión/contención antes de declarar A-05 o A-06 cerrado. No modificar \`docs\` históricos FROZEN: este apéndice es la evidencia incremental de cambios aprobados.
+
+## 16. Selección focal A-05 lista para validación del owner (2026-11-16)
+
+Después de las correcciones a los cuatro archivos de tests registradas en §15, se extendió el **ejecutor existente**, sin crear otro script, con el switch aislado \`-CheckA05Safety\`. El cambio selecciona exactamente **cuatro entradas pytest** (el archivo entero \`test_tectonic_runner.py\`, que contiene seis tests, y tres nodeids completos legacy), **nueve tests previstos**, sin invocar mutaciones, Tectonic externo ni proveedor real. El runner sigue creando clon Git \`--no-hardlinks\`, HEAD detached y sin remoto; redirige HOME/TEMP/cachés y retira variables de entorno que parecen secretos. Además de \`pytest_exit_code\`, en este modo devuelve **exit 4** cuando \`status_changes.txt\` no está vacío. No implica control del egress a nivel OS ni ausencia de I/O transitorio.
+
+\`\`\`powershell
+git pull --ff-only origin tests_stabilization
+
+& .\docs\architecture\adr\tests_stabilization\run_b05_focal_isolated.ps1 \`
+  -RepoRoot (Get-Location).Path \`
+  -CheckA05Safety
+
+pyright tests/unit/test_tectonic_runner.py \`
+        tests/integration/test_translation_structure.py \`
+        tests/integration/test_translation_technical.py \`
+        tests/integration/test_translation_layer.py
+\`\`\`
+
+**Evidencia solicitada:** \`summary.txt\`, \`pytest_focal.log\`, \`status_changes.txt\`, \`git_before.txt\`, \`git_after.txt\` y salida de Pyright. Deben distinguirse explícitamente **PASS / FAIL / SKIP**: un golden inexistente puede provocar SKIP legítimo de los dos contratos legacy, y ni un SKIP ni un test del renderer con subprocess mockeado acreditan una compilación científica. Antes de recibir esos resultados **no existe baseline dinámica nueva de A-05 para este SHA**. No ejecutar la suite técnica global en el working tree del owner; no limpiar ni restaurar la eliminación PDF intencional.
