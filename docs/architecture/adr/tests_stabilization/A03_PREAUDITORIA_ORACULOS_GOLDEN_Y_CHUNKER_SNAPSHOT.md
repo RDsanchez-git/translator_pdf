@@ -158,4 +158,25 @@ git pull --ff-only origin tests_stabilization
 & .\docs\architecture\adr\tests_stabilization\run_b05_focal_isolated.ps1 -RepoRoot (Get-Location).Path -CheckB01B02Sensitivity
 \`\`\`
 
-**Estatus:** 0 mutaciones B01/B02 acreditadas al redactar. Es necesario analizar los logs reales antes de declarar \`MUTATION_KILLED\`. No rehacer los golden ni los snapshots por un fallo.
+**Estado al redactar §8:** mutaciones preparadas, todavía sin ejecutar; la evidencia del owner recibida posteriormente consta en §9. No rehacer los golden ni los snapshots por un fallo.
+
+## 9. B-01/B-02 — reporte de sensibilidad del owner: TWO_KILLED (2026-11-16)
+
+**Sujeto exacto:** \`tests_stabilization\` SHA \`5a537c9512b8ec1cb37dd2ac0022587daccf0d0d\`. El owner compartió íntegro el contenido JSON de \`b01b02_mutation_summary.json\` en conversación. El archivo registra \`verdict: "TWO_KILLED"\` y el mismo \`revision_sha\`. Se verificó por lectura de fuente del helper \`probe_b01b02_sensitivity.py\` que \`MUTATION_KILLED\` requiere código de salida pytest 1, resumen \`1 failed\`, \`AssertionError\`, marcador de contrato específico y ausencia de \`ERROR collecting\` o \`INTERNALERROR\`.
+
+| Caso | Marcador de aserción exigido | Exit del hijo | Veredicto JSON aportado | Archivo de log previsto |
+|---|---|---|---|---|
+| \`parser_text_loss\` | \`B01_KNOWN_SOURCE_TEXT_MISSING\` | \`1\` | **MUTATION_KILLED** | \`b01b02_mutation_parser_text_loss.log\` |
+| \`chunk_source_byte_loss\` | \`B02_SOURCE_BYTES_MISMATCH\` | \`1\` | **MUTATION_KILLED** | \`b01b02_mutation_chunk_source_byte_loss.log\` |
+
+**Valor evidencial:** dos mutaciones *dirigidas a SUT* detectadas en ejecución por el verificador en un clon sin remoto, mediante wrappers/patches temporales de subproceso. El helper exige un clon limpio antes y después de ambas mutaciones (\`git status --porcelain --ignored\`) para emitir el resumen; ello no equivale a verificar todo I/O externo o transitorio. El runner \`-CheckB01B02Sensitivity\` requiere baseline de los cuatro nodeids con exit 0 antes de permitir las mutaciones. El reporte recibido solo incluye el resumen de mutaciones; **los logs de pytest baseline/mutaciones, \`summary.txt\`, \`status_changes.txt\` y versiones no fueron adjuntados en este turno**. Por ello el veredicto se acredita **como reporte del ejecutor del owner**, no como revisión directa de los dos fallos.
+
+**Historial previo relevante:** sobre SHA \`edcc02f2...\`, la baseline focal B-01/B-02 reportó pytest exit 0 y Pyright explícito de ambos archivos \`0 errors, 0 warnings, 0 informations\`. No proyectar ese Pyright ni sus resultados a otros cambios de código sin verificación.
+
+**Clasificación de alcance:**
+- [x] B-01: falso golden \`expected = actual\`, parser mockeado y \`skipTest\` eliminado; extracción real de PDF sintético temporal y falsador de pérdida de frase reportado KILLED.
+- [x] B-02: autogeneración de snapshot en tiempo de pytest eliminada; propiedades técnicas del chunker/manifest con AST sintético y falsador de pérdida de espacios reportado KILLED.
+- [ ] C-01 / C-07 generales: solo estos dos casos de sensibilidad focal; faltan vector no representable y otras barreras críticas OCR/G3/G5.
+- [ ] A-05/A-06 globales, matriz A-03/A-04, CI del HEAD y revisión del owner para cierre formal. No se realizó evaluación científica ni hubo rebaseline de GT.
+
+**Siguiente evidencia opcional para consolidar trazabilidad:** adjuntar los dos logs nombrados para inspeccionar el traceback exacto; no es necesario repetir los controles solo por ausencia de esos archivos. La validación de CI y el resto de la campaña siguen separados.
