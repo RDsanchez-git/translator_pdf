@@ -356,3 +356,36 @@ pyright tests/unit/test_tectonic_runner.py \`
 \`\`\`
 
 **Evidencia solicitada:** \`summary.txt\`, \`pytest_focal.log\`, \`status_changes.txt\`, \`git_before.txt\`, \`git_after.txt\` y salida de Pyright. Deben distinguirse explícitamente **PASS / FAIL / SKIP**: un golden inexistente puede provocar SKIP legítimo de los dos contratos legacy, y ni un SKIP ni un test del renderer con subprocess mockeado acreditan una compilación científica. Antes de recibir esos resultados **no existe baseline dinámica nueva de A-05 para este SHA**. No ejecutar la suite técnica global en el working tree del owner; no limpiar ni restaurar la eliminación PDF intencional.
+
+## 17. A-05 — ejecución focal acreditada y preflight restante (2026-11-16)
+
+**Fuente primaria:** el owner adjuntó \`reports.rar\` (RAR5) con **cinco archivos inspeccionados directamente**: \`summary.txt\`, \`pytest_focal.log\`, \`git_before.txt\`, \`git_after.txt\` y \`status_changes.txt\`. La revisión reportada es exactamente **\`6ecfc2c5726b86c5df91a839c232e73bcee52f82\`**, con \`a05_safety_requested=True\`, \`pytest_exit_code=0\`, \`docker_used=false\` y \`no_OS_level_sandbox_claim=true\`. El owner también ejecutó Pyright explícito sobre los **cuatro archivos de tests** modificados, con **\`0 errors, 0 warnings, 0 informations\`**; el aviso de versión más nueva es informativo y separado del tipado.
+
+| Testigos de las correcciones §15 | Evidencia real | Dictamen |
+|---|---|---|
+| \`tests/unit/test_tectonic_runner.py\` | **6 PASS**; Tectonic está simulado por \`subprocess.run\`, y el test de log usa CWD \`tmp_path\` con excepción esperada | **PASS focal** de contrato de runner; no ejecución física de Tectonic |
+| \`tests/integration/test_translation_structure.py\` | **SKIP**: \`test_structural_integrity_against_golden_snapshot\`, golden estructural ausente (línea 57) | **SKIP legítimo, NO PASS** del snapshot legacy |
+| \`tests/integration/test_translation_technical.py\` | **SKIP**: \`test_latex_token_sets_and_balances\`, golden técnico ausente (línea 57) | **SKIP legítimo, NO PASS** del snapshot/LaTeX legacy |
+| \`tests/integration/test_translation_layer.py\` | **1 PASS**, fake provider y SQLite cache en directorio temporal | **PASS focal** del flujo legacy acotado |
+| **Resumen** | **\`7 passed, 2 skipped in 7.73s\`**, 0 FAIL; \`git_before.txt\`, \`git_after.txt\` y \`status_changes.txt\` **0 bytes** cada uno | **A05-FS-01/DB-01/DB-02: mitigaciones implementadas y focal ejecutada**, sin cambios Git persistentes en el clon |
+
+**Interpretación estricta:** los dos SKIP muestran que los testigos legacy con golden no ejecutaron su cuerpo; la mitigación de su setup proviene de inspección directa de \`sqlite3.connect(":memory:")\` y \`addCleanup\`, y del hecho de que el runner no dejó diferencias Git. **No certificar la integridad de los golden ni ausencia universal de efectos transitorios**. Tampoco existe un aislamiento OS de red/host por usar un clon.
+
+### 17.1 Preflight de fuente de imports, plugins y selección actual
+
+Se contrastaron \`pyproject.toml\`, \`tests/smoke/conftest.py\`, \`.github/workflows/ci.yml\`, \`test_embedding_smoke.py\` y el ejecutor focal, todos en \`tests_stabilization\`:
+
+- \`pyproject.toml\` configura **\`addopts = -m "not e2e"\`** para la ejecución por defecto. En CI, \`ci.yml\` selecciona además \`unit\`, \`integration and not regression\` y \`not e2e\`; el nombre del archivo NO excluye automáticamente pruebas con red, mocks o SKIP.
+- \`tests/smoke/conftest.py\` define \`reliability_pipeline\` como fixture y construye sus validadores **dentro de la función de la fixture**, no directamente al importar \`conftest\`. Los imports de sus dependencias y la carga de plugins por pytest siguen siendo superficies de ejecución que no se han confinado a nivel SO.
+- \`tests/integration/test_embedding_smoke.py\` no tiene marker \`e2e\` propio, por lo que **puede ser seleccionado** por \`not e2e\`. Si existe \`GROQ_API_KEY\`, \`GroqProvider.translate\` intenta transporte **real**. No se seleccionó ese archivo en la corrida A-05; el ejecutor aislado sí retira variables con patrones de secretos. **No afirmar que el CI garantiza cero egress solo por su selección actual**.
+- \`run_b05_focal_isolated.ps1\` crea clon independiente sin hardlinks, elimina su remoto, establece \`PYTHONDONTWRITEBYTECODE\`, \`HOME/TEMP\` y purga variables de secretos; **no establece \`PYTEST_DISABLE_PLUGIN_AUTOLOAD\` ni un firewall físico**. Sus inventarios \`git_before/after\` y \`status_changes\` permiten certificar **solo** ausencia de cambios persistentes Git en el clon para estos nueve tests.
+- \`ci.yml\` responde a \`push\` de \`main\`/\`develop\` y PR contra \`main\`/\`pipeline_stabilization\`, no a un push directo de \`tests_stabilization\`. **Ningún resultado de GitHub Actions del HEAD fue inspeccionado**. La ausencia de \`tests/conftest.py\` y \`pytest.ini\` no descarta \`conftest\` anidados, \`pyproject.toml\` ni plugins instalados.
+
+### 17.2 Cierre focal vs. gate completo
+
+- [x] **A05-QS3, tres riesgos concretos:** fuente corregida en **cuatro tests**, focal \`7 PASS/2 SKIP\`, Pyright 0 y Git persistente limpio según cinco reportes del owner. **No** requiere repetir mutaciones ni regenerar golden.
+- [ ] **A05-P4, imports/decoradores/plugins/egress:** la revisión estática por fuentes se amplió y se identificó como riesgo específico el smoke Groq seleccionado si hay credenciales; falta una **condición verificable de no-egress** para ejecutar la suite amplia. El clon y la purga de secretos son mitigaciones de mejor esfuerzo; no prueba OS sandbox.
+- [ ] **A05-P6, efectos completos:** el antes/después Git en el clon está limpio en esta focal; no hay observación independiente de archivos ignorados, efectos creados y borrados ni rutas externas al clon bajo ejecución global.
+- [ ] **A05/A06 global y CI HEAD:** no autorizados todavía. **Siguiente decisión mínima**: imponer una condición explícita y verificable para no activar tests con proveedor real durante ejecución técnica, y conservar la ejecución global exclusivamente en entorno descartable/aislado con evidencia de procesos y filesystem. **No** ejecutar \`pytest -m "not e2e"\` en el checkout habitual. A-06 se abre solo después de satisfacer esos pre-requisitos.
+
+**No se modificaron tests/producción/CI/GT en esta evaluación de resultados y fuentes.**
