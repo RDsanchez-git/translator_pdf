@@ -19,6 +19,7 @@ param(
     [switch] $CheckC3T05Process,
     [switch] $CheckA05Safety,
     [switch] $PreflightA06,
+    [switch] $CheckA06W08,
     [switch] $CaptureProtectedPaths
 )
 
@@ -48,6 +49,9 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 if ($PreflightA06 -and ($CaptureProtectedPaths -or $CheckA05Safety -or $CheckSensitivity -or $CheckB01B02 -or $CheckB01B02Sensitivity -or $CheckG3G5 -or $CheckG3G5Sensitivity -or $CheckB03Parser -or $CheckB04Contracts -or $CheckA03Boundaries -or $CheckA03Sensitivity -or $CheckForegroundSensitivity -or $CheckCLIAdmissionSensitivity -or $CheckG5Worker -or $CheckG5WorkerSensitivity -or $CheckC3T05Process)) {
     throw "STOP: A06 preflight is metadata-only and cannot be combined with test selections."
+}
+if ($CheckA06W08 -and ($PreflightA06 -or $CheckA05Safety -or $CheckSensitivity -or $CheckB01B02 -or $CheckB01B02Sensitivity -or $CheckG3G5 -or $CheckG3G5Sensitivity -or $CheckB03Parser -or $CheckB04Contracts -or $CheckA03Boundaries -or $CheckA03Sensitivity -or $CheckForegroundSensitivity -or $CheckCLIAdmissionSensitivity -or $CheckG5Worker -or $CheckG5WorkerSensitivity -or $CheckC3T05Process)) {
+    throw "STOP: A06 W08 baseline is a separate, non-mutation selection."
 }
 if ($CheckB01B02Sensitivity) {
     $CheckB01B02 = $true
@@ -266,6 +270,14 @@ if ($CheckA05Safety) {
         "tests/integration/test_embedding_smoke.py"
     )
 }
+if ($CheckA06W08) {
+    # A06 first not-previously-accredited cohort: context identity and no legacy G3 cache.
+    # Reviewed: no real provider, DB, Tectonic, corpus or network in test bodies.
+    $nodeids = @(
+        "tests/unit/test_w08_inference_identity_contract.py",
+        "tests/unit/test_w08_g3_cache_barrier.py"
+    )
+}
 $nodeids | Out-File -FilePath (Join-Path $reports "nodeids.txt") -Encoding utf8
 $desired = @{
     "HOME" = $isolatedUserHome; "USERPROFILE" = $isolatedUserHome; "TMP" = $temp; "TEMP" = $temp
@@ -273,6 +285,7 @@ $desired = @{
     "PYTHONPATH" = $copy; "PYTHONDONTWRITEBYTECODE" = "1"
     "PYTHONNOUSERSITE" = "1"; "PYTEST_ADDOPTS" = ""; "PIP_NO_INDEX" = "1"
     "TRANSLATOR_PDF_RUN_LIVE_PROVIDER_TESTS" = "0"
+    "HYPOTHESIS_STORAGE_DIRECTORY" = (Join-Path $scratch "hypothesis")
 }
 $secretPattern = "(?i)(TOKEN|SECRET|PASSWORD|PASSWD|API_KEY|ACCESS_KEY|PRIVATE_KEY|CREDENTIAL|^AWS_|^AZURE_|^GCP_|^OPENAI_|^GEMINI_|^GROQ_|^HF_)"
 $original = @{}
@@ -436,6 +449,7 @@ try {
         "g5_worker_sensitivity_requested=$([bool]$CheckG5WorkerSensitivity)"
         "c3_t05_process_requested=$([bool]$CheckC3T05Process)"
         "a05_safety_requested=$([bool]$CheckA05Safety)"
+        "a06_w08_requested=$([bool]$CheckA06W08)"
         "protected_inventory_requested=$([bool]$CaptureProtectedPaths)"
         "protected_inventory_unchanged=$protectedSnapshotMatches"
         "g3_g5_sensitivity_requested=$([bool]$CheckG3G5Sensitivity)"
@@ -474,8 +488,8 @@ Write-Host "No files were cleaned up; retain this clone and reports."
 if ($exitCode -ne 0) { exit 2 }
 if ($CaptureProtectedPaths -and -not $protectedSnapshotMatches) { exit 5 }
 # A-05 requires the isolated checkout to remain Git-clean after these tests.
-if ($CheckA05Safety -and @(Get-Content -LiteralPath (Join-Path $reports "status_changes.txt")).Count -ne 0) {
-    Write-Host "STOP: A05 tests changed the isolated Git checkout. Inspect status_changes.txt."
+if (($CheckA05Safety -or $CheckA06W08) -and @(Get-Content -LiteralPath (Join-Path $reports "status_changes.txt")).Count -ne 0) {
+    Write-Host "STOP: focal tests changed the isolated Git checkout. Inspect status_changes.txt."
     exit 4
 }
 if (($CheckSensitivity -or $CheckB01B02Sensitivity -or $CheckG3G5Sensitivity -or $CheckA03Sensitivity -or $CheckForegroundSensitivity -or $CheckCLIAdmissionSensitivity -or $CheckG5WorkerSensitivity) -and $sensitivityExitCode -ne 0) { exit 3 }
