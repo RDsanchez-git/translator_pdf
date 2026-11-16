@@ -128,3 +128,34 @@ pyright tests/integration/test_golden_parser.py tests/integration/test_chunker_s
 \`\`\`
 
 **Gates abiertos:** no se ejecutaron los nuevos cuerpos de test desde esta sesión; \`B-01/B-02 PASS=UNKNOWN\`, Pyright focal no ejecutado, ninguna mutación B01/B02 acreditada, ni CI del HEAD comprobado. Una falla real de extracción o chunking debe registrarse con su mensaje/SHA; no reescribir oráculos o generar snapshots para forzar verde. El ensayo B01 es más costoso que B02 porque ejecuta el parser físico, pero se limita a un PDF sintético en temporales.
+
+## 8. B-01/B-02 — primera baseline focal del owner y falsadores preparados
+
+**Evidencia reportada por el owner (2026-11-16):** actualización por \`git pull --ff-only\` a \`edcc02f2e982506aba953ad888f21e5a18d27b41\`; ejecución de [\`run_b05_focal_isolated.ps1 -CheckB01B02\`](run_b05_focal_isolated.ps1) en clon Git nuevo fijado al mismo SHA, con \`venv\` Python local. El runner imprimió \`pytest exit code: 0\`, lo que acredita **la selección focal de cuatro nodeids con exit 0**, pero el owner aún no compartió el contenido de \`pytest_focal.log\` ni \`status_changes.txt\` en esa segunda tanda. No inferir ausencia total de side effects de no haberse visto el log. Pyright ejecutado **explícitamente sobre ambos archivos de test**: \`0 errors, 0 warnings, 0 informations\`; el aviso de actualización de versión es informativo.
+
+**Los cuatro nodeids efectivamente seleccionados por el runner:**
+
+- \`tests/integration/test_golden_parser.py::test_production_parser_preserves_known_text_from_disposable_pdf\`
+- \`tests/integration/test_chunker_snapshot.py::test_semantic_chunker_preserves_members_policy_and_source_exactly\`
+- \`tests/integration/test_chunker_snapshot.py::test_semantic_chunker_rejects_lost_member_in_manifest\`
+- \`tests/integration/test_chunker_snapshot.py::test_semantic_chunker_rejects_source_whitespace_mutation\`
+
+**Decisión:** B-01/B-02 tienen primera **baseline técnica focal positiva** y tipado local focal sin fallos reportados. No cerrar A-03/A-05/A-06/B/C general, no presentar esta prueba sintética como golden científico ni inferir que se ejecutó el CI del HEAD.
+
+**Nuevo experimento de sensibilidad preparado, TODAVÍA NO EJECUTADO:** [\`probe_b01b02_sensitivity.py\`](probe_b01b02_sensitivity.py) se invoca mediante el flag \`-CheckB01B02Sensitivity\` del runner existente. Este flag activa \`-CheckB01B02\`, es mutuamente excluyente con \`-CheckSensitivity\` de B05 y exige primero un \`pytest exit 0\` en los cuatro nodeids seleccionados. Después lanza **dos Python subprocesses** e introduce mutaciones **en memoria** sobre puntos del SUT:
+
+| ID | Mutación temporal | Asesor de resultado | Criterio |
+|---|---|---|---|
+| B01-NEG-PARSER | \`PdfParserAdapter.parse\` ejecuta la extracción real, pero devuelve el texto de la frase independiente «B01 Beta independent observation.» eliminado del AST | \`test_production_parser_preserves_known_text_from_disposable_pdf\` | Debe fallar por \`AssertionError\` con marcador \`B01_KNOWN_SOURCE_TEXT_MISSING\`, un \`1 failed\`, exit 1 |
+| B02-NEG-BYTES | Wrapper de \`build_semantic_chunks_as_units\` invocado por el test, devuelve miembros con \`Alpha  text.\` alterado a \`Alpha text.\` | \`test_semantic_chunker_preserves_members_policy_and_source_exactly\` | Debe fallar por \`AssertionError\` con marcador \`B02_SOURCE_BYTES_MISMATCH\`, un \`1 failed\`, exit 1 |
+
+**No se muta código fuente ni se escribe el corpus/GT**; ambos wrappers se restauran con \`unittest.mock.patch\`, dentro del subproceso correspondiente. La herramienta exige salida contractual específica, no considera \`MUTATION_KILLED\` un fallo de importación, de recolección o un \`INTERNALERROR\`. Reportes esperados: \`b01b02_mutation_summary.json\`, \`b01b02_mutation_parser_text_loss.log\`, \`b01b02_mutation_chunk_source_byte_loss.log\`, \`b01b02_mutation_runner.log\`. Un fallo distinto queda \`NOT_ACCREDITED\`. El clone de workspace no es sandbox de SO.
+
+**Invocación futura desde la raíz con \`venv\` activa:**
+
+\`\`\`powershell
+git pull --ff-only origin tests_stabilization
+& .\docs\architecture\adr\tests_stabilization\run_b05_focal_isolated.ps1 -RepoRoot (Get-Location).Path -CheckB01B02Sensitivity
+\`\`\`
+
+**Estatus:** 0 mutaciones B01/B02 acreditadas al redactar. Es necesario analizar los logs reales antes de declarar \`MUTATION_KILLED\`. No rehacer los golden ni los snapshots por un fallo.
