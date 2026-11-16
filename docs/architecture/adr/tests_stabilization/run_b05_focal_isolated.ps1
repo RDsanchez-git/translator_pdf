@@ -15,7 +15,8 @@ param(
     [switch] $CheckForegroundSensitivity,
     [switch] $CheckCLIAdmissionSensitivity,
     [switch] $CheckG5Worker,
-    [switch] $CheckG5WorkerSensitivity
+    [switch] $CheckG5WorkerSensitivity,
+    [switch] $CheckC3T05Process
 )
 
 Set-StrictMode -Version Latest
@@ -40,6 +41,9 @@ if ($CheckCLIAdmissionSensitivity -and ($CheckForegroundSensitivity -or $CheckA0
 }
 if ($CheckG5Worker -and ($CheckCLIAdmissionSensitivity -or $CheckForegroundSensitivity -or $CheckA03Boundaries -or $CheckB04Contracts -or $CheckB03Parser -or $CheckG3G5 -or $CheckB01B02 -or $CheckSensitivity)) {
     throw "STOP: G5 worker must run as a separate focal selection."
+}
+if ($CheckC3T05Process -and ($CheckG5Worker -or $CheckCLIAdmissionSensitivity -or $CheckForegroundSensitivity -or $CheckA03Boundaries -or $CheckB04Contracts -or $CheckB03Parser -or $CheckG3G5 -or $CheckB01B02 -or $CheckSensitivity)) {
+    throw "STOP: C3/T05 process-boundary test must run separately."
 }
 if ($CheckB01B02 -and $CheckSensitivity) {
     throw "STOP: B01/B02 selection and B05 sensitivity are separate controlled runs."
@@ -168,6 +172,13 @@ if ($CheckG5Worker) {
     # Actual G5 daemon method, temporary WAL DB and faked compiler/renderer.
     $nodeids = @(
         "tests/integration/test_g5_assembler_worker_integration.py"
+    )
+}
+if ($CheckC3T05Process) {
+    # C3/T05: the abrupt exit belongs only to a child Python interpreter.
+    # SQLite files live under the redirected TEMP directory of this clone.
+    $nodeids = @(
+        "tests/integration/test_c3_t05_process_boundary.py::test_t05_g3_staged_publication_crash_and_recovery_between_processes"
     )
 }
 $nodeids | Out-File -FilePath (Join-Path $reports "nodeids.txt") -Encoding utf8
@@ -324,6 +335,7 @@ try {
         "cli_admission_sensitivity_requested=$([bool]$CheckCLIAdmissionSensitivity)"
         "g5_worker_requested=$([bool]$CheckG5Worker)"
         "g5_worker_sensitivity_requested=$([bool]$CheckG5WorkerSensitivity)"
+        "c3_t05_process_requested=$([bool]$CheckC3T05Process)"
         "g3_g5_sensitivity_requested=$([bool]$CheckG3G5Sensitivity)"
         "b01_b02_sensitivity_requested=$([bool]$CheckB01B02Sensitivity)"
         "sensitivity_requested=$([bool]$CheckSensitivity)"
