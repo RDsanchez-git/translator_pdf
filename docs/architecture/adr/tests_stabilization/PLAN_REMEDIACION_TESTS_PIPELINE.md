@@ -484,3 +484,9 @@ La campaña **TST-STAB puede cerrarse** únicamente si:
 - [ ] Toda prueba crítica de la ruta activa tiene alcance honesto, SUT real, oráculo independiente y al menos un control negativo significativo; las excepciones no simulan cobertura.
 - [ ] Las falsas garantías históricas confirmadas fueron corregidas, aisladas/reclasificadas o registradas explícitamente sin que sus PASS se presenten como seguridad de la ruta actual.
 - [ ] La ejecución técnica es hermética y reproducible en el alcance declarado; no se mutan fixtures/GT ni se usan proveedores reales.
+- [ ] El CI técnico vigente es reportado con su cobertura **real**; el check requerido está verde para el HEAD candidato, con suite focal y Pyright local documentados.
+- [ ] Se ha revisado el diff acumulado y se ha autorizado explícitamente integrar a `main`, sin changes de runtime.
+- [ ] El handoff enumera contratos protegidos para comenzar **después** el refinamiento del pipeline y enumera vacíos/limitaciones con responsables.
+- [ ] Los diferidos D-4 y D-5 siguen fuera de alcance y se transferirán únicamente cuando se cumplan sus condiciones futuras.
+
+**Resultado esperado:** una red de protección técnica precisa y difícil de falsear, que soporte refactors profundos **sin cambiar los tests por detalles internos**, y que obligue a explicar cualquier cambio legítimo de contrato antes de ajustar un esperado. Este resultado no pretende demostrar calidad científica ni certificar el producto.
