@@ -122,3 +122,20 @@ git pull --ff-only origin tests_stabilization
 \`\`\`
 
 **Estado:** 39 PASS y Pyright 0 sobre el SHA anterior acreditados; **0 mutaciones A03 acreditadas hasta recibir una nueva ejecución**. A-03/A-04 globales, CI del HEAD y gate A-05 del entorno permanecen abiertos. El wrapper de Python no proporciona seguridad de red a nivel SO; no se ejecuta la suite completa.
+
+## 8. Cierre de evidencia focal A03-NEG-UTF8 / A03-NEG-EXTRACTION (owner, 2026-11-16)
+
+**Artefacto directamente inspeccionado:** \`reports.rar\` aportado por el owner; se extrajeron y leyeron directamente los **7** miembros: \`summary.txt\`, \`pytest_focal.log\`, \`status_changes.txt\`, \`a03_mutation_runner.log\`, \`a03_mutation_summary.json\` y los dos logs individuales. El SHA sujeto es \`83f99ddb0abadf216d8e051619aa05f9c73cfc77\`.
+
+| Evidencia | Resultado observado |
+|---|---|
+| Baseline previa en el **mismo clon/SHA** | **\`39 passed in 1.40s\`**; \`pytest_exit_code=0\`, \`a03_boundaries_requested=True\`, \`a03_sensitivity_requested=True\` |
+| Verificador | **\`A03_MUTATION_VERDICT=TWO_KILLED\`**, \`sensitivity_exit_code=0\` |
+| \`g3_utf8_byte_limit\` | \`1 failed in 0.49s\`, exit 1; \`test_response_limit_is_utf8_bytes_not_character_count\` falla en línea 211: **\`Failed: DID NOT RAISE <class 'ValueError'>\`** cuando la mutación permite superar 4 MiB UTF-8 |
+| \`parser_dropped_source\` | \`1 failed in 0.95s\`, exit 1; \`test_pipeline_extracts_nonempty_ast_from_text_pdf\` falla en línea 85: **\`AssertionError: B02_EXTRACTED_SOURCE_TEXT_MISSING\`**; se observa que el AST mutado conserva la otra frase, pero pierde la esperada |
+| Integridad Git | \`status_changes.txt\` **0 bytes**, sin cambios persistentes Git detectados en clon |
+| Entorno | \`docker_used=false\`; \`no_OS_level_sandbox_claim=true\` |
+
+**Decisión:** dos controles negativos **KILLED inspeccionados directamente** y baseline focal 39/39 positiva sobre este SHA; no son fallos del runtime original. Frente a las cinco detecciones G3/G5 y dos B01/B02 reportadas previamente, y las dos B05 inspeccionadas, la campaña alcanza **9 mutantes focales detectados en total**, con alcances y calidad de evidencia distintos. **No es una tasa de mutation coverage global**, ni CI aprobado, ni recolección global sobre este nuevo SHA, ni auditoría de efectos fuera del clon. Los archivos de código productivo, GT y workflow no se modificaron.
+
+**Siguiente familia priorizada:** foreground CLI \`run_admitted_pdf\`: el test histórico simula OCR/G3/G5, pero protege un predicado operativo crítico de no publicar falso éxito tras G3 incompleto o PDF ausente. Auditarlo como **contrato del coordinador con etapas simuladas**, no como E2E OCR→PDF. Preparar baseline/sensibilidad focal antes de marcar NC-06; A-01/A-03/A-04/C generales continúan abiertos.
