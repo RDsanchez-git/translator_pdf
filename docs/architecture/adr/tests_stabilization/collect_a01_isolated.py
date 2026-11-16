@@ -213,6 +213,8 @@ def child_environment(repo: Path, scratch: Path, helpers: Path) -> dict[str, str
     env["PYTHONDONTWRITEBYTECODE"] = "1"
     env["PYTHONNOUSERSITE"] = "1"
     env["PYTEST_ADDOPTS"] = ""
+    # Hypothesis writes import-time constants cache. Keep it outside the clone.
+    env["HYPOTHESIS_STORAGE_DIRECTORY"] = str(scratch / "hypothesis")
     # A05: do not inherit live provider authorization from a developer shell.
     env["TRANSLATOR_PDF_RUN_LIVE_PROVIDER_TESTS"] = "0"
     return env
@@ -277,6 +279,7 @@ def main(argv: list[str] | None = None) -> int:
         "collection_requested": args.collect,
         "network_isolation": "best-effort Python socket guard only; NOT OS-level isolation",
         "filesystem_isolation": "separate clone and env directory, not an OS-enforced sandbox",
+        "hypothesis_cache_redirect": "outside clone, under scratch/hypothesis",
         "modes": {},
     }
     (reports / "static_signals.json").write_text(json.dumps(signals, indent=2), encoding="utf-8")
