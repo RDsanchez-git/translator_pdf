@@ -9,7 +9,8 @@ param(
     [switch] $CheckG3G5,
     [switch] $CheckG3G5Sensitivity,
     [switch] $CheckB03Parser,
-    [switch] $CheckB04Contracts
+    [switch] $CheckB04Contracts,
+    [switch] $CheckA03Boundaries
 )
 
 Set-StrictMode -Version Latest
@@ -31,6 +32,9 @@ if ($CheckB03Parser -and ($CheckG3G5 -or $CheckB01B02 -or $CheckSensitivity)) {
 }
 if ($CheckB04Contracts -and ($CheckB03Parser -or $CheckG3G5 -or $CheckB01B02 -or $CheckSensitivity)) {
     throw "STOP: B04 technical contracts are a separate focal execution."
+}
+if ($CheckA03Boundaries -and ($CheckB04Contracts -or $CheckB03Parser -or $CheckG3G5 -or $CheckB01B02 -or $CheckSensitivity)) {
+    throw "STOP: A03 parser/G3 boundary audit is a separate focal execution."
 }
 $root = (Resolve-Path -LiteralPath $RepoRoot).ProviderPath
 if (-not (Test-Path -LiteralPath (Join-Path $root "pyproject.toml"))) {
@@ -117,6 +121,14 @@ if ($CheckB04Contracts) {
         "tests/integration/test_healing_e2e_telemetry.py::test_healing_case_c_math_truncation",
         "tests/integration/test_healing_e2e_telemetry.py::test_healing_rollback_guarantee_on_revalidation_failure",
         "tests/integration/test_healing_e2e_telemetry.py::test_healing_telemetry_aggregate_metrics"
+    )
+}
+if ($CheckA03Boundaries) {
+    # A03: existing G3-B3 pure result contracts + real synthetic PDF root.
+    # All fixtures are in memory or tmp_path. No Docker, LLM or real corpus.
+    $nodeids = @(
+        "tests/integration/test_g3_b3_structured_result_contract.py",
+        "tests/integration/test_verification_pipeline_connection.py"
     )
 }
 $nodeids | Out-File -FilePath (Join-Path $reports "nodeids.txt") -Encoding utf8
@@ -223,6 +235,7 @@ try {
         "g3_g5_requested=$([bool]$CheckG3G5)"
         "b03_parser_requested=$([bool]$CheckB03Parser)"
         "b04_contracts_requested=$([bool]$CheckB04Contracts)"
+        "a03_boundaries_requested=$([bool]$CheckA03Boundaries)"
         "g3_g5_sensitivity_requested=$([bool]$CheckG3G5Sensitivity)"
         "b01_b02_sensitivity_requested=$([bool]$CheckB01B02Sensitivity)"
         "sensitivity_requested=$([bool]$CheckSensitivity)"
