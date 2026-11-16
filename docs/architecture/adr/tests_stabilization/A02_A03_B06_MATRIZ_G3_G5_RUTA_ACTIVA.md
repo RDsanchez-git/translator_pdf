@@ -115,3 +115,17 @@ La fuente de \`probe_g3g5_sensitivity.py\` exige por hijo \`exit=1\`, exactament
 **Estado:** evidencia focal de C-03/C-04/C-05 **POSITIVA POR RESUMEN DEL OWNER**; continúan abiertos C-00/C-01/C-02/C-06/C-07 total/C-08/C-09, A/B/C generales, seguridad de ejecución global y CI del HEAD. No actualizar \`main\`, no reejecutar C0–C4 ni modificar GT como resultado de estas tres detecciones.
 
 **Siguiente prioridad dentro de B:** revisar la sobredeclaración E2E/parser y otras pruebas históricas (B-03/B-04), con SUT real y fixtures descartables, sin permitir que un test antiguo se presente como evaluación científica ni como comprobación de la ruta PDF→PDF completa.
+
+## 8. Corroboración directa de baseline y tres tracebacks (owner, 2026-11-16)
+
+**Ampliación de §7; no es una ejecución nueva.** El owner compartió íntegramente en el chat el contenido útil de los informes del clon de SHA \`16a6822927ffc0b11caa84faf406c083fa0b15fd\`:
+
+- **\`pytest_focal.log\`:** \`......... [100%]\`, **\`9 passed, 2 warnings in 4.73s\`**. Las dos \`FutureWarning\` corresponden al soporte futuro de Python 3.11 en \`google.api_core\` y la deprecación de \`google.generativeai\` en \`apps/llm_workers/adapters.py\`. No son fallos del contrato.
+- **\`summary.txt\`:** \`source_sha=16a6822927ffc0b11caa84faf406c083fa0b15fd\`; \`pytest_exit_code=0\`, \`g3_g5_requested=True\`, \`g3_g5_sensitivity_requested=True\`, \`sensitivity_exit_code=0\`, \`docker_used=false\`, \`no_OS_level_sandbox_claim=true\`.
+- **C-03 log individual:** el test falla en \`test_w06_g3_uncertain_effect_offline.py:218\` con \`AssertionError: W06_UNSAFE_RETRY\`; observación independiente **\`len(fake.accepted_calls)=2\` en vez de \`1\`**; \`1 failed, 2 warnings in 3.71s\`.
+- **C-04 log individual:** \`test_g3_b4_3b_publication_recovery.py:181\`, \`Failed: DID NOT RAISE <class 'ValueError'>\` donde el test exigía \`PROJECTION_DRIFT\`; \`1 failed in 0.96s\`.
+- **C-05 log individual:** \`test_g5_assembler_lease_recovery.py:203\`, \`AssertionError: G5_STALE_LEASE_PUBLISHED_PDF\`; \`dst.exists() is True\` para el \`translated_doc.pdf\` del \`tmp_path\`; \`1 failed in 1.21s\`.
+
+**Conclusión reforzada:** ya no se basa únicamente en el JSON del comprobador. Existen **tres fallos contractuales específicos inspeccionados directamente**, además de baseline nueve PASS y exit 0 en el mismo SHA, sin Docker. Los fallos son **intencionales** por parches temporales del SUT; no son fallos de la implementación sin mutar. No repetir estos tres controles para obtener la evidencia que ahora consta.
+
+**Lo que no se ha proporcionado en estos fragmentos:** el contenido de \`status_changes.txt\` del clon de esta corrida. Por tanto, no acreditar aquí su inventario Git post, ausencia de efectos transitorios ni aislamiento del SO. Tampoco extender los resultados de este SHA al HEAD más reciente de B-03 ni al CI del repositorio. El siguiente testigo dispuesto, separado, es B-03 parser real con PDF sintético de dos páginas.
