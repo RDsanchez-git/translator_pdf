@@ -389,3 +389,26 @@ Se contrastaron \`pyproject.toml\`, \`tests/smoke/conftest.py\`, \`.github/workf
 - [ ] **A05/A06 global y CI HEAD:** no autorizados todavía. **Siguiente decisión mínima**: imponer una condición explícita y verificable para no activar tests con proveedor real durante ejecución técnica, y conservar la ejecución global exclusivamente en entorno descartable/aislado con evidencia de procesos y filesystem. **No** ejecutar \`pytest -m "not e2e"\` en el checkout habitual. A-06 se abre solo después de satisfacer esos pre-requisitos.
 
 **No se modificaron tests/producción/CI/GT en esta evaluación de resultados y fuentes.**
+
+## 18. A-05 — no-egress opt-in para smoke Groq (2026-11-16)
+
+**Fuente observada antes del cambio:** \`tests/integration/test_embedding_smoke.py::TestProviderSmoke::test_isolated_generation_request\` no tiene marker \`e2e\` y estaba seleccionado por \`not e2e\`. Ejecutaba \`GroqProvider.translate\` si \`GROQ_API_KEY\` estaba presente; esa condición **no constituía autorización del owner para acceder a red**. El selector global \`pyproject.toml\`/CI no era barrera de egress.
+
+**Corrección mínima en el test existente, sin cambios a runtime/CI:** \`test_isolated_generation_request\` ahora **primero** exige \`TRANSLATOR_PDF_RUN_LIVE_PROVIDER_TESTS=1\`, y **después** exige \`GROQ_API_KEY\`. Cuando cualquiera falta, levanta \`unittest.SkipTest\` **antes de construir** el proveedor. Se agregó una comprobación negativa dentro del mismo archivo, \`test_live_provider_requires_explicit_opt_in\`: inyecta solo una credencial sintética, fuerza opt-in \`0\`, espera \`SkipTest\` y comprueba \`GroqProvider.assert_not_called()\`. No se realiza request ni se usan credenciales reales en ese control. **El smoke real conserva su comportamiento cuando ambas condiciones están habilitadas voluntariamente**; no convertirlo en fake PASS.
+
+**Runner focal reutilizado:** \`-CheckA05Safety\` selecciona ahora los nueve tests previos **más los dos casos de \`test_embedding_smoke.py\`**, total **11 nodeids nominales**. El entorno del clon fija expresamente \`TRANSLATOR_PDF_RUN_LIVE_PROVIDER_TESTS=0\` además de eliminar credenciales de variables de entorno. Resultado esperado de selección, **no resultado observado**: **8 PASS / 3 SKIP** si los tests previos conservan los 7 PASS/2 SKIP y el nuevo control pasa; el smoke de red debe figurar SKIP. El control de Git final del clon continúa en vigor.
+
+\`\`\`powershell
+git pull --ff-only origin tests_stabilization
+& .\docs\architecture\adr\tests_stabilization\run_b05_focal_isolated.ps1 \`
+  -RepoRoot (Get-Location).Path \`
+  -CheckA05Safety
+
+pyright tests/integration/test_embedding_smoke.py \`
+        tests/unit/test_tectonic_runner.py \`
+        tests/integration/test_translation_structure.py \`
+        tests/integration/test_translation_technical.py \`
+        tests/integration/test_translation_layer.py
+\`\`\`
+
+**Acreditación pendiente de owner:** \`pytest_focal.log\`, \`summary.txt\`, \`status_changes.txt\`, \`git_before.txt\`, \`git_after.txt\` y Pyright focal. **No afirmar PASS ni ausencia física de egress antes de ejecutarlos**. El opt-in bloquea **esta llamada Groq desde este test**, no todos los posibles caminos de socket/import/plugin. A05-P4/P6 y suite técnica completa siguen abiertos; no ejecutar la suite global en working tree, no modificar GT/corpus ni requerir Docker para estos casos puros. Si se quisiera certificar ausencia de egress de toda la suite sería necesaria una condición adicional del entorno de ejecución (aislamiento de red independiente), no otro mock presentado como firewall.
