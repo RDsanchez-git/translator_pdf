@@ -6,13 +6,17 @@ param(
     [switch] $CheckSensitivity,
     [switch] $CheckB01B02,
     [switch] $CheckB01B02Sensitivity,
-    [switch] $CheckG3G5
+    [switch] $CheckG3G5,
+    [switch] $CheckG3G5Sensitivity
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 if ($CheckB01B02Sensitivity) {
     $CheckB01B02 = $true
+}
+if ($CheckG3G5Sensitivity) {
+    $CheckG3G5 = $true
 }
 if ($CheckB01B02 -and $CheckSensitivity) {
     throw "STOP: B01/B02 selection and B05 sensitivity are separate controlled runs."
@@ -133,6 +137,17 @@ try {
                     [Environment]::SetEnvironmentVariable("TST_STAB_B01B02_OPT_IN", $null, "Process")
                 }
             }
+            if ($exitCode -eq 0 -and $CheckG3G5Sensitivity) {
+                Write-Host "G3/G5 sensitivity: three in-memory SUT mutations after green baseline."
+                [Environment]::SetEnvironmentVariable("TST_STAB_G3G5_OPT_IN", "1", "Process")
+                try {
+                    & $python -B "docs/architecture/adr/tests_stabilization/probe_g3g5_sensitivity.py" --reports $reports *>&1 |
+                        Out-File -FilePath (Join-Path $reports "g3g5_mutation_runner.log") -Encoding utf8
+                    $sensitivityExitCode = $LASTEXITCODE
+                } finally {
+                    [Environment]::SetEnvironmentVariable("TST_STAB_G3G5_OPT_IN", $null, "Process")
+                }
+            }
             if ($exitCode -eq 0 -and $CheckSensitivity) {
                 Write-Host "B05 sensitivity: two in-memory SUT mutations in the cloned workspace."
                 [Environment]::SetEnvironmentVariable("TST_STAB_SENSITIVITY_OPT_IN", "1", "Process")
@@ -180,6 +195,7 @@ try {
         "pytest_exit_code=$exitCode"
         "b01_b02_requested=$([bool]$CheckB01B02)"
         "g3_g5_requested=$([bool]$CheckG3G5)"
+        "g3_g5_sensitivity_requested=$([bool]$CheckG3G5Sensitivity)"
         "b01_b02_sensitivity_requested=$([bool]$CheckB01B02Sensitivity)"
         "sensitivity_requested=$([bool]$CheckSensitivity)"
         "sensitivity_exit_code=$sensitivityExitCode"
@@ -190,14 +206,20 @@ try {
     ) | Out-File -FilePath (Join-Path $reports "summary.txt") -Encoding utf8
 }
 Write-Host "pytest exit code: $exitCode"
-if ($CheckSensitivity -or $CheckB01B02Sensitivity) {
+if ($CheckSensitivity -or $CheckB01B02Sensitivity -or $CheckG3G5Sensitivity) {
     Write-Host "Sensitivity exit code: $sensitivityExitCode"
-    $mutationFile = if ($CheckB01B02Sensitivity) { "b01b02_mutation_summary.json" } else { "mutation_summary.json" }
+    $mutationFile = if ($CheckG3G5Sensitivity) {
+        "g3g5_mutation_summary.json"
+    } elseif ($CheckB01B02Sensitivity) {
+        "b01b02_mutation_summary.json"
+    } else {
+        "mutation_summary.json"
+    }
     Write-Host "Sensitivity report: $(Join-Path $reports $mutationFile)"
 }
 Write-Host "pytest log: $(Join-Path $reports 'pytest_focal.log')"
 Write-Host "Git diff inventory: $(Join-Path $reports 'status_changes.txt')"
 Write-Host "No files were cleaned up; retain this clone and reports."
 if ($exitCode -ne 0) { exit 2 }
-if (($CheckSensitivity -or $CheckB01B02Sensitivity) -and $sensitivityExitCode -ne 0) { exit 3 }
+if (($CheckSensitivity -or $CheckB01B02Sensitivity -or $CheckG3G5Sensitivity) -and $sensitivityExitCode -ne 0) { exit 3 }
 exit 0
