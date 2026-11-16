@@ -110,4 +110,21 @@ pyright tests/test_pipeline_fidelity.py tests/integration/test_healing_e2e_telem
 
 Adjuntar \`summary.txt\`, \`pytest_focal.log\`, y \`status_changes.txt\` si no está vacío; registrar la selección real y el SHA. En B-04 no se inventa nueva cobertura: los tests eran de contratos técnicos válidos pero tenían **nombres/scope engañosos**. Al cambiar nodeids, se requiere nueva conciliación A-01/A-04 antes del cierre formal.
 
-**Gates:** B-03 primera baseline positiva; B-04 remediación de nombre/import implementada sin validación dinámica, sensibilidad B-04 no acreditada, A/B/C global y CI del HEAD abiertos.
+**Estado al preparar B-04:** ocho nodeids listos para validar. La ejecución posterior del owner está documentada en §7. A/B/C global y CI del HEAD permanecen abiertos.
+
+## 7. B-04 — baseline focal de matemáticas/healing aportada por el owner (2026-11-16)
+
+**Sujeto:** rama \`tests_stabilization\`, SHA \`41e5146fb223c803218909b5561921a1b0173e99\`. El owner ejecutó \`run_b05_focal_isolated.ps1 -CheckB04Contracts\` en un clon Git independiente con \`venv\` activa y reportó directamente:
+
+| Fuente | Observación |
+|---|---|
+| \`pytest_focal.log\` | \`........ [100%]\`, **\`8 passed in 0.47s\`** |
+| \`summary.txt\` | \`source_sha=41e5146fb223c803218909b5561921a1b0173e99\`, \`pytest_exit_code=0\`, \`b04_contracts_requested=True\`, \`docker_used=false\`, \`no_OS_level_sandbox_claim=true\` |
+| \`status_changes.txt\` | **Vacío según owner:** sin diferencias Git persistentes detectadas entre inventarios del clon |
+| Pyright explícito | \`pyright tests/test_pipeline_fidelity.py tests/integration/test_healing_e2e_telemetry.py\`: **\`0 errors, 0 warnings, 0 informations\`**, con aviso independiente sobre actualización disponible (\`1.1.411 → 1.1.414\`) |
+
+**Distribución de los ocho testigos:** 3 de contratos matemáticos/enums (\`InlineMathProtector\` y \`ContentNodeType\`), 5 del \`HealingPipeline\` real y telemetría, con dobles únicamente en validación. **Las aserciones no se relajaron**; el ajuste B-04 consistió en precisar nombres, docstrings y eliminar un \`sys.path.append\` de importación.
+
+**Veredicto:** baseline técnica B-04 **8/8 PASS**, tipado local **0 errores**, sin cambios Git persistentes reportados; evidencia del owner correlacionada al SHA indicado. \`sensitivity_exit_code=-1\` significa **no solicitada**, no mutación fallida. Esta ejecución **no** demuestra fidelidad lingüística/científica, un E2E PDF→PDF, no-efectos transitorios/externos, ni estado verde de GitHub Actions. **B-04 validación focal positiva; A/B/C generales, recolección de nodeids del HEAD y verificación de CI abiertos.**
+
+**Siguiente prioridad del plan:** actualizar los nodeids históricos que cambiaron en A-01/A-04 y revisar las brechas P0 restantes con alcance real, especialmente skips y garantías de identidad/plan/foreground, antes de declarar un cierre general. No ejecutar indiscriminadamente \`pytest -m "not e2e"\` en el checkout del owner.
