@@ -486,3 +486,32 @@ git pull --ff-only origin tests_stabilization
 \`\`\`
 
 Si termina con éxito, conservar \`preflight_summary.txt\`, \`plugin_entrypoints.txt\`, \`protected_before.tsv\`, \`git_before.txt\` y \`git_after.txt\`. **No repetir los once tests focales ni iniciar A-06 global por esta corrección de quoting.**
+
+## 22. A05-P4/P6 — preflight del owner verificado y colección A-06 preparada (2026-11-16)
+
+**Adjunto inspeccionado directamente:** \`reports.rar\` (RAR5, cinco archivos). \`preflight_summary.txt\` registra \`source_sha=c5277184de665f0aab416405cf31c3282c1243df\`, \`mode=A06_PREFLIGHT_METADATA_ONLY\`, \`pytest_bodies=NOT_RUN\`, \`pytest_collection=NOT_RUN\`, \`loaded_pytest_plugins=NOT_INSPECTED\`, \`network_os_isolation=NOT_VERIFIED\` y \`external_file_effects=NOT_VERIFIED\`. \`git_before.txt\` y \`git_after.txt\` tienen **0 bytes**. Preflight **completado sin repetir el error de PowerShell**, pero **no** es una ejecución de pytest.
+
+\`plugin_entrypoints.txt\` contiene **pytest 9.0.3**, **pytest-asyncio 1.5.0**, y cinco entrypoints anunciados: \`anyio\`, \`asyncio\`, \`faker\`, \`hypothesispytest\` y \`pytest_cov\`. Son **plugins instalados**, no evidencia de carga efectiva. \`protected_before.tsv\` presenta **30 rutas únicas**, todas con tamaño y SHA-256: **12** bajo \`tests/fixtures\`, **18** bajo \`infra/db\`, **0** bajo \`tests/golden\`; no hay archivos \`.db\` persistentes ni sidecars WAL/SHM en ese snapshot. Esta es la **línea base estática de ese clon/SHA**, no un inventario comparable a otro clon ni prueba de ausencia de I/O transitorio.
+
+**Decisión:** P4 y P6 cuentan con preparación y preflight concretos; permanecen **PARCIALES** hasta observar carga real de pytest y diferencias antes/después de una operación controlada. El resultado **habilita únicamente una fase A-06 de colección sin cuerpos**, no \`pytest -m "not e2e"\` ni el cierre de A-05.
+
+### 22.1 Instrumento de colección existente endurecido sin otro script
+
+Se reutilizó \`collect_a01_isolated.py\` con \`--collect\`, que ya hace clon independiente sin hardlinks, checkout detached, elimina remoto, separa \`HOME/TEMP\`, retira credenciales y aplica guard Python de socket **best-effort** (no firewall/aislamiento OS). Ahora, **solo cuando se solicita \`--collect\`**:
+
+- Fija \`TRANSLATOR_PDF_RUN_LIVE_PROVIDER_TESTS=0\` en el proceso pytest.
+- Registra plugins efectivamente cargados en los logs mediante \`pytest --trace-config\`; **no desactiva arbitrariamente \`pytest-asyncio\`**.
+- Guarda \`protected_before.json\` y \`protected_after.json\` con SHA-256 y tamaños de archivos bajo \`tests/fixtures\`, \`tests/golden\` e \`infra/db\` (incluidos ignorados y comprobación contra symlinks en el árbol observado).
+- Guarda \`git_before.txt\` y \`git_after.txt\` (\`--ignored\` incluido). El \`manifest.json\` registra \`protected_file_changes\`, \`git_status_before_equals_after\`, cuatro selectores de colección y el SHA. Si hay cambios persistentes o error de colección, informa **FAIL**, no un falso verde.
+
+**No se modificaron tests, runtime, CI, corpus ni Ground Truth** y **no se ha ejecutado esta nueva colección** en el entorno del owner.
+
+\`\`\`powershell
+git pull --ff-only origin tests_stabilization
+
+python -B docs/architecture/adr/tests_stabilization/collect_a01_isolated.py --collect
+\`\`\`
+
+**Leer antes de ejecutar:** \`--collect\` sí importa tests, decoradores, conftests y plugins aunque no corre los cuerpos de tests. Solo ejecutar si se acepta **ese** alcance en clon descartable: el guard de Python y el clon **no bloquean físicamente procesos hijos/egress a nivel SO**. Ante cualquier error, conservar el clon/reportes y **no** ejecutar \`pytest\` directamente en el working tree.
+
+**Evidencia solicitada para el gate siguiente:** \`manifest.json\`, cuatro logs \`all.log\`, \`unit.log\`, \`integration_nonregression.log\`, \`technical.log\`, \`protected_before.json\`, \`protected_after.json\`, \`git_before.txt\`, \`git_after.txt\` (y opcionalmente los JSON de colección). Con ello se decide si P4/P6 están suficientemente controlados para **un subconjunto A-06**, sin inferir que una suite completa sea segura ni declarar CI verde.
