@@ -186,13 +186,14 @@ if ($CheckC3T05Process) {
     )
 }
 if ($CheckA05Safety) {
-    # A-05: 6 Tectonic runner tests + 3 legacy tests (goldens may SKIP).
+    # A-05: 6 Tectonic + 3 legacy + 2 network opt-in safety cases.
     # No real Tectonic, provider, Docker or full technical suite.
     $nodeids = @(
         "tests/unit/test_tectonic_runner.py",
         "tests/integration/test_translation_structure.py::TestTranslationStructure::test_structural_integrity_against_golden_snapshot",
         "tests/integration/test_translation_technical.py::TestTranslationTechnical::test_latex_token_sets_and_balances",
-        "tests/integration/test_translation_layer.py::TestTranslationLayerIntegration::test_translation_layer_flow"
+        "tests/integration/test_translation_layer.py::TestTranslationLayerIntegration::test_translation_layer_flow",
+        "tests/integration/test_embedding_smoke.py"
     )
 }
 $nodeids | Out-File -FilePath (Join-Path $reports "nodeids.txt") -Encoding utf8
@@ -201,6 +202,7 @@ $desired = @{
     "TMPDIR" = $temp; "XDG_CACHE_HOME" = $cache; "TIKTOKEN_CACHE_DIR" = $cache
     "PYTHONPATH" = $copy; "PYTHONDONTWRITEBYTECODE" = "1"
     "PYTHONNOUSERSITE" = "1"; "PYTEST_ADDOPTS" = ""; "PIP_NO_INDEX" = "1"
+    "TRANSLATOR_PDF_RUN_LIVE_PROVIDER_TESTS" = "0"
 }
 $secretPattern = "(?i)(TOKEN|SECRET|PASSWORD|PASSWD|API_KEY|ACCESS_KEY|PRIVATE_KEY|CREDENTIAL|^AWS_|^AZURE_|^GCP_|^OPENAI_|^GEMINI_|^GROQ_|^HF_)"
 $original = @{}
