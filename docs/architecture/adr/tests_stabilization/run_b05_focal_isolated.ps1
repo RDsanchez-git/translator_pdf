@@ -3,11 +3,15 @@
 [CmdletBinding()]
 param(
     [string] $RepoRoot = ".",
-    [switch] $CheckSensitivity
+    [switch] $CheckSensitivity,
+    [switch] $CheckB01B02
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
+if ($CheckB01B02 -and $CheckSensitivity) {
+    throw "STOP: B01/B02 selection and B05 sensitivity are separate controlled runs."
+}
 $root = (Resolve-Path -LiteralPath $RepoRoot).ProviderPath
 if (-not (Test-Path -LiteralPath (Join-Path $root "pyproject.toml"))) {
     throw "STOP: root lacks pyproject.toml"
@@ -56,6 +60,14 @@ $nodeids = @(
     "tests/integration/test_real_e2e.py::TestRealE2EFinOps::test_mocked_pipeline_result_exposes_finops_fields",
     "tests/integration/test_pipeline_orchestration.py::TestPipelineOrchestration::test_legacy_orchestrator_handoff_with_mocked_parser"
 )
+if ($CheckB01B02) {
+    $nodeids = @(
+        "tests/integration/test_golden_parser.py::test_production_parser_preserves_known_text_from_disposable_pdf",
+        "tests/integration/test_chunker_snapshot.py::test_semantic_chunker_preserves_members_policy_and_source_exactly",
+        "tests/integration/test_chunker_snapshot.py::test_semantic_chunker_rejects_lost_member_in_manifest",
+        "tests/integration/test_chunker_snapshot.py::test_semantic_chunker_rejects_source_whitespace_mutation"
+    )
+}
 $nodeids | Out-File -FilePath (Join-Path $reports "nodeids.txt") -Encoding utf8
 $desired = @{
     "HOME" = $isolatedUserHome; "USERPROFILE" = $isolatedUserHome; "TMP" = $temp; "TEMP" = $temp
@@ -134,6 +146,7 @@ try {
     @(
         "source_sha=$revision"
         "pytest_exit_code=$exitCode"
+        "b01_b02_requested=$([bool]$CheckB01B02)"
         "sensitivity_requested=$([bool]$CheckSensitivity)"
         "sensitivity_exit_code=$sensitivityExitCode"
         "clone=$copy"
