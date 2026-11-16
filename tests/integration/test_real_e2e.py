@@ -11,9 +11,14 @@ from apps.llm_workers.sync_bridge import SyncProviderBridge
 from apps.llm_workers.dispatcher import AsyncDispatcher
 from core.finops.measurement import InferenceMeasurementService
 from core.validation.budget import PromptBudgetCalculator, StandardCompressionPolicy
-from core.validation.estimators import ExactBPEEstimator
 
 from apps.llm_workers.dispatcher import NullEventPlane
+
+
+class _DeterministicTokenEstimator:
+    """No tokenizer cache/network for a mocked consumer result contract."""
+    def estimate_tokens(self, text: str) -> int:
+        return len(text.split())
 
 
 class FinOpsControlledChunker:
@@ -56,7 +61,7 @@ class TestRealE2EFinOps(unittest.IsolatedAsyncioTestCase):
         self.pdf_real_path = "tests/fixtures/sample_3_pages.pdf"
         self.test_id = uuid.uuid4().hex
         
-        estimator = ExactBPEEstimator()
+        estimator = _DeterministicTokenEstimator()
         measurement_service = InferenceMeasurementService(estimator=estimator)
         budget_calculator = PromptBudgetCalculator()
         compression_policy = StandardCompressionPolicy()
