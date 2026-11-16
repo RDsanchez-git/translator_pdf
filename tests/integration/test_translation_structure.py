@@ -30,6 +30,7 @@ class TestTranslationStructure(unittest.IsolatedAsyncioTestCase):
                 updated_at REAL
             )
         """)
+        self.addCleanup(self.db.close)
         repo = FSMRepository(self.db)
         mock_store = FSMStateStore(repo, DocumentCommandHandler(repo))
 
@@ -37,11 +38,12 @@ class TestTranslationStructure(unittest.IsolatedAsyncioTestCase):
         from apps.bootstrap.pipeline_factory import build_extraction_pipeline
         from core.metrics.summary import SummaryBuilder
         from infra.db.document_repository import SQLiteDocumentRepository
-        from infra.db.connection import get_connection
-
         parser = build_extraction_pipeline()
-        doc_conn = get_connection("infra/db/documents.db", timeout=30)
-        document_repository = SQLiteDocumentRepository(doc_conn)
+        # No abrir infra/db/documents.db del checkout, incluso si el test
+        # luego hace skip por ausencia del golden.
+        self.doc_conn = sqlite3.connect(":memory:")
+        self.addCleanup(self.doc_conn.close)
+        document_repository = SQLiteDocumentRepository(self.doc_conn)
 
         self.pipeline = TranslationPipeline(
             parser=parser,
