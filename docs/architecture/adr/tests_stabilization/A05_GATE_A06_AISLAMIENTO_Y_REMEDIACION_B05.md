@@ -271,4 +271,28 @@ Registrar stdout/stderr y código de salida, incluyendo cualquier dependencia ar
 
 **CI:** \`.github/workflows/ci.yml\` mantiene \`python -m pytest -m "not e2e" -q -ra\` y los casos B05 no tienen marker \`e2e\` (por fuente), por lo que son seleccionables en el check técnico; **no se disparó ni aprobó ningún workflow** como parte de esta preparación. El contraste de nodeids y markers de la colección A-01 histórica necesita reproducirse sobre el SHA remediado antes de afirmar alcance global.
 
-**Estado:** C-control negativo \`fsm_watchdog\` y \`legacy_cache_read\` **DISEÑADOS/IMPLEMENTADOS COMO HERRAMIENTA, NO EJECUTADOS**. \`MUTATION_KILLED=0\` acreditados para esta ronda; B-05, A-05 global, A-06 global y C siguen abiertos.
+**Estado al redactar §12:** ambos controles preparados, todavía no ejecutados. La evidencia dinámica posterior del owner figura en §13; B-05, A-05 global, A-06 global y C general siguen abiertos.
+
+## 13. B05-Q2 — sensibilidad demostrada por el owner, 2026-11-16 (hora Argentina)
+
+**Sujeto testificado:** commit \`ffd702535a079f37cff87659792ae86a98b40cad\` (\`tests_stabilization\`), clon independiente conservado bajo carpeta temporal. El owner ejecutó \`run_b05_focal_isolated.ps1 -CheckSensitivity\` con su \`venv\`, sin Docker/Hyper-V, sobre ese SHA; reportó \`pytest exit code: 0\` y \`Sensitivity exit code: 0\`. El RAR de evidencias adjunto en la conversación contiene \`mutation_summary.json\` y los dos logs completos, inspeccionados por el asistente. La salida completa de la *segunda* baseline focal no fue adjuntada, por lo que su PASS se respalda con código 0 reportado por el runner, no con un conteo de nodos visto en \`pytest_focal.log\`.
+
+| Mutación | Resultado del archivo real | Motivo de fallo contractual | Veredicto |
+|---|---|---|---|
+| \`fsm_watchdog\` | Pytest exit **1**, \`1 failed in 0.91s\`; \`test_recovery_flow.py:70\` | \`AssertionError: 'PROCESSING' != 'STALLED'\`; al desactivar \`execute_sweep\`, la FSM **no** pasa a STALLED | **MUTATION_KILLED** |
+| \`legacy_cache_read\` | Pytest exit **1**, \`1 failed in 0.73s\`; \`test_e2e_walking_skeleton.py:148\` | \`AssertionError: 2 != 1 : Cache hit must avoid a second fake provider call\`; dos inferencias del fake por lectura de caché siempre MISS | **MUTATION_KILLED** |
+
+**Verificación de causa:** los logs muestran fallos del **assert del test protector**, no errores de imports/colección/infraestructura. El resumen JSON registra \`verdict=TWO_KILLED\` con \`revision_sha=ffd702535...\` y ambos casos con \`python_exit_code=1\`. Los dos controles consisten en reemplazos temporales **en memoria** de métodos del SUT, en subprocesos aislados; no alteran los archivos productivos. No implican una métrica de mutation coverage general ni testifican la ruta PDF→PDF activa.
+
+**Tipado local explícito:** el owner ejecutó \`pyright\` señalando los cuatro archivos B05: \`0 errors, 0 warnings, 0 informations\`. La advertencia separada notifica una versión Pyright más reciente (\`v1.1.411 → v1.1.414\`); no es error de tipado. El \`pyrightconfig.json\` oficial **excluye tests/**; no se atribuye este resultado al check obligatorio de GitHub Actions.
+
+**Alcance y gates, sobre el SHA testificado:**
+
+- [x] **B05-Q2:** baseline focal previa exit 0 reportada + **2/2 controles negativos detectados por causa contractual**.
+- [x] **Pyright local focal:** 4 archivos explícitos, **0 errores/0 advertencias** reportados.
+- [ ] **B05-R1/R2/R3 cierre global:** revisar garantías residuales y efectos de fixtures/sidecars externos, y no afirmar que \`COMPLETED\` mockeado certifica el pipeline único.
+- [ ] **CI GitHub de este SHA:** no se ha verificado un run/check actual; el selector \`-m "not e2e"\` sigue siendo la evidencia de inclusión por código, no un resultado CI.
+- [ ] **C general:** las dos mutaciones legacy acreditadas **no sustituyen** falsadores P0 del camino OCR/G3/G5 activo.
+- [ ] **A05/A06 general:** el reporte no acredita 1.474 tests, efectos temporales fuera de Git ni aislamiento del SO.
+
+**Próxima prioridad:** continuar la auditoría de los falsos oráculos P0 de \`test_golden_parser.py\` y \`test_chunker_snapshot.py\` y la cobertura focal de barreras G3/G5 soportadas; evitar ampliar la suite sin revisar las rutas de escritura restantes. No modificar GT, producción ni el CI como atajo para conseguir PASS.
