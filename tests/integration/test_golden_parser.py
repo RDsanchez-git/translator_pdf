@@ -40,7 +40,7 @@ def test_production_parser_preserves_known_text_from_disposable_pdf(
     )
     for line in expected_lines:
         assert line in extracted_text, (
-            f"El parser real perdió texto conocido del PDF sintético: {line!r}"
+            f"B01_KNOWN_SOURCE_TEXT_MISSING: {line!r}"
         )
 
     ids = [str(node.node_id) for node in nodes]
