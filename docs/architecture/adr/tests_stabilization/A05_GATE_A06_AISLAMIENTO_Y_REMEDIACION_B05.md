@@ -438,3 +438,34 @@ Las **dos advertencias** observadas no son resultado de los casos: (1) \`google.
 5. **Selección A-06:** partir de los selectores existentes (\`unit\`, \`integration and not regression\`, \`not e2e\`), identificar qué se selecciona realmente y registrar **PASS, FAIL, SKIP, XFAIL** y SHA. Sin tratar el smoke proveedor omitido como PASS ni extender automáticamente E2E científico/GT. La ejecución completa sigue **pendiente** y debe autorizarse en entorno controlado, no en working tree.
 
 **Estado:** las cuatro ediciones de tests A-05 y el guard explícito Groq cuentan con fuente inspeccionada y baseline focal de 11 nodeids. **A-05-P4/P6 siguen ABIERTOS** en cuanto a una ejecución amplia y control/observación real de imports, plugins, red y efectos transitorios; no se ha certificado aislamiento OS. No se agregaron tests/scripts, no se corrió la suite completa y no se alteraron producción, CI, corpus ni GT en este registro.
+
+## 20. A-05 P4/P6 — preflight sin ejecución preparado (2026-11-16)
+
+**Decisión:** no repetir los 11 tests acreditados en §19, no abrir otro harness ni exigir Docker por rutina. Se reutilizó \`run_b05_focal_isolated.ps1\` para añadir una opción **\`-PreflightA06\` exclusivamente documental y de solo lectura** y un switch opcional **\`-CaptureProtectedPaths\` para futuras ejecuciones autorizadas en clon**. Ninguna de las dos modalidades ejecutadas hasta recibir evidencia del owner. **P4/P6 siguen [ ]**; preparar un control no certifica haberlo superado.
+
+### 20.1 Comando mínimo de preflight (sin pytest)
+
+\`\`\`powershell
+git pull --ff-only origin tests_stabilization
+
+& .\docs\architecture\adr\tests_stabilization\run_b05_focal_isolated.ps1 \`
+  -RepoRoot (Get-Location).Path \`
+  -PreflightA06
+\`\`\`
+
+El ejecutor: comprueba rama/SHA, crea clon nuevo \`--no-hardlinks\` y HEAD detached sin remoto, verifica estado Git limpio, calcula \`protected_before.tsv\` para archivos de **\`tests/fixtures\`, \`tests/golden\`, \`infra/db\`** (incluye ocultos/ignorados y SHA-256; rechaza reparse points observados), y lee **metadatos de entrypoints \`pytest11\` y versiones de \`pytest\`/\`pytest-asyncio\`** con \`python -I -B -c\`, sin importar plugins ni pytest. Conserva \`plugin_entrypoints.txt\`, \`preflight_summary.txt\`, \`protected_before.tsv\`, \`git_before.txt\`, \`git_after.txt\`. No toca corpus canónico ni snapshots, ni modifica el working tree personal.
+
+**Importante:** \`plugin_entrypoints.txt\` enumera *plugins instalados anunciados*, **no** cuáles pytest cargó durante una colección. El informe fija \`loaded_pytest_plugins=NOT_INSPECTED\`, \`pytest_collection=NOT_RUN\`, \`network_os_isolation=NOT_VERIFIED\` y \`external_file_effects=NOT_VERIFIED\`. Una lista de plugins instalados es una decisión de P4 informada, no un cierre de P4. No se ha demostrado bloqueo del egress por firewall SO ni ausencia de hooks/imports con efectos.
+
+### 20.2 Comparación opcional P6 cuando A-06 autorice un subconjunto controlado
+
+El mismo ejecutor acepta \`-CaptureProtectedPaths\` **solo junto a un modo focal de tests ya existente y autorizado**, no junto a \`-PreflightA06\`. Antes y después de esa ejecución genera \`protected_before.tsv\` y \`protected_after.tsv\`; si difieren los SHA-256 de los inventarios, el proceso devuelve exit **5**. Incluye archivos ignorados bajo los tres subárboles técnicos protegidos. **No comparar ese inventario con el de otro clon ni de un SHA distinto.**
+
+**Límites explícitos del instrumento:** los snapshots previos/posteriores no observan archivos creados y eliminados durante pytest, procesos hijos, actividades de import/plugin fuera de esas rutas o escrituras externas al clon. Para certificar *aislamiento real* de filesystem/red hay que comprobar controles del host/OS por separado. Por eso \`-CaptureProtectedPaths\` **no acredita P6 global solo porque el inventario quede igual**. Una eventual ejecución técnica extensa no se autoriza con el flag por sí solo, ni en el checkout original. El instrumento observa; no hace sandbox.
+
+### 20.3 Gate de decisión tras leer el preflight
+
+- **Si Pytest o \`pytest-asyncio\` no están disponibles, o el clon tiene rutas redirigidas/reparse points, el preflight bloquea el avance.** No corregirlo ocultando tests ni reescribiendo la suite.
+- **Si el preflight termina correctamente**, evaluar los metadatos de plugins y decidir un **subconjunto A-06 seguro**, en el que cada test tenga I/O y provider controlados; no correr la selección global \`-m "not e2e"\` automáticamente. En el clon, usar el comando existente y más tarde la opción opcional de hashes protegidos sin convertir ausencia de diferencias en garantía OS.
+- **A05-P4/P6 permanecen formalmente abiertos**, pues requieren evidencia real de imports/plugins seleccionados y seguridad del entorno de la corrida más amplia. Preparación técnica suficiente para *proponer* A-06 focal controlada, **no** aprobación de A-06 global.
+- **Sin resultados nuevos de tests, Pyright o CI en esta modificación.** \`main\`, runtime, \`ci.yml\`, corpus científico, GT y la eliminación deliberada del PDF local quedan intocados.
