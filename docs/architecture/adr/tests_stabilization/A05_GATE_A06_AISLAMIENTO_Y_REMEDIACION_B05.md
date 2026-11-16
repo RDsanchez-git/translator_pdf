@@ -151,3 +151,19 @@ Comprobación sugerida desde un PowerShell abierto en el repo habitual, sin priv
 La ausencia de \`SwitchName\` sugiere que un adaptador Hyper-V no está conectado a un switch: **no es una prueba de firewall**, ni acredita red cortada en otros dispositivos o entornos virtuales. El guest script no verifica dinámicamente la red. La evaluación exterior por el operador del host sigue siendo indispensable. No insertar automáticamente declaraciones \`true\` en \`host-isolation.json\` ni aprobar A-06 basándose solo en este sondeo.
 
 **Evidencia pendiente:** no disponemos de acceso directo a las características de Windows ni a una VM del owner desde esta sesión. No se ha ejecutado el \`.ps1\` en Windows; tampoco \`preflight_a06_guest.py\` dentro de una VM real. La presencia de ambos archivos en GitHub es **preparación**, no validación del entorno ni tests PASS.
+
+## 8. Decisión de ejecución sin Docker y B05-R1 implementada (evidencia estática)
+
+**Decisión del owner:** Hyper-V deja de ser el camino de trabajo. **Docker no es requisito de la suite pytest/CI técnico**; no agregar dependencias de daemon, Compose, red o proveedores externos a pruebas que pueden verificar contratos con Python, SQLite temporal y fakes en el límite. Conservar el laboratorio Docker PDF→PDF existente solo como validación operacional **separada y explícita**, de acuerdo con el Atlas/handoff; no repetir C0–C4 durante esta campaña.
+
+**Distinción obligatoria:** la hermeticidad en tests (directorios temporales, conexiones cerradas, no modificar estado global, fakes externos y no efectos sobre fixtures) es requisito de calidad; una VM/contendor OS no puede trasladarse como prerequisito universal para que un desarrollador o GitHub Actions ejecute pytest. Hasta remediar los demás tests históricos peligrosos, **no interpretar la suite completa como segura para el checkout del owner**. El preflight Hyper-V y guest Linux permanece como material histórico/no normativo; no es gate de ejecución obligatorio para tests que ya acrediten hermeticidad. Los cambios a la selección de CI, si son necesarios, se revisarán aparte.
+
+**B05-R1 — código modificado, validación pendiente:** [\`test_recovery_flow.py\`](../../../../tests/integration/test_recovery_flow.py), commit \`06362b60d9d3aa140bda2f5a9fcc7a18c9bb652f\`, únicamente en \`tests_stabilization\`.
+
+- Se reemplazó la ruta persistente \`infra/db/test_fsm.db\` y sus dos \`os.remove\` por \`tempfile.TemporaryDirectory()\`, \`addClassCleanup\` y DB dentro del directorio temporal. Las conexiones del test conservan sus \`finally: close()\`.
+- Se eliminó la asignación directa a \`core.pipeline.orchestrator.compute_ast_hash\`; el test no llamaba al método real de \`pipeline.execute\` en ese bloque, sino a un \`side_effect\` parcheado.
+- **Se mantiene el oráculo central:** FSM real \`PROCESSING → STALLED → PROCESSING\` a través de watchdog y resumer reales. La fase \`COMPLETED\` final es una **simulación del test**, no evidencia de ejecución real del pipeline único.
+- Revisión solo por fuente/diff; **no se ejecutó pytest, no hay PASS/FAIL, ni prueba dinámica de aislamiento ni mutaciones**. No equivale a \`B05-R1 CLOSED\` todavía. Se necesita test focal en entorno Python seguro, revisar versión FSM, estado Git y sidecars antes/después, y ausencia de contaminación global.
+- No se cambió CI, runtime ni GT. \`B05-R2\` caché histórica y \`B05-R3\` DB/fixtures de otros tests siguen pendientes.
+
+**Próximo avance:** corregir los demás riesgos de escrituras fijas (B05-R2/R3) con fixtures Python temporales y oráculos observables. Ejecutar luego pruebas focales Python/pytest sin Docker para los casos revisados; las pruebas multiproceso y de PDF real permanecen en el laboratorio separado. Actualizar el plan rector con los SHA y límites; no acreditar el cierre de B05 hasta evidencia dinámica.
