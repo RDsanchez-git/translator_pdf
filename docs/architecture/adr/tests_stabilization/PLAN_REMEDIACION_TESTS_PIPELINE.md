@@ -434,6 +434,7 @@ Una nueva línea de avance en este plan **no** sustituye las evidencias identifi
 
 ---
 | 2026-11-15 | **Decisión: pytest/CI técnico sin Docker obligatorio; B05-R1 corregido estáticamente, no cerrado** | A-05/B05-R1 | [Gate actualizado](A05_GATE_A06_AISLAMIENTO_Y_REMEDIACION_B05.md); test \`test_recovery_flow.py\` commit \`06362b60\`, gate \`79bf904d\` | Owner descarta Hyper-V como vía prioritaria y confirma que Docker no será dependencia ordinaria. SQLite de recuperación aislada por \`TemporaryDirectory/addClassCleanup\`; borrado fijo y global patch eliminados. FSM watchdog/resumer reales conservados; \`COMPLETED\` simulado. **Sin pytest, CI ni mutaciones ejecutados; B05-R1 y A-05/A-06 permanecen abiertos**. |
+| 2026-11-15 | **B05-R2/R3 — fuentes corregidas, pruebas NO ejecutadas** | B05-R2/R3 | [Gate, §9](A05_GATE_A06_AISLAMIENTO_Y_REMEDIACION_B05.md); commits \`e8a24bee\`, \`bdb85717\`, \`8552d628\` | Caché legacy: SQLite temporal, fake contado y cache hit/summary observados en SUT; consumidores legacy: \`documents.db\` en memoria, sin fabricación de PDF ni sobredeclaración de E2E. Nodeids renombrados respecto de colección 1.474; requieren nueva conciliación. **Sin baseline dinámica ni Pyright; B05/A-05/A-06/C abiertos**, CI sin Docker requerido. |
 
 
 ## 11. Actividades expresamente diferidas hasta después del refinamiento del pipeline
