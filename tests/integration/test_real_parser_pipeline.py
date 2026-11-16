@@ -1,53 +1,48 @@
-import unittest
-import os
+"""B-03: repeatable real PDF extraction on a disposable multipage fixture.
+
+Uses the supported extraction composition root, not an adapter.parse mock.
+No scientific golden, production PDF-to-PDF pipeline, or tests/fixtures writes.
+"""
+from __future__ import annotations
+
+from pathlib import Path
+
+import fitz
+import pytest
+
 from apps.bootstrap.pipeline_factory import build_extraction_pipeline
 from core.ast.models import ASTNode
 
-class TestRealParserIsolation(unittest.TestCase):
-    """Certificación de Frontera de Aislamiento para el Parser Real (Fase 11B.1A)."""
 
-    def setUp(self):
-        self.pdf_real_path = "tests/fixtures/sample_3_pages.pdf"
-        
-        # SOTA FIX: Firma del adaptador acoplada a la inversión de control real de la Fase 16
-        self.adapter = build_extraction_pipeline()
-        
-        if not os.path.exists(self.pdf_real_path):
-            os.makedirs(os.path.dirname(self.pdf_real_path), exist_ok=True)
-            with open(self.pdf_real_path, "w") as f:
-                f.write("%PDF-1.4 SOTA Dummy")
+@pytest.mark.integration
+def test_real_parser_repeatable_ids_and_text_across_two_temporary_pages(
+    tmp_path: Path,
+) -> None:
+    source = tmp_path / "b03_two_pages.pdf"
+    expected = (
+        "B03 first page independent observation.",
+        "B03 first page distinct measurement.",
+        "B03 second page experimental result.",
+        "B03 second page final conclusion.",
+    )
+    with fitz.open() as pdf:
+        for pair in (expected[:2], expected[2:]):
+            page = pdf.new_page(width=595, height=842)
+            for y, text in zip((100, 175), pair):
+                page.insert_text((72, y), text, fontsize=11)
+        pdf.save(str(source))
 
-    def test_parser_adapter_extracts_and_verifies_structural_presence(self):
-        """Certifica la ingesta del binario real y valida la presencia de nodos de dominio válidos."""
-        from core.ast.enums import ContentNodeType
-        from core.ast.builder import PayloadRegistry
-        from unittest.mock import patch
+    parser = build_extraction_pipeline()
+    first = parser.parse(str(source))
+    second = parser.parse(str(source))
 
-        # SOTA FIX: Hidratamos nodos de dominio V2 con sub-payloads inmutables
-        mock_nodes = [
-            ASTNode(
-                node_id=f"node_{i}",
-                sequence_id=i,
-                node_type=ContentNodeType.PARAGRAPH,
-                payload=PayloadRegistry.create(ContentNodeType.PARAGRAPH, f"Prosa fragmento {i}")
-            )
-            for i in range(1, 5)
-        ]
-
-        with patch.object(self.adapter, 'parse', return_value=mock_nodes):
-            nodes = self.adapter.parse(self.pdf_real_path)
-            
-            self.assertIsInstance(nodes, list)
-            self.assertGreater(len(nodes), 0, "El árbol AST retornado está vacío.")
-            
-            for node in nodes:
-                self.assertIsInstance(node, ASTNode)
-                self.assertIsNotNone(node.node_id, "Se detectó un nodo degenerado sin node_id.")
-                # SOTA FIX: Consumo de texto a través de la propiedad facade unificada text_content
-                self.assertIsNotNone(node.text_content, f"El nodo {node.node_id} no contiene texto.")
-                
-            self.assertGreater(
-                len(nodes), 
-                3, 
-                f"Volumen de fragmentación sospechosamente bajo ({len(nodes)} nodos) para un documento real."
-            )
+    assert first and second, "B03_REAL_PARSER_EMPTY_AST"
+    assert all(isinstance(node, ASTNode) for node in first)
+    assert [node.node_id for node in first] == [node.node_id for node in second], (
+        "B03_REAL_PARSER_UNSTABLE_NODE_IDS"
+    )
+    identities = [str(node.node_id) for node in first]
+    assert len(identities) == len(set(identities)), "B03_REAL_PARSER_DUPLICATE_IDS"
+    extracted = " ".join(" ".join((node.text_content or "").split()) for node in first)
+    for line in expected:
+        assert line in extracted, f"B03_REAL_PARSER_SOURCE_TEXT_MISSING: {line!r}"
