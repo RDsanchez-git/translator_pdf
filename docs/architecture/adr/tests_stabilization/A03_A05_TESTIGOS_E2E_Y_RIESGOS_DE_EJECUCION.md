@@ -34,7 +34,7 @@ El walking skeleton **sí** construye objetos útiles con dispatcher/cache y pue
 
 **A05-P4:** no hay revisión completa de imports/decoradores transitivos y plugins, ni prueba de egress negado por sistema operativo. La colección anterior se ejecutó en un clon con un guard de Python de mejor esfuerzo; eso **no equivale** a contenedor/VM con aislamiento de red/filesystem.
 
-**A05-P6:** `git status` limpio del clon descarta cambios rastreados, pero **no** revela todos los ignorados, archivos nuevos, efectos fuera del repo ni alteraciones del host. Se agregó [`inspect_a05_isolated_artifacts.py`](inspect_a05_isolated_artifacts.py), una comprobación **de solo lectura del clon retenido y de los JSON de colección**, sin importar tests ni procesar PDFs. Enumerará `tests/` y `infra/db/` ignorados/untracked y consultará rutas de riesgo por existencia y tamaño. **El resultado estará pendiente hasta su ejecución local por el owner.**
+**A05-P6:** `git status` limpio del clon descarta cambios rastreados, pero **no** revela todos los ignorados, archivos nuevos, efectos fuera del repo ni alteraciones del host. Se agregó [`inspect_a05_isolated_artifacts.py`](inspect_a05_isolated_artifacts.py), una comprobación **de solo lectura del clon retenido y de los JSON de colección**, sin importar tests ni procesar PDFs. Enumerará `tests/` y `infra/db/` ignorados/untracked y consultará rutas de riesgo por existencia y tamaño. **El owner ejecutó el inspector**: [resultado A-05](A05_POSTCOLECCION_ARTEFACTOS_Y_SELECTOR_HISTORICO_2026-11-15.md): 0 cambios versionados, 0 untracked y 0 ignorados bajo `tests/` e `infra/db/`; además, **11/11 nodos de siete archivos históricos entran en `not e2e`**. La inspección posterior no tiene baseline anterior ni prueba ausencia de efectos externos.
 
 **Límite fundamental:** un inventario **posterior** sin snapshot previo **no permite atribuir cuándo o quién creó los archivos**; las entradas `__pycache__` tampoco prueban que los cuerpos de los tests se ejecutaran. La herramienta NO cierra A05-P6 ni demuestra aislamiento OS.
 
@@ -68,7 +68,7 @@ $reports = Join-Path $env:TEMP "translator-a01-isolated-k4f4mf10\reports"
 - [x] **A03-E2E-P2:** autovalidación de caché/FinOps y estado `COMPLETED` documentada por fuente.
 - [x] **A05-SAFE-P1:** DB fija, borrado y patch global no restaurado identificados.
 - [x] **A05-SAFE-P2:** escritura potencial en `setUp` separada del SUT de ejecución y cambio de `sys.path` por import.
-- [ ] **A05-SAFE-P3:** ejecutar inspección de solo lectura del clon retenido para inventario posterior de ignorados/no rastreados.
+- [x] **A05-SAFE-P3:** [inspección de solo lectura del clon realizada por el owner](A05_POSTCOLECCION_ARTEFACTOS_Y_SELECTOR_HISTORICO_2026-11-15.md): 0 cambios versionados/untracked/ignorados en las dos rutas y 11/11 nodos históricos seleccionados por `not e2e`. **P4/P6 globales abiertos.**
 - [ ] **A05-P4/P6:** revisión de imports/host y efectos OS; no se dispone de baseline previo ni aislamiento de red acreditado.
 - [ ] **A-03/A-04/B-03/B-05:** otras familias, clasificación final y remediaciones aún pendientes. **No declarar PASS.**
 
