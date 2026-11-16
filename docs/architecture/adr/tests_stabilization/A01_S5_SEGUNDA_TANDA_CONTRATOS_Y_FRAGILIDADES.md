@@ -211,3 +211,28 @@ git pull --ff-only origin tests_stabilization
 \`\`\`
 
 Solicitar \`pytest_focal.log\`, \`summary.txt\`, \`g5_worker_mutation_summary.json\`, ambos \`g5_worker_mutation_*.log\` y \`status_changes.txt\`. Los tres tests quedan acreditados solo para el SHA de baseline anterior; el nuevo script debe evaluarse sobre su propio SHA. No se ha ejecutado la suite técnica general, ni CI del HEAD, ni D-4/D-5.
+
+## 12. TR-022 G5W: dos mutaciones acreditadas por trazas directas (owner, 2026-11-16)
+
+**Fuente primaria:** \`reports.rar\` del owner, RAR5 con **7 miembros inspeccionados directamente**: \`pytest_focal.log\`, \`summary.txt\`, \`status_changes.txt\` vacío, \`g5_worker_mutation_summary.json\`, \`g5_worker_mutation_runner.log\` y los dos tracebacks individuales. SHA exacto **\`97a1bbef6cd7ac798dd6bcb151afe7a2154ea6bc\`**.
+
+| Sujeto | Evidencia observada | Decisión |
+|---|---|---|
+| Baseline sin mutación | **\`3 passed in 1.20s\`**, \`pytest_exit_code=0\`, \`g5_worker_requested=True\`, \`g5_worker_sensitivity_requested=True\` | Tres contratos del método G5 worker pasan |
+| **G5W-NEG-01** lease vencido | \`test_real_worker_method_rejects_expired_lease_without_final_publication\` línea 94, \`Failed: DID NOT RAISE <class 'core.execution.exceptions.OptimisticLockError'>\`, \`1 failed in 0.93s\`, exit 1; log confirma **\`G5_ASSEMBLER_PDF_PUBLISHED\`** bajo mutación | **MUTATION_KILLED** directamente corroborada |
+| **G5W-NEG-02** no registra fallo | \`test_real_worker_method_fences_failure_state\` línea 109, \`AssertionError: assert 'COMPILING' == 'FAILED_RETRYABLE'\`, \`1 failed in 0.92s\`, exit 1 | **MUTATION_KILLED** directamente corroborada |
+| Verificador e integridad | \`G5_WORKER_MUTATION_VERDICT=TWO_KILLED\`, \`sensitivity_exit_code=0\`; \`status_changes.txt\` **0 bytes**; \`docker_used=false\`, \`no_OS_level_sandbox_claim=true\` | Sin cambios Git persistentes detectados en clon |
+
+**Conclusión limitada:** baseline G5W y dos falsadores específicos acreditados en ese SHA; no duplicar la baseline anterior ni dos mutaciones ya contadas. El acumulado de la campaña A/B/C llega a **15 mutantes focales KILLED** (B05 2, B01/B02 2, G3/G5 3, A03 2, foreground 2, CLI-admisión 2, G5W 2), con diferentes niveles de independencia y límites. Este número **no** es un porcentaje de cobertura ni acredita todos los nodeids, CI, ausencia de efectos transitorios o laboratorio D-4/D-5.
+
+**Próximo testigo TR-023, C3/T05:** \`tests/integration/test_c3_t05_process_boundary.py\` contiene un único \`test_t05_g3_staged_publication_crash_and_recovery_between_processes\`. Auditoría estática de fuente sobre este HEAD: el parent usa \`tempfile.TemporaryDirectory(prefix="tpdf_c3_t05_")\`; primer hijo \`sys.executable -B ... crash\` persiste G3 y ejecuta **\`os._exit(73)\` únicamente dentro del proceso hijo**; segundo hijo \`recover\` reabre tres SQLite temporales y verifica \`READY_FOR_ASSEMBLY\`, receipts y proyección intacta; tercer lector SQLite es solo lectura. \`ROOT\` apunta al árbol del test, que será el clon Git independiente; no hay proveedor, PDF final, Docker ni daemon completo. \`subprocess.run(timeout=30)\` en cada fase. Estos son argumentos de selección segura *best effort*, **no** una sandbox OS ni una garantía de egress físico.
+
+**Decisión:** ejecutar primero baseline focal C3/T05 en el runner existente con \`-CheckC3T05Process\`, sin nuevos mutantes ni reejecutar la suite técnica global:
+
+\`\`\`powershell
+git pull --ff-only origin tests_stabilization
+& .\docs\architecture\adr\tests_stabilization\run_b05_focal_isolated.ps1 -RepoRoot (Get-Location).Path -CheckC3T05Process
+pyright tests/integration/test_c3_t05_process_boundary.py
+\`\`\`
+
+Acreditar sólo si el owner aporta \`pytest_focal.log\`, \`summary.txt\`, Pyright y \`status_changes.txt\`. No declarar PASS o mutation kill de TR-023 antes de esa ejecución. No se modificaron SUT, CI, fixtures ni Ground Truth.
