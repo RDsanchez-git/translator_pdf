@@ -172,3 +172,18 @@ El owner volvió a adjuntar \`reports.rar\`; se inspeccionaron directamente sus 
 | Verificador/integridad | \`verdict=TWO_KILLED\`, \`sensitivity_exit_code=0\`, \`status_changes.txt\` **0 bytes**, \`docker_used=false\` | Sin diferencias Git persistentes en el clon; no implica aislamiento OS |
 
 **Corrección de alcance histórico:** §7 describía los falsadores como preparados, y el primer reporte del owner solo permitió confirmar el JSON. Ahora constan ambos tracebacks y el inventario Git. Los dos falsadores son resultados de **una única ejecución** en el SHA citado, no cuatro kills. El coordinador \`run_admitted_pdf\` es real, pero OCR/G3/G5 siguen simulados: **no se ha acreditado E2E PDF→PDF, seguridad de ejecución a nivel SO, CI ni Ground Truth**. Los gates generales A/B/C permanecen abiertos.
+
+## 10. CLI-NEG-01/02 — baseline y ambos tracebacks acreditados (owner, 2026-11-16)
+
+**Fuente primaria inspeccionada:** RAR5 \`reports_1.rar\` aportado por el owner. Se leyeron directamente los **siete miembros**: \`pytest_focal.log\`, \`summary.txt\`, \`cli_admission_mutation_summary.json\`, \`cli_admission_mutation_runner.log\`, los **dos logs de mutación** y \`status_changes.txt\` (**0 bytes**). Sujeto exacto: \`tests_stabilization\` SHA **\`b147625064644041ac6f07f2eda5c6df061cb8b4\`**.
+
+| Observación | Evidencia |
+|---|---|
+| Baseline de admisión + CLI | \`........ [100%]\`, **\`8 passed in 0.81s\`**, \`pytest_exit_code=0\`, \`cli_admission_sensitivity_requested=True\` |
+| CLI-NEG-01, fallback inseguro | \`test_no_nonatomic_fallback_if_hard_links_unavailable\`, línea 101: **\`Failed: DID NOT RAISE <class 'apps.cli.pdf_inbox.PDFInboxSubmissionError'>\`**, \`1 failed in 0.61s\`; \`exit_code=1\`, **MUTATION_KILLED** |
+| CLI-NEG-02, R1 heredado | \`test_cli_translate_never_invokes_legacy_r1_pipeline\`, línea 120: **\`AssertionError: R1 must not execute\`**, \`1 failed in 0.70s\`; \`exit_code=1\`, **MUTATION_KILLED** |
+| Verificador/integridad | \`CLI_ADMISSION_VERDICT=TWO_KILLED\`, \`sensitivity_exit_code=0\`; \`status_changes.txt\` vacío, \`docker_used=false\`, \`no_OS_level_sandbox_claim=true\` |
+
+**Decisión:** dos mutaciones **KILLED con trazas directas** contra contratos distintos. No son fallos del SUT sin mutar y no se deben volver a contar al repetir o registrar el mismo SHA. El runner comprobó Git persistente limpio, **no** ausencia de cualquier efecto transitorio sobre el host. No hubo proveedor, Tectonic ni PDF→PDF completo. No cerrar A-03/A-04/C ni CI del HEAD basándose solo en estos dos testigos.
+
+**Continuidad:** TR-022, método real del worker G5, usa lease SQLite temporal, compilación/renderer simulados y tres escenarios: éxito fenced, lease expirado durante compilación y error de compilador. Su fragilidad \`__new__\`/fixture importada de otro test sigue siendo P1, **no un fallo observado**. Seleccionarlo focalmente, sin Docker, y diferenciarlo de la anterior prueba C-05 del repositorio de leases.
