@@ -135,3 +135,19 @@ El JSON `host-isolation.json` debe contener **solo afirmaciones verificadas por 
 Los valores del ejemplo **no son evidencia real**. No crearlos como afirmación de un host que no se inspeccionó. `--output` se crea solo si todas las entradas básicas pueden ser leídas; puede almacenar resultado `BLOCKED` para análisis. Falta aún captura de `pytest --version`/plugins y del inventario integral tracked/untracked/ignored (el script registra Git limpio y paths técnicos de alto riesgo, **no** una certificación global de efectos). Se requieren OS-level tracing o equivalentes cuando se pretenda acreditar ausencia de escrituras temporales creadas y borradas.
 
 **Estado de avance al añadir este script:** control preliminar reproducible **PREPARADO**; `A05-Q3` contiene cuatro candidatos definidos, pero **no cerrado** hasta reconciliación y revisión en el guest; `A05-Q1/Q2` **no cerrados**; `A06-Q1` **no ejecutado**; `B05` **sin cambios**. La creación y prueba sintética del script fuera del repositorio se registran por separado de un resultado en VM real.
+
+## 7. Preparación del host Windows: comprobador no destructivo (no acredita Q1)
+
+Se añadió [\`probe_a05_hyperv_host.ps1\`](probe_a05_hyperv_host.ps1), compatible con **Windows PowerShell 5.1**. Inspecciona exclusivamente el **host**: presencia de cmdlets de Hyper-V, VM por nombre, estado apagado, adaptadores conectados a switches, discos virtuales y servicio «Guest Service Interface». **No crea, arranca, desconecta, instala ni modifica nada**. Produce JSON en stdout, con \`host_isolation_verified=false\` y \`a06_authorized=false\` **incluso cuando no detecta un bloqueo**.
+
+Comprobación sugerida desde un PowerShell abierto en el repo habitual, sin privilegios añadidos solo por este paso:
+
+\`\`\`powershell
+& .\docs\architecture\adr\tests_stabilization\probe_a05_hyperv_host.ps1 -VMName 'TST-STAB-LAB' -OwnerRepoRoot (Get-Location).Path
+\`\`\`
+
+**No presuponer que existe \`TST-STAB-LAB\` ni que el equipo soporta Hyper-V.** Si falta la VM, los cmdlets o permisos de inspección, el resultado es \`BLOCKED\` y código 2; **no intentar remediar el bloqueo creando VM ni cambiando funcionalidades de Windows sin decisión del owner**. Si existe una VM, el resultado \`PRECHECK_ONLY_HUMAN_REVIEW_REQUIRED\` exige inspeccionar después la configuración efectiva del host, las credenciales, sesiones mejoradas, rutas físicas, servicios compartidos, filtros de red y archivos del guest, antes de declarar \`A05-Q1\`.
+
+La ausencia de \`SwitchName\` sugiere que un adaptador Hyper-V no está conectado a un switch: **no es una prueba de firewall**, ni acredita red cortada en otros dispositivos o entornos virtuales. El guest script no verifica dinámicamente la red. La evaluación exterior por el operador del host sigue siendo indispensable. No insertar automáticamente declaraciones \`true\` en \`host-isolation.json\` ni aprobar A-06 basándose solo en este sondeo.
+
+**Evidencia pendiente:** no disponemos de acceso directo a las características de Windows ni a una VM del owner desde esta sesión. No se ha ejecutado el \`.ps1\` en Windows; tampoco \`preflight_a06_guest.py\` dentro de una VM real. La presencia de ambos archivos en GitHub es **preparación**, no validación del entorno ni tests PASS.
