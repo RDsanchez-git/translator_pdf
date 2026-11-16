@@ -137,3 +137,25 @@ git pull --ff-only origin tests_stabilization
 \`\`\`
 
 **Estado:** implementación del falsador, **ninguna baseline nueva ni mutation kills FG acreditados aún**. La evidencia A-03 anterior está en [informe G3-B3 §8](A03_PREAUDITORIA_INDEPENDENCIA_ORACULOS_G3_B3.md): **39 PASS en el mismo SHA y TWO_KILLED inspeccionados directamente desde \`reports.rar\`**, con \`status_changes.txt\` vacío. La colección global A-01 de **1.476 nodeids** corresponde al SHA \`5447963d\`; el test multibyte añadido posteriormente exige nueva colección en otro hito, no reinterpretar el censo antiguo. A/B/C generales, A-05/06 y CI siguen abiertos.
+
+## 8. Admisión PDF/CLI — contratos existentes y dos falsadores preparados (2026-11-16)
+
+**Evidencia de fuente sobre el HEAD de esta preparación, no ejecución dinámica:** revisión de \`apps/cli/pdf_inbox.py\`, \`apps/cli/main.py\` y \`tests/integration/test_pdf_inbox_submission.py\`. Ya existen **ocho tests nominales**, con \`pytestmark=integration\`: SHA-256 sobre bytes admitidos, idempotencia de entrada, colisión con contenido distinto, extensión no PDF, fuente vacía, prohibición de fallback no atómico, no selección de R1 y rechazo de \`--job-id\` heredado. Todos usan \`tmp_path\` y PDF de texto sintético \`fitz\`; no usan DB, proveedor ni Tectonic.
+
+**Contrato real:** \`submit_pdf_to_inbox\` publica por \`os.link\` de un temporal \`.pdf-admission-*.partial\` en el mismo volumen; si no es posible publicar atómicamente debe elevar \`PDF_INBOX_ATOMIC_PUBLISH_UNAVAILABLE\`, sin reemplazar el destino. La CLI \`handle_translate\`, en modo admisión sin \`--run\`, **no** llama \`handle_translate_async\` (compatibilidad R1 deshabilitada); el nombre no convierte ese test en ruta OCR→G3→G5 ejecutada.
+
+La nueva herramienta [\`probe_cli_admission_sensitivity.py\`](probe_cli_admission_sensitivity.py) y el selector \`-CheckCLIAdmissionSensitivity\` reutilizan **todos los ocho tests originales**, sin cambiarlos. Después de una baseline verde, lanzan un proceso Python por mutación transitoria:
+
+| Control | Mutación SUT en memoria | Testigo / razón esperada |
+|---|---|---|
+| **CLI-NEG-01** | \`submit_pdf_to_inbox\` acepta una **copia final no atómica** tras error de \`os.link\` | \`test_no_nonatomic_fallback_if_hard_links_unavailable\`: \`Failed: DID NOT RAISE\` (debería rechazar) |
+| **CLI-NEG-02** | \`handle_translate\` llama \`handle_translate_async\` legado antes de efectuar admisión | \`test_cli_translate_never_invokes_legacy_r1_pipeline\`: sentinel \`AssertionError: R1 must not execute\` |
+
+El helper comprueba para cada mutación exit 1, \`1 failed\`, marcador contractual y ausencia de \`ERROR collecting\`/\`INTERNALERROR\`, registrando \`cli_admission_mutation_summary.json\` y los dos logs individuales. **Sin ejecución: no declarar KILLED todavía.**
+
+\`\`\`powershell
+git pull --ff-only origin tests_stabilization
+& .\docs\architecture\adr\tests_stabilization\run_b05_focal_isolated.ps1 -RepoRoot (Get-Location).Path -CheckCLIAdmissionSensitivity
+\`\`\`
+
+La selección se realiza en clon independiente, sin hardlinks ni remoto, con HOME/TEMP apartados y inventarios Git. No es aislamiento de SO, ni evita todo efecto transitorio fuera del clon; **no** ejecutar suite \`not e2e\` en working tree. No se ha modificado runtime/CI, fixtures científicas ni Ground Truth. A/B/C global, A-05 y CI pendiente.
