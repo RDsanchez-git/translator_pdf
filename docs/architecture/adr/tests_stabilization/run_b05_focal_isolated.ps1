@@ -7,7 +7,8 @@ param(
     [switch] $CheckB01B02,
     [switch] $CheckB01B02Sensitivity,
     [switch] $CheckG3G5,
-    [switch] $CheckG3G5Sensitivity
+    [switch] $CheckG3G5Sensitivity,
+    [switch] $CheckB03Parser
 )
 
 Set-StrictMode -Version Latest
@@ -23,6 +24,9 @@ if ($CheckB01B02 -and $CheckSensitivity) {
 }
 if ($CheckG3G5 -and ($CheckB01B02 -or $CheckSensitivity)) {
     throw "STOP: G3/G5 baseline is an independent selection; do not combine runner modes."
+}
+if ($CheckB03Parser -and ($CheckG3G5 -or $CheckB01B02 -or $CheckSensitivity)) {
+    throw "STOP: B03 parser contract is a separate focal execution."
 }
 $root = (Resolve-Path -LiteralPath $RepoRoot).ProviderPath
 if (-not (Test-Path -LiteralPath (Join-Path $root "pyproject.toml"))) {
@@ -91,6 +95,11 @@ if ($CheckG3G5) {
         "tests/integration/test_g5_assembler_lease_recovery.py::test_wrong_epoch_and_wrong_leader_cannot_recover",
         "tests/integration/test_g5_assembler_lease_recovery.py::test_expired_lease_old_worker_cannot_publish_even_without_takeover",
         "tests/integration/test_g5_assembler_lease_recovery.py::test_recovery_fences_old_owner_and_new_owner_completes"
+    )
+}
+if ($CheckB03Parser) {
+    $nodeids = @(
+        "tests/integration/test_real_parser_pipeline.py::test_real_parser_repeatable_ids_and_text_across_two_temporary_pages"
     )
 }
 $nodeids | Out-File -FilePath (Join-Path $reports "nodeids.txt") -Encoding utf8
@@ -195,6 +204,7 @@ try {
         "pytest_exit_code=$exitCode"
         "b01_b02_requested=$([bool]$CheckB01B02)"
         "g3_g5_requested=$([bool]$CheckG3G5)"
+        "b03_parser_requested=$([bool]$CheckB03Parser)"
         "g3_g5_sensitivity_requested=$([bool]$CheckG3G5Sensitivity)"
         "b01_b02_sensitivity_requested=$([bool]$CheckB01B02Sensitivity)"
         "sensitivity_requested=$([bool]$CheckSensitivity)"
