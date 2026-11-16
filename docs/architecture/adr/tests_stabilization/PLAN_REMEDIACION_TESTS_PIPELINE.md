@@ -433,6 +433,8 @@ Una nueva línea de avance en este plan **no** sustituye las evidencias identifi
 | 2026-11-15 | **A-05 → A-06 — Gate fail-closed de aislamiento y contrato B-05** | A-05/A-06/B-05 | [Gate de VM y remediación](A05_GATE_A06_AISLAMIENTO_Y_REMEDIACION_B05.md) | Inspección de fuente confirmó borrado de DB fija, patch global, setup SQLite y cache histórica. Diseñados VM sin host shares/secretos, egress denegado, pre/post inventarios, scope focal y mitigaciones `TemporaryDirectory`/`patch`. **Sin VM verificada, sin ejecutar tests y sin remediación aplicada**. |
 
 ---
+| 2026-11-15 | **Decisión: pytest/CI técnico sin Docker obligatorio; B05-R1 corregido estáticamente, no cerrado** | A-05/B05-R1 | [Gate actualizado](A05_GATE_A06_AISLAMIENTO_Y_REMEDIACION_B05.md); test \`test_recovery_flow.py\` commit \`06362b60\`, gate \`79bf904d\` | Owner descarta Hyper-V como vía prioritaria y confirma que Docker no será dependencia ordinaria. SQLite de recuperación aislada por \`TemporaryDirectory/addClassCleanup\`; borrado fijo y global patch eliminados. FSM watchdog/resumer reales conservados; \`COMPLETED\` simulado. **Sin pytest, CI ni mutaciones ejecutados; B05-R1 y A-05/A-06 permanecen abiertos**. |
+
 
 ## 11. Actividades expresamente diferidas hasta después del refinamiento del pipeline
 
