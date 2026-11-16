@@ -48,3 +48,15 @@ Revisar \`summary.txt\`, \`pytest_focal.log\`, \`status_changes.txt\`, y si exis
 | C-05 | Permitir publicación con lease expirado o fallo de epoch/owner | Aparece archivo final inesperado o transición de FSM no autorizada; se exige comprobar el efecto prohibido, no solo return code |
 
 **Pendiente:** no se implementan aún mutantes C-03/C-04/C-05, ni se ejecuta C2/laboratorio. No se cambia el runtime, CI, GT, snapshots ni contratos normativos. La prioridad es demostrar baseline y revisar eventuales fallos reales sin ajustar el expected.
+
+## 5. Evidencia focal de tipado aportada por el owner — 2026-11-16
+
+El owner ejecutó en PowerShell con `venv` activa el comando `pyright` explícito sobre los tres archivos:
+
+- `tests/integration/test_w06_g3_uncertain_effect_offline.py`
+- `tests/integration/test_g3_b4_3b_publication_recovery.py`
+- `tests/integration/test_g5_assembler_lease_recovery.py`
+
+**Salida reportada:** `0 errors, 0 warnings, 0 informations`; el aviso `v1.1.411 -> v1.1.414` indica únicamente una versión nueva disponible. **Resultado: Pyright local focal limpio**, no un resultado del workflow oficial (que excluye `tests/`).
+
+**Límite de trazabilidad:** el mensaje que contiene la salida no incluye `git rev-parse HEAD`; por tanto, no adjudicar esta ejecución a un SHA local determinado sin correlación adicional. El `pytest` focal `-CheckG3G5`, sus nueve nodeids previstos, el estado del clon, los controles negativos C-03/C-04/C-05 y el CI del HEAD **continúan sin resultado comunicado**. Ningún gate global se cierra por un check de tipado.
