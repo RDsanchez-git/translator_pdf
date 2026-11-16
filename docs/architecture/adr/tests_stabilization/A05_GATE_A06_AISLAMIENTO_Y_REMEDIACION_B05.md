@@ -240,3 +240,35 @@ El ejecutor orienta \`HOME/USERPROFILE/TMP/TEMP/PYTHONPATH\` al clon, desactiva 
 - [ ] **Ausencia total de side effects:** inventario Git pre/post no acredita ausencia de creaciones y borrados temporales, ni efectos externos al clon.
 
 **Siguiente decisión técnica:** revisar tipado de archivos de tests modificados y preparar controles negativos focales que fallen por las razones correctas, sin Docker y sin tocar runtime ni Ground Truth; los ensayos peligrosos restantes siguen fuera del selector de prueba del owner hasta inspección.
+
+## 12. B05-Q2 — sensibilidad negativa y tipado: preparación sin resultados inventados
+
+**Continuación posterior a primera baseline verde:** [\`probe_b05_sensitivity.py\`](probe_b05_sensitivity.py) y el parámetro opcional \`-CheckSensitivity\` del [ejecutor B05](run_b05_focal_isolated.ps1). Se añadió un guard de no-\`None\` en el retorno de caché para que la aserción sobre el payload use un objeto comprobado, sin alterar el SUT.
+
+**Procedimiento previsto en Windows PowerShell 5.1, desde la raíz con \`venv\` activada y rama \`tests_stabilization\` actualizada:**
+
+\`\`\`powershell
+git pull --ff-only origin tests_stabilization
+& .\docs\architecture\adr\tests_stabilization\run_b05_focal_isolated.ps1 -RepoRoot (Get-Location).Path -CheckSensitivity
+\`\`\`
+
+El runner crea **otro clon Git independiente, nuevo, sin hardlinks ni remoto**; ejecuta de nuevo los cuatro tests de baseline del SHA nuevo. **Solo si los cuatro pasan** habilita dos subprocess Python independientes. El helper modifica **en memoria** la clase SUT con \`unittest.mock.patch\`; **no edita archivos productivos**:
+
+| Mutación | Punto de inyección temporal | Razón esperada para que el test protector falle |
+|---|---|---|
+| \`fsm_watchdog\` | \`AbandonedProcessWatchdog.execute_sweep\` se convierte en no-op | La lectura de FSM real permanece \`PROCESSING\` en lugar de \`STALLED\`; falla la aserción del test de recuperación |
+| \`legacy_cache_read\` | \`CachedLLMProvider._read_cache\` devuelve siempre \`None\` asíncronamente | La segunda ejecución vuelve a llamar al fake: \`translate_calls == 2\` en vez de \`1\`; falla el mensaje \`Cache hit must avoid a second fake provider call\` |
+
+**Criterio de aceptación de la herramienta:** código pytest \`1\`, exactamente \`1 failed\`, \`AssertionError\` y el indicio específico de contrato en el log; rechazar errores de recolección, \`INTERNALERROR\`, PASS accidental o fallo por infraestructura. Los resultados se guardan en \`mutation_fsm_watchdog.log\`, \`mutation_legacy_cache_read.log\`, \`mutation_summary.json\` y \`mutation_runner.log\`. El clon y las salidas se conservan para revisión. Un \`MUTATION_KILLED\` de esta herramienta solo demuestra sensibilidad al defecto **inyectado**, no ausencia de todos los defectos. Si falla la baseline, la mutación queda \`NOT_RUN\`, nunca \`KILLED\`.
+
+**Pyright técnico, separado del check oficial:** el [\`pyrightconfig.json\`](../../../../pyrightconfig.json) versionado excluye \`tests/\`; por ello el paso \`pyright\` de [\`ci.yml\`](../../../../.github/workflows/ci.yml) no acredita el tipado B-05. Para inspeccionar estos cuatro archivos de manera explícita **sin cambiar la configuración oficial** se propone ejecutar, desde la raíz del repositorio con el ejecutable local Pyright disponible:
+
+\`\`\`powershell
+pyright tests/integration/test_recovery_flow.py tests/integration/test_e2e_walking_skeleton.py tests/integration/test_real_e2e.py tests/integration/test_pipeline_orchestration.py
+\`\`\`
+
+Registrar stdout/stderr y código de salida, incluyendo cualquier dependencia arrastrada por los imports. Si el alias local sobreescribe flags/entorno, registrar el comando realmente ejecutado; no presentar Pyright del CI como si hubiera chequeado tests.
+
+**CI:** \`.github/workflows/ci.yml\` mantiene \`python -m pytest -m "not e2e" -q -ra\` y los casos B05 no tienen marker \`e2e\` (por fuente), por lo que son seleccionables en el check técnico; **no se disparó ni aprobó ningún workflow** como parte de esta preparación. El contraste de nodeids y markers de la colección A-01 histórica necesita reproducirse sobre el SHA remediado antes de afirmar alcance global.
+
+**Estado:** C-control negativo \`fsm_watchdog\` y \`legacy_cache_read\` **DISEÑADOS/IMPLEMENTADOS COMO HERRAMIENTA, NO EJECUTADOS**. \`MUTATION_KILLED=0\` acreditados para esta ronda; B-05, A-05 global, A-06 global y C siguen abiertos.
