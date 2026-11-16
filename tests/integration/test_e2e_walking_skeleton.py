@@ -131,7 +131,10 @@ class TestLegacyDispatcherCache(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(len(first.outcomes), 1)
         self.assertTrue(first.outcomes[0].is_success, first.outcomes[0].error_message)
-        self.assertEqual(first.outcomes[0].translated_unit.translated_payload, "MOCK::TRANSLATION")
+        first_unit = first.outcomes[0].translated_unit
+        self.assertIsNotNone(first_unit)
+        assert first_unit is not None
+        self.assertEqual(first_unit.translated_payload, "MOCK::TRANSLATION")
         self.assertEqual(self.fake_provider.translate_calls, 1)
         self.assertEqual(self.cache_provider.metrics["cache_misses"], 1)
         self.assertEqual(self.cache_provider.metrics["cache_writes"], 1)
