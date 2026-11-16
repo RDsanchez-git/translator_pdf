@@ -120,3 +120,62 @@ Una fila «Sí» significa **existe ese caso escrito**, no que haya pasado. La t
 - [ ] **A05-P4/P6:** revisar efectos de imports/archivos ignorados/red/host; las cuatro colecciones previas exitosas no acreditan ausencia universal de efectos.
 
 **Siguiente paso recomendado:** con [35 fichas preliminares acumuladas](A01_S5_SEGUNDA_TANDA_CONTRATOS_Y_FRAGILIDADES.md), ordenar la restante auditoría por **nodeids y contratos activos**, no por cantidad de archivos. Empezar independencia de oráculos sin cerrar A01-S5, y registrar las excepciones fuera de la ruta activa. Mantener tests válidos ante cambios profundos del pipeline y remediar sólo garantías falsas o acoplamientos accidentales, sin adaptar expected al nuevo comportamiento.
+
+## 7. A-03/A-04 — clasificación de las 35 fichas por contrato, sin ampliar campañas (2026-11-16)
+
+**Propósito:** completar la revisión de **independencia del oráculo, sustituciones del SUT y alcance real** de las **35 fichas TR ya abiertas**. Se aplican las categorías del [plan §5.2](PLAN_REMEDIACION_TESTS_PIPELINE.md): \`CONFIABLE_PARA_SU_ALCANCE\`, \`LIMITADO\`, \`DEFECTUOSO\`, \`DESCONOCIDO\`. **No es una clasificación de los 1.476 nodeids del censo previo ni una ejecución de suite en el HEAD actual.** Un TR agrupa contrato/testigos; la decisión focal vale **solo para el subconjunto probado**, y no certifica todos los casos que puedan existir en ese archivo.
+
+**Fuentes:** [TR-001–019 §2](#2-matriz-de-primera-tanda--19-fichas-trazables), [TR-020–035 §2](A01_S5_SEGUNDA_TANDA_CONTRATOS_Y_FRAGILIDADES.md), [A-02 ocho fronteras §9](A02_A03_B06_MATRIZ_G3_G5_RUTA_ACTIVA.md), [P0 Golden/snapshot](A03_PREAUDITORIA_ORACULOS_GOLDEN_Y_CHUNKER_SNAPSHOT.md), [G3-B3 OI](A03_PREAUDITORIA_INDEPENDENCIA_ORACULOS_G3_B3.md) y evidencias de ejecución por SHA en el [plan §10.2](PLAN_REMEDIACION_TESTS_PIPELINE.md). Se contrastaron nuevamente fuentes actuales de TR-022, TR-027, TR-029, TR-032 y TR-035. **F = solamente código/oráculo inspeccionado**, **E = baseline positiva pertinente**, **K = mutación específica detectada**. La evidencia E/K se asigna **solo si existe un testigo de ese TR efectivamente ejecutado**; no se hereda por compartir frontera.
+
+| TR | Dictamen provisional A-03/A-04 | Evidencia | Razón contractual o límite específico |
+|---|---|---|---|
+| **001** Admisión | **CONFIABLE_PARA_SU_ALCANCE**, para atomicidad y bytes | E/K | \`test_pdf_inbox_submission.py\` 8 PASS y mutación de fallback no atómico detectada; no OCR |
+| **002** CLI R1 | **CONFIABLE_PARA_SU_ALCANCE**, para exclusión de R1 | E/K | Handler CLI real y mutación de invocación legacy detectada; no ejecución de stages |
+| **003** Parser | **CONFIABLE_PARA_SU_ALCANCE**, para PDF sintético | E/K | Parser real, texto conocido independiente, rechazo de vector y detección de pérdida de frase; no GT |
+| **004** OCR durable | **DESCONOCIDO** en ejecución focal | F | OCR Router con parser/registry y otros puertos falsos; contrato válido de queue, no OCR físico |
+| **005** Contexto W08 | **DESCONOCIDO** en ejecución focal | F | Binding/persistencia observables por código; falta acreditar estos nodeids específicos |
+| **006** Staging G3 | **DESCONOCIDO** en ejecución focal | F | Resultados staged y fencing con SQLite; sin evidencia directa nueva de sus nodeids |
+| **007** Binding LLM | **DESCONOCIDO** en ejecución focal | F | Bridge con proveedor fake y parser de respuesta; no atribuir los 39 PASS de otro módulo a este TR |
+| **008** Receipts fenced | **DESCONOCIDO** en ejecución focal | F | Rechazo/rollback por SQL temporal escritos; no ejecutados en la campaña focal presentada |
+| **009** W06 UNKNOWN | **CONFIABLE_PARA_SU_ALCANCE**, para efecto offline incierto | E/K | Engine/SQLite reales; 9 PASS G3/G5 y segundo accepted call detectado por fake; no exactly-once HTTP |
+| **010** W06 reconciler | **DESCONOCIDO** en ejecución focal | F | Método privado, liderazgo simulado y oráculos SQL; no mismo testigo que el reintento G3 K |
+| **011** Publicación G3 | **LIMITADO**, con barrera corrupta acreditada | E/K parcial | Proyección alterada aceptada fue detectada; otros escenarios de crash/finalización no tienen todos E/K focal individual |
+| **012** Reconciler fencing | **DESCONOCIDO** en ejecución focal | F | Leadership y flujo legacy parcial con mocks; no reclamar G3 end-to-end |
+| **013** G5 lease | **CONFIABLE_PARA_SU_ALCANCE**, para lease expirado | E/K | SQLite/filesystem reales; mutante publica PDF prohibido y test lo detecta, no Tectonic |
+| **014** G5 crash/promotion | **DESCONOCIDO** en ejecución focal | F | Fallos de \`os.replace\`/commit simulados; no extraer PASS del TR-013 por compartir módulo |
+| **015** G5 proyección ausente | **DESCONOCIDO** en ejecución focal | F | Worker/repositorio reales con fuentes externas fake; contrato de ausencia, no todas las degradaciones |
+| **016** G5 perfil/proyección | **DESCONOCIDO** en ejecución focal | F | SQLite, resolver y TeX; sin compilación de PDF real |
+| **017** Foreground compuesto | **LIMITADO** | F | CLI/OCR/G3/G5 compuestos con parser, proveedor y renderer sustituidos; no E2E físico integral |
+| **018** Math roundtrip | **LIMITADO** | F | Solo protector/renderer, no daemons G3/G5 pese al nombre del archivo; no calidad lingüística |
+| **019** Sin efectos de admisión | **CONFIABLE_PARA_SU_ALCANCE**, mismo testigo de 001 | E/K **compartida** | Colisión, vacío, no fallback; **no sumar de nuevo** la mutación del TR-001 |
+| **020** Plan SQLite | **DESCONOCIDO** en ejecución focal | F | Idempotencia/conflicto con base temporal; sensibilidad y ejecución específica pendientes |
+| **021** Snapshot W08 | **DESCONOCIDO** en ejecución focal | F | Plan/contexto persisted y tampered; no adjudicar K de manifest de otro SUT |
+| **022** Worker G5 | **CONFIABLE_PARA_SU_ALCANCE**, método real con dobles | E/K | 3 PASS y dos K de publicación expirado/fallo no persistido; sigue **P1 fragilidad** por \`__new__\` y fixture cruzada |
+| **023** Crash G3 entre procesos | **LIMITADO**, baseline real positiva | E | Hijo \`os._exit(73)\`, recovery SQLite y tercer lector verifican persistencia; no mutation kill propio ni daemon completo |
+| **024** Identidad de reuso | **DESCONOCIDO** en ejecución focal | F | Hash/JSON y rechazo escritos; no comprobar el replay productivo completo |
+| **025** Cuota SQLite/thread | **DESCONOCIDO** en ejecución focal | F | Puente y SQL en threads reales con proveedor fake; sin gasto/red real |
+| **026** PRESERVE | **DESCONOCIDO** en ejecución focal | F | Engine real con proveedor vigilado; no adjudicar otra prueba W06 a este test |
+| **027** Roots R1/R3 | **LIMITADO** | F | Solo análisis AST/textual del launcher; conteos de statements/handlers son frágiles ante refactor |
+| **028** Chunk identity | **DESCONOCIDO** en ejecución focal | F | Member/source/manifest en test técnico, pero B-02 K pertenece a otro archivo/testigo |
+| **029** WAL write scope | **LIMITADO** | F | Aserta método privado, locking y tiempos de threads; riesgo de fragilidad P1, no defecto probado |
+| **030** Queue LLM/ASSEMBLER | **DESCONOCIDO** en ejecución focal | F | Demultiplexado y estados SQL escritos, sin daemons reales en el mismo test |
+| **031** Coordinator foreground | **LIMITADO**, dos rechazos acreditados | E/K parcial | Dos pruebas G3 incompleto/PDF ausente con coordinator real y **stages completamente fake**; no E2E |
+| **032** Barrera cache W08 | **LIMITADO** | F | \`cache_db_path=None\` y factory privado; prueba el opt-out, no replay versionado |
+| **033** G3 materialized | **DESCONOCIDO** en ejecución focal | F | Publicación/verificación por repo con SQL real; C-04 K protege otro testigo de misma frontera |
+| **034** Finalización G3 | **DESCONOCIDO** en ejecución focal | F | CAS/commit/rollback escritos; no trasladar PASS del test de avance G3 |
+| **035** FSM/queue legacy | **LIMITADO** | F | SQLite temporal y handoff acotado; docstring del test refiere a una falla en SHA histórico, no evidencia del HEAD |
+
+**Balance de 35 fichas por contrato:** \`CONFIABLE_PARA_SU_ALCANCE\` **7** (solo el subcontrato focal declarado), \`LIMITADO\` **9**, \`DESCONOCIDO\` **19**, \`DEFECTUOSO\` **0 confirmados en estas fichas por la revisión presente**. **No significa que no existan defectos en los 19 desconocidos**, ni que el contrato completo de cada TR confiable esté cubierto. Los **P0 TS-001/TS-002** confirmados históricamente eran tests distintos: sus **reemplazos técnicos B-01/B-02** y controles negativos están documentados en el expediente A-03; no confundir la etiqueta \`DEFECTUOSO=0\` de esta tabla de TR con inexistencia de falsos oráculos históricos.
+
+### A-03: diagnóstico de independencia y acciones justificadas (sin nuevos testigos)
+
+| Hallazgo | Estado actual y acción mínima |
+|---|---|
+| **P0 TS-001** expected circular / parser mockeado | **REMEDIADO focalmente**: B-01 usa texto conocido en PDF efímero, parser real; control de pérdida de texto reportado K. No llamar a esta fixture GT científico |
+| **P0 TS-002** snapshot self-writing / omisión de miembros | **REMEDIADO focalmente**: B-02 coteja fuentes/miembros y rechaza alteraciones, sin regenerar oráculo en pytest; mutante de pérdida de bytes reportado K |
+| **G3-B3 OI-04** límite UTF-8 solo ASCII | **REMEDIADO**: nuevo test multibyte y mutación detectada en \`83f99ddb\` |
+| **G3-B3 OI-01/OI-02/OI-03/OI-05** plan compartido, cardinalidad de chunker, regex parcial, all-or-nothing puro | **LIMITACIONES DOCUMENTADAS**: independencia no total en todos los inputs; algunos asserts podrían ser frágiles ante refactor y el parser puro no prueba commits/red. No alterar esperados sin contrato violado; los testigos de persistencia/bridge son complementarios, no sustitutos |
+| **P1 de alcance/refactor** TR-017/018/022/027/029/031/032/035 | **LIMITADO o condicionado** por mocks legítimos, \`__new__\`, helper privado, matching textual o nomenclatura. No reescribir por estética; abrir corrección B únicamente ante falsa garantía comprobada o rotura real de contrato |
+| **Seguridad A-05 / CI / censo** | **ABIERTOS**: hay solo inventarios focales Git en clones; no egress físico/aislamiento OS, no suite técnica completa, no required CI sobre HEAD; el censo \`1476\` pertenece a \`5447963d\` antes del test extra de G3-B3 |
+
+**Decisión A-03/A-04:** se completó **clasificación provisional de 35/35 fichas TR existentes por contrato** sin inventar evidencia. **No se cierra A-03/A-04 global** porque A-04 requiere clasificar cada nodeid pertinente, y el [puente A01-S5](A01_S5_RESULTADO_PUENTE_NODEIDS_2026-11-15.md) informó **277 nodeids en 29 archivos con TR vs. 1.197 sin TR** sobre el SHA histórico; los datos del HEAD nuevo no se sustituyen automáticamente. La prioridad siguiente **dentro del plan** es resolver alcance del inventario relevante y ficha de brechas A-07 usando lo ya inspeccionado, no más mutaciones o infraestructura. Las excepciones y riesgos se deben llevar a revisión formal del owner.
