@@ -421,3 +421,54 @@ Las **19 familias parametrizadas relevantes** son las siguientes. En cada fila s
 - [ ] **Cierre de A-04 como garantía individual de todos los 1.476 oráculos:** **NO** es lo que permite afirmar esta evidencia. Las familias críticas todavía \`DESCONOCIDO\` por falta de comprobación material no deben promocionarse. A-04 queda **documentalmente avanzado con trazabilidad y criterio definido**; confirmar cierre formal por **calidad de clasificación**, no por un requisito artificial de 1.476 mutaciones/PASS. Los déficits reales se trasladan como riesgos a A-07, y los riesgos de host/CI a A-05/A-06.
 
 **No se crean TR redundantes, runners, nuevas mutaciones ni ejecuciones; no se cambian contratos productivos, CI, corpus ni Ground Truth.** La eventual certificación final sobre HEAD requiere cotejar los nodeids cambiados desde el SHA del \`all.json\` y comprobar required checks, sin reabrir D-4/D-5 durante A-04.
+
+## 13. A-04 — decisión sobre las 19 excepciones críticas (2026-11-16)
+
+**Criterio aprobado:** §5.1–5.3 del plan: **función o parametrización material**, agrupada por contrato. Las 19 fichas \`TR\` que el resumen provisional de §7 mantenía en \`DESCONOCIDO\` **por carecer de baseline focal específica** han sido cotejadas con los tests fuente actuales, sus aserciones, dobles y efectos SQLite/ficheros. **La falta de una campaña de mutación no vuelve desconocido un SUT visible:** según §5.2, si el test es legítimo y su scope es parcial o su sensibilidad insuficiente, su clasificación documental correcta es **\`LIMITADO\`**. Esta es una **reclasificación de alcance, no un resultado nuevo de pytest ni una certificación de eficacia**.
+
+**Leyenda:** \`F\` lectura directa de código/tests; \`E/K\` solo cuando el **testigo específico** tuvo baseline o mutación acreditadas (ver §7 y el plan); \`NOT_RUN\` ninguna nueva comprobación de sensibilidad de esta ficha. **Todo riesgo P1 aquí es prioridad de revisión documental, no error de producción observado.**
+
+| TR antes \`DESCONOCIDO\` | SUT verdadero / oráculo material observado | Límite inequívoco y decisión A-04 |
+|---|---|---|
+| **004** OCR durable | \`OCRRouterDaemon._process_document\`, cola SQLite: manifest, reingesta, drift/estados evitan enqueue | **LIMITADO · F**: parser/AST store/profiler/FSM falsos; no OCR físico; variantes CREATED/PARSING vs PROCESSING/COMPLETED **distintas**, no descartarlas |
+| **005** Contexto W08 OCR→G3 | \`prepare_contextual_plan\`, SQLite y \`SyncProviderBridge\`: snapshots, contexto/AST hash, error antes de \`provider.calls\` | **LIMITADO · F**: provider/prompt falsos; no inferencia pagada ni replay integral |
+| **006** Staging G3 | \`stage_claimed_unit\`, recibos/estados SQLite: \`RESULT_STAGED\` sin \`COMPLETED\`, lease y respuesta inválidos no escriben | **LIMITADO · F**: fake processor; las variantes de lease **no** son redundantes |
+| **007** Binding LLM | \`SyncProviderBridge.execute_chunk\`, binding/manifest/miembros y tokens math | **LIMITADO · F; P1 de precisión:** en \`test_bridge_rejects_unbound_provider_output\`, \`pytest.raises(ValueError)\` sin \`match\` podría aceptar **una causa de rechazo distinta**. Otros tests del módulo sí exigen códigos concretos. No concluir aceptación indebida del provider sin mutación |
+| **008** Recibos fenced | \`ControlPlaneRepository.stage_chunk_result\`: reabrir, idempotencia, \`LEASE_FENCE_REJECTED\`, checksum, rollback y caller-owned transaction | **LIMITADO · F**: SQLite real \`tmp_path\` y plan sintético; oráculos SQL observables, no G3 daemon |
+| **010** Reconciliación W06 | \`Reconciler._sweep_tasks\` con leadership falso: lease vencido sin receipt pasa a \`G3_EXTERNAL_UNKNOWN\`; segundo sweep no rehace auditoría | **LIMITADO · F**: método privado / fake liderazgo; misma fuente que otros W06, **no heredar K de reintento** |
+| **012** Fencing de reconciler | \`ControlPlaneRepository\` y \`Reconciler\`: epoch, owner, lease revalidado, FSM CANCELLED; ruta G3 no va por handlers legacy | **LIMITADO · F**: líder fake y partes legacy; variantes de autoridad **materiales** |
+| **014** Recuperación G5 promoción | \`AssemblyLeaseRepository.publish/recover\`, PDF temporal: \`os.replace\` fallido y commit posterior recuperable | **LIMITADO · F**: fallo inyectado, **no crash real** ni Tectonic; no atribuir K del lease vencido a ambos puntos de fallo |
+| **015** Falta proyección G5 | Worker G5 + \`CQRSAssemblyContextResolver\`: \`AssemblyRejectedError\`, sin PDF/temporal ni compilador invocado | **LIMITADO · F**: test de **ausencia total**; no certificar rechazo universal de cualquier proyección faltante (política puede tolerar faltantes parciales) |
+| **016** Perfil y proyección G5 | \`SQLiteProfileStore\` y \`MaterializedPlaneRepository\`: perfil reabierto, conflicto/tamper/generación/version rechazada y TeX rehidratado | **LIMITADO · F**: sin compilación física Tectonic, no PDF final |
+| **020** Plan G3 SQLite | \`ControlPlaneRepository.enqueue/load_chunk_plan\`: reopen, conflicto, manifest tampered, savepoint, error SQL sin COMMIT ajeno | **LIMITADO · F**: SQL temporal real; no OCR/provider y sin sensibilidad focal de cada variante |
+| **021** Snapshot durable W08 | \`DurableContextPlanRepository\`: JSON/digest/manifest alterados, snapshots faltantes, rollback, plan nuevo rechazado antes de escribir | **LIMITADO · F**: plan/AST sintéticos; tres variantes de tampering **no equivalentes** |
+| **024** Identidad W08 | \`ContextSnapshotV1\`, \`InferenceReuseIdentityV1\`: hash estable y variación por 11 campos, formato inválido/rechazo | **LIMITADO · F**: los **11 campos** son dimensiones materiales; prueba identidad de modelo puro, no verificación de caché operativa |
+| **025** Quota SQLite thread | \`ThreadOwnedSQLiteRateLimitStore\`, \`SyncProviderBridge\`: dos workers, escritura por hilo dueño, datos tras reapertura, cierre | **LIMITADO · F**: proveedor fake, sin gasto externo, transporte HTTP ni cuota remota |
+| **026** PRESERVE engine | \`runtime.engine.run_pipeline\`, SQLite FSM/queue/materialized: no inicializa provider innecesario y completa ruta PRESERVE | **LIMITADO · F**: provider factory vigilado, no se verifica red real; preservar distinción preserve-only / staged / mixed |
+| **028** Identidad chunk | \`TokenBudgetChunker\`/\`ChunkPlan\`: node vs chunk, cobertura de miembros, bytes fuente, manifest y overflow inválido | **LIMITADO · F**: estimator/AST sintéticos; tiene oráculos literales de bytes pero no provee PDF físico |
+| **030** Coexistencia worker | \`ControlPlaneRepository\`: LLM no reclama trigger ASSEMBLER, finalización G3 no lo completa, reopen/worker_type | **LIMITADO · F**: repos y SQL reales, no loop de daemons; error de tipo de worker observable |
+| **033** Publicación staged G3 | \`publish_staged_plan\`, \`verify_published_nodes\`: hash, coverage, receipts, rollback, replay/drift de proyecciones | **LIMITADO · F**: contenido sintético y SQL; **no trasladar K de otro test** de publicación a cada escenario |
+| **034** Finalización G3 | \`finalize_published_plan\`: barrera de commit, identidad, checksum, transacción ajena, replay tras reopen | **LIMITADO · F**: sin FSM/engine real en el mismo test, ni prueba de atomicidad cross-DB global; versiones inválidas **tipos/rangos distintos** |
+
+### 13.1 Decisiones de brecha frente a cobertura limitada
+
+- **Sin P0 nuevo confirmado:** los 19 testigos invocan SUT reales de su frontera y contienen al menos una comprobación observable (texto exacto, SQL/estado, error específico o no-efecto). **No hay evidencia suficiente para declararlos globalmente defectuosos**, ni para subirlos a \`CONFIABLE_PARA_SU_ALCANCE\` sin sensibilidad apropiada.
+- **P1 accionable de A-07: TR-007, precisión del oráculo de error.** La prueba usa \`pytest.raises(ValueError)\` genérico en un escenario de output de proveedor mal ligado. **Una excepción ValueError por otra razón daría verde**; candidato a endurecer únicamente si el contrato exige un motivo de rechazo específico, mediante revisión del marcador ya usado por pruebas vecinas. **No crear test nuevo por rutina.**
+- **P1 de alcance, no corrección inmediata:** TR-004/005/006/010/012/014/015/016/025/026/030/033/034 no acreditan OCR físico, proveedor HTTP o Tectonic según corresponda; sus dobles son lícitos para contratos inferiores, **no** para llamar E2E a los resultados. **D-4/D-5 siguen diferidos**.
+- **P1 de fragilidad, mantenimiento condicional:** TR-012 método/leadership privado; TR-014 fallo sintético; TR-033/034 columnas y versiones SQL; TR-024 identidad de once campos. **No refactorizar por estética**; sólo si falla un requisito de contrato o un refactor legítimo rompe el test.
+- **Separar claramente A-05 y A-07:** riesgos de \`tectonic_crash.log\`, DB fija legacy y SQLite en fixtures son **seguridad de ejecución A-05**, no un defecto probado de G3/G5. Deben pasar a la matriz priorizada A-07 sin reinterpretar una inspección estática como daño ocurrido.
+
+### 13.2 Estado de A-04 después de resolver las excepciones
+
+El balance **actual de clasificación documental de las 35 fichas TR** es:
+
+| Clasificación §5.2 | Antes (§7, snapshot provisional) | Ahora, tras lectura focal |
+|---|---:|---:|
+| \`CONFIABLE_PARA_SU_ALCANCE\` (subcontrato con E/K) | 7 | **7** |
+| \`LIMITADO\` (mock legítimo, alcance acotado, sensibilidad no acreditada) | 9 | **28** |
+| \`DESCONOCIDO\` *en estas 35 fichas TR* | 19 | **0** |
+| \`DEFECTUOSO\` **nuevo confirmado en estas 35** | 0 | **0** |
+
+**Esta tabla actualiza —no elimina— la foto provisional de §7.** No son 35 PASS, ni 35 K, ni garantías de toda la ruta. Ya se documentaron **1.476/1.476 nodeids → 173 rutas → familias**, las parametrizaciones materiales de la ruta TR y las limitaciones de los testigos activos sin TR (§§11–12). **La clasificación exigida para el tramo crítico de A-04 queda resuelta documentalmente; no queda ninguna de las 19 excepciones originales sin dictamen.** No hay argumento técnico para multiplicar esta auditoría en 1.476 fichas ni para reabrir B/C automáticamente.
+
+**Límite de cierre:** el censo adjunto corresponde a la colección anterior (RAR sin SHA interno), no al HEAD posterior; no existe PASS de CI completo para esta rama ni revisión OS-level. Esos límites pertenecen a **A-05/A-06 y al cierre técnico**, no deben convertirse en una condición artificial de nuevas fichas A-04. La revisión formal del owner del dictamen sigue siendo necesaria antes de cambiar el checkbox global. **Siguiente trabajo del plan: A-05 (seguridad de ejecución) y A-07 (matriz de brechas), reutilizando esta lista de hallazgos.** No se ejecutaron nuevos tests ni se modificaron SUT, CI o GT.
