@@ -357,3 +357,67 @@ Se cruzó **cada \`nodeid\`** de \`all.json\` con su ruta (\`split("::")[0]\`) c
 - [ ] **A-05/A-06/A-07 y CI:** siguen abiertos; los riesgos de escrituras en rutas fijas y testigos legacy se preservan como hallazgos a priorizar, no como bugs productivos demostrados.
 
 **No hubo ejecución de tests, mutantes, Docker, egress, cambios en SUT, CI, corpus ni GT en este cruce.** Solo inspección de un adjunto, comparación con rutas documentadas y registro de evidencia. A-04 tiene **mapeo completo por identidad y alcance**; la protección efectiva de cada oráculo exige otra evidencia y **no se inventa**.
+
+## 12. A-04 — criterio aprobado: parametrización material, no 1.476 fichas (2026-11-16)
+
+**Decisión de alcance del owner:** aplicar literalmente el [plan §5.1–5.3](PLAN_REMEDIACION_TESTS_PIPELINE.md): unidad primaria **función de test o parametrización *material***, agrupada por contrato/SUT. Las variantes que prueban **distintas causas de rechazo, estados, identidades, tipos o efectos** conservan su significado individual aunque compartan función. Las meras variaciones de datos con el mismo oráculo se pueden documentar en una sola ficha de función con sus nodeids. La **ausencia de ejecución/sensibilidad** no se corrige inventando PASS: \`LIMITADO\` si el test y sus límites se conocen; \`DESCONOCIDO\` si todavía faltan lecturas/evidencia suficiente; \`CONFIABLE_PARA_SU_ALCANCE\` solo donde se ha verificado SUT, oráculo independiente, scope y sensibilidad concreta.
+
+**Fuente de identidades:** \`all.json\` incluido en \`all.rar\` del owner, **colección de 1.476 nodeids atribuible por concordancia a \`5447963d\`, sin SHA interno en el adjunto**. Las fichas de TR son documentos de varios SHA; una función renombrada puede seguir teniendo el mismo contrato, pero **no se transfiere a ciegas un PASS desde otro SHA**. No se ejecutó nada en esta revisión.
+
+### 12.1 Ruta crítica en fichas TR: cardinalidad real antes de reclasificar
+
+En los **29 archivos relacionados con TR-001…035**, el JSON contiene exactamente **277 nodeids** que corresponden a **229 funciones/clases de test distintas** (agrupadas por su nodeid sin \`[parameter_id]\`). De ellas, **210 funciones no están parametrizadas** y **19 funciones se expanden en 67 nodeids**, aportando **48 variantes adicionales** sobre la cuenta de funciones. Los 277 son **vínculos a archivos de TR**, no 277 tests con oráculo certificado.
+
+Las **19 familias parametrizadas relevantes** son las siguientes. En cada fila se conserva el **conjunto completo de IDs exactos en \`all.json\`**, aunque aquí se resumen sus sufijos legibles. La etiqueta **DIFERENCIAR** significa que el parámetro cruza una rama contractual potencialmente distinta; no declararlo redundante.
+
+| Archivo de \`tests/\` | Función parametrizada (prefijo \`test_\`) | Nodeids | Dimensiones observadas y decisión A-04 |
+|---|---|---:|---|
+| \`integration/test_g3_b4_2_ocr_router_durable_plan.py\` | \`incomplete_generation_retries_without_illegal_cas\` | 2 | CREATED/PARSING; **DIFERENCIAR** por estado y llamadas OCR |
+| Igual | \`active_or_finished_document_shortcuts_before_ocr\` | 2 | PROCESSING/COMPLETED; **DIFERENCIAR** active vs. terminal |
+| \`integration/test_g3_b4_3a_engine_staging.py\` | \`bad_lease_rejected_before_provider\` | 3 | chunk erróneo / task errónea / expirado; **DIFERENCIAR** autoridad |
+| Igual | \`bridge_rejects_unbound_provider_output\` | 3 | plain text / chunk erróneo / response errónea; **DIFERENCIAR** formato e identidad |
+| Igual | \`bridge_rejects_lost_or_modified_math_token\` | 3 | token ausente / duplicado / case cambiado; **DIFERENCIAR** integridad |
+| Igual | \`math_source_uncertain_fails_before_provider\` | 2 | matemática sin cerrar / colisión de placeholder; **DIFERENCIAR** causa |
+| \`integration/test_g3_b3_2_fenced_receipts.py\` | \`bad_or_expired_lease_rejects_without_receipts\` | 4 | owner/execution/expiración/estado PENDING; **DIFERENCIAR** |
+| Igual | \`drift_between_receipts_and_queue_blocks_replay\` | 2 | task_state/execution_id; **DIFERENCIAR** |
+| \`integration/test_g3_b4_3b_publication_recovery.py\` | \`g3_recovery_selector_handles_both_homogeneous_states\` | 2 | RESULT_STAGED/COMPLETED; misma función, **dos transiciones** |
+| Igual | \`g3_scheduler_excludes_unknown_generation\` | 4 | UNKNOWN/PENDING/COMPLETED/RESULT_STAGED; **DIFERENCIAR** |
+| \`integration/test_g3_b4_9_reconciler_fencing.py\` | \`fenced_recovery_rejects_stale_authority\` | 4 | epoch/owner/renovación/FSM CANCELLED; **DIFERENCIAR** |
+| \`integration/test_g5_assembler_lease_recovery.py\` | \`recovery_fences_old_owner_and_new_owner_completes\` | 3 | ASSEMBLING/READY_FOR_COMPILATION/COMPILING; **DIFERENCIAR** |
+| \`integration/test_b024_g3_g5_math_roundtrip.py\` | \`mask_restore_render_preserves_all_math_bytes\` | 4 | delimitador inline / display / equation / placeholder literal; **DIFERENCIAR** sintaxis |
+| \`integration/test_w08_durable_context_boundary.py\` | \`w08_detects_snapshot_tampering_on_restart\` | 3 | JSON/digest de snapshot/digest de manifest; **DIFERENCIAR** integridad |
+| \`unit/test_w08_inference_identity_contract.py\` | \`w08_context_snapshot_rejects_invalid_producer_frame\` | 4 | frame shape, identidad y tipos; mismo error en ciertos pares pero **no descartar tipos distintos** |
+| Igual | \`w08_inference_reuse_identity_invalidates_every_dimension\` | 11 | document/AST/manifest/chunk/context/prompt/provider/model/version/lang/config; **cada dimensión es material** |
+| \`integration/test_g3_b4_8_preserve_engine.py\` | \`engine_preserve_provider_decision_and_full_publication\` | 3 | preserve-only / ya staged / mixto; **DIFERENCIAR** rutas de proveedor |
+| \`integration/test_g3_b3_3a_staged_publication.py\` | \`rejects_invalid_projection_version\` | 4 | 0, -1, bool, float; **TIPOS Y RANGO** bajo mismo contrato de versión estricta |
+| \`integration/test_g3_b3_3b_finalization.py\` | \`invalid_version_cannot_finalize\` | 4 | 0, bool, -1, float; **TIPOS Y RANGO**, aplicados a finalización |
+| **TOTAL** | **19 funciones** | **67** | **Conservar las 67 identidades**; **una ficha por función con sus variantes justificadas**, no 67 documentos nuevos |
+
+**Interpretación:** una función con once valores de identidad W08 contiene once guardas relevantes; una función con cuatro versiones inválidas puede conservar **una ficha** porque prueba el mismo contrato estricto, sin ocultar las cuatro clases de entrada. **No se verificó una mutación independiente para cada variante**, por lo que el estado de eficacia de esas variantes permanece según §7 (F/E/K pertinente o \`NOT_RUN\`).
+
+### 12.2 Contratos críticos activos sin TR: límite de revisión
+
+| Archivo con nodeids en el censo aportado | Casos | Comportamientos materiales y oráculo | Decisión de confianza |
+|---|---:|---|---|
+| \`integration/test_g3_b3_structured_result_contract.py\` | 33 | **12 funciones**, 17 invalidaciones de miembros y 6 de JSON; orden, identidad, PRESERVE/OMIT, coverage y límites UTF-8; [B3-01…33](A01_S5_AUDITORIA_G3_B3_33_VARIANTES.md) explican cada caso | **LIMITADO para el conjunto**: validación de \`result_contract\` real, pero plan de entrada compartido; el test de límite UTF-8 multibyte **se añadió después** de esta colección y fue K en otro SHA. No atribuir K a las demás variantes |
+| \`integration/test_chunker_snapshot.py\` | 3 | B-02: bytes/miembros/política y dos alteraciones de manifest/source | **CONFIABLE_PARA_SU_ALCANCE únicamente donde** baseline y falsador B-02 del owner protegen la garantía puntual; otros negativos con evidencia F |
+| \`integration/test_golden_parser.py\` | 1 | Parser real y contenido conocido independiente, ya no huella generada por el SUT | **LIMITADO** al PDF sintético; no GT científico |
+| \`integration/test_real_parser_pipeline.py\` | 1 | Parser real de dos páginas, 4 textos conocidos y estabilidad de IDs | **E**: 1 PASS en \`f713eafc\`; alcance PDF→AST, no PDF→PDF |
+| \`integration/test_pymupdf_extraction_integrity.py\` | 3 | Texto, assets visuales y dibujo no representable | **F / LIMITADO** sin prueba global OCR→G5; no deducir PASS de otro módulo |
+| \`integration/test_g3_b1_policy_guardrails.py\` | 4 | Política TRANSLATE/PRESERVE/PARTIAL y reconstrucción source | **F / LIMITADO**; fuente sintética y ruta de producción parcial |
+| \`integration/test_pdf_pdf_fsm_transaction_ownership.py\` | 3 | Savepoint/caller-owned transaction y rollback de FSM G2 | **F / DESCONOCIDO en ejecución**: docstring advierte posible FAIL; no cambiar contrato de transacción antes de obtener baseline segura |
+| \`integration/test_pdf_pdf_sqlite_g2_guardrails.py\` | 7 | Base SQLite, alias y CAS, reabrir y rechazar DB/ruta errónea | **F / LIMITADO**; no garantía de transacción distribuida |
+| \`integration/test_b023_raster_image_pipeline.py\` | 3 | Plan/PRESERVE, asset PNG/hash y rechazo vector | **F / LIMITADO**; no proveedor/Tectonic real |
+| \`integration/test_b025_math_visual_preservation.py\` | 2 | Fuente visual de matemática y rechazo cuando se deshabilita | **F / LIMITADO**; no semántica ni maquetación científica |
+
+**Control de denominadores:** esta tabla es **focal**, no suma de todos los tests activos. No cambiar el cruce exacto de **1.476/1.476** de §11 ni declarar testigos compartidos como certificados por las 35 TR. Los nodeids de ciencia/GT/legacy siguen explícitamente asignados a sus familias y **no pasan por defecto a \`CONFIABLE_PARA_SU_ALCANCE\`**; conservar la selección CI actual hasta decisión de A-05/A-07.
+
+### 12.3 Decisión formal adoptada para A-04
+
+- [x] **Unidad de análisis y agrupación acordada:** función/parametrización material por contrato, **no** una ficha por valor de parámetro.
+- [x] **Rastro completo de identidad/alcance:** 1.476/1.476 nodeids → archivo → familia, 173/173 archivos, conforme al \`all.json\` del owner, con salvedad de SHA ya anotada.
+- [x] **TR críticas:** 277 nodeids → 229 funciones, de las cuales **19** son parametrizadas; se reconocen las **67 variantes materiales o de tipos/rango**. Las fuentes TR existentes cubren SUT/oráculo/fixtures/mocks en sentido documental; los estados E/K sólo se atribuyen a sus subcontratos efectivamente ejecutados.
+- [x] **G3-B3 y B01/B02:** fichas granularizadas y falsos oráculos históricos corregidos; se preservan sus límites.
+- [ ] **Cierre de A-04 como garantía individual de todos los 1.476 oráculos:** **NO** es lo que permite afirmar esta evidencia. Las familias críticas todavía \`DESCONOCIDO\` por falta de comprobación material no deben promocionarse. A-04 queda **documentalmente avanzado con trazabilidad y criterio definido**; confirmar cierre formal por **calidad de clasificación**, no por un requisito artificial de 1.476 mutaciones/PASS. Los déficits reales se trasladan como riesgos a A-07, y los riesgos de host/CI a A-05/A-06.
+
+**No se crean TR redundantes, runners, nuevas mutaciones ni ejecuciones; no se cambian contratos productivos, CI, corpus ni Ground Truth.** La eventual certificación final sobre HEAD requiere cotejar los nodeids cambiados desde el SHA del \`all.json\` y comprobar required checks, sin reabrir D-4/D-5 durante A-04.
