@@ -16,7 +16,8 @@ param(
     [switch] $CheckCLIAdmissionSensitivity,
     [switch] $CheckG5Worker,
     [switch] $CheckG5WorkerSensitivity,
-    [switch] $CheckC3T05Process
+    [switch] $CheckC3T05Process,
+    [switch] $CheckA05Safety
 )
 
 Set-StrictMode -Version Latest
@@ -44,6 +45,9 @@ if ($CheckG5Worker -and ($CheckCLIAdmissionSensitivity -or $CheckForegroundSensi
 }
 if ($CheckC3T05Process -and ($CheckG5Worker -or $CheckCLIAdmissionSensitivity -or $CheckForegroundSensitivity -or $CheckA03Boundaries -or $CheckB04Contracts -or $CheckB03Parser -or $CheckG3G5 -or $CheckB01B02 -or $CheckSensitivity)) {
     throw "STOP: C3/T05 process-boundary test must run separately."
+}
+if ($CheckA05Safety -and ($CheckC3T05Process -or $CheckG5Worker -or $CheckForegroundSensitivity -or $CheckCLIAdmissionSensitivity -or $CheckA03Boundaries -or $CheckB04Contracts -or $CheckB03Parser -or $CheckG3G5 -or $CheckB01B02 -or $CheckSensitivity -or $CheckB01B02Sensitivity -or $CheckG3G5Sensitivity -or $CheckA03Sensitivity -or $CheckG5WorkerSensitivity)) {
+    throw "STOP: A05 safety checks must run alone without sensitivity probes."
 }
 if ($CheckB01B02 -and $CheckSensitivity) {
     throw "STOP: B01/B02 selection and B05 sensitivity are separate controlled runs."
@@ -179,6 +183,16 @@ if ($CheckC3T05Process) {
     # SQLite files live under the redirected TEMP directory of this clone.
     $nodeids = @(
         "tests/integration/test_c3_t05_process_boundary.py::test_t05_g3_staged_publication_crash_and_recovery_between_processes"
+    )
+}
+if ($CheckA05Safety) {
+    # A-05: 6 Tectonic runner tests + 3 legacy tests (goldens may SKIP).
+    # No real Tectonic, provider, Docker or full technical suite.
+    $nodeids = @(
+        "tests/unit/test_tectonic_runner.py",
+        "tests/integration/test_translation_structure.py::TestTranslationStructure::test_structural_integrity_against_golden_snapshot",
+        "tests/integration/test_translation_technical.py::TestTranslationTechnical::test_latex_token_sets_and_balances",
+        "tests/integration/test_translation_layer.py::TestTranslationLayerIntegration::test_translation_layer_flow"
     )
 }
 $nodeids | Out-File -FilePath (Join-Path $reports "nodeids.txt") -Encoding utf8
@@ -336,6 +350,7 @@ try {
         "g5_worker_requested=$([bool]$CheckG5Worker)"
         "g5_worker_sensitivity_requested=$([bool]$CheckG5WorkerSensitivity)"
         "c3_t05_process_requested=$([bool]$CheckC3T05Process)"
+        "a05_safety_requested=$([bool]$CheckA05Safety)"
         "g3_g5_sensitivity_requested=$([bool]$CheckG3G5Sensitivity)"
         "b01_b02_sensitivity_requested=$([bool]$CheckB01B02Sensitivity)"
         "sensitivity_requested=$([bool]$CheckSensitivity)"
@@ -370,5 +385,10 @@ Write-Host "pytest log: $(Join-Path $reports 'pytest_focal.log')"
 Write-Host "Git diff inventory: $(Join-Path $reports 'status_changes.txt')"
 Write-Host "No files were cleaned up; retain this clone and reports."
 if ($exitCode -ne 0) { exit 2 }
+# A-05 requires the isolated checkout to remain Git-clean after these tests.
+if ($CheckA05Safety -and @(Get-Content -LiteralPath (Join-Path $reports "status_changes.txt")).Count -ne 0) {
+    Write-Host "STOP: A05 tests changed the isolated Git checkout. Inspect status_changes.txt."
+    exit 4
+}
 if (($CheckSensitivity -or $CheckB01B02Sensitivity -or $CheckG3G5Sensitivity -or $CheckA03Sensitivity -or $CheckForegroundSensitivity -or $CheckCLIAdmissionSensitivity -or $CheckG5WorkerSensitivity) -and $sensitivityExitCode -ne 0) { exit 3 }
 exit 0
