@@ -76,3 +76,22 @@ B3-33 envía `json.dumps` de un surrogate sin pareja (se transforma en escape AS
 - [ ] **A-05:** faltan condiciones de aislamiento y efectos de importación.
 
 **Conclusión:** independencia estática **parcial favorable** de oráculos sobre la **frontera pura** G3-B3; alcance deliberadamente limitado. La auditoría no constituye PASS ni validación científica.
+
+## 6. Corrección focal del hueco UTF-8 y validación pendiente (2026-11-16)
+
+**Sujetos de esta corrección, frente al censo congelado §1–5:** \`tests_stabilization\` con cambios **solo a tests**:
+
+- [\`test_g3_b3_structured_result_contract.py\`](../../../../tests/integration/test_g3_b3_structured_result_contract.py): se añadió \`test_response_limit_is_utf8_bytes_not_character_count\` (commit \`c68595df\`). Construye un envelope válido con una traducción de \`é\` repetida: **cantidad de caracteres del JSON menor que 4 MiB**, pero **cantidad de bytes de su representación UTF-8 mayor que 4 MiB**. Exige \`G3_B3_RESPONSE_TOO_LARGE\` desde el SUT real \`parse_chunk_response\`; las dos desigualdades previas validan que el input discrimina inequívocamente caracteres de bytes. No cambia la constante, la implementación ni el contrato normativo. Corrige el hueco estático **OI-G3-04**; no equivale todavía a un mutante externo KILLED.
+- [\`test_verification_pipeline_connection.py\`](../../../../tests/integration/test_verification_pipeline_connection.py): \`test_pipeline_extracts_nonempty_ast_from_text_pdf\` ahora también exige **dos frases literales independientes**, ya insertadas en el PDF creado en \`tmp_path\` (commit \`2e4c001f\`). Un AST no vacío que pierda el texto original debe fallar con \`B02_EXTRACTED_SOURCE_TEXT_MISSING\`. No se sustituyó el parser real por mock. Se conservaron las pruebas de identidad/determinismo y el rechazo \`B02_UNREPRESENTED_VECTOR_DRAWING\` para dibujo vectorial no representable.
+
+**Ejecución focal prevista:** el [runner de clon independiente](run_b05_focal_isolated.ps1) ofrece \`-CheckA03Boundaries\` (commit \`c8fe3887\`). Selecciona exactamente los dos archivos de test señalados, no el selector amplio \`not e2e\`. Históricamente el módulo G3-B3 aportaba **33** nodeids y el parser **5**; con el nuevo caso se esperan **39 nodeids**, sujeto a confirmación de pytest, **no cifra acreditada por colección**. Los dobles solo construyen un plan válido/fake estimator; los SUT \`parse_chunk_response\` y \`build_extraction_pipeline().parse\` permanecen reales.
+
+\`\`\`powershell
+git pull --ff-only origin tests_stabilization
+& .\docs\architecture\adr\tests_stabilization\run_b05_focal_isolated.ps1 -RepoRoot (Get-Location).Path -CheckA03Boundaries
+pyright tests/integration/test_g3_b3_structured_result_contract.py tests/integration/test_verification_pipeline_connection.py
+\`\`\`
+
+Revisar \`summary.txt\`, \`pytest_focal.log\`, \`status_changes.txt\` y resultado de Pyright; no presentar Pyright verde como prueba de eficacia semántica. En caso de falla, conservar el error completo; **no ajustar el input a ASCII ni cambiar el límite del runtime para obtener PASS**. La colección HEAD de A-01/A-04 que dio **1.476** nodeids corresponde al SHA previo \`5447963d\`, **no** al HEAD que incorpora esta prueba adicional. La recolección formal del nuevo SHA queda pendiente.
+
+**Estado:** cambios de pruebas implementados, **pytest/Pyright no ejecutados aún sobre estos cambios**; A-03, A-04, A-05 global, CI del HEAD y controles de sensibilidad general siguen abiertos. No se tocaron GT, corpus científico, snapshots, runtime ni el workflow.
