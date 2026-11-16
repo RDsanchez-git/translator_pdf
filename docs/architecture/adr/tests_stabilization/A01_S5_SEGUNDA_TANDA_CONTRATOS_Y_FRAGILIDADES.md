@@ -187,3 +187,27 @@ El owner volvió a adjuntar \`reports.rar\`; se inspeccionaron directamente sus 
 **Decisión:** dos mutaciones **KILLED con trazas directas** contra contratos distintos. No son fallos del SUT sin mutar y no se deben volver a contar al repetir o registrar el mismo SHA. El runner comprobó Git persistente limpio, **no** ausencia de cualquier efecto transitorio sobre el host. No hubo proveedor, Tectonic ni PDF→PDF completo. No cerrar A-03/A-04/C ni CI del HEAD basándose solo en estos dos testigos.
 
 **Continuidad:** TR-022, método real del worker G5, usa lease SQLite temporal, compilación/renderer simulados y tres escenarios: éxito fenced, lease expirado durante compilación y error de compilador. Su fragilidad \`__new__\`/fixture importada de otro test sigue siendo P1, **no un fallo observado**. Seleccionarlo focalmente, sin Docker, y diferenciarlo de la anterior prueba C-05 del repositorio de leases.
+
+## 11. TR-022 — G5 worker: baseline del owner y dos controles negativos preparados (2026-11-16)
+
+**Baseline física focal inspeccionada directamente:** archivo \`reports.rar\` del owner, con \`pytest_focal.log\`, \`summary.txt\` y \`status_changes.txt\`. SHA **\`d709ab84ebdd623fd68a3422d1f45e84953c2acd\`**. Selector \`g5_worker_requested=True\`, \`pytest_exit_code=0\`; **\`3 passed in 1.21s\`**; inventario persistente Git vacío (\`status_changes.txt\` tiene 0 bytes), \`docker_used=false\`, \`sensitivity_exit_code=-1\` porque **no** se pidió una mutación. Pyright explícito de \`tests/integration/test_g5_assembler_worker_integration.py\` reportado: **0 errors, 0 warnings, 0 informations**; aviso de versión disponible separado.
+
+**Contrato real protegido:** \`AssemblerWorkerDaemon._process_assembly_task\` verdadero, \`AssemblyLeaseRepository\` y SQLite WAL temporal. Compilador y renderer son dobles locales, y el worker se construye mediante \`__new__\` con atributos fakes; **no** Tectonic real ni un E2E PDF→PDF. Los tres escenarios: publicación autorizada \`COMPLETED\`, caducidad de lease durante compilación sin publicación final y fallo de compilador persistido en \`FAILED_RETRYABLE\`/task \`FAILED\`.
+
+**Sensibilidad preparada, todavía NO ejecutada:** se añadió \`probe_g5_worker_sensitivity.py\` y selector \`-CheckG5WorkerSensitivity\`, que repite primero los tres tests y solo si pytest sale 0 aplica dos parches transitorios en procesos Python independientes:
+
+| Control | Mutación in-memory del SUT | Testigo/causa de fallo prevista |
+|---|---|---|
+| **G5W-NEG-01** | \`AssemblyLeaseRepository._has_authority\` ignora expiración **solo en fase de publicación COMPILING**, reteniendo la demás identidad/estado del lease | \`test_real_worker_method_rejects_expired_lease_without_final_publication\`: \`Failed: DID NOT RAISE\`, se habría promovido PDF tras vencimiento |
+| **G5W-NEG-02** | \`AssemblyLeaseRepository.fail_authorized\` devuelve \`False\` sin persistir fallo de compilación, dejando que se propague el RuntimeError original | \`test_real_worker_method_fences_failure_state\`: aserción \`FAILED_RETRYABLE\` falla, FSM queda \`COMPILING\` |
+
+El verificador exige \`exit_code=1\`, \`1 failed\`, marcador contractual y ausencia de \`ERROR collecting\`/\`INTERNALERROR\`; resultado \`g5_worker_mutation_summary.json\` y dos logs. Son mutaciones **in-memory**, sin cambios a SUT persistente, CI o Ground Truth. Requieren ejecución del owner; **0 KILLED nuevos por ahora**.
+
+**Corrección preventiva de infraestructura:** la revisión del runner \`run_b05_focal_isolated.ps1\` detectó que una edición previa truncó sus tres sentencias de salida \`exit 2/exit 3/exit 0\`. Se restauraron en el commit \`4193b27b\` junto con el selector G5W. La baseline observada antes era genuinamente verde según \`pytest_exit_code=0\`; el truncamiento afectaba la propagación del fallo de futuras corridas al proceso PowerShell, no cambia los \`pytest_focal.log\` anteriores. **No declarar ensayos posteriores KILLED sin su JSON y trazas.**
+
+\`\`\`powershell
+git pull --ff-only origin tests_stabilization
+& .\docs\architecture\adr\tests_stabilization\run_b05_focal_isolated.ps1 -RepoRoot (Get-Location).Path -CheckG5WorkerSensitivity
+\`\`\`
+
+Solicitar \`pytest_focal.log\`, \`summary.txt\`, \`g5_worker_mutation_summary.json\`, ambos \`g5_worker_mutation_*.log\` y \`status_changes.txt\`. Los tres tests quedan acreditados solo para el SHA de baseline anterior; el nuevo script debe evaluarse sobre su propio SHA. No se ha ejecutado la suite técnica general, ni CI del HEAD, ni D-4/D-5.
