@@ -23,9 +23,9 @@ $scratch = Join-Path ([IO.Path]::GetTempPath()) ("tst-stab-b05-" + [Guid]::NewGu
 $copy = Join-Path $scratch "repo"
 $reports = Join-Path $scratch "reports"
 $temp = Join-Path $scratch "temp"
-$home = Join-Path $scratch "home"
+$isolatedUserHome = Join-Path $scratch "home"
 $cache = Join-Path $scratch "cache"
-foreach ($dir in @($scratch, $reports, $temp, $home, $cache)) {
+foreach ($dir in @($scratch, $reports, $temp, $isolatedUserHome, $cache)) {
     New-Item -ItemType Directory -Path $dir -Force | Out-Null
 }
 Write-Host "Sandbox directory (retain): $scratch"
@@ -55,7 +55,7 @@ $nodeids = @(
 )
 $nodeids | Out-File -FilePath (Join-Path $reports "nodeids.txt") -Encoding utf8
 $desired = @{
-    "HOME" = $home; "USERPROFILE" = $home; "TMP" = $temp; "TEMP" = $temp
+    "HOME" = $isolatedUserHome; "USERPROFILE" = $isolatedUserHome; "TMP" = $temp; "TEMP" = $temp
     "TMPDIR" = $temp; "XDG_CACHE_HOME" = $cache; "TIKTOKEN_CACHE_DIR" = $cache
     "PYTHONPATH" = $copy; "PYTHONDONTWRITEBYTECODE" = "1"
     "PYTHONNOUSERSITE" = "1"; "PYTEST_ADDOPTS" = ""; "PIP_NO_INDEX" = "1"
@@ -100,8 +100,22 @@ try {
     }
     & git -C $copy status --porcelain=v1 --untracked-files=all --ignored |
         Out-File -FilePath (Join-Path $reports "git_after.txt") -Encoding utf8
-    Compare-Object -ReferenceObject @(Get-Content (Join-Path $reports "git_before.txt")) -DifferenceObject @(Get-Content (Join-Path $reports "git_after.txt")) |
-        Out-File -FilePath (Join-Path $reports "status_changes.txt") -Encoding utf8
+    # Compare-Object in Windows PowerShell 5.1 does not accept empty arrays.
+    $beforeStatus = @(Get-Content -LiteralPath (Join-Path $reports "git_before.txt"))
+    $afterStatus = @(Get-Content -LiteralPath (Join-Path $reports "git_after.txt"))
+    $deltaPath = Join-Path $reports "status_changes.txt"
+    if ($beforeStatus.Count -eq 0 -and $afterStatus.Count -eq 0) {
+        [IO.File]::WriteAllText($deltaPath, "")
+    } elseif ($beforeStatus.Count -eq 0) {
+        $afterStatus | ForEach-Object { "ADDED: $_" } |
+            Out-File -FilePath $deltaPath -Encoding utf8
+    } elseif ($afterStatus.Count -eq 0) {
+        $beforeStatus | ForEach-Object { "REMOVED: $_" } |
+            Out-File -FilePath $deltaPath -Encoding utf8
+    } else {
+        Compare-Object -ReferenceObject $beforeStatus -DifferenceObject $afterStatus |
+            Out-File -FilePath $deltaPath -Encoding utf8
+    }
     @(
         "source_sha=$revision"
         "pytest_exit_code=$exitCode"
