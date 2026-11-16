@@ -536,3 +536,31 @@ python -B docs/architecture/adr/tests_stabilization/collect_a01_isolated.py --co
 **Repetición mínima necesaria:** una sola \`python -B docs/architecture/adr/tests_stabilization/collect_a01_isolated.py --collect\` tras \`git pull --ff-only origin tests_stabilization\`, sobre un clon nuevo, sin ejecutar cuerpos de tests. Revisar \`manifest.json\`, los cuatro logs, \`git_before.txt\`, \`git_after.txt\` y \`protected_before/after.json\`. Si la variable de almacenamiento no surte efecto o algún otro import crea archivos, conservar el fallo sin autorizar la suite amplia. **Clones previos retenidos, sin limpieza destructiva ni efecto sobre el PDF eliminado intencionalmente en el working tree original.**
 
 **Límites restantes:** que Git y hashes del clon estén limpios después de la colección **no demuestra ausencia de I/O transitorio, accesos externos ni aislamiento OS de red**. A05-P4/P6 siguen PARCIALES y A-06 ejecución de cuerpos sigue PENDIENTE. No se editó producción, CI, tests, corpus ni Ground Truth.
+
+## 24. A-06 — colección revalidada y primera cohorte W08/G3 preparada (2026-11-16)
+
+**Evidencia primaria del owner:** \`reports.rar\` RAR5 con **cinco archivos**, leídos directamente: \`manifest.json\`, \`protected_before.json\`, \`protected_after.json\`, \`git_before.txt\`, \`git_after.txt\`. El manifiesto fija \`revision_sha=d754a56c19810f39e29e6ec485e948039b1ec686\`, cuatro selectores con **exit 0** (\`all=1478\`, \`unit=225\`, \`integration_nonregression=72\`, \`technical=1458\`), \`protected_file_changes=[]\` y \`git_status_before_equals_after=true\`. Los dos inventarios protegidos son **idénticos**: 30 archivos (12 \`tests/fixtures\`, 18 \`infra/db\`, 0 \`tests/golden\`). Ambos inventarios Git tienen **0 bytes**. \`hypothesis_cache_redirect\` confirma la configuración bajo \`scratch/hypothesis\`, fuera del clon.
+
+**Veredicto de A06-COLLECT:** **PASS** de colección y ausencia de diferencias persistentes en el clon durante esta operación **sin cuerpos de tests**. El primer intento en SHA \`cffc57f\` seguía siendo **FAIL** por 271 \`.hypothesis/\` ignorados; la mitigación del SHA \`d754a56c\` fue revalidada. El RAR final **no incluye los cuatro logs**, por lo que la observación sobre plugins realmente cargados procede de la evidencia previa del intento \`cffc57f\`, **no** de una inspección directa de logs del SHA \`d754a56c\`. No afirmar que ese SHA de revalidación probó ausencia de egress, I/O transitorio, CI verde ni ejecución del SUT.
+
+### 24.1 Primer subconjunto ejecutable de A-06 — selección nueva, no redundante
+
+Se reabrió el código fuente en \`tests_stabilization\` de dos archivos unitarios **no incluidos en las once pruebas focales A-05**:
+
+- \`tests/unit/test_w08_inference_identity_contract.py\`: SUT real \`ContextSnapshotV1\` e \`InferenceReuseIdentityV1\`, hashes sensibles a estructura/generación, reserialización y errores contractuales; \`pytest.mark.unit\`, datos puros, **sin SQLite, archivos físicos ni cliente LLM**. Parametrizaciones de marco inválido (4) y dimensión de identidad (11) deben conservarse.
+- \`tests/unit/test_w08_g3_cache_barrier.py\`: \`engine._create_chunk_processor\` y \`build_provider_stack\` reales en la frontera de composición, con \`monkeypatch\` y provider sintético que falla si se invoca \`translate\`; comprueba \`cache_db_path=None\` y conservación de wrapper circuit-breaker. **No acredita caché versionada completa, replay, proveedor real ni G3→G5 E2E**.
+
+Se añadió **solo un selector opt-in** \`-CheckA06W08\` al ejecutor Git aislado ya existente \`run_b05_focal_isolated.ps1\`. El selector de esos dos archivos no se combina con otras selecciones o mutaciones. El runner limpia credenciales de proceso, fija \`TRANSLATOR_PDF_RUN_LIVE_PROVIDER_TESTS=0\` y redirige \`HYPOTHESIS_STORAGE_DIRECTORY\` fuera del clon. Debe ejecutarse **con** \`-CaptureProtectedPaths\` para comparar hashes pre/post de inputs técnicos. El gate Git final usa el mismo exit 4 que A-05 cuando detecta artefactos persistentes; si los hashes protegidos difieren, sale con exit 5. **No se ejecutó aún esta cohorte; ningún PASS nuevo queda acreditado.**
+
+\`\`\`powershell
+git pull --ff-only origin tests_stabilization
+
+& .\docs\architecture\adr\tests_stabilization\run_b05_focal_isolated.ps1 \`
+  -RepoRoot (Get-Location).Path \`
+  -CheckA06W08 \`
+  -CaptureProtectedPaths
+\`\`\`
+
+**Evidencia a compartir:** \`summary.txt\`, \`pytest_focal.log\`, \`status_changes.txt\`, \`protected_before.tsv\`, \`protected_after.tsv\`, \`protected_changes.txt\`, \`git_before.txt\`, \`git_after.txt\`. Registrar el número real **PASS/FAIL/SKIP** (incluidas las parametrizaciones); no extrapolar al conjunto de 225 tests marcados unitarios ni a los 1.458 técnicos. Si la prueba genera otro tipo de artefactos, mantener el fallo e inspeccionar el clon retenido. **No ejecutar la suite amplia en el checkout original**, ni tocar el PDF eliminado deliberadamente.
+
+**Estado:** A05-P4/P6 **mitigados para las operaciones focales realizadas**, no certificados globalmente; A06-COLLECT **cerrado para el SHA probado** y **baseline A-06 de tests aún pendiente**. No se ha modificado runtime, CI, corpus, GT ni tests para preparar esta cohorte.
