@@ -323,3 +323,37 @@ En el **árbol de pruebas con nodeids** se identificaron **173 archivos con test
 **A-04 — alcance por archivo: COMPLETO (173/173).** **A-04 — clasificación literal de cada nodeid/parametrización, eficacia semántica y su ejecución: ABIERTA.** La referencia `1.474` corresponde al censo histórico `86cd6867`, `1.476` al censo posterior `5447963d`, y la prueba UTF-8 agregada después no tiene un nuevo recenso completo acreditado. Se dispone de **ítems históricos** y de conciliación agregada, pero **no del `all.json` actual completo en este entorno**; por ello no fingimos un balance de 961→0 ni una nueva clasificación cuantitativa por nodeid.
 
 **Decisión para evitar sobreingeniería:** el mapeo por archivos permite **priorizar A-05/A-07** sin ampliar B/C por rutina. Para cerrar formalmente A-04 por nodeid, solo falta **cruzar el inventario JSON ya producido por el owner con estas familias y las fichas existentes**, y separar los subcontratos con oráculo real de los condicionados por mock/skip. **No se requiere escribir otro recolector ni modificar CI/GT**, y tampoco es obligatorio revisar científicamente cada combinación parametrizada para clasificar su *alcance*. Hasta disponer de ese inventario exacto, el checkbox global permanece abierto.
+
+## 11. A-04 — cruce exacto de nodeids del inventario aportado por el owner (2026-11-16)
+
+**Fuente primaria reabierta:** adjunto \`all.rar\`, archivo \`all.json\` (364.053 bytes sin comprimir) y \`all.log\`. Se descomprimió el JSON y se comprobó que \`count=1476\`, \`len(items)=1476\`, hay **1.476 nodeids distintos** y **173 rutas de archivos con nodos**. Cada registro conserva \`nodeid\`, \`markers\`, \`parameter_id\` y \`skip_or_xfail_mark_declared\`. **El RAR no trae \`manifest.json\` ni campo \`revision_sha\`**: la atribución al censo de \`5447963d1c2dbce257d94aede30baabb11bd9f98\` se basa en coincidencia con el conteo, selectors y contenido que el owner reportó previamente, **no en un SHA verificable dentro de este RAR**. No aplicarlo al HEAD posterior, donde se añadió el test UTF-8.
+
+### 11.1 Conciliación por ruta y por nodeid, sin inventar PASS
+
+Se cruzó **cada \`nodeid\`** de \`all.json\` con su ruta (\`split("::")[0]\`) contra las listas expresas de las secciones §§2/7–10. Los grupos no se superponen y suman exactamente el inventario.
+
+| Grupo de rutas auditadas en A-04 | Archivos | Nodeids exactos en \`all.json\` | Selección \`not e2e\` | \`e2e\` marcados |
+|---|---:|---:|---:|---:|
+| TR-001–035: 29 archivos vinculados por ruta | **29** | **277** | 277 | 0 |
+| Puente histórico: ocho archivos sin TR (§8.1) | **8** | **236** | 236 | 0 |
+| Cinco fuentes de §8.2 | **5** | **13** | 13 | 0 |
+| Veintiséis fuentes de §9 | **26** | **172** | 172 | 0 |
+| §10: operación y técnica compartida | **36** | **165** | 164 | 1 |
+| §10: legacy/compatibilidad | **9** | **20** | 20 | 0 |
+| §10: laboratorio offline/preflight | **4** | **54** | 54 | 0 |
+| §10: ciencia, GT, benchmark y CV | **56** | **539** | 520 | 19 |
+| **TOTAL CRUZADO** | **173** | **1.476** | **1.456** | **20** |
+
+**Invariantes comprobados:** \`29+8+5+26+36+9+4+56 = 173\`; \`277+236+13+172+165+20+54+539 = 1476\`; \`1456+20=1476\`. Para cada ruta del mapeo hubo nodos presentes en el archivo; no quedaron rutas sobrantes ni nodeids sin familia. Los markers del JSON fueron leídos directamente: **225 \`unit\`**, **72 \`integration\`**, **20 \`e2e\`**. No se suma \`unit\` + \`integration\` como si fueran las únicas clases: hay casos sin marker de nivel.
+
+**Diferencia decisiva:** este paso sí acredita el **100 % del cruce de identidades → archivo → familia**, pero la clasificación del **oráculo/SUT de cada escenario parametrizado** no se hereda automáticamente por compartir archivo. Los **277 nodeids de los 29 archivos TR** continúan siendo vínculos de archivo, no 277 casos de prueba validados en ejecución. Los **539 casos científicos** pueden estar en \`not e2e\` aunque la remediación de su Ground Truth siga diferida: no excluirlos silenciosamente del CI.
+
+### 11.2 Estado formal de A-04 y próximo gate
+
+- [x] **Inventario pinneado:** 1.476 nodeids únicos, 173 archivos, 20 E2E por marker, 1.456 seleccionables técnicos, reportado por el owner en RAR.
+- [x] **Cruce completo por ruta/familia:** 1.476/1.476 nodeids vinculados a 173/173 rutas de los ocho grupos de arriba, sin reclasificar GT ni legacy como root soportado.
+- [x] **Clasificación de las 35 fichas TR:** siete confiables **para su subcontrato acreditado**, nueve limitadas y diecinueve desconocidas por falta de ejecución focal; sin afirmar cobertura individual de todos los nodeids.
+- [ ] **A-04 global cerrado por oráculo individual:** no acreditado; es una decisión de alcance del owner si bastan fichas de contrato + clasificación por archivo o si necesita fichas por cada parametrización. No hay justificación para crear 1.476 informes repetidos. Una futura recolección del HEAD solo se justificaría antes del gate final de CI, para evitar trasladar un censo de SHA anterior.
+- [ ] **A-05/A-06/A-07 y CI:** siguen abiertos; los riesgos de escrituras en rutas fijas y testigos legacy se preservan como hallazgos a priorizar, no como bugs productivos demostrados.
+
+**No hubo ejecución de tests, mutantes, Docker, egress, cambios en SUT, CI, corpus ni GT en este cruce.** Solo inspección de un adjunto, comparación con rutas documentadas y registro de evidencia. A-04 tiene **mapeo completo por identidad y alcance**; la protección efectiva de cada oráculo exige otra evidencia y **no se inventa**.
