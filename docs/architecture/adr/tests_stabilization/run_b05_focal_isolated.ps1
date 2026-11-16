@@ -8,7 +8,8 @@ param(
     [switch] $CheckB01B02Sensitivity,
     [switch] $CheckG3G5,
     [switch] $CheckG3G5Sensitivity,
-    [switch] $CheckB03Parser
+    [switch] $CheckB03Parser,
+    [switch] $CheckB04Contracts
 )
 
 Set-StrictMode -Version Latest
@@ -27,6 +28,9 @@ if ($CheckG3G5 -and ($CheckB01B02 -or $CheckSensitivity)) {
 }
 if ($CheckB03Parser -and ($CheckG3G5 -or $CheckB01B02 -or $CheckSensitivity)) {
     throw "STOP: B03 parser contract is a separate focal execution."
+}
+if ($CheckB04Contracts -and ($CheckB03Parser -or $CheckG3G5 -or $CheckB01B02 -or $CheckSensitivity)) {
+    throw "STOP: B04 technical contracts are a separate focal execution."
 }
 $root = (Resolve-Path -LiteralPath $RepoRoot).ProviderPath
 if (-not (Test-Path -LiteralPath (Join-Path $root "pyproject.toml"))) {
@@ -100,6 +104,19 @@ if ($CheckG3G5) {
 if ($CheckB03Parser) {
     $nodeids = @(
         "tests/integration/test_real_parser_pipeline.py::test_real_parser_repeatable_ids_and_text_across_two_temporary_pages"
+    )
+}
+if ($CheckB04Contracts) {
+    # B04: 3 mathematical/enum contracts + 5 legacy healing/telemetry contracts.
+    $nodeids = @(
+        "tests/test_pipeline_fidelity.py::TestMathProtectionContracts::test_math_placeholder_restoration_preserves_adjacency",
+        "tests/test_pipeline_fidelity.py::TestMathProtectionContracts::test_mixed_inline_and_block_math",
+        "tests/test_pipeline_fidelity.py::TestMathProtectionContracts::test_worker_passthrough_alignment",
+        "tests/integration/test_healing_e2e_telemetry.py::test_healing_case_a_markdown_leakage",
+        "tests/integration/test_healing_e2e_telemetry.py::test_healing_case_b_unbalanced_braces",
+        "tests/integration/test_healing_e2e_telemetry.py::test_healing_case_c_math_truncation",
+        "tests/integration/test_healing_e2e_telemetry.py::test_healing_rollback_guarantee_on_revalidation_failure",
+        "tests/integration/test_healing_e2e_telemetry.py::test_healing_telemetry_aggregate_metrics"
     )
 }
 $nodeids | Out-File -FilePath (Join-Path $reports "nodeids.txt") -Encoding utf8
@@ -205,6 +222,7 @@ try {
         "b01_b02_requested=$([bool]$CheckB01B02)"
         "g3_g5_requested=$([bool]$CheckG3G5)"
         "b03_parser_requested=$([bool]$CheckB03Parser)"
+        "b04_contracts_requested=$([bool]$CheckB04Contracts)"
         "g3_g5_sensitivity_requested=$([bool]$CheckG3G5Sensitivity)"
         "b01_b02_sensitivity_requested=$([bool]$CheckB01B02Sensitivity)"
         "sensitivity_requested=$([bool]$CheckSensitivity)"
