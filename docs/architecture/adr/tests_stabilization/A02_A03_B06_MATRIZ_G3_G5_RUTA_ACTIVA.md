@@ -60,3 +60,40 @@ El owner ejecutó en PowerShell con `venv` activa el comando `pyright` explícit
 **Salida reportada:** `0 errors, 0 warnings, 0 informations`; el aviso `v1.1.411 -> v1.1.414` indica únicamente una versión nueva disponible. **Resultado: Pyright local focal limpio**, no un resultado del workflow oficial (que excluye `tests/`).
 
 **Límite de trazabilidad:** el mensaje que contiene la salida no incluye `git rev-parse HEAD`; por tanto, no adjudicar esta ejecución a un SHA local determinado sin correlación adicional. El `pytest` focal `-CheckG3G5`, sus nueve nodeids previstos, el estado del clon, los controles negativos C-03/C-04/C-05 y el CI del HEAD **continúan sin resultado comunicado**. Ningún gate global se cierra por un check de tipado.
+
+## 6. Baseline G3/G5 observada directamente y controles C-03/C-04/C-05 preparados
+
+**Evidencia dinámica del owner, 2026-11-16.** Se inspeccionó el archivo \`reports.rar\` aportado, con su \`summary.txt\`, \`pytest_focal.log\` y \`status_changes.txt\`; no se infirió el resultado de una captura incompleta.
+
+| Dato | Resultado |
+|---|---|
+| SHA de la ejecución | \`78f36678918535d3525287d1e3c9866dff5fe43e\` |
+| Selector | \`g3_g5_requested=True\`, \`b01_b02_requested=False\`, \`sensitivity_requested=False\` |
+| Pytest | **\`9 passed, 2 warnings in 3.31s\`**; exit **0** |
+| Inventario Git | \`status_changes.txt\` de tamaño **0 bytes**, sin diferencias persistentes en el clon |
+| Docker | \`docker_used=false\` |
+| Entorno | Python 3.11.9 según warning; Windows y \`venv\` del owner; clon Git sin remoto |
+| Límites | No hay sandbox OS, prueba de egress físico, ni laboratorio completo PDF→PDF |
+
+**Advertencias no bloqueantes (2, NO 0):** (1) \`google.api_core\` avisa del fin de soporte futuro de Python 3.11, señalado para 2027-10-24; (2) \`apps/llm_workers/adapters.py\` importa el paquete obsoleto \`google.generativeai\`. Son hallazgos para seguimiento de dependencias y **no** justifican cambiar runtime dentro de B-06. Pyright focal de los tres archivos, reportado previamente por owner, dio \`0 errors, 0 warnings, 0 informations\`. El aviso de versión nueva de Pyright y los dos \`FutureWarning\` de pytest son señales distintas.
+
+**Primeros tres falsadores C, IMPLEMENTADOS y TODAVÍA NO EJECUTADOS.** Se incorporó [\`probe_g3g5_sensitivity.py\`](probe_g3g5_sensitivity.py) y la bandera \`-CheckG3G5Sensitivity\` al [runner aislado](run_b05_focal_isolated.ps1). Este modo selecciona los mismos **9 nodeids** y los exige con pytest exit 0 **antes** de ejecutar cada mutante en otro proceso Python. No requiere Docker ni modifica archivos de runtime o GT.
+
+| Control | Mutación *en memoria* del SUT | Fallo exigido del test protector |
+|---|---|---|
+| **C-03** G3 UNKNOWN | \`SyncProviderBridge.execute_chunk\` vuelve a llamar al proveedor tras timeout que pudo ocurrir después del efecto | \`test_w06_lost_reply_is_quarantined_without_second_provider_call\`: \`W06_UNSAFE_RETRY\`, \`1 failed\`, exit 1 |
+| **C-04** G3 proyección | \`infra.db.staged_publication._verify_rows\` deja de verificar publicación/bytes materializados | \`test_corrupt_projection_never_advances_fsm\`: \`DID NOT RAISE\` el error de drift, \`1 failed\`, exit 1 |
+| **C-05** G5 lease | \`AssemblyLeaseRepository._has_authority\` omite expiración pero retiene checks de propietario/generación/estado | \`test_expired_lease_old_worker_cannot_publish_even_without_takeover\`: destino PDF aparece indebidamente, \`G5_STALE_LEASE_PUBLISHED_PDF\`, \`1 failed\`, exit 1 |
+
+**SUT y oráculo:** para C-03 se mantiene el fake del proveedor y se muta el bridge real; para C-04 se muta la verificación de publicaciones del repositorio real contra SQLite efímera; para C-05 se modifica la decisión de autoridad del repositorio y se observa **el efecto físico prohibido en el directorio temporal**. El ajuste a los tests solo añade mensajes de fallo y prioriza la aserción de ausencia del archivo G5 frente al return bool. Ninguno de los tres cambios modifica contratos o implementación productiva.
+
+**Criterio fail-closed:** para declarar \`MUTATION_KILLED\`, el script exige \`exit_code=1\`, exactamente \`1 failed\`, traceback con \`AssertionError\` o \`Failed:\`, marcador específico y ausencia de errores de recolección/\`INTERNALERROR\`. \`NOT_ACCREDITED\` ante cualquier otra salida; el JSON \`g3g5_mutation_summary.json\` asocia resultados, fallos y SHA del clon. **No declarar mutaciones KILLED antes de inspeccionar JSON/logs del owner.** La herramienta no prueba cobertura exhaustiva ni la seguridad de otras rutas de ejecución.
+
+**Invocación focal siguiente** (PowerShell 5.1, desde raíz del repo y \`venv\` activa):
+
+\`\`\`powershell
+git pull --ff-only origin tests_stabilization
+& .\docs\architecture\adr\tests_stabilization\run_b05_focal_isolated.ps1 -RepoRoot (Get-Location).Path -CheckG3G5Sensitivity
+\`\`\`
+
+Registrar \`summary.txt\`, \`pytest_focal.log\`, \`status_changes.txt\`, \`g3g5_mutation_summary.json\`, y tres \`g3g5_mutation_*.log\`. La nueva ejecución acredita solo su propio SHA; la baseline verde de \`78f36678\` no se hereda al SHA nuevo que añadió marcadores/runner.
