@@ -75,7 +75,7 @@ La ejecución del puente permitirá ordenar **archivos no documentados por volum
 - [x] **S5-N3:** documentados **cuatro hallazgos estáticos** por inspección de fuente, separados entre falsos oráculos y exceso de alcance.
 - [x] **S5-N4:** owner ejecutó la herramienta sobre `all.json`; [reporte documentado](A01_S5_RESULTADO_PUENTE_NODEIDS_2026-11-15.md). 1.474 nodos, 277 en 29 archivos testigo, 1.197 en otros 144, 0 semánticamente acreditados.
 - [ ] **S5-N5:** ampliar las fichas a los nodeids relevantes (no acreditar automáticamente todos los nodos de un archivo).
-- [ ] **S5-N6:** auditar oráculos A-03 de los candidatos a intervención B, incluyendo falsadores y sensibilidad para C.
+- [ ] **S5-N6 — EN CURSO:** [TS-001 golden parser y TS-002 chunker snapshot preauditados](A03_PREAUDITORIA_ORACULOS_GOLDEN_Y_CHUNKER_SNAPSHOT.md), además de [G3-B3](A03_PREAUDITORIA_INDEPENDENCIA_ORACULOS_G3_B3.md). Se confirmó oráculo circular, autoescritura, límites de campos y test zero-loss normalizado. **B-01/B-02 y sensibilidad C pendientes**, sin ejecución ni cambio de referencias.
 - [ ] **S5-N7:** clasificar ámbito de los casos no activos, sin evaluar ni modificar GT.
 - [ ] **A01-S5 / A-01:** **ABIERTO**; A-05-P4/P6 y el aislamiento OS también están abiertos.
 
