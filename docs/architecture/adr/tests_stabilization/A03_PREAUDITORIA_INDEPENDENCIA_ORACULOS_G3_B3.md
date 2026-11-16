@@ -95,3 +95,30 @@ pyright tests/integration/test_g3_b3_structured_result_contract.py tests/integra
 Revisar \`summary.txt\`, \`pytest_focal.log\`, \`status_changes.txt\` y resultado de Pyright; no presentar Pyright verde como prueba de eficacia semántica. En caso de falla, conservar el error completo; **no ajustar el input a ASCII ni cambiar el límite del runtime para obtener PASS**. La colección HEAD de A-01/A-04 que dio **1.476** nodeids corresponde al SHA previo \`5447963d\`, **no** al HEAD que incorpora esta prueba adicional. La recolección formal del nuevo SHA queda pendiente.
 
 **Estado:** cambios de pruebas implementados, **pytest/Pyright no ejecutados aún sobre estos cambios**; A-03, A-04, A-05 global, CI del HEAD y controles de sensibilidad general siguen abiertos. No se tocaron GT, corpus científico, snapshots, runtime ni el workflow.
+
+## 7. Evidencia dinámica A-03 y dos falsadores disponibles (2026-11-16)
+
+**Baseline aportada por el owner (SHA exacto \`50ec05509d095036f883c61ad1149843391fd64e\`):**
+- \`pytest_focal.log\`: **\`39 passed in 2.56s\`**; \`pytest_exit_code=0\`; selector \`a03_boundaries_requested=True\`.
+- \`summary.txt\`: clon independiente \`tst-stab-b05-8ea29af26ac1427e90fbcb27d271bf71\`, \`docker_used=false\`, \`no_OS_level_sandbox_claim=true\`, \`sensitivity_exit_code=-1\` (no se pidió ensayo de sensibilidad).
+- \`status_changes.txt\` **vacío según owner**: sin diferencias persistentes Git del clon.
+- Pyright explícito sobre \`test_g3_b3_structured_result_contract.py\` y \`test_verification_pipeline_connection.py\`: **\`0 errors, 0 warnings, 0 informations\`**; el aviso \`v1.1.411 → v1.1.414\` no es advertencia de tipado.
+- Los 39 tests son **34 G3-B3** (33 históricos + 1 nuevo multibyte) y **5 de la frontera PDF→AST**. La colección histórica global de 1.476 nodeids del SHA anterior requiere nueva conciliación al HEAD que incorpora el test nuevo.
+
+**Interpretación:** se acredita una baseline técnica **39/39 positiva** para los oráculos reforzados, sin Docker, con tipado limpio. No atribuir a esta ejecución ningún \`MUTATION_KILLED\`, GitHub Actions, CV científico, evaluación lingüística, OS sandbox o ausencia de efectos transitorios.
+
+**Sensibilidad preparada después de esta evidencia, pero NO EJECUTADA:**
+
+| ID | Mutación del SUT en memoria y subproceso independiente | Test protector | Veredicto contractual esperado |
+|---|---|---|---|
+| **A03-NEG-UTF8** | \`result_contract.parse_chunk_response\` acepta erróneamente JSON cuya cuenta de caracteres está bajo 4 MiB aunque su UTF-8 exceda la cuota (guard de bytes relajado solo para ese caso) | \`test_response_limit_is_utf8_bytes_not_character_count\` | \`Failed: DID NOT RAISE\` al faltar \`G3_B3_RESPONSE_TOO_LARGE\` |
+| **A03-NEG-EXTRACTION** | \`PdfParserAdapter.parse\` ejecuta el parser real, pero su AST devuelto pierde la frase conocida \`Scientific observations must remain traceable.\` | \`test_pipeline_extracts_nonempty_ast_from_text_pdf\` | \`AssertionError: B02_EXTRACTED_SOURCE_TEXT_MISSING\` |
+
+Los falsadores se implementaron en [\`probe_a03_sensitivity.py\`](probe_a03_sensitivity.py) y la opción \`-CheckA03Sensitivity\` de [\`run_b05_focal_isolated.ps1\`](run_b05_focal_isolated.ps1). El runner crea **otro clon independiente fijado al SHA actual**, exige primero que pasen los 39 tests y solo entonces crea dos procesos Python, cada uno con un patch del SUT **en memoria**, sin editar archivos del runtime ni Ground Truth. Verificador fail-closed: \`exit=1\`, exactamente \`1 failed\`, marcador de fallo del contrato y ninguna señal \`ERROR collecting\`/\`INTERNALERROR\`. Los informes \`a03_mutation_summary.json\`, \`a03_mutation_g3_utf8_byte_limit.log\` y \`a03_mutation_parser_dropped_source.log\` son evidencia **solo después de ejecutar**.
+
+\`\`\`powershell
+git pull --ff-only origin tests_stabilization
+& .\docs\architecture\adr\tests_stabilization\run_b05_focal_isolated.ps1 -RepoRoot (Get-Location).Path -CheckA03Sensitivity
+\`\`\`
+
+**Estado:** 39 PASS y Pyright 0 sobre el SHA anterior acreditados; **0 mutaciones A03 acreditadas hasta recibir una nueva ejecución**. A-03/A-04 globales, CI del HEAD y gate A-05 del entorno permanecen abiertos. El wrapper de Python no proporciona seguridad de red a nivel SO; no se ejecuta la suite completa.
