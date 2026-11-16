@@ -1,100 +1,155 @@
-import os
-import json
-import logging
-import unittest
-from core.ast.models import ASTNode
-from core.validation.estimators import ExactBPEEstimator
+"""B-02: deterministic technical contracts for semantic chunking, not a golden snapshot.
 
+No historical PDF/AST, ground-truth, tokenizer downloads or test-generated expected
+JSON. The input and properties are written independently of the returned units.
+"""
+from __future__ import annotations
+
+from dataclasses import replace
+from hashlib import sha256
+
+import pytest
+
+from core.ast.enums import ContentNodeType, TranslationStrategy
+from core.ast.models import (
+    ASTNode, MathPayload, ParagraphPayload, TablePayload, TranslationTaskType,
+)
+from core.chunking.manifest_contract import ChunkPlan
 from core.chunking.semantic_chunking import build_semantic_chunks_as_units
-from apps.bootstrap.pipeline_factory import build_extraction_pipeline
 
-logger = logging.getLogger(__name__)
 
-class TestChunkerSnapshot(unittest.TestCase):
-    """Suite de Integración para detectar mutaciones colaterales en el empaquetado de producción."""
+class WordEstimator:
+    """Deterministic token budget; B-02 does not certify provider tokenization."""
 
-    def setUp(self):
-        self.adapter = build_extraction_pipeline()
-        self.estimator = ExactBPEEstimator()
-        self.ast_cache_path = "tests/fixtures/sample_3_pages.pdf.ast.json"
-        self.snapshot_path = "tests/fixtures/sample_chunks.json"
+    def estimate_tokens(self, text: str) -> int:
+        return len(text.split())
 
-    def test_snapshot_verification(self):
-        """10B.2.9: Compara el estado actual del empaquetador contra el baseline congelado de la Fase 13."""
-        if not os.path.exists(self.ast_cache_path):
-            self.skipTest("Caché del AST no disponible. Se requiere ejecutar el pipeline base primero.")
 
-        from core.ast.builder import PayloadRegistry
-        from core.ast.enums import ContentNodeType
+def _node(
+    node_id: str,
+    sequence: int,
+    text: str,
+    *,
+    context: str = "CTX_A",
+    node_type: ContentNodeType = ContentNodeType.PARAGRAPH,
+    strategy: TranslationStrategy = TranslationStrategy.TRANSLATE,
+) -> ASTNode:
+    if node_type == ContentNodeType.DISPLAY_EQUATION:
+        payload = MathPayload(content=text)
+    elif node_type == ContentNodeType.TABLE_SIMPLE:
+        payload = TablePayload(content=text)
+    else:
+        payload = ParagraphPayload(content=text)
+    return ASTNode(
+        node_id=node_id,
+        sequence_id=sequence,
+        node_type=node_type,
+        strategy=strategy,
+        payload=payload,
+        control_plane={
+            "context_id": context,
+            "structural_path": (context,),
+        },
+    )
 
-        with open(self.ast_cache_path, "r", encoding="utf-8") as f:
-            raw_data = json.load(f)
-            real_ast = []
-            for d in raw_data:
-                type_str = d["type"].upper() if hasattr(d["type"], "upper") else str(d["type"])
-                if "EQUATION" in type_str or "MATH" in type_str:
-                    ntype = ContentNodeType.INLINE_EQUATION
-                elif "TABLE" in type_str:
-                    ntype = ContentNodeType.TABLE_SIMPLE
-                elif "HEADING" in type_str or "SECTION" in type_str:
-                    ntype = ContentNodeType.HEADING
-                elif "LIST" in type_str:
-                    ntype = ContentNodeType.LIST
-                else:
-                    try:
-                        ntype = ContentNodeType(type_str)
-                    except ValueError:
-                        ntype = ContentNodeType.PARAGRAPH
 
-                payload = PayloadRegistry.create(ntype, d["content"])
-                
-                node = ASTNode(
-                    node_id=d["node_id"],
-                    sequence_id=d["sequence_id"],
-                    node_type=ntype,
-                    payload=payload,
-                    control_plane=d.get("control_plane", {"context_id": "GLOBAL_ROOT", "structural_path": ["ROOT"]})
-                )
-                real_ast.append(node)
+def _technical_ast() -> list[ASTNode]:
+    return [
+        _node("n_alpha", 1, "Alpha  text.\n", context="CTX_A"),
+        _node("n_beta", 2, "\nBeta text.", context="CTX_A"),
+        _node("n_equation", 3, "E=mc^2", context="CTX_A",
+              node_type=ContentNodeType.DISPLAY_EQUATION,
+              strategy=TranslationStrategy.PASSTHROUGH),
+        _node("n_table", 4, "|x|y|\n|1|2|", context="CTX_B",
+              node_type=ContentNodeType.TABLE_SIMPLE),
+        _node("n_omit", 5, "Not for translation.", context="CTX_B",
+              strategy=TranslationStrategy.OMIT),
+        _node("n_gamma", 6, "Gamma  paragraph.", context="CTX_B"),
+    ]
 
-        # Desempaquetado de la tupla SOTA
-        production_units, _ = build_semantic_chunks_as_units(real_ast, self.estimator)
-        
-        actual_snapshot = [
-            {
-                "chunk_index": u.chunk_index,
-                "chunk_id": u.chunk_id,
-                "chunk_fingerprint": u.chunk_fingerprint,
-                "chunk_type": u.chunk_type.value if hasattr(u.chunk_type, "value") else u.chunk_type,
-                "source_sequence_range": list(u.source_sequence_range), # Tupla a Lista para JSON
-                "node_count": u.node_count,
-                "context_id": u.context_id,
-                "context_depth": u.context_depth,
-                "target_payload": u.target_payload,
-                "estimated_tokens": u.estimated_tokens,
-                "payload_sha256": u.payload_sha256
-            }
-            for u in production_units
-        ]
 
-        # Modo Generación: Solo crea el snapshot si no existe
-        if not os.path.exists(self.snapshot_path):
-            with open(self.snapshot_path, "w", encoding="utf-8") as f:
-                json.dump(actual_snapshot, f, indent=2, ensure_ascii=False)
-            logger.info("Baseline Snapshot generado. Ejecutar test nuevamente para verificar.")
-            return
+def test_semantic_chunker_preserves_members_policy_and_source_exactly() -> None:
+    ast = _technical_ast()
+    units, _ = build_semantic_chunks_as_units(ast, WordEstimator())
+    assert units, "El chunker debe producir unidades para nodos no omitidos."
 
-        # Modo Verificación: Falla estrictamente ante regresiones
-        with open(self.snapshot_path, "r", encoding="utf-8") as f:
-            expected_snapshot = json.load(f)
+    # The expected identities and source bytes come from literals above, not
+    # a golden generated by the same chunker.
+    expected = {
+        "n_alpha": "Alpha  text.\n",
+        "n_beta": "\nBeta text.",
+        "n_equation": "E=mc^2",
+        "n_table": "|x|y|\n|1|2|",
+        "n_gamma": "Gamma  paragraph.",
+    }
+    members = [member for unit in units for member in unit.members]
+    assert [member.node_id for member in members] == list(expected)
+    assert len({(m.node_id, m.segment_index) for m in members}) == len(members)
+    assert all(m.segment_index == 0 and m.segment_count == 1 for m in members)
+    assert {m.node_id: m.source_text for m in members} == expected
 
-        self.assertEqual(len(actual_snapshot), len(expected_snapshot), "Regresión: Cambio en la longitud total de unidades.")
+    source_by_id = {node.node_id: node.text_content for node in ast}
+    for member in members:
+        assert member.source_text == source_by_id[member.node_id], (
+            "No se permiten normalizaciones implícitas de espacios o saltos."
+        )
+    assert all("n_omit" != m.node_id for m in members)
 
-        for actual, expected in zip(actual_snapshot, expected_snapshot):
-            self.assertEqual(actual["chunk_id"], expected["chunk_id"], f"Regresión de ID en chunk {actual['chunk_index']}.")
-            self.assertEqual(actual["payload_sha256"], expected["payload_sha256"], f"Regresión criptográfica en chunk {actual['chunk_index']}.")
-            self.assertEqual(actual["target_payload"], expected["target_payload"], f"Regresión de Payload en chunk {actual['chunk_index']}.")
-            
-            # SOTA: Retrocompatibilidad con snapshots previos a la Fase 13
-            if "context_id" in expected:
-                self.assertEqual(actual["context_id"], expected["context_id"], f"Regresión de Frontera Lógica (Contexto) en chunk {actual['chunk_index']}.")
+    policy = {
+        "n_alpha": TranslationTaskType.TRANSLATE,
+        "n_beta": TranslationTaskType.TRANSLATE,
+        "n_equation": TranslationTaskType.PRESERVE,
+        "n_table": TranslationTaskType.PARTIAL,
+        "n_gamma": TranslationTaskType.TRANSLATE,
+    }
+    for unit in units:
+        assert unit.members
+        assert unit.node_count == len(unit.members)
+        assert unit.chunk_type in {policy[m.node_id] for m in unit.members}
+        assert len({m.node_id for m in unit.members}) == unit.node_count
+        assert sha256(unit.target_payload.encode("utf-8")).hexdigest() == unit.payload_sha256
+        for member in unit.members:
+            assert unit.chunk_type == policy[member.node_id]
+            expected_context = "CTX_A" if member.node_id in {"n_alpha", "n_beta", "n_equation"} else "CTX_B"
+            assert unit.context_id == expected_context
+
+    # Normative G3 validator checks coverage, policy and bytes independently
+    # from the grouping algorithm; no snapshot written or overwritten.
+    plan = ChunkPlan.build("b02-document", "b02-ast", ast, units)
+    assert ChunkPlan.from_json(
+        plan.to_json(), ast, document_id="b02-document", ast_hash="b02-ast"
+    ) == plan
+    assert build_semantic_chunks_as_units(ast, WordEstimator())[0] == units
+
+
+def test_semantic_chunker_rejects_lost_member_in_manifest() -> None:
+    ast = _technical_ast()
+    units, _ = build_semantic_chunks_as_units(ast, WordEstimator())
+    original = units[0]
+    assert len(original.members) >= 2
+    removed = replace(
+        original,
+        members=original.members[:1],
+        node_count=1,
+        target_payload=original.members[0].source_text,
+        payload_sha256=sha256(original.members[0].source_text.encode("utf-8")).hexdigest(),
+    )
+    with pytest.raises(ValueError, match="G3_MISSING_NODE|G3_SEGMENT_COVERAGE_ERROR"):
+        ChunkPlan.build("b02-document", "b02-ast", ast, [removed, *units[1:]])
+
+
+def test_semantic_chunker_rejects_source_whitespace_mutation() -> None:
+    ast = _technical_ast()
+    units, _ = build_semantic_chunks_as_units(ast, WordEstimator())
+    original = units[0]
+    changed_first = replace(original.members[0], source_text="Alpha text.\n")
+    changed_members = (changed_first, *original.members[1:])
+    changed_payload = "\n\n".join(m.source_text for m in changed_members)
+    changed = replace(
+        original,
+        members=changed_members,
+        target_payload=changed_payload,
+        payload_sha256=sha256(changed_payload.encode("utf-8")).hexdigest(),
+    )
+    with pytest.raises(ValueError, match="G3_SOURCE_LOSS_OR_DUPLICATION"):
+        ChunkPlan.build("b02-document", "b02-ast", ast, [changed, *units[1:]])
