@@ -564,3 +564,38 @@ git pull --ff-only origin tests_stabilization
 **Evidencia a compartir:** \`summary.txt\`, \`pytest_focal.log\`, \`status_changes.txt\`, \`protected_before.tsv\`, \`protected_after.tsv\`, \`protected_changes.txt\`, \`git_before.txt\`, \`git_after.txt\`. Registrar el número real **PASS/FAIL/SKIP** (incluidas las parametrizaciones); no extrapolar al conjunto de 225 tests marcados unitarios ni a los 1.458 técnicos. Si la prueba genera otro tipo de artefactos, mantener el fallo e inspeccionar el clon retenido. **No ejecutar la suite amplia en el checkout original**, ni tocar el PDF eliminado deliberadamente.
 
 **Estado:** A05-P4/P6 **mitigados para las operaciones focales realizadas**, no certificados globalmente; A06-COLLECT **cerrado para el SHA probado** y **baseline A-06 de tests aún pendiente**. No se ha modificado runtime, CI, corpus, GT ni tests para preparar esta cohorte.
+
+## 25. A-06 — primera cohorte W08 validada y siguiente grupo G3 acotado (owner, 2026-11-16)
+
+**Evidencia primaria:** el owner adjuntó \`reports.rar\` RAR5 con **ocho archivos**, inspeccionados directamente: \`summary.txt\`, \`pytest_focal.log\`, \`protected_before.tsv\`, \`protected_after.tsv\`, \`protected_changes.txt\`, \`git_before.txt\`, \`git_after.txt\`, \`status_changes.txt\`. SHA de ejecución **\`13ae7e5da9974b5b7c6d4696edbf6b98115d239e\`**, modo \`a06_w08_requested=True\` y \`protected_inventory_requested=True\`. \`pytest_exit_code=0\`, \`23 passed, 2 warnings in 3.50s\`; **0 SKIP, 0 FAIL, 0 XFAIL** reportados. \`sensitivity_requested=False\` y \`sensitivity_exit_code=-1\`: **no** hubo controles mutantes en esta cohorte. Las dos advertencias provienen de dependencias Google importadas, no son fallos de tests.
+
+| Evidencia de aislamiento observable | Resultado directo |
+|---|---|
+| \`git_before.txt\`, \`git_after.txt\`, \`status_changes.txt\` | **0 bytes** en cada uno: ninguna diferencia Git persistente observada |
+| \`protected_before.tsv\` y \`protected_after.tsv\` | **3.309 bytes** cada uno; contenido idéntico, SHA-256 idéntico; \`protected_inventory_unchanged=True\` |
+| \`protected_changes.txt\` | **0 bytes**, no cambios en rutas protegidas |
+| Entorno declarado | \`docker_used=false\`, \`no_OS_level_sandbox_claim=true\`; clon Git independiente y caché Hypothesis redirigida |
+| Oráculo | Testigos reales \`ContextSnapshotV1\`, \`InferenceReuseIdentityV1\` y barrera de caché G3; proveedor sintético solo en frontera; **no** petición pagada ni PDF→PDF |
+
+**Dictamen:** **23 PASS focales acreditados** exclusivamente para \`test_w08_inference_identity_contract.py\` y \`test_w08_g3_cache_barrier.py\` sobre el SHA consignado. Las 4 variantes inválidas del contexto y las 11 dimensiones de identidad fueron preservadas. Este resultado **no convierte** los 225 unitarios, los 1.458 técnicos o la CI en PASS globales; tampoco prueba bloqueo OS de red, efectos transitorios o versión completa del caché W08.
+
+### 25.1 Próxima cohorte G3 de ejecución real, con oráculo de frontera acotado
+
+Por revisión de fuente del HEAD se eligieron **tres archivos ya existentes**, excluyendo los dos W08 ahora acreditados y los testigos ya ejecutados por campañas focales:
+
+- \`tests/integration/test_g3_b4_9_reconciler_fencing.py\`: cola y FSM SQLite **en memoria**, \`ControlPlaneRepository\` y \`ReconcilerDaemon\` reales, doubles fail-fast solo para caminos legacy prohibidos; comprueba epoch/owner, requeue única, no completado de tareas G3 por ruta R1, recuperación de tablas y propiedad del hilo heartbeat. **11 funciones nominales; 4 variantes de autoridad en una función parametrizada (14 nodeids)**.
+- \`tests/integration/test_g3_b4_8_preserve_engine.py\`: **3 variantes** de \`PRESERVE\` / traducción staged / mezcla, \`run_pipeline\` real y tres SQLite creadas solo en \`tmp_path\`, fake provider que falla ante invocación innecesaria. El nombre de la prueba no implica proveedor real ni Tectonic.
+- \`tests/integration/test_g3_b4_7b_sqlite_quota_thread_owner.py\`: **3 casos**, SQLite bajo \`tmp_path\`, \`QuotaManager\`, \`SyncProviderBridge\` y store owned por hilo reales; proveedor fake y \`ThreadPoolExecutor\` controlado. No transporte HTTP ni base histórica.
+
+**Total esperado: 20 nodeids** (14 + 3 + 3), **no resultado observado**. Se añadió \`-CheckA06G3Guards\` al **ejecutor ya existente** \`run_b05_focal_isolated.ps1\`, con comprobación de exclusividad frente a las demás selecciones, limpieza de variables de secretos y almacén Hypothesis fuera del clon, control Git estricto y comparador SHA-256 de rutas protegidas opt-in. **No ejecutar mutaciones ni suite completa** para esta verificación.
+
+\`\`\`powershell
+git pull --ff-only origin tests_stabilization
+
+& .\docs\architecture\adr\tests_stabilization\run_b05_focal_isolated.ps1 \`
+  -RepoRoot (Get-Location).Path \`
+  -CheckA06G3Guards \`
+  -CaptureProtectedPaths
+\`\`\`
+
+**Reportes requeridos:** \`summary.txt\`, \`pytest_focal.log\`, \`status_changes.txt\`, \`protected_before.tsv\`, \`protected_after.tsv\`, \`protected_changes.txt\`, \`git_before.txt\` y \`git_after.txt\`. Rechazar cambios persistentes en el clon, mantener clones/reportes incluso si hay FAIL y no repetir los 23 W08 acreditados ni los 11 A05 sin razón contractual. No inferir egress OS, seguridad de suite global, GT ni CI verde. **A05-P4/P6 globales y A-06 baseline técnica global siguen ABIERTOS**.
