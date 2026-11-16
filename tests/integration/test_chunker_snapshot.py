@@ -86,7 +86,9 @@ def test_semantic_chunker_preserves_members_policy_and_source_exactly() -> None:
     assert [member.node_id for member in members] == list(expected)
     assert len({(m.node_id, m.segment_index) for m in members}) == len(members)
     assert all(m.segment_index == 0 and m.segment_count == 1 for m in members)
-    assert {m.node_id: m.source_text for m in members} == expected
+    assert {m.node_id: m.source_text for m in members} == expected, (
+        "B02_SOURCE_BYTES_MISMATCH"
+    )
 
     source_by_id = {node.node_id: node.text_content for node in ast}
     for member in members:
