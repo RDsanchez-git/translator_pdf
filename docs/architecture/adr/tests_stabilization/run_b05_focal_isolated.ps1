@@ -14,7 +14,8 @@ param(
     [switch] $CheckA03Sensitivity,
     [switch] $CheckForegroundSensitivity,
     [switch] $CheckCLIAdmissionSensitivity,
-    [switch] $CheckG5Worker
+    [switch] $CheckG5Worker,
+    [switch] $CheckG5WorkerSensitivity
 )
 
 Set-StrictMode -Version Latest
@@ -27,6 +28,9 @@ if ($CheckG3G5Sensitivity) {
 }
 if ($CheckA03Sensitivity) {
     $CheckA03Boundaries = $true
+}
+if ($CheckG5WorkerSensitivity) {
+    $CheckG5Worker = $true
 }
 if ($CheckForegroundSensitivity -and ($CheckA03Boundaries -or $CheckB04Contracts -or $CheckB03Parser -or $CheckG3G5 -or $CheckB01B02 -or $CheckSensitivity)) {
     throw "STOP: foreground sensitivity is a separate selection."
@@ -199,6 +203,17 @@ try {
             & $python -B -m pytest -q -ra --no-header -o "addopts=" -p "no:cacheprovider" --basetemp $temp $nodeids *>&1 |
                 Out-File -FilePath (Join-Path $reports "pytest_focal.log") -Encoding utf8
             $exitCode = $LASTEXITCODE
+            if ($exitCode -eq 0 -and $CheckG5WorkerSensitivity) {
+                Write-Host "G5 worker: two contract mutations after three green baseline tests."
+                [Environment]::SetEnvironmentVariable("TST_STAB_G5_WORKER_OPT_IN", "1", "Process")
+                try {
+                    & $python -B "docs/architecture/adr/tests_stabilization/probe_g5_worker_sensitivity.py" --reports $reports *>&1 |
+                        Out-File -FilePath (Join-Path $reports "g5_worker_mutation_runner.log") -Encoding utf8
+                    $sensitivityExitCode = $LASTEXITCODE
+                } finally {
+                    [Environment]::SetEnvironmentVariable("TST_STAB_G5_WORKER_OPT_IN", $null, "Process")
+                }
+            }
             if ($exitCode -eq 0 -and $CheckCLIAdmissionSensitivity) {
                 Write-Host "CLI admission: two in-memory mutation probes after eight green tests."
                 [Environment]::SetEnvironmentVariable("TST_STAB_CLI_ADMISSION_OPT_IN", "1", "Process")
@@ -308,6 +323,7 @@ try {
         "foreground_sensitivity_requested=$([bool]$CheckForegroundSensitivity)"
         "cli_admission_sensitivity_requested=$([bool]$CheckCLIAdmissionSensitivity)"
         "g5_worker_requested=$([bool]$CheckG5Worker)"
+        "g5_worker_sensitivity_requested=$([bool]$CheckG5WorkerSensitivity)"
         "g3_g5_sensitivity_requested=$([bool]$CheckG3G5Sensitivity)"
         "b01_b02_sensitivity_requested=$([bool]$CheckB01B02Sensitivity)"
         "sensitivity_requested=$([bool]$CheckSensitivity)"
@@ -319,9 +335,11 @@ try {
     ) | Out-File -FilePath (Join-Path $reports "summary.txt") -Encoding utf8
 }
 Write-Host "pytest exit code: $exitCode"
-if ($CheckSensitivity -or $CheckB01B02Sensitivity -or $CheckG3G5Sensitivity -or $CheckA03Sensitivity -or $CheckForegroundSensitivity -or $CheckCLIAdmissionSensitivity) {
+if ($CheckSensitivity -or $CheckB01B02Sensitivity -or $CheckG3G5Sensitivity -or $CheckA03Sensitivity -or $CheckForegroundSensitivity -or $CheckCLIAdmissionSensitivity -or $CheckG5WorkerSensitivity) {
     Write-Host "Sensitivity exit code: $sensitivityExitCode"
-    $mutationFile = if ($CheckCLIAdmissionSensitivity) {
+    $mutationFile = if ($CheckG5WorkerSensitivity) {
+        "g5_worker_mutation_summary.json"
+    } elseif ($CheckCLIAdmissionSensitivity) {
         "cli_admission_mutation_summary.json"
     } elseif ($CheckForegroundSensitivity) {
         "foreground_mutation_summary.json"
@@ -339,3 +357,6 @@ if ($CheckSensitivity -or $CheckB01B02Sensitivity -or $CheckG3G5Sensitivity -or 
 Write-Host "pytest log: $(Join-Path $reports 'pytest_focal.log')"
 Write-Host "Git diff inventory: $(Join-Path $reports 'status_changes.txt')"
 Write-Host "No files were cleaned up; retain this clone and reports."
+if ($exitCode -ne 0) { exit 2 }
+if (($CheckSensitivity -or $CheckB01B02Sensitivity -or $CheckG3G5Sensitivity -or $CheckA03Sensitivity -or $CheckForegroundSensitivity -or $CheckCLIAdmissionSensitivity -or $CheckG5WorkerSensitivity) -and $sensitivityExitCode -ne 0) { exit 3 }
+exit 0
