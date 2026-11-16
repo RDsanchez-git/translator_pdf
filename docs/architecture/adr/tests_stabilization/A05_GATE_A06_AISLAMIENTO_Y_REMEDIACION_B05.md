@@ -167,3 +167,28 @@ La ausencia de \`SwitchName\` sugiere que un adaptador Hyper-V no está conectad
 - No se cambió CI, runtime ni GT. \`B05-R2\` caché histórica y \`B05-R3\` DB/fixtures de otros tests siguen pendientes.
 
 **Próximo avance:** corregir los demás riesgos de escrituras fijas (B05-R2/R3) con fixtures Python temporales y oráculos observables. Ejecutar luego pruebas focales Python/pytest sin Docker para los casos revisados; las pruebas multiproceso y de PDF real permanecen en el laboratorio separado. Actualizar el plan rector con los SHA y límites; no acreditar el cierre de B05 hasta evidencia dinámica.
+
+## 9. B05-R2/R3 — implementación de seguridad y oráculos, sin acreditación dinámica
+
+**Cambios en \`tests_stabilization\`:**
+
+| ID | Archivo/commit | Cambio verificable en fuente | Alcance real |
+|---|---|---|---|
+| B05-R2 | [\`test_e2e_walking_skeleton.py\`](../../../../tests/integration/test_e2e_walking_skeleton.py), \`e8a24bee\` | Se sustituyó \`tests/fixtures/e2e_cache_real.db\` por \`TemporaryDirectory\` + SQLite efímera; se eliminó la escritura condicional de AST en \`tests/fixtures\`, las asignaciones \`object.__setattr__\` de \`cache_hit\` y el mock de \`SummaryBuilder.build\`. Se observa \`FakeLLMProvider.translate_calls\`, métricas del \`CachedLLMProvider\` real y \`SummaryBuilder.build\` real en dos dispatches. | Contrato de caché del dispatcher **legacy R1**, no prueba E2E ni ruta G3/W08 actual |
+| B05-R3a | [\`test_real_e2e.py\`](../../../../tests/integration/test_real_e2e.py), \`bdb85717\` | \`documents.db\` persistente sustituido por SQLite \`:memory:\` con \`addCleanup\`; FSM \`:memory:\` también cerrada con cleanup; nombre del test indica que \`pipeline.execute\` está mockeado. | Solo shape de resultado de consumidor FinOps; no ejecución del SUT ni gasto real |
+| B05-R3b | [\`test_pipeline_orchestration.py\`](../../../../tests/integration/test_pipeline_orchestration.py), \`8552d628\` | \`documents.db\` persistente sustituido por SQLite \`:memory:\` con \`addCleanup\`; FSM \`:memory:\` cerrada; se elimina fabricación de \`sample_3_pages.pdf\` dentro de \`tests/fixtures\`. | Orquestador lógico real con parser mockeado y dispatcher fake; no validación de PDF físico |
+
+**Inspección posterior de fuente (no observación de efectos de ejecución):** los tres archivos ya no contienen \`infra/db/documents.db\` ni \`tests/fixtures/e2e_cache_real.db\`, borrados \`os.remove\` ni escritura de sus fixtures. La caché dejó de asignar \`model_name\` manualmente o de parchear \`SummaryBuilder.build\`. Las conexiones SQLite y sus operaciones siguen siendo componentes **reales dentro de \`:memory:\` o un temporal**, no una simulación de SQLite.
+
+**Impacto en la colección histórica:** se cambiaron los nombres de los tres testigos a identificadores cuyo alcance es más honesto. Por tanto **los nodeids antiguos de A-01 son datos históricos del SHA \`86cd6867\`, no la selección del HEAD nuevo**. Una nueva \`pytest --collect-only\` y la conciliación de markers/nombres en el SHA remediado siguen pendientes. No eliminar ni presentar los registros anteriores como prueba dinámica.
+
+**Gate aún abierto:**
+- [x] **R2/R3 — parche aplicado y revisión estática de rutas fijas/oráculos.**
+- [ ] **R2/R3 — pytest focal real y casos negativos/positivos medidos** en entorno Python normal controlado, sin Docker.
+- [ ] **B05 global — validación dinámica completa**, incluida la corrección R1 y revisión de side effects no previstos.
+- [ ] **A-05 / A-06 — baseline selectiva**: no se ha ejecutado ningún cuerpo de test de este bloque.
+- [ ] **C — sensibilidad**: ningún \`MUTATION_KILLED\` por esta implementación.
+
+**Señal potencial de fallo que debe investigarse, no silenciarse:** \`AsyncDispatcher\` usa \`NullEventPlane\` para el contrato de caché legacy; \`FakeLLMProvider\` devuelve un \`InferenceResult\` compatible con su puerto real y el test exige una única llamada externa simulada. Si pytest falla por configuración/validación efectiva, mantener el fallo como evidencia y distinguirlo del problema de cache, sin autogenerar un expected ni reducir las aserciones para obtener verde.
+
+**Norma adoptada por el owner:** Docker/Hyper-V no son prerequisitos de pytest ni de CI. El laboratorio C2 PDF→PDF del handoff queda diferido. Mantener \`B05-R1/R2/R3\` como **implementados, pendientes de validación** hasta tener resultados de pytest/Pyright/CI y evidencia de ausencia de escrituras fuera de los temporales.
