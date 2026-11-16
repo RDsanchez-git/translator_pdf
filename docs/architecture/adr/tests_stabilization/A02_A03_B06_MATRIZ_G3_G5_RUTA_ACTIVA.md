@@ -97,3 +97,21 @@ git pull --ff-only origin tests_stabilization
 \`\`\`
 
 Registrar \`summary.txt\`, \`pytest_focal.log\`, \`status_changes.txt\`, \`g3g5_mutation_summary.json\`, y tres \`g3g5_mutation_*.log\`. La nueva ejecución acredita solo su propio SHA; la baseline verde de \`78f36678\` no se hereda al SHA nuevo que añadió marcadores/runner.
+
+## 7. C-03/C-04/C-05 — reporte de sensibilidad del owner, 2026-11-16
+
+El owner aportó **íntegro el JSON de \`g3g5_mutation_summary.json\`** generado por el helper focal. El sujeto reportado es \`tests_stabilization\` SHA \`16a6822927ffc0b11caa84faf406c083fa0b15fd\`; \`verdict=THREE_KILLED\`. No se recibieron aquí los tracebacks de las mutaciones, el \`pytest_focal.log\` nuevo ni \`status_changes.txt\` para esta ejecución. El runner requiere \`pytest exit_code=0\` en los 9 nodeids antes de inyectar mutaciones; el JSON declara esa precondición, **pero no contiene el log del baseline**.
+
+| Control | Mutación de SUT | Marcador exigido por helper | Exit del hijo | Veredicto reportado |
+|---|---|---|---|---|
+| C-03 | \`c03_g3_unknown_retry\` | \`W06_UNSAFE_RETRY\` | 1 | **MUTATION_KILLED** |
+| C-04 | \`c04_g3_projection_drift\` | \`DID NOT RAISE\` | 1 | **MUTATION_KILLED** |
+| C-05 | \`c05_g5_expired_lease_publish\` | \`G5_STALE_LEASE_PUBLISHED_PDF\` | 1 | **MUTATION_KILLED** |
+
+La fuente de \`probe_g3g5_sensitivity.py\` exige por hijo \`exit=1\`, exactamente \`1 failed\`, un fallo de assert/pytest, el marcador específico y ausencia de \`ERROR collecting\`/\`INTERNALERROR\` para computar KILLED. **Esto acredita el veredicto del verificador compartido por el owner**, no una inspección directa del traceback ni la cobertura exhaustiva de la barrera.
+
+**Límites técnicos concretos:** C-03 cuenta llamadas aceptadas por un fake de proveedor, no POST HTTP reales; C-04 inutiliza temporalmente el verificador de filas publicado, no ensaya todas las modalidades de proyección CURRENT; C-05 demuestra protección del archivo temporal contra publicación de un lease expirado, sin Tectonic ni artefacto científico. La baseline anterior sí fue inspeccionada directamente desde el RAR sobre \`78f36678\`: 9 PASS, 2 warnings y Git sin diferencias persistentes. La ejecución de sensibilidad se atribuye **solo** a su SHA \`16a68229\`.
+
+**Estado:** evidencia focal de C-03/C-04/C-05 **POSITIVA POR RESUMEN DEL OWNER**; continúan abiertos C-00/C-01/C-02/C-06/C-07 total/C-08/C-09, A/B/C generales, seguridad de ejecución global y CI del HEAD. No actualizar \`main\`, no reejecutar C0–C4 ni modificar GT como resultado de estas tres detecciones.
+
+**Siguiente prioridad dentro de B:** revisar la sobredeclaración E2E/parser y otras pruebas históricas (B-03/B-04), con SUT real y fixtures descartables, sin permitir que un test antiguo se presente como evaluación científica ni como comprobación de la ruta PDF→PDF completa.
