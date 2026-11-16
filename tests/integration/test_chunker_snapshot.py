@@ -131,6 +131,7 @@ def test_semantic_chunker_rejects_lost_member_in_manifest() -> None:
         original,
         members=original.members[:1],
         node_count=1,
+        source_sequence_range=(original.members[0].sequence_id, original.members[0].sequence_id),
         target_payload=original.members[0].source_text,
         payload_sha256=sha256(original.members[0].source_text.encode("utf-8")).hexdigest(),
     )
