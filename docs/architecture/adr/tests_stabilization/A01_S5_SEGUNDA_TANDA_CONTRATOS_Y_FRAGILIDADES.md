@@ -159,3 +159,16 @@ git pull --ff-only origin tests_stabilization
 \`\`\`
 
 La selección se realiza en clon independiente, sin hardlinks ni remoto, con HOME/TEMP apartados y inventarios Git. No es aislamiento de SO, ni evita todo efecto transitorio fuera del clon; **no** ejecutar suite \`not e2e\` en working tree. No se ha modificado runtime/CI, fixtures científicas ni Ground Truth. A/B/C global, A-05 y CI pendiente.
+
+## 9. FG-NEG-01/02 — evidencia directa completada desde RAR (2026-11-16)
+
+El owner volvió a adjuntar \`reports.rar\`; se inspeccionaron directamente sus **seis miembros** (RAR5): \`pytest_focal.log\`, \`summary.txt\`, \`foreground_mutation_summary.json\`, \`foreground_mutation_foreground_incomplete_g3.log\`, \`foreground_mutation_foreground_missing_pdf.log\` y \`status_changes.txt\` vacío. El SHA reportado es **\`e2d2fd5f64165357b8c9e2dbf25f23139a04c351\`**, correspondiente a una corrida ya registrada por JSON. Esta ampliación **no constituye una segunda corrida distinta**.
+
+| Control | Evidencia observada | Decisión focal |
+|---|---|---|
+| Baseline sin mutación | \`.. [100%]\`, **\`2 passed in 0.62s\`**, \`pytest_exit_code=0\` | PASS para dos casos del coordinador en ese SHA |
+| **FG-NEG-01** G3 incompleto | \`test_foreground_fails_on_incomplete_g3_before_g5\`, línea 88: \`Failed: DID NOT RAISE <class 'apps.cli.pdf_product.PDFProductError'>\`; **\`1 failed in 0.64s\`**, exit 1 | **MUTATION_KILLED**, causa contractual confirmada directamente |
+| **FG-NEG-02** PDF ausente | \`test_foreground_fails_when_g5_did_not_publish\`, línea 95: \`Failed: DID NOT RAISE <class 'apps.cli.pdf_product.PDFProductError'>\`; **\`1 failed in 0.69s\`**, exit 1 | **MUTATION_KILLED**, causa contractual confirmada directamente |
+| Verificador/integridad | \`verdict=TWO_KILLED\`, \`sensitivity_exit_code=0\`, \`status_changes.txt\` **0 bytes**, \`docker_used=false\` | Sin diferencias Git persistentes en el clon; no implica aislamiento OS |
+
+**Corrección de alcance histórico:** §7 describía los falsadores como preparados, y el primer reporte del owner solo permitió confirmar el JSON. Ahora constan ambos tracebacks y el inventario Git. Los dos falsadores son resultados de **una única ejecución** en el SHA citado, no cuatro kills. El coordinador \`run_admitted_pdf\` es real, pero OCR/G3/G5 siguen simulados: **no se ha acreditado E2E PDF→PDF, seguridad de ejecución a nivel SO, CI ni Ground Truth**. Los gates generales A/B/C permanecen abiertos.
