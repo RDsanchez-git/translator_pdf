@@ -1,7 +1,7 @@
 # Plan de estabilización y remediación de los tests del pipeline PDF→PDF
 
 > **Código del programa:** TST-STAB  
-> **Versión:** 0.1.7 — cruce final de ocho fronteras A01-S5/A03 con E/K/NOT_RUN y límites verificables  
+> **Versión:** 0.1.8 — clasificación de los 165 nodeids compartidos y excepción focal B3-08 documentada  
 > **Estado:** EN EJECUCIÓN — **A-00, A-02, A-04 y A-07 cerrados en su alcance documental**; **A-01/A-03 pendientes semánticos**, A-05-P4/P6 abiertos; A-06 **subgate de CI técnico acreditado**, sin cierre global por hermeticidad; B-01/B-02 con remediaciones y falsadores focales, B/C generales abiertos. CV científico bloqueado por PDFs canónicos ausentes (D-5 diferido). No confundir cierre de ficha/matriz con producto listo, PDF→PDF E2E o hermeticidad OS. Runtime, workflow y Ground Truth sin cambios.  
 > **Fecha de apertura:** 2026-11-15  
 > **Repositorio:** `RDsanchez-git/translator_pdf`  
@@ -525,6 +525,30 @@ Revisar `summary.txt` (SHA, `a06_b03_ci_step_requested=True`, `b03_ci_exact_33_p
 **Estado de decisión:** **Subentregable de cruce P0/P1 de las ocho fronteras: COMPLETADO DOCUMENTALMENTE**. **A-01 [ ] y A-03 [ ] globales**: el plan exige S5 completo sobre los casos relevantes y O2/O4 con sensibilidad apropiada o excepción expresa. A-02/A-04/A-07 siguen [x] documentales; A-06 evidencia de CI [x] en alcance técnico (casilla global [ ]); A-05 [ ] por P4/P6. **No** generar nuevos tests/runner/mutantes, repetir suite, abrir PR, cambiar CI/SUT/GT/corpus ni tocar `main`. El PR #62 sigue cerrado sin merge; este documento es posterior a su SHA y **no hereda su CI PASS como ejecución del HEAD actual**.
 
 
+#### A01-S5/A03 — clasificación contractual de 165 nodeids compartidos y excepción B3-08 (2026-11-17)
+
+**Fuente:** `all_extracted_a04.json` original del owner, **1.476 nodeids históricos** (A-04 §11, sin SHA interno), y lectura actual de **36 archivos** de `tests/` clasificados previamente por archivo en A-04 §10.1. Esta revisión aporta **sentido del SUT y oráculo agrupado**, no un PASS de cada nodeid ni ejecución dinámica del HEAD. El CI acreditado pertenece al merge SHA del PR #62, ya cerrado.
+
+| Grupos exclusivos (nombres `test_*.py` abreviados) | Archivos / nodeids | Alcance del SUT y límite del oráculo |
+|---|---:|---|
+| **PDF→AST / layout / normalización**: `chunker_snapshot`, `golden_parser`, `real_parser_pipeline`, `ast_integrity`, `pymupdf_integrity`, `context_enricher`, `layout_validator`, `semantic_classifier`, `semantic_validator`, `structural_validator`, `preservation_validator`, `paragraph_idempotency`, `pipeline_fidelity` | **13 / 54** | Parser/chunker reales en B01/B02 con E/K focales; validadores y clasificadores puros con alcance acotado. **LIMITADO** fuera del subcontrato acreditado, no PDF→PDF científico |
+| **Proveedor / efecto externo / cuotas / prompt**: `semantic_classification`, `adapters`, `rate_limiter`, `resilient_provider`, `pricing_engine`, `prompt_builder`, `perimeter_validator` | **7 / 38** | Clasificación de estado/efecto y clientes mock; no HTTP real, gasto real ni certificación W06 por transitividad. **LIMITADO** |
+| **Contexto / runtime / cancelación**: `backpressure_mechanism`, `cancellation_mechanism`, `context_resolver`, `coordinated_shutdown`, `dynamic_context_resolver_live_update`, `operational_visibility` | **6 / 34** | Primitives/ports y observación in-memory; no prueba de daemon root ni fencing entre hosts. **LIMITADO** |
+| **Healing / ensamblado / validación**: `assembler`, `asset_placeholder`, `healing_e2e_telemetry`, `healing_idempotency`, `healing_multi_failure_transaction`, `structural_healing`, `validation_pipeline` | **7 / 31** | `HealingPipeline` y rollback locales; `DocumentAssembler` con `MagicMock`. El nombre E2E en healing no prueba G5/Tectonic/PDF final. **LIMITADO** |
+| **Entrypoint / alternativa / e2e opt-in**: `b0324_foreground_app_root`, `docling_provider`, `real_paper` | **3 / 8** | APP_ROOT con etapas simuladas; Docling mock, no PyMuPDF por defecto; `real_paper` **1 e2e marcado** solo si se proporciona PDF local. **LIMITADO**, sin PASS atribuido |
+| **Total verificado contra JSON** | **36 / 165** | **164 seleccionables por `not e2e`; 1 e2e excluido** |
+
+**Parametrizaciones:** **28 nodeids** de este grupo llevan `parameter_id`; **20 variantes materialmente diferentes**: **11** de `test_semantic_classification.py::test_classification_matrix` (estado/evento: `CONFIRMED`, `NOT_STARTED`, `UNCERTAIN`), **5** de `test_pymupdf_integrity.py` (3 tipos de bloque + 2 glyphs Unicode) y **4** de `test_b0324_foreground_app_root.py` (`run/configured`). Las otras **8 expansiones `[asyncio]`** son 4 de `test_adapters.py`, 3 de `test_rate_limiter.py` y 1 de `test_resilient_provider.py`: identifican backend de ejecución, **no ocho contratos nuevos**. Los restantes **137 nodeids** no tienen `parameter_id`. Ninguna parametrización se elimina ni hereda un falsador de otro test.
+
+**A-01:** este grupo A-04 §10.1 queda **clasificado por SUT, oráculo y pertenencia** sin 165 fichas redundantes. Sigue siendo incorrecto afirmar que 165 oráculos tienen independencia o sensibilidad universal; el resto del denominador está en A-04 §§8–13 (TR, contratos activos, legacy, laboratorio, ciencia/GT). **A-01 global [ ]** hasta revisar la suficiencia final del alcance relevante ya agrupado.
+
+**Decisión A-03 / B3-08:** `test_g3_b3_structured_result_contract.py::test_invalid_member_responses_fail_closed` (variante `DUPLICATE_MEMBER`) cambia el segundo `node_id` sin alterar cantidad y exige `pytest.raises(ValueError, match="DUPLICATE_MEMBER")`. En el SUT, `parse_chunk_response` prueba `if key in seen` **antes** de verificar `source_sha256`. Si se retirara solo el guard, la segunda entrada aún tendría el hash de la fuente original y podría fallar después por `SOURCE_HASH_MISMATCH`: el test requeriría el motivo `DUPLICATE_MEMBER` y quedaría rojo. **Esto es inferencia estática, NO una mutación K.**
+
+**Resolución explícita:** **ACEPTAR EXCEPCIÓN DE SENSIBILIDAD DOCUMENTADA** para esta etapa: B3-08 mantiene su test y E positiva; `MF-B3-03` permanece **K=NOT_RUN** y el subcontrato es **LIMITADO**, no `CONFIABLE_PARA_SU_ALCANCE`. No hay falso PASS ni bug productivo demostrado. **No ejecutar un mutante ahora**: un K aislado no cerraría A-03 global y P4/P6 siguen abiertos. Si una decisión futura exige certificar exclusivamente este guard P0, permitir **solo una falsación focal** del test existente, tras gate A-05, sin repetir 33 escenarios ni crear infraestructura. W08/manifest y CAS/receipts mantienen sus limitaciones NR propias.
+
+**Gate:** subentregable 36/165 y decisión B3-08 **COMPLETADOS DOCUMENTALMENTE**, A-01/A-03 globales **[ ]**, A-05-P4/P6 abiertos. Sin nuevos pytest, CI, mutaciones, PR, Docker, SUT, corpus ni GT. El PR #62 sigue cerrado sin merge.
+
+
 
 ---
 
@@ -807,6 +831,8 @@ Una nueva línea de avance en este plan **no** sustituye las evidencias identifi
 | 2026-11-17 | **A-01/A-03: no cierre global; dos criterios de salida finitos** | A01-S5-P4/P5/P6/P7; A03-O2/O4 | [§6 dictamen A01/A03](#a-01a-03--dictamen-de-cierre-según-5-y-objetivos-o1o4-2026-11-17), A-04 §§11–13, G3-B3 B3-06/B3-08, CI PR #62 | 1.476 nodeids históricos mapeados por archivo/familia y 1.478 seleccionados en CI no prueban **oráculo independiente por caso pertinente**. 35 TR 7 confiables focales/28 limitadas. B3-08 tiene test de `DUPLICATE_MEMBER` pero MF-B3-03 K no localizada: **NOT_RUN de sensibilidad, no bug**. Siguiente único gate: tabla por ocho fronteras P0/P1 con E/K/NOT_RUN y exclusiones justificadas; sin fixtures, mutantes, PR, tests o scripts nuevos. |
 
 | 2026-11-17 | **A01-S5/A03 — cruce final de ocho fronteras E/K/NR, sin nuevos tests** | A01-S5 P4/P5/P6/P7; A03 O2/O4 | [§6 cruce 8/8](#a01-s5a03--suficiencia-de-las-ocho-fronteras-prioritarias-e-k-not_run-y-exclusiones-2026-11-17), [A-02 §9](A02_A03_B06_MATRIZ_G3_G5_RUTA_ACTIVA.md), 35 TR A-04 §13 y CI PR #62 | Ocho fronteras con SUT/testigo/oráculo y E propia; K **solo de violaciones específicas** ya acreditadas (sin duplicar 15 K históricos). **NR** del guard `DUPLICATE_MEMBER` B3-08/MF-B3-03 y sensibilidad amplia de W08/manifest/epoch/receipt; E2E científico/OS declarados X. A01/A03 siguen abiertos en alcance global por clasificación SUT de casos mixtos y eficacia de subcontratos, sin defectos P0 nuevos demostrados. Ninguna prueba, mutación, PR ni CI nuevo. |
+
+| 2026-11-17 | **A01-S5 36/165 clasificados; excepción A03 B3-08 aceptada en alcance limitado** | A01-S5/A03-O2/O4 | [§6 36/165 y B3-08](#a01-s5a03--clasificación-contractual-de-165-nodeids-compartidos-y-excepción-b3-08-2026-11-17), A-04 §10.1/11, 36 fuentes GitHub y `result_contract.py` | Partición **13/54 + 7/38 + 6/34 + 7/31 + 3/8 = 36/165**; **20 parámetros materiales** y **8 backend asyncio**. Guard `DUPLICATE_MEMBER` y test existentes; **MF-B3-03 K=NOT_RUN**, excepción **LIMITADO** sin nuevo mutante. No se certifica sensibilidad universal. A01/A03 [ ]; sin PR/test/CI/SUT/GT nuevos. |
 
 
 ## 11. Actividades expresamente diferidas hasta después del refinamiento del pipeline
