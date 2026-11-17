@@ -1,3 +1,10 @@
+"""Legacy FinOps consumer shape contract, NOT a PDF-to-PDF end-to-end test.
+
+TranslationPipeline.execute is mocked and JobStatus.COMPLETED is set by the test.
+No source PDF is parsed, no live provider is called, and no PDF is compiled.
+Historical filename retained to avoid moving CI paths; class/method declare scope.
+"""
+
 import unittest
 import uuid
 from typing import List, Any
@@ -22,7 +29,7 @@ class _DeterministicTokenEstimator:
 
 
 class FinOpsControlledChunker:
-    """Chunker de control presupuestario para pruebas E2E."""
+    """Datos deterministas para el contrato legacy con ejecución simulada."""
     def chunk(self, nodes: List[ASTNode]) -> List[TranslationUnit]:
         return [
             TranslationUnit(
@@ -54,7 +61,7 @@ class FakeLLMProvider:
         mock_res.finish_reason = "stop"
         return mock_res
 
-class TestRealE2EFinOps(unittest.IsolatedAsyncioTestCase):
+class TestMockedFinOpsConsumerContract(unittest.IsolatedAsyncioTestCase):
     """Consumer/FinOps shape contract with mocked execute; no PDF→PDF E2E."""
 
     def setUp(self):
