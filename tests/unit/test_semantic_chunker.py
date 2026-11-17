@@ -8,7 +8,7 @@ from core.validation.estimators import ExactBPEEstimator
 logger = logging.getLogger(__name__)
 
 class TestSemanticChunkerZeroLoss(unittest.TestCase):
-    """Suite de certificación SOTA para el motor de empaquetado semántico (Fase 13)."""
+    """Continuidad y orden del chunking; byte-exact se verifica en B-02."""
 
     def setUp(self):
         self.estimator = ExactBPEEstimator()
@@ -35,7 +35,7 @@ class TestSemanticChunkerZeroLoss(unittest.TestCase):
         )
 
     def test_zero_loss_reconstruction(self):
-        """10B.2.8: Verifica la conservación estricta de bytes y secuencias topológicas."""
+        """10B.2.8: Comprueba secuencias y texto normalizado, no bytes exactos."""
         mock_ast = [
             self._create_node("n1", 1, ContentNodeType.HEADING, "1. Ground Truth"),
             self._create_node("n2", 2, ContentNodeType.PARAGRAPH, "Alpha text paragraph content."),
@@ -53,6 +53,8 @@ class TestSemanticChunkerZeroLoss(unittest.TestCase):
             reconstructed_seqs.extend(range(u.source_sequence_range[0], u.source_sequence_range[1] + 1))
         self.assertEqual(reconstructed_seqs, list(range(1, 6)), "Fallo: Hueco topológico detectado.")
 
+        # Esta comparación omite espacios y líneas vacías; no es un oráculo byte-exact.
+        # B-02 cubre source_text literal, miembros, política y cambios de espacios.
         def normalize(s: str) -> str:
             return "\n".join(line.strip() for line in (s or "").splitlines() if line.strip())
         
