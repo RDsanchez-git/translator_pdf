@@ -599,3 +599,26 @@ git pull --ff-only origin tests_stabilization
 \`\`\`
 
 **Reportes requeridos:** \`summary.txt\`, \`pytest_focal.log\`, \`status_changes.txt\`, \`protected_before.tsv\`, \`protected_after.tsv\`, \`protected_changes.txt\`, \`git_before.txt\` y \`git_after.txt\`. Rechazar cambios persistentes en el clon, mantener clones/reportes incluso si hay FAIL y no repetir los 23 W08 acreditados ni los 11 A05 sin razón contractual. No inferir egress OS, seguridad de suite global, GT ni CI verde. **A05-P4/P6 globales y A-06 baseline técnica global siguen ABIERTOS**.
+
+## 26. A-06 — segunda cohorte G3 acreditada; orientar siguiente baseline a los pasos explícitos de CI (owner, 2026-11-16)
+
+**Fuente directa:** \`reports.rar\` (RAR5) con **ocho archivos verificados**, pertenecientes al commit **\`0b5fd88f95e7f5e97b63f9c2cbef8c3eb76c731b\`**. En \`summary.txt\`: \`a06_g3_guards_requested=True\`, \`a06_w08_requested=False\`, \`protected_inventory_requested=True\`, \`protected_inventory_unchanged=True\`, \`pytest_exit_code=0\`, \`sensitivity_requested=False\`, \`docker_used=false\`, \`no_OS_level_sandbox_claim=true\`. En \`pytest_focal.log\`: **\`20 passed, 2 warnings in 3.39s\`**, 0 FAIL y 0 SKIP. Las advertencias proceden de \`google.api_core\` (futuro soporte Python 3.11) y \`google.generativeai\` (SDK deprecated), no de aserciones fallidas.
+
+| Testigos seleccionados | Nodeids verificados por resultado y fuente | Límite |
+|---|---|---|
+| \`test_g3_b4_9_reconciler_fencing.py\` | 14 (11 funciones, cuatro variantes en \`test_fenced_recovery_rejects_stale_authority\` frente a una función nominal) | Fencing G3, recovery, exclusión legacy y heartbeat en SQLite en memoria; no multihost |
+| \`test_g3_b4_8_preserve_engine.py\` | 3 parametrizaciones (PRESERVE-only, traducido staged, mixed) | \`run_pipeline\` real con bases \`tmp_path\` y proveedor fake; no OCR/LLM/compilación física |
+| \`test_g3_b4_7b_sqlite_quota_thread_owner.py\` | 3 casos (rate-limit store y sync bridge con hilos reales, SQLite temporal) | Sin API externa ni DB de producción |
+| **Total** | **20 PASS focales** | No igualar con 20 pruebas E2E ni con un PASS de la suite de integración |
+
+Los reportes \`git_before.txt\`, \`git_after.txt\`, \`status_changes.txt\` y \`protected_changes.txt\` tienen **0 bytes**. \`protected_before.tsv\` y \`protected_after.tsv\` tienen **3.309 bytes**, **SHA-256 idéntico**, **30 archivos**. **Sin diferencias persistentes** del clon ni de inputs protegidos durante esta cohorte; no es prueba de aislamiento OS ni de ausencia de I/O transitorio o egress. No se ejecutaron mutaciones y el SHA pertenece **solo a esta corrida**, no a los otros focales.
+
+**Progreso dinámico no duplicado de A-06:** 23 PASS de §25 (W08/identidad/cache) + 20 PASS de esta cohorte = **43 PASS** en dos corridas y SHA distintos; no son 43 PASS obtenidos en un único job de CI. Además, A-05 conserva 8 PASS/3 SKIP separados. La colección 1.478 nodos fue validada sin ejecutar cuerpos en §24.
+
+### 26.1 Decisión sobre la siguiente ejecución
+
+Lectura de \`.github/workflows/ci.yml\`: los tres archivos recién probados aparecen en **dos steps explícitos** de \`integration-tests\` (W06/G3 offline y cuotas G3/G5). Por lo tanto estos 20 PASS aportan evidencia concreta a rutas **seleccionadas por CI**, aunque **no** son un resultado real de GitHub Actions, que no se dispara con push directo a \`tests_stabilization\`.
+
+**Evitar una sucesión indefinida de minibaterías:** el siguiente paso de A-06 debe ser conciliar la evidencia focal ya obtenida contra **todos los selectores y steps explícitos del CI**, deduplicar los nodeids ya probados y revisar riesgos/I/O de los huecos. Solo entonces autorizar una baseline controlada de los **testigos restantes elegibles**, no lanzar automáticamente \`-m "not e2e"\` sobre el checkout ni reejecutar 43 PASS sin justificación. El orden sigue siendo A-05 seguridad de la ejecución → A-06 baseline controlada → A-07 brechas P0/P1/P2. P4/P6 globales, ausencia de egress OS, efectos transitorios/externos y CI real quedan abiertos.
+
+**Sin nuevo modo de runner, tests, mutaciones ni cambios de producción/CI/GT en este registro.**
