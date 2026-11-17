@@ -263,8 +263,13 @@ def test_bridge_rejects_unbound_provider_output(mutation):
     unit = next(u for u in plan.units if u.chunk_type == TranslationTaskType.TRANSLATE)
     content = "traduccion libre" if mutation == "plain_text" else _response(plan, unit, bad_hash=mutation == "bad_response")
     bridge = _bridge(_FakeProvider(content, drift=mutation == "wrong_chunk"), _FakeBuilder(), plan)
+    expected_error = {
+        "plain_text": "G3_B3_INVALID_RESPONSE_JSON",
+        "wrong_chunk": "G3_B4_3A_PROVIDER_CHUNK_DRIFT",
+        "bad_response": "G3_B3_RESPONSE_BINDING_MISMATCH",
+    }[mutation]
     try:
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match=expected_error):
             bridge.execute_chunk(plan, unit)
     finally:
         bridge.shutdown()
