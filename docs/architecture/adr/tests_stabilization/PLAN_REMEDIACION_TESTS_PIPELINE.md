@@ -295,6 +295,30 @@ La evidencia histórica de **C-03** (2 W06 incluidos en ese step) y **C-04** (2 
 
 **Orden posterior, condicionado a resultados:** auditar/precisar el oráculo TR-007 antes de considerar la ejecución de los 25 staging como garantía de binding; después evaluar una selección conjunta del residual G3 de **49** y, separadamente, el bloque B03 de **33** que aún no fue objeto de esta revisión dirigida. Estas son **prioridades propuestas**, no nuevas remediaciones autorizadas ni cierre A-06/A-07. No se cambió CI, tests, runtime o GT y **A-05/A-06/A-07 permanecen [ ]**.
 
+#### A06-W08CI — runner de dos steps preparado, **sin ejecución** (2026-11-16)
+
+**Cambio acotado:** `run_b05_focal_isolated.ps1` en commit `1e6e3631838eb2272f6e022e3026af54c855ebf1` añadió el selector opt-in `-CheckA06W08CI` sin alterar los modos previos, tests, SUT, `ci.yml` ni GT. Se inspeccionó el diff Git del runner: una sola ruta modificada respecto de `98cf5152`. **No hay Pytest, prueba de PowerShell 5.1, Pyright, CI ni PASS nuevos** en esta implementación; inspección solo estática. El entorno actual de revisión carece de `pwsh`, por lo que la ejecución real queda para una validación en el entorno Windows controlado, con logs.
+
+| Selección exacta | Comando de CI reproducido por el runner | Aserción dinámica exigida | Informe |
+|---|---|---|---|
+| **W08-2b** | `test_w08_durable_context_boundary.py` | `pytest exit 0` + resumen **13 passed** sin skips/fallos/deseleccionados; warning count permitido y consignado | `pytest_w08_2b.log` |
+| **W08-2c**, solo si 2b acreditó 13/13 | `test_w08_ocr_g3_context_wiring.py` + `test_g3_b4_2_ocr_router_durable_plan.py` | `pytest exit 0` + resumen **16 passed** sin skips/fallos/deseleccionados; warning count permitido y consignado | `pytest_w08_2c.log` |
+
+Ambos se ejecutarán con **dos procesos Python/pytest** en el **mismo clon Git de SHA fijo**, sin mutantes y con `--basetemp` distintos. El runner escribe `nodeids.txt`, `pytest_focal.log` como índice de ambos informes, `summary.txt` con exit y veredicto separado de cada step, `git_before.txt`, `git_after.txt`, `status_changes.txt` y, por ser obligatorio `-CaptureProtectedPaths`, inventarios `protected_before.tsv`, `protected_after.tsv` y `protected_changes.txt`. El segundo step queda **NOT_RUN** si el primero no obtiene exactamente 13 PASS; ningún resultado implícito por ausencia del log. El runner bloquea combinaciones con otras selecciones y exige los 29 PASS exactos para salir con código 0. Si el step 1 o 2 falla sale 2; si el recuento es incorrecto sale 6; mismatch protegido sale 5; cambios Git persistentes salen 4. **Estas son ramas del código revisadas, no resultados de ejecución.**
+
+**Invocación prevista, en PowerShell 5.1 con venv de pruebas ya preparada, desde la raíz de `tests_stabilization`:**
+
+```powershell
+git pull --ff-only origin tests_stabilization
+& .\docs\architecture\adr\tests_stabilization\run_b05_focal_isolated.ps1 -RepoRoot (Get-Location).Path -CheckA06W08CI -CaptureProtectedPaths
+```
+
+**Reglas de lectura:** comprobar `summary.txt` y los dos `pytest_w08_*.log` contra SHA actual; verificar que `git_before/after/status_changes` y `protected_changes` están vacíos, 30/30 hashes preservados si el conjunto sigue siendo 30; registrar warning, skips y duración por step sin sumar ejecuciones de SHAs anteriores. No incorporar los 23 W08 unitarios repetidos. Un PASS de esta focal no acredita `-m "not e2e"` ni GitHub Actions del HEAD.
+
+**Precondiciones y riesgo residual:** se mantiene clone sin hardlinks ni remoto, `HOME/USERPROFILE/TMP/TEMP/TIKTOKEN_CACHE_DIR/HYPOTHESIS_STORAGE_DIRECTORY` en scratch, `TRANSLATOR_PDF_RUN_LIVE_PROVIDER_TESTS=0`, `PIP_NO_INDEX=1` y eliminación temporal de claves de entorno sensibles detectadas por patrón. La inspección de fuentes W08 encontró `tmp_path`, fakes y la mutación import-time del logger raíz de `OCRRouterDaemon`; la separación de procesos reduce contaminación cruzada entre steps. **No existe bloqueo de red a nivel OS, inventario de archivos creados-y-eliminados, cobertura de todas las variables de credenciales, ni prueba de hermeticidad total del plugin stack; A05-P4/P6 siguen abiertos.** Antes de invocar, el operador debe verificar el entorno aislado bajo su control y no usar el checkout original para cuerpos. La presencia de un runner no autoriza a eludir esos límites.
+
+**Estado de decisión:** selector **PREPARADO POR FUENTE**, **no VALIDADO DINÁMICAMENTE**; A-06/A-07 no se cierran. Siguiente evidencia necesaria: ejecución controlada en clon con artefactos completos. No se autoriza automáticamente un PR, un cambio de CI ni la suite global.
+
 
 ---
 
@@ -553,6 +577,8 @@ Una nueva línea de avance en este plan **no** sustituye las evidencias identifi
 | 2026-11-16 | **A-06↔CI y A-07 preliminar: reconciliación documental sin pytest** | A-06/A-07 | [Matriz §6: A-06 → A-07](#a-06--a-07--conciliación-de-ci-y-matriz-preliminar-de-brechas), `ci.yml`, A05 §§24–26 y A-02 §9; HEAD `f7d5653b` | 12 archivos explícitos = 138 nodeids: 20 PASS A06 + 7 PASS históricos identificables (4 W06/G3 y 3 G5) + 111 sin baseline focal individual en la evidencia consultada; W08 A06 23 PASS por `unit`. 225 unit, 72 integration, 1.458 not-e2e y 435 reejecuciones potenciales. **Cero CI real nuevo, ningún nuevo PASS ni P0 productivo.** A05-P4/P6, A06 y A07 abiertos, matriz P1/P2 pendiente de aceptación del owner. |
 
 | 2026-11-16 | **A-06: revisión dirigida de 78 G3/W08 sin nueva corrida y gate W08 propuesto** | A-05/A-06/A-07 | [§6 revisión de 78](#revisión-dirigida-de-los-78-casos-g3w08-restantes-en-rutas-ci-explícitas-sin-ejecución), seis archivos CI de G3/W08 + imports indirectos; base `d2cfcb65` | 82 nodeids en seis archivos, cuatro PASS históricos identificados (2 W06 y 2 publicación), **78 sin baseline focal localizada = 49 G3 + 29 W08**; SQLite/AST/PDF temporales inspeccionados, sin borrado fijo directo observado; OCR Router cambia logger raíz **en import** y P4/P6 continúan abiertos. Próximo candidato, **no ejecutado/autorizado**: 29 W08 divididos en los dos procesos del CI (13 y 16) en clon controlado, sin Docker ni repetir los 23 unit W08. Cero PASS nuevos o CI, A-06/A-07 [ ]. |
+
+| 2026-11-16 | **A06-W08CI — selector focal de dos procesos preparado, sin pytest** | A05-P4/P6/A06 | [Plan §6 — A06-W08CI](#a06-w08ci--runner-de-dos-steps-preparado-sin-ejecución-2026-11-16), `run_b05_focal_isolated.ps1` commit `1e6e3631` | Nuevo `-CheckA06W08CI -CaptureProtectedPaths` para los **dos steps explícitos del CI**, 13+16 nodeids, dos procesos y basetemp separados, fail-closed por exit/recuento/hash/Git; informes por step. **No se ejecutaron PowerShell/pytest/Pyright/CI; W08 29 PASS pendientes, no acreditados.** No requiere Docker, pero no declara aislamiento OS ni red; A05-P4/P6 siguen abiertos. |
 
 
 ## 11. Actividades expresamente diferidas hasta después del refinamiento del pipeline
