@@ -1,7 +1,7 @@
 # Plan de estabilización y remediación de los tests del pipeline PDF→PDF
 
 > **Código del programa:** TST-STAB  
-> **Versión:** 0.1.5 — revisión de fronteras críticas A-01/A-03 y oráculo semántico legacy diferido, sin tests nuevos  
+> **Versión:** 0.1.6 — dictamen de cierre A-01/A-03 por criterios del plan; brechas puntuales sin campañas nuevas  
 > **Estado:** EN EJECUCIÓN — **A-00, A-02, A-04 y A-07 cerrados en su alcance documental**; **A-01/A-03 pendientes semánticos**, A-05-P4/P6 abiertos; A-06 **subgate de CI técnico acreditado**, sin cierre global por hermeticidad; B-01/B-02 con remediaciones y falsadores focales, B/C generales abiertos. CV científico bloqueado por PDFs canónicos ausentes (D-5 diferido). No confundir cierre de ficha/matriz con producto listo, PDF→PDF E2E o hermeticidad OS. Runtime, workflow y Ground Truth sin cambios.  
 > **Fecha de apertura:** 2026-11-15  
 > **Repositorio:** `RDsanchez-git/translator_pdf`  
@@ -487,6 +487,22 @@ Revisar `summary.txt` (SHA, `a06_b03_ci_step_requested=True`, `b03_ci_exact_33_p
 **Siguientes límites reales:** A-01/S5 y A-03 **[ ]** hasta determinar, entre las restantes familias de ruta activa ya clasificadas en A-04, si hay **alguna garantía P0/P1 material todavía falsamente declarada** que no cubran los testigos existentes. **No reabrir** B-01/B-02, TR-007, W08/G3 o el CI solo para generar otra corrida. Abrir un cambio B/C únicamente tras observar una garantía falsable concreta, y entonces validarla con su test ya existente si es posible. A05-P4/P6 sigue abierto para hermeticidad SO; PR #62 cerrado, `main` intacto y D-4/D-5 diferidos. No pedir Docker/Hyper-V.
 
 
+#### A-01/A-03 — dictamen de cierre según §5 y objetivos O1–O4 (2026-11-17)
+
+**Pregunta de gate:** ¿podemos marcar `[x]` A-01 o A-03 con el inventario, la clasificación y los PASS/K ya reunidos, sin simular cobertura ni multiplicar tests? **Respuesta: NO TODAVÍA para el alcance global de ninguna de las dos.** Es un dictamen de suficiencia de evidencia, **no un descubrimiento de fallo productivo ni una instrucción de repetir CI**.
+
+| Gate exacto del plan | Hecho comprobado | Diferencia concreta hasta cierre |
+|---|---|---|
+| **A-01 / S5-P4 y P6: ámbito de casos relevantes** | S6 concilió las **1.341 declaraciones +133 expansiones** históricas; A-04 aceptado cruzó **1.476 nodeids → 173 archivos → familias** sin huérfanos; el CI #292 recolectó **1.478** y pasó con **1.454 PASS, 4 SKIP y 20 e2e excluidos**. La comparación `cda1bd80..01a8bd39` contiene solo documentación y comentarios, sin nuevos tests | La asignación **por archivo/familia no equivale a identificar el SUT/oráculo de cada caso relevante**, sobre todo en archivos mixtos y entre los **1.159 nodeids históricos sin marker de nivel**. Aplicar las fichas agrupadas ya aprobadas y excluir justificadamente ciencia/GT, legacy y tooling, **sin** crear 1.478 fichas. S5-P4/P6 siguen `[ ]` |
+| **A-01 / S5-P5 y P7: calidad semántica** | Las 35 fichas TR (7 confiables solo en su subcontrato/28 limitadas) y los diez archivos críticos sin TR tienen SUT/dobles/oráculos/limitaciones explícitos; A-02 8/8 y A-07 documental están cerrados | Falta **una tabla de suficiencia por contrato prioritario**, que indique prueba causal de cada garantía P0/P1 y **E/K concreto o NOT_RUN**, sin heredar sensibilidad de otra prueba. S5-P5/P7 y A-01 global `[ ]` |
+| **A-03 / O2 y O4: independencia y sensibilidad** | TS-001/TS-002 remediados con controles K; G3 UTF-8 K, TR-007 con motivo preciso y CI verde; W06, G5 y CLI tienen testigos negativos y falsadores históricos, **cada uno en su alcance**. No se demostró nuevo P0 de SUT en la última lectura | A03-G3 documenta que **B3-06** (añadir miembro) falla por `MEMBER_COVERAGE_MISMATCH` y **B3-08** (identidad duplicada con longitud estable) protege el guard `DUPLICATE_MEMBER`. Existe la prueba negativa y PASS técnico del archivo, pero **no se ha localizado mutación K específica** del guard B3-08 (MF-B3-03 figura como propuesta `NOT_RUN`). **Esto es una brecha de eficacia documentada, no prueba defectuosa ni bug del parser.** Identificar qué P0 requieren todavía sensibilidad explícita o excepción de alcance. A-03 `[ ]` |
+| **Fuera de A-03 técnico** | El comparador semántico legacy usa embedding constante y quedó **SKIPPED** en CI; el caso G5 de proyección totalmente ausente rechaza con fakes, sin certificar todos los porcentajes de degradación parcial | Conservar como límites/ámbito de D-5 o de la política concreta; no elevar automáticamente a P0 de la ruta, no inventar GT ni mutantes |
+
+**Siguiente único entregable útil (reutilizar documentos existentes):** cruce conciso de **contratos P0/P1 de las ocho fronteras** con `SUT → testigo/parametrización material → oráculo positivo/negativo → E/K exacto o NOT_RUN → scope/exclusión justificada`. El mapa A-02 y las 35 TR son la base; **no es un test nuevo ni 1.478 fichas**. Así se podrán separar: (a) barreras suficientemente acreditadas que pueden cerrarse documentalmente, (b) límites honestos aceptables, (c) **una violación normativa concreta** sin falsador pertinente. Solo (c) autorizaría una intervención focal después de revisar el gate A-05; **no lanzar mutaciones por rutina ni sobre el checkout del owner**.
+
+**Decisión:** A-01 `[ ]`, A-03 `[ ]` hasta completar ese cruce; A-02/A-04/A-07 permanecen cerrados solo documentalmente, A-06 subgate CI acreditado y A-05 P4/P6 abierto. PR #62 cerrado sin merge; no se abre otro. Este registro no ejecuta pytest, Pyright ni Actions; una nueva SHA documental **no hereda** el PASS del merge SHA `90d5d827`.
+
+
 
 ---
 
@@ -765,6 +781,8 @@ Una nueva línea de avance en este plan **no** sustituye las evidencias identifi
 | 2026-11-17 | **A-01/A-03: cierre de sobreafirmación A03-CH-01 y revisión de 10 fuentes activas sin TR** | A-01-S5/A-03 | [§6 A-01/A-03 revisión focal](#a-01a-03--revisión-focal-de-oráculos-existentes-y-testigos-sin-tr-2026-11-17), comentario/docstrings de `test_semantic_chunker.py` commit `8c277d78`; matriz A-04 §12.2 | `test_zero_loss_reconstruction` **normaliza** whitespace: docstring y comentarios corregidos, ninguna aserción ni nodeid cambiado. B-02 ya protege source_text literal y rechazo de mutación de espacios (no atribuir a test legado). Lectura directa de 10 archivos activos sin TR agrupados por contrato en 8 filas, sin nuevas TR ni test; parser, G3-B3, policy, G2/FSM, raster, math y chunker quedan con sus límites. A01-S5/A03 abiertos; sin pytest/CI/mutaciones nuevos, A05-P4/P6 abierto, PR #62 cerrado sin merge. |
 
 | 2026-11-17 | **A01/A03 — segundo corte P0/P1 de ruta activa y límite semántico legacy** | A01-S5/A03 | [§6 revisión A01/A03](#a-01a-03--revisión-focal-de-oráculos-existentes-y-testigos-sin-tr-2026-11-17), tests TR-009/010/011/012/013/014/015/017/018/022/023 y apoyo B02/G5, `test_translation_semantics.py` | No se detectó nuevo P0 de falsa garantía en root activo; oráculos reales y fakes limitados, K previas no universales. Legacy semántico: vector embedding constante, coseno no discriminante, **SKIP actual** por golden ausente, diferido D-5. A01/A03 siguen abiertos por clasificación/independencia más amplia. Sin pytest, CI, tests nuevos, SUT, GT, Docker ni PR. |
+
+| 2026-11-17 | **A-01/A-03: no cierre global; dos criterios de salida finitos** | A01-S5-P4/P5/P6/P7; A03-O2/O4 | [§6 dictamen A01/A03](#a-01a-03--dictamen-de-cierre-según-5-y-objetivos-o1o4-2026-11-17), A-04 §§11–13, G3-B3 B3-06/B3-08, CI PR #62 | 1.476 nodeids históricos mapeados por archivo/familia y 1.478 seleccionados en CI no prueban **oráculo independiente por caso pertinente**. 35 TR 7 confiables focales/28 limitadas. B3-08 tiene test de `DUPLICATE_MEMBER` pero MF-B3-03 K no localizada: **NOT_RUN de sensibilidad, no bug**. Siguiente único gate: tabla por ocho fronteras P0/P1 con E/K/NOT_RUN y exclusiones justificadas; sin fixtures, mutantes, PR, tests o scripts nuevos. |
 
 
 ## 11. Actividades expresamente diferidas hasta después del refinamiento del pipeline
