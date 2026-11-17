@@ -366,6 +366,23 @@ Para conciliar el resultado, revisar `summary.txt`, `pytest_focal.log`, `git_bef
 
 **Decisión de avance:** **G3CI 70/70 acreditado**; W08CI 29/29 acreditado; **TR-007 P1 focal resuelto**. Próximo trabajo de A-05/A-06 es **solo** eliminar o contener el listener wildcard B03 y después validar los **33 casos B03 en el step existente**, sin más minibaterías ni repeticiones de G3/W08. A05-P4/P6 globales, A06, A07 y CI real del HEAD siguen **[ ]**.
 
+#### A06-B03 — binding wildcard contenido en el test y step CI preparado (2026-11-16)
+
+**Problema delimitado:** `test_private_docker_bind_requires_explicit_opt_in` en `tests/unit/test_b031_g3_reusable_fake.py` comprobaba el opt-in de host `0.0.0.0` **abriendo realmente** un listener TCP en todas las interfaces. Eso no era egress hacia servicios externos ni una ejecución Docker, pero exponía una escucha temporal no necesaria para el contrato del test. No atribuir un incidente de red sucedido ni un defecto de producción.
+
+**Remediación mínima, solo test, commit `76f56d3510b438a5347aaef41f54b8472df95bbb`:** mantiene `monkeypatch.setenv("TPDF_FAKE_PRIVATE_DOCKER", "EXPLICIT_INTERNAL_NETWORK_ONLY")` y construye `FakeServer(("0.0.0.0", 0), db)`: por tanto **el código real sigue evaluando la política de opt-in para wildcard**. Antes del bind físico, `monkeypatch` sustituye temporalmente **solo** `FakeServer.server_bind` para cambiar `server.server_address` a `("127.0.0.1", 0)` y delegar en el método original; el test verifica dirección loopback y puerto asignado. `monkeypatch` se restaura automáticamente. No se modificó `apps/lab/g3_fake.py`, ni API, políticas de runtime, `ci.yml` o tests ajenos. La garantía del test queda expresamente acotada a **aceptación del opt-in y construcción/bind local**; **NO** acredita alcanzabilidad privada desde Docker, aislamiento de red OS, ni rechazos en todos los escenarios. Los otros casos B031 ejecutan HTTP real **solo contra loopback** bajo contexto de cierre del servidor y su hilo.
+
+**Nuevo modo del runner ya existente, commit `29cf12cc37ec65ec215844255e475fbe5c2b4bb4`:** `-CheckA06B03CI` exige `-CaptureProtectedPaths` y selecciona exactamente el step explícito B03 de `ci.yml`: 17 nodeids de `tests/unit/test_b031_g3_reusable_fake.py` y 16 de `tests/unit/test_b032_offline_pdf_lab.py` = **33**. El segundo módulo **inspecciona argumentos y simula el preflight Docker con `monkeypatch`**, sin invocar el contenedor ni necesitar Docker/Hyper-V. Selección mutuamente excluyente con otros modos; no ejecuta mutantes. Exige `pytest exit 0` más resumen exacto **33 passed**, sin FAIL/SKIP, y salida Git limpia incluidas rutas ignoradas; revisa además el inventario SHA-256 de los archivos protegidos antes/después. El HTTP loopback usa el host del clon, no un simulador de socket ni sandbox OS.
+
+**Siguiente y única validación propuesta — A06-B03CI**, en PowerShell 5.1, venv de pruebas activa, rama `tests_stabilization`, usando el runner que crea **su propio clon sin hardlinks, remoto ni estado de producción**:
+
+```powershell
+git pull --ff-only origin tests_stabilization
+& .\docs\architecture\adr\tests_stabilization\run_b05_focal_isolated.ps1 -RepoRoot (Get-Location).Path -CheckA06B03CI -CaptureProtectedPaths
+```
+
+Revisar `summary.txt` (SHA, `a06_b03_ci_step_requested=True`, `b03_ci_exact_33_pass=True`, `pytest_exit_code=0`), `pytest_focal.log`, `nodeids.txt`, `git_before.txt`, `git_after.txt`, `status_changes.txt`, `protected_before/after.tsv` y `protected_changes.txt`. **No se han ejecutado estos 33 cuerpos, ni PowerShell/CI/Pyright sobre el nuevo SHA al redactar esta sección.** No declarar la suite técnica/global, E2E PDF→PDF ni seguridad OS/egress acreditados. A05-P4/P6, A06 y A07 siguen abiertos. **Sin nuevos scripts ni infraestructura**, sin tocar producción, workflow o Ground Truth.
+
 
 ---
 
@@ -630,6 +647,8 @@ Una nueva línea de avance en este plan **no** sustituye las evidencias identifi
 | 2026-11-16 | **A06-W08CI 29 PASS directos; TR-007 endurecido y step G3-70 preparado** | A06/A07-P1-03 | [§6 A06-W08CI](#a06-w08ci--reporte-verificado-y-paso-w06g3-listo-2026-11-16), owner `reports.rar` (9 miembros), SHA `0154b91f`; test `3c49d58f`; runner `90fa6fe7` | **13+16 PASS**, exit 0/0, 30 hashes iguales, Git antes/después/delta vacío, sin Docker; acumulado **72 PASS focales/3 SHA, no CI**. Tres variantes TR-007 conservan sus nodeids y ahora exigen códigos concretos; **no ejecutadas en nuevo SHA aún**. Próximo: un solo step G3 de 70 casos en clon usando runner existente, sin mutaciones nuevas ni cambios SUT/CI/GT. A05-P4/P6 y A06/A07 siguen [ ]. |
 
 | 2026-11-16 | **A06-G3CI 70/70 PASS, TR-007 verde; B03 wildcard bind pendiente** | A06/A07-P1-03/A05-P4 | [§6 A06-G3CI](#a06-g3ci--los-70-casos-de-ci-acreditados-siguiente-brecha-b03-revisada-2026-11-16), owner `reports.rar` (11 archivos), SHA `5d092c01fa29185e0ad3f33866448b82f9fccf38` | `70 passed, 2 warnings in 5.62s`; exit 0; 30/30 protegidos SHA-256 iguales, Git antes/después/status vacíos. TR-007 tres variantes pasan con match específico. Cuatro cohortes A06: **142 ejecuciones PASS, 17 duplicados, 125 nodeids distintos**; 105/138 explícitos acreditados por evidencias de diferentes SHA, 33 B03 restantes. Preflight B03 detecta listeners HTTP loopback y un `0.0.0.0:0` en un test opt-in. **No ejecutar B03 sin contener binding wildcard; no Docker/CI global/aislamiento OS acreditado.** |
+
+| 2026-11-16 | **A06-B03 — listener wildcard de test contenido; 33 casos CI preparados, no ejecutados** | A05-P4/A06-B03 | [§6 A06-B03](#a06-b03--binding-wildcard-contenido-en-el-test-y-step-ci-preparado-2026-11-16); commits `76f56d35` y `29cf12cc` | `FakeServer(("0.0.0.0",0))` mantiene opt-in, pero `server_bind` se redirige temporalmente a `127.0.0.1` con `monkeypatch` y se comprueba el bind local. Runner existente `-CheckA06B03CI -CaptureProtectedPaths` selecciona 17+16 = **33 nodeids del step B03 de CI**, exige 33 PASS exactos y hash/Git intactos. **Sin pytest nuevo, Docker, SUT, CI ni GT modificados; 33 PASS pendientes.** Egress OS y P4/P6 globales abiertos. |
 
 
 ## 11. Actividades expresamente diferidas hasta después del refinamiento del pipeline
