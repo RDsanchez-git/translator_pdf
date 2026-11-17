@@ -20,6 +20,7 @@ param(
     [switch] $CheckA05Safety,
     [switch] $PreflightA06,
     [switch] $CheckA06W08,
+    [switch] $CheckA06W08CI,
     [switch] $CheckA06G3Guards,
     [switch] $CaptureProtectedPaths
 )
@@ -48,14 +49,24 @@ function Write-ProtectedInventory {
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
-if ($PreflightA06 -and ($CaptureProtectedPaths -or $CheckA05Safety -or $CheckSensitivity -or $CheckB01B02 -or $CheckB01B02Sensitivity -or $CheckG3G5 -or $CheckG3G5Sensitivity -or $CheckB03Parser -or $CheckB04Contracts -or $CheckA03Boundaries -or $CheckA03Sensitivity -or $CheckForegroundSensitivity -or $CheckCLIAdmissionSensitivity -or $CheckG5Worker -or $CheckG5WorkerSensitivity -or $CheckC3T05Process -or $CheckA06G3Guards)) {
+if ($PreflightA06 -and ($CaptureProtectedPaths -or $CheckA05Safety -or $CheckSensitivity -or $CheckB01B02 -or $CheckB01B02Sensitivity -or $CheckG3G5 -or $CheckG3G5Sensitivity -or $CheckB03Parser -or $CheckB04Contracts -or $CheckA03Boundaries -or $CheckA03Sensitivity -or $CheckForegroundSensitivity -or $CheckCLIAdmissionSensitivity -or $CheckG5Worker -or $CheckG5WorkerSensitivity -or $CheckC3T05Process -or $CheckA06G3Guards -or $CheckA06W08CI)) {
     throw "STOP: A06 preflight is metadata-only and cannot be combined with test selections."
 }
-if ($CheckA06W08 -and ($CheckA06G3Guards -or $PreflightA06 -or $CheckA05Safety -or $CheckSensitivity -or $CheckB01B02 -or $CheckB01B02Sensitivity -or $CheckG3G5 -or $CheckG3G5Sensitivity -or $CheckB03Parser -or $CheckB04Contracts -or $CheckA03Boundaries -or $CheckA03Sensitivity -or $CheckForegroundSensitivity -or $CheckCLIAdmissionSensitivity -or $CheckG5Worker -or $CheckG5WorkerSensitivity -or $CheckC3T05Process)) {
+if ($CheckA06W08 -and ($CheckA06G3Guards -or $CheckA06W08CI -or $PreflightA06 -or $CheckA05Safety -or $CheckSensitivity -or $CheckB01B02 -or $CheckB01B02Sensitivity -or $CheckG3G5 -or $CheckG3G5Sensitivity -or $CheckB03Parser -or $CheckB04Contracts -or $CheckA03Boundaries -or $CheckA03Sensitivity -or $CheckForegroundSensitivity -or $CheckCLIAdmissionSensitivity -or $CheckG5Worker -or $CheckG5WorkerSensitivity -or $CheckC3T05Process)) {
     throw "STOP: A06 W08 baseline is a separate, non-mutation selection."
 }
-if ($CheckA06G3Guards -and ($PreflightA06 -or $CheckA06W08 -or $CheckA05Safety -or $CheckSensitivity -or $CheckB01B02 -or $CheckB01B02Sensitivity -or $CheckG3G5 -or $CheckG3G5Sensitivity -or $CheckB03Parser -or $CheckB04Contracts -or $CheckA03Boundaries -or $CheckA03Sensitivity -or $CheckForegroundSensitivity -or $CheckCLIAdmissionSensitivity -or $CheckG5Worker -or $CheckG5WorkerSensitivity -or $CheckC3T05Process)) {
+if ($CheckA06G3Guards -and ($PreflightA06 -or $CheckA06W08 -or $CheckA06W08CI -or $CheckA05Safety -or $CheckSensitivity -or $CheckB01B02 -or $CheckB01B02Sensitivity -or $CheckG3G5 -or $CheckG3G5Sensitivity -or $CheckB03Parser -or $CheckB04Contracts -or $CheckA03Boundaries -or $CheckA03Sensitivity -or $CheckForegroundSensitivity -or $CheckCLIAdmissionSensitivity -or $CheckG5Worker -or $CheckG5WorkerSensitivity -or $CheckC3T05Process)) {
     throw "STOP: A06 G3 guards are a separate, non-mutation selection."
+}
+
+# A06 W08 explicit CI steps: mutually exclusive, and protected hashes mandatory.
+if ($CheckA06W08CI) {
+    if (-not $CaptureProtectedPaths) {
+        throw "STOP: A06 W08 CI steps require -CaptureProtectedPaths."
+    }
+    if ($PreflightA06 -or $CheckA06W08 -or $CheckA06G3Guards -or $CheckA05Safety -or $CheckSensitivity -or $CheckB01B02 -or $CheckB01B02Sensitivity -or $CheckG3G5 -or $CheckG3G5Sensitivity -or $CheckB03Parser -or $CheckB04Contracts -or $CheckA03Boundaries -or $CheckA03Sensitivity -or $CheckForegroundSensitivity -or $CheckCLIAdmissionSensitivity -or $CheckG5Worker -or $CheckG5WorkerSensitivity -or $CheckC3T05Process) {
+        throw "STOP: A06 W08 CI steps must run without any other selection or mutations."
+    }
 }
 if ($CheckB01B02Sensitivity) {
     $CheckB01B02 = $true
@@ -291,6 +302,16 @@ if ($CheckA06G3Guards) {
         "tests/integration/test_g3_b4_7b_sqlite_quota_thread_owner.py"
     )
 }
+
+if ($CheckA06W08CI) {
+    # Exactly two CI steps, not a combined 29-nodeid pytest process.
+    $w08CI2b = @("tests/integration/test_w08_durable_context_boundary.py")
+    $w08CI2c = @(
+        "tests/integration/test_w08_ocr_g3_context_wiring.py",
+        "tests/integration/test_g3_b4_2_ocr_router_durable_plan.py"
+    )
+    $nodeids = $w08CI2b + $w08CI2c
+}
 $nodeids | Out-File -FilePath (Join-Path $reports "nodeids.txt") -Encoding utf8
 $desired = @{
     "HOME" = $isolatedUserHome; "USERPROFILE" = $isolatedUserHome; "TMP" = $temp; "TEMP" = $temp
@@ -310,6 +331,10 @@ foreach ($entry in @(Get-ChildItem Env:)) {
 $exitCode = 99
 $sensitivityExitCode = -1
 $protectedSnapshotMatches = $true
+$w08CI2bExitCode = -1
+$w08CI2cExitCode = -1
+$w08CI2bExactPass = $false
+$w08CI2cExactPass = $false
 try {
     foreach ($key in $original.Keys) {
         [Environment]::SetEnvironmentVariable($key, $null, "Process")
@@ -324,9 +349,33 @@ try {
         $savedAction = $ErrorActionPreference
         $ErrorActionPreference = "Continue"
         try {
-            & $python -B -m pytest -q -ra --no-header -o "addopts=" -p "no:cacheprovider" --basetemp $temp $nodeids *>&1 |
-                Out-File -FilePath (Join-Path $reports "pytest_focal.log") -Encoding utf8
-            $exitCode = $LASTEXITCODE
+            if ($CheckA06W08CI) {
+                # The two CI steps must use separate Python/pytest processes.
+                $log2b = Join-Path $reports "pytest_w08_2b.log"
+                & $python -B -m pytest -q -ra --no-header -o "addopts=" -p "no:cacheprovider" --basetemp (Join-Path $temp "w08_2b") $w08CI2b *>&1 |
+                    Out-File -FilePath $log2b -Encoding utf8
+                $w08CI2bExitCode = $LASTEXITCODE
+                $exitCode = $w08CI2bExitCode
+                $w08CI2bExactPass = ($w08CI2bExitCode -eq 0 -and ((Get-Content -LiteralPath $log2b -Raw) -match '(?m)^\s*13 passed(?:,\s*[0-9]+ warnings?)? in [0-9]'))
+                if ($w08CI2bExactPass) {
+                    $log2c = Join-Path $reports "pytest_w08_2c.log"
+                    & $python -B -m pytest -q -ra --no-header -o "addopts=" -p "no:cacheprovider" --basetemp (Join-Path $temp "w08_2c") $w08CI2c *>&1 |
+                        Out-File -FilePath $log2c -Encoding utf8
+                    $w08CI2cExitCode = $LASTEXITCODE
+                    $exitCode = $w08CI2cExitCode
+                    $w08CI2cExactPass = ($w08CI2cExitCode -eq 0 -and ((Get-Content -LiteralPath $log2c -Raw) -match '(?m)^\s*16 passed(?:,\s*[0-9]+ warnings?)? in [0-9]'))
+                }
+                @(
+                    "W08-2b: pytest_w08_2b.log (13 expected)",
+                    "W08-2c: pytest_w08_2c.log (16 expected; absent if 2b not accredited)",
+                    "w08_2b_exact_pass=$w08CI2bExactPass",
+                    "w08_2c_exact_pass=$w08CI2cExactPass"
+                ) | Out-File -FilePath (Join-Path $reports "pytest_focal.log") -Encoding utf8
+            } else {
+                & $python -B -m pytest -q -ra --no-header -o "addopts=" -p "no:cacheprovider" --basetemp $temp $nodeids *>&1 |
+                    Out-File -FilePath (Join-Path $reports "pytest_focal.log") -Encoding utf8
+                $exitCode = $LASTEXITCODE
+            }
             if ($exitCode -eq 0 -and $CheckG5WorkerSensitivity) {
                 Write-Host "G5 worker: two contract mutations after three green baseline tests."
                 [Environment]::SetEnvironmentVariable("TST_STAB_G5_WORKER_OPT_IN", "1", "Process")
@@ -463,6 +512,11 @@ try {
         "c3_t05_process_requested=$([bool]$CheckC3T05Process)"
         "a05_safety_requested=$([bool]$CheckA05Safety)"
         "a06_w08_requested=$([bool]$CheckA06W08)"
+        "a06_w08_ci_steps_requested=$([bool]$CheckA06W08CI)"
+        "w08_2b_pytest_exit_code=$w08CI2bExitCode"
+        "w08_2c_pytest_exit_code=$w08CI2cExitCode"
+        "w08_2b_exact_13_pass=$w08CI2bExactPass"
+        "w08_2c_exact_16_pass=$w08CI2cExactPass"
         "a06_g3_guards_requested=$([bool]$CheckA06G3Guards)"
         "protected_inventory_requested=$([bool]$CaptureProtectedPaths)"
         "protected_inventory_unchanged=$protectedSnapshotMatches"
@@ -496,13 +550,21 @@ if ($CheckSensitivity -or $CheckB01B02Sensitivity -or $CheckG3G5Sensitivity -or 
     }
     Write-Host "Sensitivity report: $(Join-Path $reports $mutationFile)"
 }
+if ($CheckA06W08CI) {
+    Write-Host "W08-2b: exit=$w08CI2bExitCode; exact 13 PASS=$w08CI2bExactPass"
+    Write-Host "W08-2c: exit=$w08CI2cExitCode; exact 16 PASS=$w08CI2cExactPass"
+}
 Write-Host "pytest log: $(Join-Path $reports 'pytest_focal.log')"
 Write-Host "Git diff inventory: $(Join-Path $reports 'status_changes.txt')"
 Write-Host "No files were cleaned up; retain this clone and reports."
 if ($exitCode -ne 0) { exit 2 }
+if ($CheckA06W08CI -and (-not $w08CI2bExactPass -or -not $w08CI2cExactPass)) {
+    Write-Host "STOP: W08 CI steps failed exact 13+16 PASS guard; inspect individual logs."
+    exit 6
+}
 if ($CaptureProtectedPaths -and -not $protectedSnapshotMatches) { exit 5 }
 # A-05 requires the isolated checkout to remain Git-clean after these tests.
-if (($CheckA05Safety -or $CheckA06W08 -or $CheckA06G3Guards) -and @(Get-Content -LiteralPath (Join-Path $reports "status_changes.txt")).Count -ne 0) {
+if (($CheckA05Safety -or $CheckA06W08 -or $CheckA06W08CI -or $CheckA06G3Guards) -and @(Get-Content -LiteralPath (Join-Path $reports "status_changes.txt")).Count -ne 0) {
     Write-Host "STOP: focal tests changed the isolated Git checkout. Inspect status_changes.txt."
     exit 4
 }
