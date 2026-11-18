@@ -1,4 +1,5 @@
 import logging
+from contextlib import closing
 from infra.db.connection import get_connection
 from infra.db.fsm_repository import FSMRepository
 from core.execution.handlers import DocumentCommandHandler
@@ -16,7 +17,7 @@ class OnDemandResumeManager:
 
     def rescue_stalled_document(self, document_id: str, ast_hash: str) -> bool:
         """Transiciona un documento de STALLED a su estado suspendido original via CAS."""
-        with get_connection(self.fsm_db_path, timeout=15) as conn:
+        with closing(get_connection(self.fsm_db_path, timeout=15)) as conn, conn:
             fsm_repo = FSMRepository(conn)
             cmd_handler = DocumentCommandHandler(fsm_repo)
             
