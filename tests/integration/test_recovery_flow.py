@@ -1,4 +1,5 @@
 import tempfile
+import sqlite3
 import sys
 import unittest
 import time
@@ -59,8 +60,19 @@ class TestRecoveryAndResumeEndToEnd(unittest.TestCase):
         finally:
             conn.close()
 
+        service_connections = []
+
+        def record_service_connection(db_path: str, timeout: int = 15):
+            conn = get_connection(db_path, timeout=timeout)
+            service_connections.append(conn)
+            return conn
+
         watchdog = AbandonedProcessWatchdog(fsm_db_path=self.test_db)
-        watchdog.execute_sweep(threshold_sec=3600)
+        with patch("runtime.recovery.get_connection", side_effect=record_service_connection):
+            watchdog.execute_sweep(threshold_sec=3600)
+        self.assertEqual(len(service_connections), 1)
+        with self.assertRaises(sqlite3.ProgrammingError):
+            service_connections[-1].execute("SELECT 1")
         
         conn = get_connection(self.test_db)
         try:
@@ -73,7 +85,11 @@ class TestRecoveryAndResumeEndToEnd(unittest.TestCase):
             conn.close()
 
         resumer = OnDemandResumeManager(fsm_db_path=self.test_db)
-        self.assertTrue(resumer.rescue_stalled_document(doc_id, ast_hash))
+        with patch("runtime.resumer.get_connection", side_effect=record_service_connection):
+            self.assertTrue(resumer.rescue_stalled_document(doc_id, ast_hash))
+        self.assertEqual(len(service_connections), 2)
+        with self.assertRaises(sqlite3.ProgrammingError):
+            service_connections[-1].execute("SELECT 1")
         
         conn = get_connection(self.test_db)
         try:
