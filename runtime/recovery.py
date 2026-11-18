@@ -1,5 +1,6 @@
 import time
 import logging
+from contextlib import closing
 import random
 from infra.db.connection import get_connection
 from infra.db.fsm_repository import FSMRepository
@@ -18,7 +19,7 @@ class AbandonedProcessWatchdog:
 
     def execute_sweep(self, threshold_sec: int = 3600) -> None:
         """Identifica documentos colapsados en transiciones activas y los promueve a STALLED."""
-        with get_connection(self.fsm_db_path, timeout=15) as conn:
+        with closing(get_connection(self.fsm_db_path, timeout=15)) as conn, conn:
             fsm_repo = FSMRepository(conn)
             cmd_handler = DocumentCommandHandler(fsm_repo)
             
