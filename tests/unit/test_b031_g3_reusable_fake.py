@@ -168,7 +168,18 @@ def test_missing_database_is_read_only(tmp_path):
 def test_private_docker_bind_requires_explicit_opt_in(tmp_path, monkeypatch):
     db = tmp_path / "queue.db"
     monkeypatch.setenv("TPDF_FAKE_PRIVATE_DOCKER", "EXPLICIT_INTERNAL_NETWORK_ONLY")
+    # Exercise the wildcard opt-in check, but never bind an exposed host listener.
+    # This test does not verify private-Docker reachability.
+    original_bind = FakeServer.server_bind
+
+    def bind_loopback_only(server):
+        assert server.server_address == ("0.0.0.0", 0)
+        server.server_address = ("127.0.0.1", 0)
+        original_bind(server)
+
+    monkeypatch.setattr(FakeServer, "server_bind", bind_loopback_only)
     with FakeServer(("0.0.0.0", 0), db) as server:
+        assert server.server_address[0] == "127.0.0.1"
         assert server.server_address[1] > 0
 
 

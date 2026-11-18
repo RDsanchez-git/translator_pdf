@@ -1,5 +1,10 @@
 # tests/integration/test_healing_e2e_telemetry.py
-"""Suite de integración E2E, Rollback Transaccional y Auditoría de Telemetría (11E.6.5)."""
+"""B-04: legacy HealingPipeline + telemetry technical integration contracts.
+
+The real HealingPipeline, strategies and registry are exercised against a
+deterministic validation double. These tests do not invoke PDF parsing, G3/G5,
+providers, or the supported end-to-end PDF-to-PDF pipeline.
+"""
 
 import pytest
 from core.validation.models import ValidationContext, ValidationResult, Scope, Severity
@@ -56,7 +61,7 @@ def _make_ctx(text: str, family: str) -> HealingContext:
     )
     return HealingContext(validation_context=val_ctx, validation_result=val_res)
 
-def test_e2e_case_a_markdown_leakage(build_pipeline_and_registry):
+def test_healing_case_a_markdown_leakage(build_pipeline_and_registry):
     pipeline, registry = build_pipeline_and_registry()
     ctx = _make_ctx("```latex\n\\section{A}\n```", "PeI-01")
     
@@ -66,7 +71,7 @@ def test_e2e_case_a_markdown_leakage(build_pipeline_and_registry):
     assert res.healed_text == "\\section{A}"
     assert registry.get_events()[0].outcome == "SUCCESS"
 
-def test_e2e_case_b_unbalanced_braces(build_pipeline_and_registry):
+def test_healing_case_b_unbalanced_braces(build_pipeline_and_registry):
     pipeline, registry = build_pipeline_and_registry()
     ctx = _make_ctx("\\textbf{Texto", "SI-01")
     
@@ -76,7 +81,7 @@ def test_e2e_case_b_unbalanced_braces(build_pipeline_and_registry):
     assert res.healed_text == "\\textbf{Texto}"
     assert registry.get_events()[0].strategy_id == "EOFBraceClosureStrategy"
 
-def test_e2e_case_c_math_truncation(build_pipeline_and_registry):
+def test_healing_case_c_math_truncation(build_pipeline_and_registry):
     pipeline, registry = build_pipeline_and_registry()
     ctx = _make_ctx("$$ x $", "SI-02")
     
@@ -85,7 +90,7 @@ def test_e2e_case_c_math_truncation(build_pipeline_and_registry):
     assert res.outcome == HealingOutcome.SUCCESS
     assert res.healed_text == "$$ x $$"
 
-def test_e2e_rollback_guarantee_on_revalidation_failure(build_pipeline_and_registry):
+def test_healing_rollback_guarantee_on_revalidation_failure(build_pipeline_and_registry):
     pipeline, registry = build_pipeline_and_registry(fail_revalidation=True)
     original_corrupt_text = "\\textbf{Corrupto"
     ctx = _make_ctx(original_corrupt_text, "SI-01")
@@ -99,7 +104,7 @@ def test_e2e_rollback_guarantee_on_revalidation_failure(build_pipeline_and_regis
     event = registry.get_events()[0]
     assert event.outcome == "ROLLBACK"
 
-def test_e2e_telemetry_aggregate_metrics(build_pipeline_and_registry):
+def test_healing_telemetry_aggregate_metrics(build_pipeline_and_registry):
     pipeline, registry = build_pipeline_and_registry(fail_revalidation=True)
     
     pipeline.heal_and_revalidate(_make_ctx("\\textbf{Sano", "SI-01"))

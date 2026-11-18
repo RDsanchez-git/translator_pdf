@@ -1,7 +1,7 @@
 import os
 import unittest
 from typing import Any
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 from core.ast.models import TranslationTaskType
 from apps.llm_workers.adapters import GroqProvider
 from core.prompting.dialects.openai_compatible import OpenAICompatibleDialect
@@ -10,6 +10,11 @@ class TestProviderSmoke(unittest.IsolatedAsyncioTestCase):
     """SOTA: Certificación de transporte de red asíncrono para el nuevo stack."""
 
     async def test_isolated_generation_request(self):
+        # La presencia accidental de credenciales NO autoriza egress real.
+        # Este smoke se ejecuta exclusivamente con dos condiciones expresas.
+        if os.environ.get("TRANSLATOR_PDF_RUN_LIVE_PROVIDER_TESTS") != "1":
+            self.skipTest("Red real deshabilitada: requiere TRANSLATOR_PDF_RUN_LIVE_PROVIDER_TESTS=1.")
+
         api_key = os.environ.get("GROQ_API_KEY")
         if not api_key:
             self.skipTest("GROQ_API_KEY ausente. Omitiendo smoke test.")
@@ -37,3 +42,17 @@ class TestProviderSmoke(unittest.IsolatedAsyncioTestCase):
         self.assertIsInstance(translated_payload, str)
         self.assertGreater(len(translated_payload), 0)
         self.assertIn("OK", translated_payload.upper())
+
+    async def test_live_provider_requires_explicit_opt_in(self):
+        """Sin permiso explícito no se construye un proveedor, ni con API key."""
+        with patch.dict(
+            os.environ,
+            {
+                "GROQ_API_KEY": "synthetic-never-use",
+                "TRANSLATOR_PDF_RUN_LIVE_PROVIDER_TESTS": "0",
+            },
+        ):
+            with patch("tests.integration.test_embedding_smoke.GroqProvider") as provider:
+                with self.assertRaisesRegex(unittest.SkipTest, "Red real deshabilitada"):
+                    await self.test_isolated_generation_request()
+                provider.assert_not_called()

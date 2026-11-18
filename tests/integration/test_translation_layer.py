@@ -1,6 +1,6 @@
 import os
 import unittest
-import uuid
+import tempfile
 from typing import Any
 from unittest.mock import MagicMock
 from core.ast.models import TranslationUnit, TranslationTaskType
@@ -35,8 +35,11 @@ class TestTranslationLayerIntegration(unittest.IsolatedAsyncioTestCase):
     """SOTA: Certificación del pipeline Dispatcher -> Assembler en memoria pura (Fase 14)."""
 
     async def asyncSetUp(self):
-        self.test_id = uuid.uuid4().hex
-        self.test_db_path = f"tests/fixtures/integration_cache_{self.test_id}.db"
+        # DB y sidecars WAL/SHM exclusivamente en espacio temporal propio.
+        # addCleanup funciona incluso si asyncSetUp falla posteriormente.
+        self.cache_temp = tempfile.TemporaryDirectory(prefix="tst-stab-translation-layer-")
+        self.addCleanup(self.cache_temp.cleanup)
+        self.test_db_path = os.path.join(self.cache_temp.name, "integration_cache.db")
         
         estimator = ExactBPEEstimator()
         
@@ -88,15 +91,6 @@ class TestTranslationLayerIntegration(unittest.IsolatedAsyncioTestCase):
         
         self.mock_repo = MagicMock()
         self.assembler = DocumentAssembler(repository=self.mock_repo, separator="\n\n")
-
-    async def asyncTearDown(self):
-        for suffix in ("", "-wal", "-shm"):
-            p = f"{self.test_db_path}{suffix}"
-            if os.path.exists(p):
-                try: 
-                    os.remove(p)
-                except PermissionError: 
-                    pass
 
     async def test_translation_layer_flow(self):
         """Ajuste 2: Prueba acotada a la capa de traducción y ensamble."""

@@ -215,7 +215,9 @@ def _run_post_send_loss(subject, monkeypatch):
 def test_w06_lost_reply_is_quarantined_without_second_provider_call(subject, monkeypatch):
     """A provider-accepted first call has no second automatic effect."""
     fake, result = _run_post_send_loss(subject, monkeypatch)
-    assert len(fake.accepted_calls) == 1
+    assert len(fake.accepted_calls) == 1, (
+        "W06_UNSAFE_RETRY: provider was called again after an uncertain effect"
+    )
     assert _row(subject) == ("G3_EXTERNAL_UNKNOWN", 0)
     assert subject.queue.execute("SELECT COUNT(*) FROM chunk_result_receipts").fetchone()[0] == 0
     row = subject.queue.execute(

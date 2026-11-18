@@ -199,8 +199,9 @@ def test_expired_lease_old_worker_cannot_publish_even_without_takeover(sandbox):
     assert r.advance(lease,'READY_FOR_COMPILATION','COMPILING')
     _expire(c)
     src,dst=_pdf(tmp)
-    assert not r.publish(lease,str(src),str(dst))
-    assert not dst.exists()
+    published = r.publish(lease,str(src),str(dst))
+    assert not dst.exists(), "G5_STALE_LEASE_PUBLISHED_PDF"
+    assert published is False, "G5_STALE_LEASE_ACCEPTED"
 
 
 def test_failure_only_current_valid_owner_can_change_fsm(sandbox):

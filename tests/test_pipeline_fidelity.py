@@ -1,21 +1,24 @@
-import sys
-import os
+"""B-04: technical LaTeX mask/restore and enum contracts (historical filename).
+
+The checks protect exact mathematical placeholders and a small set of AST
+content types; they do NOT establish linguistic/scientific or PDF-to-PDF fidelity.
+No import-time sys.path mutation is necessary with the repository test runner.
+"""
 import unittest
 import re
-
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from core.normalization.latex_sanitizer import InlineMathProtector
 from core.ast.enums import ContentNodeType
 
-class TestPipelineFidelity(unittest.TestCase):
+class TestMathProtectionContracts(unittest.TestCase):
+    """Historical tests of mathematical adjacency, roundtrip and enum presence."""
 
     # =========================================================================
     # CAPA 1: SANITIZACIÓN E INVARIANZA MATEMÁTICA (LaTeX & HTML)
     # =========================================================================
 
-    def test_semantic_adjacency_and_mutations(self):
-        """Validar adyacencia estricta mediante regex y tolerar mutaciones del LLM."""
+    def test_math_placeholder_restoration_preserves_adjacency(self):
+        """Verify source math adjacency after restoring three placeholder variants."""
         original_text = "The estimator $x_i$ is unbiased."
         masked, mapping = InlineMathProtector.mask(original_text)
         
@@ -52,7 +55,7 @@ class TestPipelineFidelity(unittest.TestCase):
     # =========================================================================
 
     def test_worker_passthrough_alignment(self):
-        """Validar la existencia de las variantes estructurales clave del Enum Semántico."""
+        """Only verifies the presence of four AST node-type enum members."""
         required_passthrough_types = ("INLINE_EQUATION", "DISPLAY_EQUATION", "IMAGE", "TABLE_SIMPLE")
         for type_name in required_passthrough_types:
             self.assertTrue(hasattr(ContentNodeType, type_name), f"Variante ausente en ContentNodeType Enum: {type_name}")

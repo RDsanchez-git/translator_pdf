@@ -1,5 +1,4 @@
 import unittest
-import os
 import sqlite3
 from datetime import datetime
 from typing import List
@@ -69,10 +68,12 @@ class FakeDispatcher:
         return DispatchResult(outcomes=outcomes)
 
 class TestPipelineOrchestration(unittest.IsolatedAsyncioTestCase):
+    """Legacy logical orchestrator with fake dispatcher and mocked parser; not PDF E2E."""
     def setUp(self):
         self.pdf_real_path = "tests/fixtures/sample_3_pages.pdf"
         
         self.db = sqlite3.connect(":memory:")
+        self.addCleanup(self.db.close)
         self.db.execute("""
             CREATE TABLE document_fsm (
                 document_id TEXT,
@@ -95,10 +96,10 @@ class TestPipelineOrchestration(unittest.IsolatedAsyncioTestCase):
         from apps.bootstrap.pipeline_factory import build_extraction_pipeline
         from core.metrics.summary import SummaryBuilder
         from infra.db.document_repository import SQLiteDocumentRepository
-        from infra.db.connection import get_connection
 
         parser = build_extraction_pipeline()
-        doc_conn = get_connection("infra/db/documents.db", timeout=30)
+        doc_conn = sqlite3.connect(":memory:")
+        self.addCleanup(doc_conn.close)
         document_repository = SQLiteDocumentRepository(doc_conn)
 
         self.pipeline = TranslationPipeline(
@@ -110,13 +111,9 @@ class TestPipelineOrchestration(unittest.IsolatedAsyncioTestCase):
             document_repository=document_repository,
         )
 
-        if not os.path.exists(self.pdf_real_path):
-            # ... sin cambios
-            os.makedirs(os.path.dirname(self.pdf_real_path), exist_ok=True)
-            with open(self.pdf_real_path, "w") as f:
-                f.write("dummy pdf binary")
+        # El parser se sustituye en la prueba; no fabricar PDF en tests/fixtures.
 
-    async def test_pipeline_executes_successfully_with_real_pdf_source(self):
+    async def test_legacy_orchestrator_handoff_with_mocked_parser(self):
         job = TranslationJob(job_id="job_orch_prod_001", source_path=self.pdf_real_path)
         self.assertEqual(job.status, JobStatus.PENDING)
         

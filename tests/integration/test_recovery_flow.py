@@ -1,4 +1,4 @@
-import os
+import tempfile
 import sys
 import unittest
 import time
@@ -19,16 +19,15 @@ from runtime.recovery import AbandonedProcessWatchdog  # noqa: E402
 from runtime.resumer import OnDemandResumeManager  # noqa: E402
 
 class TestRecoveryAndResumeEndToEnd(unittest.TestCase):
-    
+    """Real watchdog/resumer FSM lifecycle; final pipeline completion is mocked."""
+
     @classmethod
     def setUpClass(cls):
-        cls.test_db = str(BASE_DIR / "infra/db/test_fsm.db")
-        if os.path.exists(cls.test_db):
-            try:
-                os.remove(cls.test_db)
-            except Exception:
-                pass
-            
+        # Unittest runs class cleanups even if setUpClass later raises.
+        scratch = tempfile.TemporaryDirectory(prefix="tst-stab-recovery-")
+        cls.addClassCleanup(scratch.cleanup)
+        cls.test_db = str(Path(scratch.name) / "test_fsm.db")
+
         conn = get_connection(cls.test_db)
         try:
             conn.execute("""
@@ -91,9 +90,6 @@ class TestRecoveryAndResumeEndToEnd(unittest.TestCase):
             cmd_handler = DocumentCommandHandler(fsm_repo)
             state_store = FSMStateStore(fsm_repo, cmd_handler)
             
-            import core.pipeline.orchestrator
-            core.pipeline.orchestrator.compute_ast_hash = lambda nodes: ast_hash
-            
             mock_comp = MagicMock()
             pipeline = TranslationPipeline(
                 parser=mock_comp, chunker=mock_comp, dispatcher=mock_comp,
@@ -132,14 +128,6 @@ class TestRecoveryAndResumeEndToEnd(unittest.TestCase):
         finally:
             conn.close()
 
-    @classmethod
-    def tearDownClass(cls):
-        time.sleep(0.1)
-        if os.path.exists(cls.test_db):
-            try:
-                os.remove(cls.test_db)
-            except Exception:
-                pass
 
 if __name__ == "__main__":
     unittest.main()
