@@ -1,15 +1,15 @@
 # HITO_PPPR.0.2_INGESTA_Y_EXTRACCION_PDF.md
 
-**Estado:** IN_PROGRESS v1.0.2  
+**Estado:** FROZEN v1.0.3  
 **Fecha de emisión:** 2026-11-19  
-**Fecha de congelamiento:** N/A  
+**Fecha de congelamiento:** 2026-11-19  
 **Iniciativa:** PPPR — Fase 0, iniciativa transversal `pdf-pdf-product-readiness`  
 **Tipo de artefacto:** Forensic Flow Audit  
 **Naturaleza:** Auditoría read-only del producto; este documento no prescribe implementación, ADR ni NADR.  
 **Baseline de código inspeccionado:** `main@1d21cfe958cc1de8a33824fed748cd6fe9260f42`; referencia de gobernanza `pdf-pdf-product-readiness@0c8d1f569394e111fa727a5b375c49d4b4576f81`.  
 **Fuentes vinculantes:** Metodologías general v1.3.0 y forense v1.2.0 FROZEN; PPPR.0.1 FROZEN v1.0.9; D-1/D-2 y Atlas de convergencia (corte histórico); `PROJECT_SCOPE.md`, `ENGINEERING_PRINCIPLES.md`, NADR-F17BIS-02; HITO 0.4.5-P2 F17-BIS como antecedente, no como evidencia del HEAD.  
 **Mandato:** Determinar qué contenido del PDF físico representa, transforma o rechaza la ruta PyMuPDF conectada antes de G3, y qué evidencia falta para atribuirle fidelidad STEM.  
-**Síntesis provisional:** La ruta productiva materializa texto y ciertos PNG/matemática visual, aplica rechazos fail-closed a glifos señalados, matemáticas mixtas y vectores, y no ofrece clasificación nativa de tablas ni orden multicolumna acreditado. Se detectaron dos desajustes de contrato estáticamente demostrables en el perfilado geométrico; la calidad física/científica global sigue NO VERIFICABLE.
+**Síntesis:** La ruta productiva materializa texto y ciertos PNG/matemática visual, aplica rechazos fail-closed a glifos señalados, matemáticas mixtas y vectores, y no ofrece clasificación nativa de tablas ni orden multicolumna acreditado. Se detectaron dos desajustes de contrato estáticamente demostrables en el perfilado geométrico; la calidad física/científica global sigue NO VERIFICABLE.
 
 ### Changelog
 
@@ -18,6 +18,7 @@
 | 1.0.0-IN_PROGRESS | 2026-11-19 | Apertura basada en lectura directa del SHA fijado; cadena de extracción, tipos físicos, cobertura/rechazos B02, mapeo AST, perfilado y testigos sintéticos. Dos gaps locales estáticos, fronteras y cuestiones diferidas. Sin tests ejecutados ni FROZEN. |
 | 1.0.1-IN_PROGRESS | 2026-11-19 | Revisión §4.7–4.8: fichas extendidas P1, contratos y destinos formales, control de cobertura por frontera, límites de testigos B01/B02/B03, propagación del perfil geométrico y reconciliación normativa. Sin cambios de producción, tests nuevos ni FROZEN. |
 | 1.0.2-IN_PROGRESS | 2026-11-19 | Reconciliación del perímetro STEM, geometría upstream vs perfilado, cobertura de páginas y procesamiento de imágenes; disposiciones de H-0.2-A…D y checklist §8. Sin ejecución de pruebas ni FROZEN. |
+| 1.0.3-FROZEN | 2026-11-19 | Cierre §8.1–8.2: 21 evidencias, 2 GAP P1 OPEN, 4 hipótesis NO VERIFICABLE con destinos, límites de validez y cadena de gobernanza. Sin tests ejecutados ni cambios productivos. |
 
 ## 1. RESUMEN EJECUTIVO
 
@@ -31,7 +32,7 @@ El punto más sólido de la primera pasada es el desacople entre `NodeMetadata.p
 
 **Defectos dominantes confirmados:** `GAP-0.2-01` (E-0.2-011) y `GAP-0.2-02` (E-0.2-012), ambos P1 locales; no se demuestra tasa de error científica.
 
-**Veredicto provisional:** cobertura física parcial y explícita; dos gaps locales de perfilado corroborados estáticamente; orden científico por columnas, recuperabilidad semántica de fórmulas y fidelidad de documentos reales pendientes de evidencia proporcionada al riesgo. El HITO sigue `IN_PROGRESS`.
+**Veredicto forense de cierre:** se completa el mandato acotado de identificar representación, transformación y rechazo en la ingesta conectada mediante lectura de código. Permanecen dos GAP P1 locales y cuatro preguntas empíricas diferidas. **FROZEN no certifica fidelidad científica PDF→PDF.**
 
 ## 2. LÍMITE EPISTEMOLÓGICO Y MÉTODO FORENSE
 
@@ -253,7 +254,7 @@ elif geom.relative_center_x >= self._RIGHT_CLUSTER_MIN:  # 0.60
 
 **Guardia negativa y contenido no observado:** `validate_pymupdf_page_coverage` puede rechazar solo objetos que PyMuPDF entrega a la API inspeccionada. No demuestra ausencia de contenido que esa API no exponga. La admisión de una página sin bloques no demuestra pérdida: puede ser blanca (E-0.2-021). No se registra un gap adicional sin falsación.
 
-## 14. GAPS CONSOLIDADOS (PROVISIONALES)
+## 14. GAPS CONSOLIDADOS — ABIERTOS
 
 Se consolida aquí el **delta local** al contrato observado, no una Gap Matrix transversal (reservada a PPPR.0.9). El campo «Fase destino» identifica la **etapa futura PPPR después de cerrar Fase 0** y el gate documental que deberá valorar la obligación; **no** crea una nueva fase numerada ni una tarea de implementación ya aprobada.
 
@@ -286,29 +287,53 @@ Las cuatro hipótesis tienen **veredicto `NO VERIFICABLE` dentro de este mandato
 
 Este triaje cumple la forma de §8.2 sin concluir `PASS` científico ni convertir las cuestiones diferidas en nuevas tareas de implementación. Los IDs anteriores permanecen estables.
 
-## 16. RESPUESTAS PROVISIONALES AL MANDATO
+## 16. RESPUESTAS AL MANDATO — ALCANCE ACOTADO
 
 1. **Representado:** texto PyMuPDF (por bloque/line/spans proyectados a texto y tipografía dominante), BBox absoluto y página en AST; imagen ráster decodificable y ciertos bloques matemáticos visuales como referencias SHA-256 a PNG, con `PRESERVE` al pasar por la estrategia tipada.
 2. **Transformado:** bloques físicos → `LayoutBlock` → `LayoutBlockDraft` → `ASTNode`; colapsan señales tipográficas a predominantes y metadatos espaciales parcialmente; `CrossPageNormalizer` puede fusionar límites según heurística textual, sin test aquí de corrección científica.
 3. **Rechazado:** vectores detectados, bloques de tipo no soportado, glifos sentinela, imágenes incompatibles, mixed math/prose identificada, geometrías inválidas, mapeo/límites vacíos. No extrapolar estos rechazos a exhaustividad física.
 4. **No acreditado:** completitud matemática, lectura por columnas, reconocimiento de tablas, fidelidad de todas las figuras, eficiencia del sampler de páginas, calidad lingüística/física PDF→PDF, garantía host/egress.
 
-## 21. CIERRE DEL HITO — ESTADO IN_PROGRESS
+## 21. CIERRE DEL HITO PPPR.0.2 — FROZEN v1.0.3
 
-**NO FROZEN.** Se completó en esta versión la conciliación de representabilidad (E-0.2-019…021), las diferencias de geometría física/perfilado y el triaje de las cuatro hipótesis con destino y no-bloqueo (§15). La suficiencia final del documento queda sujeta a revisión independiente en el PR interno, no a la creación de tests o módulos nuevos.
+### 21.1 Verificación final §8.1–8.2
 
-### Checklist de preparación para cierre (§8.1–8.2; autoevaluación, no aprobación)
-
-| Exigencia | Estado |
+| Criterio de cierre | Resultado / soporte |
 |---|---|
-| Metadata, changelog, baseline y límites | **CUMPLE documentalmente; IN_PROGRESS / FROZEN no declarado** |
-| Perímetro auditable y fuentes clasificadas | **CUMPLE para propiedades declaradas** (§3–4); material externo NO VERIFICABLE |
-| IDs E estables, severidad y fichas P1 | **CUMPLE documentalmente**: E-0.2-001…021, E-011/012 extendidas |
-| Gaps sustentados en contrato y con destino/estado | **CUMPLE**: GAP-0.2-01/02 OPEN, sin plan de implementación |
-| Hipótesis cerradas o diferidas no bloqueantes | **CUMPLE como disposición de alcance**: H-0.2-A…D → DQ-0.2-01…04 |
-| Contradicciones con auditoría histórica | **RECONCILIADAS en la ruta seleccionada**: mapper y validador presentes en HEAD |
-| Revisar §8.1, garantías y aceptación de congelamiento | **PENDIENTE de revisión final** en PR #67 |
+| Metadata, tipo, fecha y changelog | **CUMPLE** — encabezado y evolución v1.0.0–v1.0.3 |
+| Mandato, resumen, hallazgo central, veredicto | **CUMPLE** — §§1/16 |
+| Límite epistemológico y método read-only | **CUMPLE** — §2 |
+| Perímetro de módulos y estados de cobertura | **CUMPLE** — §3/§3.1; responsabilidades auditadas y superficies solo referenciadas o NO VERIFICABLE |
+| Fuentes y autoridad normativa/forense/código/test | **CUMPLE** — §4/§4.1 y SHA fijado |
+| Rutas, bifurcaciones y clases STEM | **CUMPLE** — §§5/11, con límites explícitos |
+| IDs estables y severidades fundamentadas | **CUMPLE** — E-0.2-001…021; P1/P2 §10 |
+| Observed / Required / Decision y formato extendido | **CUMPLE** — E-0.2-011/012, §10; NADR-F17BIS-02 no se usa como requisito geométrico |
+| GAP con evidencia/contrato/destino/estado | **CUMPLE** — GAP-0.2-01/02 **OPEN**, P1 LOCAL; §14 |
+| Hipótesis clasificadas; cero abiertas sin destino | **CUMPLE** — H-0.2-A…D **NO VERIFICABLE**; DQ-0.2-01…04 justificadas y no bloqueantes; §15 |
+| No-regresión, contradicciones y estabilidad de IDs | **CUMPLE para el SHA auditado** — reconciliación F17-BIS P2 (E-0.2-015) y PPPR.0.1 |
+| Declaración de garantías, cadena y próximo paso | **CUMPLE** — §§21.2–21.4 |
+| Tests reales, CI o certificación científica | **NO REQUERIDOS PARA ESTE MANDATO ESTÁTICO** y no se presentan como ejecutados |
 
-**Garantía limitada:** evidencia de código y fuentes de test sobre el SHA fijado; **no** se ejecutaron tests, no se midió corpus STEM, no se certificó el PDF reconstruido y no se aprobó una solución. No existe `PASS` científico o test nuevo. Ninguna decisión de diseño, código, ADR/NADR o Execution Plan fue aprobada por este HITO.
+**§8.2:** las cuatro cuestiones NO VERIFICABLE exigen PDFs/oráculos o fronteras que corresponden a otros HITOs. Sus motivos de diferimiento, no-bloqueo y destinos están registrados; no impiden responder qué hace el código actual, pero **sí impiden afirmar fidelidad STEM real**.
 
-**Siguiente gate:** revisión forense del documento en PR interno a `pdf-pdf-product-readiness`; atender observaciones y resolver las hipótesis conforme a §8.2 antes de solicitar FROZEN. Mantener #66 Draft, sin merge a `main`; implementación solo tras gobernanza completa integrada.
+### 21.2 Declaración y garantías de cierre
+
+**Estado: FROZEN v1.0.3 — 2026-11-19.** Se cierra exclusivamente la auditoría **estática/documental** de la ruta de ingesta de `main@1d21cfe958cc1de8a33824fed748cd6fe9260f42`. Están inventariados: tratamiento de texto, PNG, matemática visual, vectores, tablas y columnas; proyecciones Layout→AST→perfilado; dos incompatibilidades locales demostradas (E-0.2-011/012). **GAP-0.2-01/02 permanecen OPEN**: identificación no implica remediación.
+
+**No se garantiza:** completitud de objetos no detectados por PyMuPDF, OCR de imágenes escaneadas, lectura correcta de dos columnas, glifos/figuras/ecuaciones/tablas científicos, calidad del PDF traducido, ejecución Tectonic/LLM comercial, atomicidad filesystem–SQLite ni `PRODUCT_READINESS=PASS`. No se ejecutaron nuevos tests, PyMuPDF, CI, CV/GT, Docker, SQLite, LLM, Tectonic ni corpus real.
+
+La herramienta de ejecución de código queda disponible **cuando exista una hipótesis cuya falsación sea necesaria en su HITO responsable**, en particular PPPR.0.8; la disponibilidad de la herramienta no obliga a ejecutarla en cada auditoría ni reemplaza oráculos científicos.
+
+### 21.3 Gobernanza, antecedentes y decisiones
+
+**Cadena verificada:** metodología general v1.3.0 FROZEN → metodología forense v1.2.0 FROZEN → `PROJECT_SCOPE.md`/`ENGINEERING_PRINCIPLES.md` → D-1/D-2 y Atlas → NADR-F17BIS-02 (frontera y política de extracción, **no** geometría) → HITO F17-BIS-P2 histórico → PPPR.0.1 FROZEN v1.0.9 → PPPR.0.2 FROZEN v1.0.3 → auditorías PPPR restantes → ADR Maestro y ADR/NADR necesarios → Execution Plan aprobado e integrado a `main` → implementación futura.
+
+**Contradicciones:** las afirmaciones históricas de ausencia de mapper explícito/validador fueron reconciliadas con el código actual (E-0.2-015); no quedan contradicciones no documentadas dentro de este perímetro. **Decision Candidates aprobados:** ninguno; los GAP y DQ siguen siendo insumos de gobernanza, no decisiones implementativas.
+
+### 21.4 Próximo gate y política Git
+
+El documento queda listo para **revisión, aprobación e integración del PR interno #67** a `pdf-pdf-product-readiness`. FROZEN **no** supone merge automático: mantener #67 Draft hasta su aprobación, integrarlo y eliminar la rama corta antes de crear PPPR.0.3 desde la rama general actualizada.
+
+El **PR #66 permanece Draft hacia `main`**, sin merge hasta completar las auditorías y el paquete ADR/NADR/Execution Plan aprobado. **Ningún cambio de producción queda autorizado** por este cierre.
+
+> PPPR.0.2 FROZEN ≠ Fase 0 cerrada ≠ certificación científica ≠ permiso para implementar.
