@@ -1,6 +1,6 @@
 # HITO_PPPR.0.5_SQLITE_FSM_W06_AUTORIDAD_Y_RECUPERACION.md
 
-**Estado:** IN_PROGRESS v1.0.1  
+**Estado:** IN_PROGRESS v1.0.2  
 **Fecha de emisión:** 2026-11-19  
 **Fecha de congelamiento:** N/A  
 **Fase:** PPPR — Fase 0 transversal de `pdf-pdf-product-readiness`, no una fase nueva del roadmap.  
@@ -10,7 +10,7 @@
 **Baseline de gobernanza:** `pdf-pdf-product-readiness@1e4c767eb60d46f37e733c3af85a28dfe76f7f38`, con PPPR.0.1–0.4 FROZEN.  
 **Evidencia Forense Vinculante:** Metodología general v1.3.0 FROZEN; metodología forense v1.2.0 FROZEN; `PROJECT_SCOPE.md`, `ENGINEERING_PRINCIPLES.md`; D-1/D-2 y Atlas; NADR-F18-01 (identidades), NADR-F18-02 (ejecución acotada), NADR-F18-03 (autoridad/efectos inciertos), NADR-F18-04 (durabilidad/idempotencia), NADR-F18-05 (exposición y observabilidad), ADR-F18.2 FROZEN; los HITOs PPPR.0.1–0.4 congelados.  
 **Mandato:** auditar **la ruta soportada** OCR→G3→G5 en cuanto a propietarios de estado, `FSMRepository`, SQLite `fsm.db/queue.db/event.db/materialized.db/rate_limits.db`, identidad del intento, leases y epochs, pre-efecto/pos-efecto W06, receipt/manifest, recuperación, proyecciones y transición FSM; distinguir implementación actual, evidencia de testigos y obligaciones F18, sin volver a ejecutar el antiguo pipeline.  
-**Síntesis:** G3 usa leases y receipts en `queue.db`, publicación staged e incertidumbre W06 sin retry automático; `event.db` pertenece al CQRS legado. Dos GAP P1 locales demostrados en el perímetro: falta de escalamiento configurable conectado de UNKNOWN y revalidación insuficiente del lease al inicio del efecto tras la espera del semáforo. Sin test comercial ni certificación.
+**Síntesis:** El G3 usa receipts y leases durables en `queue.db`, publicación por commits locales y cuarentena W06 sin retry ciego. Tres GAP P1 locales OPEN: UNKNOWN sin escalamiento configurable, lease no revalidado tras semáforo y sweeper configurado en Compose con selección/transición de FSM contradictorias. Sin pruebas comerciales ni certificación.
 
 ### Changelog
 
@@ -18,6 +18,7 @@
 |---|---|---|
 | 1.0.0-IN_PROGRESS | 2026-11-19 | Apertura desde merge del PR #69 con inspección directa de root G3, SQL/repositories, reconciler, staged publication, F18 NADR-03/04 y testigos W06/B3/B4. 18 E-IDs iniciales, 8 hipótesis por cerrar; NO tests ejecutados, NO FROZEN ni GAP prematuro. |
 | 1.0.1-IN_PROGRESS | 2026-11-19 | Segunda pasada: 26 E-IDs, 2 P1 locales y fichas §4.7; consumidores UNKNOWN y CLI, lease→semáforo→provider, reconcilers y sweeper. NADR-F18-03/04 y ADR-F18.2 reconciliados con ruta vigente. NOT_RUN, no FROZEN. |
+| 1.0.2-IN_PROGRESS | 2026-11-19 | Tercera pasada: 34 E-IDs, tercer GAP P1 relativo a sweeper Compose, clasificación de ventanas W1–W8 y reconciliación de testigos. Sin ejecución ni FROZEN; pendientes hipótesis terminales y DQ/DC. |
 
 ## 1. RESUMEN EJECUTIVO
 
@@ -27,9 +28,9 @@ Se inició la auditoría forense de propiedad de estado de la ruta seleccionada.
 
 > En el G3 vigente, los receipts verificados y los estados de cuarentena sustituyen la antigua inferencia «sin evento, entonces no hubo efecto»; la coherencia de publicación se recupera mediante pasos locales, **no** una transacción distribuida ni una garantía de no duplicación comercial.
 
-**Defectos dominantes (P1 LOCAL):** **GAP-0.5-01** (E-019/022/026): UNKNOWN queda bloqueado y trazado pero sin un mecanismo configurable conectado que lo escale, conforme NADR-F18-03 R11. **GAP-0.5-02** (E-020/021): el lease solo se comprueba antes de la espera del semáforo, no al inicio del I/O, incumpliendo la garantía de autoridad de NADR-F18-03 R2. No se atribuye doble cobro observado.
+**Defectos dominantes P1 LOCAL:** **GAP-0.5-01** (E-019/022/026: UNKNOWN sin escalamiento, NADR-F18-03 R11); **GAP-0.5-02** (E-020/021: lease no revalidado al inicio del efecto, R2); **GAP-0.5-03** (E-023/032: sweeper declarado en Compose inspecciona estados no STALLED y transiciona a FAILED_RETRYABLE sin corroborar receipts, NADR-F18-04 R8). No se acredita duplicación de efectos ni daño real.
 
-**Veredicto:** 26 evidencias y 2 GAP P1 locales, sin reabrir el journal legado. El mecanismo de no-retry W06 y el replay de receipts siguen siendo capacidades positivas; quedan controles de recovery periféricos por calificar. **IN_PROGRESS**, no `PRODUCT_READINESS=PASS`.
+**Veredicto:** 34 evidencias y 3 GAP P1 abiertos; recuperación de receipts y W06 preservadas dentro del modelo local. Se demostró la vinculación del sweeper a Compose, no su ejecución física en un host. **IN_PROGRESS**, sin `PRODUCT_READINESS=PASS`.
 
 ## 2. LÍMITE EPISTEMOLÓGICO Y MÉTODO FORENSE
 
@@ -48,7 +49,7 @@ Se inició la auditoría forense de propiedad de estado de la ruta seleccionada.
 | G3 root y workers | `runtime/engine.py::run_pipeline`; `runtime/chunk_staging.py::stage_claimed_unit`; `apps/llm_workers/sync_bridge.py::execute_chunk` | **AUDITADO**: semáforo y frontera pre-I/O, E-020/021 |
 | Autoridad de tarea | `infra/db/control_repo.py::{pick_task,stage_chunk_result,mark_g3_external_unknown,recover_expired_g3_task}` | **AUDITADO focal**: lease, CAS, UNKNOWN y fencing |
 | FSM documento | `infra/db/fsm_repository.py`, `core/execution/handlers.py` | **AUDITADO focal**: CAS versionado, límites de transacción |
-| Recuperación/reconciliador | `apps/daemons/reconciler.py`, `infra/db/system_repo.py`, `runtime/{recovery,resumer,sweeper}.py` | **AUDITADO focal**: UNKNOWN y consumers E-019/022/023/026; conectividad sweeper auxiliar por corroborar |
+| Recuperación/reconciliador | `apps/daemons/reconciler.py`, `infra/db/system_repo.py`, `runtime/{recovery,resumer,sweeper}.py`, `docker-compose{,.runtime}.yml` | **AUDITADO focal**: UNKNOWN, reconciler y sweeper de runtime configurado; distinto de CLI foreground |
 | Publicación | `infra/db/staged_publication.py`, `runtime/publication_pipeline.py` | **AUDITADO**: staged→materialized→queue→FSM, replay local |
 | SQLite/WAL y cuota | `infra/db/{connection,schema_queue,schema_fsm,schema_event,context_snapshot_repo}.py/sql`, `infra/resilience/thread_owned_sqlite_rate_limit_store.py` | **AUDITADO focal**; escritura real y power-loss NO VERIFICABLE |
 | Event plane histórico | `infra/db/{event_repo,materialized_repo}.py`, rutas legadas del reconciler | **AUDITADO para desambiguar consumidor**, no sustituye G3 vigente |
@@ -60,7 +61,7 @@ No se considera completo aún el checklist §8.1. No se introducen expedientes s
 
 ## 4. FUENTES DE EVIDENCIA
 
-**Código primario:** `main@1d21cfe958cc1de8a33824fed748cd6fe9260f42`: `runtime/{engine,chunk_staging,publication_pipeline,recovery,resumer,sweeper,operational_visibility}.py`, `apps/daemons/reconciler.py`, `apps/llm_workers/sync_bridge.py`, `apps/cli/{main,pdf_product}.py`, `core/execution/{state,handlers,visibility}.py`, `infra/db/{control_repo,fsm_repository,system_repo,staged_publication,context_snapshot_repo,connection,event_repo,materialized_repo}.py`. Ausencias de consumidores se declaran **solo para esta composición versionada**, no para extensiones privadas no accesibles.
+**Código primario:** `main@1d21cfe958cc1de8a33824fed748cd6fe9260f42`: `runtime/{engine,chunk_staging,publication_pipeline,recovery,resumer,sweeper,operational_visibility}.py`, `apps/daemons/reconciler.py`, `apps/llm_workers/sync_bridge.py`, `apps/cli/{main,pdf_product}.py`, `core/execution/{state,handlers,visibility}.py`, `infra/db/{control_repo,fsm_repository,system_repo,staged_publication,context_snapshot_repo,connection,event_repo,materialized_repo}.py`. **Composición:** `docker-compose.yml` y `docker-compose.runtime.yml` declaran sweeper; la CLI foreground no lo instancia. No se verificó un host vivo.
 
 **Normas:** `docs/architecture/adr/phase-18/NADR/NADR-F18-01.md` (identidades), `NADR-F18-02.md` (concurrencia), `NADR-F18-03.md` §5 R1–R23 (autoridad e incertidumbre), `NADR-F18-04.md` §5 R1–R16 (persistencia recuperable), `NADR-F18-05.md` (observabilidad), y F18 ADR Maestro/ADR_F18_2 FROZEN. **Histórico como testigo, no estado actual:** `HITO_0.8_F0-C_State_Durability_Recovery_Map.md` y `HITO_18.2.1_CRASH_WINDOW_FINOPS_ANALYSIS.md`, con distintos cortes de código.
 
@@ -132,8 +133,16 @@ apps/daemons/reconciler.py:
 | **E-0.5-024** | P2 | Testigos W06/B4 versionados cubren bloqueo de UNKNOWN/restart, CAS, recovered receipts; no incluyen en esos archivos escalamiento configurable ni expiración de lease mientras espera el semáforo hasta iniciar provider. | Testigos offline leídos `NOT_RUN`; ausencia de prueba en estas fuentes no equivale a incidencia comercial. | LÍMITE DE TEST |
 | **E-0.5-025** | P2 | `ADR_F18_2.md` v3.3.0 DC-08a/b reutiliza lease como autoridad y acepta incertidumbre conservadora; no obliga a event INTENT ni a disponibilidad de resolución automática del proveedor. `reconciler.py` evita consulta de `event.db` en rama G3. | Evitar falsas reaperturas del journal legacy y una solución innecesaria de transacción distribuida. | RECONCILIADO |
 | **E-0.5-026** | P2 | `test_g3_b4_3b_publication_recovery.py::test_g3_scheduler_excludes_unknown_generation` exige selectores vacíos y FSM PROCESSING para una generación con UNKNOWN, incluso si quedan tareas normales. | El bloqueo es una protección correcta contra segundo efecto; su duración indefinida sin escalamiento es el riesgo de GAP-01. Testigo NOT_RUN. | CORROBORA GAP-0.5-01 |
+| **E-0.5-027** | P2 | `stage_chunk_result` guarda receipt y RESULT_STAGED en una misma transacción queue.db, con manifest, hash, CAS de lease y rollback ante fallo. | NADR-F18-04 R1–R2/R5: confirmación durable local, no transacción con el LLM. | CONFIRMACIÓN LOCAL |
+| **E-0.5-028** | P2 | Sin receipt después de inferencia, `recover_expired_g3_task` separa PRESERVE probado→PENDING de TRANSLATE/PARTIAL→G3_EXTERNAL_UNKNOWN, con epoch/lease/estado FSM. | NADR-F18-03 R5–R9: ausencia de resultado no prueba ausencia de efecto. | W06 CONSERVADOR |
+| **E-0.5-029** | P2 | `publish_staged_plan` reconstruye nodos desde receipts, aplica proyecciones y publicación en una transacción materialized.db; replay idéntico se verifica y la divergencia se rechaza. | NADR-F18-04 R5/6/9/10, sin 2PC. | PUBLICACIÓN LOCAL |
+| **E-0.5-030** | P2 | `finalize_published_plan` verifica publicación committed y receipts, completa todas las tareas en una transacción queue.db con CAS; rechaza planes mixed o corruptos. | NADR-F18-04 R8/R10–R14; ACK separado de publicación. | FINALIZACIÓN LOCAL |
+| **E-0.5-031** | P2 | `advance_staged_document` hace materialized→queue→FSM CAS por commits distintos; `engine.py` detecta todos RESULT_STAGED o COMPLETED antes de inicializar proveedor pago. | Replay de resultados confirmados sin re-inferencia, no atomicidad inter-DB. | CONVERGENCIA ESTÁTICA |
+| **E-0.5-032** | **P1** | `docker-compose.yml` habilita `sweeper` y `docker-compose.runtime.yml` lo conserva. `run_sweep_cycle` anuncia purga STALLED; `find_stalled_documents` consulta PARSING/PROCESSING/READY_FOR_ASSEMBLY, no STALLED; `FailDocumentCommand` produce FAILED_RETRYABLE, no el FAILED_FATAL registrado, sin comparar leases ni receipts. | NADR-F18-04 §5.3 R8 exige coherencia en recuperación; ENGINEERING_PRINCIPLES §IV impide informar estados falsos. Host real NO VERIFICABLE. | **GAP-0.5-03 OPEN** |
+| **E-0.5-033** | P2 | Tests B3/B4 de crash entre publicación/ACK/FSM y corrupción/mixed/rollback, y W06 con provider fake, versionan las barreras pero están NOT_RUN. | Testigo escrito ≠ ejecución física, SIGKILL, power loss o garantía remota. | TESTIGOS |
+| **E-0.5-034** | P2 | `ThreadOwnedSQLiteRateLimitStore` posee DB de cuotas en un hilo; `InferenceMeasurementService` estima tokens, mientras `WorkUnitObservation` es telemetría de estado, sin evidencia de reporte durable de excepción/costo real. | NADR-F18-05 R4–R15 separa actividad cliente, duplicación y costo. Conformidad real de excepción NO VERIFICABLE. | DQ-0.5-04 |
 
-**Severidad actual:** las evidencias originales E-001…018 conservan IDs y clasificación de apertura. E-019/020 son P1 **locales** demostrados contra requisitos existentes; E-021…026 delimitan causas y reconcilian rutas alternativas. No se declara duplicación comercial ni `PASS` científico.
+**Severidad actual:** E-001…026 retienen sus IDs y su calificación previa. **E-032** aporta la conectividad que faltaba a E-023 y permite clasificar el sweeper como P1 LOCAL sin elevar retroactivamente E-023. No se ha ejecutado el servicio, ni verificado factura/duplicación.
 
 ### Fichas extendidas P1 (§4.7)
 
