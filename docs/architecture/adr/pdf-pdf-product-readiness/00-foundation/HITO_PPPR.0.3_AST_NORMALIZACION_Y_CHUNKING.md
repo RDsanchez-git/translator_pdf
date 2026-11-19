@@ -19,7 +19,7 @@
 | 1.0.0-IN_PROGRESS | 2026-11-19 | Apertura posterior al merge interno #67, con primera lectura directa de composición OCR, AST/hash, contexto, chunker y manifest; frontera provisional y cuestiones falsables. No tests ejecutados ni FROZEN. |
 | 1.0.1-IN_PROGRESS | 2026-11-19 | Segunda pasada: NADR-F17BIS-03/16 contrastados; ruta OCR real vs alternativa/histórica; cobertura de manifest, contexto y tests; E-0.3-009…017, ficha P1 jerárquica, GAP local y candidatos sin decisiones anticipadas. No tests ejecutados ni FROZEN. |
 | 1.0.2-IN_PROGRESS | 2026-11-19 | Tercera pasada: H-0.3-F/G clasificadas, secuencia física de encabezados y política PRESERVE verificadas; E-0.3-018…020, normalización de pre-image contrastada con NADR-03 R4; nueva ficha P1, matriz de cumplimiento y triaje de DC/DQ. Sin ejecutar pruebas, cambiar producción ni FROZEN. |
-| 1.0.3-FROZEN | 2026-11-19 | Cierre §8.1–8.2 y no-regresión: 20 E-IDs, 2 GAP P1 OPEN, 8 hipótesis con veredicto, 4 DQ, 3 DC, garantías y secuencia Git. Sin pruebas físicas ni modificación productiva. |
+| 1.0.3-FROZEN | 2026-11-19 | Cierre §8.1–8.2 y no-regresión: 20 E-IDs, 2 GAP P1 OPEN, 8 hipótesis con veredicto, 4 DQ, 3 DC, garantías y secuencia Git. Erratas editoriales previas a aprobación del PR: títulos de secciones, límite epistemológico y precisión canonización≠algoritmo. Sin pruebas físicas ni modificación productiva. |
 
 ## 1. RESUMEN EJECUTIVO
 
@@ -38,10 +38,10 @@ La composición seleccionada en `OCRRouterDaemon._process_document` calcula `com
 - **OBSERVADO:** lectura directa del código del SHA indicado, sin ejecutar los componentes; los tests existentes pueden aportar alcance de sus aserciones, no resultados nuevos.
 - **REQUIRED:** trazabilidad y explicitud del scope/principios, contratos implementados de hash semántico, segmentación y manifest. Verificar literalmente NADRs aplicables antes de atribuirles obligaciones.
 - **DECISION:** D-1/D-2 fijaron la ruta productiva; PPPR.0.2 congeló la frontera de extracción sin certificar orden científico. Mantener distintos el hash semántico de parser y la identidad canónica de oráculo.
-- **NO VERIFICABLE EN ESTA APERTURA:** tasa de error sobre papers reales, linaje de GT, validez de una sutura concreta, calidad de traducción, persistencia y generación física.
+- **NO VERIFICABLE EN ESTE HITO:** tasa de error sobre papers reales, linaje de GT, validez de una sutura concreta, calidad de traducción, persistencia y generación física.
 - **NO EJECUTADO:** pytest, PyMuPDF, OCR, servicios comerciales, compilador, GT/corpus o SQLite.
 
-## 3. ALCANCE AUDITADO — SEGUNDA PASADA
+## 3. ALCANCE AUDITADO — PERÍMETRO DE CIERRE
 
 La cobertura es por **responsabilidad en la ruta elegida**, no por inferencia de inexistencia de otras rutas. `AUDITADO` significa lectura directa del símbolo del SHA, no test ejecutado ni certificación científica.
 
@@ -104,7 +104,7 @@ Ruta distinta: build_pipeline() → TranslationPipeline.execute()
 
 **Reconciliación histórica:** F17-BIS P3 describía `TokenBudgetChunker` alojado dentro de `core/ast/hashing.py`; en este SHA, `hashing.py` contiene solo firma, y la capacidad está en `core/chunking/semantic_chunking.py`. En consecuencia, no se reabre `P3-H02` como defecto actual. El bypass de `NormalizationPipeline` sigue observable **en el camino OCR inspeccionado**, pero no prueba por sí solo violación de una política canónica obligatoria, y la ruta `TranslationPipeline` es distinta. Los hallazgos del benchmark histórico van a PPPR.0.8.
 
-## 10. REGISTRO DE EVIDENCIA FORENSE — SEGUNDA PASADA
+## 10. REGISTRO DE EVIDENCIA FORENSE — CIERRE
 
 | E-ID | Sev. | Observed (código del SHA fijado) | Required / Decision / límite | Estado |
 |---|---|---|---|---|
@@ -218,7 +218,7 @@ Los veredictos confirman o acotan **comportamientos**, no resuelven cuestiones d
 
 ## 16. RESPUESTAS ACTUALIZADAS AL MANDATO
 
-**Estado observado:** AST plano → enriquecedor de contexto → unidades semánticas → `ChunkPlan`, con estrategia y fuente textual verificadas. El hash alternativo se consume como identidad operativa y omite tanto jerarquía como canonización exigida por NADR-03, generando GAP-0.3-01/02. La ruta OCR preserva headings aun cuando `resolve_strategy` los declara TRANSLATE y aplana niveles al pasar por `LayoutBlockDraft`. El documento inventaría esas propiedades sin decidir aceptación de producto ni afirmar resultado PDF, proveedor, GT o CI. La semántica efectiva de títulos/subsecciones y normalización científica será materia de gobernanza posterior, no de implementación inmediata.
+**Estado observado:** AST plano → enriquecedor de contexto → unidades semánticas → `ChunkPlan`, con estrategia y fuente textual verificadas. El hash alternativo se consume como identidad operativa y omite tanto jerarquía como canonización exigida por NADR-03, generando GAP-0.3-01/02. La ruta OCR preserva headings aun cuando `resolve_strategy` los declara TRANSLATE y aplana niveles al pasar por `LayoutBlockDraft`. El documento registra esas propiedades sin decidir aceptación de producto ni afirmar resultado PDF, proveedor, GT o CI. La semántica efectiva de títulos/subsecciones y normalización científica será materia de gobernanza posterior, no de implementación inmediata.
 
 ## 17. CONTRASTE NORMATIVO FOCAL (SIN CERTIFICAR PRODUCTO)
 
@@ -232,7 +232,7 @@ Los veredictos confirman o acotan **comportamientos**, no resuelven cuestiones d
 | **NADR-05 §5.1 R1–R3** | Contexto real y fallo explícito | Enriquecedor y checks de contexto conectados antes de G3 | **PASS estático en productor** | E-004/012/017 |
 | **NADR-05 §5.2 R4–R6** | Claves de materialización vinculadas al contexto | Plan incluye `context_id`; efectos de persistencia/consumo no auditados aquí | **FUERA DEL PERÍMETRO 0.3; PPPR.0.5** | E-012/017 |
 
-Un `PASS estático` expresa únicamente el subconjunto de regla demostrado por código, no una certificación end-to-end. Los dos `FAIL LOCAL` son los GAPs existentes, no defectos duplicados.
+Un `PASS estático` expresa únicamente el subconjunto de regla demostrado por código, no una certificación end-to-end. Los dos `FAIL LOCAL` son los GAPs existentes, no defectos duplicados. **Precisión normativa de R4:** el requisito vigente exige canonización antes de calcular la firma; **no selecciona por sí mismo NFC, NFKC ni otra política Unicode**, ni autoriza transformar fórmulas científicas sin una decisión posterior justificada por evidencia. La elección de algoritmo y el tratamiento de símbolos STEM permanecen en DC-0.3-03.
 
 ## 18. MATRIZ DE TRAZABILIDAD DE DECISION CANDIDATES
 
