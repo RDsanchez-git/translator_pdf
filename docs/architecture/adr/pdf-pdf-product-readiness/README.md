@@ -1,6 +1,6 @@
 # PDF→PDF Product Readiness — entrada documental de la etapa
 
-**Estado:** IN_PROGRESS — apertura de Fase 0; no se ha aprobado un diseño ni se acredita `PRODUCT_READINESS=PASS`.  
+**Estado:** GOBERNANZA EN CONSTRUCCIÓN — Fase 0 en curso; PPPR.0.1 está FROZEN, pero todavía no están cerradas la auditoría global, la gobernanza ni la planificación aprobada. `PRODUCT_READINESS=PASS` NO acreditado.  
 **Fecha de apertura:** 2026-11-18.  
 **Baseline de lectura:** `main@1d21cfe958cc1de8a33824fed748cd6fe9260f42`.  
 **Naturaleza:** punto de navegación y delimitación del mandato, **no** ADR Maestro, NADR, Execution Plan ni evidencia forense.
@@ -42,25 +42,29 @@ Se aplican, con sus precedencias y estados FROZEN, los documentos existentes:
 - [Guía de arquitectura](../../README.md), `PROJECT_SCOPE.md` y `ENGINEERING_PRINCIPLES.md`.
 - [Handoff vigente de convergencia](../pipeline-stabilization/handoff/README.md), ADR/NADR FROZEN aplicables (incluida Fase 18), y [evidencia TST-STAB](../tests_stabilization/PLAN_REMEDIACION_TESTS_PIPELINE.md).
 
-**Nota de nomenclatura y alcance:** el owner fijó la convención **`HITO_PPPR.0.x_{NOMBRE_DISTINTIVO_CORTO}.md`** el 2026-11-19. `PPPR` identifica una iniciativa transversal fuera de la numeración del roadmap, no una fase nueva. Se conserva la carpeta `pdf-pdf-product-readiness/00-foundation/`; la metodología general y la canónica de HITOs siguen aplicando, sin modificarlas ni derogar su prelación. Los IDs internos ya registrados del 0.1 no se reasignan. Conforme a §6.7 de la metodología general, el PR de HITO sigue **Draft y sin integrar en main** hasta el cierre de Fase 0.
+**Nota de nomenclatura y alcance:** el owner fijó la convención **`HITO_PPPR.0.x_{NOMBRE_DISTINTIVO_CORTO}.md`** el 2026-11-19. `PPPR` identifica una iniciativa transversal fuera de la numeración del roadmap, no una fase nueva. Se conserva la carpeta `pdf-pdf-product-readiness/00-foundation/`; la metodología general y la canónica de HITOs siguen aplicando, sin modificarlas ni derogar su prelación. Los IDs internos ya registrados del 0.1 no se reasignan. Conforme a §6.7 de la metodología general, los HITOs de Fase 0 se integrarán en `main` tras concluir esa auditoría. **En esta etapa se retendrá el PR general #66 en Draft hasta completar además el paquete documental de gobernanza**; los HITOs FROZEN se revisan incrementalmente mediante PR internos hacia la rama de gobernanza, sin declararlos integrados en `main` antes de tiempo.
 
-## 4. Estado documental y secuencia
+## 4. Estado documental y secuencia canónica
 
-1. **Fase 0 en curso:** únicamente HITOs forenses bajo `00-foundation/`, con sus matrices e inventarios **dentro de esos HITOs**. Primer entregable: [HITO_PPPR.0.1_RUTA_Y_PERIMETRO.md](00-foundation/HITO_PPPR.0.1_RUTA_Y_PERIMETRO.md), **FROZEN como HITO**, aún sin merge a `main`. Los siguientes HITOs PPPR.0.2–0.9 continúan la investigación de Fase 0.
-2. **Después de cerrar la auditoría:** sintetizar decisiones y emitir los ADR/NADR que correspondan, reutilizando obligaciones existentes antes de crear nuevas. Ningún Execution Plan se aprueba por adelantado.
-3. **Después de la gobernanza:** un Execution Plan único y vivo ordenará tareas, gates, evidencias, PR, commits y estados.
-4. **Al ejecutar:** tests y CI por SHA exacto, revisiones conforme a la metodología y handoff final con límites expresos.
+1. **Fase 0 — auditoría forense:** HITOs `HITO_PPPR.0.1`…`PPPR.0.9` previstos, cada uno con evidencia, alcance y cierre conforme a la metodología de HITOs. El [PPPR.0.1](00-foundation/HITO_PPPR.0.1_RUTA_Y_PERIMETRO.md) está **FROZEN v1.0.9**; el número y partición de los restantes solo se ajustan si la evidencia lo exige. Los grafos e instrumentos temporales no se incorporan al repo. Fase 0 **NO está cerrada**.
+2. **Después del cierre forense:** construir y aprobar el **ADR Maestro**; ADR de sub-fase **solo si hace falta**; y los **NADR necesarios**, con trazabilidad a las evidencias, reglas existentes y decisiones. No se crean documentos redundantes ni se reemplazan NADRs FROZEN ajenos a esta iniciativa.
+3. **Después de los NADR aprobados:** crear y aprobar **un único Execution Plan vivo** con tareas, secuencia, dependencias, gates y referencias a reglas, sin introducir una matriz paralela de implementación. La existencia de un borrador no autoriza implementar.
+4. **Gate documental de gobernanza:** mantener el [PR #66](https://github.com/RDsanchez-git/translator_pdf/pull/66) como **Draft** hasta que estén completos, revisados y aprobados los artefactos aplicables de auditoría, ADR/NADR y Execution Plan. Solo entonces presentar el PR general para revisión final y, previa aprobación explícita, integrar el paquete documental a `main`.
+5. **Implementación posterior:** únicamente tras tener las decisiones normativas y el Execution Plan aprobados **e integrados a `main`**. La implementación usa PR de código independientes desde `main` y sigue DoR, DoD, CI, Exit Review Evidence Log y Deferred Findings Register según la metodología. Los artefactos de revisión propios de la ejecución se producen en sus gates, **no** se inventan como prerrequisito documental de esta fase.
 
-No se crean carpetas vacías para `ADR/`, `NADR/`, `plans/`, `reports/`, `reviews/` ni `handoff/`. Se crearán solo cuando exista su primer artefacto legítimo.
+No se crean carpetas vacías para `ADR/`, `NADR/`, `plans/`, `reports/`, `reviews/` ni `handoff/`: cada carpeta aparece con su primer artefacto legítimo.
 
-## 5. Política Git de la etapa
+## 5. Política Git para gobernanza PPPR
 
-- **Única rama de integración:** `main`.
-- `pdf-pdf-product-readiness` es **solo la rama temporal de este primer PR documental**, no una rama acumuladora de toda la etapa.
-- Cada entrega posterior parte del `origin/main` actualizado; un PR acotado, inicialmente Draft; aceptación y squash a `main`, o cierre sin merge si es rechazado.
-- Tras integrar o rechazar, se elimina la rama temporal cuando corresponda. No apilar PR ni mantener ramas de fase largas.
-- La continuidad reside en `main`, las evidencias de los HITOs, el plan vivo y los PR, no en ramas históricas.
-- No tocar el workspace local del owner ni modificar/restaurar archivos locales ajenos al PR.
+**Ramas y destino:**
+
+- `main`: única rama de **integración definitiva**. No se modifica durante la preparación documental de PPPR.
+- `pdf-pdf-product-readiness`: **rama temporal de integración de gobernanza** de toda la iniciativa (Fase 0 + ADR/NADR + Execution Plan). Es el `head` del **PR #66 Draft hacia `main`**, no una rama permanente de producto. Su nombre actual ya identifica la iniciativa; **no se renombra mientras #66 esté abierto**, para conservar ese PR y sus revisiones.
+- `pppr/hito-0.2`, `pppr/hito-0.3`, …: ramas **cortas**, nacidas de la última versión de `pdf-pdf-product-readiness`; cada una presenta su propio PR **hacia la rama de gobernanza**, no a `main`. Se revisa, integra y elimina **antes de iniciar la siguiente**, evitando cadenas de PR apilados. `PPPR.0.1` ya se encuentra en la rama general.
+- Tras completar la auditoría: ramas cortas separadas para `ADR Maestro`, los ADR de fase que realmente apliquen, `NADR` necesarios y `Execution Plan`, **en el orden metodológico**, con PR individuales hacia la rama de gobernanza. No se adelantan decisiones ni implementación.
+- Una vez aprobado el paquete documental completo, **un solo merge final del PR #66 a `main`**, con estrategia que preserve la trazabilidad de commits/hitos si las reglas del repositorio lo permiten. Eliminar luego la rama general y las ramas auxiliares ya integradas.
+
+**Reglas:** la secuencia real se registra en commits y PR revisados, no en ramas históricas retenidas; no se reutilizan nombres de ramas antiguas ni se hace merge automático; cada PR interno parte de la rama de gobernanza actualizada y se integra antes de abrir el siguiente. Los HITOs pueden estar FROZEN en la rama de revisión sin implicar integración en `main`. No se toca el workspace local del owner, SQLite, oráculos ni corpus. Se mantiene la precedencia de la metodología general y el carácter read-only de la auditoría.
 
 ## 6. Condición de salida de la Fase 0 (prerregistro de auditoría; no DoD de producto)
 
