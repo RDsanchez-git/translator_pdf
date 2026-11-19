@@ -1,6 +1,6 @@
 # HITO_0.1_RUTA_OPERATIVA_Y_PERIMETRO.md
 
-**Estado:** IN_PROGRESS v1.0.5  
+**Estado:** IN_PROGRESS v1.0.6  
 **Fecha de emisión:** 2026-11-18  
 **Fecha de congelamiento:** N/A  
 **Fase:** Fase 0 — Auditoría forense de la iniciativa `pdf-pdf-product-readiness` (la designación de fase numerada del roadmap aún requiere resolución de gobernanza).  
@@ -9,7 +9,7 @@
 **Baseline de inspección:** `main@1d21cfe958cc1de8a33824fed748cd6fe9260f42`. Las observaciones posteriores deben citar su SHA de fuente.  
 **Evidencia Forense Vinculante:** `docs/architecture/1_METHODOLOGY_FOR_ORDERED_PIPELINE_CHANGES.md`; `docs/architecture/1.2_METH_FOR_FORENSIC_HITOs.md` v1.2.0 FROZEN; Atlas, handoff y evidencia C0–C4 D-1/D-2; ADR/NADR F18 vigentes y `PHASE_18.2_EXECUTION_PLAN.md` sin alterar sus estados; TST-STAB; `PROJECT_SCOPE.md`, `ENGINEERING_PRINCIPLES.md`; código en `main@1d21cfe`.  
 **Mandato:** Determinar la ruta ejecutable real, sus fronteras y dependencias, la cobertura necesaria de auditoría y las incertidumbres que impiden planificar por evidencia una traducción PDF→PDF STEM utilizable.  
-**Síntesis:** Inicio documentado de la auditoría. Se han identificado contratos y acoplamientos concretos en G3 y CLI, pero **aún no existe inventario exhaustivo, matriz consolidada ni cierre forense**.
+**Síntesis:** Inventario estático de roots, contratos y componentes en curso; el grafo v2 cubre los 579 módulos Python del SHA base y permite diferenciar enlaces estáticos, inferidos y no resueltos. Persisten fronteras inyectadas y consumidores externos no verificables; **el HITO no está cerrado**.
 
 ### Changelog
 
@@ -21,6 +21,7 @@
 | 1.0.3-IN_PROGRESS | 2026-11-18 | Mapa de contratos entre fronteras y dependencia por capacidad, matriz de responsabilidad de los HITOs 0.2–0.9 y verificación focal de mecanismos B02/W08/G3/F18/G5/CI. Sin cierre de auditoría ni gap nuevo. |
 | 1.0.4-IN_PROGRESS | 2026-11-18 | Control de cobertura y roots adicionales sobre SHA fijo; reconciliación literal con metodología HITOs v1.2.0; severidad conforme consecuencias, desarrollo P1 y GAP local fundamentado. Cierre aún no autorizado. |
 | 1.0.5-IN_PROGRESS | 2026-11-18 | Primera pasada integral sobre grafo aportado por el owner (20.615 líneas), contraste focal contra rutas y llamadas asíncronas de main, límites de un grafo de llamadas sin imports ni destinos enlazados. Ninguna brecha nueva de producto. |
+| 1.0.6-IN_PROGRESS | 2026-11-19 | Contrastado grafo v2 enlazado con el SHA base y los 579 Python versionados, revisión de 6.399 edges y 7.384 unresolved por categorías, fronteras de puertos inyectados OCR/G3/G5 verificadas focalmente. Sin nueva brecha ni cierre prematuro. |
 
 ## 1. RESUMEN EJECUTIVO
 
@@ -134,6 +135,40 @@ Se inspeccionó el archivo aportado `PIPELINE_GRAPH.rar` (SHA-256 `dd37803735a01
 
 **Resultado:** el grafo es valioso para inspeccionar el **inventario positivo de símbolos** y dirigir el análisis selectivo, pero es **inapropiado para una prueba negativa de ausencia de consumidores dinámicos**. Antes de certificar completitud de esos consumidores se necesita un censo de imports/callers de código versionado, configuración y servicios externos documentados; la ausencia física de un servicio ajeno al repositorio es `NO VERIFICABLE` sin evidencia del host. No fabricar un segundo Atlas, ni persistir el archivo externo sin justificación y autorización.
 
+### Insumo adicional: grafo enlazado v2 del owner, inspeccionado y contrastado
+
+El owner entregó `translator_pdf_graph.rar` (SHA-256 `65b119239afd9a2e99b3a0a8a36d28582acf655e65e535656470a7c73e5ab72b`), con los **seis** artefactos `graph_inventory.json`, `graph_edges.csv`, `graph_unresolved.csv`, `graph_dynamic.csv`, `graph_resolved.mmd`, `graph_summary.md`. Se abrieron y analizaron; el inventario declara `commit_sha=1d21cfe958cc1de8a33824fed748cd6fe9260f42` y **una modificación del árbol de trabajo: borrado de PDF versionado**, no código Python. La comparación con el árbol Git recursivo `truncated=false` confirma **579/579 archivos `.py` versionados contabilizados**; `0` fallos de parseo. La procedencia es más fuerte que la del grafo v1, pero el artefacto todavía es **contextual, no una ejecución ni un resultado normativo**.
+
+| Indicador del v2 | Resultado | Interpretación admisible |
+|---|---:|---|
+| Módulos analizados / archivos `.py` de main | 579 / 579 | Censo de módulos versionados completo; no garantiza todas las ramas operativas |
+| Definiciones indexadas | 4.743 | Incluye funciones y métodos asíncronos ausentes en v1 |
+| Aristas enlazadas | 6.399 | 5.875 `static`, 524 `inferred`; **3.625** entre módulos |
+| Llamadas no resueltas | 7.384 | 5.304 atributos externos/dinámicos, 1.188 externos/no resueltos, 892 `self` sin tipo inferible; **no son 7.384 problemas** |
+| Sitios dinámicos o de efecto | 1.064 | 954 expresiones compuestas y 110 `dispatch_o_efecto_dinamico`; **no son 1.064 plugins** |
+| Núcleo focal (`apps/cli`, `apps/ocr_router`, `runtime`, `apps/llm_workers`, `apps/bootstrap`, `apps/compiler`, `infra/db`) | 499 edges, 995 unresolved, 107 sitios señalados | De los 107, 90 son expresiones compuestas y 17 `getattr`/`subprocess.run`; requieren lectura semántica selectiva |
+
+**Enlaces positivos verificados sobre código y grafo del mismo SHA:**
+
+| Frontera | Enlace/resolución v2 | Confirmación en código |
+|---|---|---|
+| CLI → G3 | `apps.cli.pdf_product._run_g3` → `runtime.engine.run_pipeline`, `import_explicito/static`, línea 113 | Import local + llamada directa |
+| G3 → composition root | `runtime.engine._create_chunk_processor` → `apps.bootstrap.provider_stack_factory.build_provider_stack`, `import_explicito/static`, línea 87 | Factory asíncrona compone Groq/Gemini condicional; `cache_db_path=None` en G3 |
+| Foreground → OCR | `_ingest` → `OCRRouterDaemon._process_document`, `metodo_instancia_inferido/inferred`, línea 108 | Construcción del daemon explícita en `apps/cli/pdf_product.py` |
+| Foreground → G5 | `_run_g5` → `AssemblerWorkerDaemon._process_assembly_task`, `metodo_instancia_inferido/inferred`, línea 162 | Construcción de runner, resolver y compilation service explícita |
+| OCR → plan | `OCRRouterDaemon._process_document` → `prepare_contextual_plan`, `import_explicito/static`, línea 121 | Import y uso en OCR |
+
+**Fronteras inyectadas que el grafo v2 marca correctamente `unresolved`, y su tratamiento:**
+
+- `apps/ocr_router/__main__.py`: `self.parser.parse`, `self.document_profiler.profile`, `self.ast_registry.register_ast` se enlazan **por constructor**, verificado focalmente en `apps/bootstrap/pipeline_factory.py`, `apps/cli/pdf_product.py` y OCR; su semántica específica corresponde a 0.2/0.3.
+- `runtime/chunk_staging.py::stage_claimed_unit`: `processor.execute_chunk` y `repo.stage_chunk_result` se verifican por firma/protocolo y composición de G3; **no** se equipara una invocación al éxito del proveedor. Dueños 0.4/0.5.
+- `apps/llm_workers/sync_bridge.py::SyncProviderBridge.execute_chunk`: `self._builder.build` y `self._provider.translate` se configuran en el constructor; la segunda atraviesa el stack CB/RateLimit/Groq, y el POST real queda **NO VERIFICABLE** aquí. Dueño 0.4.
+- `apps/compiler/__main__.py::_process_assembly_task`: `self.context_resolver.resolve`, `self.compilation_service.compile_document_with_assets` y `self.runner.compile` son puertos inyectados por la composición G5; `HostTectonicRunner.compile` ejecuta `subprocess.run` con Tectonic, sin ensayo físico nuevo. Dueños 0.6/0.7.
+- `Graph_dynamic.csv` registra `getattr` de datos geométricos/CLI y `subprocess.run`; no se deben contar como loaders de clases. No se ha acreditado que los consumidores fuera de Git estén ausentes.
+
+**Delimitación de salida:** se completó el **censo estático de archivos Python y de enlaces que el analizador es capaz de resolver**. Falta comprobar exhaustividad semántica de las llamadas `unresolved` de alto impacto, los sitios configurados condicionalmente, Compose efectivo y los procesos del host; estos últimos no se pueden cerrar solo con otro grafo. El inventario v2 permite **priorizar** esa inspección sin convertir cada llamada al stdlib/SQLite en un nuevo HITO o gap. El grafo `.mmd` recorta la vista a un máximo de 350 aristas; las tablas CSV/JSON, no el dibujo, son la base de cobertura.
+
+
 
 **Fuera de alcance en Fase 0:** cambio de código, migración de datos, purga, traducción comercial, campaña de benchmark científico, carga de PDF de terceros y nuevos despliegues.
 
@@ -146,6 +181,7 @@ Se inspeccionó el archivo aportado `PIPELINE_GRAPH.rar` (SHA-256 `dd37803735a01
 | Forense/documentación vigente | `docs/architecture/adr/pipeline-stabilization/handoff/ATLAS_RUTA_OPERATIVA_UNICA_PDF_PDF.md` (corte `6818e86`, §§1–6 y 10) | Mapa histórico de entrypoints, datos, consumidores y pruebas de impacto; insumo a contrastar, no certificación de `main` |
 | Histórico y diff | [Comparación 6818e86…1d21cfe](https://github.com/RDsanchez-git/translator_pdf/compare/6818e86e21b14e77a606f0c863e9c199b4627601...1d21cfe958cc1de8a33824fed748cd6fe9260f42) | Cambio de superficies entre Atlas y baseline de la auditoría |
 | Contextual externo, no vinculante | Archivo del owner `PIPELINE_GRAPH.rar` / `PIPELINE_GRAPH.md`, SHA-256 documentados en §3 | Índice de funciones y llamadas para descubrimiento; falta procedencia Git y resolución entre módulos |
+| Contextual externo, con baseline atribuible | Archivo del owner `translator_pdf_graph.rar`, SHA-256 y seis artefactos en §3 | Grafo estático de los 579 `.py` sobre el SHA declarado; código y aristas corroboradas selectivamente; no prueba ejecución |
 | Forense/documentación vigente | `docs/architecture/adr/pipeline-stabilization/handoff/README.md` y `EVIDENCIA_Y_CIERRE.md` | Decisión D-1/D-2, límites fake y actas históricas |
 | Normativa aplicable | `docs/architecture/adr/phase-18/ADR/ADR_F18_MASTER.md`, `docs/architecture/adr/phase-18/NADR/NADR-F18-03.md` y NADR F18 restantes | Autoridad y efectos inciertos; revisión completa de cumplimiento en HITO 0.5 |
 | Plan histórico | `docs/architecture/adr/phase-18/plans/PHASE_18.2_EXECUTION_PLAN.md` | Estado histórico de gates/tareas; no crear plan competidor |
@@ -308,6 +344,10 @@ Esta es una **partición del alcance forense**, no el Execution Plan de implemen
 | **E-0.1-034** | P2 | Grafo recibido vs `runtime/engine.py::run_pipeline/_create_chunk_processor` y `apps/bootstrap/provider_stack_factory.py::build_provider_stack` en main | El grafo **omite el archivo G3 seleccionado** y la definición `async def` de factory, aunque ambos existen en el código. Se prohíbe usar ausencia de arista como ausencia de consumidor. |
 | **E-0.1-035** | P2 | Grafo `call_getattr` vs `apps/cli/main.py::handle_translate`, `apps/compiler/__main__.py::RenderGeometryAdapter/RenderAssetAdapter` | Las llamadas `getattr` focales acceden a atributos de argumentos/AST y no constituyen descubrimiento de providers mediante reflexión. En otros módulos aún puede existir dispatch dinámico; no se afirma ausencia general. |
 | **E-0.1-036** | P2 | Grafo vs `apps/llm_workers/adapters.py::GroqProvider.translate`, `apps/bootstrap/provider_stack_factory.py::build_provider_stack`, `apps/cli/pdf_product.py::_run_g3` | Las definiciones asíncronas del adaptador y factory no están representadas; `_run_g3` sí produce `call_run_pipeline` pero el grafo no resuelve su destino G3. Un análisis exhaustivo requiere imports, contratos y composición, no solo `call_*`. |
+| **E-0.1-037** | P2 | `translator_pdf_graph.rar::graph_inventory.json/graph_summary.md`; Git tree `main@1d21cfe` | **Cobertura v2 comprobada:** 579 Python versionados y parseados, 0 fallos, 6.399 edges; 524 inferidos se distinguen de 5.875 estáticos. Una eliminación local de PDF no es código, pero impide interpretar la salida como solo un checkout limpio por SHA. |
+| **E-0.1-038** | P2 | `graph_edges.csv` + `apps/cli/pdf_product.py::_ingest/_run_g3/_run_g5`, `runtime/engine.py::_create_chunk_processor` | Se corroboraron los enlaces CLI→G3, G3→factory, foreground→OCR y foreground→G5, con distinción de confianza `static`/`inferred`; prueba de composición estática, no E2E. |
+| **E-0.1-039** | P2 | `graph_unresolved.csv` + `apps/ocr_router/__main__.py::_process_document`, `runtime/chunk_staging.py::stage_claimed_unit`, `apps/llm_workers/sync_bridge.py::execute_chunk` | Persisten llamadas a puertos/atributos inyectados sin tipo resuelto por analizador; se rastrearon constructores y contratos en código. `unresolved` no equivale a plugin ni ausencia de consumidor. |
+| **E-0.1-040** | P2 | `graph_dynamic.csv`, `apps/compiler/__main__.py::_process_assembly_task`, `apps/compiler/tectonic_runner.py::HostTectonicRunner.compile` | Los sitios dinámicos combinan `getattr` de datos, expresiones compuestas y `subprocess.run` real del compilador; no son evidencia de 1.064 puntos de extensión desconocidos. El servicio del host sigue no verificado. |
 
 **Criterio de severidad aplicado (§7.1):** solo `E-0.1-002` es **P1 por incumplimiento estructural demostrado** de la decisión de presupuesto frente al request físico. Los demás E-IDs se mantienen **P2 como evidencia contextual o de riesgo latente**, sin declarar defecto no comprobado. La ausencia de una demostración en esta pasada no es un P1 automático; ningún E-ID implica PASS de ciencia.
 
@@ -371,6 +411,8 @@ Los IDs existentes no se reasignan. `E-0.1-023` complementa `E-0.1-002` con la f
 | H-0.1-L | No existen mecanismos concretos de preservación STEM en la ruta | RECHAZADA COMO AUSENCIA GENERAL | E-0.1-021, E-0.1-026 | Alcance científico por verificar en 0.2/0.6 |
 | H-0.1-M | El grafo proporcionado cubre todas las rutas y prueba ausencia de consumidores dinámicos | RECHAZADA | E-0.1-033, E-0.1-034, E-0.1-036 | No cerrar HITO basándose en ese negativo; censo estático adicional y externos NO VERIFICABLE |
 | H-0.1-N | Todos los `getattr` que figuran en el grafo corresponden a carga de servicios | RECHAZADA para casos focales, generalidad no verificada | E-0.1-035 | Distinguir atributo de dato, dispatch por protocolo y reflexión de importación |
+| H-0.1-O | El grafo mejorado aún omite `runtime.engine` y funciones `async` | RECHAZADA para v2 | E-0.1-037, E-0.1-038 | Los 579 Python y enlaces estáticos se indexan; confirmar consumidores indirectos mediante puertos |
+| H-0.1-P | Toda llamada `unresolved` implica un consumidor desconocido productivo | RECHAZADA como generalización | E-0.1-039, E-0.1-040 | Priorizar solo puertos, configuración y efectos relevantes por HITO 0.2–0.8 |
 
 **Al cierre, todo `TO BE VERIFIED` tendrá disposición según §8.2 de la metodología: sin bloqueo del mandato, razón explícita y destino.** Ninguna hipótesis abierta puede quedar en un HITO `FROZEN`.
 
@@ -383,10 +425,10 @@ Los IDs existentes no se reasignan. `E-0.1-023` complementa `E-0.1-002` con la f
 
 ## 21. CIERRE DEL HITO 0.1
 
-**Estado del HITO:** IN_PROGRESS v1.0.5; **NO FROZEN**.  
-**Condición de cierre:** pendiente. Requiere inventario completo de entrypoints y consumidores relevantes (incluidos imports/configuración dinámica y herramientas), reconciliación de obligaciones con su versión vigente, referencias de evidencia y límites por superficie, clasificación de hipótesis, contradicciones resueltas o declaradas, y criterios verificables de transferencia a otros HITOs. Ya existe contraste estático inicial del Atlas, selección de roots, consumidores versionados focales, mapa de fronteras y dueño primario por HITO (§6.1–6.3). **No** equivale a censo global exhaustivo. El índice textual no permitió descartar consumidores por ausencia de resultados; quedan rutas dinámicas/externas, trazabilidad de dependencias relevantes y contraste de alcance por normativa. No se atribuye a 0.1 la revisión profunda de cada propiedad que está correctamente delegada a otro HITO. La inspección completa del grafo aportado (E-0.1-033..036) **confirmó que este no sustituye el censo de imports/callers**: omite `runtime/engine.py` y llamadas asíncronas. Queda pendiente corroborar estos consumidores por búsqueda fiable en código versionado, y separar claramente los de entorno externo `NO VERIFICABLE`.  
+**Estado del HITO:** IN_PROGRESS v1.0.6; **NO FROZEN**.  
+**Condición de cierre:** pendiente. Requiere inventario completo de entrypoints y consumidores relevantes (incluidos imports/configuración dinámica y herramientas), reconciliación de obligaciones con su versión vigente, referencias de evidencia y límites por superficie, clasificación de hipótesis, contradicciones resueltas o declaradas, y criterios verificables de transferencia a otros HITOs. Ya existe contraste estático inicial del Atlas, selección de roots, consumidores versionados focales, mapa de fronteras y dueño primario por HITO (§6.1–6.3). **No** equivale a censo global exhaustivo. El índice textual no permitió descartar consumidores por ausencia de resultados; quedan rutas dinámicas/externas, trazabilidad de dependencias relevantes y contraste de alcance por normativa. No se atribuye a 0.1 la revisión profunda de cada propiedad que está correctamente delegada a otro HITO. La inspección del grafo v1 (E-0.1-033..036) reveló omisiones importantes; el grafo v2 (E-0.1-037..040) **sí cubre los 579 Python versionados** e identifica 6.399 enlaces estáticos/inferidos, con fronteras OCR/G3/G5 comprobadas por lectura focal. **No** autoriza certificar resolución universal de 7.384 llamadas o 1.064 sitios potencialmente dinámicos: muchos son efectos externos/atributos, y los puertos inyectados necesitan análisis de composición. Consumidores host ajenos a Git permanecen `NO VERIFICABLE`, con destino 0.7; contratos internos profundos se asignan a 0.2–0.8. Se requiere aún revisar checklist y disposición de hipótesis antes del cierre.  
 **Verificación de cadena de gobernanza:** metodología general > metodología HITOs v1.2.0 FROZEN (especializada) > D-1/D-2 y Atlas descriptivo > NADR F18 y fuentes normativas aplicables > observaciones de este HITO > futuro ADR/NADR/Execution Plan. No hay ADR/NADR ni Execution Plan aprobados de esta iniciativa. El plan histórico F18.2 no se sustituye. **Contradicciones con HITOs previos:** ninguna acreditada; diferencias de alcance fake/real se clasifican, no se consideran contradicción. **Revisión de cierre:** pendiente del owner y validación de cobertura.  
 **Decision Candidates generados:** ninguno aprobado; las preguntas de H-0.1-B/E/H/J/K conservan razones y destinos en §15. El GAP-0.1-01 no prescribe solución.  
-**Siguiente paso recomendado:** completar censo de imports/callers y root/config efectivamente versionados con método que no omita definiciones asíncronas; reclasificar casos externos según §8.2 y validar checklist del owner antes de congelar. Solo después iniciar HITO 0.2, sin implementar código.
+**Siguiente paso recomendado:** usar los CSV/JSON v2 para auditar únicamente llamadas no resueltas *de frontera* y configuraciones/launchers que puedan cambiar la ruta soportada; reconciliar la cobertura y disponer hipótesis externas como `NO VERIFICABLE` según §8.2, con razón y destino. Revisar checklist con owner antes de `FROZEN`. Solo después iniciar HITO 0.2; sin implementación de código.
 
 > No usar esta versión `IN_PROGRESS` como prueba de que la auditoría de Fase 0 esté completa.
