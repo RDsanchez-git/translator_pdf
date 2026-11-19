@@ -1,8 +1,8 @@
 # HITO_PPPR.0.4_G3_PROMPTS_MODELOS_IDIOMA_Y_PRESUPUESTOS.md
 
-**Estado:** IN_PROGRESS v1.0.2  
+**Estado:** FROZEN v1.0.3  
 **Fecha de emisión:** 2026-11-19  
-**Fecha de congelamiento:** N/A  
+**Fecha de congelamiento:** 2026-11-19  
 **Fase:** PPPR — Fase 0 transversal de `pdf-pdf-product-readiness` (no fase numerada del roadmap)  
 **Tipo de artefacto:** Forensic Flow Audit  
 **Naturaleza:** Auditoría read-only; no implementa ni aprueba soluciones.  
@@ -11,7 +11,7 @@
 **Evidencia Forense Vinculante:** Metodología general v1.3.0 FROZEN; metodología forense v1.2.0 FROZEN; `PROJECT_SCOPE.md`, `ENGINEERING_PRINCIPLES.md`; D-1/D-2, Atlas; HITO PPPR.0.1–0.3 FROZEN; NADR-F17BIS-06 §5.1 (presupuestación) y NADR-F17BIS-05 (contexto), sujetos a contraste completo en esta auditoría.  
 **Mandato:** Determinar el G3 **efectivamente cableado**: prompts y lengua objetivo, modelo y ruta de proveedor, estimación de tokens/ventana/compresión/fallback, autorización de I/O, límites de gasto/quotas, respuesta estructurada y guardias de incertidumbre. Distinguir límites de este mandato de FSM/SQLite/W06 (PPPR.0.5), host/secretos (0.7) y pruebas científicas (0.8).
 **Aclaración owner — 2026-11-19:** primera versión = traducción **inglés→español (`en→es`)**, exclusivamente; no se requiere soporte multidioma ni selector de destinos. El owner solicita actualizar la configuración de inferencia obsoleta. La decisión fija el alcance del producto, **no** selecciona todavía proveedor, modelo, diseño ni presupuesto; formalizarla en ADR Maestro/Execution Plan.  
-**Síntesis:** Cuatro discrepancias P1 locales en el G3 seleccionado: modelo retirado, fallback sin selección física, destino español ausente y aceptación de fallback sin validar el contexto total. Presupuestos, cuota, JSON/math y W06 acotados; ninguna prueba comercial ni certificación.
+**Síntesis:** Cerrado el Flow Audit documental de G3: 4 GAP P1 locales OPEN (modelo retirado, fallback sin conmutación, destino `en→es` ausente y fallback con cabida insuficiente), 21 evidencias, 7 hipótesis clasificadas, 4 DQ y 4 DC. Sin ejecución comercial, calidad científica certificada ni implementación autorizada.
 
 ### Changelog
 
@@ -20,10 +20,11 @@
 | 1.0.0-IN_PROGRESS | 2026-11-19 | Apertura posterior al merge del PR #68; lectura focal de engine, builder, schema, renderer, Groq, presupuestos, stack de proveedor y testigos W06/G3. Evidencia provisional con límites; no ejecución ni FROZEN. |
 | 1.0.1-IN_PROGRESS | 2026-11-19 | Segunda pasada: CLI→OCR→G3, documentación oficial Groq, modelo retirado, idioma y SWITCH_MODEL; tres fichas P1/GAP OPEN. Se inspeccionaron presupuesto, representación medida vs request, JSON/matemáticas y testigos fake; 18 evidencias, 7 hipótesis clasificadas provisionalmente. Sin ejecución comercial ni FROZEN. |
 | 1.0.2-IN_PROGRESS | 2026-11-19 | Cierre de cobertura tokens/FinOps, JSON/math y W06; owner confirma EN→ES y actualización de inferencia; nuevo GAP-0.4-04 por cabida de fallback, 21 E-IDs y DQ/DC clasificadas. Sin ejecución ni FROZEN. |
+| 1.0.3-FROZEN | 2026-11-19 | Revisión de cierre §8.1–8.2: 21 E-IDs con cuatro fichas P1, 4 GAP OPEN, H-0.4-A…G clasificadas, 4 DQ y 4 DC trazables; normalización de tablas/editorial, garantías negativas y no-regresión con otros HITOs. Evidencia de retiro Groq vigente, sin ejecución comercial ni código productivo. |
 
 ## 1. RESUMEN EJECUTIVO
 
-Se auditó inicialmente la composición G3 que sigue a `ChunkPlan` en la ruta D-1/D-2. El root `runtime/engine.py::_create_chunk_processor` construye `PromptBuilder` con modelo y presupuestos fijos, inyecta el proveedor Groq a través de `build_provider_stack` y `SyncProviderBridge`, que materializa el prompt y valida respuestas JSON del chunk.
+Se auditó la composición G3 que sigue a `ChunkPlan` en la ruta D-1/D-2. El root `runtime/engine.py::_create_chunk_processor` construye `PromptBuilder` con modelo y presupuestos fijos, inyecta el proveedor Groq a través de `build_provider_stack` y `SyncProviderBridge`, que materializa el prompt y valida respuestas JSON del chunk.
 
 **Hallazgo central:**
 
@@ -31,7 +32,7 @@ Se auditó inicialmente la composición G3 que sigue a `ChunkPlan` en la ruta D-
 
 **Defectos dominantes confirmados:** **GAP-0.4-01** (E-001/013, modelo retirado), **GAP-0.4-02** (E-002, fallback no conmuta), **GAP-0.4-03** (E-003/011/012, destino `es` ausente), **GAP-0.4-04** (E-019, fallback puede autorizar un total mayor que su ventana). P1 locales; ningún fallo de API medido.
 
-**Veredicto previo al cierre:** los cuatro contratos deficientes están trazados; controles de salida/estimación son distintos de techo comercial. Sin medición de cuenta, corpus o costo. **IN_PROGRESS**; falta checklist formal §8.1–8.2, nunca `PRODUCT_READINESS=PASS`.
+**Veredicto forense de cierre:** el mecanismo de entrada, prompt, presupuestación, proveedor y validación está caracterizado con cuatro defectos locales trazados y límites de evidencia explícitos. Los controles de salida/estimación no prueban un máximo comercial de gasto, y los GAP permanecen OPEN. **FROZEN documental**, no `PRODUCT_READINESS=PASS`.
 
 ## 2. LÍMITE EPISTEMOLÓGICO Y MÉTODO FORENSE
 
@@ -41,22 +42,22 @@ Se auditó inicialmente la composición G3 que sigue a `ChunkPlan` en la ruta D-
 - **LÍMITE:** proveedor real, tokens facturados, privacidad y cotas por operación son **NO VERIFICABLE** mediante lectura estática. La **retirada del modelo** sí se verificó contra el anuncio oficial de Groq (fuente externa de 2025, consultada 2026-11-19), pero sin request autenticado. PPPR.0.5 auditará autoridad de ejecución, retries, UNKNOWN y estado; PPPR.0.7 despliegue/secretos; PPPR.0.8 testigos científicos.
 - **NO EJECUTADO:** pytest, SQLite, SDK de Groq/Gemini, red, PDF privado, Tectonic y corpus sellado.
 
-## 3. ALCANCE AUDITADO — SEGUNDA PASADA
+## 3. ALCANCE AUDITADO — PERÍMETRO DE CIERRE
 
 | Superficie | Símbolos / pruebas observadas | Estado y límite |
 |---|---|---|
 | CLI y admisión | `apps/cli/{main,pdf_product,pdf_inbox}.py::parse_arguments/_run_g3/run_admitted_pdf` | **AUDITADO** — E-0.4-011. Host/permisos/seguridad de input: 0.7 |
-| Root G3 | `runtime/engine.py::_create_chunk_processor/run_pipeline`; selección de runnable y configuración | **AUDITADO focal** — E-001/007/018. Lease/CAS FSM/SQLite: 0.5 |
+| Root G3 | `runtime/engine.py::_create_chunk_processor/run_pipeline`; selección de runnable y configuración | **AUDITADO focal** — E-001/007/018/019. Lease/CAS FSM/SQLite: 0.5 |
 | Prompt y lengua | `apps/llm_workers/{prompt_builder,sync_bridge}.py`; `core/prompting/{models,renderer,canonicalizer,intent_mapper,measurement_adapter}.py` | **AUDITADO** — E-002/003/004/012/015/017 |
 | Modelo y salida de red | `apps/bootstrap/provider_stack_factory.py`, `apps/llm_workers/adapters.py::GroqProvider.translate`, `core/prompting/dialects/openai_compatible.py` | **AUDITADO** — E-001/002/006; request comercial NO EJECUTADO |
 | Fuente externa de estado modelo | Groq Docs, `/docs/deprecations`, entrada «August 30, 2025: llama3-70b-8192» | **CONSULTADO** 2026-11-19 — E-013; no sustituye estado de credenciales propias |
-| FinOps y cuotas | `core/validation/{budget,estimators}.py`, `core/finops/measurement.py`, `apps/llm_workers/{rate_limiter,cache_provider}.py` | **AUDITADO focal** — E-005/008/009/014/017; no presupuesto monetario acreditado |
-| Tests versionados | `tests/unit/{test_prompt_builder,test_rate_limiter}.py`, `tests/integration/{test_g3_b4_3a_engine_staging,test_w06_g3_uncertain_effect_offline,test_g3_b1_policy_guardrails}.py` | **AUDITADOS como fuentes / NOT_RUN** — E-010/016, sin certificación comercial |
+| FinOps y cuotas | `core/validation/{budget,estimators}.py`, `core/finops/measurement.py`, `apps/llm_workers/{rate_limiter,cache_provider}.py` | **AUDITADO focal** — E-005/008/009/014/017/019; no presupuesto monetario acreditado |
+| Tests versionados | `tests/unit/{test_prompt_builder,test_rate_limiter}.py`, `tests/integration/{test_g3_b4_3a_engine_staging,test_g3_b3_structured_result_contract,test_w06_g3_uncertain_effect_offline,test_g3_b1_policy_guardrails,test_w08_cli_foreground_single_generation_offline}.py` | **AUDITADOS como fuentes / NOT_RUN** — E-010/016/020/021, sin certificación comercial |
 | Contratos FROZEN | NADR-F17BIS-06 §5.1; NADR-F17BIS-05 (contexto); scope/principios/PPPR.0.1–0.3 | **CONTRASTADO** para obligación de compatibilidad de tokens, identidad y fail-closed |
 | FSM W06, reutilización y publicación | `runtime/engine.py`, W06 offline; repositorios y g5 | **REFERENCIADO**: PPPR.0.5/0.6; no generalizar de un harness |
 | Host/seguridad, modelo vigente y corpus | Docker, claves, cuenta, tests con PDFs y oráculos científicos | **FUERA DEL MANDATO o NO VERIFICABLE**: PPPR.0.7/0.8 |
 
-**Cobertura para §8.1:** CLI, root G3, builder, request, budget, cuotas, guards, modelos y testigos examinados. Tokenizador/modelo futuro, costo real, FSM durable, G5, host, corpus y GT quedan NO VERIFICABLE/REFERENCIADO con destinos 0.5–0.8. Cobertura del mandato estático ≠ certificación científica.
+**Suficiencia §8.1:** las responsabilidades del mandato **CLI→G3→request/guards, presupuesto, cuotas y testigos** fueron auditadas por lectura focal de código y norma del SHA fijado. Modelos futuros, tokenizador real, costo facturado, estado FSM, G5, secretos/host y oráculo científico se delimitan como **REFERENCIADOS/NO VERIFICABLE** y se derivan a PPPR.0.5–0.8, ADR Maestro o Execution Plan. El 100% se refiere al perímetro forense **declarado**, no a equivalencia de PDF traducido, cobertura de todos los consumidores del repositorio ni ejecución de CI.
 
 ## 4. FUENTES DE EVIDENCIA Y PRECEDENCIA
 
@@ -64,9 +65,9 @@ Se auditó inicialmente la composición G3 que sigue a `ChunkPlan` en la ruta D-
 
 **Código primario del SHA fijado:** `apps/cli/main.py`, `apps/cli/pdf_product.py`, `runtime/engine.py`, `apps/llm_workers/{prompt_builder,sync_bridge,adapters,rate_limiter,cache_provider}.py`, `apps/bootstrap/provider_stack_factory.py`, `core/prompting/{models,renderer,measurement_adapter,canonicalizer}.py`, `core/validation/{budget,estimators}.py`.
 
-**Fuente externa oficial del proveedor (contextual, no un test):** Groq, «Model Deprecation», <https://console.groq.com/docs/deprecations> (consultada el **2026-11-19**). Enumera el modelo exacto `llama3-70b-8192` con **shutdown 2025-08-30**. No requiere claves ni ejecuta peticiones LLM. No se usa como autoridad para escoger modelo sustituto, pues otras deprecaciones pueden existir y los modelos disponibles varían según cuenta.
+**Fuente externa oficial del proveedor (contextual, no un test):** Groq, «Model Deprecation», <https://console.groq.com/docs/deprecations> (verificada el **2026-11-19**). Enumera `llama3-70b-8192` con **shutdown 2025-08-30** y aclara que los IDs retirados dejan de ser accesibles. Su reemplazo histórico sugerido, `llama-3.3-70b-versatile`, también figura retirado el 2026-08-16 para free/developer (con excepciones enterprise). **No** seleccionar automáticamente modelos por una recomendación histórica; requerir validación vigente y de cuenta. No se ejecutó ninguna llamada pagada.
 
-**Testigos (solo código, `NOT_RUN`):** `tests/unit/{test_prompt_builder,test_rate_limiter}.py`; `tests/integration/{test_g3_b4_3a_engine_staging,test_w06_g3_uncertain_effect_offline,test_g3_b1_policy_guardrails}.py`, además de los testigos B4/W08 de frontera PPPR.0.3/0.5. Las aserciones prueban **intención**, no un resultado ejecutado de esta auditoría.
+**Testigos (solo código, `NOT_RUN`):** `tests/unit/{test_prompt_builder,test_rate_limiter}.py`; `tests/integration/{test_g3_b4_3a_engine_staging,test_g3_b3_structured_result_contract,test_w06_g3_uncertain_effect_offline,test_g3_b1_policy_guardrails,test_w08_cli_foreground_single_generation_offline}.py`. Son testigos versionados con fakes, reloj artificial, SQLite descartable y/o PDF sintético; **ninguno se ejecutó** durante este HITO, ni certifica proveedor real o `en→es` científico.
 
 **Forense heredada:** HITOs PPPR.0.1–0.3 FROZEN; el informe F17-BIS y TST-STAB son cortes históricos y no prueban viabilidad comercial del G3 actual.
 
@@ -96,7 +97,7 @@ apps/cli/main.py translate file.pdf [SIN target_language]              (E-011)
 
 **Separación de límites:** `cache_db_path=None` desactiva una caché LLM por prompt, no estados `COMPLETED` ni materializaciones de FSM. `GROQ_RPM_LIMIT/GROQ_TPM_LIMIT` regulan solicitudes/tokens estimados por ventana, **no** un máximo facturable de USD; NADR-06 §5.1 gobierna estimación compatible con proveedor, no precio. No se llama al proveedor en esta auditoría.
 
-## 10. REGISTRO DE EVIDENCIA FORENSE — SEGUNDA PASADA
+## 10. REGISTRO DE EVIDENCIA FORENSE — FINAL
 
 | ID | Sev. | Observed y fuente | Required / Decision / límite | Estado |
 |---|---|---|---|---|
@@ -118,7 +119,6 @@ apps/cli/main.py translate file.pdf [SIN target_language]              (E-011)
 | **E-0.4-016** | P2 | `test_prompt_builder.py` prueba hash/envelope; `test_rate_limiter.py` usa clock fake; G3-B4/3a y W06 usan dobles/SQLite temporal. | No hay en estos testigos una aserción de extremo a extremo sobre idioma destino o fallback de modelo físico; no atribuir `PASS`. | LÍMITE DE TEST |
 | **E-0.4-017** | P2 | `PromptMeasurementAdapter.physical_network_payload` es JSON canónico de `PromptSchema`, mientras la petición HTTP contiene `RenderedPrompt`→messages y `response_format`; representaciones diferentes. | Requiere demostrar si la medición de tokens sobre el schema aproxima correctamente el request y el modelo efectivo (NADR-06). No atribuir subestimación cuantitativa sin caso focal. | HALLAZGO POR PROFUNDIZAR |
 | **E-0.4-018** | P2 | `runtime/engine.py` marca `G3_EXTERNAL_UNKNOWN` ante fallos posiblemente posteriores al efecto y distingue `CircuitOpenError` antes de red; W06 test usa fake. | Respetar separación de autoridad/retry y durabilidad en PPPR.0.5. No alegar segundo efecto sin evidencia. | FRONTERA DELIMITADA |
-
 | **E-0.4-019** | **P1** | `PromptBudgetCalculator.calculate` emite `SWITCH_MODEL` si `core_tokens <= fallback_window_limit` sin comparar `core_tokens + ctx_tok` contra fallback; `PromptBuilder` acepta esa decisión. | Puede aprobar un total que supera su propia ventana alternativa. | **GAP-0.4-04 OPEN** |
 | **E-0.4-020** | P2 | `parse_chunk_response` rechaza >4 MiB de respuesta por bytes UTF-8 **después** de la llamada comercial. | No equivale a `max_completion_tokens` pre-red ni tope de gasto; E-006/014. | GUARD POST-EFECTO |
 | **E-0.4-021** | P2 | `test_w08_cli_foreground_single_generation_offline.py` usa PDF sintético, parser controlado, proveedor fake y SQLite descartable para la ruta foreground. | Testigo de wiring, no calidad STEM ni Groq real; **NOT_RUN** aquí. | ALCANCE TEST |
@@ -228,7 +228,7 @@ if core_tokens <= self.fallback_window_limit:
 
 **Responsable de implementación:** **NO ASIGNADO** hasta el Execution Plan aprobado. El owner fijó EN→ES y la necesidad de actualizar inferencia, no su diseño. Estos GAPs identifican responsables **técnicos del comportamiento**, no prescriben un modelo, un API, una CLI nueva ni un plan de remediación. No se promueven a GAP automáticamente: falta de hard cap en dólares, ausencia de `max_completion_tokens`, compatibilidad no medida de `cl100k_base`, ni diferencia entre schema medido y request real. Son riesgos o Decision Candidates, sujetos a contrato adicional y falsadores.
 
-## 15. HIPÓTESIS, LIMITACIONES Y DESTINOS (§8.1–8.2) — IN_PROGRESS
+## 15. ESTADO TERMINAL DE HIPÓTESIS Y DESTINOS (§8.1–8.2)
 
 | ID | Veredicto de esta pasada | Evidencia, límite y destino |
 |---|---|---|
@@ -240,7 +240,7 @@ if core_tokens <= self.fallback_window_limit:
 | **H-0.4-F** | **NO VERIFICABLE en 0.4** | W06 offline y handler UNKNOWN observados, E-010/018, pero no se audita aquí todo el estado duradero; `DQ-0.4-02` → PPPR.0.5, no bloqueo de G3 prompt |
 | **H-0.4-G** | **NO VERIFICABLE** | `cl100k_base` inyectado, pero compatibilidad con tokenizador efectivo y esquema físico de request no demostrados; `DQ-0.4-03` → PPPR.0.8/0.7 con proveedor autorizado, sin gasto no autorizado |
 
-### 15.1 Deferred Questions y Decision Candidates (provisionales)
+### 15.1 Deferred Questions y Decision Candidates (diferidas a sus gates)
 
 | ID | Objeto y motivo de diferimiento | Destino |
 |---|---|---|
@@ -253,14 +253,58 @@ if core_tokens <= self.fallback_window_limit:
 | **DC-0.4-03** | Comportamiento de fallback: modelo compatible real o rechazo explícito, con ventana comprobada | ADR Maestro/Execution Plan |
 | **DC-0.4-04** | **Fijado:** renovar inferencia obsoleta. **Pendiente:** Groq con modelo vigente u otro backend, según calidad STEM EN→ES, límite, tokenizer, privacidad y costo; no copiar sustitutos históricos | ADR Maestro/Execution Plan |
 
-**Pendiente antes de FROZEN:** completar la reconciliación de las capacidades presupuestarias y testigos, revisar normativas restantes y convertir esta disposición provisional a veredictos terminales §8.1–8.2. No hay decisión de diseño aprobada aquí.
+**Disposición §8.1–8.2:** H-0.4-A…E tienen conclusiones estáticas/documentales confirmadas en su alcance; H-0.4-F/G son `NO VERIFICABLE` en este HITO y se derivan a DQ concretas. Las cuatro DQ indican motivo, no-bloqueo y destino; las cuatro DC delimitan decisiones que solo podrá resolver gobernanza posterior. **Ninguna queda abierta como hipótesis indeterminada.** Esta clasificación no acredita ejecución ni aprueba un diseño de proveedor/fallback.
 
-## 16. RESPUESTAS ACTUALIZADAS AL MANDATO
+## 16. RESPUESTAS AL MANDATO — CONCLUSIÓN
 
 El G3 usa Groq con ID retirado y contiene estimación, cuotas y validación JSON/math. Son **4 GAP P1 locales**: modelo retirado, fallback sin conmutación física, destino `es` ausente y aceptación de fallback sin comprobar el total de la ventana. El owner fija EN→ES solamente y pide renovar inferencia, sin elegir proveedor. `cl100k_base` y el schema medido no acreditan tokenizador/prompt wire; 4 MiB post-respuesta no limita costo pre-I/O.
 
-## 21. CIERRE DEL HITO — IN_PROGRESS
+## 21. CIERRE DEL HITO PPPR.0.4 — FROZEN v1.0.3
 
-**NO FROZEN — IN_PROGRESS v1.0.2.** 21 evidencias, 4 GAP P1 locales OPEN, 7 hipótesis clasificadas, 4 DQ y 4 DC; FinOps, testigos y EN→ES delimitados. Falta checklist final §8.1–8.2. Sin ejecuciones ni cambios productivos.
+### 21.1 Checklist obligatorio de cierre (§8.1–8.2)
 
-**Siguiente paso:** mantener un PR interno Draft de solo documentación; revisar de forma rigurosa el mismo HITO antes de congelarlo y, una vez aprobado/integrado, eliminar `pppr/hito-0.4` antes de PPPR.0.5. El PR general #66 permanece Draft hacia `main`. Ninguna implementación de producción se autoriza.
+| Condición | Resultado y evidencia |
+|---|---|
+| Metadata, estado, tipo, fecha y changelog | **CUMPLE** — encabezado, baseline `main@1d21cfe`, versiones 1.0.0–1.0.3 |
+| Resumen con hallazgo central, consecuencias y veredicto | **CUMPLE** — §1, E-001/002/003/019 y los cuatro GAPs |
+| Método read-only y límite epistemológico | **CUMPLE** — §2; documentación externa ≠ llamada comercial |
+| Cobertura del perímetro declarado | **CUMPLE para mandato estático** — §3: CLI→G3, builder, presupuesto, proveedor, respuesta y testigos; estado/host/G5/GT referenciados o no verificables |
+| Fuentes normativas, código, tests y estado proveedor | **CUMPLE** — §4 y SHA fijado; Groq oficial citado como hecho externo |
+| Mapa del flujo conectado y separación de consumidores | **CUMPLE** — §5; D-1/D-2 no reabiertos; cache prompt ≠ FSM |
+| IDs estables y severidad de toda evidencia | **CUMPLE** — 21 entradas E-0.4-001…021 (§10) |
+| Fichas extendidas P1, Observed/Required/Decision | **CUMPLE** — E-0.4-001/002/003/019 (§10); alcance P1 LOCAL delimitado |
+| Gaps con evidencia, contrato, estado y destino | **CUMPLE** — GAP-0.4-01…04 **OPEN** (§14); ninguna solución aprobada |
+| Hipótesis con veredicto terminal | **CUMPLE** — H-0.4-A…G (§15); ninguna `TO BE VERIFIED` sin disposición |
+| Deferred Questions con motivo, no-bloqueo y destino | **CUMPLE** — DQ-0.4-01…04 → PPPR.0.5/0.7/0.8 y ADR, §15 |
+| Decision Candidates separados de decisiones previas | **CUMPLE** — DC-0.4-01…04, §15; owner fija EN→ES y necesidad de renovar inferencia, no proveedor concreto |
+| Contradicciones con HITOs anteriores y no-regresión | **CUMPLE en el perímetro** — PPPR.0.1–0.3 reutilizados; W06/SQLite y ciencia derivadas a sus HITOs, no declaradas erróneamente como ausentes |
+| Garantías, cadena de gobernanza y próximo paso | **CUMPLE** — §§21.2–21.4 |
+| Ejecución real/CI/GT | **NO REQUERIDA** para el mandato read-only; **NOT_RUN**, sin `PRODUCT_READINESS=PASS` |
+
+**Regla §8.2:** el modelo comercial sustituto, tokenizador efectivo, coste facturado y comportamiento de W06/JSON bajo servicios reales **no se resuelven en este HITO**. Sus limitaciones, destinos y ausencia de bloqueo del inventario estático están documentados. Impiden certificar el producto y deben quedar como gates posteriores, no como `PASS`.
+
+### 21.2 Declaración de cierre y garantías
+
+**Estado: FROZEN v1.0.3 — 2026-11-19.** Se cierra **exclusivamente** la auditoría documental y estática de G3 (prompt, idioma, proveedor/modelo, ventanas, presupuesto, cuota, salida JSON/math y límites de W06) para la ruta observada en `main@1d21cfe958cc1de8a33824fed748cd6fe9260f42`.
+
+**Garantías positivas por código:** el stack conecta proveedor Groq, limitador RPM/TPM, circuit breaker y validador estructurado; el builder calcula reservas y decisiones; el bridge liga la respuesta a identidad de unidad y placeholders matemáticos; existe límite de 4 MiB del parser **post-respuesta**, no un techo físico pre-red. `cache_db_path=None` desactiva la capa de cache por prompt, no todos los reusos durables.
+
+**Hallazgos abiertos:** `GAP-0.4-01` (modelo retirado), `GAP-0.4-02` (fallback sin conmutación física), `GAP-0.4-03` (idioma destino español no transmitido) y `GAP-0.4-04` (fallback no valida el contexto total) permanecen **P1 LOCAL / OPEN**. El propietario fijó como producto inicial solo **inglés→español**, sin multidioma, y pidió renovar inferencia. **No** se ha elegido el proveedor/modelo sustituto ni autorizado cambios de producción.
+
+**Garantías NO otorgadas:** llamadas HTTP exitosas, cuenta o credenciales aptas, calidad STEM EN→ES, preservación semántica de PDFs, selección de modelo vigente, compatibilidad `cl100k_base` con tokenizer de proveedor, cabida real del prompt wire, máximo de salida o de gasto facturable, autoridad de retry/CAS/UNKNOWN, seguridad de hosting, GT/corpus ni PDF final certificado. No hubo nuevos `pytest`, Docker, SQLite comercial, requests LLM, cobros, compilación TeX, CI ni CV/GT.
+
+**Herramienta de ejecución de código:** no se requiere para acreditar los cuatro desacoples de contrato observables estáticamente; los testigos del repositorio se inspeccionaron pero **no se ejecutaron**. La prueba de proveedor deberá esperar una selección aprobada y un sandbox explícitamente autorizado con límite de gasto, control de una llamada, sin reintentos automáticos y sin corpus privado. El detalle del gate se determinará en ADR/Execution Plan, no en este informe.
+
+### 21.3 Cadena de gobernanza, hechos del owner y no-regresión
+
+Metodología general v1.3.0 FROZEN → metodología forense v1.2.0 FROZEN → `PROJECT_SCOPE.md` y `ENGINEERING_PRINCIPLES.md` → D-1/D-2 y Atlas de ruta única → NADR-F17BIS-06 §5.1 (tokenización) y -05 (contexto) → HITOs PPPR.0.1/0.2/0.3 FROZEN → **PPPR.0.4 FROZEN v1.0.3** → auditorías PPPR.0.5–0.9 → ADR Maestro, ADR/NADR aplicables → Execution Plan aprobado e integrado en `main` → cambios productivos futuros en PRs separados.
+
+**Reconciliaciones:** no se considera `llama-3.3-70b-versatile` un reemplazo vigente por el mero hecho de figurar en una migración histórica; Groq también documentó su retiro en 2026 para determinados planes. No se trasladan a este HITO defectos de W06 ni de compilación de cortes históricos. La elección `en→es` proviene del owner y debe formalizarse en el ADR; los GAPs ya tienen destino pero ninguno asigna responsable implementativo o arquitectura nueva.
+
+### 21.4 Próximo gate y política Git
+
+El HITO queda **documentalmente preparado para revisión y aprobación del PR interno #69** hacia `pdf-pdf-product-readiness`; el estado FROZEN **no supone aprobación externa ni merge**. Tras aprobar e integrar #69, verificar el documento en la rama general, eliminar la rama corta `pppr/hito-0.4` y recién entonces abrir PPPR.0.5 desde el HEAD general actualizado.
+
+El PR general **#66 permanece Draft y sin merge a `main`** hasta completar los HITOs, ADR Maestro, ADR/NADR y Execution Plan aprobados. El cierre **no** permite cambiar producción.
+
+> FROZEN documental ≠ Fase 0 terminada ≠ modelo comercial viable acreditado ≠ certificación científica ≠ autorización de implementación.
