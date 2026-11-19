@@ -1,6 +1,6 @@
 # HITO_0.1_RUTA_OPERATIVA_Y_PERIMETRO.md
 
-**Estado:** IN_PROGRESS v1.0.2  
+**Estado:** IN_PROGRESS v1.0.3  
 **Fecha de emisión:** 2026-11-18  
 **Fecha de congelamiento:** N/A  
 **Etapa:** PDF→PDF Product Readiness — Fase 0 (auditoría forense). La numeración formal de fase, si corresponde, queda sujeta a gobernanza metodológica.  
@@ -18,6 +18,7 @@
 | 1.0.0-IN_PROGRESS | 2026-11-18 | Apertura del HITO, mandato, baseline, método, evidencias iniciales y condiciones de cierre; sin declarar una auditoría completada. |
 | 1.0.1-IN_PROGRESS | 2026-11-18 | Primera reconciliación estática: Atlas histórico versus main y grafo de productores/consumidores de la ruta D-1/D-2. La auditoría sigue abierta. |
 | 1.0.2-IN_PROGRESS | 2026-11-18 | Segundo barrido estático: censo de rutas ejecutables y consumidoras fuera del Atlas, factories, benchmark/CV, stubs y alcance real de testigos T06/W08; conserva límites no verificados. |
+| 1.0.3-IN_PROGRESS | 2026-11-18 | Mapa de contratos entre fronteras y dependencia por capacidad, matriz de responsabilidad de los HITOs 0.2–0.9 y verificación focal de mecanismos B02/W08/G3/F18/G5/CI. Sin cierre de auditoría ni gap nuevo. |
 
 ## 1. RESUMEN EJECUTIVO
 
@@ -162,6 +163,51 @@ La tabla de §3 es **un índice de superficies**, no un inventario terminado de 
 
 **Puntos de autoridad confirmados como referencias, sin sustitución de la auditoría 0.5:** `FSMRepository.transition_to`; `ControlPlaneRepository.pick_task/stage_chunk_result/mark_g3_external_unknown`; `DurableContextPlanRepository.load_verified`; `AssemblyLeaseRepository.claim/renew/publish/recover_expired`. `runtime/recovery.py` y `runtime/resumer.py` cambiaron desde el Atlas; se observó cierre explícito con `closing(get_connection(...))` y se delega su comportamiento de recuperación a HITO 0.5.
 
+### 6.1 Contratos entre fronteras — fuente única de este inventario
+
+La matriz registra **productor → consumidor y valor de identidad/autoridad**. Las columnas «HITO» asignan investigación, **no** decisiones de implementación. El estado `CONFIRMADO ESTÁTICO` no significa probado dinámicamente.
+
+| Frontera contractual | Productor → consumidor constatable | Datos / invariantes que atraviesan | HITO primario | Estado / límite |
+|---|---|---|---|---|
+| Admisión → OCR | `apps/cli/pdf_inbox.py::submit_pdf_to_inbox` → `OCRRouterDaemon._process_document` | `document_id` = SHA-256 bytes, mismo inbox/raíz; duplicación y estados anteriores | 0.1 raíces; 0.2 contenido; 0.7 workspace | CONFIRMADO ESTÁTICO; montaje real/OS no verificado |
+| PDF físico → Layout/AST | `ExtractionProviderFactory` → `PyMuPDFProvider` → `PdfParserAdapter` → `FlatASTBuilder` | Texto, glyphs, página, imagen, bbox, clasificación y `B02_UNREPRESENTED_VECTOR_DRAWING` | **0.2** | EXTRACCIÓN CONECTADA; amplitud STEM por auditar |
+| AST → Contexto/ChunkPlan | `prepare_contextual_plan` → `HierarchicalContextEnricher`, `TokenBudgetChunker`, `ChunkPlan.build` | `ast_hash` invariante, `chunk_id`/miembros, orden/segmentos, `manifest_sha256` | **0.3** | CONTRATO EXISTENTE; exhaustividad y cambio semántico por auditar |
+| Plan/contexto → G3 | `DurableContextPlanRepository.enqueue_verified/load_verified` → `runtime.engine.run_pipeline` | `document_id`, `ast_hash`, `manifest_sha256`, `snapshot_sha256`; fallar antes de proveedor ante drift | **0.3** (datos), **0.5** (durabilidad) | W08 CONECTADO PARA SNAPSHOTS; no equivale a reuse/caché |
+| G3 → proveedor | `SyncProviderBridge.execute_chunk` → `PromptBuilder` → `build_provider_stack` → `GroqProvider` | Prompt físico, idioma, modelo/ventana, reserva, cuota, JSON y máscaras de matemática | **0.4** | CONEXIÓN ESTÁTICA; fallback y egress reales sin acreditación |
+| Claim → efecto → staging/publicación | `ControlPlaneRepository.pick_task` → `stage_claimed_unit` → `advance_staged_document` → `materialized` y FSM | `task_id`, `execution_id`, lease, `state_version`, receipt, `G3_EXTERNAL_UNKNOWN` | **0.5** (autoridad), 0.4 (efecto/transport) | RECOVERY PARCIAL OBSERVADO; prohibición de retry incierto |
+| Proyecciones/AST → G5 | `CQRSAssemblyContextResolver` → `DocumentAssembler` → `CompilationService` y mapper | `node_id`, `sequence_id`, `projection_version`, activos, payload fallback y perfil | **0.6** | RUTA CONECTADA; degradación ≠ fidelidad |
+| TeX/assets → archivo publicado | `HostTectonicRunner` → PDF staged → `AssemblyLeaseRepository.publish` | Caché/TeX/assets, lease, `os.replace`, FS/SQLite no atómicos entre sí | **0.6** (render), **0.5** (fencing), 0.7 (host) | PUBLICACIÓN ESTÁTICA; compilación física nueva no ejecutada |
+| Artefactos → verificación | `build_extraction_pipeline` → `tools.evaluation.run_regression`; tests B02/G3/G5/W08 y workflows | Oráculo, fixture, SHA, evidencia fake/real, custodia de corpus | **0.8** | EVIDENCIA HEREDADA ACOTADA; ciencia PDF→PDF no acreditada |
+
+### 6.2 Fronteras especializadas de los HITOs restantes
+
+Esta es una **partición del alcance forense**, no el Execution Plan de implementación ni una declaración de HITOs ya aprobados. Un mismo archivo puede tener dos responsabilidades: se audita cada **propiedad contractual** una sola vez, y los demás HITOs remiten a ella.
+
+| HITO propuesto | Pregunta delimitadora, módulos y evidencias a investigar | Excluye / remite a |
+|---|---|---|
+| **0.2 — Ingesta y extracción PDF** | Cobertura del origen físico: `infra/extraction/providers/pymupdf_provider.py`, `pymupdf_integrity.py`, `pymupdf_math_visual.py`, `pymupdf_image_assets.py`; `infra/adapters/pdf_parser.py`; clasificadores, perfiles y tests `test_pymupdf_extraction_integrity`, B02.2–B02.5. Constatar lo representado/rechazado, gráficos, fórmulas, columnas y casos sintéticos | No decidir identidad del `ChunkPlan` (0.3) ni calidad del PDF ensamblado (0.6) |
+| **0.3 — AST, normalización, contexto y chunking** | `core/ast/`, `core/layout/`, `core/normalization/`, `core/segmenter/`, `core/chunking/`, `core/context/`; `compute_ast_hash`, `validate_chunk_coverage`, `ContextSnapshotV1`, identidad W08 y uso efectivo; testigos W08/G3-B2 | El proveedor físico y tokens de salida pertenecen a 0.4; estado transaccional/leases a 0.5. Identidad `inference-reuse` ≠ generación autorizada |
+| **0.4 — Inferencia, prompting y proveedor** | `runtime/engine.py::_create_chunk_processor`, `apps/llm_workers/{sync_bridge,prompt_builder,adapters,rate_limiter,cache_provider,routing}.py`, `core/prompting/`, `core/validation/budget.py`, `core/finops/`; modelo, target language, medición vs payload real, `SWITCH_MODEL`, token/respuesta/cuota/gasto, máscaras, error/egress | No diseñar router adicional ni transferir a 0.4 la semántica de recuperación F18 (0.5) |
+| **0.5 — Estado, persistencia, autoridad y recuperación** | `infra/db/`, `core/execution/`, `runtime/{publication_pipeline,chunk_staging,recovery,resumer,sweeper}.py`, `apps/daemons/reconciler.py`; SQLite/ATTACH, CAS/epoch, leases, receipts, W06, `UNKNOWN`; confrontar con ADR/NADR F18 y `PHASE_18.2_EXECUTION_PLAN` **ya existente** | No duplicar el plan ni la autoridad de F18. No atribuir idempotencia HTTP remota por idempotencia de receipt local |
+| **0.6 — Ensamblado y fidelidad física del PDF** | `apps/compiler/`, `core/compiler/`, `infra/db/assembly_recovery.py` solo para la frontera física; assets, `TextRenderStrategy`, matemática explícita, `AdaptiveFloatStrategy`, política `DEGRADED`, multicolumna y `HostTectonicRunner` | No volver a auditar totalidad de CAS/leases (0.5) ni declarar que el PDF conserva un elemento que B02 no extrajo (0.2) |
+| **0.7 — Operación reproducible y entornos** | `apps/cli/`, `pyproject.toml`, `Dockerfile`, tres Compose operativos/instrumentales, `apps/lab/`, `infra/db/bootstrap.py`, host Windows, secretos, cwd/volúmenes, rutas, red, caches y límites de ejecución | No modificar `--network none` del laboratorio certificado ni afirmar egress autorizada sin control físico |
+| **0.8 — Verificación técnica y científica** | `tests/`, `.github/workflows/`, `core/benchmark/`, `tools/evaluation/`, TST-STAB, CV, fixtures y corpus; garantías causales de testigos, cobertura de modos STEM, falsadores, skips/NOT_RUN, custodia y issue #34 | No rehacer 1.476 pruebas históricas; no modificar GT/sellos ni convertir fake/CI técnico en PASS científico |
+| **0.9 — Consolidación y reconciliación** | Matriz de brechas **dentro de este HITO**, con fuentes `E-0.x` de los precedentes, contradicciones resueltas, incertidumbres irreductibles y Decision Candidates | No introducir nuevas decisiones, reglas NADR, tareas o matriz temporal que compita con Execution Plan |
+
+**Orden lógico de dependencias, no waves de implementación:** 0.1 delimita las fronteras → 0.2 identifica el observable fuente → 0.3 valida representación/plan → 0.4 investiga inferencia, 0.5 autoridad y 0.6 reconstrucción (las tres con contratos compartidos pero preguntas distintas) → 0.7 demuestra condiciones de entorno → 0.8 delimita alcance de pruebas científicas → 0.9 reconcilia resultados. No se prohíbe realizar investigación read-only independiente antes de terminar otra, pero **no se emite veredicto sobre una frontera no inspeccionada**.
+
+### 6.3 Capacidades reutilizables y límites — evitar rediseños prematuros
+
+- **Extracción ya contiene mecanismos concretos:** factory de `PyMuPDFProvider`, guard `validate_pymupdf_page_coverage` con rechazo de vectores no representados, bloque visual matemático identificado, y PNG content-addressed. La clasificación del contenido científico *no está resuelta universalmente* por esos mecanismos. Verificación profunda: 0.2.
+- **Representación/contexto ya contiene garantías:** `FlatASTBuilder`, `compute_ast_hash`, `TokenBudgetChunker`, `validate_chunk_coverage`, `DurableContextPlanRepository`. No diseñar nuevo AST/chunker antes de comprobar alcance: 0.3.
+- **Inferencia ya contiene un stack de proveedores y quotas:** `CircuitBreakerProvider` → `CachedLLMProvider` (condicional) → `RateLimitedProvider` → `GroqProvider`; G3 pasa `cache_db_path=None`. Eso no prueba techo monetario ni ruteo efectivo del fallback: 0.4.
+- **Durabilidad/autoridad ya contiene mecanismos separados:** `ControlPlaneRepository`, `FSMRepository`, `AssemblyLeaseRepository`, staging/materialized, reconciler y sweeper. F18.2 está en `DRAFT` con Gate 1 Wave 1.1 implementada y tareas pendientes; distinguir lectura normativa de completitud runtime: 0.5.
+- **G5 ya contiene renderizado matemático explícito y activos:** `TextRenderStrategy`, `AdaptiveFloatStrategy`, `CompilationService.compile_document_with_assets`, `HostTectonicRunner`. No prometer recuperación de ecuaciones que no salieron de B02 ni interpretar `DEGRADED` como conservación: 0.6.
+- **Tests ya contienen testigos útiles de alcance delimitado:** B02 sintéticos, W08 foreground con parser/proveedor/Tectonic reemplazados, F18 fencing, TST-STAB. Reusar el SUT y los falsadores; trabajo adicional se justifica por garantía faltante concreta: 0.8.
+
+**Condición de cierre pendiente de 0.1:** completar censo versionado de dependencias bajo búsqueda fiable de imports/refs, contrastar configuración dinámica y plugin/runner externos conocidos sin ejecutar efectos; comprobar que todos los contratos relevantes tienen HITO primario o exclusión motivada. La tabla actual demuestra una **partición provisional suficiente para organizar investigación**, no exhaustividad del grafo ni ausencia global de scripts.
+
+
 ## 7. MATRIZ OBSERVED / REQUIRED / DECISION
 
 | Dimensión | Observed (código/handoff) | Required (a reconciliar) | Decision previa |
@@ -199,16 +245,24 @@ La tabla de §3 es **un índice de superficies**, no un inventario terminado de 
 | **E-0.1-018** | P2 | `apps/lab/offline_pdf_lab.py`, `apps/lab/convergence_compose_preflight.py`, `tests/integration/test_w08_cli_foreground_single_generation_offline.py` | Los testigos de laboratorio limitan red/transporte; W08 sustituye parser, transporte HTTP y compilación Tectonic. Son pruebas contractuales parciales, no ejecución científica real. |
 | **E-0.1-019** | P2 | `apps/benchmark/__main__.py::main` y `GroqBenchmarkRunner.warmup` | Un root manual abre PDF físico (`[Amoretal_2023]_3hojas.pdf`) y tiene camino de inferencia Groq. Posible egress al ejecutarlo: exige permiso/privacidad; no se afirma que haya sido ejecutado. |
 | **E-0.1-020** | P2 | `.github/workflows/ci.yml`, `.github/workflows/continuous-verification.yml`, `pyproject.toml::tool.pytest.ini_options` | Suite por defecto usa `-m not e2e`; workflow CV invoca `run_regression`. No inferir aptitud de producto de CI técnico PASS ni convertir CV sin corpus en PASS. |
+| **E-0.1-021** | P2 | `apps/bootstrap/provider_factory.py::ExtractionProviderFactory.create`, `infra/extraction/providers/pymupdf_{provider,integrity,math_visual,image_assets}.py`, `apps/bootstrap/pipeline_factory.py::build_extraction_pipeline` | La ruta B02 materializa texto/PNG matemático cuando es identificable y rechaza vectores sin representación; capacidades ya existentes, cobertura física y matemática restante por auditar en 0.2. |
+| **E-0.1-022** | P2 | `core/chunking/contextual_plan.py::prepare_contextual_plan`, `core/chunking/manifest_contract.py::validate_chunk_coverage`, `infra/db/context_snapshot_repo.py::enqueue_verified/load_verified` | AST hash, cobertura, manifest y snapshots tienen contratos diferenciados; existencia no demuestra identidad completa de una nueva generación o traducción. Dueño 0.3 y 0.5. |
+| **E-0.1-023** | P1 | `apps/llm_workers/prompt_builder.py::PromptBuilder.build`, `core/validation/budget.py::calculate`, `apps/llm_workers/adapters.py::GroqProvider.translate`, `core/prompting/measurement_adapter.py` | El stack físico usa `envelope.model_name`; `SWITCH_MODEL` se acepta como envelope sin cambio de modelo. Medición/logical payload, renderizado físico y límites del proveedor deben reconciliarse en 0.4. |
+| **E-0.1-024** | P2 | `infra/db/control_repo.py::pick_task/stage_chunk_result/mark_g3_external_unknown`, `infra/db/staged_publication.py`, `runtime/publication_pipeline.py`, `infra/db/assembly_recovery.py::publish` | Contratos de claim, receipt, materializado, FSM y publicación física separados; los commits no componen una transacción universal con HTTP/filesystem. Dueño 0.5. |
+| **E-0.1-025** | P2 | `docs/architecture/adr/phase-18/NADR/NADR-F18-03.md`, `docs/architecture/adr/phase-18/plans/PHASE_18.2_EXECUTION_PLAN.md` | Obligaciones F18.2 de efectos inciertos ya gobiernan esta superficie y el plan existente declara Wave 1.1 DONE con trabajo posterior pendiente. Referir a 0.5 sin duplicar gobernanza. |
+| **E-0.1-026** | P2 | `core/compiler/rendering/implementations.py::TextRenderStrategy/AdaptiveFloatStrategy`, `core/compiler/service.py::CompilationService`, `apps/compiler/tectonic_runner.py::HostTectonicRunner` | Hay manejo de matemática explícita, floats y PNG que llega al runner físico; la calidad del PDF no está probada por observar esas clases. Dueño 0.6. |
+| **E-0.1-027** | P2 | `tests/integration/test_verification_pipeline_connection.py`, `test_w08_cli_foreground_single_generation_offline.py`, `docs/architecture/adr/tests_stabilization/PLAN_REMEDIACION_TESTS_PIPELINE.md` | Extracción sintética y W08 fake verifican propiedades distintas; TST-STAB clasifica límites y no ejecutó una falsación particular. No extrapolar a certificación científica: 0.8. |
+| **E-0.1-028** | P2 | `.github/workflows/{ci,continuous-verification}.yml`, `apps/lab/offline_pdf_lab.py`, `docker-compose.runtime.yml` | Infraestructura de test separa aislamiento fake, CI técnico y CV de corpus. El override de runtime no certifica que una composición con proveedor real/TeX funcione. Investigación en 0.7/0.8. |
 
 Los IDs se reservan y no se reasignan; estos testigos son **lectura de fuentes**, no falsación ejecutada ni certificación de comportamiento real. La clasificación de severidad y cumplimiento se revalidará antes de cierre; un P1 preliminar no es una conclusión normativa.
 
 ## 14. GAPS CONSOLIDADOS
 
-**Estado: NO CERRADO.** En la apertura no se emite una Gap Matrix global ni se determina un destino de implementación sin reconciliar consumidores y autoridad normativa. Las E-0.1-001..020 son insumos para investigación, no equivalen automáticamente a GAP confirmado o a tarea aprobada.
+**Estado: NO CERRADO.** En la apertura no se emite una Gap Matrix global ni se determina un destino de implementación sin reconciliar consumidores y autoridad normativa. Las E-0.1-001..028 son insumos para investigación, no equivalen automáticamente a GAP confirmado o a tarea aprobada.
 
 | Gap | Evidencia | Contrato/autoridad | Destino | Estado |
 |---|---|---|---|---|
-| Sin gaps formalmente consolidados en este corte | E-0.1-001..020 | Por reconciliar con normas vigentes | Por resolver tras investigación | TO BE VERIFIED |
+| Sin gaps formalmente consolidados en este corte | E-0.1-001..028 | Por reconciliar con normas vigentes | Por resolver tras investigación | TO BE VERIFIED |
 
 ## 15. ESTADO DE HIPÓTESIS
 
@@ -224,6 +278,8 @@ Los IDs se reservan y no se reasignan; estos testigos son **lectura de fuentes**
 | H-0.1-H | Solo hay un consumidor relevante de `build_pipeline`, `AsyncDispatcher` o factory de proveedores | REFUTADO PARCIALMENTE por CLI legacy y runners benchmark; censo global pendiente |
 | H-0.1-I | Los scripts de benchmark y evaluación ejercen la misma garantía PDF→PDF de G3→G5 | REFUTADO por invocación de parser/dispatcher y CV extracción-only; falta observar todas las variantes de evaluación |
 | H-0.1-J | No existe otro sistema externo que invoque R1/R3 o módulos de prueba | NO VERIFICABLE con archivos Git; requiere inventario de despliegues y permiso del owner |
+| H-0.1-K | Cada contrato del camino PDF→PDF tiene un único ámbito de auditoría primaria y se puede evitar duplicación de investigación | MATRIZ PROVISIONAL en §6.2; pendiente cierre de censo de consumidores y revisión metodológica |
+| H-0.1-L | La extracción y reconstrucción requieren crear subsistemas nuevos porque no hay mecanismos científicos específicos | REFUTADA COMO AUSENCIA GENERAL: ya hay preservación math visual/PNG, explícita math/float y fail-close; alcance/efectividad por verificar en 0.2/0.6 |
 
 ## 16. RESPUESTAS A PREGUNTAS DEL MANDATO
 
@@ -234,8 +290,8 @@ Los IDs se reservan y no se reasignan; estos testigos son **lectura de fuentes**
 
 ## 21. CIERRE DEL HITO 0.1
 
-**Estado del HITO:** IN_PROGRESS v1.0.2; **NO FROZEN**.  
-**Condición de cierre:** pendiente. Requiere inventario completo de entrypoints y consumidores relevantes (incluidos imports/configuración dinámica y herramientas), reconciliación de obligaciones con su versión vigente, referencias de evidencia y límites por superficie, clasificación de hipótesis, contradicciones resueltas o declaradas, y criterios verificables de transferencia a otros HITOs. Ya existe contraste estático inicial del Atlas, selección de roots y consumidores versionados focales, **no** un censo global exhaustivo. El índice textual no permitió descartar consumidores por ausencia de resultados; quedan rutas dinámicas/externas, trazabilidad de dependencias relevantes y segregación precisa para los HITOs siguientes.  
+**Estado del HITO:** IN_PROGRESS v1.0.3; **NO FROZEN**.  
+**Condición de cierre:** pendiente. Requiere inventario completo de entrypoints y consumidores relevantes (incluidos imports/configuración dinámica y herramientas), reconciliación de obligaciones con su versión vigente, referencias de evidencia y límites por superficie, clasificación de hipótesis, contradicciones resueltas o declaradas, y criterios verificables de transferencia a otros HITOs. Ya existe contraste estático inicial del Atlas, selección de roots, consumidores versionados focales, mapa de fronteras y dueño primario por HITO (§6.1–6.3). **No** equivale a censo global exhaustivo. El índice textual no permitió descartar consumidores por ausencia de resultados; quedan rutas dinámicas/externas, trazabilidad de dependencias relevantes y contraste de alcance por normativa. No se atribuye a 0.1 la revisión profunda de cada propiedad que está correctamente delegada a otro HITO.  
 **Verificación de cadena de gobernanza:** metodología revisada; aún no existe ADR/NADR/Execution Plan de esta iniciativa.  
 **Decision Candidates generados:** ninguno aprobado; posibles preguntas permanecen en `TO BE VERIFIED`.  
 **Siguiente paso:** continuar auditoría read-only y ampliar/emitir HITOs necesarios, con base fija y cierre formal antes de decisiones de diseño.
