@@ -1,6 +1,6 @@
 # HITO_PPPR.0.2_INGESTA_Y_EXTRACCION_PDF.md
 
-**Estado:** IN_PROGRESS v1.0.1  
+**Estado:** IN_PROGRESS v1.0.2  
 **Fecha de emisión:** 2026-11-19  
 **Fecha de congelamiento:** N/A  
 **Iniciativa:** PPPR — Fase 0, iniciativa transversal `pdf-pdf-product-readiness`  
@@ -17,6 +17,7 @@
 |---|---|---|
 | 1.0.0-IN_PROGRESS | 2026-11-19 | Apertura basada en lectura directa del SHA fijado; cadena de extracción, tipos físicos, cobertura/rechazos B02, mapeo AST, perfilado y testigos sintéticos. Dos gaps locales estáticos, fronteras y cuestiones diferidas. Sin tests ejecutados ni FROZEN. |
 | 1.0.1-IN_PROGRESS | 2026-11-19 | Revisión §4.7–4.8: fichas extendidas P1, contratos y destinos formales, control de cobertura por frontera, límites de testigos B01/B02/B03, propagación del perfil geométrico y reconciliación normativa. Sin cambios de producción, tests nuevos ni FROZEN. |
+| 1.0.2-IN_PROGRESS | 2026-11-19 | Reconciliación del perímetro STEM, geometría upstream vs perfilado, cobertura de páginas y procesamiento de imágenes; disposiciones de H-0.2-A…D y checklist §8. Sin ejecución de pruebas ni FROZEN. |
 
 ## 1. RESUMEN EJECUTIVO
 
@@ -50,7 +51,7 @@ El análisis usa tests existentes como **testigos versionados**, no como resulta
 - `core/domain/document.py`, `core/layout/{models,classification,validator}.py`, `core/ast/{builder,models,strategy,cross_page}.py`.
 - `core/document_profile/{profiler,models,extractors,ports,scoring}.py`, `core/document_profile/detectors/{layout,semantic}.py`.
 
-**AUDITADO como fuente de cobertura de tests, NO como ejecución:** `tests/unit/{test_pipeline_factory,test_pymupdf_integrity,test_b022_image_rendering,test_b023_raster_asset_contract,test_b024_explicit_math_spans,test_b025_math_visual}.py`; `tests/integration/{test_golden_parser,test_pymupdf_extraction_integrity,test_b022_image_staging,test_b023_raster_image_pipeline,test_b024_g3_g5_math_roundtrip,test_b025_math_visual_preservation,test_g3_b4_2_ocr_router_durable_plan,test_g3_b4_4_profile_projection_assembly,test_real_parser_pipeline}.py`; YAML CI/CV como evidencia de disparadores, no de ejecuciones.
+**AUDITADO como fuente de cobertura de tests, NO como ejecución:** `tests/unit/{test_pipeline_factory,test_pymupdf_integrity,test_b022_image_rendering,test_b023_raster_asset_contract,test_b024_explicit_math_spans,test_b025_math_visual}.py`; `tests/integration/{test_golden_parser,test_pymupdf_extraction_integrity,test_b022_image_staging,test_b023_raster_image_pipeline,test_b024_g3_g5_math_roundtrip,test_b025_math_visual_preservation,test_g3_b4_2_ocr_router_durable_plan,test_g3_b4_4_profile_projection_assembly,test_real_parser_pipeline,test_b03_foreground_pdf_product}.py`; YAML CI/CV como evidencia de disparadores, no de ejecuciones.
 
 **REFERENCIADO sin auditoría semántica profunda:** `core/normalization/` (máscaras y normalización del HITO 0.3/0.4); `core/chunking/`, `core/context/`, `runtime/engine.py` (0.3–0.5); ensamblador y Tectonic (0.6); despliegue/host (0.7); benchmark, CV/GT (0.8).
 
@@ -160,6 +161,9 @@ El orden es el de bloques nativos de `page.get_text("dict")`, luego el mismo ord
 | **E-0.2-016** | P2 | `ci.yml` y `continuous-verification.yml` contemplan PR con base `main`/`pipeline_stabilization`, no `pdf-pdf-product-readiness`. | El PR interno documental no adquiere CI PASS automáticamente; revisión focal sin atribuir éxitos no ejecutados. | OBSERVADO |
 | **E-0.2-017** | P2 | `HeuristicTypeDetector._apply_layout_context` toma `LayoutDetection` para ponderar `PAPER/REPORT/BOOK`; `HeuristicDocumentProfiler.profile` pasa primero el layout detectado al clasificador semántico. | El defecto de geometría puede influir también sobre el tipo de perfil persistido, **sin** demostración de clasificación incorrecta en corpus. | CONEXIÓN CAUSAL |
 | **E-0.2-018** | P2 | `PyMuPDFProvider.extract/_build_page` inspecciona texto físico e imágenes vía PyMuPDF; `_image_block_to_png` conserva rásteres como imagen, **no** transcribe el texto dentro de una imagen. | No acreditar un OCR raster general del producto por el nombre `OCRRouterDaemon`; no se investigó ningún servicio OCR externo. | LÍMITE OBSERVADO |
+| **E-0.2-019** | P2 | `pymupdf_provider.py::_build_page` convierte ráster en `LayoutBlockType.IMAGE`; `FlatASTBuilder._TYPE_MAPPING` en `ContentNodeType.IMAGE` y `core/ast/strategy.py` en `PASSTHROUGH`. `PdfParserAdapter.parse` exige AST no vacío, no texto traducible. | Un documento solo de ráster puede representar una imagen sin traducir su texto interior. Deducción estática, sin PDF escaneado ejecutado; alcance de producto por decidir en ADR. | LÍMITE OBSERVADO |
+| **E-0.2-020** | P2 | `PyMuPDFProvider._build_page_context` recibe ancho real; `HeuristicLayoutClassifier._relative_x` divide entre `context.page_width`. El fallback `612.0` pertenece al `NodeGeometryAdapter` posterior al AST. | `GAP-0.2-02` afecta **AST→perfilado** y no implica que la clasificación previa en el extractor use el ancho incorrecto. | RECONCILIACIÓN |
+| **E-0.2-021** | P2 | `DocumentLayoutValidator.validate` valida páginas existentes, IDs, orden y bbox pero no exige bloques por página ni compara contra el PDF visual; `PdfParserAdapter.parse` rechaza AST totalmente vacío. | Páginas sin contenido extraído en documentos parcialmente no vacíos no prueban por sí solas pérdida: una página física puede ser legítimamente blanca. Integridad científica por página no acreditada. | LÍMITE DE GARANTÍA |
 
 
 ### Evidencia E-0.2-011: desacople de identidad de página en muestreo del profiler
@@ -233,6 +237,22 @@ elif geom.relative_center_x >= self._RIGHT_CLUSTER_MIN:  # 0.60
 
 **Interpretación de severidad:** P1 en E-011/012 significa desajuste estructural verificable por flujo de datos, **no** que se haya medido una tasa de fallo científica. P2 describe decisiones conservadoras, alcance limitado o testigos parciales; no significa defecto.
 
+## 11. OBSERVACIONES COMPLEMENTARIAS — LÍMITES DE REPRESENTABILIDAD STEM
+
+| Clase de contenido | Tratamiento observado antes de G3 | Límite de garantía |
+|---|---|---|
+| Texto digital | Bloques/spans PyMuPDF → `RawContent` → AST; U+FFFD/U+FFFF rechazados (E-0.2-003/004) | No valida contra todos los glifos de la imagen fuente ni recupera texto que PyMuPDF omite |
+| PDF rasterizado/escaneado | Imágenes → `IMAGE` → `PASSTHROUGH` (E-0.2-018/019) | No hay transcripción OCR de píxeles en la composición seleccionada; preservación no equivale a traducción |
+| Matemática explícita y fuente matemática | Math-font identificada → PNG; máscaras B02.4 preservan delimitadores ya presentes en texto (E-0.2-006/014) | No hay recuperación universal de semántica LaTeX, fórmulas mixtas ni glifos no identificados |
+| Figuras ráster | PNG canónico, hash SHA-256, publicación sin sobrescritura (E-0.2-005) | No convierte/translate etiquetas dentro de una imagen |
+| Gráficos y trazos vectoriales | `page.get_drawings()` no vacío → rechazo conservador (E-0.2-007) | No distingue un plot de líneas decorativas ni traduce vectores |
+| Tablas | Heurística de layout no clasifica celdas; texto sin líneas puede llegar como `PARAGRAPH` (E-0.2-008) | No acredita celdas, encabezados, secuencia ni tabla editable |
+| Columnas y páginas | Orden de bloques PyMuPDF; `column_index=0`; validador de invariantes, no de exhaustividad visual (E-0.2-009/021) | No garantiza orden multicolumna ni distingue página blanca de contenido invisible al extractor |
+
+**Reconciliación causal de GAP-0.2-02 (E-0.2-020):** `HeuristicLayoutClassifier` recibe ancho real en `PageClassificationContext`; el problema de 612 puntos aparece en la **segunda** proyección al `NodeGeometryAdapter`. No se infiere corrupción de la clasificación física anterior.
+
+**Guardia negativa y contenido no observado:** `validate_pymupdf_page_coverage` puede rechazar solo objetos que PyMuPDF entrega a la API inspeccionada. No demuestra ausencia de contenido que esa API no exponga. La admisión de una página sin bloques no demuestra pérdida: puede ser blanca (E-0.2-021). No se registra un gap adicional sin falsación.
+
 ## 14. GAPS CONSOLIDADOS (PROVISIONALES)
 
 Se consolida aquí el **delta local** al contrato observado, no una Gap Matrix transversal (reservada a PPPR.0.9). El campo «Fase destino» identifica la **etapa futura PPPR después de cerrar Fase 0** y el gate documental que deberá valorar la obligación; **no** crea una nueva fase numerada ni una tarea de implementación ya aprobada.
@@ -244,16 +264,27 @@ Se consolida aquí el **delta local** al contrato observado, no una Gap Matrix t
 
 **Responsable de implementación:** `NO ASIGNADO` hasta el Execution Plan aprobado. El HITO identifica el módulo responsable del comportamiento y la etapa de decisión, sin predefinir solución, wave, ownership operativo o merge. No se registran como gaps automáticamente: rechazo de vectores, falta de reconocimiento matemático universal, ausencia de OCR de rásteres, proveedor alternativo no conectado, multicolumna no soportada o resultados científicos no ejecutados. Son límites de producto/posibles decisiones de alcance, salvo que otra evidencia demuestre incumplimiento de una obligación exigible.
 
-## 15. ESTADO DE HIPÓTESIS Y CUESTIONES DIFERIDAS
+## 15. ESTADO DE HIPÓTESIS Y DEFERRED QUESTIONS (§8.2)
 
-| ID | Pregunta falsable | Estado actual y razón | Destino |
-|---|---|---|---|
-| **H-0.2-A** | ¿Preserva un paper real de dos columnas la secuencia lógica de lectura nativa? | `NO VERIFICABLE` con lectura estática; código no reordena y no se ejecutó PDF con oráculo de lectura. | PPPR.0.8 (evidencia/corpus autorizado) y 0.3 (consumidor AST); no bloquea inventario de frontera. |
-| **H-0.2-B** | ¿Existen glifos matemáticos erróneos sin sentinelas Unicode detectables? | `NO VERIFICABLE` sin fuente PDF/GT; guard vigila dos codepoints, no todas las sustituciones. | PPPR.0.8 |
-| **H-0.2-C** | ¿Qué cobertura física logra la ruta ante tablas rasterizadas, trazos vectoriales y bloques mixtos STEM de papers reales? | `NO VERIFICABLE` sin corpus; hay rutas de rechazo/PNG, no benchmark científico. | PPPR.0.8, decisión de alcance en ADR PPPR |
-| **H-0.2-D** | ¿La clasificación de layout incorrecta afecta efectivamente el PDF G5 final? | `NO VERIFICABLE`: falla de proyección estática confirmada, cadena downstream de layout/TeX no medida. | PPPR.0.6 y 0.8 |
+Las cuatro hipótesis tienen **veredicto `NO VERIFICABLE` dentro de este mandato estático**, no estado abierto indeterminado. Se difieren porque requieren oráculos o etapas no incluidas aquí. **No bloquean identificar qué representa o rechaza el extractor**, y no se presentan como propiedades demostradas.
 
-Las hipótesis no declaran una nueva implementación ni un gap sin evidencia. Para FROZEN debe reconciliarse el cierre de todo `TO BE VERIFIED` según §8.2, revisar cobertura del perímetro y explicitar garantías.
+| Hipótesis | Veredicto y motivo | Disposición y no-bloqueo |
+|---|---|---|
+| **H-0.2-A** — ¿Un paper real de dos columnas conserva la lectura? | **NO VERIFICABLE:** fuente física y secuencia de lectura independiente no inspeccionadas | **DQ-0.2-01 → PPPR.0.8**, consumidor lógico 0.3. No bloquea identificar ausencia de reordenación conectada |
+| **H-0.2-B** — ¿Se equivocan glifos que no son U+FFFD/U+FFFF? | **NO VERIFICABLE:** requiere confrontación original-oráculo | **DQ-0.2-02 → PPPR.0.8**, sin tocar GT sellado. No bloquea documentar el guard existente |
+| **H-0.2-C** — ¿Qué cobertura real existe para tablas, rásteres, vector/plots y math mixta? | **NO VERIFICABLE:** no hay muestra de corpus autorizado ni medición | **DQ-0.2-03 → PPPR.0.8** y alcance de aceptación en ADR posterior. No bloquea catalogar rutas de rechazo/conservación |
+| **H-0.2-D** — ¿Cómo impacta el perfil geométrico en el PDF final? | **NO VERIFICABLE:** compilación/maquetación G5 no ejecutadas ni bajo mandato | **DQ-0.2-04 → PPPR.0.6/0.8**. No bloquea confirmar el desajuste local del contrato |
+
+### 15.1 Deferred Questions y destino
+
+| DQ | Estado | Evidencia posterior requerida |
+|---|---|---|
+| **DQ-0.2-01** | **DEFERRED — NO BLOQUEANTE** | Oráculo/fixture de orden de lectura multicolumna, PPPR.0.8 |
+| **DQ-0.2-02** | **DEFERRED — NO BLOQUEANTE** | Comparación visual/glifos con autorización y custodia, PPPR.0.8 |
+| **DQ-0.2-03** | **DEFERRED — NO BLOQUEANTE** | Cobertura física de modalidades STEM en corpus permitido; PPPR.0.8 y ADR Maestro |
+| **DQ-0.2-04** | **DEFERRED — NO BLOQUEANTE** | Impacto del perfilado en ensamblado/render, PPPR.0.6/0.8 |
+
+Este triaje cumple la forma de §8.2 sin concluir `PASS` científico ni convertir las cuestiones diferidas en nuevas tareas de implementación. Los IDs anteriores permanecen estables.
 
 ## 16. RESPUESTAS PROVISIONALES AL MANDATO
 
@@ -264,6 +295,20 @@ Las hipótesis no declaran una nueva implementación ni un gap sin evidencia. Pa
 
 ## 21. CIERRE DEL HITO — ESTADO IN_PROGRESS
 
-**NO FROZEN.** §4.7–4.8 revisados y fichas P1 formalizadas. Siguen pendientes: revisión de la suficiencia de cobertura contra el mandato completo, reconciliación de límites STEM con lo verificable sin corpus, comprobación del alcance de tests focales (solo si se autoriza ejecutar), validación de hipótesis `NO VERIFICABLE` como Deferred Questions no bloqueantes, y checklist §8.1–8.2 formal previo a cierre. No existe `PASS` científico o test nuevo. Ninguna decisión de diseño, código, ADR/NADR o Execution Plan fue aprobada por este HITO.
+**NO FROZEN.** Se completó en esta versión la conciliación de representabilidad (E-0.2-019…021), las diferencias de geometría física/perfilado y el triaje de las cuatro hipótesis con destino y no-bloqueo (§15). La suficiencia final del documento queda sujeta a revisión independiente en el PR interno, no a la creación de tests o módulos nuevos.
+
+### Checklist de preparación para cierre (§8.1–8.2; autoevaluación, no aprobación)
+
+| Exigencia | Estado |
+|---|---|
+| Metadata, changelog, baseline y límites | **CUMPLE documentalmente; IN_PROGRESS / FROZEN no declarado** |
+| Perímetro auditable y fuentes clasificadas | **CUMPLE para propiedades declaradas** (§3–4); material externo NO VERIFICABLE |
+| IDs E estables, severidad y fichas P1 | **CUMPLE documentalmente**: E-0.2-001…021, E-011/012 extendidas |
+| Gaps sustentados en contrato y con destino/estado | **CUMPLE**: GAP-0.2-01/02 OPEN, sin plan de implementación |
+| Hipótesis cerradas o diferidas no bloqueantes | **CUMPLE como disposición de alcance**: H-0.2-A…D → DQ-0.2-01…04 |
+| Contradicciones con auditoría histórica | **RECONCILIADAS en la ruta seleccionada**: mapper y validador presentes en HEAD |
+| Revisar §8.1, garantías y aceptación de congelamiento | **PENDIENTE de revisión final** en PR #67 |
+
+**Garantía limitada:** evidencia de código y fuentes de test sobre el SHA fijado; **no** se ejecutaron tests, no se midió corpus STEM, no se certificó el PDF reconstruido y no se aprobó una solución. No existe `PASS` científico o test nuevo. Ninguna decisión de diseño, código, ADR/NADR o Execution Plan fue aprobada por este HITO.
 
 **Siguiente gate:** revisión forense del documento en PR interno a `pdf-pdf-product-readiness`; atender observaciones y resolver las hipótesis conforme a §8.2 antes de solicitar FROZEN. Mantener #66 Draft, sin merge a `main`; implementación solo tras gobernanza completa integrada.
