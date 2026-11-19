@@ -1,15 +1,16 @@
-# HITO_0.1_RUTA_OPERATIVA_Y_PERIMETRO.md
+# HITO_PPPR.0.1_RUTA_Y_PERIMETRO.md
 
-**Estado:** IN_PROGRESS v1.0.8  
+**Estado:** FROZEN v1.0.9  
 **Fecha de emisión:** 2026-11-18  
-**Fecha de congelamiento:** N/A  
-**Fase:** Fase 0 — Auditoría forense de la iniciativa `pdf-pdf-product-readiness` (la designación de fase numerada del roadmap aún requiere resolución de gobernanza).  
+**Fecha de congelamiento:** 2026-11-19  
+**Fase:** PPPR — Fase 0 de la iniciativa transversal `pdf-pdf-product-readiness` (no es una fase numerada del roadmap).  
+**Identificador documental:** `PPPR.0.1`, autorizado por el owner el 2026-11-19; su uso no modifica las metodologías FROZEN ni el roadmap.  
 **Tipo de artefacto:** Flow Audit  
 **Naturaleza:** Read-only. No prescribe código, diseño, cambios de arquitectura ni implementación.  
 **Baseline de inspección:** `main@1d21cfe958cc1de8a33824fed748cd6fe9260f42`. Las observaciones posteriores deben citar su SHA de fuente.  
 **Evidencia Forense Vinculante:** `docs/architecture/1_METHODOLOGY_FOR_ORDERED_PIPELINE_CHANGES.md`; `docs/architecture/1.2_METH_FOR_FORENSIC_HITOs.md` v1.2.0 FROZEN; Atlas, handoff y evidencia C0–C4 D-1/D-2; ADR/NADR F18 vigentes y `PHASE_18.2_EXECUTION_PLAN.md` sin alterar sus estados; TST-STAB; `PROJECT_SCOPE.md`, `ENGINEERING_PRINCIPLES.md`; código en `main@1d21cfe`.  
 **Mandato:** Determinar la ruta ejecutable real, sus fronteras y dependencias, la cobertura necesaria de auditoría y las incertidumbres que impiden planificar por evidencia una traducción PDF→PDF STEM utilizable.  
-**Síntesis:** Inventario estático de roots, contratos y componentes en curso; el grafo v2 cubre los 579 módulos Python del SHA base y permite diferenciar enlaces estáticos, inferidos y no resueltos. Persisten fronteras inyectadas y consumidores externos no verificables; **el HITO no está cerrado**.
+**Síntesis:** Cerrada la auditoría de raíces y conexiones versionadas relevantes de la ruta PDF→PDF en `main@1d21cfe`, con cobertura estática de 579 Python mediante el grafo v2, contratos contrastados en código y límites externos justificados. No se certifican runtime comercial ni fidelidad científica; esas propiedades corresponden a HITOs especializados.
 
 ### Changelog
 
@@ -24,6 +25,7 @@
 | 1.0.6-IN_PROGRESS | 2026-11-19 | Contrastado grafo v2 enlazado con el SHA base y los 579 Python versionados, revisión de 6.399 edges y 7.384 unresolved por categorías, fronteras de puertos inyectados OCR/G3/G5 verificadas focalmente. Sin nueva brecha ni cierre prematuro. |
 | 1.0.7-IN_PROGRESS | 2026-11-19 | Triaje de unresolved/dynamic por riesgo y lectura del binding DI en OCR/G3/G5, reconciler y legacy; pre-checklist de cierre según §8 HITOs. Sin ejecución ni nuevos GAP. |
 | 1.0.8-IN_PROGRESS | 2026-11-19 | Revisión contra §§3, 8, 9 y 11.1 de metodología HITOs; fuentes HITO 17-BIS/F18 heredadas, estados de hipótesis tipados, diferidos justificados y checklist reubicado en §21. Detectados gates de gobernanza del nombre de etapa e integración Git, sin congelar. |
+| 1.0.9-FROZEN | 2026-11-19 | Cierre del perímetro Flow Audit conforme al método canónico: propietario autorizó identificador PPPR; fuentes previas reconciliadas, 44 evidencias con IDs estables, 1 GAP local trazado, hipótesis terminales, diferidos delimitados y transferencia a 0.2–0.9. PR permanece Draft sin merge. |
 
 ## 1. RESUMEN EJECUTIVO
 
@@ -37,7 +39,7 @@ El objetivo es observar la composición PDF→PDF desde admisión hasta PDF publ
 
 **Defecto estructural confirmado en la composición inspeccionada:** una decisión `SWITCH_MODEL` puede formar un envelope `BuildSuccess` sin cambiar el modelo efectivamente enviado a Groq (**E-0.1-002**); se registra como discrepancia contractual local sin prescribir solución (**GAP-0.1-01**). La hipótesis sobre generación/idioma permanece por verificar, no se eleva a defecto confirmado.
 
-**Veredicto forense:** mapa estático de raíces y dependencias utilizables, con límites físicos y dinámicos expresos. `IN_PROGRESS`; no acredita auditoría integral de capacidades, ADR/NADR, plan ni implementación.
+**Veredicto forense:** `FROZEN` para el **mapa versionado y las dependencias relevantes del camino seleccionado**. No acredita ausencia absoluta de consumidores externos, traducción real, fidelidad STEM, producto listo ni aprobación de soluciones.
 
 ## 2. LÍMITE EPISTEMOLÓGICO Y MÉTODO FORENSE
 
@@ -49,7 +51,7 @@ El objetivo es observar la composición PDF→PDF desde admisión hasta PDF publ
 - No convertir test con fake, CI verde o PDF con cabecera válida en prueba de traducción real o fidelidad científica.
 - No inferir `NO IMPLEMENTADO` de una búsqueda incompleta ni `RESUELTO` de la existencia de una clase.
 - Ningún HITO accede al corpus privado ni altera sellos, GT, SQLite de uso o efectos de proveedor. Evidencia de runtime no disponible se clasifica `NO VERIFICABLE`.
-- Este HITO es un arranque documental, **no** una auditoría declarada como realizada de todo el árbol.
+- Este HITO finaliza su perímetro de **Flow Audit**: roots, wiring y consumidores relevantes identificados, no una lectura profunda de los 579 módulos ni el cierre de toda la Fase 0.
 
 ### 2.2 Método forense y finitud
 
@@ -66,18 +68,19 @@ El objetivo es observar la composición PDF→PDF desde admisión hasta PDF publ
 
 ## 3. ALCANCE AUDITADO
 
-| Superficie | Archivos/entrada inicial | Cobertura en esta apertura |
+| Superficie | Archivos / raíces | Estado en el perímetro de PPPR.0.1 |
 |---|---|---|
-| CLI/foreground | `apps/cli/main.py`, `apps/cli/pdf_product.py` | AUDITADO FOCAL, no exhaustivo |
-| G3/prompt/proveedor | `runtime/engine.py`, `core/validation/budget.py`, `apps/llm_workers/prompt_builder.py`, `apps/llm_workers/adapters.py`, `apps/llm_workers/sync_bridge.py`, `apps/bootstrap/provider_stack_factory.py` | AUDITADO FOCAL, no exhaustivo |
-| Plan y contrato de reutilización | `core/chunking/manifest_contract.py`, `core/prompting/inference_identity.py` | REFERENCIADO / inspección parcial |
-| OCR, B02, normalización, AST, clasificadores | `apps/ocr_router/`, `apps/bootstrap/pipeline_factory.py`, `core/ast/` y dependencias | POR AUDITAR |
-| G5 y recursos científicos | `apps/compiler/`, `core/compiler/`, perfiles, renderer y activos | POR AUDITAR |
-| Estado y recuperación | `infra/db/`, `runtime/recovery.py`, `runtime/resumer.py`, `runtime/sweeper.py`, reconciler, W06 | POR AUDITAR |
-| Entornos | `docker-compose.yml`, `docker-compose.runtime.yml`, bootstrap, host Windows, Tectonic/cachés | REFERENCIADO; runtime físico no verificado |
-| Oráculos y suites | `tests/`, `.github/workflows/`, `reports/certification/`, issue #34 | REFERENCIADO; evidencia científica real no re-ejecutada |
-| Legacy | R1/R3, CLI histórica, `build_pipeline`, benchmarks y consumidores potenciales | AUDITADO FOCAL: roots y algunos consumidores; búsqueda global incompleta |
-| Roots complementarios | `pyproject.toml`, `apps/benchmark/`, `apps/api/`, `apps/ocr_workers/`, `tools/evaluation/`, `apps/lab/`, `.github/workflows/` | AUDITADO FOCAL: entradas y alcance, no invocaciones externas |
+| CLI y foreground | `apps/cli/{main,pdf_inbox,pdf_product}.py` | **AUDITADO**: entrada, admisión y selección de OCR/G3/G5 |
+| G3 y factory de proveedores | `runtime/engine.py`, `apps/llm_workers/{sync_bridge,prompt_builder,adapters}.py`, `apps/bootstrap/provider_stack_factory.py` | **AUDITADO**: composición, bindings y discrepancia E-0.1-002; semántica/egress **REFERENCIADOS** a PPPR.0.4 |
+| Plan, AST y snapshots | `core/ast/`, `core/chunking/`, `infra/db/context_snapshot_repo.py` | **AUDITADO**: conexiones entre fronteras; significado y cobertura **REFERENCIADOS** a PPPR.0.3 |
+| OCR y extracción | `apps/ocr_router/`, `apps/bootstrap/{pipeline_factory,provider_factory}.py`, `infra/extraction/` | **AUDITADO**: selección del parser y consumidores; fidelidad física **REFERENCIADA** a PPPR.0.2 |
+| G5 y renderizado | `apps/compiler/`, `core/compiler/` | **AUDITADO**: composición del runner/resolver; calidad y ejecución Tectonic **REFERENCIADAS** a PPPR.0.6/0.7 |
+| Estado y recuperación | `infra/db/`, `runtime/{recovery,resumer,sweeper,publication_pipeline}.py`, reconciler | **AUDITADO**: actores y autoridad de interfaces; obligaciones transaccionales **REFERENCIADAS** a PPPR.0.5 |
+| Entornos y launchers | `pyproject.toml`, Dockerfiles, Compose, configuración y `apps/lab/` | **AUDITADO**: roots versionados; topología efectiva del host/Windows/red **NO VERIFICABLE** en 0.1, PPPR.0.7 |
+| Tests, corpus y CI | `tests/`, `.github/workflows/`, `tools/evaluation/`, `reports/certification/` | **REFERENCIADO**: testigos relevantes y sus límites; corpus/certificación física **NO VERIFICABLES**, PPPR.0.8 |
+| Legacy y utilitarios | `apps/cli/legacy_translate_async.py`, `apps/llm_workers/__main__.py`, `apps/benchmark/`, `apps/compiler/sandbox/` | **AUDITADO**: consumers versionados y separación R1/R3/G3; invocadores ajenos a Git **NO VERIFICABLES**, PPPR.0.7 |
+
+**Criterio de completitud:** todos los **módulos de conexión y launchers dentro del mandato de 0.1** se rastrearon a un root, un consumidor o una categoría de exclusión/no verificabilidad. El grafo cubrió los 579 archivos Python versionados, pero no demuestra que se haya auditado el contenido de todos ellos. La auditoría científica/transaccional profunda está explícitamente fuera del perímetro de este Flow Audit, con dueño primario por HITO §6.2.
 
 **Primera reconciliación del perímetro con el Atlas (inspección estática, 2026-11-18):**
 
@@ -464,41 +467,43 @@ Los IDs existentes no se reasignan. `E-0.1-023` complementa `E-0.1-002` con la f
 - **¿Se autorizan cambios por los hallazgos de apertura?** No; falta cerrar la auditoría, derivar decisiones normativas y aprobar el plan.
 - **¿Debe la nueva etapa inventar soluciones?** No por defecto: se exige búsqueda y clasificación de capacidades y consumidores antes de afirmar ausencia.
 
-## 21. CIERRE DEL HITO 0.1
+## 21. CIERRE DEL HITO PPPR.0.1
 
-### 21.1 Pre-checklist canónico — `IN_PROGRESS`
+### 21.1 Checklist de cierre FROZEN (§8.1)
 
-Evaluación previa a la revisión del owner, usando `1.2_METH_FOR_FORENSIC_HITOs.md` §§8.1–8.2; **no** es certificación FROZEN.
+| Requisito | Resultado y límite |
+|---|---|
+| Metadata, changelog, epistemología, síntesis y veredicto | **CUMPLIDO**: PPPR.0.1, v1.0.9 y fecha de congelamiento; no equivale a readiness |
+| Alcance y fuentes / 100 % del perímetro declarado | **CUMPLIDO PARA FLOW AUDIT**: §3 delimita roots y bindings auditados; componentes profundos referenciados a otro HITO; host/externos **NO VERIFICABLES** |
+| Registro y severidad estables | **CUMPLIDO**: E-0.1-001..044, una P1 y 43 P2; se preservan IDs originales para no reasignarlos al renombrar el archivo |
+| Observed / Required / Decision | **CUMPLIDO PARA LAS DISCREPANCIAS RELEVANTES**: §7 y evidencia extendida E-0.1-002; no convertir límites de prueba en incumplimientos |
+| Gaps con evidencia, obligación y destino | **CUMPLIDO**: GAP-0.1-01 → E-0.1-002 → PPPR.0.4 y gobernanza posterior, sin prescribir implementación |
+| Hipótesis cerradas o NO VERIFICABLE según §8.2 | **CUMPLIDO**: H-0.1-A..R con veredictos terminales; DQ-0.1-01..03 tienen causa, no-bloqueo del mapa estático y destino |
+| No-regresión y antecedentes | **CUMPLIDO PARA EL PERÍMETRO**: D-1/D-2, Atlas, HITO F17-BIS/F18 referenciados; diferencias temporales de CV, F18 y evaluación delegadas con fundamento |
+| Gobernanza y pasos posteriores | **CUMPLIDO PARA EL DOCUMENTO**: owner designó PPPR fuera de las fases numeradas; §6.7 general retiene el **merge a main hasta terminar Fase 0**. Este PR Draft no certifica Fase 0 completada |
 
-| Gate de cierre | Estado | Evidencia / condición restante |
+### 21.2 Deferred Questions y su disposición
+
+| ID | Disposición al cerrar 0.1 | Destino y motivo |
 |---|---|---|
-| Metadata, changelog, límite epistemológico y método | CONFORME EN BORRADOR | §§1–2 y changelog; falta versión de congelamiento |
-| Alcance + fuentes y módulos | CONFORME PARCIAL | §3 tiene censo 579/579 de módulos Python versionados en grafo, pero la auditoría propia es focal por fronteras; conservar `REFERENCIADO`/`NO VERIFICABLE` por módulo, no declarar 579 semánticamente auditados |
-| Evidencias con ID, severidad y Observed/Required/Decision | CONFORME EN BORRADOR | E-0.1-001..044; E-0.1-002 extendida (P1). No promover riesgos P2 a defectos sin causalidad |
-| GAP trazado a evidencia, contrato y destino | CONFORME EN BORRADOR | GAP-0.1-01 → E-0.1-002 → 0.4/gobernanza, sin decidir solución |
-| Hipótesis cerradas o diferidas según §8.2 | CONFORME EN BORRADOR | H-0.1-B/E/J tipadas como `NO VERIFICABLE` y diferidas con causa, destino y no-bloqueo del mandato; K confirmada solo para fronteras inventariadas. Requiere verificación owner del perímetro |
-| Contradicciones y antecedentes FROZEN | CONFORME PARCIAL | §4 ya reutiliza HITOs 17-BIS/F18; diferencia histórica en CV/CI con HITO_6.4 se remite a 0.8, sin declararse contradicción del mismo SHA |
-| Veredicto, declaración de garantías y siguiente paso | **PENDIENTE DE REVISIÓN** | El veredicto está limitado a la ruta estática; falta validación owner, versión/fecha FROZEN y declaración de garantías final |
-| Gobernanza de incorporación Git y denominación | **PENDIENTE** | Metodología general §3.5.1 exige `phase-{fase}` y §6.7 sitúa commit de HITOs al finalizar Fase 0; nombre de iniciativa y PR Draft deben reconciliarse antes de merge |
+| DQ-0.1-01 | **NO VERIFICABLE EN 0.1**, no bloquea mapa de roots | Identidad generación/idioma/modelo requiere escenario de nueva generación; PPPR.0.3 y PPPR.0.5 |
+| DQ-0.1-02 | **NO VERIFICABLE EN 0.1**, sin autorización para pruebas reales | Gasto, credenciales, red y proveedor; PPPR.0.4 y PPPR.0.7 |
+| DQ-0.1-03 | **NO VERIFICABLE EN GIT**, no bloquea selección versionada | Lanzadores/consumidores host externos; PPPR.0.7, inventario de instalaciones si es relevante |
+| DQ-0.1-04 | **RESUELTA PARA EL PERÍMETRO INVENTARIADO** | Las fronteras 0.2–0.9 tienen responsables primarios en §6.2; puede reconciliarse al surgir evidencia nueva, sin predeterminar un plan |
+| DQ-0.1-05 | **RESUELTA EN NOMENCLATURA / INTEGRACIÓN DIFERIDA POR NORMA** | Owner autorizó `HITO_PPPR.0.x` (2026-11-19); carpeta de iniciativa no pretende ser `phase-{n}`. Aplicar §6.7 general en el merge; mantener PR #66 Draft |
 
-### 21.2 Deferred Questions (sin resolución inventada)
+**Regla de estabilidad:** los IDs ya usados `E-0.1-*`, `H-0.1-*` y `GAP-0.1-01` no se renombran retroactivamente aunque el **nombre de archivo** adopte PPPR. No se crea un segundo Atlas, una fase numerada ni una matriz de implementación.
 
-| ID | Pregunta / razón por la que no se concluye ahora | Destino / criterio |
-|---|---|---|
-| DQ-0.1-01 | ¿Una nueva configuración de idioma/modelo crea o reutiliza correctamente generación cuando el mismo `document_id` está `COMPLETED`? El grafo y la CLI no prueban el comportamiento físico | HITO 0.3 (identidad) y 0.5 (autoridad), reproducción aislada autorizada |
-| DQ-0.1-02 | ¿Cuota, credenciales, modelo y proveedor permiten una ejecución pagada controlada? No se probó red real ni se autorizó egress | HITO 0.4 (provider/FinOps) y 0.7 (entorno); no transmitir PDF privado |
-| DQ-0.1-03 | ¿Existen launchers/consumidores de R1/R3 fuera de Git? El árbol no inspecciona instalaciones ni procesos del host | HITO 0.7; inventario operativo del owner si resulta necesario, de otro modo `NO VERIFICABLE` |
-| DQ-0.1-04 | ¿El reparto de fronteras 0.2–0.9 es suficiente y evita doble auditoría? Existe matriz de dueños primarios para las fronteras conocidas, pero la suficiencia del perímetro no está refrendada formalmente | Revisión del owner sobre §6.2 antes de declarar FROZEN; no es plan de implementación |
-| DQ-0.1-05 | ¿Cómo reconciliar `pdf-pdf-product-readiness` (nombre de iniciativa acordado) con la convención de carpeta `phase-{fase}`, y cuándo integrar HITOs en main según §6.7 general? Una respuesta no se infiere de la especialización | Governance/owner antes de merge o cierre de Fase 0; mantener Draft PR #66 sin merge, sin reinterpretar ni editar metodología FROZEN |
+### 21.3 Declaración y garantías de cierre
 
-**Criterio de finitud:** 0.1 puede concluir *el mapa versionado y los límites de consumidores de la ruta* sin haber ensayado todas las propiedades profundas de 0.2–0.8. Si una incógnita sí impide reconocer una raíz o consumidor primario, debe resolverse antes del cierre; si no, debe cumplir las cuatro condiciones de §8.2. No basta un `TO BE VERIFIED` sin causa ni destino.
+Este HITO confirma el **inventario estático verificable** de la ruta única CLI/OCR → G3 → G5, su composición por factories y puertos, los consumidores legacy/versionados relevantes, y las propiedades no demostradas que deben investigarse separadamente. Se utilizaron Atlas, ambos grafos y lectura focal de `main@1d21cfe958cc1de8a33824fed748cd6fe9260f42`.
 
-### 21.3 Estado y declaración de cierre pendiente
+**Estado del HITO:** **FROZEN v1.0.9**, 2026-11-19.  
+**Condición de cierre cumplida:** alcance de Flow Audit terminado, 44 evidencias clasificadas, 1 GAP local abierto y trazado, hipótesis H-0.1-A..R dispuestas y DQ-0.1-01..05 con destinos.  
+**Garantías que NO se conceden:** ausencia universal de clientes externos, Compose instalado/ejecutado, funcionamiento real de Groq/Gemini, Tectonic físico, durabilidad total entre HTTP/SQLite/FS, traducción validada o preservación científica STEM.  
+**Verificación de cadena de gobernanza:** metodología general (superior) → metodología de HITOs v1.2.0 → ADR/NADR y D-1/D-2 vigentes → Atlas y HITOs F17-BIS/F18 heredados → PPPR.0.1 → próximos HITOs forenses → futuras decisiones ADR/NADR/Execution Plan. El plan F18.2 conserva su propia autoridad.  
+**Contradicciones con HITOs previos:** ninguna inconsistencia de igual SHA acreditada; diferencias de cortes históricos/CI se documentan y derivan a PPPR.0.5/0.8.  
+**Decision Candidates generados:** ninguno aprobado; GAP-0.1-01 es evidencia para PPPR.0.4 y gobernanza futura, no decisión de solución.  
+**Siguiente paso recomendado:** PPPR.0.2 (ingesta/extracción física), reutilizando el Atlas, la factory PyMuPDF, el grafo v2 y evidencias B02 sin reiniciar auditoría de roots. El PR documental **permanece Draft, sin merge**, hasta satisfacer el momento de integración de la metodología general.
 
-**Estado del HITO:** IN_PROGRESS v1.0.8; **NO FROZEN**.  
-**Condición de cierre:** pendiente. Requiere inventario completo de entrypoints y consumidores relevantes (incluidos imports/configuración dinámica y herramientas), reconciliación de obligaciones con su versión vigente, referencias de evidencia y límites por superficie, clasificación de hipótesis, contradicciones resueltas o declaradas, y criterios verificables de transferencia a otros HITOs. Ya existe contraste estático inicial del Atlas, selección de roots, consumidores versionados focales, mapa de fronteras y dueño primario por HITO (§6.1–6.3). **No** equivale a censo global exhaustivo. El índice textual no permitió descartar consumidores por ausencia de resultados; quedan rutas dinámicas/externas, trazabilidad de dependencias relevantes y contraste de alcance por normativa. No se atribuye a 0.1 la revisión profunda de cada propiedad que está correctamente delegada a otro HITO. La inspección del grafo v1 (E-0.1-033..036) reveló omisiones importantes; el grafo v2 (E-0.1-037..040) **sí cubre los 579 Python versionados** e identifica 6.399 enlaces estáticos/inferidos, con fronteras OCR/G3/G5 comprobadas por lectura focal. **No** autoriza certificar resolución universal de 7.384 llamadas o 1.064 sitios potencialmente dinámicos: muchos son efectos externos/atributos, y los puertos inyectados necesitan análisis de composición. Consumidores host ajenos a Git permanecen `NO VERIFICABLE`, con destino 0.7; contratos internos profundos se asignan a 0.2–0.8. El triaje focal §3 (E-0.1-041..044) localizó bindings de OCR/G3/G5 y separó tests/reflexión de efectos físicos; quedan por resolver o diferir conforme a §8.2 las DQ-0.1-01..04 y obtener validación de cierre del owner. La evaluación preliminar §21.1 **no** equivale a checklist completado. El registro de fuentes §4 ya declara HITOs previos y el triaje de hipótesis está acotado por §21.2. La denominación de carpeta, el instante de integración del PR y la suficiencia formal del perímetro permanecen abiertos como **gates de gobernanza**, no como brechas de código.  
-**Verificación de cadena de gobernanza:** metodología general v1.3.0 (prevalece) > metodología HITOs v1.2.0 FROZEN (especializada) > ADR/NADR vigentes y decisiones D-1/D-2 > Atlas/handoffs descriptivos y HITOs 17-BIS/F18 previos > evidencia actual del HITO > futuro ADR/NADR/Execution Plan. No hay ADR/NADR ni Execution Plan aprobados de esta iniciativa. El plan F18.2 conserva su propia autoridad. **Contradicciones con HITOs previos:** no se acreditó una contradicción sobre el mismo SHA; la diferencia temporal entre HITO_6.4 y workflow CV actual se documenta para reconciliación en 0.8. **Conflictos de nomenclatura/commit:** DQ-0.1-05 pendiente de autoridad owner. **Revisión de cierre:** no aprobada.  
-**Decision Candidates generados:** ninguno aprobado; DQ-0.1-01..05 conservan las decisiones/evidencias pendientes, con sus destinatarios. GAP-0.1-01 no prescribe solución.  
-**Siguiente paso recomendado:** validar por owner la suficiencia de la matriz §6.2 y resolver DQ-0.1-05 de nomenclatura/merge según metodología superior; después, aplicar checklist §21.1 y emitir declaración FROZEN solo si todos los gates se satisfacen. Mantener PR #66 Draft y sin merge. Auditar HITO 0.2 sin ejecutar código de producción.
-
-> No usar esta versión `IN_PROGRESS` como prueba de que la auditoría de Fase 0 esté completa.
+> Este cierre es exclusivamente del **HITO PPPR.0.1**: NO significa cierre de Fase 0 ni `PRODUCT_READINESS=PASS`.

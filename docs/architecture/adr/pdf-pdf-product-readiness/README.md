@@ -42,11 +42,11 @@ Se aplican, con sus precedencias y estados FROZEN, los documentos existentes:
 - [Guía de arquitectura](../../README.md), `PROJECT_SCOPE.md` y `ENGINEERING_PRINCIPLES.md`.
 - [Handoff vigente de convergencia](../pipeline-stabilization/handoff/README.md), ADR/NADR FROZEN aplicables (incluida Fase 18), y [evidencia TST-STAB](../tests_stabilization/PLAN_REMEDIACION_TESTS_PIPELINE.md).
 
-**Nota de nomenclatura:** `pdf-pdf-product-readiness` es el nombre de iniciativa expresamente seleccionado para esta etapa. La metodología emplea la convención `phase-{fase}` para fases numeradas: esta apertura **no declara haber creado una nueva fase numerada ni sustituye su ADR Maestro**. Si la gobernanza posterior requiere formalizarla como fase del roadmap, la autoridad correspondiente deberá resolver y registrar la relación con esa convención; no se elude la metodología por silencio.
+**Nota de nomenclatura y alcance:** el owner fijó la convención **`HITO_PPPR.0.x_{NOMBRE_DISTINTIVO_CORTO}.md`** el 2026-11-19. `PPPR` identifica una iniciativa transversal fuera de la numeración del roadmap, no una fase nueva. Se conserva la carpeta `pdf-pdf-product-readiness/00-foundation/`; la metodología general y la canónica de HITOs siguen aplicando, sin modificarlas ni derogar su prelación. Los IDs internos ya registrados del 0.1 no se reasignan. Conforme a §6.7 de la metodología general, el PR de HITO sigue **Draft y sin integrar en main** hasta el cierre de Fase 0.
 
 ## 4. Estado documental y secuencia
 
-1. **Fase 0 en curso:** únicamente HITOs forenses bajo `00-foundation/`, con sus matrices e inventarios **dentro de esos HITOs**. Primer entregable: [HITO_0.1_RUTA_OPERATIVA_Y_PERIMETRO.md](00-foundation/HITO_0.1_RUTA_OPERATIVA_Y_PERIMETRO.md), `IN_PROGRESS`.
+1. **Fase 0 en curso:** únicamente HITOs forenses bajo `00-foundation/`, con sus matrices e inventarios **dentro de esos HITOs**. Primer entregable: [HITO_PPPR.0.1_RUTA_Y_PERIMETRO.md](00-foundation/HITO_PPPR.0.1_RUTA_Y_PERIMETRO.md), **FROZEN como HITO**, aún sin merge a `main`. Los siguientes HITOs PPPR.0.2–0.9 continúan la investigación de Fase 0.
 2. **Después de cerrar la auditoría:** sintetizar decisiones y emitir los ADR/NADR que correspondan, reutilizando obligaciones existentes antes de crear nuevas. Ningún Execution Plan se aprueba por adelantado.
 3. **Después de la gobernanza:** un Execution Plan único y vivo ordenará tareas, gates, evidencias, PR, commits y estados.
 4. **Al ejecutar:** tests y CI por SHA exacto, revisiones conforme a la metodología y handoff final con límites expresos.
