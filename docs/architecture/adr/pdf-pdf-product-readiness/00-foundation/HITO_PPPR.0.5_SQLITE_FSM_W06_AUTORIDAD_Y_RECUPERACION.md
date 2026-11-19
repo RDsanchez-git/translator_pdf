@@ -1,6 +1,6 @@
 # HITO_PPPR.0.5_SQLITE_FSM_W06_AUTORIDAD_Y_RECUPERACION.md
 
-**Estado:** IN_PROGRESS v1.0.0  
+**Estado:** IN_PROGRESS v1.0.1  
 **Fecha de emisión:** 2026-11-19  
 **Fecha de congelamiento:** N/A  
 **Fase:** PPPR — Fase 0 transversal de `pdf-pdf-product-readiness`, no una fase nueva del roadmap.  
@@ -10,13 +10,14 @@
 **Baseline de gobernanza:** `pdf-pdf-product-readiness@1e4c767eb60d46f37e733c3af85a28dfe76f7f38`, con PPPR.0.1–0.4 FROZEN.  
 **Evidencia Forense Vinculante:** Metodología general v1.3.0 FROZEN; metodología forense v1.2.0 FROZEN; `PROJECT_SCOPE.md`, `ENGINEERING_PRINCIPLES.md`; D-1/D-2 y Atlas; NADR-F18-01 (identidades), NADR-F18-02 (ejecución acotada), NADR-F18-03 (autoridad/efectos inciertos), NADR-F18-04 (durabilidad/idempotencia), NADR-F18-05 (exposición y observabilidad), ADR-F18.2 FROZEN; los HITOs PPPR.0.1–0.4 congelados.  
 **Mandato:** auditar **la ruta soportada** OCR→G3→G5 en cuanto a propietarios de estado, `FSMRepository`, SQLite `fsm.db/queue.db/event.db/materialized.db/rate_limits.db`, identidad del intento, leases y epochs, pre-efecto/pos-efecto W06, receipt/manifest, recuperación, proyecciones y transición FSM; distinguir implementación actual, evidencia de testigos y obligaciones F18, sin volver a ejecutar el antiguo pipeline.  
-**Síntesis:** La ruta G3 actual utiliza `queue.db` como fuente local recuperable de plan/intent/receipt y materializa por etapas; `event.db` permanece en la ruta CQRS legada. Ante incertidumbre, los chunks de inferencia entran en cuarentena `G3_EXTERNAL_UNKNOWN` en vez de reintentarse automáticamente. Hay contratos positivos de fencing/idempotencia; falta examinar cobertura total, mecanismos de resolución de UNKNOWN y ventanas de fallo antes de congelar o abrir GAPs.
+**Síntesis:** G3 usa leases y receipts en `queue.db`, publicación staged e incertidumbre W06 sin retry automático; `event.db` pertenece al CQRS legado. Dos GAP P1 locales demostrados en el perímetro: falta de escalamiento configurable conectado de UNKNOWN y revalidación insuficiente del lease al inicio del efecto tras la espera del semáforo. Sin test comercial ni certificación.
 
 ### Changelog
 
 | Versión | Fecha | Modificación |
 |---|---|---|
 | 1.0.0-IN_PROGRESS | 2026-11-19 | Apertura desde merge del PR #69 con inspección directa de root G3, SQL/repositories, reconciler, staged publication, F18 NADR-03/04 y testigos W06/B3/B4. 18 E-IDs iniciales, 8 hipótesis por cerrar; NO tests ejecutados, NO FROZEN ni GAP prematuro. |
+| 1.0.1-IN_PROGRESS | 2026-11-19 | Segunda pasada: 26 E-IDs, 2 P1 locales y fichas §4.7; consumidores UNKNOWN y CLI, lease→semáforo→provider, reconcilers y sweeper. NADR-F18-03/04 y ADR-F18.2 reconciliados con ruta vigente. NOT_RUN, no FROZEN. |
 
 ## 1. RESUMEN EJECUTIVO
 
@@ -26,9 +27,9 @@ Se inició la auditoría forense de propiedad de estado de la ruta seleccionada.
 
 > En el G3 vigente, los receipts verificados y los estados de cuarentena sustituyen la antigua inferencia «sin evento, entonces no hubo efecto»; la coherencia de publicación se recupera mediante pasos locales, **no** una transacción distribuida ni una garantía de no duplicación comercial.
 
-**Defectos dominantes:** ninguno clasificado definitivamente en esta apertura. La suficiencia del escalamiento de `G3_EXTERNAL_UNKNOWN`, la autoridad cerca del instante de I/O y la recuperación bajo fallos abruptos son **hipótesis a falsar**, no defectos ya probados.
+**Defectos dominantes (P1 LOCAL):** **GAP-0.5-01** (E-019/022/026): UNKNOWN queda bloqueado y trazado pero sin un mecanismo configurable conectado que lo escale, conforme NADR-F18-03 R11. **GAP-0.5-02** (E-020/021): el lease solo se comprueba antes de la espera del semáforo, no al inicio del I/O, incumpliendo la garantía de autoridad de NADR-F18-03 R2. No se atribuye doble cobro observado.
 
-**Veredicto inicial:** flujo principal parcialmente verificado; reconciliación F18↔código en curso. **IN_PROGRESS**; no `PRODUCT_READINESS=PASS`.
+**Veredicto:** 26 evidencias y 2 GAP P1 locales, sin reabrir el journal legado. El mecanismo de no-retry W06 y el replay de receipts siguen siendo capacidades positivas; quedan controles de recovery periféricos por calificar. **IN_PROGRESS**, no `PRODUCT_READINESS=PASS`.
 
 ## 2. LÍMITE EPISTEMOLÓGICO Y MÉTODO FORENSE
 
@@ -44,10 +45,10 @@ Se inició la auditoría forense de propiedad de estado de la ruta seleccionada.
 | Frontera | Código primario y propiedad | Estado de esta pasada |
 |---|---|---|
 | Admission/OCR→G3 | `apps/ocr_router/__main__.py::_process_document`, `infra/db/context_snapshot_repo.py::enqueue_verified` | **AUDITADO focal**: atomicidad local de plan + tasks + snapshots; otro HITO cubre extracción |
-| G3 root y workers | `runtime/engine.py::run_pipeline`; `runtime/chunk_staging.py::stage_claimed_unit` | **AUDITADO**: validación pre-provider, threading, estados, receipt |
+| G3 root y workers | `runtime/engine.py::run_pipeline`; `runtime/chunk_staging.py::stage_claimed_unit`; `apps/llm_workers/sync_bridge.py::execute_chunk` | **AUDITADO**: semáforo y frontera pre-I/O, E-020/021 |
 | Autoridad de tarea | `infra/db/control_repo.py::{pick_task,stage_chunk_result,mark_g3_external_unknown,recover_expired_g3_task}` | **AUDITADO focal**: lease, CAS, UNKNOWN y fencing |
 | FSM documento | `infra/db/fsm_repository.py`, `core/execution/handlers.py` | **AUDITADO focal**: CAS versionado, límites de transacción |
-| Recuperación/reconciliador | `apps/daemons/reconciler.py`, `infra/db/system_repo.py`, `runtime/{recovery,resumer,sweeper}.py` | **AUDITADO focal**; semántica/activación de todos los mecanismos pendiente |
+| Recuperación/reconciliador | `apps/daemons/reconciler.py`, `infra/db/system_repo.py`, `runtime/{recovery,resumer,sweeper}.py` | **AUDITADO focal**: UNKNOWN y consumers E-019/022/023/026; conectividad sweeper auxiliar por corroborar |
 | Publicación | `infra/db/staged_publication.py`, `runtime/publication_pipeline.py` | **AUDITADO**: staged→materialized→queue→FSM, replay local |
 | SQLite/WAL y cuota | `infra/db/{connection,schema_queue,schema_fsm,schema_event,context_snapshot_repo}.py/sql`, `infra/resilience/thread_owned_sqlite_rate_limit_store.py` | **AUDITADO focal**; escritura real y power-loss NO VERIFICABLE |
 | Event plane histórico | `infra/db/{event_repo,materialized_repo}.py`, rutas legadas del reconciler | **AUDITADO para desambiguar consumidor**, no sustituye G3 vigente |
@@ -59,7 +60,7 @@ No se considera completo aún el checklist §8.1. No se introducen expedientes s
 
 ## 4. FUENTES DE EVIDENCIA
 
-**Código primario:** `main@1d21cfe958cc1de8a33824fed748cd6fe9260f42`: `runtime/{engine,chunk_staging,publication_pipeline,recovery,resumer,sweeper}.py`, `apps/daemons/reconciler.py`, `infra/db/{control_repo,fsm_repository,staged_publication,context_snapshot_repo,connection,event_repo,materialized_repo}.py`.
+**Código primario:** `main@1d21cfe958cc1de8a33824fed748cd6fe9260f42`: `runtime/{engine,chunk_staging,publication_pipeline,recovery,resumer,sweeper,operational_visibility}.py`, `apps/daemons/reconciler.py`, `apps/llm_workers/sync_bridge.py`, `apps/cli/{main,pdf_product}.py`, `core/execution/{state,handlers,visibility}.py`, `infra/db/{control_repo,fsm_repository,system_repo,staged_publication,context_snapshot_repo,connection,event_repo,materialized_repo}.py`. Ausencias de consumidores se declaran **solo para esta composición versionada**, no para extensiones privadas no accesibles.
 
 **Normas:** `docs/architecture/adr/phase-18/NADR/NADR-F18-01.md` (identidades), `NADR-F18-02.md` (concurrencia), `NADR-F18-03.md` §5 R1–R23 (autoridad e incertidumbre), `NADR-F18-04.md` §5 R1–R16 (persistencia recuperable), `NADR-F18-05.md` (observabilidad), y F18 ADR Maestro/ADR_F18_2 FROZEN. **Histórico como testigo, no estado actual:** `HITO_0.8_F0-C_State_Durability_Recovery_Map.md` y `HITO_18.2.1_CRASH_WINDOW_FINOPS_ANALYSIS.md`, con distintos cortes de código.
 
@@ -100,7 +101,7 @@ apps/daemons/reconciler.py:
 
 **Semántica central:** hay *confirmaciones recuperables locales* y puntos de corte entre DBs; **no existe una transacción atómica global** que combine queue, materialized y FSM. El contrato actual busca converger sin volver a pagar por la sola ausencia de una proyección local. No confundir esa propiedad lógica con protección demostrada ante pérdida física de energía.
 
-## 10. REGISTRO INICIAL DE EVIDENCIA FORENSE
+## 10. REGISTRO DE EVIDENCIA FORENSE — SEGUNDA PASADA
 
 | E-ID | Sev. provisional | Observed (archivo::símbolo) | Required/Decision/límite | Estado |
 |---|---|---|---|---|
@@ -123,31 +124,94 @@ apps/daemons/reconciler.py:
 | **E-0.5-017** | P2 | Tests B3/B4 versionan replay tras crash entre publicación y finalización, fencing de reconciler y rechazo de proyección corrupta/missing receipt. | Cobertura de mecanismos testados por intención; no se heredan resultados CI aquí. | TESTIGO |
 | **E-0.5-018** | P2 | `infra/resilience/thread_owned_sqlite_rate_limit_store.py` y test B4/7b aíslan estado de cuotas en hilo owner, distinto de la connection factory compartida. | No confundir cuotas durables con confirmación de cobro externo, ni atribuir thread safety de DB por nombre. | REFERENCIADO |
 
-**Severidad inicial P2 = hecho/limitación observable.** Antes de emitir P1/P0 se comprobarán los consumidores que podrían refutarlo; no se declara `PASS` científico ni se reabre una deuda histórica como defecto actual por mera similitud.
+| **E-0.5-019** | **P1** | `control_repo.py` persiste UNKNOWN y lo excluye de los selectores; `reconciler.py::_sweep_tasks` solo consulta PROCESSING expirado; `engine.py` emite log una vez y la CLI status/resume no dispone UNKNOWN. No hay escalamiento configurable ni revisión recurrente conectados en las interfaces auditadas. | NADR-F18-03 §5.3 **R11** (escalamiento configurable contra olvido silencioso), ADR-F18.2 DC-08b. | **GAP-0.5-01 OPEN** |
+| **E-0.5-020** | **P1** | `chunk_staging.py::stage_claimed_unit` compara el timestamp del lease **antes** de `with llm_semaphore:`; tras adquirir el semáforo ejecuta `processor.execute_chunk` sin revalidación durable del owner/attempt; `SyncProviderBridge.execute_chunk` envía al provider sin check adicional. | NADR-F18-03 §5.1 **R2**: autoridad verificable y vigente antes de comenzar efecto externo. Fencing SQL posterior no evita llamada iniciada por lease expirado. | **GAP-0.5-02 OPEN** |
+| **E-0.5-021** | P2 | `pick_task` asigna TTL ≈300s; `GLOBAL_LLM_SEMAPHORE` puede esperar si `MAX_CONCURRENT_CHUNKS` excede capacidad global. No se observó un `renew_task_lease` conectado al worker G3. | Interleaving posible, no latencia real ni error proveedor medidos. Contexto E-020. | CONTROL TEMPORAL |
+| **E-0.5-022** | P2 | `apps/cli/main.py::handle_status` consulta `document_fsm`, no `chunk_tasks`; `handle_resume` solo reanuda STALLED; `pdf_product.py` exige READY_FOR_ASSEMBLY después de G3. | Un operador puede recibir FSM PROCESSING sin disponer desde la CLI soportada de la causa/acción para UNKNOWN; no se presupone un comando concreto. | CORROBORA GAP-0.5-01 |
+| **E-0.5-023** | P2 | `runtime/sweeper.py` declara limpiar STALLED pero `FSMRepository.find_stalled_documents` filtra PARSING/PROCESSING/READY_FOR_ASSEMBLY, nunca STALLED; el `FailDocumentCommand` del handler mapea a FAILED_RETRYABLE, distinto del FAILED_FATAL del log. | Contradicción local en ejecutor auxiliar; conectividad con la ruta producto y obligación a confirmar antes de abrir GAP. | H-0.5-I, NO PROMOVIDO |
+| **E-0.5-024** | P2 | Testigos W06/B4 versionados cubren bloqueo de UNKNOWN/restart, CAS, recovered receipts; no incluyen en esos archivos escalamiento configurable ni expiración de lease mientras espera el semáforo hasta iniciar provider. | Testigos offline leídos `NOT_RUN`; ausencia de prueba en estas fuentes no equivale a incidencia comercial. | LÍMITE DE TEST |
+| **E-0.5-025** | P2 | `ADR_F18_2.md` v3.3.0 DC-08a/b reutiliza lease como autoridad y acepta incertidumbre conservadora; no obliga a event INTENT ni a disponibilidad de resolución automática del proveedor. `reconciler.py` evita consulta de `event.db` en rama G3. | Evitar falsas reaperturas del journal legacy y una solución innecesaria de transacción distribuida. | RECONCILIADO |
+| **E-0.5-026** | P2 | `test_g3_b4_3b_publication_recovery.py::test_g3_scheduler_excludes_unknown_generation` exige selectores vacíos y FSM PROCESSING para una generación con UNKNOWN, incluso si quedan tareas normales. | El bloqueo es una protección correcta contra segundo efecto; su duración indefinida sin escalamiento es el riesgo de GAP-01. Testigo NOT_RUN. | CORROBORA GAP-0.5-01 |
 
-## 14. GAPS CONSOLIDADOS — APERTURA
+**Severidad actual:** las evidencias originales E-001…018 conservan IDs y clasificación de apertura. E-019/020 son P1 **locales** demostrados contra requisitos existentes; E-021…026 delimitan causas y reconcilian rutas alternativas. No se declara duplicación comercial ni `PASS` científico.
 
-**Ningún GAP formalizado aún.** Candidatos bajo investigación: escalamiento configurable de UNKNOWN conforme NADR-F18-03 R11; autoridad vigente inmediatamente antes de iniciar I/O y tratamiento de expiration/TTL en llamada en vuelo; coherencia de estados entre `queue.db` y `fsm.db` cuando se producen interrupciones. Requieren demostrar el incumplimiento normativo/consumidor y documentar consecuencia antes de asignar severidad.
+### Fichas extendidas P1 (§4.7)
 
-## 15. HIPÓTESIS FALSABLES — IN_PROGRESS
+#### E-0.5-019 — cuarentena UNKNOWN sin seguimiento configurable conectado
+
+- **Fuente/símbolos:** `infra/db/control_repo.py::{mark_g3_external_unknown,find_documents_with_pending_chunks,find_documents_ready_for_g3_recovery}`; `apps/daemons/reconciler.py::_sweep_tasks`; `runtime/engine.py::run_pipeline`; `apps/cli/main.py::{handle_status,handle_resume}`.
+- **Declaración observada:**
+
+```python
+# El selector G3 descarta las generaciones con UNKNOWN.
+AND NOT EXISTS (
+    SELECT 1 FROM chunk_tasks uncertain
+    WHERE uncertain.task_state = 'G3_EXTERNAL_UNKNOWN'
+)
+# El reconciler solo inspecciona PROCESSING expirado.
+WHERE task_state = 'PROCESSING'
+  AND lease_expires_at < ?
+# El G3 registra un log puntual, sin mecanismo de escalamiento.
+logger.error("G3_W06_EXTERNAL_UNKNOWN_REQUIRES_OPERATOR: %s", unknown)
+```
+
+- **Observed:** `mark_g3_external_unknown` guarda `execution_id`, causa y `first_detected_at` de forma recuperable. Scheduler, recovery normal y CLI inspeccionados no presentan al operador una vía conectada de alarma parametrizable, reapertura informada ni disposición autorizada para esa cuarentena. El reconciler filtra PROCESSING (no UNKNOWN), mientras status/resume operan solo sobre FSM; los logs puntuales no son seguimiento configurable. **Alcance negativo:** solo consumidores/versiones inspeccionados, no procesos externos desconocidos.
+- **Required:** NADR-F18-03 §5.3 **R11** impone mecanismo de escalamiento configurable contra olvido silencioso; R9 prohíbe retry automático y R10 preserva trazabilidad. ADR-F18.2 DC-08b no exige progreso automático imposible sin proveedor cooperante, pero sí seguimiento/escalamiento.
+- **Decision:** D-1/D-2 define ruta; ADR-F18.2 deja los umbrales a planificación, sin aprobar un umbral fijo ni una infraestructura nueva.
+- **Consecuencia:** un documento con UNKNOWN puede permanecer bloqueado indefinidamente y sin seguimiento programado por la composición soportada; protección de no-retry correcta, pero progresión operativa no gobernada. No se atribuye cobro duplicado observado.
+- **Severidad/estado:** **P1 LOCAL · OPEN → GAP-0.5-01**. Destino: ADR Maestro/Execution Plan PPPR; reutilizar mecanismos antes de inventar infraestructura.
+
+#### E-0.5-020 — verificación de lease anterior a la espera del semáforo
+
+- **Fuente/símbolos:** `runtime/chunk_staging.py::stage_claimed_unit`, `infra/db/control_repo.py::{pick_task,renew_task_lease,stage_chunk_result}`, `runtime/engine.py::chunk_worker_thread`, `apps/llm_workers/sync_bridge.py::execute_chunk`.
+- **Declaración observada:**
+
+```python
+if lease.lease_expires_at <= time.time():
+    raise ValueError("G3_B4_3A_EXPIRED_LEASE")
+# ...
+with llm_semaphore:
+    raw_response = processor.execute_chunk(plan, unit)
+# El bridge luego despacha un future de provider sin revalidación SQL.
+```
+
+- **Observed:** el guard compara el snapshot original del `TaskLease` antes del bloqueo del semáforo; el worker no renueva ese lease en esta ruta y no hay otra verificación durable de `owner/execution_id/lease_expires_at` justo al iniciar el efecto. `stage_chunk_result` valida SQL **después** del I/O, sin poder impedir un envío previo.
+- **Contrajemplo causal NO ejecutado:** lease válido al llegar al guard; el semáforo permanece ocupado hasta que el lease vence o cambia de owner; al liberarse, el código inicia el provider con autoridad caducada y el CAS posterior puede rechazar el resultado. Es posible sin alegar latencia observada ni doble factura.
+- **Required:** NADR-F18-03 §5.1 **R1–R3**, en especial **R2** (autoridad recuperable vigente verificable *antes* del efecto). La pérdida durante un efecto ya comenzado no equivale a cancelación del proveedor.
+- **Decision:** ADR-F18.2 ratifica reutilizar lease durable como autoridad; no obliga a un segundo journal ni especifica una implementación nueva.
+- **Consecuencia:** la corrección del receipt local no acredita el *external-effect fencing* previo. El modo de concurrencia configurado puede abrir la ventana, aunque los testigos SQL pasen.
+- **Severidad/estado:** **P1 LOCAL · OPEN → GAP-0.5-02**. Destino: ADR Maestro/Execution Plan PPPR; testigo offline focal de expiración durante espera si se autoriza.
+
+
+## 14. GAPS CONSOLIDADOS — SEGUNDA PASADA
+
+| GAP | Descripción, causalidad y obligación | Estado y destino |
+|---|---|---|
+| **GAP-0.5-01** | UNKNOWN durable bloquea reintento pero no dispone de escalamiento configurable en la ruta auditada; E-019/022/026, **NADR-F18-03 R11**, ADR-F18.2 DC-08b. | **P1 LOCAL · OPEN** → ADR Maestro/Execution Plan PPPR; seguimiento y disposición documentados, sin prescribir tecnología |
+| **GAP-0.5-02** | Lease se comprueba antes del semáforo, no al empezar la llamada; E-020/021, **NADR-F18-03 R2**, ADR-F18.2 DC-08a. CAS post-I/O no corrige autoridad pre-I/O. | **P1 LOCAL · OPEN** → ADR Maestro/Execution Plan PPPR; testigo aislado seguro posterior |
+
+**No son GAPs de esta ruta:** ausencia de INTENT en el journal legado, falta de 2PC, bloqueo seguro de UNKNOWN o no usar `synchronous=FULL` (F18 aprobó WAL+NORMAL para su modelo de fallos). E-023 se mantiene como discrepancia auxiliar sin conectividad acreditada. No se crean tareas de implementación prematuras.
+
+## 15. HIPÓTESIS — SEGUNDA PASADA, AÚN IN_PROGRESS
 
 | ID | Pregunta | Estado/destino de la investigación |
 |---|---|---|
-| **H-0.5-A** | ¿El escalamiento de `G3_EXTERNAL_UNKNOWN` dispone de umbrales/alarma operativa configurables y disposición segura según NADR-F18-03 R10–R15? | **TO BE VERIFIED**, rastrear CLI, reconciler, telemetry y operator workflow |
-| **H-0.5-B** | ¿Toda operación G3 valida autoridad **vigente** inmediatamente antes del efecto, incluso con pérdida de lease entre guard y SDK? | **TO BE VERIFIED**, comparar NADR-F18-03 R1–R3 con `stage_claimed_unit` y provider bridge |
+| **H-0.5-A** | ¿El escalamiento de `G3_EXTERNAL_UNKNOWN` dispone de umbrales/alarma operativa configurables y disposición segura según NADR-F18-03 R10–R15? | **BRECHA CONFIRMADA EN LA COMPOSICIÓN** E-019/022/026 → GAP-0.5-01; no negar procesos externos no examinados |
+| **H-0.5-B** | ¿Toda operación G3 valida autoridad **vigente** inmediatamente antes del efecto, incluso con pérdida de lease entre guard y SDK? | **FALSADA POR FLUJO ESTÁTICO** E-020/021 → GAP-0.5-02; sin ensayo de tiempo ni proveedor |
 | **H-0.5-C** | ¿Crash tras paid effect y antes de receipt se convierte en UNKNOWN sin reintento automático? | **CONFIRMADA por lectura** en recuperación de expiración; testigo W06 `NOT_RUN` |
 | **H-0.5-D** | ¿Crash después de RESULT_STAGED o tras materialized publication reinicia sin volver a llamar al modelo? | **CONFIRMADA como mecanismo** en código y tests; ejecución post-crash `NOT_RUN` |
 | **H-0.5-E** | ¿Existe transacción distribuida queue/materialized/FSM, o solo convergencia por commits locales? | **CONFIRMADA la separación**; evaluar modelo de fallos F18 para no inventar necesidad de 2PC |
 | **H-0.5-F** | ¿Las escrituras obsoletas están cercadas por identidad de ejecución, epoch y CAS en todas las rutas G3? | **PARCIAL**, revisar paths de finalización y handlers legacy |
 | **H-0.5-G** | ¿El estado `WAL+NORMAL` es suficiente bajo el modelo de fallos realmente aprobado? | **CONFIRMADA como política estática**, garantías power-loss fuera de modelo; no medir aquí |
-| **H-0.5-H** | ¿El estado durable de cuotas, circuit breaker y telemetría satisface reglas F18 sin contaminar identidad científica? | **TO BE VERIFIED**; controlar owner del estado y destino 0.7/ADR cuando aplique |
+| **H-0.5-H** | ¿El estado durable de cuotas, circuit breaker y telemetría satisface reglas F18 sin contaminar identidad científica? | **TO BE VERIFIED**; distinguir evidencia de operación y costos de resultado científico, con posibles destinos 0.7/0.8 |
+| **H-0.5-I** | ¿El sweeper auxiliar selecciona realmente STALLED y transiciona al estado fatal anunciado? | **CONTRADICCIÓN ESTÁTICA** E-023, conectividad al producto pendiente; no es GAP todavía |
 
-## 16. RESPUESTAS INICIALES AL MANDATO
+## 16. RESPUESTAS AL MANDATO — SEGUNDA PASADA
 
-La cadena seleccionada **no** usa el `EventPlaneRepository.get_latest_event` para decidir si reintenta un chunk G3. La autoridad para aplicar resultados vive en un plan/lease/receipt de `queue.db`, y el estado local se mueve entre planos con verificación e idempotencia por etapa. Un intento de proveedor incierto permanece representado por `G3_EXTERNAL_UNKNOWN`; eso es una protección importante, **no** prueba de que exista resolución, escalamiento, costo contabilizado o recuperación científica final.
+La cadena seleccionada **no** usa el `EventPlaneRepository.get_latest_event` para decidir si reintenta un chunk G3. La autoridad para aplicar resultados vive en un plan/lease/receipt de `queue.db`, y el estado local se mueve entre planos con verificación e idempotencia por etapa. Un intento de proveedor incierto permanece representado por `G3_EXTERNAL_UNKNOWN`, lo que cumple la prohibición de retry ciego, **pero no acredita escalamiento configurable** (GAP-0.5-01). La comprobación de lease antes del semáforo no valida el inicio físico del efecto (GAP-0.5-02). El resultado local confirmado y la publicación por etapas son recuperables bajo los compromisos de SQLite aprobados, no bajo pérdidas físicas no incluidas en el modelo de F18.
 
 ## 21. CIERRE DEL HITO — IN_PROGRESS
 
-**NO FROZEN.** Apertura con 18 evidencias iniciales, ocho hipótesis y ninguna severidad P1 adjudicada por inercia histórica. Pendiente: inventario exhaustivo de consumidores de UNKNOWN y ejecutores/reconciliadores, contradicciones con F18, ventanas antes/después de I/O, guarantees bajo crash, resultados de tests `NOT_RUN` y checklist §8.1–8.2. No hubo tests, CI, proveedor comercial, corpus, cambios de código, SQLite ni otras mutaciones productivas.
+**NO FROZEN — IN_PROGRESS v1.0.1.** 26 evidencias con dos fichas P1 y dos GAPs locales OPEN, nueve hipótesis (H-A…I) parcialmente clasificadas. Pendiente: matriz de ventanas de crash, autoridad y consumidores periféricos, DQ/DC y checklist §8.1–8.2. Sin tests/CI/LLM, SQLite reales, corpus, GT o cambios de producción.
 
 **Git:** abrir PR interno Draft solo de este Markdown desde `pppr/hito-0.5` hacia `pdf-pdf-product-readiness`; mantener el PR general #66 Draft hacia `main`. Cuando PPPR.0.5 se congele, revise y apruebe, integrar internamente, verificar, eliminar rama corta y solo entonces comenzar PPPR.0.6. No implementar antes de ADR/NADR y Execution Plan aprobados.
