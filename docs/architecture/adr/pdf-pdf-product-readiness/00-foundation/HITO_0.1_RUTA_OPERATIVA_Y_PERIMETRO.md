@@ -1,6 +1,6 @@
 # HITO_0.1_RUTA_OPERATIVA_Y_PERIMETRO.md
 
-**Estado:** IN_PROGRESS v1.0.1  
+**Estado:** IN_PROGRESS v1.0.2  
 **Fecha de emisión:** 2026-11-18  
 **Fecha de congelamiento:** N/A  
 **Etapa:** PDF→PDF Product Readiness — Fase 0 (auditoría forense). La numeración formal de fase, si corresponde, queda sujeta a gobernanza metodológica.  
@@ -17,6 +17,7 @@
 |---|---|---|
 | 1.0.0-IN_PROGRESS | 2026-11-18 | Apertura del HITO, mandato, baseline, método, evidencias iniciales y condiciones de cierre; sin declarar una auditoría completada. |
 | 1.0.1-IN_PROGRESS | 2026-11-18 | Primera reconciliación estática: Atlas histórico versus main y grafo de productores/consumidores de la ruta D-1/D-2. La auditoría sigue abierta. |
+| 1.0.2-IN_PROGRESS | 2026-11-18 | Segundo barrido estático: censo de rutas ejecutables y consumidoras fuera del Atlas, factories, benchmark/CV, stubs y alcance real de testigos T06/W08; conserva límites no verificados. |
 
 ## 1. RESUMEN EJECUTIVO
 
@@ -53,7 +54,7 @@ El objetivo es observar la composición PDF→PDF desde admisión hasta PDF publ
 7. Emitir evidencias estables y gaps únicamente ante discrepancias fundamentadas; transferir aspectos de otras superficies a HITOs específicos cuando corresponda.
 8. Cerrar cuando el perímetro y sus consumidores relevantes estén enumerados y las incertidumbres y límites explícitos sean suficientes para que los HITOs siguientes y la gobernanza no reinventen soluciones existentes.
 
-**Control de alcance:** se inspeccionará todo componente *relevante para el recorrido y sus contratos*, no cada archivo incidental del repositorio con el mismo nivel de profundidad. Los hallazgos fuera de perímetro se derivan, no se absorben sin límite.
+**Control de alcance:** se inspeccionará todo componente *relevante para el recorrido y sus contratos*, no cada archivo incidental del repositorio con el mismo nivel de profundidad. Los hallazgos fuera de perímetro se derivan, no se absorben sin límite. **Limitación de búsqueda:** en este barrido la consulta indexada de símbolos conocidos no devolvió resultados aun para símbolos presentes en archivos leídos; por tanto, no se usa ese mecanismo para afirmar ausencia de consumidores. La evidencia positiva proviene de archivos individuales y el árbol Git; los consumidores dinámicos/extras todavía están por cerrar.
 
 ## 3. ALCANCE AUDITADO
 
@@ -67,7 +68,8 @@ El objetivo es observar la composición PDF→PDF desde admisión hasta PDF publ
 | Estado y recuperación | `infra/db/`, `runtime/recovery.py`, `runtime/resumer.py`, `runtime/sweeper.py`, reconciler, W06 | POR AUDITAR |
 | Entornos | `docker-compose.yml`, `docker-compose.runtime.yml`, bootstrap, host Windows, Tectonic/cachés | REFERENCIADO; runtime físico no verificado |
 | Oráculos y suites | `tests/`, `.github/workflows/`, `reports/certification/`, issue #34 | REFERENCIADO; evidencia científica real no re-ejecutada |
-| Legacy | R1/R3, CLI histórica, `build_pipeline`, benchmarks y consumidores potenciales | POR AUDITAR |
+| Legacy | R1/R3, CLI histórica, `build_pipeline`, benchmarks y consumidores potenciales | AUDITADO FOCAL: roots y algunos consumidores; búsqueda global incompleta |
+| Roots complementarios | `pyproject.toml`, `apps/benchmark/`, `apps/api/`, `apps/ocr_workers/`, `tools/evaluation/`, `apps/lab/`, `.github/workflows/` | AUDITADO FOCAL: entradas y alcance, no invocaciones externas |
 
 **Primera reconciliación del perímetro con el Atlas (inspección estática, 2026-11-18):**
 
@@ -75,6 +77,19 @@ El objetivo es observar la composición PDF→PDF desde admisión hasta PDF publ
 - Comparación Git `6818e86...1d21cfe`: 78 rutas cambiadas globalmente; de las superficies de código `apps/`, `core/`, `infra/`, `runtime/` y los cuatro `docker-compose*.yml`, **solo** se modificaron `runtime/recovery.py` y `runtime/resumer.py`. Ambas incorporan `contextlib.closing` para conexiones de SQLite (PR #65). No equivale a probar las rutas en el SO actual.
 - Se inspeccionaron directamente los entrypoints/productores/consumidores listados en §6; se distingue `AUDITADO FOCAL` de `POR AUDITAR` aunque la ruta esté nombrada en el Atlas.
 - **No se constató runtime real, disponibilidad de Tectonic o modelos comerciales, contenido de bases privadas, ni invocaciones externas al repositorio.**
+
+**Segunda reconciliación — raíces auxiliares y consumidores compartidos (estática, mismo SHA de main):**
+
+- El árbol Git contiene **1.094 archivos versionados**. El inventario de rutas no equivale a auditar semánticamente cada archivo. En la inspección focal se leyeron composición, CLI, servicio OCR, stack de proveedor, ejecutables legacy, benchmark, CV, laboratorio y testigos T06/W08.
+- `pyproject.toml` registra `translator-pdf = "apps.cli.main:main"`. La CLI soportada solo registra `translate/sweep/resume/status`, y `handle_translate_async` lanza el error `C4_T06_R1_LEGACY_ENTRYPOINT_DISABLED`.
+- `apps/cli/legacy_translate_async.py::handle_translate_async` **sí** llama `build_pipeline`; por tanto, el factory histórico `apps/bootstrap/pipeline_factory.py::build_pipeline` tiene al menos un consumidor versionado, aunque no el comando productivo soportado. No se concluye si hay callers externos.
+- `apps/llm_workers/__main__.py::LLMWorkerDaemon` conserva un root R3 directamente ejecutable y mecanismos de admission/backpressure/shutdown, diferentes de la composición del G3 seleccionado. El test T06 verifica los launchers versionados y no demuestra ausencia global de consumidores externos.
+- `apps/benchmark/__main__.py` inicia un experimento Groq y llama el `build_extraction_pipeline` de producción; los runners Groq/Gemini consumen `AsyncDispatcher` y `build_provider_stack`. El benchmark **no** es una ruta productiva seleccionada. Su carga de un PDF físico y su posible egress externo requieren autorización propia; ningún experimento fue ejecutado en esta auditoría.
+- `tools/evaluation/run_regression.py` también usa `build_extraction_pipeline()` para comparar AST contra oráculos: valida extracción/topología, **no** prueba que una traducción G3→G5 sea fiel. El CI científico invoca ese runner y el pytest predeterminado excluye `e2e`.
+- `apps/bootstrap/provider_factory.py::ExtractionProviderFactory` resuelve PyMuPDF en la composición de extracción; existe al menos esa implementación reutilizable. `apps/api/server.py`, `apps/ocr_workers/router.py`, `configs/llm.yaml` y `configs/pipeline.yaml` están vacíos en este corte: su nombre no constituye una API/worker/configuración operativa.
+- `apps/lab/offline_pdf_lab.py` exige `--network none` y fake local; `apps/lab/convergence_compose_preflight.py` analiza topología/seguridad de laboratorio, no ejecuta E2E; `docker-compose.runtime.yml` es un override que **todavía debe** validarse como Compose efectivo. No transformar un test offline en prueba comercial.
+
+**Evidencia de alcance:** los testigos `tests/unit/test_c4_t06_supported_roots.py` y `tests/integration/test_w08_cli_foreground_single_generation_offline.py` se inspeccionaron como **código de prueba**, no se ejecutaron en esta pasada. T06 declara expresamente que solo prueba selección estática en launchers soportados; W08 reemplaza parser, transporte LLM y Tectonic aunque conserva la composición y SQLite reales.
 
 **Fuera de alcance en Fase 0:** cambio de código, migración de datos, purga, traducción comercial, campaña de benchmark científico, carga de PDF de terceros y nuevos despliegues.
 
@@ -133,6 +148,18 @@ La tabla de §3 es **un índice de superficies**, no un inventario terminado de 
 | Composición de runtime | `docker-compose.runtime.yml` fija `IS_BENCHMARK=0` y raíces SQLite/volúmenes para worker | Base declara `IS_BENCHMARK=1`; no ejecutar base sola ni atribuir integración real a la composición no ensayada |
 | R1 y R3 | `build_pipeline` y `LLMWorkerDaemon` existen; R1 no se ofrece en la CLI canónica y R3 no es el comando del `llm_worker` soportado | **No equivalen a código muerto**: comprobar consumidores de tests/benchmarks y externos desconocidos antes de decidir sobre legacy |
 
+**Matriz de consumidores observados fuera de la ruta positiva (no autoriza eliminación):**
+
+| Capacidad / raíz | Consumidor positivo constatado | Clasificación observada | Límite |
+|---|---|---|---|
+| `build_pipeline` / `TranslationPipeline` | `apps/cli/legacy_translate_async.py` | `LEGACY_CON_CONSUMIDOR` | El símbolo de compatibilidad en `apps/cli/main.py` rechaza, pero no se auditó todo launcher externo |
+| `AsyncDispatcher` | `apps/benchmark/runners/groq_runner.py`, `gemini_runner.py`; composición R1 | `CONSUMIDOR_BENCHMARK/LEGACY` | No equivale a worker G3 seleccionado |
+| `LLMWorkerDaemon` R3 | Root propio `apps/llm_workers/__main__.py` | `EJECUTABLE_NO_SELECCIONADO_EN_ROOTS_SOPORTADOS` | Proceso manual/external launch `UNKNOWN` |
+| `build_extraction_pipeline` | OCR y foreground, además de benchmark y Continuous Verification | `COMPARTIDO_PRODUCTO_Y_EVALUACION` | Modificar el parser afecta la evaluación; se profundiza HITO 0.2/0.8 |
+| `build_provider_stack` | G3, R3 y runners benchmark | `COMPARTIDO_CON_POLITICAS_DISTINTAS` | Default de caché no determina la composición G3 (`cache_db_path=None`) |
+| `apps.api.server`, `apps.ocr_workers.router`, `configs/*.yaml` | Archivos vacíos | `STUB_OBSERVADO` | No inferir inexistencia de otros endpoints/configuraciones |
+| `tools.evaluation.run_regression` | Workflow de CV y ejecución CLI manual | `ROOT_DE_VERIFICACION_DE_EXTRACCION` | No es pipeline PDF→PDF traducido |
+
 **Puntos de autoridad confirmados como referencias, sin sustitución de la auditoría 0.5:** `FSMRepository.transition_to`; `ControlPlaneRepository.pick_task/stage_chunk_result/mark_g3_external_unknown`; `DurableContextPlanRepository.load_verified`; `AssemblyLeaseRepository.claim/renew/publish/recover_expired`. `runtime/recovery.py` y `runtime/resumer.py` cambiaron desde el Atlas; se observó cierre explícito con `closing(get_connection(...))` y se delega su comportamiento de recuperación a HITO 0.5.
 
 ## 7. MATRIZ OBSERVED / REQUIRED / DECISION
@@ -143,6 +170,8 @@ La tabla de §3 es **un índice de superficies**, no un inventario terminado de 
 | G3 budget | Una decisión `SWITCH_MODEL` puede terminar en `model_name` sin cambio de proveedor | No aceptar una capacidad que la petición física no satisface; norma específica aún por mapear | No se acredita un fallback multimodelo |
 | Reutilización | G3 deshabilita caché legacy; `COMPLETED` puede devolver PDF existente | Identidad completa y no confundir la fuente con la generación | W08 define identidad candidata de reutilización; no autorización de replay |
 | Ciencia | Fake y PDF publicado no demuestran traducción/fidelidad | `PROJECT_SCOPE` exige conservación técnica y rastreabilidad | Evaluación canónica permanece diferida según #34 |
+| Selección de roots / legacy | CLI, Compose y empaquetado seleccionan G3; R1/R3/benchmarks mantienen entrypoints propios | No confundir inactividad en roots soportados con ausencia de consumidores | D-1/D-2 autorizan una sola ruta productiva sin eliminar bibliotecas históricas |
+| Reutilización de parser | Benchmark y CV consumen el factory de extracción productivo | Evitar doble extracción y preservar comparabilidad/oráculos; norma particular por reconciliar | Handoff prohíbe nuevo motor productivo; CV sigue independiente de G3→G5 |
 
 **Esta matriz es inicial y no declara cumplimiento normativo exhaustivo.**
 
@@ -163,16 +192,23 @@ La tabla de §3 es **un índice de superficies**, no un inventario terminado de 
 | **E-0.1-011** | P1 | `docker-compose.yml::llm_worker/assembler`; `docker-compose.runtime.yml::llm_worker` | Servicio `llm_worker` ejecuta `runtime/engine.py`, no el R3 legacy; base mantiene `IS_BENCHMARK=1` y override declara `0`. Composición efectiva y runtime comercial siguen NO VERIFICADOS. |
 | **E-0.1-012** | P2 | [Comparación Git del corte Atlas con main](https://github.com/RDsanchez-git/translator_pdf/compare/6818e86e21b14e77a606f0c863e9c199b4627601...1d21cfe958cc1de8a33824fed748cd6fe9260f42) y `runtime/recovery.py`/`runtime/resumer.py` | Únicos dos archivos modificados dentro de `apps/core/infra/runtime` y los Compose desde el corte pinneado; agregan cierre de conexión SQLite. No se deduce ejecución física actual. |
 | **E-0.1-013** | P2 | `apps/bootstrap/pipeline_factory.py::build_pipeline/build_extraction_pipeline`; `apps/llm_workers/__main__.py::LLMWorkerDaemon` | Hay composición legacy y worker R3 existentes sin selección como G3 productivo en Compose; consumidores de tests, herramientas y sistemas externos aún por inventariar. |
+| **E-0.1-014** | P2 | `pyproject.toml::project.scripts`, `apps/cli/main.py::parse_arguments/handle_translate_async`, `tests/unit/test_c4_t06_supported_roots.py` | El entrypoint empaquetado es la CLI canónica; T06 inspecciona estáticamente CLI/Compose/Docker y constata el rechazo R1, sin cubrir lanzadores externos ni comportamiento físico. |
+| **E-0.1-015** | P2 | `apps/cli/legacy_translate_async.py::handle_translate_async`, `apps/bootstrap/pipeline_factory.py::build_pipeline`, `apps/llm_workers/__main__.py::LLMWorkerDaemon` | R1 conserva consumidor versionado distinto de CLI productiva; R3 conserva ejecución propia, admission/backpressure/shutdown. No autoriza purga ni adopción del daemon alterno. |
+| **E-0.1-016** | P2 | `apps/benchmark/__main__.py::main`, `apps/benchmark/runners/{groq,gemini}_runner.py`, `tools/evaluation/run_regression.py::_run_evaluation` | La extracción productiva sirve también a benchmark y CV; bench usa modelo/proveedor externo, CV compara AST y baseline. Son consumidores con semánticas y permisos diferentes. |
+| **E-0.1-017** | P2 | `apps/bootstrap/provider_factory.py::ExtractionProviderFactory.create`, `apps/bootstrap/pipeline_factory.py::build_extraction_pipeline`; `apps/api/server.py`, `apps/ocr_workers/router.py`, `configs/*.yaml` | PyMuPDF está conectado mediante factory; archivos API/worker/config nombrados existen pero están vacíos en este commit. No deben contarse como capacidades implementadas. |
+| **E-0.1-018** | P2 | `apps/lab/offline_pdf_lab.py`, `apps/lab/convergence_compose_preflight.py`, `tests/integration/test_w08_cli_foreground_single_generation_offline.py` | Los testigos de laboratorio limitan red/transporte; W08 sustituye parser, transporte HTTP y compilación Tectonic. Son pruebas contractuales parciales, no ejecución científica real. |
+| **E-0.1-019** | P2 | `apps/benchmark/__main__.py::main` y `GroqBenchmarkRunner.warmup` | Un root manual abre PDF físico (`[Amoretal_2023]_3hojas.pdf`) y tiene camino de inferencia Groq. Posible egress al ejecutarlo: exige permiso/privacidad; no se afirma que haya sido ejecutado. |
+| **E-0.1-020** | P2 | `.github/workflows/ci.yml`, `.github/workflows/continuous-verification.yml`, `pyproject.toml::tool.pytest.ini_options` | Suite por defecto usa `-m not e2e`; workflow CV invoca `run_regression`. No inferir aptitud de producto de CI técnico PASS ni convertir CV sin corpus en PASS. |
 
 Los IDs se reservan y no se reasignan; estos testigos son **lectura de fuentes**, no falsación ejecutada ni certificación de comportamiento real. La clasificación de severidad y cumplimiento se revalidará antes de cierre; un P1 preliminar no es una conclusión normativa.
 
 ## 14. GAPS CONSOLIDADOS
 
-**Estado: NO CERRADO.** En la apertura no se emite una Gap Matrix global ni se determina un destino de implementación sin reconciliar consumidores y autoridad normativa. Las E-0.1-001..006 son insumos para investigación, no equivalen automáticamente a GAP confirmado o a tarea aprobada.
+**Estado: NO CERRADO.** En la apertura no se emite una Gap Matrix global ni se determina un destino de implementación sin reconciliar consumidores y autoridad normativa. Las E-0.1-001..020 son insumos para investigación, no equivalen automáticamente a GAP confirmado o a tarea aprobada.
 
 | Gap | Evidencia | Contrato/autoridad | Destino | Estado |
 |---|---|---|---|---|
-| Sin gaps formalmente consolidados en este corte | E-0.1-001..006 | Por reconciliar con normas vigentes | Por resolver tras investigación | TO BE VERIFIED |
+| Sin gaps formalmente consolidados en este corte | E-0.1-001..020 | Por reconciliar con normas vigentes | Por resolver tras investigación | TO BE VERIFIED |
 
 ## 15. ESTADO DE HIPÓTESIS
 
@@ -185,6 +221,9 @@ Los IDs se reservan y no se reasignan; estos testigos son **lectura de fuentes**
 | H-0.1-E | La ruta real tiene restricciones de gasto/egress que pueden impedir una prueba comercial controlada | TO BE VERIFIED |
 | H-0.1-F | Los consumidores seleccionados por la CLI y los tres servicios Compose corresponden al grafo positivo del Atlas en el corte de main | CONFIRMADO ESTÁTICAMENTE en símbolos leídos; no E2E |
 | H-0.1-G | La implementación productiva relevante cambió después del Atlas de forma sustantiva | REFUTADO para `apps/core/infra` y Compose en comparación Git; cambios focales en recuperación pendientes de HITO 0.5 |
+| H-0.1-H | Solo hay un consumidor relevante de `build_pipeline`, `AsyncDispatcher` o factory de proveedores | REFUTADO PARCIALMENTE por CLI legacy y runners benchmark; censo global pendiente |
+| H-0.1-I | Los scripts de benchmark y evaluación ejercen la misma garantía PDF→PDF de G3→G5 | REFUTADO por invocación de parser/dispatcher y CV extracción-only; falta observar todas las variantes de evaluación |
+| H-0.1-J | No existe otro sistema externo que invoque R1/R3 o módulos de prueba | NO VERIFICABLE con archivos Git; requiere inventario de despliegues y permiso del owner |
 
 ## 16. RESPUESTAS A PREGUNTAS DEL MANDATO
 
@@ -195,8 +234,8 @@ Los IDs se reservan y no se reasignan; estos testigos son **lectura de fuentes**
 
 ## 21. CIERRE DEL HITO 0.1
 
-**Estado del HITO:** IN_PROGRESS v1.0.1; **NO FROZEN**.  
-**Condición de cierre:** pendiente. Requiere inventario completo de entrypoints y consumidores relevantes (incluidos imports/configuración dinámica y herramientas), reconciliación de obligaciones con su versión vigente, referencias de evidencia y límites por superficie, clasificación de hipótesis, contradicciones resueltas o declaradas, y criterios verificables de transferencia a otros HITOs. Ya existe contraste estático inicial del Atlas, no cobertura completa.  
+**Estado del HITO:** IN_PROGRESS v1.0.2; **NO FROZEN**.  
+**Condición de cierre:** pendiente. Requiere inventario completo de entrypoints y consumidores relevantes (incluidos imports/configuración dinámica y herramientas), reconciliación de obligaciones con su versión vigente, referencias de evidencia y límites por superficie, clasificación de hipótesis, contradicciones resueltas o declaradas, y criterios verificables de transferencia a otros HITOs. Ya existe contraste estático inicial del Atlas, selección de roots y consumidores versionados focales, **no** un censo global exhaustivo. El índice textual no permitió descartar consumidores por ausencia de resultados; quedan rutas dinámicas/externas, trazabilidad de dependencias relevantes y segregación precisa para los HITOs siguientes.  
 **Verificación de cadena de gobernanza:** metodología revisada; aún no existe ADR/NADR/Execution Plan de esta iniciativa.  
 **Decision Candidates generados:** ninguno aprobado; posibles preguntas permanecen en `TO BE VERIFIED`.  
 **Siguiente paso:** continuar auditoría read-only y ampliar/emitir HITOs necesarios, con base fija y cierre formal antes de decisiones de diseño.
