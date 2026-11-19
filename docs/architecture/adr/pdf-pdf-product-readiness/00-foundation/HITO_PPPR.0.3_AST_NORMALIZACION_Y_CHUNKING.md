@@ -1,15 +1,16 @@
 # HITO_PPPR.0.3_AST_NORMALIZACION_Y_CHUNKING.md
 
-**Estado:** IN_PROGRESS v1.0.2  
+**Estado:** FROZEN v1.0.3  
 **Fecha de emisión:** 2026-11-19  
-**Fecha de congelamiento:** N/A  
-**Iniciativa:** PPPR, Fase 0 transversal — `pdf-pdf-product-readiness`  
+**Fecha de congelamiento:** 2026-11-19  
+**Fase:** PPPR — Fase 0 transversal `pdf-pdf-product-readiness` (no fase numerada del roadmap)  
 **Tipo de artefacto:** Forensic Flow Audit (AST, normalización y construcción de plan)  
 **Naturaleza:** Auditoría read-only; no prescribe arquitectura ni implementación.  
 **Baseline productivo observado:** `main@1d21cfe958cc1de8a33824fed748cd6fe9260f42`.  
 **Baseline de gobernanza:** `pdf-pdf-product-readiness@084158a9ad1f06b4d58dc38852157c2b3f01d201` (incluye PPPR.0.1/0.2 FROZEN).  
-**Fuentes vinculantes:** metodología general v1.3.0 FROZEN; metodología forense v1.2.0 FROZEN; `PROJECT_SCOPE.md`, `ENGINEERING_PRINCIPLES.md`; D-1/D-2 y Atlas de ruta; PPPR.0.1 FROZEN v1.0.9 y PPPR.0.2 FROZEN v1.0.3; NADR-F17BIS-03 (§5.1/5.3/5.4) y NADR-F17BIS-16 (§5.2) cotejados directamente; NADR-F17BIS-01/05/06 con fronteras delimitadas.  
+**Evidencia Forense Vinculante:** metodología general v1.3.0 FROZEN; metodología forense v1.2.0 FROZEN; `PROJECT_SCOPE.md`, `ENGINEERING_PRINCIPLES.md`; D-1/D-2 y Atlas de ruta; PPPR.0.1 FROZEN v1.0.9 y PPPR.0.2 FROZEN v1.0.3; NADR-F17BIS-03 (§5.1/5.3/5.4) y NADR-F17BIS-16 (§5.2) cotejados directamente; NADR-F17BIS-01/05/06 con fronteras delimitadas.  
 **Mandato:** Auditar la ruta conectada desde AST de extracción hasta enriquecimiento, normalización, segmentación, chunking semántico y `ChunkPlan`, distinguiendo identidad semántica, cobertura de miembros, preservación STEM y límites de prueba; no auditar efectos físicos de G3/G5 ni decisiones de proveedor.
+**Síntesis:** Ruta AST→contexto→ChunkPlan auditada estáticamente; dos GAP P1 locales quedan OPEN, cuatro cuestiones empíricas diferidas y ningún resultado científico certificado.
 
 ### Changelog
 
@@ -18,6 +19,7 @@
 | 1.0.0-IN_PROGRESS | 2026-11-19 | Apertura posterior al merge interno #67, con primera lectura directa de composición OCR, AST/hash, contexto, chunker y manifest; frontera provisional y cuestiones falsables. No tests ejecutados ni FROZEN. |
 | 1.0.1-IN_PROGRESS | 2026-11-19 | Segunda pasada: NADR-F17BIS-03/16 contrastados; ruta OCR real vs alternativa/histórica; cobertura de manifest, contexto y tests; E-0.3-009…017, ficha P1 jerárquica, GAP local y candidatos sin decisiones anticipadas. No tests ejecutados ni FROZEN. |
 | 1.0.2-IN_PROGRESS | 2026-11-19 | Tercera pasada: H-0.3-F/G clasificadas, secuencia física de encabezados y política PRESERVE verificadas; E-0.3-018…020, normalización de pre-image contrastada con NADR-03 R4; nueva ficha P1, matriz de cumplimiento y triaje de DC/DQ. Sin ejecutar pruebas, cambiar producción ni FROZEN. |
+| 1.0.3-FROZEN | 2026-11-19 | Cierre §8.1–8.2 y no-regresión: 20 E-IDs, 2 GAP P1 OPEN, 8 hipótesis con veredicto, 4 DQ, 3 DC, garantías y secuencia Git. Sin pruebas físicas ni modificación productiva. |
 
 ## 1. RESUMEN EJECUTIVO
 
@@ -29,7 +31,7 @@ La composición seleccionada en `OCRRouterDaemon._process_document` calcula `com
 
 **Revisión v1.0.2:** el hash operativo del AST se usa como identidad de generación, mientras su contrato declarado se diseñó para comparación de parsers. El pre-image omite jerarquía (E-010) y carece de normalización canónica documentada/ejecutada de contenido Unicode (E-020), contrarios a NADR-F17BIS-03 §5.1 R1/R4. Se registran **dos GAP P1 locales** que describen incumplimientos estáticos de contrato; no se infieren colisiones SHA-256, errores de reutilización realmente ocurridos ni corrupción del PDF final. Los encabezados PRESERVE y niveles UNKNOWN están observados, sin política de aceptación científica aprobada.
 
-**Veredicto de esta pasada:** H-0.3-F/G quedan determinadas como comportamientos estáticos (no decisiones de producto). El pre-image de firma incumple dos requisitos diferenciados de NADR-F17BIS-03: jerarquía (R1) y normalización canónica (R4), sin demostrar fallo físico en una publicación. Existen guardias adicionales sobre contexto y manifest, pero no sustituyen la identidad semántica. Queda pendiente el control de cierre del perímetro. **IN_PROGRESS**, sin implementación autorizada.
+**Veredicto forense de cierre:** el mandato acotado de AST→contexto→ChunkPlan queda cubierto en el baseline por código y contratos, con dos GAP P1 locales abiertos (E-0.3-010/020) y límites STEM declarados. **FROZEN documental**, sin certificación PDF→PDF ni autorización de implementación.
 
 ## 2. LÍMITE EPISTEMOLÓGICO Y MÉTODO FORENSE
 
@@ -55,7 +57,7 @@ La cobertura es por **responsabilidad en la ruta elegida**, no por inferencia de
 | Normativa y antecedente | NADR-F17BIS-03, -16, -01, -05; HITO F17-BIS 0.4.5-P3 (histórico) | **LEÍDO/CONTRASTADO** | NADR-F17BIS-06: presupuesto exacto fuera de 0.3 (PPPR.0.4) |
 | Estado/FS/host/GT/G5 | Consumidores downstream y baseline | **REFERENCIADO** | PPPR.0.5–0.8; no accesos a bases, corpus o APIs externas |
 
-**Pendiente de §8.1:** verificar el cierre final del perímetro de responsabilidades, documentación de decisiones pendientes y checklist en una pasada independiente. No confundir cobertura de código seleccionada con certificación del 100% del documento científico.
+**Cobertura §8.1:** todas las responsabilidades dentro del mandato estático están AUDITADAS o expresamente REFERENCIADAS/NO VERIFICABLE. Las rutas alternativas solo se inspeccionaron para distinguir selección; G3/G5, FS/SQLite y corpus corresponden a otros HITOs. Esta cobertura no acredita el 100% de contenido científico.
 
 ## 4. FUENTES DE EVIDENCIA Y PRECEDENCIA
 
@@ -123,7 +125,6 @@ Ruta distinta: build_pipeline() → TranslationPipeline.execute()
 | **E-0.3-015** | P2 | `_split_by_sentence` no elimina espacios de cada segmento; `validate_chunk_coverage` reconstruye texto original por concatenación y rechaza pérdidas/duplicaciones. | Invariante reconstruible; calidad de límites oracionales, abreviaturas y términos técnicos NO VERIFICABLE aquí. | OBSERVADO |
 | **E-0.3-016** | P2 | `core/ast/hashing.py` ya no contiene chunking; `TokenBudgetChunker` reside en `core/chunking/semantic_chunking.py`. `PolicyDrivenStreamingChunker`/`MarkdownSegmenter` son capacidades alternativas, no seleccionadas por el root OCR inspeccionado. | Reconciliar `P3-H02` de F17-BIS (otro SHA), sin inferir ausencia de consumidores ajenos. | HISTÓRICO RECONCILIADO |
 | **E-0.3-017** | P2 | `core/context/plan_context_contract.py::derive_verified_plan_contexts` rechaza contexto de inferencia no verificable y `ChunkPlan` valida `PASSTHROUGH/KEEP_ORIGINAL` como PRESERVE. | Garantías del plano lógico; ejecución del proveedor y durabilidad física son 0.4/0.5. | OBSERVADO |
-
 | **E-0.3-018** | P2 | `core/ast/strategy.py::resolve_strategy` define `HEADING→TRANSLATE`, pero `TokenBudgetChunker` lo aísla por `boundaries` y le asigna `PRESERVE`. `manifest_contract.py::_PROTECTED_TYPES` incluye `HEADING`; W08 test construye 2 headings + 2 párrafos y solo 2 unidades de inferencia. | **CONFIRMADA** la no-inferencia de encabezados en la ruta OCR, no su aceptabilidad para títulos científicos. `DC-0.3-01` requiere decisión de alcance de producto, no cambio anticipado. | COMPORTAMIENTO CONFIRMADO |
 | **E-0.3-019** | P2 | `LayoutBlockType` permite `SUBSECTION` y `HeadingPayload` H1/H2/H3, pero `HeuristicLayoutClassifier.classify` solo emite `SECTION` para headings; `_layout_block_to_draft` y `LayoutBlockDraft` no tienen `level`. `FlatASTBuilder` produce `UNKNOWN`; `HierarchicalContextEnricher` lo interpreta como H1. | **CONFIRMADA** pérdida de diferenciación H1/H2/H3 por el camino físico seleccionado; no hay medición de jerarquía correcta en papers. `DC-0.3-02` para requisitos de jerarquía; testigo físico y GT en 0.8. | LIMITACIÓN ESTRUCTURAL CONFIRMADA |
 | **E-0.3-020** | **P1** | `PyMuPDFProvider._extract_raw_content` establece `normalized=raw_text.strip()`; `_layout_block_to_draft` pasa ese campo; `compute_ast_hash` serializa `node.text_content` sin normalización Unicode. `NormalizationPipeline`/ `TextNormalizer.normalize` no se ejecutan en el root OCR. | **NADR-F17BIS-03 §5.1 R4** exige normalización canónica antes del pre-image. Secuencias Unicode canónicamente equivalentes pueden producir pre-images distintos. No se prescribe NFKC por sus riesgos STEM. | **GAP-0.3-02 OPEN** |
@@ -182,7 +183,7 @@ return unicodedata.normalize("NFKC", text)
 - **Severidad:** **P1 / LOCAL**, por incumplimiento del pre-image requerido en la frontera AST→identidad semántica; no P0 ni defecto medido en la salida PDF.
 - **Estado / destino:** **OPEN → GAP-0.3-02**. ADR Maestro PPPR y normativa vigente determinarán la convención canónica compatible con STEM; posterior Execution Plan aprobado para cualquier cambio. Ninguna propuesta de normalizador/algoritmo queda aprobada en este HITO.
 
-## 14. GAPS CONSOLIDADOS (PROVISIONALES)
+## 14. GAPS CONSOLIDADOS — ABIERTOS
 
 | GAP | Observed vs Required | Evidencia | Contrato y alcance | Fase destino | Estado |
 |---|---|---|---|---|---|
@@ -229,7 +230,7 @@ Los veredictos confirman o acotan **comportamientos**, no resuelven cuestiones d
 | **NADR-03 §5.4 R10–R12** | Firma y chunking separados | `hashing.py` sin chunker y `semantic_chunking.py` con chunker | **PASS estático acotado** | E-016 |
 | **NADR-16 §5.2 R4–R8** | Contratos alternativos con propósito propio, canon baseline separado | Hash alternativo documentado para comparación, pero consumido también como `ast_hash` operativo de OCR | **PARTIAL — uso adicional a gobernar** | E-001/002/010 |
 | **NADR-05 §5.1 R1–R3** | Contexto real y fallo explícito | Enriquecedor y checks de contexto conectados antes de G3 | **PASS estático en productor** | E-004/012/017 |
-| **NADR-05 §5.2 R4–R6** | Claves de materialización vinculadas al contexto | Plan incluye `context_id`; efectos de persistencia/consumo no auditados aquí | **TO BE VERIFIED en PPPR.0.5** | E-012/017 |
+| **NADR-05 §5.2 R4–R6** | Claves de materialización vinculadas al contexto | Plan incluye `context_id`; efectos de persistencia/consumo no auditados aquí | **FUERA DEL PERÍMETRO 0.3; PPPR.0.5** | E-012/017 |
 
 Un `PASS estático` expresa únicamente el subconjunto de regla demostrado por código, no una certificación end-to-end. Los dos `FAIL LOCAL` son los GAPs existentes, no defectos duplicados.
 
@@ -241,8 +242,47 @@ Un `PASS estático` expresa únicamente el subconjunto de regla demostrado por c
 | **DC-0.3-02** | ¿Qué fidelidad jerárquica y criterio de aceptación se exige para H1/H2/H3 extraídos de PDF? | E-011/019 | **ALCANCE POR DECIDIR**; aplanamiento observado | ADR Maestro PPPR; evidencia 0.8 |
 | **DC-0.3-03** | ¿Qué semántica de normalización canónica de firma evita cambios científicos indebidos? | E-020/GAP-0.3-02 | **CONTRATO INCOMPLETO/INCUMPLIDO**; no se prescribe NFKC | ADR Maestro y normas vigentes; Execution Plan posterior |
 
-## 21. CIERRE DEL HITO — IN_PROGRESS
+## 21. CIERRE DEL HITO PPPR.0.3 — FROZEN v1.0.3
 
-**NO FROZEN — IN_PROGRESS v1.0.2.** Se resolvieron los estados de H-0.3-F/G por evidencia de código y se abrió GAP-0.3-02 sobre normalización canónica, respaldado por E-0.3-020 y NADR-03 R4. Quedan **20 E-IDs**, dos GAPs P1 locales OPEN, cuatro DQ y tres DC sin decisiones aprobadas. Pendiente: última reconciliación de cobertura y revisión formal §8.1–8.2. Sin tests ejecutados ni implementación.
+### 21.1 Checklist obligatorio §8.1–8.2
 
-**Siguiente gate:** ampliar el mismo HITO dentro del PR interno a `pdf-pdf-product-readiness`, evitando merges a `main`. El PR #66 debe permanecer Draft hasta completar la gobernanza y el Execution Plan.
+| Control | Resultado y evidencia |
+|---|---|
+| Metadata, fuentes vinculantes, tipo, fecha y changelog | **CUMPLE** — encabezado, versiones 1.0.0–1.0.3, SHA fijado |
+| Resumen, hallazgo central y veredicto | **CUMPLE** — §1 y defectos dominantes E-0.3-010/020 |
+| Método read-only, límite epistemológico | **CUMPLE** — §2; tests inspeccionados no son tests ejecutados |
+| Perímetro por responsabilidad | **CUMPLE** — §3/§4; root OCR, AST, hash, contexto y ChunkPlan AUDITADOS; alternativas y consumidores ajenos delimitados |
+| Mapa causal y reconciliación F17-BIS | **CUMPLE** — §5; no se hereda la antigua mezcla hashing/chunking |
+| IDs estables, severidades y fuentes | **CUMPLE** — E-0.3-001…020; fichas P1 E-010/020, §10 |
+| Observed / Required / Decision y GAPs trazables | **CUMPLE** — §10, §14, §17: GAP-0.3-01/02 **P1 LOCAL, OPEN** |
+| Hipótesis con veredicto terminal | **CUMPLE** — H-0.3-A…H: CONFIRMADA o NO VERIFICABLE, sin hipótesis abiertas |
+| Diferimientos §8.2 | **CUMPLE** — DQ-0.3-01…04 con razón de no-verificación, no-bloqueo y destino §15 |
+| Decisiones pendientes §8.3 | **CUMPLE** — DC-0.3-01…03, autoridad posterior en ADR Maestro §18 |
+| No-regresión, gobernanza, garantías y próximo paso | **CUMPLE** — §§21.2–21.4 |
+| Nueva corrida técnica o científica | **NO REQUERIDA** para el alcance estático; NO se afirma CI ni PRODUCT_READINESS PASS |
+
+La cobertura exigida es de **responsabilidades dentro del mandato**, no de todos los módulos del repositorio ni de la fidelidad completa del PDF. Las incógnitas empíricas difieren a PPPR.0.4/0.6/0.8 y no bloquean describir la ruta conectada.
+
+### 21.2 Declaración de cierre y garantías
+
+**HITO FROZEN v1.0.3 — 2026-11-19.** Se cierra la auditoría forense **documental** de AST, normalización, segmentación y chunking conectados en `main@1d21cfe958cc1de8a33824fed748cd6fe9260f42`.
+
+**Garantías positivas:** el root OCR conecta `prepare_contextual_plan`; los contextos se construyen y verifican por `context_id`; el chunker y el manifest imponen orden, pertenencia, estrategias y reconstrucción exacta del texto que **ya alcanzó el AST**. Hay mecanismos fail-closed para determinados overflows y estrategias no resueltas.
+
+**GAPs que continúan OPEN:** `GAP-0.3-01` (jerarquía excluida del pre-image) y `GAP-0.3-02` (normalización canónica ausente del pre-image), vinculados a NADR-F17BIS-03 R1/R4. Son discrepancias estructurales de contrato, **no** colisiones SHA-256, fallos de caché demostrados o corrupción del PDF final.
+
+**No acreditado:** recuperación de H2/H3, traducción de encabezados, corrección de suturas y límites de oraciones STEM, lectura multicolumna, semántica matemática/tabular, comportamiento de modelos reales, materialización/SQLite, compilación G5, GT/benchmark, equivalencia física PDF→PDF o `PRODUCT_READINESS=PASS`. No se ejecutaron nuevas pruebas, CI, corpus, LLM, Docker ni compilador. La ejecución focal seguirá disponible cuando un HITO requiera falsación comportamental y su riesgo lo justifique.
+
+### 21.3 Gobernanza y reconciliación de decisiones
+
+Metodología general v1.3.0 FROZEN → metodología forense v1.2.0 FROZEN → `PROJECT_SCOPE.md`/`ENGINEERING_PRINCIPLES.md` → D-1/D-2 y Atlas → NADR-F17BIS-03/16 (firma), -01 (serialización), -05 (contexto) → F17-BIS P3 histórico reconciliado → PPPR.0.1/0.2 FROZEN → **PPPR.0.3 FROZEN** → auditorías PPPR.0.4–0.9 → ADR Maestro/NADR necesarios → Execution Plan aprobado e integrado a `main` → implementación futura en otra etapa.
+
+**No-regresión:** el chunker ya está segregado de `core/ast/hashing.py`; la ruta alternativa `TranslationPipeline` no es el root OCR. Los guardias de contexto y digest del plan no sustituyen el contrato semántico de firma. Las cuestiones de headings PRESERVE y aplanamiento H1/H2/H3 son DC de alcance de producto y no se convierten en implementación aprobada.
+
+### 21.4 Siguiente gate y política Git
+
+Documento **listo para revisión y aprobación del PR interno #68** hacia `pdf-pdf-product-readiness`, que permanece Draft. **FROZEN no implica merge.** Tras aprobación explícita del owner, integrar #68, verificar que el HITO esté en la rama general, eliminar `pppr/hito-0.3` y solo entonces abrir PPPR.0.4 desde la base actualizada.
+
+El PR general **#66 permanece Draft sin merge a main** hasta completar el paquete de auditoría, ADR/NADR y Execution Plan aprobado. No se autoriza implementar producción.
+
+> FROZEN documental ≠ cierre de Fase 0 ≠ certificación científica ≠ autorización de producción.
