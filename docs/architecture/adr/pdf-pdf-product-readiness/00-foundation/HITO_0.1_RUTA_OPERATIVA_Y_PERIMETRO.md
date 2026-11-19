@@ -1,6 +1,6 @@
 # HITO_0.1_RUTA_OPERATIVA_Y_PERIMETRO.md
 
-**Estado:** IN_PROGRESS v1.0.7  
+**Estado:** IN_PROGRESS v1.0.8  
 **Fecha de emisión:** 2026-11-18  
 **Fecha de congelamiento:** N/A  
 **Fase:** Fase 0 — Auditoría forense de la iniciativa `pdf-pdf-product-readiness` (la designación de fase numerada del roadmap aún requiere resolución de gobernanza).  
@@ -23,6 +23,7 @@
 | 1.0.5-IN_PROGRESS | 2026-11-18 | Primera pasada integral sobre grafo aportado por el owner (20.615 líneas), contraste focal contra rutas y llamadas asíncronas de main, límites de un grafo de llamadas sin imports ni destinos enlazados. Ninguna brecha nueva de producto. |
 | 1.0.6-IN_PROGRESS | 2026-11-19 | Contrastado grafo v2 enlazado con el SHA base y los 579 Python versionados, revisión de 6.399 edges y 7.384 unresolved por categorías, fronteras de puertos inyectados OCR/G3/G5 verificadas focalmente. Sin nueva brecha ni cierre prematuro. |
 | 1.0.7-IN_PROGRESS | 2026-11-19 | Triaje de unresolved/dynamic por riesgo y lectura del binding DI en OCR/G3/G5, reconciler y legacy; pre-checklist de cierre según §8 HITOs. Sin ejecución ni nuevos GAP. |
+| 1.0.8-IN_PROGRESS | 2026-11-19 | Revisión contra §§3, 8, 9 y 11.1 de metodología HITOs; fuentes HITO 17-BIS/F18 heredadas, estados de hipótesis tipados, diferidos justificados y checklist reubicado en §21. Detectados gates de gobernanza del nombre de etapa e integración Git, sin congelar. |
 
 ## 1. RESUMEN EJECUTIVO
 
@@ -213,9 +214,17 @@ Se inspeccionaron los CSV y el inventario v2 por **raíz y tipo de expresión**,
 | Plan histórico | `docs/architecture/adr/phase-18/plans/PHASE_18.2_EXECUTION_PLAN.md` | Estado histórico de gates/tareas; no crear plan competidor |
 | Alcance del proyecto | `PROJECT_SCOPE.md`, `ENGINEERING_PRINCIPLES.md` | Prohibición de fallos silenciosos, identidad y calidad; reglas no inventadas |
 | Forense/documentación histórica | `docs/architecture/adr/tests_stabilization/`; `docs/architecture/adr/phase-18/` | Alcances de tests, mecanismos, decisiones y obligaciones existentes |
+| HITO histórico (evidencia heredada) | `docs/architecture/adr/phase-17-bis/00-foundation/HITO_0.4.5_P1_PRODUCTION_COMPOSITION_AUDIT.md` | Composición R1/histórica; no extrapolar su root al corte D-1/D-2 |
+| HITO previo FROZEN | `docs/architecture/adr/phase-17-bis/00-foundation/HITO_6.4_DEPENDENCY_GRAPH_AND_READINESS_ASSESSMENT.md` | Dependencias CV/CI históricas; no re-auditar su corpus ni su baseline aquí |
+| HITO previo FROZEN | `docs/architecture/adr/phase-18/00-foundation/HITO_0.11_Current_State_Contract_Map.md` | Autoridades y contratos heredados, anterior a las decisiones de convergencia |
+| HITO previo FROZEN | `docs/architecture/adr/phase-18/00-foundation/HITO_18.2.0_DURABLE_EXECUTION_SURFACE_AUDIT.md` | Riesgos e invariantes F18; cotejo contractual profundo reservado a 0.5 |
 | Código observado | `runtime/engine.py`, `core/validation/budget.py`, `apps/llm_workers/prompt_builder.py`, `apps/llm_workers/adapters.py`, `apps/cli/pdf_product.py` | Primeros testigos concretos; falta verificar consumidores completos |
 | Fuente de restricción | [issue #34](https://github.com/RDsanchez-git/translator_pdf/issues/34) | Evaluación científica/corpus diferidos y custodia |
 | Evidencia pendiente | Host Windows, APIs y proveedores reales, archivos de corpus privados | No verificada por la auditoría de apertura |
+
+**Reutilización y no-regresión (§9.2–9.4 de la metodología):** se reabrieron los cuatro HITOs históricos anteriores. `HITO_0.4.5_P1` describe la composición previa de `TranslationPipeline`/R1; **el handoff D-1/D-2 posterior** selecciona OCR → `runtime/engine.py` → G5 en los launchers soportados. Su evidencia histórica no se elimina ni se convierte en reporte del estado actual. `HITO_6.4` constató límites de CV/CI en su corte 2026-09; los workflows de `main@1d21cfe` se examinaron focalmente, pero su diferencia de fecha/composición **requiere reconciliación por SHA en HITO 0.8** si afecta una garantía, sin declarar hoy contradicción irreconciliable. `HITO_0.11` y `HITO_18.2.0` ofrecen el inventario previo de autoridad/durabilidad; el status posterior del plan F18.2 y el wiring actual deben confrontarse en HITO 0.5. **No se repiten** las matrices históricas ni se asume que sus defectos continuaron o fueron corregidos sin evidencia.
+
+**Hallazgos diferidos heredados:** las limitaciones de CV/CI y los DC/DF de F18 ya tienen sus propias fuentes y registros. Se los referencia sin crear ID de finding nuevo; la eventual reconciliación y trazabilidad de resolución pertenece a las autoridades documentales de las fases originarias o a los HITOs 0.5/0.8 de esta auditoría, según propiedad.
 
 ## 5. MAPA DE FLUJOS OBSERVADOS
 
@@ -428,16 +437,16 @@ Los IDs existentes no se reasignan. `E-0.1-023` complementa `E-0.1-002` con la f
 | ID | Hipótesis | Veredicto actual | Evidencia | Implicación / destino |
 |---|---|---|---|---|
 | H-0.1-A | El fallback `SWITCH_MODEL` no conmuta físicamente el modelo en la ruta seleccionada | CONFIRMADA ESTÁTICAMENTE | E-0.1-002 | GAP-0.1-01; HITO 0.4 |
-| H-0.1-B | Cambiar idioma/modelo del mismo PDF devuelve la generación `COMPLETED` anterior | TO BE VERIFIED | E-0.1-003, E-0.1-004 | Requiere contrato de generación y escenario reproducible; 0.3/0.5 |
+| H-0.1-B | Cambiar idioma/modelo del mismo PDF devuelve la generación `COMPLETED` anterior | NO VERIFICABLE EN 0.1 | E-0.1-003, E-0.1-004 | DQ-0.1-01: configuración/identidad por generación sin prueba física; 0.3/0.5. No impide identificar root y consumidor |
 | H-0.1-C | F18 y legacy contienen capacidades útiles que no selecciona la CLI | CONFIRMADA COMO EXISTENCIA, no como aptitud | E-0.1-015, E-0.1-025 | Evaluar uso y cumplimiento sin reimplementar; 0.5 |
-| H-0.1-D | B02/G5 rechazan o degradan casos STEM todavía no certificados | PARCIALMENTE CONFIRMADA | E-0.1-021, E-0.1-026 | Casos físicos/sintéticos y frontera de rechazo: 0.2/0.6/0.8 |
-| H-0.1-E | Restricciones FinOps/egress impiden por sí mismas prueba comercial controlada | TO BE VERIFIED | E-0.1-006, E-0.1-028 | Proveedor/costos sin ensayar; 0.4/0.7 |
+| H-0.1-D | B02/G5 rechazan o degradan casos STEM todavía no certificados | CONFIRMADA (mecanismos existentes, no cobertura universal) | E-0.1-021, E-0.1-026 | Rechazo/estrategias observadas; alcance físico y científico pendiente en 0.2/0.6/0.8 |
+| H-0.1-E | Restricciones FinOps/egress impiden por sí mismas prueba comercial controlada | NO VERIFICABLE EN 0.1 | E-0.1-006, E-0.1-028 | DQ-0.1-02: faltan permiso de egress, credenciales y ensayo físico; 0.4/0.7. No condiciona inventario estático |
 | H-0.1-F | Roots soportados corresponden al mapa positivo del Atlas | CONFIRMADA ESTÁTICAMENTE | E-0.1-011, E-0.1-014 | No extrapolar a despliegues externos |
 | H-0.1-G | Implementación de producción cambió sustancialmente desde el corte del Atlas | RECHAZADA en los roots comparados | E-0.1-012 | Recuperación cambió en dos archivos; profundizar 0.5 |
 | H-0.1-H | Solo existe un consumidor de cada factory/dispatcher legacy | RECHAZADA para los casos rastreados | E-0.1-015, E-0.1-016 | Inventario dinámico/external no verificable aquí; 0.7 |
 | H-0.1-I | Benchmark y CV acreditan el mismo E2E PDF→PDF que la ruta productiva | RECHAZADA | E-0.1-016, E-0.1-027 | CV extraccion y fake no sustituyen ciencia; 0.8 |
 | H-0.1-J | No existen consumidores fuera del repositorio de R1/R3 | NO VERIFICABLE | E-0.1-014, E-0.1-032 | Falta inventario externo/host, no hay autoridad de observarlo; 0.7 |
-| H-0.1-K | Cada frontera relevante puede tener un HITO investigador primario sin duplicación | PROPUESTA OBSERVABLE, pendiente de aprobación | §6.1–6.2, E-0.1-022 | Revisión owner y cierre del perímetro; no compromiso de implementación |
+| H-0.1-K | Cada frontera relevante puede tener un HITO investigador primario sin duplicación | CONFIRMADA PARA LAS FRONTERAS INVENTARIADAS | §6.1–6.2, E-0.1-022 | Matriz asigna responsable principal a cada frontera conocida; DQ-0.1-04 pide validar suficiencia/ajustes, no prueba de exhaustividad universal |
 | H-0.1-L | No existen mecanismos concretos de preservación STEM en la ruta | RECHAZADA COMO AUSENCIA GENERAL | E-0.1-021, E-0.1-026 | Alcance científico por verificar en 0.2/0.6 |
 | H-0.1-M | El grafo proporcionado cubre todas las rutas y prueba ausencia de consumidores dinámicos | RECHAZADA | E-0.1-033, E-0.1-034, E-0.1-036 | No cerrar HITO basándose en ese negativo; censo estático adicional y externos NO VERIFICABLE |
 | H-0.1-N | Todos los `getattr` que figuran en el grafo corresponden a carga de servicios | RECHAZADA para casos focales, generalidad no verificada | E-0.1-035 | Distinguir atributo de dato, dispatch por protocolo y reflexión de importación |
@@ -446,7 +455,7 @@ Los IDs existentes no se reasignan. `E-0.1-023` complementa `E-0.1-002` con la f
 | H-0.1-Q | Los puertos inyectados de OCR/G3/G5 carecen de consumidores concretos en roots soportados | RECHAZADA para las composiciones auditadas | E-0.1-041..043 | La operación real sigue NO VERIFICABLE: 0.2/0.4/0.6/0.7 |
 | H-0.1-R | `__import__`/`setattr` encontrados por el v2 revelan un loader productivo oculto | RECHAZADA en las apariciones del CSV | E-0.1-044 | Las llamadas identificadas residen en tests; runtime con plugins externos no es observable: 0.7 |
 
-**Al cierre, todo `TO BE VERIFIED` tendrá disposición según §8.2 de la metodología: sin bloqueo del mandato, razón explícita y destino.** Ninguna hipótesis abierta puede quedar en un HITO `FROZEN`.
+**Disposición tipada (§8.1–8.2):** todas las H-0.1-A..R tienen ahora un prefijo terminal `CONFIRMADA`, `RECHAZADA` o `NO VERIFICABLE` dentro del alcance declarado. H-0.1-B/E/J no se declaran refutadas ni probadas: sus razones, no-bloqueo del mandato de *mapear la ruta estática* y destinos están en DQ-0.1-01..03. La aprobación de perímetro H-0.1-K sigue siendo un gate de cierre; la hipótesis se confirma **solo para el conjunto de fronteras actualmente inventariado**, no para cada uso futuro.
 
 ## 16. RESPUESTAS A PREGUNTAS DEL MANDATO
 
@@ -455,7 +464,9 @@ Los IDs existentes no se reasignan. `E-0.1-023` complementa `E-0.1-002` con la f
 - **¿Se autorizan cambios por los hallazgos de apertura?** No; falta cerrar la auditoría, derivar decisiones normativas y aprobar el plan.
 - **¿Debe la nueva etapa inventar soluciones?** No por defecto: se exige búsqueda y clasificación de capacidades y consumidores antes de afirmar ausencia.
 
-## 20. PRE-CHECKLIST CANÓNICO DE CIERRE — `IN_PROGRESS`
+## 21. CIERRE DEL HITO 0.1
+
+### 21.1 Pre-checklist canónico — `IN_PROGRESS`
 
 Evaluación previa a la revisión del owner, usando `1.2_METH_FOR_FORENSIC_HITOs.md` §§8.1–8.2; **no** es certificación FROZEN.
 
@@ -465,27 +476,29 @@ Evaluación previa a la revisión del owner, usando `1.2_METH_FOR_FORENSIC_HITOs
 | Alcance + fuentes y módulos | CONFORME PARCIAL | §3 tiene censo 579/579 de módulos Python versionados en grafo, pero la auditoría propia es focal por fronteras; conservar `REFERENCIADO`/`NO VERIFICABLE` por módulo, no declarar 579 semánticamente auditados |
 | Evidencias con ID, severidad y Observed/Required/Decision | CONFORME EN BORRADOR | E-0.1-001..044; E-0.1-002 extendida (P1). No promover riesgos P2 a defectos sin causalidad |
 | GAP trazado a evidencia, contrato y destino | CONFORME EN BORRADOR | GAP-0.1-01 → E-0.1-002 → 0.4/gobernanza, sin decidir solución |
-| Hipótesis cerradas o diferidas según §8.2 | **PENDIENTE** | H-0.1-B/E requieren evidencia de generación/egress; H-0.1-J es externo NO VERIFICABLE; H-0.1-K requiere revisión owner. Disponer cada una con razón, destino y condición no bloqueante antes de FROZEN |
-| Contradicciones y antecedentes FROZEN | CONFORME PARCIAL | Se mantiene D-1/D-2 y F18; reconciliar estados/no-regresión en la revisión metodológica final |
-| Veredicto, declaración de garantías y siguiente paso | **PENDIENTE DE REVISIÓN** | No se ha emitido declaración de cierre; se mantiene `IN_PROGRESS` |
+| Hipótesis cerradas o diferidas según §8.2 | CONFORME EN BORRADOR | H-0.1-B/E/J tipadas como `NO VERIFICABLE` y diferidas con causa, destino y no-bloqueo del mandato; K confirmada solo para fronteras inventariadas. Requiere verificación owner del perímetro |
+| Contradicciones y antecedentes FROZEN | CONFORME PARCIAL | §4 ya reutiliza HITOs 17-BIS/F18; diferencia histórica en CV/CI con HITO_6.4 se remite a 0.8, sin declararse contradicción del mismo SHA |
+| Veredicto, declaración de garantías y siguiente paso | **PENDIENTE DE REVISIÓN** | El veredicto está limitado a la ruta estática; falta validación owner, versión/fecha FROZEN y declaración de garantías final |
+| Gobernanza de incorporación Git y denominación | **PENDIENTE** | Metodología general §3.5.1 exige `phase-{fase}` y §6.7 sitúa commit de HITOs al finalizar Fase 0; nombre de iniciativa y PR Draft deben reconciliarse antes de merge |
 
-### Deferred Questions de este HITO (sin resolución inventada)
+### 21.2 Deferred Questions (sin resolución inventada)
 
 | ID | Pregunta / razón por la que no se concluye ahora | Destino / criterio |
 |---|---|---|
 | DQ-0.1-01 | ¿Una nueva configuración de idioma/modelo crea o reutiliza correctamente generación cuando el mismo `document_id` está `COMPLETED`? El grafo y la CLI no prueban el comportamiento físico | HITO 0.3 (identidad) y 0.5 (autoridad), reproducción aislada autorizada |
 | DQ-0.1-02 | ¿Cuota, credenciales, modelo y proveedor permiten una ejecución pagada controlada? No se probó red real ni se autorizó egress | HITO 0.4 (provider/FinOps) y 0.7 (entorno); no transmitir PDF privado |
 | DQ-0.1-03 | ¿Existen launchers/consumidores de R1/R3 fuera de Git? El árbol no inspecciona instalaciones ni procesos del host | HITO 0.7; inventario operativo del owner si resulta necesario, de otro modo `NO VERIFICABLE` |
-| DQ-0.1-04 | ¿El reparto de fronteras 0.2–0.9 es suficiente y evita doble auditoría? Es una partición propuesta, no aprobada como plan de implementación | Revisión de cobertura por owner sobre matriz §6.2 antes de declarar FROZEN |
+| DQ-0.1-04 | ¿El reparto de fronteras 0.2–0.9 es suficiente y evita doble auditoría? Existe matriz de dueños primarios para las fronteras conocidas, pero la suficiencia del perímetro no está refrendada formalmente | Revisión del owner sobre §6.2 antes de declarar FROZEN; no es plan de implementación |
+| DQ-0.1-05 | ¿Cómo reconciliar `pdf-pdf-product-readiness` (nombre de iniciativa acordado) con la convención de carpeta `phase-{fase}`, y cuándo integrar HITOs en main según §6.7 general? Una respuesta no se infiere de la especialización | Governance/owner antes de merge o cierre de Fase 0; mantener Draft PR #66 sin merge, sin reinterpretar ni editar metodología FROZEN |
 
 **Criterio de finitud:** 0.1 puede concluir *el mapa versionado y los límites de consumidores de la ruta* sin haber ensayado todas las propiedades profundas de 0.2–0.8. Si una incógnita sí impide reconocer una raíz o consumidor primario, debe resolverse antes del cierre; si no, debe cumplir las cuatro condiciones de §8.2. No basta un `TO BE VERIFIED` sin causa ni destino.
 
-## 21. CIERRE DEL HITO 0.1
+### 21.3 Estado y declaración de cierre pendiente
 
-**Estado del HITO:** IN_PROGRESS v1.0.7; **NO FROZEN**.  
-**Condición de cierre:** pendiente. Requiere inventario completo de entrypoints y consumidores relevantes (incluidos imports/configuración dinámica y herramientas), reconciliación de obligaciones con su versión vigente, referencias de evidencia y límites por superficie, clasificación de hipótesis, contradicciones resueltas o declaradas, y criterios verificables de transferencia a otros HITOs. Ya existe contraste estático inicial del Atlas, selección de roots, consumidores versionados focales, mapa de fronteras y dueño primario por HITO (§6.1–6.3). **No** equivale a censo global exhaustivo. El índice textual no permitió descartar consumidores por ausencia de resultados; quedan rutas dinámicas/externas, trazabilidad de dependencias relevantes y contraste de alcance por normativa. No se atribuye a 0.1 la revisión profunda de cada propiedad que está correctamente delegada a otro HITO. La inspección del grafo v1 (E-0.1-033..036) reveló omisiones importantes; el grafo v2 (E-0.1-037..040) **sí cubre los 579 Python versionados** e identifica 6.399 enlaces estáticos/inferidos, con fronteras OCR/G3/G5 comprobadas por lectura focal. **No** autoriza certificar resolución universal de 7.384 llamadas o 1.064 sitios potencialmente dinámicos: muchos son efectos externos/atributos, y los puertos inyectados necesitan análisis de composición. Consumidores host ajenos a Git permanecen `NO VERIFICABLE`, con destino 0.7; contratos internos profundos se asignan a 0.2–0.8. El triaje focal §3 (E-0.1-041..044) localizó bindings de OCR/G3/G5 y separó tests/reflexión de efectos físicos; quedan por resolver o diferir conforme a §8.2 las DQ-0.1-01..04 y obtener validación de cierre del owner. La evaluación preliminar §20 **no** equivale a checklist completado.  
-**Verificación de cadena de gobernanza:** metodología general > metodología HITOs v1.2.0 FROZEN (especializada) > D-1/D-2 y Atlas descriptivo > NADR F18 y fuentes normativas aplicables > observaciones de este HITO > futuro ADR/NADR/Execution Plan. No hay ADR/NADR ni Execution Plan aprobados de esta iniciativa. El plan histórico F18.2 no se sustituye. **Contradicciones con HITOs previos:** ninguna acreditada; diferencias de alcance fake/real se clasifican, no se consideran contradicción. **Revisión de cierre:** pendiente del owner y validación de cobertura.  
-**Decision Candidates generados:** ninguno aprobado; las preguntas de H-0.1-B/E/H/J/K conservan razones y destinos en §15. El GAP-0.1-01 no prescribe solución.  
-**Siguiente paso recomendado:** resolver el gate de hipótesis y diferidos §20 con revisión de owner, validar suficiencia del perímetro y verificación de no-regresión; solo entonces preparar cierre FROZEN del HITO. No reanalizar miles de stdlib/SQLite no relevantes. Tras el cierre, continuar 0.2; sin implementar código.
+**Estado del HITO:** IN_PROGRESS v1.0.8; **NO FROZEN**.  
+**Condición de cierre:** pendiente. Requiere inventario completo de entrypoints y consumidores relevantes (incluidos imports/configuración dinámica y herramientas), reconciliación de obligaciones con su versión vigente, referencias de evidencia y límites por superficie, clasificación de hipótesis, contradicciones resueltas o declaradas, y criterios verificables de transferencia a otros HITOs. Ya existe contraste estático inicial del Atlas, selección de roots, consumidores versionados focales, mapa de fronteras y dueño primario por HITO (§6.1–6.3). **No** equivale a censo global exhaustivo. El índice textual no permitió descartar consumidores por ausencia de resultados; quedan rutas dinámicas/externas, trazabilidad de dependencias relevantes y contraste de alcance por normativa. No se atribuye a 0.1 la revisión profunda de cada propiedad que está correctamente delegada a otro HITO. La inspección del grafo v1 (E-0.1-033..036) reveló omisiones importantes; el grafo v2 (E-0.1-037..040) **sí cubre los 579 Python versionados** e identifica 6.399 enlaces estáticos/inferidos, con fronteras OCR/G3/G5 comprobadas por lectura focal. **No** autoriza certificar resolución universal de 7.384 llamadas o 1.064 sitios potencialmente dinámicos: muchos son efectos externos/atributos, y los puertos inyectados necesitan análisis de composición. Consumidores host ajenos a Git permanecen `NO VERIFICABLE`, con destino 0.7; contratos internos profundos se asignan a 0.2–0.8. El triaje focal §3 (E-0.1-041..044) localizó bindings de OCR/G3/G5 y separó tests/reflexión de efectos físicos; quedan por resolver o diferir conforme a §8.2 las DQ-0.1-01..04 y obtener validación de cierre del owner. La evaluación preliminar §21.1 **no** equivale a checklist completado. El registro de fuentes §4 ya declara HITOs previos y el triaje de hipótesis está acotado por §21.2. La denominación de carpeta, el instante de integración del PR y la suficiencia formal del perímetro permanecen abiertos como **gates de gobernanza**, no como brechas de código.  
+**Verificación de cadena de gobernanza:** metodología general v1.3.0 (prevalece) > metodología HITOs v1.2.0 FROZEN (especializada) > ADR/NADR vigentes y decisiones D-1/D-2 > Atlas/handoffs descriptivos y HITOs 17-BIS/F18 previos > evidencia actual del HITO > futuro ADR/NADR/Execution Plan. No hay ADR/NADR ni Execution Plan aprobados de esta iniciativa. El plan F18.2 conserva su propia autoridad. **Contradicciones con HITOs previos:** no se acreditó una contradicción sobre el mismo SHA; la diferencia temporal entre HITO_6.4 y workflow CV actual se documenta para reconciliación en 0.8. **Conflictos de nomenclatura/commit:** DQ-0.1-05 pendiente de autoridad owner. **Revisión de cierre:** no aprobada.  
+**Decision Candidates generados:** ninguno aprobado; DQ-0.1-01..05 conservan las decisiones/evidencias pendientes, con sus destinatarios. GAP-0.1-01 no prescribe solución.  
+**Siguiente paso recomendado:** validar por owner la suficiencia de la matriz §6.2 y resolver DQ-0.1-05 de nomenclatura/merge según metodología superior; después, aplicar checklist §21.1 y emitir declaración FROZEN solo si todos los gates se satisfacen. Mantener PR #66 Draft y sin merge. Auditar HITO 0.2 sin ejecutar código de producción.
 
 > No usar esta versión `IN_PROGRESS` como prueba de que la auditoría de Fase 0 esté completa.
