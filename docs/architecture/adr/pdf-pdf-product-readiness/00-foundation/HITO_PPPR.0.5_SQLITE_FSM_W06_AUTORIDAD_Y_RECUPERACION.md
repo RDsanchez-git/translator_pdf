@@ -1,8 +1,8 @@
 # HITO_PPPR.0.5_SQLITE_FSM_W06_AUTORIDAD_Y_RECUPERACION.md
 
-**Estado:** IN_PROGRESS v1.0.2  
+**Estado:** FROZEN v1.0.3  
 **Fecha de emisión:** 2026-11-19  
-**Fecha de congelamiento:** N/A  
+**Fecha de congelamiento:** 2026-11-19  
 **Fase:** PPPR — Fase 0 transversal de `pdf-pdf-product-readiness`, no una fase nueva del roadmap.  
 **Tipo de artefacto:** Forensic Flow Audit (autoridad, persistencia, estados, W06 y recovery).  
 **Naturaleza:** Read-only; no modifica producción, datos reales, corpus, tests ni decisiones de diseño.  
@@ -19,10 +19,11 @@
 | 1.0.0-IN_PROGRESS | 2026-11-19 | Apertura desde merge del PR #69 con inspección directa de root G3, SQL/repositories, reconciler, staged publication, F18 NADR-03/04 y testigos W06/B3/B4. 18 E-IDs iniciales, 8 hipótesis por cerrar; NO tests ejecutados, NO FROZEN ni GAP prematuro. |
 | 1.0.1-IN_PROGRESS | 2026-11-19 | Segunda pasada: 26 E-IDs, 2 P1 locales y fichas §4.7; consumidores UNKNOWN y CLI, lease→semáforo→provider, reconcilers y sweeper. NADR-F18-03/04 y ADR-F18.2 reconciliados con ruta vigente. NOT_RUN, no FROZEN. |
 | 1.0.2-IN_PROGRESS | 2026-11-19 | Tercera pasada: 34 E-IDs, tercer GAP P1 relativo a sweeper Compose, clasificación de ventanas W1–W8 y reconciliación de testigos. Sin ejecución ni FROZEN; pendientes hipótesis terminales y DQ/DC. |
+| 1.0.3-FROZEN | 2026-11-19 | Cierre conforme §8.1–8.2: 34 E-IDs, 3 fichas P1, 3 GAP P1 locales OPEN, H-0.5-A…I terminales, 4 DQ, 3 DC, ventanas W1–W8 y no-regresión F18/HITOs previos; sin tests, producción ni PASS. |
 
 ## 1. RESUMEN EJECUTIVO
 
-Se inició la auditoría forense de propiedad de estado de la ruta seleccionada. El OCR almacena un AST y un `ChunkPlan` con context snapshots; G3 recupera la generación validada, reclama tareas en `queue.db` con leases, llama al proveedor únicamente para `TRANSLATE/PARTIAL`, guarda un resultado estructurado en receipt durable y publica los nodos por una secuencia local `queue.db → materialized.db → queue.db → fsm.db`.
+Se completó la auditoría forense de propiedad de estado de la ruta seleccionada. El OCR almacena un AST y un `ChunkPlan` con context snapshots; G3 recupera la generación validada, reclama tareas en `queue.db` con leases, llama al proveedor únicamente para `TRANSLATE/PARTIAL`, guarda un resultado estructurado en receipt durable y publica los nodos por una secuencia local `queue.db → materialized.db → queue.db → fsm.db`.
 
 **Hallazgo central:**
 
@@ -30,7 +31,7 @@ Se inició la auditoría forense de propiedad de estado de la ruta seleccionada.
 
 **Defectos dominantes P1 LOCAL:** **GAP-0.5-01** (E-019/022/026: UNKNOWN sin escalamiento, NADR-F18-03 R11); **GAP-0.5-02** (E-020/021: lease no revalidado al inicio del efecto, R2); **GAP-0.5-03** (E-023/032: sweeper declarado en Compose inspecciona estados no STALLED y transiciona a FAILED_RETRYABLE sin corroborar receipts, NADR-F18-04 R8). No se acredita duplicación de efectos ni daño real.
 
-**Veredicto:** 34 evidencias y 3 GAP P1 abiertos; recuperación de receipts y W06 preservadas dentro del modelo local. Se demostró la vinculación del sweeper a Compose, no su ejecución física en un host. **IN_PROGRESS**, sin `PRODUCT_READINESS=PASS`.
+**Veredicto de cierre:** 34 evidencias, 3 GAP P1 OPEN y garantías locales de receipts, W06, replay y FSM delimitadas. El sweeper tiene conectividad declarada en Compose, sin ejecución comprobada del contenedor. **FROZEN documental**, no certificación del producto ni aprobación de implementación.
 
 ## 2. LÍMITE EPISTEMOLÓGICO Y MÉTODO FORENSE
 
@@ -41,7 +42,7 @@ Se inició la auditoría forense de propiedad de estado de la ruta seleccionada.
 - **NOT_RUN:** tests, Docker, crash injection, SDK del LLM, compilador, SQLite de producción y corpus/GT. Los tests se examinan como evidencia de **intención/cobertura**, no se les atribuye PASS actual.
 - **Perímetros ajenos:** G3 modelo/prompt/tokens (PPPR.0.4), G5 y salida física (PPPR.0.6), hosting/secretos/volúmenes (PPPR.0.7), prueba científica (PPPR.0.8).
 
-## 3. ALCANCE AUDITADO — PRIMERA PASADA
+## 3. ALCANCE AUDITADO — PERÍMETRO FINAL
 
 | Frontera | Código primario y propiedad | Estado de esta pasada |
 |---|---|---|
@@ -54,10 +55,10 @@ Se inició la auditoría forense de propiedad de estado de la ruta seleccionada.
 | SQLite/WAL y cuota | `infra/db/{connection,schema_queue,schema_fsm,schema_event,context_snapshot_repo}.py/sql`, `infra/resilience/thread_owned_sqlite_rate_limit_store.py` | **AUDITADO focal**; escritura real y power-loss NO VERIFICABLE |
 | Event plane histórico | `infra/db/{event_repo,materialized_repo}.py`, rutas legadas del reconciler | **AUDITADO para desambiguar consumidor**, no sustituye G3 vigente |
 | Tests versionados | W06, B3 receipts/publication, B4 recovery/fencing, SQLite ownership/factory | **LEÍDOS · NOT_RUN**; algunos fakes/SQLite temporal |
-| Normativa previa | NADR-F18-01…05, ADR-F18.2 y corte histórico de F18.2 | **CONTRASTE INICIADO**; no transferir un GAP histórico sin comprobar HEAD |
+| Normativa previa | NADR-F18-01…05, ADR-F18.2 y corte histórico de F18.2 | **RECONCILIADO POR DELTA** (§17); no transferir GAP histórico por homonimia |
 | G5/output y costeo de I/O | Otros HITOs PPPR | **REFERENCIADO**; sin certificación física ni económica |
 
-No se considera completo aún el checklist §8.1. No se introducen expedientes suplementarios ni matrices auxiliares fuera de este HITO.
+**Perímetro suficiente para el mandato estático:** root OCR→G3, control/queue, FSM, reconciler, sweeper declarado en Compose, publicación y testigos auditados por código; G5 físico, host, LLM, facturación y corpus explícitamente referenciados o NO VERIFICABLE con destinos (§15). No se introducen matrices externas ni se presume exhaustividad de consumidores privados.
 
 ## 4. FUENTES DE EVIDENCIA
 
@@ -102,9 +103,9 @@ apps/daemons/reconciler.py:
 
 **Semántica central:** hay *confirmaciones recuperables locales* y puntos de corte entre DBs; **no existe una transacción atómica global** que combine queue, materialized y FSM. El contrato actual busca converger sin volver a pagar por la sola ausencia de una proyección local. No confundir esa propiedad lógica con protección demostrada ante pérdida física de energía.
 
-## 10. REGISTRO DE EVIDENCIA FORENSE — SEGUNDA PASADA
+## 10. REGISTRO DE EVIDENCIA FORENSE — FINAL
 
-| E-ID | Sev. provisional | Observed (archivo::símbolo) | Required/Decision/límite | Estado |
+| E-ID | Severidad | Observed (archivo::símbolo) | Required/Decision/límite | Estado |
 |---|---|---|---|---|
 | **E-0.5-001** | P2 | `context_snapshot_repo.py::enqueue_verified` escribe plan, tasks y context snapshots en una única transacción `queue.db`; `load_verified` compara generación/manifest al reabrir. | Atomicidad **local**; no equivale a commit de `fsm.db`. | OBSERVADO |
 | **E-0.5-002** | P2 | `engine.py::run_pipeline` verifica AST, hash, manifest y snapshots antes de crear proveedor pago; rechaza falta/drift. | Fallar antes de I/O ante identidad divergente; capacidades GT/fidelidad no probadas. | OBSERVADO |
@@ -142,7 +143,7 @@ apps/daemons/reconciler.py:
 | **E-0.5-033** | P2 | Tests B3/B4 de crash entre publicación/ACK/FSM y corrupción/mixed/rollback, y W06 con provider fake, versionan las barreras pero están NOT_RUN. | Testigo escrito ≠ ejecución física, SIGKILL, power loss o garantía remota. | TESTIGOS |
 | **E-0.5-034** | P2 | `ThreadOwnedSQLiteRateLimitStore` posee DB de cuotas en un hilo; `InferenceMeasurementService` estima tokens, mientras `WorkUnitObservation` es telemetría de estado, sin evidencia de reporte durable de excepción/costo real. | NADR-F18-05 R4–R15 separa actividad cliente, duplicación y costo. Conformidad real de excepción NO VERIFICABLE. | DQ-0.5-04 |
 
-**Severidad actual:** E-001…026 retienen sus IDs y su calificación previa. **E-032** aporta la conectividad que faltaba a E-023 y permite clasificar el sweeper como P1 LOCAL sin elevar retroactivamente E-023. No se ha ejecutado el servicio, ni verificado factura/duplicación.
+**Severidad final §7.1:** E-0.5-001…034 retienen sus IDs; E-019, E-020 y E-032 son P1 LOCAL por consecuencia contractual, las otras 31 P2 por hechos o límites. E-023 se conserva P2; E-032 acredita conectividad declarativa, no servicio ejecutado. Ningún P0, doble cobro o explotación demostrada.
 
 ### Fichas extendidas P1 (§4.7)
 
@@ -206,7 +207,7 @@ WHERE current_state IN ('PARSING','PROCESSING','READY_FOR_ASSEMBLY')
 ```
 
 - **Observed:** el servicio está en Compose y su overlay runtime; no está invocado por CLI foreground. Selecciona por antigüedad FSM sin cotejar leases/receipts en queue y no procesa STALLED. El handler mueve a FAILED_RETRYABLE mientras el log informa FAILED_FATAL. No hubo ejecución del contenedor.
-- **Required:** NADR-F18-04 §5.3 R8 requiere coherencia entre autoridad/resultados/proyecciones al recuperar; ENGINEERING_PRINCIPLES §IV exige información operacional fiel.
+- **Required:** NADR-F18-04 §5.3 R8 requiere coherencia entre autoridad y proyecciones tras recuperación; NADR-F18-05 §5.3 R10 impide ocultar insuficiencia observacional; ENGINEERING_PRINCIPLES §IV exige cero fallos silenciosos y trazabilidad, sin regla textual específica sobre nombres de estado.
 - **Decision:** F18 adopta convergencia local sin 2PC. Presencia en Compose no demuestra stack activo.
 - **Consecuencia:** un documento PROCESSING antiguo puede cambiar a FAILED_RETRYABLE sin corroborar evidencia de queue; un STALLED verdadero no es seleccionado por esa purga. No se observaron cargos, daño ni retries pagados.
 - **Severidad:** **P1 LOCAL · OPEN → GAP-0.5-03**; destino ADR Maestro/Execution Plan y verificación de composición PPPR.0.7.
@@ -226,17 +227,17 @@ WHERE current_state IN ('PARSING','PROCESSING','READY_FOR_ASSEMBLY')
 
 **Separación de garantías:** recepción externa, receipt durable, proyección, ACK queue y FSM no son una única transacción. Tests B3/B4/W06 versionados: **NOT_RUN**; no se extrapola SIGKILL o power loss.
 
-## 14. GAPS CONSOLIDADOS — TERCERA PASADA
+## 14. GAPS CONSOLIDADOS — FINAL
 
-| GAP | Descripción, causalidad y obligación | Estado y destino |
-|---|---|---|
-| **GAP-0.5-01** | UNKNOWN durable bloquea reintento pero no dispone de escalamiento configurable en la ruta auditada; E-019/022/026, **NADR-F18-03 R11**, ADR-F18.2 DC-08b. | **P1 LOCAL · OPEN** → ADR Maestro/Execution Plan PPPR; seguimiento y disposición documentados, sin prescribir tecnología |
-| **GAP-0.5-02** | Lease se comprueba antes del semáforo, no al empezar la llamada; E-020/021, **NADR-F18-03 R2**, ADR-F18.2 DC-08a. CAS post-I/O no corrige autoridad pre-I/O. | **P1 LOCAL · OPEN** → ADR Maestro/Execution Plan PPPR; testigo aislado seguro posterior |
-| **GAP-0.5-03** | Sweeper de Compose consulta estados no STALLED, omite receipts/leases y anuncia FAILED_FATAL pero produce FAILED_RETRYABLE; E-023/032, NADR-F18-04 R8 y SRE §IV. | **P1 LOCAL · OPEN** → ADR Maestro/Execution Plan; verificación de Compose en PPPR.0.7 |
+| GAP | Defecto observado | Evidencia | Contrato | Destino | Estado |
+|---|---|---|---|---|---|
+| **GAP-0.5-01** | UNKNOWN bloquea retry pero carece de escalamiento configurable en la composición auditada | **E-0.5-019**, E-022/026 | NADR-F18-03 R11; ADR-F18.2 DC-08b | ADR Maestro PPPR → Execution Plan | **P1 LOCAL · OPEN** |
+| **GAP-0.5-02** | Lease verificado antes, no después del semáforo inmediatamente antes de efecto externo | **E-0.5-020**, E-021 | NADR-F18-03 R2; ADR-F18.2 DC-08a | ADR Maestro PPPR → Execution Plan; testigo focal | **P1 LOCAL · OPEN** |
+| **GAP-0.5-03** | Sweeper de Compose selecciona estados equivocados, omite receipts/leases y declara FAILED_FATAL cuando realmente mueve a FAILED_RETRYABLE | **E-0.5-032**, E-023 | NADR-F18-04 R8; NADR-F18-05 R10; principios SRE IV | ADR Maestro PPPR → Execution Plan; entorno PPPR.0.7 | **P1 LOCAL · OPEN** |
 
 **No son GAPs de esta ruta:** ausencia de INTENT en el journal legado, falta de 2PC, bloqueo seguro de UNKNOWN o no usar `synchronous=FULL` (F18 aprobó WAL+NORMAL para su modelo de fallos). E-023 mantiene su identidad: E-032 demuestra la conectividad declarativa del sweeper en Compose, sin probar su actividad física. No se crean tareas de implementación prematuras.
 
-## 15. HIPÓTESIS Y DISPOSICIONES (TERCERA PASADA)
+## 15. HIPÓTESIS TERMINALES, DQ Y DC (§8.1–8.2)
 
 | ID | Veredicto con frontera de evidencia |
 |---|---|
@@ -267,14 +268,69 @@ WHERE current_state IN ('PARSING','PROCESSING','READY_FOR_ASSEMBLY')
 | DC-0.5-02 | Vigencia del lease justo antes de efecto, incluidos semáforos y expiración | ADR Maestro/Execution Plan |
 | DC-0.5-03 | Rol del sweeper, reconciliación queue/FSM y reporting confiable | ADR Maestro/Execution Plan |
 
-**Estado de hipótesis:** ninguna permanece sin clasificación; los testigos de proveedor, host y costo son NO VERIFICABLE con razón y destino. No se aprueba diseño.
+**Disposición terminal §8.1–8.2:** H-0.5-A…I tienen veredictos; H-0.5-H es NO VERIFICABLE integralmente y las limitaciones empíricas de H-G/I están en DQ-0.5-02/03. Las DQ registran motivo, no-bloqueo del cierre estático y destino. Ningún diseño ni operación pagada resulta aprobada.
 
-## 16. RESPUESTAS AL MANDATO — TERCERA PASADA
+## 16. RESPUESTAS AL MANDATO — FINAL
 
 La cadena seleccionada **no** usa el `EventPlaneRepository.get_latest_event` para decidir si reintenta un chunk G3. La autoridad para aplicar resultados vive en un plan/lease/receipt de `queue.db`, y el estado local se mueve entre planos con verificación e idempotencia por etapa. Un intento de proveedor incierto permanece representado por `G3_EXTERNAL_UNKNOWN`, lo que cumple la prohibición de retry ciego, **pero no acredita escalamiento configurable** (GAP-0.5-01). La comprobación de lease antes del semáforo no valida inicio de efecto (GAP-02). El sweeper declarado en Compose no coteja receipts al mutar FSM y informa un estado diferente del real (GAP-03). La recuperación de resultados locales se limita al modelo de fallos aprobado; no implica exactly-once remoto.
 
-## 21. CIERRE DEL HITO — IN_PROGRESS
+## 17. NO-REGRESIÓN Y RECONCILIACIÓN F18 / PPPR (§9.2–9.4)
 
-**NO FROZEN — IN_PROGRESS v1.0.2.** 34 evidencias, 3 fichas P1, 3 GAP P1 locales OPEN, nueve hipótesis clasificadas, cuatro DQ y tres DC. Matriz W1–W8 y Compose reconciliados. Falta revisión formal de checklist §8.1–8.2 y no-regresión para congelar. NOT_RUN; sin producción, datos reales ni corpus.
+| Fuente y frontera | Observed en el HEAD auditado | Required/Decision y conclusión |
+|---|---|---|
+| PPPR.0.1 FROZEN | CLI→OCR→G3→G5 soportados; Compose también declara daemons | No reabrir D-1/D-2 ni confundir CLI foreground con despliegue Compose (E-032) |
+| PPPR.0.2 FROZEN | Plan/tasks/context snapshot guardados en queue y FSM en otro archivo | Extracción no re-auditada; frontera SQLite del ingreso E-001/002 aquí |
+| PPPR.0.3 FROZEN | Verificación del hash recibido y plan antes de inferir | GAP-0.3-01/02 siguen OPEN; validar un hash no repara campos omitidos de su pre-image |
+| PPPR.0.4 FROZEN | Modelo/presupuesto/prompt Groq y error post-effect llegan al worker G3 | GAP-0.4-01…04 siguen OPEN; W06/receipt tratados aquí, no viabilidad comercial |
+| ADR-F18.2, NADR-F18-03 | Lease como intención durable, UNKNOWN sin retry, epoch y CAS del reconciler | Respetar no-retry; GAP-01 (R11) y GAP-02 (R2) son discrepancias nuevas de composición, no reinicio del EventPlane legado |
+| NADR-F18-04 | Receipt local queue, proyección materialized, finalización queue y FSM CAS; no 2PC | Recuperación desde fuentes locales, sin nuevo journal; GAP-03 concierne al sweeper de Compose, no a publicación del foreground |
+| NADR-F18-05, principios SRE | Quotas y observabilidad local no prueban gastos/duplicación real; log sweeper contradice FSM | DQ-04 limita FinOps; no inferir dato externo, error silencioso ni estado efectivo desde el mensaje de log |
 
-**Git:** mantener PR interno Draft solo de este Markdown desde `pppr/hito-0.5` hacia `pdf-pdf-product-readiness`; mantener el PR general #66 Draft hacia `main`. Cuando PPPR.0.5 se congele, revise y apruebe, integrar internamente, verificar, eliminar rama corta y solo entonces comenzar PPPR.0.6. No implementar antes de ADR/NADR y Execution Plan aprobados.
+**Contradicciones reconciliadas:** (a) la descripción histórica F18 del journal CQRS no describe el G3 actual basado en receipts; (b) la descripción del sweeper no coincide con los estados consultados; (c) el mensaje FAILED_FATAL no coincide con FAILED_RETRYABLE. E-023 sigue P2 y E-032 conecta el servicio configurado, sin reasignar IDs o afirmar que Docker esté activo. Los hallazgos anteriores del producto siguen abiertos en sus HITOs.
+
+## 21. CIERRE DEL HITO PPPR.0.5 — FROZEN v1.0.3
+
+### 21.1 Checklist obligatorio (§8.1–8.2)
+
+| Control | Resultado y evidencia |
+|---|---|
+| Metadata, tipo, estado, fecha y changelog | **CUMPLE** — encabezado y versiones 1.0.0–1.0.3 |
+| Método read-only, límite epistemológico | **CUMPLE** — §2: Observed/Required/Decision, NOT_RUN y no certificación |
+| 100% del perímetro declarado auditado o explicitado como NO VERIFICABLE | **CUMPLE** — §3: ingestión/FSM/queue/G3/reconciler/sweeper/publicación/cuotas; G5/host/LLM/GT diferidos |
+| Fuentes obligatorias y estado histórico | **CUMPLE** — §4/17: SHA main, F18 y PPPR.0.1–0.4 FROZEN |
+| Flujo completo, bifurcaciones y persistencia | **CUMPLE** — §5/11: G3 vigente vs CQRS legacy; ocho ventanas W1–W8 |
+| E-IDs estables y severidad | **CUMPLE** — §10: 34 E-IDs, 3 P1, 31 P2; sin reasignación |
+| Fichas extendidas P1 (Observed/Required/Decision) | **CUMPLE** — E-0.5-019/020/032 con causalidad, consecuencia, estado y destino |
+| GAPs trazables, contrato, destino, estado | **CUMPLE** — §14, GAP-0.5-01…03 P1 LOCAL OPEN |
+| Hipótesis clasificadas, ninguna abierta | **CUMPLE** — §15, H-0.5-A…I |
+| Deferred Questions según §8.2 | **CUMPLE** — DQ-0.5-01…04 con motivo, no-bloqueo y destino |
+| Decision Candidates separados de decisiones vigentes | **CUMPLE** — DC-0.5-01…03, sin tecnología prescrita |
+| No-regresión con HITOs y reconciliación F18 | **CUMPLE** — §17, histórico vs G3 actual y sweeper Compose |
+| Garantías explícitas, cadena de gobierno y siguiente paso | **CUMPLE** — §§21.2–21.4 |
+| Tests, Docker, CI, proveedor comercial, corpus y GT | **NOT_RUN / NO REQUERIDO** para cierre estático; no se acredita PASS |
+
+**Regla §8.2:** los datos empíricos no obtenidos no bloquean este mandato de lectura estática porque tienen razón específica y destino. Sí impiden certificar el producto, probar gestión externa de efectos o cerrar los tres GAPs.
+
+### 21.2 Declaración de cierre y garantías positivas/negativas
+
+**Estado: FROZEN v1.0.3 — 2026-11-19.** Se cierra únicamente el Flow Audit documental de SQLite, FSM, W06, autoridad, publicación y recuperación de la ruta versionada main@1d21cfe958cc1de8a33824fed748cd6fe9260f42.
+
+**Positivo por código:** lease/attempt durables y CAS local, receipt + RESULT_STAGED atómicos en queue.db, UNKNOWN conservador que bloquea retry automático, proyección materialized verificable e idempotente, finalización de cola y CAS FSM recuperables por etapas. El reconciler distingue tareas G3 del CQRS legacy y verifica epoch/owner. Las garantías dependen de contratos locales y del modelo de fallos F18; tests versionados se leyeron, no ejecutaron.
+
+**GAPs aún P1 LOCAL / OPEN:** GAP-0.5-01 (UNKNOWN sin escalamiento conectado), GAP-0.5-02 (lease no revalidado al inicio del I/O), GAP-0.5-03 (sweeper Compose con consultas/transiciones/reporting incompatibles). FROZEN no subsana ni acepta estas discrepancias.
+
+**NO GARANTIZADO:** proveedor real, cuenta o cargo, ausencia de efectos externos duplicados, vigencia universal del lease al despachar, recuperación física SIGKILL/power loss, exactly-once, cobertura real de host/Compose, G5 final, fidelidad STEM, oráculos/GT ni PRODUCT_READINESS=PASS. No se ejecutaron tests, SQLite real, CI, Docker, API LLM, corpus ni remediación.
+
+### 21.3 Cadena de gobernanza y no-regresión
+
+Metodología general v1.3.0 FROZEN → metodología forense v1.2.0 FROZEN → PROJECT_SCOPE / ENGINEERING_PRINCIPLES → D-1/D-2, Atlas → PPPR.0.1–0.4 FROZEN y ADR-F18.2/NADR-F18-01…05 FROZEN → PPPR.0.5 FROZEN → PPPR.0.6–0.9 → ADR Maestro PPPR, ADR/NADR estrictamente necesarios → Execution Plan aprobado e integrado a main → implementación futura por PRs distintos.
+
+No se autoriza restablecer retries ciegos, crear journal paralelo, imponer 2PC o cambiar a synchronous=FULL por reflejo. Las soluciones se evaluarán exclusivamente después de la gobernanza correspondiente.
+
+### 21.4 Próximo gate e integración Git
+
+Documento preparado para revisión y aprobación explícita del PR interno #70, aún Draft, hacia pdf-pdf-product-readiness. FROZEN documental no implica aprobación del propietario ni merge.
+
+Después de aprobar e integrar #70: verificar el HITO en la rama general; eliminar pppr/hito-0.5; abrir pppr/hito-0.6 desde el HEAD actualizado. El PR general #66 debe seguir Draft, con main intacto, hasta concluir Fase 0, ADR Maestro, ADR/NADR y Execution Plan aprobados. No se implementa producción antes.
+
+> FROZEN documental ≠ GAPs resueltos ≠ prueba de durabilidad física ≠ certificación científica ≠ autorización de implementación.
