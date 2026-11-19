@@ -192,35 +192,89 @@ with llm_semaphore:
 - **Severidad/estado:** **P1 LOCAL · OPEN → GAP-0.5-02**. Destino: ADR Maestro/Execution Plan PPPR; testigo offline focal de expiración durante espera si se autoriza.
 
 
-## 14. GAPS CONSOLIDADOS — SEGUNDA PASADA
+#### E-0.5-032 — sweeper de Compose y FSM contradictoria (P1)
+
+- **Fuentes/símbolos:** `docker-compose.yml::services.sweeper`, `docker-compose.runtime.yml`, `runtime/sweeper.py::RecoveryDaemon.run_sweep_cycle`, `infra/db/fsm_repository.py::find_stalled_documents`, `core/execution/handlers.py::_get_target_state`.
+- **Declaración observada:**
+
+```python
+# find_stalled_documents filtra:
+WHERE current_state IN ('PARSING','PROCESSING','READY_FOR_ASSEMBLY')
+# No incluye STALLED
+# sweeper envía FailDocumentCommand y anuncia FAILED_FATAL.
+# handler mapea FailDocumentCommand -> FAILED_RETRYABLE.
+```
+
+- **Observed:** el servicio está en Compose y su overlay runtime; no está invocado por CLI foreground. Selecciona por antigüedad FSM sin cotejar leases/receipts en queue y no procesa STALLED. El handler mueve a FAILED_RETRYABLE mientras el log informa FAILED_FATAL. No hubo ejecución del contenedor.
+- **Required:** NADR-F18-04 §5.3 R8 requiere coherencia entre autoridad/resultados/proyecciones al recuperar; ENGINEERING_PRINCIPLES §IV exige información operacional fiel.
+- **Decision:** F18 adopta convergencia local sin 2PC. Presencia en Compose no demuestra stack activo.
+- **Consecuencia:** un documento PROCESSING antiguo puede cambiar a FAILED_RETRYABLE sin corroborar evidencia de queue; un STALLED verdadero no es seleccionado por esa purga. No se observaron cargos, daño ni retries pagados.
+- **Severidad:** **P1 LOCAL · OPEN → GAP-0.5-03**; destino ADR Maestro/Execution Plan y verificación de composición PPPR.0.7.
+
+## 11. MATRIZ DE CRASH Y RECUPERACIÓN (NOT_RUN)
+
+| Ventana | Estado al corte | Comportamiento observado/esperable en código |
+|---|---|---|
+| W1 Claim antes de paid I/O | PROCESSING sin receipt | Expirado: LLM→UNKNOWN; PRESERVE verificable→PENDING; lease no prueba llamada |
+| W2 LLM iniciado sin receipt | Resultado externo desconocido | W06 bloquea retry automático; cobro NO VERIFICABLE |
+| W3 Receipts parciales | Algunas tareas RESULT_STAGED | La publicación incompleta se rechaza |
+| W4 Todos RESULT_STAGED | queue confirmada, materialized pendiente | Se reconstruye desde receipt sin proveedor |
+| W5 materialized committed | queue RESULT_STAGED | Replay idempotente de publicación, finalización queue |
+| W6 queue COMPLETED | FSM PROCESSING | Revalidación y CAS a READY_FOR_ASSEMBLY sin LLM |
+| W7 Mixed/alteración | Plan, hashes o receipts incoherentes | Fail-closed, sin progreso falso |
+| W8 Power loss/proveedor remoto | Fuera del testigo estático | WAL+NORMAL aprobado para fallos locales F18, sin exactly-once externo |
+
+**Separación de garantías:** recepción externa, receipt durable, proyección, ACK queue y FSM no son una única transacción. Tests B3/B4/W06 versionados: **NOT_RUN**; no se extrapola SIGKILL o power loss.
+
+## 14. GAPS CONSOLIDADOS — TERCERA PASADA
 
 | GAP | Descripción, causalidad y obligación | Estado y destino |
 |---|---|---|
 | **GAP-0.5-01** | UNKNOWN durable bloquea reintento pero no dispone de escalamiento configurable en la ruta auditada; E-019/022/026, **NADR-F18-03 R11**, ADR-F18.2 DC-08b. | **P1 LOCAL · OPEN** → ADR Maestro/Execution Plan PPPR; seguimiento y disposición documentados, sin prescribir tecnología |
 | **GAP-0.5-02** | Lease se comprueba antes del semáforo, no al empezar la llamada; E-020/021, **NADR-F18-03 R2**, ADR-F18.2 DC-08a. CAS post-I/O no corrige autoridad pre-I/O. | **P1 LOCAL · OPEN** → ADR Maestro/Execution Plan PPPR; testigo aislado seguro posterior |
+| **GAP-0.5-03** | Sweeper de Compose consulta estados no STALLED, omite receipts/leases y anuncia FAILED_FATAL pero produce FAILED_RETRYABLE; E-023/032, NADR-F18-04 R8 y SRE §IV. | **P1 LOCAL · OPEN** → ADR Maestro/Execution Plan; verificación de Compose en PPPR.0.7 |
 
-**No son GAPs de esta ruta:** ausencia de INTENT en el journal legado, falta de 2PC, bloqueo seguro de UNKNOWN o no usar `synchronous=FULL` (F18 aprobó WAL+NORMAL para su modelo de fallos). E-023 se mantiene como discrepancia auxiliar sin conectividad acreditada. No se crean tareas de implementación prematuras.
+**No son GAPs de esta ruta:** ausencia de INTENT en el journal legado, falta de 2PC, bloqueo seguro de UNKNOWN o no usar `synchronous=FULL` (F18 aprobó WAL+NORMAL para su modelo de fallos). E-023 mantiene su identidad: E-032 demuestra la conectividad declarativa del sweeper en Compose, sin probar su actividad física. No se crean tareas de implementación prematuras.
 
-## 15. HIPÓTESIS — SEGUNDA PASADA, AÚN IN_PROGRESS
+## 15. HIPÓTESIS Y DISPOSICIONES (TERCERA PASADA)
 
-| ID | Pregunta | Estado/destino de la investigación |
+| ID | Veredicto con frontera de evidencia |
+|---|---|
+| H-0.5-A | **CONFIRMADA brecha local** UNKNOWN sin escalamiento → GAP-01 |
+| H-0.5-B | **RECHAZADA garantía universal** de lease al inicio externo → GAP-02 |
+| H-0.5-C | **CONFIRMADA por código** cuarentena W06 sin reintento automático; NOT_RUN |
+| H-0.5-D | **CONFIRMADA por código** replay post-receipt sin reinferencia; NOT_RUN |
+| H-0.5-E | **CONFIRMADA** separación de commits locales, sin 2PC |
+| H-0.5-F | **CONFIRMADA en la ruta inspeccionada** CAS, owner, execution_id y epoch en escrituras; no equivale a fencing físico pre-I/O |
+| H-0.5-G | **CONFIRMADA como política F18**, WAL+NORMAL, power loss NO VERIFICABLE → DQ-02 |
+| H-0.5-H | **NO VERIFICABLE integralmente**, FinOps/cobro/duplicación/telemetría → DQ-04 |
+| H-0.5-I | **CONFIRMADA en Compose** sweeper contradictorio, host no ejecutado → GAP-03 |
+
+### 15.1 Deferred Questions (§8.2)
+
+| ID | Motivo explícito y por qué no bloquea inventario estático | Destino |
 |---|---|---|
-| **H-0.5-A** | ¿El escalamiento de `G3_EXTERNAL_UNKNOWN` dispone de umbrales/alarma operativa configurables y disposición segura según NADR-F18-03 R10–R15? | **BRECHA CONFIRMADA EN LA COMPOSICIÓN** E-019/022/026 → GAP-0.5-01; no negar procesos externos no examinados |
-| **H-0.5-B** | ¿Toda operación G3 valida autoridad **vigente** inmediatamente antes del efecto, incluso con pérdida de lease entre guard y SDK? | **FALSADA POR FLUJO ESTÁTICO** E-020/021 → GAP-0.5-02; sin ensayo de tiempo ni proveedor |
-| **H-0.5-C** | ¿Crash tras paid effect y antes de receipt se convierte en UNKNOWN sin reintento automático? | **CONFIRMADA por lectura** en recuperación de expiración; testigo W06 `NOT_RUN` |
-| **H-0.5-D** | ¿Crash después de RESULT_STAGED o tras materialized publication reinicia sin volver a llamar al modelo? | **CONFIRMADA como mecanismo** en código y tests; ejecución post-crash `NOT_RUN` |
-| **H-0.5-E** | ¿Existe transacción distribuida queue/materialized/FSM, o solo convergencia por commits locales? | **CONFIRMADA la separación**; evaluar modelo de fallos F18 para no inventar necesidad de 2PC |
-| **H-0.5-F** | ¿Las escrituras obsoletas están cercadas por identidad de ejecución, epoch y CAS en todas las rutas G3? | **PARCIAL**, revisar paths de finalización y handlers legacy |
-| **H-0.5-G** | ¿El estado `WAL+NORMAL` es suficiente bajo el modelo de fallos realmente aprobado? | **CONFIRMADA como política estática**, garantías power-loss fuera de modelo; no medir aquí |
-| **H-0.5-H** | ¿El estado durable de cuotas, circuit breaker y telemetría satisface reglas F18 sin contaminar identidad científica? | **TO BE VERIFIED**; distinguir evidencia de operación y costos de resultado científico, con posibles destinos 0.7/0.8 |
-| **H-0.5-I** | ¿El sweeper auxiliar selecciona realmente STALLED y transiciona al estado fatal anunciado? | **CONTRADICCIÓN ESTÁTICA** E-023, conectividad al producto pendiente; no es GAP todavía |
+| DQ-0.5-01 | Duración y efecto real de esperar semáforo con lease caducado: defecto de flujo ya demostrado, impacto no medido | ADR/Execution Plan, test focal offline posterior |
+| DQ-0.5-02 | SIGKILL, durabilidad física y power loss no ensayados; F18 excluye power loss como garantía | PPPR.0.7/0.8 |
+| DQ-0.5-03 | Compose versionado no prueba contenedores activos ni configuración exacta del host | PPPR.0.7 |
+| DQ-0.5-04 | Correlación de excepciones, factura real y duplicación remota requieren cuenta/proveedor y autorización | ADR Maestro, PPPR.0.7/0.8, NADR-F18-05 |
 
-## 16. RESPUESTAS AL MANDATO — SEGUNDA PASADA
+### 15.2 Decision Candidates
 
-La cadena seleccionada **no** usa el `EventPlaneRepository.get_latest_event` para decidir si reintenta un chunk G3. La autoridad para aplicar resultados vive en un plan/lease/receipt de `queue.db`, y el estado local se mueve entre planos con verificación e idempotencia por etapa. Un intento de proveedor incierto permanece representado por `G3_EXTERNAL_UNKNOWN`, lo que cumple la prohibición de retry ciego, **pero no acredita escalamiento configurable** (GAP-0.5-01). La comprobación de lease antes del semáforo no valida el inicio físico del efecto (GAP-0.5-02). El resultado local confirmado y la publicación por etapas son recuperables bajo los compromisos de SQLite aprobados, no bajo pérdidas físicas no incluidas en el modelo de F18.
+| ID | Elección no aprobada | Destino |
+|---|---|---|
+| DC-0.5-01 | Seguimiento configurable y disposición autorizada de UNKNOWN sin retry ciego | ADR Maestro/Execution Plan |
+| DC-0.5-02 | Vigencia del lease justo antes de efecto, incluidos semáforos y expiración | ADR Maestro/Execution Plan |
+| DC-0.5-03 | Rol del sweeper, reconciliación queue/FSM y reporting confiable | ADR Maestro/Execution Plan |
+
+**Estado de hipótesis:** ninguna permanece sin clasificación; los testigos de proveedor, host y costo son NO VERIFICABLE con razón y destino. No se aprueba diseño.
+
+## 16. RESPUESTAS AL MANDATO — TERCERA PASADA
+
+La cadena seleccionada **no** usa el `EventPlaneRepository.get_latest_event` para decidir si reintenta un chunk G3. La autoridad para aplicar resultados vive en un plan/lease/receipt de `queue.db`, y el estado local se mueve entre planos con verificación e idempotencia por etapa. Un intento de proveedor incierto permanece representado por `G3_EXTERNAL_UNKNOWN`, lo que cumple la prohibición de retry ciego, **pero no acredita escalamiento configurable** (GAP-0.5-01). La comprobación de lease antes del semáforo no valida inicio de efecto (GAP-02). El sweeper declarado en Compose no coteja receipts al mutar FSM y informa un estado diferente del real (GAP-03). La recuperación de resultados locales se limita al modelo de fallos aprobado; no implica exactly-once remoto.
 
 ## 21. CIERRE DEL HITO — IN_PROGRESS
 
-**NO FROZEN — IN_PROGRESS v1.0.1.** 26 evidencias con dos fichas P1 y dos GAPs locales OPEN, nueve hipótesis (H-A…I) parcialmente clasificadas. Pendiente: matriz de ventanas de crash, autoridad y consumidores periféricos, DQ/DC y checklist §8.1–8.2. Sin tests/CI/LLM, SQLite reales, corpus, GT o cambios de producción.
+**NO FROZEN — IN_PROGRESS v1.0.2.** 34 evidencias, 3 fichas P1, 3 GAP P1 locales OPEN, nueve hipótesis clasificadas, cuatro DQ y tres DC. Matriz W1–W8 y Compose reconciliados. Falta revisión formal de checklist §8.1–8.2 y no-regresión para congelar. NOT_RUN; sin producción, datos reales ni corpus.
 
-**Git:** abrir PR interno Draft solo de este Markdown desde `pppr/hito-0.5` hacia `pdf-pdf-product-readiness`; mantener el PR general #66 Draft hacia `main`. Cuando PPPR.0.5 se congele, revise y apruebe, integrar internamente, verificar, eliminar rama corta y solo entonces comenzar PPPR.0.6. No implementar antes de ADR/NADR y Execution Plan aprobados.
+**Git:** mantener PR interno Draft solo de este Markdown desde `pppr/hito-0.5` hacia `pdf-pdf-product-readiness`; mantener el PR general #66 Draft hacia `main`. Cuando PPPR.0.5 se congele, revise y apruebe, integrar internamente, verificar, eliminar rama corta y solo entonces comenzar PPPR.0.6. No implementar antes de ADR/NADR y Execution Plan aprobados.
