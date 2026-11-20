@@ -1,35 +1,37 @@
 # HITO_PPPR.0.8_VALIDACION_TECNICA_Y_CIENTIFICA.md
 
-**Estado:** IN_PROGRESS v1.0.2  
+**Estado:** FROZEN v1.0.3  
 **Fecha de apertura:** 2026-11-20  
-**Congelamiento:** N/A  
+**Fecha de congelamiento documental:** 2026-11-20  
 **Tipo:** Forensic Flow Audit — verificación técnica, regresión topológica y validación científica de PDF→PDF  
 **Iniciativa:** PPPR Fase 0; **no** fase nueva del roadmap ni campaña de certificación  
+**Mandato:** determinar cobertura, sujeto, productor/consumidor, oráculos y límites de testigos técnicos/científicos de la ruta EN→ES; distinguir certificación de extracción frente a certificación del PDF traducido sin inventar gates, resultados ni mecanismos.  
 **Baseline de código observado:** `main@1d21cfe958cc1de8a33824fed748cd6fe9260f42`  
 **Baseline de gobernanza:** `pdf-pdf-product-readiness@17b5d2026212501f4129b59864fe2a4606c663c5` (PPPR.0.1–0.7 FROZEN)  
 **Jerarquía:** `docs/architecture/1_METHODOLOGY_FOR_ORDERED_PIPELINE_CHANGES.md` v1.3.0 FROZEN > `docs/architecture/1.2_METH_FOR_FORENSIC_HITOs.md` v1.2.0 FROZEN, `PROJECT_SCOPE`/principios, D-1/D-2, PPPR FROZEN, NADR compatibles según ámbito.  
 **Ruta real:** CLI → OCR Router → G3 (`runtime/engine.py`) → G5 (`apps/compiler/__main__.py`) → PDF. Atlas `pipeline-stabilization/handoff/ATLAS_RUTA_OPERATIVA_UNICA_PDF_PDF.md` v1.0.2: mapa descriptivo AS-IMPLEMENTED del corte `6818e86`, **no** autoridad normativa principal.  
-**Modo de trabajo:** lectura de código, YAML, tests, actas, manifiestos y oráculos *solo como texto*. **NOT_RUN** — no proveedor, Docker, Tectonic, pytest, modificación de corpus, SQLite de usuario ni inferencias científicas certificantes.
+**Modo de trabajo:** inspección documental de código, YAML, tests, actas, manifest y metadatos del Ground Truth versionado. **NOT_RUN** — no proveedor, Docker, Tectonic, pytest, materialización/verificación física de corpus privado, mutación de GT, SQLite de usuario ni evaluaciones científicas certificantes.
 
 ### Changelog
 
 | Versión | Fecha | Cambio |
 |---|---|---|
 | 1.0.0-IN_PROGRESS | 2026-11-20 | Apertura: 25 evidencias estáticas, cuatro familias de testigos, censo del corpus v3.9 (21 GT/6 PDF versionados, 15 faltantes, issue #34), preflight/certificación existente, frontera extraction-only versus PDF→PDF completo, 8 hipótesis iniciales, 5 DQ y 4 DC provisionales. Sin GAP local confirmado, sin ejecución ni FROZEN. |
-
 | 1.0.1-IN_PROGRESS | 2026-11-20 | Segunda pasada: 45 E-IDs (todos P2), matriz de productores/consumidores/oráculos, 8 hipótesis clasificadas parcialmente, 6 DQ y 4 DC. Preflight separado con tensión normativa R7(d) en verificación; CV extracción ≠ certificación PDF EN→ES; SemanticJudge y benchmark A/B históricos no son gates de producción. Sin nuevos GAP OPEN, sin tests ni FROZEN. |
-
 | 1.0.2-IN_PROGRESS | 2026-11-20 | Tercera pasada read-only: 49 E-IDs P2, 7 DQ/4 DC. Post-run cotejado con NADR-24 R29/R36–37: provenance inyectada como flag y multiplicidad de IDs colapsada por set; registros de Wave 3.2/3.3 distinguen parámetros normativos no calibrados, y FINAL_EVALUATION histórica registra HARD_FAIL. Sin GAP local P1, ejecución ni FROZEN. |
+| 1.0.3-FROZEN | 2026-11-20 | Cierre §8.1–8.2 y §9.2–9.4: 49 evidencias P2 estables; ocho hipótesis terminales, siete DQ y cuatro DC con destinos; cero GAP propio confirmado; correlación sujeto–oráculo–resultado y no-regresión D-1/D-2/F17-BIS. Se corrigen continuidad de tablas, títulos residuales y alcance de post-run; NO nuevas pruebas ni certificación PDF→PDF. |
 
 ## 1. RESUMEN EJECUTIVO
 
-La verificación debe responder **qué componente y sujeto reales cubren los testigos** y **qué prueba falta para afirmar fidelidad científica de un traductor EN→ES** sin inventar umbrales, oráculos o motores. El código contiene un sistema consolidado de regresión/certificación de **extracción topológica PDF→AST**, y también testigos operacionales OCR→G3→G5 con proveedor fake; estos mecanismos son reutilizables dentro de su contrato, pero **no prueban de manera acumulativa** que un PDF traducido conserve ecuaciones, tablas, figuras, layout y significado lingüístico en condiciones reales.
+La auditoría forense cerrada responde **qué componente y sujeto reales cubren los testigos** y **qué prueba falta para afirmar fidelidad científica de un traductor EN→ES** sin inventar umbrales, oráculos o motores. El código contiene un sistema consolidado de regresión/certificación de **extracción topológica PDF→AST**, y también testigos operacionales OCR→G3→G5 con proveedor fake; estos mecanismos son reutilizables dentro de su contrato, pero **no prueban de manera acumulativa** que un PDF traducido conserve ecuaciones, tablas, figuras, layout y significado lingüístico en condiciones reales.
 
 **Bloqueo heredado inequívoco:** `tests/corpus/canonical/manifest.json` v3.9 registra 21 documentos y 21 Ground Truth sellados, pero el árbol Git solo contiene seis PDFs canónicos. Los 15 `doc_08…doc_22` faltantes ya se documentaron en **issue #34 OPEN** y en el handoff de CI; `run_regression.py` verifica materialización completa e integridad física **antes** del filtrado de perfiles SMOKE/FULL. No reabrirlo ni resolverlo mediante corpus sintético, descarte de casos o alteración de hash/GT. Su materialización precisa custodia y autorización.
 
 **Diferencia de sujeto:** `tools/evaluation/run_regression.py::run_evaluation` utiliza `build_extraction_pipeline` y compara `runtime_ast` contra oráculos topológicos de origen; no llama G3 ni G5. `NADR-F17BIS-25` está **FROZEN** para el sujeto canónico **de extracción** que definía Fase 6; no universalizar su declaración al producto convergido OCR→G3→G5 sin decisión y evidencia nueva. `core/benchmark/certification/` implementa las capas de estado y precondiciones, pero la existencia del módulo no demuestra una certificación productiva ejecutada.
 
 **Límites:** los PASS de TST-STAB PR #63, C2/T07 PR #46 y demás CI se atribuyen a sus commits, oráculos y fronteras exactos. Tests con `real` en el nombre pueden ser mocks; PDF con cabecera `%PDF-` o FSM `COMPLETED` no significa fidelidad científica. **No se acredita `PRODUCT_READINESS=PASS`.**
+
+**Hallazgo central:** la infraestructura existente evalúa predominantemente la **extracción topológica PDF→AST** y la continuidad técnica fake de OCR→G3→G5; no se ha acreditado un gate con oráculos independientes que certifique fidelidad lingüística, matemática y visual del PDF español. **Veredicto:** el perímetro forense está documentado para gobernanza posterior, **sin GAP P0/P1 propio confirmado**, conservando issue #34 y siete preguntas diferidas. `FROZEN` significa únicamente cierre de la auditoría documental.
 
 ## 2. LÍMITE EPISTEMOLÓGICO, AUTORIDAD Y SEGURIDAD
 
@@ -42,7 +44,7 @@ La verificación debe responder **qué componente y sujeto reales cubren los tes
 
 ## 3. INVENTARIO DE FRENTES DE VERIFICACIÓN
 
-| Frontera | Archivos representativos | Estado inicial |
+| Frontera | Archivos representativos | Estado final de cobertura |
 |---|---|---|
 | Baseline canónica y custodias | `tests/corpus/canonical/{manifest.json,ground_truth/,pdf/}`, issue #34 | **AUDITADO** a nivel de árbol/manifiesto; bytes privados **NO DISPONIBLES** |
 | Dataset de calibración y workload | `tests/corpus/calibration_v1/{manifest.json,pdf/,ground_truth/}`, `tests/corpus/workload/`, `reports/calibration/*.json` y actas Wave 3.2/3.3 | **CENSADO POR MANIFEST Y PROVENANCE**; no equivalencia con baseline ni elegibilidad nueva |
@@ -93,7 +95,7 @@ C) PRODUCTO OBJETIVO — PROPIEDADES AÚN NO CERTIFICADAS
    solo con autorización, no una nueva suite completa por reflejo.
 ```
 
-## 6. MATRIZ DE PRODUCTORES, CONSUMIDORES Y GARANTÍAS (SEGUNDA PASADA)
+## 6. MATRIZ DE PRODUCTORES, CONSUMIDORES Y GARANTÍAS (CIERRE)
 
 | Mecanismo / composition root | Input real y sujeto | Productor y salida verificable | Consumidor observado / destino | Qué **NO** acredita |
 |---|---|---|---|---|
@@ -117,9 +119,9 @@ C) PRODUCTO OBJETIVO — PROPIEDADES AÚN NO CERTIFICADAS
 
 **Decision pendiente** — determinar si esa CLI es parte del **gate de certificación que hoy está realmente conectado** o permanece como tooling auxiliar heredado; ninguno de los entrypoints seleccionados ni el CV examinado la invocan. **OBS de correspondencia normativa P2 / H-0.8-D / DQ-0.8-06**, no P1 del producto por traslado de una ruta legacy. Si se aprueba usar ese preflight como condición de certificado, se deberá reconciliar el requisito R7(d), el consumidor y la consecuencia **antes** de acreditarlo como PASS. No ejecutar ni mutar un GT para fabricar prueba.
 
-## 10. REGISTRO DE EVIDENCIAS — PRIMERA Y SEGUNDA PASADA (NO FROZEN)
+## 10. REGISTRO DE EVIDENCIA FORENSE — 49 E-IDs (CLASIFICACIÓN FINAL)
 
-| E-ID | Sev. inicial | Observed (archivo::símbolo o dato versionado) | Contrato/limitación precisa | Disposición |
+| E-ID | Sev. final | Observed (archivo::símbolo o dato versionado) | Contrato/limitación precisa | Disposición |
 |---|---|---|---|---|
 | **E-0.8-001** | P2 | `tests/corpus/canonical/manifest.json` v3.9 declara **21 documentos** con `sha256`, `oracle_hash` y `ground_truth_state=sealed`; el árbol contiene 21 GT JSON. | Declaración de oráculo ≠ comprobación ejecutada de hash en filesystem ni acceso al PDF original. | BASELINE DECLARADA |
 | **E-0.8-002** | P2 | Solo **6 PDFs** aparecen en `tests/corpus/canonical/pdf`; faltan los 15 IDs `doc_08…doc_22` del manifest. | **Issue #34 OPEN** contiene la misma observación y exige materialización privada autorizada; no reabrir ni añadir clones sintéticos. | DEPENDENCIA HEREDADA |
@@ -129,7 +131,7 @@ C) PRODUCTO OBJETIVO — PROPIEDADES AÚN NO CERTIFICADAS
 | **E-0.8-006** | P2 | `tools/evaluation/run_regression.py::run_evaluation` usa `build_extraction_pipeline()`, `parse(pdf)` y `RegressionEvaluationStrategy.evaluate_regression(ground_truth_ast=oracle.nodes)`. | **Subject solo PDF→AST**; sin llamada a `runtime.engine` G3, `CompilationService` o Tectonic. NADR-F17BIS-25 FROZEN se limita a ese sujeto histórico. | FRONTERA PPPR |
 | **E-0.8-007** | P2 | `core/benchmark/certification/contract.py` distingue `ExecutionOutcome`, `ScientificResult`, `CertificationStatus`; `CERTIFIED` requiere ejecución exitosa, aceptación científica, evidencia completa e invariantes. | Capacidad existente del dominio; ninguna instancia CERTIFIED del producto se acreditó en este HITO. | REUSO/NO PASS |
 | **E-0.8-008** | P2 | `certification/preflight.py::evaluate_preflight` enumera condiciones de corpus identidad, manifiesto válido, GT sellado, hash, configuración canónica, parámetros congelados, provenance y particiones sin leakage. | Función pura; sus tests con argumentos controlados no prueban que estas precondiciones estén satisfechas en el corpus actual. | REUSO/NO PASS |
-| **E-0.8-009** | P2 | `certification/evidence.py::CertificationEvidence` y `post_run.py::validate_post_run` requieren identidades y resultados por documento biyectivos más provenance. | Integridad formal del reporte, no certeza sobre el sujeto G3/G5 ni validez de traducción sin oráculo. | REUSO/NO PASS |
+| **E-0.8-009** | P2 | `certification/evidence.py::CertificationEvidence` representa identidades, resultados por documento y referencia a provenance; `post_run.py::validate_post_run` coteja identidades esperadas y cobertura por conjuntos de IDs. | Integridad formal del reporte, no certeza sobre el sujeto G3/G5 ni validez de traducción sin oráculo. | REUSO/NO PASS |
 | **E-0.8-010** | P2 | `tests/corpus/calibration_v1/manifest.json` lista cinco documentos, con los **mismos SHA de origen para doc_01…doc_05** del canon v3.9; estos cinco PDFs están versionados en calibración. | Identidades físicas compartidas no autorizan reutilizar particiones como independientes; si certificación exige disyunción, seleccionar partitions por SHA y provenance. No afirmar fuga en un run no ejecutado. | DEPENDENCIA DE IDENTIDAD |
 | **E-0.8-011** | P2 | `tests/corpus/workload/pdf/` contiene cinco PDFs y cinco GT bajo workload, sin `manifest.json` en ese directorio del HEAD. | No elevar workload a baseline canónica sellada ni suponer que sustituye al corpus protegido; metadatos/procedencia por decidir. | DATASET DIFERENTE |
 | **E-0.8-012** | P2 | `.github/workflows/continuous-verification.yml` ejecuta `tools.evaluation.run_regression` SMOKE en PR a `main`/`pipeline_stabilization`, FULL en push a main/dispatch. | Workflow no cubre PR interno a `pdf-pdf-product-readiness` ni ejecuta por sí mismo G3/G5; ausencia de check ≠ FAIL ni PASS. | CI / TRIGGER |
@@ -146,7 +148,6 @@ C) PRODUCTO OBJETIVO — PROPIEDADES AÚN NO CERTIFICADAS
 | **E-0.8-023** | P2 | `NADR-F17BIS-26` metadata `FROZEN` exige corpus íntegro, hash por PDF y baseline materializada antes de evaluar. `tools/evaluation/run_regression.py` falla cerrado si no se cumple. | Requisito vigente dentro de regresión canónica; **issue #34** ya contiene el bloqueo físico. No degradar el contrato para conseguir verde. | AUTORIDAD REUSABLE |
 | **E-0.8-024** | P2 | `core/benchmark/quality.py::StructuralQualityEvaluator` contabiliza fiabilidad operacional, proxy de densidad de tokens y checks de sintaxis Markdown/LaTeX por registro. | **Proxies técnicos**, no juicio de significado traducido, invariancia matemática o similitud visual de PDFs. | MÉTRICAS CON ALCANCE |
 | **E-0.8-025** | P2 | `PROJECT_SCOPE.md` §4 requiere conservar fórmulas, código y estructura; PPPR.0.2/0.3/0.4/0.5/0.6/0.7 contienen GAPs, DQ y restricciones anteriores sin resolución productiva. | No cerrar esas obligaciones por PASS de extracción ni abrir P1 redundante sin prueba de una frontera nueva. La evaluación científica real todavía exige criterio/oráculo autorizado. | INTERDEPENDENCIAS |
-
 | **E-0.8-026** | P2 | `tools/evaluation/preflight_certification.py::main` chequea campo `doc.oracle_hash` no vacío y lista IDs GT vía `LocalFileSystemGroundTruthArtifactAdapter`, pero no carga/calcula SHA del contenido GT. | `NADR-F17-BIS-24` FROZEN R7(d) pide hashes verificables **en PREFLIGHT**; tensión normativa local del subtool, no incidente de producto ejecutado. | OBS PRE-FLIGHT / DQ-06 |
 | **E-0.8-027** | P2 | `certification/preflight.py::evaluate_preflight` solo consume `oracle_hash_violations` inyectadas y marca `is_pass` si no hay violaciones. | El core puro no puede subsanar la ausencia de verificación en el shell; evitar atribuirle I/O no programado. | PRODUCTOR CONDICIONAL |
 | **E-0.8-028** | P2 | `tools/evaluation/preflight_certification.py` se ejecuta por `__main__` y produce `[PREFLIGHT] All 8 conditions satisfied`; no hay llamada a esa CLI desde `run_regression.py`/CI ni D-1/D-2 inspeccionados. | Capacidad auxiliar invocable no demuestra ser el *gate* que certifica PDF→PDF; caller externo NO VERIFICABLE. | FRONTERA CONSUMIDOR |
@@ -154,7 +155,7 @@ C) PRODUCTO OBJETIVO — PROPIEDADES AÚN NO CERTIFICADAS
 | **E-0.8-030** | P2 | `RegressionAdapter.verify_oracle_integrity` usa `OracleSemanticIdentityCalculator.calculate(oracle.nodes)` y compara `metadata.oracle_hash`; `run_regression._run_evaluation` la invoca antes de evaluar. | **Hay** control criptográfico de GT en el camino de regresión; no afirmar ausencia universal. Pero ese control ocurre en etapa distinta al preflight CLI. | CAPACIDAD EXISTENTE |
 | **E-0.8-031** | P2 | `NADR-F17-BIS-24` v1.2.0 FROZEN §5.1 R4–5 y §5.7–5.9 R29–37 separa éxito de ejecución, resultado científico, estado CERTIFIED y verificación post-run. | Norma de la **certificación de baseline**; su compatibilidad es relevante sin convertirla en prueba de CERTIFIED G3/G5. | REQUIRED ACOTADO |
 | **E-0.8-032** | P2 | `certification/contract.py::compose_certification_status` devuelve CERTIFIED solo con SUCCESS, ACCEPTED, evidencia e invariantes, pero `run_regression.py` compone `ContinuousVerificationResult` y no llama esa función. | Dos conceptos distintos de resultado: CV topológico vs certificación compuesta, no duplicar ni equiparar estados. | NO FALSO CERTIFIED |
-| **E-0.8-033** | P2 | `certification/post_run.py::validate_post_run` valida identidad, biyección per-document, agregados y existencia de provenance, sin decidir aceptación científica. | `PostRunReport.is_pass` indica **completitud de evidencia**, no juicio científico favorable. | CONTRATO DE EVIDENCIA |
+| **E-0.8-033** | P2 | `certification/post_run.py::validate_post_run` coteja identidad, conjuntos de IDs per-document, agregado y un flag de disponibilidad de provenance, sin decidir aceptación científica. | `PostRunReport.is_pass` indica **completitud de evidencia**, no juicio científico favorable. | CONTRATO DE EVIDENCIA |
 | **E-0.8-034** | P2 | `tests/unit/test_certification_evidence.py::_evidence` construye un agregado `HARD_FAIL` con per-document PASS/HARD_FAIL y `test_complete_evidence_passes` espera post-run PASS. | Test válido para post-condiciones **estructurales**; no demuestra que un fallo científico pueda recibir CERTIFIED. | ORÁCULO TÉCNICO |
 | **E-0.8-035** | P2 | `core/benchmark/verification/report.py::JsonContinuousVerificationReportFormatter` serializa `IdentityChain`, cobertura, `operational_result` y `regression_report`; `run_regression.py` produce JSON/MD y `subject_identity` por `git rev-parse HEAD` con fallback `None`. | Provenance de **extracción topológica** y su commit cuando existe, no hash o fidelidad de PDF español traducido. | PROVENANCE ACOTADA |
 | **E-0.8-036** | P2 | `run_regression.py::main` emite `BASELINE_INTEGRITY_FAILURE`/resultado de ejecución, y solo ejecuta `_run_evaluation` si pasan materialización, SHA, biyección y GT. | Fallo de corpus no equivale a regresión científica; issue #34 conserva propiedad. | FAIL-CLOSED CONSERVADO |
@@ -167,7 +168,6 @@ C) PRODUCTO OBJETIVO — PROPIEDADES AÚN NO CERTIFICADAS
 | **E-0.8-043** | P2 | `core/benchmark/quality.py::StructuralQualityEvaluator` calcula fiabilidad, razón-proxy de tokens, sintaxis LaTeX y Markdown. | Sintaxis correcta y densidad aproximada no verifican verdad científica, traducción EN→ES ni fidelidad visual. | METRICS PROXY |
 | **E-0.8-044** | P2 | `NADR-F17-BIS-23` v1.2.0 FROZEN R9–10 requiere particiones disjuntas por SHA; `calibration_v1` comparte cinco SHA con corpus canónico, pero el preflight histórico marca partición calibración **vacía**. | Solapamiento entre directorios ≠ fuga científica ejecutada sin partición/experimento efectivamente seleccionado. Definir protocolo primero. | DQ-03 / NO FALSO GAP |
 | **E-0.8-045** | P2 | `NADR-F17BIS-29/30` son FROZEN para perfiles y enforcement de Continuous Verification, y `.github/workflows/continuous-verification.yml` apunta a `main`/`pipeline_stabilization`. | Perfil reducido no puede saltar integridad; workflow ejecutado no acredita barrera server-side ni product certification. PR #73 Draft interno no dispara CV por ese destino. | GOVERNANCE / DQ-05 |
-
 | **E-0.8-046** | P2 | `core/benchmark/certification/post_run.py::validate_post_run` recibe `evaluation_provenance_available: bool` y no inspecciona `evidence.evaluation_provenance_reference`; el test unitario inyecta ese booleano. | NADR-F17-BIS-24 R29/R36–37 exige evidence/provenance verificable dentro del sujeto certificante. La verificación real podría corresponder al caller no acreditado; no inferir su presencia ni ausencia. | OBS POST-RUN / DQ-07 |
 | **E-0.8-047** | P2 | `validate_post_run` compara `frozenset(d.document_id for d in evidence.per_document_results)` con IDs del manifest; la multiplicidad se pierde. Tests versionados comprueban faltantes/huérfanos, no duplicados. | No garantiza biyección estricta ante doble registro del mismo ID. Falsador unitario con DTO sintético **NOT_RUN**; no se observó ese estado en una ejecución productiva. | OBS CARDINALIDAD / DQ-07 |
 | **E-0.8-048** | P2 | `reports/calibration/calibration_provenance_record.json` declara `calibration_run=NONE` y `parameters_origin=NORMATIVE_DESIGN`; hay `parameter_freeze.json` y actas Wave 3.2/3.3 FROZEN que declaran esa limitación. | NADR-F17-BIS-23 R28 distingue normativos de calibrados; freeze histórico ≠ calibración empírica. `calibration_v1` comparte las cinco SHA con canon, sin acreditar que se hayan usado como partición prohibida en un run. | LIMITACIÓN HISTÓRICA DECLARADA / DQ-03 |
@@ -175,11 +175,11 @@ C) PRODUCTO OBJETIVO — PROPIEDADES AÚN NO CERTIFICADAS
 
 **Clasificación hasta tercera pasada §7.1:** **49 E-IDs estables, todos P2; 0 P0/P1 confirmados y 0 GAP locales OPEN**. La E-026 describe una **tensión real con R7(d) FROZEN dentro del preflight heredado**, cuyo consumidor de certificación seleccionado no se acreditó: conservar OBS, DQ-0.8-06 y posible reevaluación **si se aprueba ese subtool como gate**, no ocultarla ni promulgar una remediación de producto sin sujeto. La ausencia de certificado PDF→PDF es una garantía aún no demostrada, no un PASS negativo ejecutado. Mantener issue #34, PPPR.0.4/0.6 y no generar falsos gaps por una ruta legacy.
 
-## 14. GAPs — APERTURA
+## 14. GAPs CONSOLIDADOS — VEREDICTO FINAL
 
-**No hay GAP PPPR.0.8 confirmado todavía.** Se conservan dependencias anteriores y preguntas: issue #34 (15 PDFs privados ausentes), calidad de traducción de PPPR.0.4, render G5 PPPR.0.6, modalidad de proveedor PPPR.0.7. La inexistencia de un gate científico completo no se etiqueta automáticamente como defecto de un contrato F17-BIS de extracción. Pendiente precisar el *Required* propio para E2E EN→ES (ADR Maestro), el alcance de los posibles falsadores y la no-regresión normativa.
+**Cero GAP propios PPPR.0.8 confirmados (P0/P1/P2 OPEN) para el mandato forense.** Se conservan dependencias anteriores: issue #34 (15 PDFs privados ausentes), requisitos de traducción de PPPR.0.4, render G5 de PPPR.0.6 y modalidad de proveedor de PPPR.0.7. La ausencia de certificación end-to-end acreditada es una **garantía faltante del producto objetivo**, no un incumplimiento demostrado del sujeto de extracción del NADR histórico. La definición de *Required* específico para certificar EN→ES, los falsadores científicos y su autorización quedan en DC-0.8-01/02/04 y DQ-0.8-02/04/05. E-026 y E-046/047 conservan límites locales de subtools heredados, condicionados por su caller real (DQ-06/07), sin reetiquetarlos como P1 productivo.
 
-## 15. HIPÓTESIS — SEGUNDA PASADA (CLASIFICACIÓN PARCIAL)
+## 15. HIPÓTESIS — OCHO VEREDICTOS TERMINALES
 
 | ID | Pregunta a falsar | Estado |
 |---|---|---|
@@ -192,7 +192,7 @@ C) PRODUCTO OBJETIVO — PROPIEDADES AÚN NO CERTIFICADAS
 | **H-0.8-G** | ¿Qué se puede falsar sin corpus privado ni LLM? | **CONFIRMADA FRONTERA ESTÁTICA**: falsadores locales posibles para contrato/DTO, hashes y cobertura, math explícita y límites de mocks; **NO VERIFICABLE** el resultado científico/visual/LLM sin muestras, permisos u oráculo independiente (DQ-01/02/04/05/07). Testigos nuevos **NOT_RUN** |
 | **H-0.8-H** | ¿Cómo evitar PASS por confundir CV, certificación y benchmark? | **CONFIRMADA SEPARACIÓN DE OUTCOMES** E-031–035/038–045; sujeto/oráculo por nivel son DC-01/02 y gate por decidir. DQ-05 |
 
-### 15.1 Deferred Questions de segunda pasada (§8.2)
+### 15.1 Deferred Questions — pendientes explícitos permitidos por §8.2
 
 | ID | Motivo y no-bloqueo del mandato forense estático | Destino |
 |---|---|---|
@@ -201,9 +201,7 @@ C) PRODUCTO OBJETIVO — PROPIEDADES AÚN NO CERTIFICADAS
 | **DQ-0.8-03** | Calibración comparte SHA doc_01…05 con corpus canónico y workload tiene PDFs/GT sin manifest del mismo formato; no hay partición de evaluación aprobada ni proveniencia verificada. **No bloquea** inventario, sí comparación científica independiente. | ADR Maestro; evaluación científica/PPPR.0.9 si corresponde |
 | **DQ-0.8-04** | La conservación de fórmulas, diagramas, figuras/vector, tablas y layout en PDF español exige outputs reales/criterio independiente y no se verificó aquí. **No bloquea** localizar testigos de bytes/topología, sí un PDF científico PASS. | PPPR.0.9 y plan de validación aprobado (no ejecutar por reflejo) |
 | **DQ-0.8-05** | Continuidad de CI sobre un sujeto PDF→PDF completo exige contrato de alcance y runner/privacidad decididos; no hay test actual acreditado que juzgue ese sujeto. **No bloquea** señalar limitación extraction-only, sí gate final de producto. | ADR Maestro, Execution Plan, PPPR.0.9 según mandato |
-
 | **DQ-0.8-06** | La CLI `preflight_certification.py` exige `oracle_hash` no vacío pero **no recalcula en ese shell** la identidad del contenido GT según NADR-F17-BIS-24 R7(d) FROZEN; `RegressionAdapter` sí compara durante la evaluación topológica. No se acreditó que la CLI independiente sea gate certificante del root D-1/D-2. **No bloquea** la auditoría estática ni justifica P1 comercial; sí exige reconciliar la suficiencia del preflight antes de usarlo como prueba de hashes verificados. | ADR Maestro (sujeto/gate), Execution Plan focal si se aprueba esa CLI; revisión normativa del subtool, sin tocar Sealed GT |
-
 | **DQ-0.8-07** | `post_run.validate_post_run` recibe la disponibilidad de provenance como booleano sin cotejar en esa función referencia/contenido y reduce cobertura de IDs a conjuntos (E-046/047). El caller certificante efectivo y su validación previa **NO VERIFICABLE** en la ruta D-1/D-2 inspeccionada. **No bloquea** auditoría estática ni autoriza P1 de producto; sí importa si se reutiliza como gate. Falsador propuesto: DTO sintético duplicado y referencia vacía, sin GT, LLM o egress; **NOT_RUN**. | ADR Maestro (sujeto/gate), revisión del caller y Execution Plan focal condicionado si se reutiliza este subtool |
 
 ### 15.2 Decision Candidates (NO APROBADOS)
@@ -215,11 +213,11 @@ C) PRODUCTO OBJETIVO — PROPIEDADES AÚN NO CERTIFICADAS
 | **DC-0.8-03** | Establecer **custodia y aprovisionamiento autorizado** de los 15 PDFs sin alterar manifest/GT/thresholds. No elegir storage/runner todavía. | Owner / issue #34 / Execution Plan condicionado |
 | **DC-0.8-04** | Establecer gates y testigos **mínimos** de atribución (contrato, físico, científico, no falsos PASS), costo y aislamiento para proveedor comercial seleccionado. | ADR Maestro → Execution Plan |
 
-## 16. RESPUESTAS A LA SEGUNDA PASADA
+## 16. RESPUESTAS AL MANDATO FORENSE
 
 El código ya contiene una capacidad sustancial de evaluación topológica y certificación formal de sus artefactos, que **no** debe descartarse ni duplicarse. La principal discontinuidad para el *producto objetivo* es de **alcance de sujeto y oráculo**, no una prueba de corrupción actual: la Continuous Verification compara PDFs fuente extraídos frente a Sealed Oracle AST, mientras la ruta convergida agrega G3 y G5 antes del PDF final. El bloqueo de 15 PDFs canónicos está reconocido por issue #34 y debe permanecer bajo custodia. Los testigos operativos con fake no validan idioma ni ciencia.
 
-**Segunda pasada:** se trazaron los productores/consumidores concretos. CV produce `ContinuousVerificationReport` de extracción; el preflight CLI es independiente y solo comprueba presencia (no integridad material) de `oracle_hash` en su shell; el dominio `CertificationEvidence`/`PostRunReport` tiene consumidores unitarios inspeccionados, no una certificación PDF→PDF conectada. El benchmark Groq A/B y `SemanticJudge` existen como capacidad distinta, no como oráculo aprobado ni ejecutado del producto. **Tercera pasada:** la evidencia E-046/047 separa chequeos estructurales del post-run de verificación material de provenance y unicidad de resultados; no hay un caller certificante PDF→PDF acreditado. Los artefactos de Wave 3.2/3.3 declaran parámetros normativos y ausencia de calibración empírica; el provenance de FINAL_EVALUATION conserva `HARD_FAIL` histórico (E-048/049). Los cinco SHA de `calibration_v1` coinciden con canon, pero no se afirmó leakage de una partición ejecutada. Queda pendiente completar §8.1–8.2 y aprobar los falsadores futuros, sin crear infraestructura.
+**Segunda pasada:** se trazaron los productores/consumidores concretos. CV produce `ContinuousVerificationReport` de extracción; el preflight CLI es independiente y solo comprueba presencia (no integridad material) de `oracle_hash` en su shell; el dominio `CertificationEvidence`/`PostRunReport` tiene consumidores unitarios inspeccionados, no una certificación PDF→PDF conectada. El benchmark Groq A/B y `SemanticJudge` existen como capacidad distinta, no como oráculo aprobado ni ejecutado del producto. **Tercera pasada:** la evidencia E-046/047 separa chequeos estructurales del post-run de verificación material de provenance y unicidad de resultados; no hay un caller certificante PDF→PDF acreditado. Los artefactos de Wave 3.2/3.3 declaran parámetros normativos y ausencia de calibración empírica; el provenance de FINAL_EVALUATION conserva `HARD_FAIL` histórico (E-048/049). Los cinco SHA de `calibration_v1` coinciden con canon, pero no se afirmó leakage de una partición ejecutada. El checklist §8.1–8.2 se consolida en §21. La futura elección y autorización de falsadores no corresponde a este HITO ni obliga a crear infraestructura.
 
 ## 17. RECONCILIACIÓN HISTÓRICA Y NO-REGRESIÓN (§9.2/§9.4)
 
@@ -228,8 +226,37 @@ El código ya contiene una capacidad sustancial de evaluación topológica y cer
 - **NADR-F17-BIS-24:** preflight E-026–030 y post-run E-046/047 se comparan con R7(d)/R29/R36–37 en sus fronteras locales. `RegressionAdapter` sí compara hash semántico dentro de regresión; sin sujeto/caller de certificación D-1/D-2 demostrado no extrapolar el déficit ni elevarlo automáticamente a P1 (DQ-06/07).
 - **PPPR.0.1–0.7 e issue #34:** permanecen como evidencia y dependencias existentes. No alterar sellados, corpus, legacy, proveedor, umbrales ni `main`.
 
-## 21. CIERRE — IN_PROGRESS
+## 21. CIERRE DEL HITO PPPR.0.8 — FROZEN v1.0.3
 
-**NO FROZEN — IN_PROGRESS v1.0.2.** 49 E-IDs, todos P2; cero GAP locales OPEN; ocho hipótesis con clasificación del mandato estático y límites físicos/científicos explícitamente NO VERIFICABLE; siete DQ y cuatro DC sin aprobar. El preflight no recalcula `oracle_hash` en su shell; post-run requiere un caller que acredite provenance material/unicidad; regresión sí compara identidad del GT. Registros históricos conservan la limitación de calibración y el `HARD_FAIL` de extracción. Faltan checklist final §8.1–8.2, revisión de suficiencia y cierre FROZEN sujeto al gate del owner; PR #73 debe seguir Draft. **NOT_RUN:** CI, Docker, API, Tectonic, GT, SQLite y corpus.
+**Estado documental:** **FROZEN v1.0.3 — 2026-11-20**. Mandato completado por **lectura estática/documental** de la frontera de evaluación técnica y científica; no se declara funcionamiento productivo, calibración nueva, certificación ni `PRODUCT_READINESS=PASS`. La conclusión es que el sujeto de Continuous Verification es extracción PDF→AST, la ruta convergida D-1/D-2 publica PDF mediante G3/G5 y **ningún oráculo científico independiente conectado al PDF traducido fue acreditado**. Los mecanismos de integridad, topología, preflight y post-run existentes se conservan como candidatos de reutilización **dentro de su contrato real**, sin heredar automáticamente los requisitos multirruta de F17-BIS.
 
-**Política Git:** abrir y mantener PR interno Draft con **solo este Markdown** desde `pppr/hito-0.8` → `pdf-pdf-product-readiness`; general #66 permanece Draft a `main`. No FROZEN/merge/implementación hasta completar la metodología y tener aprobación expresa; al integrar luego borrar rama corta antes de comenzar PPPR.0.9.
+### 21.1 Checklist metodológico §8.1
+
+| Condición obligatoria | Veredicto y evidencia de cumplimiento |
+|---|---|
+| Metadata, versión y changelog | **CUMPLE** — estado/fecha/tipo/mandato, baselines pinneados y changelog 1.0.0→1.0.3; no hay veredictos IN_PROGRESS fuera de historia. |
+| Límite epistemológico y fuentes | **CUMPLE** — §2/§4; Observed / Required / Decision, código actual, PPPR FROZEN, Atlas descriptivo, F17-BIS solo por sujeto compatible y evidencia histórica delimitada. |
+| Alcance y cobertura de módulos | **CUMPLE para el mandato** — §3 separa expresamente **AUDITADO focal**, **CENSADO**, **REFERENCIADO** y **NO VERIFICABLE**. No se declara inspección exhaustiva de código legacy ni ejecución física ajena al perímetro. |
+| Identidad y severidad de evidencias | **CUMPLE** — E-0.8-001…049 únicos, sin reasignación; 49 P2, 0 P0/P1 confirmados; observaciones de subtools con sujeto y consecuencia delimitados. |
+| Observed / Required / Decision | **CUMPLE** — §2, §6, §6.1, §10, §14 y §17 separan comportamiento material, requisitos actuales, norma F17-BIS acotada y decisión que aún no existe para certificar EN→ES. |
+| GAPs demostrados y destinos | **CUMPLE** — §14 identifica **0 GAP propio confirmado**, sin crear IDs ficticios. Herencias de PPPR.0.2–0.7 e issue #34 conservan sus destinos/autoría. |
+| Hipótesis cerradas | **CUMPLE** — H-0.8-A…H tienen disposición terminal: **CONFIRMADA**, **RECHAZADA** o **NO VERIFICABLE** según propiedad; H-G confirma el *alcance* de falsadores posibles, no una ejecución. |
+| Diferimientos §8.2 | **CUMPLE** — DQ-0.8-01…07 incluyen razón, no-bloqueo de la auditoría documental y destino; DC-0.8-01…04 son decisiones **no aprobadas** para ADR Maestro/Execution Plan. |
+| Reconciliación y no-regresión | **CUMPLE** — §17 conserva PPPR.0.1–0.7 FROZEN y issue #34; Wave 3.2/3.3 y NADR históricos permanecen acotados. Ninguna contradicción pendiente sin registrar dentro del mandato. |
+| Resumen, garantías, gobernanza y paso siguiente | **CUMPLE** — §1, §16 y §21 distinguen certeza técnica, límites científicos, PR interno y la siguiente auditoría PPPR.0.9; sin merge ni código nuevo. |
+
+### 21.2 Aplicación de §8.2: no verificable y no-bloqueo
+
+Las siete DQ de §15.1 **no impiden el cierre del inventario forense read-only**: DQ-01 corresponde a custodia/issue #34; DQ-02 a proveedor e independencia lingüística EN→ES; DQ-03 a particiones/datasets; DQ-04 a evidencia física STEM y layout; DQ-05 al contrato de CI/certificación integral; DQ-06 al caller del preflight y su comprobación real de `oracle_hash`; y DQ-07 al caller del post-run, provenance y cardinalidad. Cada una **sí impide atribuir su garantía no demostrada al producto** o ejecutar un gate futuro como si ya estuviera aprobado. Los cuatro DC quedan explícitamente reservados a gobernanza posterior.
+
+### 21.3 Garantías positivas y negativas del cierre
+
+- **OBSERVED por código y artefactos versionados:** Continuous Verification compara la extracción contra GT topológicos; el pipeline PDF→PDF converge por CLI→OCR→G3→G5; los 15 PDFs canónicos faltantes mantienen el fail-closed de CV y el issue #34 OPEN; los testigos fake y los DTOs de certificación tienen fronteras determinadas.
+- **NO ACREDITADO:** calidad lingüística EN→ES real, preservación visual o científica del PDF final, proveedor vigente autorizado, datasets físicamente independientes en un experimento aprobado, certificación compuesta conectada a D-1/D-2, disponibilidad real de los 15 PDFs privados ni `PRODUCT_READINESS=PASS`.
+- **NOT_RUN en este HITO:** tests/pytest, CI, Tectonic, Docker, LLM/provider, SemanticJudge, ejecución de baseline canónica, mutación o cálculo físico de hashes de GT privados, evaluación de papers, SQLite del owner y cualquier experimento con egress. No inventar PASS ni oráculos.
+
+### 21.4 Cadena de gobernanza y transición
+
+Metodología general **v1.3.0 FROZEN** → metodología forense **v1.2.0 FROZEN** → D-1/D-2 y código `main@1d21cfe` con Atlas **AS-IMPLEMENTED descriptivo** → `PROJECT_SCOPE` / `ENGINEERING_PRINCIPLES` → PPPR.0.1–0.7 **FROZEN** + NADR compatibles *solo según su sujeto histórico* → **PPPR.0.8 FROZEN** → PPPR.0.9 (perímetro aún por auditar) → ADR Maestro → ADR de subfase/NADR **solo si son necesarios** → Execution Plan aprobado → revisión e integración final autorizada del PR general #66 → implementación por PRs posteriores.
+
+**Git:** PR interno **#73** debe seguir **Draft**, exclusivamente con este Markdown, desde `pppr/hito-0.8` hacia `pdf-pdf-product-readiness`. **FROZEN documental no es aprobación ni autorización de merge**. Tras la aprobación expresa del owner, corresponderá integrar el PR, verificar este HITO en la rama general, eliminar `pppr/hito-0.8` y recién después abrir PPPR.0.9 desde el nuevo HEAD general. PR #66 permanece Draft hacia `main`; `main` y producción intactos.
