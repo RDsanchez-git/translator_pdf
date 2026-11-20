@@ -134,37 +134,68 @@ Host / PowerShell (NO INSPECCIONADO)
 
 **Segunda pasada §7.1:** E-0.7-001…034, **34 E-IDs estables y todos P2**; E-008/009 pasan de P1 candidato a P2 por falta de contrato de despliegue comercial/host aprobado. Las observaciones permanecen; GAP-0.7-01/02 solo son IDs **CANDIDATOS NO CONFIRMADOS**, no OPEN ni implementables. Sin P0/P1 confirmados ni PASS físico.
 
-## 14. GAPs CANDIDATOS — NO CONSOLIDADOS
+## 14. GAPs CANDIDATOS — NO CONFIRMADOS (0 GAP OPEN)
 
 | ID provisional | Observación/cadena causal | Required y límite | Estado y destino preliminar |
 |---|---|---|---|
-| **GAP-0.7-01 (CANDIDATO)** | G3 exige `GROQ_API_KEY` para inferencia; Compose runtime no la pasa al proceso y el laboratorio agrega dummy | Traducción real en→es por el stack declarado. No se excluyen launchers externos/inyección fuera de Git | **CANDIDATO P1 LOCAL** → próxima pasada PPPR.0.7; ADR Maestro/Execution Plan solo si incumplimiento confirmado |
-| **GAP-0.7-02 (CANDIDATO)** | CLI host admite al checkout local, OCR Compose lee volumen nombrado aislado | Continuidad D-1/D-2: debe haber un puente real y explícito de admisión. Laboratorio C2 sí tuvo volumen compartido | **CANDIDATO P1 LOCAL** → próxima pasada PPPR.0.7, testigo de namespaces sin ejecutar Docker |
+| **GAP-0.7-01 (CANDIDATO, NO CONFIRMADO v1.0.1)** | G3 exige `GROQ_API_KEY` para inferencia pero Compose base+runtime no la inyecta; lab sí pasa dummy. | El proveedor/modelo comercial no está seleccionado (PPPR.0.4 DQ-04/DC-04). No se acreditaron launchers host externos ni secreto real. | **NO PROMOVIDO A P1**: E-008/029 P2; DQ-0.7-01 y DC-0.7-02. Reexaminar únicamente si se selecciona ese modo/proveedor |
+| **GAP-0.7-02 (CANDIDATO, NO CONFIRMADO v1.0.1)** | CLI de Windows no conecta por defecto inbox local al volumen del OCR Compose; C2 admitió desde contenedor con volumen compartido. | D-1/D-2 requiere continuidad, no específicamente admisión host→Docker sin puente; Atlas ya documenta el riesgo y el modo host no fue aprobado como requisito separado. | **NO PROMOVIDO A P1**: E-009/027/028 P2; DQ-0.7-02 y DC-0.7-01. Mantener C2 acreditado históricamente |
 
 **No duplicar:** GAP-0.5-03 sweeper, GAP-0.4-01 proveedor/modelo retirado, GAP-0.4-03 destino en→es, GAP-0.2-02 geometría/G5; no suponer que configuración potencialmente incorrecta ha producido daño comercial.
 
-## 15. HIPÓTESIS INICIALES (SIN VEREDICTO TERMINAL)
+## 15. HIPÓTESIS EN SEGUNDA PASADA Y CUESTIONES DIFERIDAS
 
 | ID | Pregunta y falsador | Estado |
 |---|---|---|
-| **H-0.7-A** | ¿Puede la CLI ejecutada **en host** ingresar PDFs al OCR Compose sin puente de host a volumen? Inspeccionar mounts, llamada CLI y alternativa inside-container | **TO BE VERIFIED** |
-| **H-0.7-B** | ¿`GROQ_API_KEY` llega a G3 mediante fuente **efectivamente declarada** o solo al fake lab? Distinguir .env parsing de environment del contenedor | **TO BE VERIFIED** |
-| **H-0.7-C** | ¿Bootstrap + conexión documentos cubren todos los DB en el namespace previsto? ¿Hay split por rutas absolutas/cwd/APP_ROOT? | **TO BE VERIFIED** |
-| **H-0.7-D** | ¿Entrada/archivo/error/assets/outputs son visibles y escribibles por los procesos correctos? | **TO BE VERIFIED** |
-| **H-0.7-E** | ¿Tectonic offline, imagen local y dependencias reales se pueden reproducir sin pull/build y con presupuesto host? | **NO VERIFICABLE preliminar** → PPPR.0.8 / testigo aislado |
-| **H-0.7-F** | ¿Se levantan chaos/fakes o benchmark sin querer en la combinación runtime y golden? | **TO BE VERIFIED** |
-| **H-0.7-G** | ¿El reconciler/sweeper de Compose pueden producir fallos silenciosos sobre FSM/receipts? | **REFERIDO** → GAP-0.5-03; verificar despliegue aquí, no re-auditar lógica |
-| **H-0.7-H** | ¿La exposición de secrets, logs o red del contenedor comercial cumple alcance/privacidad? Sin host/secretos, diferenciar riesgo de hecho | **NO VERIFICABLE preliminar** |
-| **H-0.7-I** | ¿Los check CI/CV y testigos offline constituyen gate físico/científico de deployment? | **RECHAZADA COMO GARANTÍA**, pruebas versionadas NOT_RUN → PPPR.0.8 |
+| **H-0.7-A** | ¿CLI host y OCR Docker comparten inbox? | **CONFIRMADA diferencia estática** E-002/009; **RESUELTA para C2** por admisión dentro del contenedor E-027/028; **NO VERIFICABLE** el soporte de CLI Windows→Compose → DQ-0.7-02 |
+| **H-0.7-B** | ¿La credencial llega al proveedor comercial elegido? | **CONFIRMADA ausencia Groq en Compose base+runtime** E-008/029; backend comercial y launcher externos **NO VERIFICABLE** → DQ-0.7-01, PPPR.0.4 |
+| **H-0.7-C** | ¿Bootstrap y apertura de documents/quotas usan namespace correcto? | **CONFIRMADA POR CÓDIGO** E-016/017/018/031: rutas `infra/db/*.db` redirigidas por `SQLITE_STATE_DIR`, documents.db creada al usarse; permisos reales **NO VERIFICABLE** → DQ-0.7-03 |
+| **H-0.7-D** | ¿Inbox, archive, error, assets y output están disponibles? | **CONFIRMADA TOPOLOGÍA DECLARATIVA** E-006/019/020; lectura y escritura física en host/volúmenes **NO VERIFICABLE** → DQ-0.7-03 |
+| **H-0.7-E** | ¿Tectonic, imagen y dependencias se reproducen en entorno real sin egress? | **CONFIRMADO riesgo de build sin digest/lock** E-021/033; Tectonic real/host **NO VERIFICABLE** → DQ-0.7-04 |
+| **H-0.7-F** | ¿El Compose runtime excluye chaos y benchmark? | **CONFIRMADA CONFIGURACIÓN YAML** E-005/007/032: profiles lab y `IS_BENCHMARK=0`; configuración efectiva host **NO VERIFICABLE** → DQ-0.7-03 |
+| **H-0.7-G** | ¿Reconciler/sweeper están declarados y operan seguros? | **CONFIRMADA DECLARACIÓN** E-025/032; no duplicar **GAP-0.5-03**; contenedores activos no observados → DQ-0.7-03 |
+| **H-0.7-H** | ¿Secrets, red, privilegios y logs son adecuados para producción? | **RIESGOS P2 OBS** E-029/032/033; host y configuración secreta **NO VERIFICABLE** → DQ-0.7-04 |
+| **H-0.7-I** | ¿CI y fake acreditan despliegue o ciencia? | **RECHAZADA COMO GARANTÍA** E-011/012/023/026/034; tests NOT_RUN, C2 histórico fake → DQ-0.7-05 |
 
-## 16. RESPUESTAS INICIALES AL MANDATO
+### 15.1 Deferred Questions de segunda pasada (§8.2; no cerradas como garantía)
 
-El stack compartido es configurable en Compose con bases/volúmenes comunes para OCR/G3/G5 y daemons auxiliares. La CLI host/admisión y el stack de Docker son dos **espacios de nombres de filesystem** que la configuración no une por defecto. La ruta G3 requiere una variable de autenticación específica ausente del servicio runtime declarado, salvo fuentes no versionadas o de operator. El laboratorio resuelve ambos requisitos de forma distinta (dummy, workspace y ejecución controlada), por lo que **no prueba automáticamente** continuidad comercial del host.
+| ID | Motivo de NO VERIFICABLE y efecto sobre cierre estático | Destino |
+|---|---|---|
+| **DQ-0.7-01** | No están elegidos proveedor/modelo comercial ni mecanismo aprobado de suministro de secretos; no hay acceso a host/credenciales. **No bloquea** observar YAML/G3, sí impide acreditar inferencia real. | PPPR.0.4 DQ-04/DC-04, ADR Maestro/Execution Plan y testigo autorizado cuando proceda |
+| **DQ-0.7-02** | No existe decisión de que la CLI directa en Windows deba alcanzar OCR en Docker sin transferencia; el C2 admitió desde contenedor. Launcher/volúmenes externos desconocidos. **No bloquea** demostrar C2 ni advertir el límite; impide declarar el modo host validado. | ADR Maestro (modalidad), Execution Plan (preflight de ingreso), PPPR.0.8 si se autoriza |
+| **DQ-0.7-03** | La versión efectiva de Docker/Compose, las ACL/UID, mounts, estado real de SQLite y servicios de recuperación dependen de un host no inspeccionado. **No bloquea** el censo declarativo; no acredita arranque ni durabilidad física. | PPPR.0.8 y/o gate operacional aislado del Execution Plan |
+| **DQ-0.7-04** | Los digest de build, cachés Tectonic, exposición de red, usuario real, logs y entrega de secrets no se verificaron en imagen/host productivo. **No bloquea** registrar riesgos acotados; sí impide garantía de seguridad/despliegue. | ADR Maestro/Execution Plan; testigo focal PPPR.0.8 si se autoriza |
+| **DQ-0.7-05** | Los workflows no incluyen PR a la rama general y la suite de este HITO no se ejecutó; C2 es histórico con fake. **No bloquea** revisión de archivos, sí cualquier afirmación de CI/LLM real o ciencia PASS. | PPPR.0.8/0.9 y gobernanza futura de CI |
 
-No se evaluaron hosts, cuentas, Tectonic real ni un `docker compose config` efectivo. Los dos candidatos se examinarán como **defectos potenciales de configuración/contrato**, no como bloqueos de producto ya ejecutados. Se mantiene la continuidad F18/W06, el ownership de GAP-0.5-03 y la ausencia de `PRODUCT_READINESS=PASS`.
+### 15.2 Decision Candidates (NO APROBADOS)
 
+| ID | Pregunta estrictamente pendiente | Destino |
+|---|---|---|
+| **DC-0.7-01** | ¿Modalidad inicial soportada: CLI dentro del contenedor, CLI host con puente o foreground? No construir nuevo servicio por anticipación. | ADR Maestro / Execution Plan |
+| **DC-0.7-02** | Tras elegir el backend en PPPR.0.4, ¿cómo inyectar secrets sin versionarlos ni exponerlos? | ADR Maestro / Execution Plan |
+| **DC-0.7-03** | ¿Qué controles mínimos de identidad/imagen/red/caché/recursos aplican al despliegue aprobado, sin convertir el laboratorio en producción? | ADR Maestro; NADR solo si es necesario; Execution Plan |
+| **DC-0.7-04** | ¿Cuál es el preflight no destructivo mínimo de modalidad, mounts, Compose efectivo y configuración sin divulgar secretos? | Execution Plan una vez aprobada la modalidad |
+## 16. RESPUESTAS A LA SEGUNDA PASADA
+
+El Compose compartido permite que OCR/G3/G5 accedan a volúmenes comunes. C2 acreditó **admisión CLI dentro del contenedor** con fake y volumen compartido; una CLI directa de Windows necesita puente/launcher no documentado como modalidad aprobada. G3 carece de credencial Groq inyectada por el Compose base+runtime, pero la decisión de proveedor comercial permanece abierta en PPPR.0.4. Los dos candidatos observados son **P2 NO CONFIRMADOS**, no P1 ni GAPs abiertos.
+
+Se verificó por código la redirección `SQLITE_STATE_DIR` y creación lazy de `documents.db`; el overlay runtime desactiva benchmark y perfila fake/chaos como laboratorio. Host y Compose efectivo, identidad/ACL, imágenes reales, secrets y Tectonic físico son **NO VERIFICABLE**. Sweeper sigue siendo GAP-0.5-03, no se duplica. No hay PASS de producto.
+
+## 17. RECONCILIACIÓN DE MODALIDADES Y NO-REGRESIÓN
+
+| Fuente/contrato | Estado exacto | Disposición |
+|---|---|---|
+| D-1/D-2 y Atlas v1.0.2 | Ruta única; Atlas descriptivo, advierte separación host/Docker | No inventar una segunda arquitectura por la entrada |
+| C2 histórico del propietario | CLI dentro de contenedor efímero, `--inbox-dir /app/data/inbox`, fake interno, PDF real de laboratorio | Acredita continuidad en ese corte/modalidad; no producción ni Windows CLI externa |
+| CLI directa Windows + Docker daemon | Checkout host distinto de volumen Compose, sin bridge en YAML | DQ-0.7-02/DC-0.7-01, no fallo general de ruta |
+| G3 comercial | `GROQ_API_KEY` exigida, no entregada en Compose runtime; modelo/proveedor sustituto no aprobados | Observación P2; PPPR.0.4 DQ-04/DC-04, no duplicar modelo/idioma |
+| PPPR.0.5 FROZEN | Sweeper Compose GAP-0.5-03 P1 OPEN | Se conserva su dueño, no duplicar en 0.7 |
+| PPPR.0.6 FROZEN | G5 Tectonic/asset/publish auditados por código | No fabricar fallo físico sin testigo |
+| F17-BIS | P6 histórico multirruta y NADR-F17BIS-06 PROPOSED | No norma principal ni obligaciones MUST aplicables automáticamente |
+
+**Riesgos condicionados, no incidentes probados:** si se elige Groq y se lanza sin secret, G3 falla cerrado al necesitar inferencia; si se exige CLI host frente a OCR Docker sin transferencia, el PDF quedará en otro inbox. Debe decidirse primero modalidad y backend. El laboratorio fake no convierte esos escenarios en un PASS comercial ni autoriza ejecutar servicios.
 ## 21. CIERRE DEL HITO — IN_PROGRESS
 
-**NO FROZEN — v1.0.0.** 26 E-IDs en estado preliminar (24 P2 y 2 candidatos P1), dos candidatos GAP con falsadores, nueve hipótesis abiertas/parciales. Resta contrastar launchers host, precedencia exacta de Compose, credenciales y red, volúmenes/paths, Windows/Docker físicos y DQ/DC con §8.1–8.2. Host y proveedor NO VERIFICABLE tienen razón y futuros destinos, pero aún necesitan fichas definitivas. Sin tests, CI, Docker, API, SQLite/corpus ni implementación.
+**NO FROZEN — v1.0.1.** 34 E-IDs (34 P2, 0 P1), 2 GAP candidatos **NO CONFIRMADOS**, 9 hipótesis parcialmente clasificadas, 5 Deferred Questions con razón/no-bloqueo/destino y 4 Decision Candidates sin aprobación. Resta checklist §8.1–8.2 y verificaciones finales de alcance/contraejemplos; host/Compose físico NO VERIFICABLE. Sin tests, CI, Docker, API, SQLite/corpus ni implementación.
 
 **Gate Git:** PR interno Draft con **solo este HITO**, `pppr/hito-0.7` → `pdf-pdf-product-readiness`; PR general #66 sigue Draft hacia `main`. No FROZEN, no merge y no cambios de código de producción. Luego de cierre y autorización: integrar, verificar en general, eliminar rama corta antes de abrir PPPR.0.8.
