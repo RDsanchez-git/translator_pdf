@@ -1,6 +1,6 @@
 # HITO_PPPR.0.6_G5_ENSAMBLADO_Y_PDF_SALIDA.md
 
-**Estado:** IN_PROGRESS v1.0.0  
+**Estado:** IN_PROGRESS v1.0.1  
 **Fecha de emisión:** 2026-11-19  
 **Congelamiento:** N/A  
 **Tipo:** Forensic Flow Audit — G5, representación TeX, compilación y salida PDF  
@@ -17,6 +17,7 @@
 | Versión | Fecha | Alcance |
 |---|---|---|
 | 1.0.0-IN_PROGRESS | 2026-11-19 | Apertura desde merge #70, 24 E-IDs preliminares, 9 hipótesis de contraste y ninguna promoción automática de defectos históricos P6; auditoría read-only G5/compilación/artefactos. |
+| 1.0.1-IN_PROGRESS | 2026-11-19 | Segunda pasada: 34 E-IDs, 3 fichas P1 locales y 3 GAP OPEN sobre CODE/TABLE literal, semántica HEADING y macros TeX legítimas fuera de math. H-0.6-A/B confirmadas, C/D/E/F/G/H/I delimitadas; antecedente GAP-0.2-02 y P6 reconciliados. Testigos NOT_RUN, sin FROZEN ni implementación. |
 
 ## 1. RESUMEN EJECUTIVO
 
@@ -24,9 +25,9 @@ El G5 soportado recibe un documento `READY_FOR_ASSEMBLY` desde el flujo CLI→OC
 
 **Garantías observables, todavía limitadas:** validación de secuencia y unicidad antes de OMIT, materialización de proyecciones por generación/versión, fallback con comprobación SHA cuando procede, perfil SQLite durable, bundle de imágenes por digest, escapado de prosa separado de spans matemáticos, ejecución Tectonic aislada por intento y exclusión de publish por owner/lease caducado. `%PDF-` + FSM `COMPLETED` constituyen una comprobación **operativa mínima**, nunca certificación de layout, fórmulas o calidad lingüística `en→es`.
 
-**Preguntas activas, aún no GAPs:** tratamiento de CODE/TABLE como TeX crudo, conservación de niveles HEADING, geometría normalizada con ancho/alto fallback fijos, compilación de macros Unicode/fuentes, cobertura de validación física y ventana `os.replace`→commit. Un incumplimiento P1 solo se registrará con consumidor, requisito, causa y consecuencia demostrables, no con intuición.
+**Defectos locales P1 confirmados por flujo estático:** (a) CODE/TABLE entran como TeX crudo aunque son contenido literal, **GAP-0.6-01**; (b) `HeadingPayload.heading_level` y `ASTNode.depth` se pierden al crear RenderUnit y HEADING se renderiza como PARAGRAPH, **GAP-0.6-02**; (c) macros TeX legítimas de texto fuera de spans math son escapadas indiscriminadamente, **GAP-0.6-03**. Ninguno constituye una incidencia de Tectonic real demostrada. Geometría, recuperación física, DEGRADED y calidad científica permanecen acotadas, no convertidas en GAP por intuición.
 
-**Veredicto inicial:** **IN_PROGRESS**. La siguiente pasada debe falsar/confirmar cada hipótesis y cruzar los testigos B02/G5; sin PASS ni solución de diseño anticipada.
+**Veredicto de segunda pasada:** **IN_PROGRESS v1.0.1**: 34 E-IDs, 3 P1 locales OPEN y siete evidencias nuevas P2. El mandato estático G5 aún requiere reconciliar más profundamente fallback, pruebas físicas y no-regresión antes de §8.1–8.2. Ni `FROZEN` ni `PRODUCT_READINESS=PASS`.
 
 ## 2. LÍMITE EPISTEMOLÓGICO Y MÉTODO FORENSE
 
@@ -46,7 +47,7 @@ El G5 soportado recibe un documento `READY_FOR_ASSEMBLY` desde el flujo CLI→OC
 | AST/continuidad, OMIT, proyecciones | `core/compiler/context_resolver.py::CQRSAssemblyContextResolver` | **AUDITADO** (E-006) |
 | Aceptación/degradación/fallback | `core/compiler/assembler.py`, `core/compiler/service.py`, `infra/db/document_repository.py` | **AUDITADO focal** (E-007/008) |
 | Perfil y geometría | `infra/db/profile_store.py`, `apps/compiler/__main__.py::RenderGeometryAdapter` | **AUDITADO focal** (E-009/010) |
-| Render por tipo, TeX y estructura | `core/compiler/rendering/{context,implementations,mapper}.py`, `apps/compiler/tex_builder.py` | **AUDITADO focal** (E-011…015) |
+| Render por tipo, TeX y estructura | `core/compiler/rendering/{context,implementations,mapper,models}.py`, `apps/compiler/tex_builder.py`; `core/ast/{builder,models,strategy}.py` | **AUDITADO focal** (E-011…015 y E-025…027/033), tres incongruencias P1 |
 | Imágenes y materialización física | `core/compiler/rendering/image_assets.py`, `apps/compiler/tectonic_runner.py` | **AUDITADO focal** (E-016/017) |
 | Testigos offline | B03, B02.2/B02.4/B02.5, G3/B4.4, G5 lease/worker, TeX renderer/Tectonic | **LEÍDOS · NOT_RUN** (E-021…023) |
 | Historia P6 | HITO F17BIS P6 y NADR-F17BIS-06/-09 | **RECONCILIACIÓN POR DELTA**; no reabrir automáticamente P6-H01…04 |
@@ -54,7 +55,7 @@ El G5 soportado recibe un documento `READY_FOR_ASSEMBLY` desde el flujo CLI→OC
 
 ## 4. FUENTES DE EVIDENCIA
 
-**Código activo fijo:** `main@1d21cfe958cc1de8a33824fed748cd6fe9260f42`: `apps/cli/pdf_product.py`; `apps/compiler/{__main__,tectonic_runner,tex_builder}.py`; `infra/db/{assembly_recovery,profile_store,materialized_repo,document_repository}.py`; `core/compiler/{context_resolver,assembler,service}.py`; `core/compiler/rendering/{mapper,models,context,implementations,image_assets}.py`.
+**Código activo fijo:** `main@1d21cfe958cc1de8a33824fed748cd6fe9260f42`: `apps/cli/pdf_product.py`; `apps/compiler/{__main__,tectonic_runner,tex_builder}.py`; `infra/db/{assembly_recovery,profile_store,materialized_repo,document_repository}.py`; `core/ast/{builder,models,strategy,enums}.py`; `core/normalization/explicit_math.py`; `infra/extraction/providers/{pymupdf_provider,pymupdf_math_visual}.py`; `core/compiler/{assembly_context,context_resolver,assembler,service}.py`; `core/compiler/rendering/{mapper,models,context,implementations,image_assets}.py`.
 
 **Contratos:** `docs/architecture/adr/phase-17-bis/NADR/NADR_06_Token_Estimation_Compilation_Governance.md` (§5.2 R5–R8 y §5.3 R9–R12); `docs/architecture/adr/phase-17-bis/NADR/NADR_09_FSM_Event_Integrity_Compiler .md` (§5.2 R6–R9); F18 NADR-03/-04; `docs/architecture/adr/phase-17-bis/00-foundation/HITO_0.4.5_P6_ASSEMBLY_COMPILER_AUDIT.md` **histórico**; Atlas operativo; PPPR.0.1–0.5 FROZEN.
 
@@ -93,7 +94,7 @@ CLI run_admitted_pdf
 
 **Lectura estricta:** la línea feliz no prueba eficacia de render visual; un crash entre rename y commit puede dejar el PDF en filesystem con FSM no COMPLETED, situación de recuperación regenerable documentada, no commit distribuido. Los checks de header/estado no comparan páginas, fórmulas, figuras ni layout.
 
-## 10. REGISTRO INICIAL DE EVIDENCIA (NO FROZEN)
+## 10. REGISTRO DE EVIDENCIA FORENSE — SEGUNDA PASADA (NO FROZEN)
 
 | E-ID | Sev. inicial | Observed (archivo::símbolo) | Required/Decision/límite | Disposición |
 |---|---|---|---|---|
@@ -121,35 +122,134 @@ CLI run_admitted_pdf
 | **E-0.6-022** | P2 | B03 foreground y G3/B4.4 verifican estados, preflight, perfil SQLite y projection digest; usan rutas/fakes locales. | Conexión operacional versionada, no evidencia de calidad física o de corpus. | TESTIGO |
 | **E-0.6-023** | P2 | B02.4 preserva bytes de spans de math; B02.5 genera fórmula visual como IMAGE/PRESERVE, pero señala que no evalúa semántica matemática/layout. | Separar preservación sintáctica/visual de fidelidad científica. | TESTIGO |
 | **E-0.6-024** | P2 | `_verify_published_pdf` valida solo cabecera binaria PDF y FSM COMPLETED; `PDFProductResult.scientific_status` es NOT_CERTIFIED. | No afirmar que PDF compilable/documento completado sea ciencia o presentación equivalente. | LÍMITE EXPLÍCITO |
+| **E-0.6-025** | **P1** | `core/ast/builder.py::FlatASTBuilder._TYPE_MAPPING` admite CODE/TABLE; `core/ast/strategy.py` los enruta; `RenderContextFactory` asigna CODE/TABLE_SIMPLE/TABLE_COMPLEX a `PassthroughRenderStrategy` que retorna contenido crudo; `TexBuilder.build` lo concatena directamente en el documento TeX. | `PROJECT_SCOPE.md` §§2/4 exige supervivencia intacta de código e invariantes; NADR-F17BIS-06 §5.2 R5–R7 diferencia *texto literal* y TeX legítimo. Un payload literal con `_`, `&`, `%` o `\\input{...}` es interpretado por TeX y puede fallar o mutar la representación. Caso causal condicionado a recibir el tipo, **no ejecutado**. | **GAP-0.6-01 OPEN** |
+| **E-0.6-026** | **P1** | `HeadingPayload.heading_level` admite H1/H2/H3 y `ASTNode.depth` registra jerarquía; `FlatASTBuilder` la transporta. `DefaultRenderUnitMapper` pasa solo node_id, tipo, texto, geometría y activo; `RenderContextFactory` usa `TextRenderStrategy` idéntica para HEADING/PARAGRAPH y `TexBuilder` nunca emite `\\section`/`\\subsection` por nivel. | `PROJECT_SCOPE.md` §2 exige alineación de jerarquías estéticas y §4 topología rastreable; `ENGINEERING_PRINCIPLES.md` §§II/IV exige linaje de depth/parent. El nivel no llega al TeX: dos headings con textos idénticos H1/H2 son visualmente indistinguibles salvo comentarios no tipográficos. | **GAP-0.6-02 OPEN** |
+| **E-0.6-027** | **P1** | `TextRenderStrategy.render` solo preserva segmentos detectados por `find_explicit_math_spans`; fuera de ellos llama `LatexEscaper.escape`, que cambia `\\`, `{` y `}`. Una macro legítima como `\\textbf{Resultado}` queda convertida a texto literal en lugar de marcar negrita. | NADR-F17BIS-06 §5.2 **R5/R6/R7/R8** exige preservar TeX legítimo y distinguir contexto, incluidos comandos; testigo unitario cubre math/prosa pero no este macro textual. Es incumplimiento del subconjunto TeX legítimo, sin claim de que todo PDF contenga la macro. | **GAP-0.6-03 OPEN** |
+| **E-0.6-028** | P2 | `RenderGeometryAdapter` normaliza anchos con **612 pt**, y `AdaptiveFloatStrategy` usa `relative_width > 0.6` para decidir `figure*` vs `figure` en dos columnas; PyMuPDF conoce el ancho real, pero `NodeMetadata` no lo traslada. | Consecuencia downstream específica del mismo déficit de ancho que **GAP-0.2-02**: figura de 300pt en página 400pt debería resultar 0.75, pero el adapter da 0.49. **No duplicar GAP** hasta decidir si el contrato de layout exige fidelidad exacta; ejemplo estático sin PDF probado. | PROPAGACIÓN DE GAP-0.2-02 |
+| **E-0.6-029** | P2 | `core/normalization/explicit_math.py` detecta `$...$`, `$...$`, `\\(...\\)`, `\\[...\\]` y entornos enumerados; falla ante delimitadores desequilibrados, pero no infiere fórmulas de OCR o TeX no explícito. | Falsación parcial de H-0.6-C: protección de spans delimitados no implica reconstruir todas las fórmulas STEM ni cubrir fuentes Unicode. La matemática visual B02.5 es ruta distinta de IMAGE. | H-0.6-C PARCIAL |
+| **E-0.6-030** | P2 | `DocumentAssembler` permite `DEGRADED` con hasta 5% de proyecciones ausentes y `allow_fallback`; `CompilationService` usa `get_verified_payload` de `original_chunks` pero solo propaga TeX/activos, no `AssemblyReport.status`. | `AssemblyExecutionContext` aclara que «missing» incluye PASSTHROUGH sin traducción. Queda sin demostrar que se publique una traducción incompleta por la ruta G3 normal; evaluar telemetría y política antes de un GAP de degradación silenciosa. | H-0.6-F ABIERTA |
+| **E-0.6-031** | P2 | `AssemblyLeaseRepository.publish` valida artefacto privado, bloquea writer SQLite, actualiza queue/FSM, realiza `os.replace` y recién luego COMMIT; `recover_expired` reencola intento no terminal con CAS y epoch. | F17BIS-09 §5.2 R6/7 y F18 delimitan aislamiento/fencing; `test_g5_assembler_lease_recovery` incluye casos de rollback y promoción completa antes del commit, **NOT_RUN**. No garantizar atomicidad FS+SQL ni recuperación física universal. | H-0.6-E DELIMITADA |
+| **E-0.6-032** | P2 | `PyMuPDFProvider.capabilities.has_tables=False`; no afirmar extracción nativa universal de tablas. `FlatASTBuilder._TYPE_MAPPING` acepta tipos `TABLE_SIMPLE/TABLE_COMPLEX/CODE_BLOCK` si el clasificador los produce. | GAP-0.6-01 es un defecto del **consumidor G5 para tipos admitidos**, no una frecuencia acreditada en corpus ni garantía de que cada tabla del PDF sea detectada. | LÍMITE DE ALCANZABILIDAD |
+| **E-0.6-033** | P2 | `RenderContextFactory` decide layout solo por `PageLayout.DOUBLE_COLUMN`; `LatexPreambleBuilder` fija A4/11pt y `TexBuilder` no consume geometría para prosa/tablas. El único uso actual de ancho relativo es el float IMAGE. | La reconstrucción física no equivale a copiar cada coordenada; falsación H-0.6-D requiere política explícita de tolerancia, no promesa de pixel-perfect sin corpus. | LAYOUT LIMITADO |
+| **E-0.6-034** | P2 | En los testigos `test_text_render_strategy`, `test_b024_g3_g5_math_roundtrip` y `test_b022_image_rendering` se verifican matemáticas delimitadas, prosa e IMAGE; no se ve falsador de CODE/TABLE crudo ni render por `heading_level` en esos archivos. `test_b03_foreground_pdf_product` usa PDF sintético con prefijo PDF. | Contrato parcial en fuentes leídas, **NOT_RUN**; la ausencia de test local no se presenta como fallo ejecutado ni como censo exhaustivo de toda la suite. | TESTIGOS ACOTADOS |
 
-**Severidad preliminar P2** solo registra hechos y preguntas: **ningún GAP P1/P0 adjudicado** en esta apertura. La ausencia de marca de sección en HEADING o la emisión de CODE raw requieren examen con contrato y falsadores antes de clasificarlos.
+**Severidad de la segunda pasada:** E-0.6-001…024 conservan IDs y P2; E-025/026/027 son **P1 LOCAL** con consumidores y normas cotejados; E-028…034 son P2 de propagación/límite/testigo. Ningún P0 o incidencia comercial/física declarados. Los ejemplos de caracteres TeX y tamaños de página son falsadores estáticos, no PDFs producidos.
 
-## 14. GAPS CONSOLIDADOS — APERTURA
+### Fichas extendidas P1 (metodología §4.7)
 
-**Ningún GAP local formalizado todavía.** Candidatos: E-0.6-013 (CODE/TABLE vs marcado TeX legítimo), E-0.6-014 (jerarquía HEADING), E-0.6-010 (geometría y tamaño de página), E-0.6-018 (crash/publish); se separarán regresiones reales de límites aprobados y upstream GAP-0.2-02.
+#### E-0.6-025 — CODE/TABLE literal se interpreta como TeX (P1)
+
+- **Archivo/símbolos:** `core/ast/builder.py::FlatASTBuilder._TYPE_MAPPING`; `core/ast/strategy.py::resolve_strategy`; `core/compiler/rendering/context.py::RenderContextFactory.create`; `core/compiler/rendering/implementations.py::PassthroughRenderStrategy.render`; `apps/compiler/tex_builder.py::TexBuilder.build`.
+- **Declaración observada:**
+
+```python
+# RenderContextFactory
+ContentNodeType.TABLE_SIMPLE: passthrough_strategy,
+ContentNodeType.TABLE_COMPLEX: passthrough_strategy,
+ContentNodeType.CODE: passthrough_strategy,
+# PassthroughRenderStrategy
+return unit.content or ""
+# TexBuilder: después de comentario NODE_ID/TYPE
+document.append(rendered_content)
+```
+
+- **Observed:** los tipos AST CODE/TABLE están admitidos; el consumidor G5 introduce su contenido directamente en cuerpo TeX sin envoltura literal ni distinción de código/tablas frente a macros TeX. Una línea de código como `int x_y = 1;` contiene `_` significativo para TeX fuera de math; una celda con `%` puede iniciar comentario o `&` tabular fuera de contexto. El resultado de Tectonic y la frecuencia en PDFs reales **no se ejecutaron**. `PyMuPDFProvider.has_tables=False` limita una afirmación de cobertura universal de tablas, pero no invalida la rama de render para un nodo tipado recibido.
+- **Required:** `PROJECT_SCOPE.md` §§2/4 exige preservar código y contenido científico sin mutación silenciosa; NADR-F17BIS-06 §5.2 R5–R7 exige escapado según contexto que preserve TeX legítimo y trate el texto literal como tal.
+- **Decision:** la ruta G5 es única y pasa por `CompilationService`; no se autoriza reemplazarla ni introducir otra sintaxis de tablas a priori.
+- **Consecuencia:** TeX puede interpretar, comentar o rechazar caracteres de código/celdas, en lugar de producir una representación literal fiel. No se atribuye explotación del host ni error físico ocurrido.
+- **Severidad:** **P1 LOCAL OPEN → GAP-0.6-01**. Destino: ADR Maestro/Execution Plan, testigo focal sin LLM y sin corpus privado.
+
+#### E-0.6-026 — jerarquía HEADING conservada en AST pero descartada en render (P1)
+
+- **Archivo/símbolos:** `core/ast/models.py::HeadingPayload.heading_level/ASTNode.depth`; `core/ast/builder.py::FlatASTBuilder`; `core/compiler/rendering/mapper.py::DefaultRenderUnitMapper.map_to_unit`; `core/compiler/rendering/context.py::RenderContextFactory.create`; `apps/compiler/tex_builder.py::TexBuilder.build`.
+- **Declaración observada:**
+
+```python
+# AST:
+heading_level: HeadingLevel = HeadingLevel.UNKNOWN
+# RenderContextFactory:
+ContentNodeType.PARAGRAPH: text_strategy,
+ContentNodeType.HEADING: text_strategy,
+# DefaultRenderUnitMapper returns RenderUnit(
+# node_id, node_type, content, geometry, asset)
+```
+
+- **Observed:** el nivel H1/H2/H3 y `depth` del AST existen, pero `RenderUnit` no los porta; HEADING y PARAGRAPH usan el mismo renderizador que devuelve prosa escapada, y `TexBuilder` emite comentarios de depuración con TYPE sin comando de sección ni tratamiento tipográfico del nivel. Un cambio H1↔H2 de igual texto llega a TeX tipográficamente indistinguible. `OMIT` y `sequence_id` siguen validados; no se infiere pérdida de nodos.
+- **Required:** `PROJECT_SCOPE.md` §2 (ensamblador de layout para jerarquías estéticas), §4 (completitud topológica), `ENGINEERING_PRINCIPLES.md` §§II/IV (AST plano con depth/parent; propagación de linaje). El requerimiento **no** impone un estilo LaTeX o `\\section` determinado.
+- **Decision:** `GAP-0.3-01` ya trata jerarquía **omitida en identidad/hash**, otro consumidor y consecuencia. No se duplica ese GAP: aquí se pierde representación visual en PDF.
+- **Consecuencia:** el artefacto de salida no representa los niveles estructurales tipados aunque el AST los conocía; no se cuantificó efecto real de diagramación.
+- **Severidad:** **P1 LOCAL OPEN → GAP-0.6-02**. Destino: ADR Maestro/Execution Plan, con verificación de H1/H2/H3 en TeX/PDF sintético.
+
+#### E-0.6-027 — TeX legítimo fuera de math es escapado como prosa (P1)
+
+- **Archivo/símbolos:** `core/normalization/explicit_math.py::find_explicit_math_spans`; `core/compiler/rendering/implementations.py::{TextRenderStrategy.render,LatexEscaper.escape}`.
+- **Declaración observada:**
+
+```python
+# TextRenderStrategy:
+for start, end in find_explicit_math_spans(text):
+    result.append(LatexEscaper.escape(text[position:start]))
+    result.append(text[start:end])
+result.append(LatexEscaper.escape(text[position:]))
+# LatexEscaper: "\\" → "\\textbackslash{}", "{" → "\\{", "}" → "\\}"
+```
+
+- **Observed:** el parser protege delimitadores matemáticos explícitos y entornos whitelisted; un comando de texto TeX legítimo `\\textbf{Resultado}` fuera de math queda escapado a glifos literales y ya no formatea negrita. `test_text_render_strategy` prueba prosa/matemáticas, no este caso. No se afirma que el PDF fuente conserve habitualmente comandos TeX ni que el proveedor siempre los entregue.
+- **Required:** NADR-F17BIS-06 §5.2 **R5–R8**, que exige conservar macros/TeX legítimo, no solo spans de math; el mismo NADR usa `\\textbf{...}` como ejemplo de sintaxis válida.
+- **Decision:** el contrato exige distinguir prosa literal de macro legítima; aún no fija qué parser, whitelist o convención debe hacerlo.
+- **Consecuencia:** cuando la entrada contiene TeX legítimo fuera de math, la representación estructural se pierde de forma determinista; no se infiere un defecto de protección math ya cubierta.
+- **Severidad:** **P1 LOCAL OPEN → GAP-0.6-03**. Destino: ADR Maestro/Execution Plan; falsador puro con macro conocida y prueba de no interpretar texto malicioso.
+
+## 14. GAPS CONSOLIDADOS — SEGUNDA PASADA
+
+| GAP | Observed → Required y consecuencia | Evidencia | Estado y destino |
+|---|---|---|---|
+| **GAP-0.6-01** | CODE y TABLE admitidos salen como TeX crudo; el contenido literal puede ser interpretado o rechazado, contra el mandato de supervivencia de código y protección contextual NADR-F17BIS-06 R5–R7. | **E-0.6-025**, E-013/032 | **P1 LOCAL · OPEN** → ADR Maestro/Execution Plan; testigo de literalidad focal |
+| **GAP-0.6-02** | El render de HEADING descarta nivel/depth antes de crear TeX; contra jerarquía estética y linaje exigidos por PROJECT_SCOPE/ENGINEERING_PRINCIPLES. Distinto de GAP-0.3-01 sobre firma. | **E-0.6-026**, E-014 | **P1 LOCAL · OPEN** → ADR Maestro/Execution Plan; testigo H1/H2 |
+| **GAP-0.6-03** | `TextRenderStrategy` escapa macros TeX legítimas fuera de math, por ejemplo `\\textbf{...}`, contraviniendo NADR-F17BIS-06 R5–R8. | **E-0.6-027**, E-012/029 | **P1 LOCAL · OPEN** → ADR Maestro/Execution Plan; testigo TeX legítimo |
+
+**No promover por analogía:** (a) E-028 es la consecuencia G5 del **GAP-0.2-02** upstream (dimensiones); se mantiene allí la autoridad principal hasta reconciliación del alcance; (b) `os.replace` pre-COMMIT no es por sí mismo defecto: G5/2 documenta la regeneración y fencing tras crash; (c) `%PDF-`+COMPLETED es un gate operacional deliberadamente acotado y `scientific_status=NOT_CERTIFIED`; el gate científico corresponde a PPPR.0.8/0.9; (d) `DEGRADED` exige caracterizar PASSTHROUGH, TRANSLATE y provenance antes de abrir GAP nuevo.
 
 **GAPs antecedentes no subsanados por esta auditoría:** PPPR.0.2 (perfiles/geometry), PPPR.0.3 (identidad/canonización), PPPR.0.4 (modelo/prompt/budget) y PPPR.0.5 (W06/leases/sweeper) mantienen sus destinos. No se reasignan aquí.
 
-## 15. HIPÓTESIS FALSABLES — IN_PROGRESS
+## 15. HIPÓTESIS — CLASIFICACIÓN DE SEGUNDA PASADA
 
 | ID | Pregunta y falsador específico | Estado |
 |---|---|---|
-| **H-0.6-A** | ¿CODE/TABLE crudos contienen caracteres o comandos que TeX interpreta en vez de presentar literalmente? Falsar con payload real y `PassthroughRenderStrategy`. | **TO BE VERIFIED** |
-| **H-0.6-B** | ¿HEADING pierde nivel/jeraquía en TeX por mapearse como prosa sin sección? Rastrear `HeadingPayload`, `RenderUnitMapper` y `TexBuilder`. | **TO BE VERIFIED** |
-| **H-0.6-C** | ¿Preservación de matemáticas inline/display cubre delimitadores y macros científicas soportadas? Separar bytes y semántica; inspeccionar `find_explicit_math_spans`. | **TO BE VERIFIED** |
-| **H-0.6-D** | ¿La página A4 y geometría 612×792 bastan para trazabilidad de layout de papers de diferente tamaño? Contrastar origen y contrato físico, no exigir clon perfecto sin política. | **TO BE VERIFIED** |
-| **H-0.6-E** | ¿La ventana `os.replace`→SQLite COMMIT está correctamente recuperada y fenced en todos los cortes relevantes? Testigos G5/2 y lectura de daemon. | **TO BE VERIFIED** |
-| **H-0.6-F** | ¿La política `DEGRADED ≤5 %` más fallback SHA permite perder contenido científico sin advertencia adecuada? Verificar uso y límites, no inferir a partir de umbral. | **TO BE VERIFIED** |
-| **H-0.6-G** | ¿La ruta visual math/figuras conserva activos originales y falla cerrada cuando no los obtiene? Considerar límites B02.5 y corpus real. | **TO BE VERIFIED** |
-| **H-0.6-H** | ¿Tectonic real compila UTF-8 español, macros y assets con el preámbulo elegido? `--untrusted`/tests fake ≠ cobertura física. | **NO VERIFICABLE preliminar** → futuro PPPR.0.8, si autorizado |
-| **H-0.6-I** | ¿Hay validación de topología/fidelidad del PDF final más allá de FSM+header? Distinguir gate operacional de gate científico/visual. | **TO BE VERIFIED** |
+| **H-0.6-A** | ¿CODE/TABLE crudos contienen caracteres o comandos que TeX interpreta en vez de presentar literalmente? | **CONFIRMADA BRECHA POR COMPOSICIÓN** E-025 → GAP-01; ejemplos estáticos, sin ejecución de Tectonic |
+| **H-0.6-B** | ¿HEADING pierde jerarquía tipada antes del TeX? | **CONFIRMADA** E-026 → GAP-02; pérdida del nivel, no de existencia del nodo |
+| **H-0.6-C** | ¿Se preservan math delimitados y macros legítimas? | **PARTIAL** E-012/027/029; math explícito protegido, TeX textual legítimo fuera de math incumple R5–R8 → GAP-03; semántica no verificada |
+| **H-0.6-D** | ¿A4 fijo y 612×792 preservan geometría para figuras? | **PROPAGACIÓN CONFIRMADA** E-028/033 de GAP-0.2-02 (ancho ausente); tolerancia de layout real NO VERIFICABLE → DQ-0.6-02 |
+| **H-0.6-E** | ¿La ventana `os.replace`→COMMIT se recupera? | **CONTENCIÓN POR CÓDIGO** E-018/019/031, G5/2 testigo NOT_RUN; fallos físicos NO VERIFICABLE → DQ-0.6-03 |
+| **H-0.6-F** | ¿DEGRADED mezcla missing PASSTHROUGH y TRANSLATE y qué llega al operador? | **ABIERTA** E-007/008/030: falta cotejar productor de payload original, cobertura G3 y telemetría/contrato de aceptación antes de clasificar GAP → DQ-0.6-04 provisional |
+| **H-0.6-G** | ¿B02.5 e IMAGE preservan activos verificables? | **CONFIRMADA INTEGRIDAD DE BYTES**, E-015/016/023; detección general de fórmulas y fidelidad visual real NO VERIFICABLE → DQ-0.6-01 |
+| **H-0.6-H** | ¿Compila Tectonic en español/Unicode/math bajo condiciones reales? | **NO VERIFICABLE** sin compilador/corpus real: DQ-0.6-01 → PPPR.0.8 |
+| **H-0.6-I** | ¿El gate final certifica ciencia/layout? | **RECHAZADA COMO GARANTÍA** E-002/024: solo FSM+header; `NOT_CERTIFIED` explícito, validación científica diferida a PPPR.0.8/0.9 |
 
-## 16. RESPUESTAS INICIALES AL MANDATO
 
-Hay una sola ruta G5 compartida entre foreground y daemon; el compilador físico se invoca en directorio efímero y publica un artefacto privado con CAS antes de promocionarlo. La preservación STEM tiene mecanismos verificables de fragmentos math e imágenes por SHA, pero **no** se certifica equivalencia científica ni visual de PDF→PDF. La ruta de salida TeX exige analizar por tipo la diferencia entre texto literal y marcado deliberadamente ejecutable, y si la jerarquía de encabezados se pierde.
+### 15.1 Deferred Questions provisionales (NO VERIFICABLE / pendientes)
+
+| ID | Razón y no-bloqueo de segunda pasada | Destino |
+|---|---|---|
+| **DQ-0.6-01** | Tectonic real, UTF-8/acentos, fórmulas, figuras y PDF visual/semántico necesitan insumos y ejecución autorizados; tests fake NOT_RUN, no demuestra calidad en corpus | PPPR.0.8/0.9; no bloquea identificar contratos de render |
+| **DQ-0.6-02** | Tolerancia geométrica legítima, page_width por página y drift de figura* no se miden; misma raíz que GAP-0.2-02 | ADR Maestro y PPPR.0.8; no duplicar GAP upstream |
+| **DQ-0.6-03** | Crash físico entre rename/COMMIT y recuperación SIGKILL/power loss no ensayados; testigos G5 offline solo leídos | PPPR.0.7 (entorno) / PPPR.0.8 (testigo focal) |
+| **DQ-0.6-04** | Falta discriminar ausencia normal PASSTHROUGH vs pérdida de proyección TRANSLATE y destino observable de `AssemblyReport.DEGRADED`; no basta 5% para confirmar defecto | Próxima pasada PPPR.0.6 y ADR Maestro si resulta decisión |
+
+### 15.2 Decision Candidates preliminares (no aprobados)
+
+| ID | Pregunta futura | Autoridad |
+|---|---|---|
+| **DC-0.6-01** | Distinguir con fidelidad contenido **literal** CODE/TABLE de comandos TeX **legítimos** y delimitadores math; sin parser/renderer nuevo prescrito | ADR Maestro PPPR → Execution Plan |
+| **DC-0.6-02** | Contrato de preservación de niveles y representación tipográfica de HEADING según layout/AST, sin exigir pixel-perfect por reflejo | ADR Maestro PPPR → Execution Plan |
+| **DC-0.6-03** | Tratamiento del perfil de página/figuras y evidencia suficiente de publicación científica; reconciliar con upstream PPPR.0.2 y downstream PPPR.0.8 | ADR Maestro PPPR → Execution Plan según necesidad |
+
+## 16. RESPUESTAS AL MANDATO — SEGUNDA PASADA
+
+Hay una sola ruta G5 compartida entre foreground y daemon; el compilador físico se invoca en directorio efímero y publica un artefacto privado con CAS antes de promocionarlo. La preservación STEM tiene mecanismos verificables de fragmentos math e imágenes por SHA, pero **no** se certifica equivalencia científica ni visual de PDF→PDF. La segunda pasada confirmó tres discrepancias tipadas: literal CODE/TABLE sin protección contextual, jerarquía HEADING descartada y macros TeX legítimas de texto escapadas. Se preservan como hallazgos locales por separado de la geométrica upstream (GAP-0.2-02) y del gate científico de PPPR.0.8. No se presume ejecución de TeX, duplicación de artifacts ni corrupción física observada.
 
 ## 21. CIERRE DEL HITO — IN_PROGRESS
 
-**NO FROZEN.** Primera pasada con 24 E-IDs P2, 9 hipótesis (varias abiertas), cero GAPs formalizados y sin revisión final §8.1–8.2. Pendiente: indagar las contradicciones de CODE/TABLE, heading y tamaño de página; verificar fuente de metadatos, macros Unicode/TeX, garantías ante crash, testigos específicos y comparación F17BIS P6; después clasificar hipótesis y abrir GAPs solamente con prueba normativa.
+**NO FROZEN — IN_PROGRESS v1.0.1.** Segunda pasada: **34 E-IDs (3 P1, 31 P2)**, tres fichas P1 extendidas, tres GAP locales OPEN, nueve hipótesis clasificadas parcial/terminal, cuatro DQ y tres DC provisionales. Pendiente: cerrar H-0.6-F (degradación y observabilidad), reconciliar no-regresión F17BIS/PPPR, precisar límites de macro/TeX frente a fuente PDF y pasar checklist §8.1–8.2. No hubo tests, Tectonic, Docker, ejecución LLM, SQLite de usuario, corpus ni código de producción.
 
 **Política Git:** abrir PR interno **Draft** exclusivamente de este Markdown desde `pppr/hito-0.6` hacia `pdf-pdf-product-readiness`. Mantener PR general #66 Draft; `main` intacto. No modificar implementación ni ejecutar pruebas científicas sin autorización; tras cierre FROZEN y aprobación, integrar, verificar, eliminar rama corta y comenzar PPPR.0.7 desde el HEAD general nuevo.
