@@ -1,6 +1,6 @@
 # HITO_PPPR.0.8_VALIDACION_TECNICA_Y_CIENTIFICA.md
 
-**Estado:** FROZEN v1.0.3  
+**Estado:** FROZEN v1.0.4  
 **Fecha de apertura:** 2026-11-20  
 **Fecha de congelamiento documental:** 2026-11-20  
 **Tipo:** Forensic Flow Audit — verificación técnica, regresión topológica y validación científica de PDF→PDF  
@@ -20,6 +20,7 @@
 | 1.0.1-IN_PROGRESS | 2026-11-20 | Segunda pasada: 45 E-IDs (todos P2), matriz de productores/consumidores/oráculos, 8 hipótesis clasificadas parcialmente, 6 DQ y 4 DC. Preflight separado con tensión normativa R7(d) en verificación; CV extracción ≠ certificación PDF EN→ES; SemanticJudge y benchmark A/B históricos no son gates de producción. Sin nuevos GAP OPEN, sin tests ni FROZEN. |
 | 1.0.2-IN_PROGRESS | 2026-11-20 | Tercera pasada read-only: 49 E-IDs P2, 7 DQ/4 DC. Post-run cotejado con NADR-24 R29/R36–37: provenance inyectada como flag y multiplicidad de IDs colapsada por set; registros de Wave 3.2/3.3 distinguen parámetros normativos no calibrados, y FINAL_EVALUATION histórica registra HARD_FAIL. Sin GAP local P1, ejecución ni FROZEN. |
 | 1.0.3-FROZEN | 2026-11-20 | Cierre §8.1–8.2 y §9.2–9.4: 49 evidencias P2 estables; ocho hipótesis terminales, siete DQ y cuatro DC con destinos; cero GAP propio confirmado; correlación sujeto–oráculo–resultado y no-regresión D-1/D-2/F17-BIS. Se corrigen continuidad de tablas, títulos residuales y alcance de post-run; NO nuevas pruebas ni certificación PDF→PDF. |
+| 1.0.4-FROZEN | 2026-11-20 | Corrección metodológica posterior a FROZEN (§1.2): §14 distingue cero GAP productivo D-1/D-2 confirmado de observaciones locales del tooling certificante histórico (E-026, E-046/047); se aclaran alcance del booleano de provenance y unicidad de IDs, DQ-06/07 y §21. IDs, evidencias, severidades, decisiones y garantías inalterados; sin nueva prueba ni merge. |
 
 ## 1. RESUMEN EJECUTIVO
 
@@ -177,7 +178,14 @@ C) PRODUCTO OBJETIVO — PROPIEDADES AÚN NO CERTIFICADAS
 
 ## 14. GAPs CONSOLIDADOS — VEREDICTO FINAL
 
-**Cero GAP propios PPPR.0.8 confirmados (P0/P1/P2 OPEN) para el mandato forense.** Se conservan dependencias anteriores: issue #34 (15 PDFs privados ausentes), requisitos de traducción de PPPR.0.4, render G5 de PPPR.0.6 y modalidad de proveedor de PPPR.0.7. La ausencia de certificación end-to-end acreditada es una **garantía faltante del producto objetivo**, no un incumplimiento demostrado del sujeto de extracción del NADR histórico. La definición de *Required* específico para certificar EN→ES, los falsadores científicos y su autorización quedan en DC-0.8-01/02/04 y DQ-0.8-02/04/05. E-026 y E-046/047 conservan límites locales de subtools heredados, condicionados por su caller real (DQ-06/07), sin reetiquetarlos como P1 productivo.
+**Cero GAP nuevos confirmados de la ruta productiva PPPR D-1/D-2 para este mandato forense.** Se conservan dependencias anteriores: issue #34 (15 PDFs privados ausentes), requisitos de traducción de PPPR.0.4, render G5 de PPPR.0.6 y modalidad de proveedor de PPPR.0.7. La ausencia de certificación end-to-end acreditada es una **garantía no demostrada del producto objetivo**, no por sí misma un incumplimiento del sujeto de extracción histórico. El *Required* específico de certificación EN→ES, los falsadores científicos y su autorización quedan en DC-0.8-01/02/04 y DQ-0.8-02/04/05.
+
+**Observaciones locales del tooling certificante histórico — no equivalen a GAP productivo:**
+
+- **E-0.8-026, preflight:** `tools/evaluation/preflight_certification.py::main` comprueba presencia de `oracle_hash`, pero **no recalcula en esa CLI** la identidad semántica del Ground Truth. Es una insuficiencia observable de esa implementación frente a la comprobación declarada por el shell y a R7(d) de NADR-F17BIS-24 **dentro del sujeto de certificación histórico**. `RegressionAdapter` sí verifica esa identidad durante la regresión topológica, en otra etapa. **Disposición:** OBS P2 / DQ-0.8-06; no se acreditó que ese preflight sea gate de EN→ES.
+- **E-0.8-046/047, post-run:** `validate_post_run` recibe `evaluation_provenance_available` como booleano y **no comprueba allí** la referencia ni el contenido de provenance. Recibir un booleano en un núcleo puro **no es por sí solo un defecto** si un caller lo computó y verificó materialmente. En cambio, la conversión de resultados a `frozenset` **pierde la multiplicidad** del mismo `document_id`, aunque se describa la cobertura como biyectiva. Son límites observables de esa función, no evidencia de una certificación falsa ejecutada. **Disposición:** OBS P2 / DQ-0.8-07; caller y contrato certificante aplicables a D-1/D-2 no acreditados.
+
+**Reconciliación §8.3 y alcance:** se mantiene **cero GAP propio confirmado de PPPR.0.8** porque estas observaciones no demuestran un incumplimiento del **contrato certificante vigente y conectado al producto D-1/D-2**. Esto **no niega** las discrepancias locales del tooling: si se audita formalmente el cumplimiento de esas herramientas bajo F17-BIS en su propio perímetro, corresponderá clasificarlas como findings o GAP locales con severidad y destino justificados, **sin trasladarlos automáticamente a PPPR**. Antes de reutilizar una herramienta como gate de producto, deben verificarse su contrato de caller, provenance material, unicidad y suficiencia. DQ-06/07 contienen motivo de no-bloqueo y destino. No se autoriza remediación ni pruebas nuevas en este HITO.
 
 ## 15. HIPÓTESIS — OCHO VEREDICTOS TERMINALES
 
@@ -226,20 +234,20 @@ El código ya contiene una capacidad sustancial de evaluación topológica y cer
 - **NADR-F17-BIS-24:** preflight E-026–030 y post-run E-046/047 se comparan con R7(d)/R29/R36–37 en sus fronteras locales. `RegressionAdapter` sí compara hash semántico dentro de regresión; sin sujeto/caller de certificación D-1/D-2 demostrado no extrapolar el déficit ni elevarlo automáticamente a P1 (DQ-06/07).
 - **PPPR.0.1–0.7 e issue #34:** permanecen como evidencia y dependencias existentes. No alterar sellados, corpus, legacy, proveedor, umbrales ni `main`.
 
-## 21. CIERRE DEL HITO PPPR.0.8 — FROZEN v1.0.3
+## 21. CIERRE DEL HITO PPPR.0.8 — FROZEN v1.0.4
 
-**Estado documental:** **FROZEN v1.0.3 — 2026-11-20**. Mandato completado por **lectura estática/documental** de la frontera de evaluación técnica y científica; no se declara funcionamiento productivo, calibración nueva, certificación ni `PRODUCT_READINESS=PASS`. La conclusión es que el sujeto de Continuous Verification es extracción PDF→AST, la ruta convergida D-1/D-2 publica PDF mediante G3/G5 y **ningún oráculo científico independiente conectado al PDF traducido fue acreditado**. Los mecanismos de integridad, topología, preflight y post-run existentes se conservan como candidatos de reutilización **dentro de su contrato real**, sin heredar automáticamente los requisitos multirruta de F17-BIS.
+**Estado documental:** **FROZEN v1.0.4 — 2026-11-20**. Mandato completado por **lectura estática/documental** de la frontera de evaluación técnica y científica; no se declara funcionamiento productivo, calibración nueva, certificación ni `PRODUCT_READINESS=PASS`. La conclusión es que el sujeto de Continuous Verification es extracción PDF→AST, la ruta convergida D-1/D-2 publica PDF mediante G3/G5 y **ningún oráculo científico independiente conectado al PDF traducido fue acreditado**. Los mecanismos de integridad, topología, preflight y post-run existentes se conservan como candidatos de reutilización **dentro de su contrato real**, sin heredar automáticamente los requisitos multirruta de F17-BIS.
 
 ### 21.1 Checklist metodológico §8.1
 
 | Condición obligatoria | Veredicto y evidencia de cumplimiento |
 |---|---|
-| Metadata, versión y changelog | **CUMPLE** — estado/fecha/tipo/mandato, baselines pinneados y changelog 1.0.0→1.0.3; no hay veredictos IN_PROGRESS fuera de historia. |
+| Metadata, versión y changelog | **CUMPLE** — estado/fecha/tipo/mandato, baselines pinneados y changelog 1.0.0→1.0.4; no hay veredictos IN_PROGRESS fuera de historia. |
 | Límite epistemológico y fuentes | **CUMPLE** — §2/§4; Observed / Required / Decision, código actual, PPPR FROZEN, Atlas descriptivo, F17-BIS solo por sujeto compatible y evidencia histórica delimitada. |
 | Alcance y cobertura de módulos | **CUMPLE para el mandato** — §3 separa expresamente **AUDITADO focal**, **CENSADO**, **REFERENCIADO** y **NO VERIFICABLE**. No se declara inspección exhaustiva de código legacy ni ejecución física ajena al perímetro. |
 | Identidad y severidad de evidencias | **CUMPLE** — E-0.8-001…049 únicos, sin reasignación; 49 P2, 0 P0/P1 confirmados; observaciones de subtools con sujeto y consecuencia delimitados. |
 | Observed / Required / Decision | **CUMPLE** — §2, §6, §6.1, §10, §14 y §17 separan comportamiento material, requisitos actuales, norma F17-BIS acotada y decisión que aún no existe para certificar EN→ES. |
-| GAPs demostrados y destinos | **CUMPLE** — §14 identifica **0 GAP propio confirmado**, sin crear IDs ficticios. Herencias de PPPR.0.2–0.7 e issue #34 conservan sus destinos/autoría. |
+| GAPs demostrados y destinos | **CUMPLE** — §14 distingue **0 GAP productivo nuevo confirmado** de observaciones concretas del tooling histórico (E-026/046/047), con DQ-06/07 y disposición condicional §8.3; no crea GAPs ficticios. Herencias de PPPR.0.2–0.7 e issue #34 conservan sus destinos/autoría. |
 | Hipótesis cerradas | **CUMPLE** — H-0.8-A…H tienen disposición terminal: **CONFIRMADA**, **RECHAZADA** o **NO VERIFICABLE** según propiedad; H-G confirma el *alcance* de falsadores posibles, no una ejecución. |
 | Diferimientos §8.2 | **CUMPLE** — DQ-0.8-01…07 incluyen razón, no-bloqueo de la auditoría documental y destino; DC-0.8-01…04 son decisiones **no aprobadas** para ADR Maestro/Execution Plan. |
 | Reconciliación y no-regresión | **CUMPLE** — §17 conserva PPPR.0.1–0.7 FROZEN y issue #34; Wave 3.2/3.3 y NADR históricos permanecen acotados. Ninguna contradicción pendiente sin registrar dentro del mandato. |
@@ -247,7 +255,7 @@ El código ya contiene una capacidad sustancial de evaluación topológica y cer
 
 ### 21.2 Aplicación de §8.2: no verificable y no-bloqueo
 
-Las siete DQ de §15.1 **no impiden el cierre del inventario forense read-only**: DQ-01 corresponde a custodia/issue #34; DQ-02 a proveedor e independencia lingüística EN→ES; DQ-03 a particiones/datasets; DQ-04 a evidencia física STEM y layout; DQ-05 al contrato de CI/certificación integral; DQ-06 al caller del preflight y su comprobación real de `oracle_hash`; y DQ-07 al caller del post-run, provenance y cardinalidad. Cada una **sí impide atribuir su garantía no demostrada al producto** o ejecutar un gate futuro como si ya estuviera aprobado. Los cuatro DC quedan explícitamente reservados a gobernanza posterior.
+Las siete DQ de §15.1 **no impiden el cierre del inventario forense read-only**: DQ-01 corresponde a custodia/issue #34; DQ-02 a proveedor e independencia lingüística EN→ES; DQ-03 a particiones/datasets; DQ-04 a evidencia física STEM y layout; DQ-05 al contrato de CI/certificación integral; DQ-06 al caller del preflight y su comprobación real de `oracle_hash`; y DQ-07 al caller del post-run, provenance y cardinalidad. Cada una **sí impide atribuir su garantía no demostrada al producto** o ejecutar un gate futuro como si ya estuviera aprobado. Los cuatro DC quedan explícitamente reservados a gobernanza posterior. Las limitaciones observables de los subtools históricos **no desaparecen** por no estar conectados a D-1/D-2: su eventual clasificación normativa local y reutilización exigen sujeto, caller y destino demostrados (§14), nunca un P1 productivo por transferencia.
 
 ### 21.3 Garantías positivas y negativas del cierre
 
