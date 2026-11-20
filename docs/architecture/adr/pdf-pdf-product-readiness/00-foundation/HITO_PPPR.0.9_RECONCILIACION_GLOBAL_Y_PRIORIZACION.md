@@ -1,6 +1,6 @@
 # HITO_PPPR.0.9_RECONCILIACION_GLOBAL_Y_PRIORIZACION.md
 
-**Estado:** IN_PROGRESS v1.0.1  
+**Estado:** IN_PROGRESS v1.0.2  
 **Fecha de apertura:** 2026-11-20  
 **Congelamiento:** N/A  
 **Iniciativa:** PPPR, auditoría forense de Fase 0 transversal (no fase nueva del roadmap)  
@@ -17,6 +17,7 @@
 |---|---|---|
 | 1.0.0-IN_PROGRESS | 2026-11-20 | Primera pasada de reconciliación 0.1–0.8: 270 E-IDs de origen, 14 GAP-IDs P1 OPEN heredados con un par causalmente duplicado, un GAP-ID histórico retirado, dos GAP-IDs candidatos no confirmados, 37 DQ-IDs y 22 DC-IDs registrados. Clasificación inicial de diferencias, propagaciones, hipótesis y dependencias para ADR. Sin GAP nuevo, pruebas ni FROZEN. |
 | 1.0.1-IN_PROGRESS | 2026-11-20 | Segunda pasada focal: inspección de NADR-F17BIS-03/16 y consumidores efectivos de compute_ast_hash; tensión de contrato alternativo vs uso de generación sin rebajar GAP-0.3. Primera agrupación de DQ/DC por propietarios y estado; H-0.9-H rechaza multiplicación 37+22 por ID, sin declarar resueltos asuntos físicos. 30 E-IDs P2, 8 hipótesis con disposición terminal de la pregunta, una DQ-0.9 pendiente. Sin tests ni FROZEN. |
+| 1.0.2-IN_PROGRESS | 2026-11-20 | Tercera pasada: disposición individual exacta de 37 DQ-IDs (2 resueltas en origen, 35 diferidas/delimitadas) y 22 DC-IDs (candidatos no aprobados; EN→ES y renovar inferencia predecididos parcialmente), con razón, no-bloqueo, destino y familia; §14 clasifica scope de familias sin alterar severidad/propiedad. DQ-0.9-01 diferida al ADR. Sin nuevas pruebas, GAP o FROZEN. |
 
 ## 1. RESUMEN EJECUTIVO
 
@@ -159,28 +160,95 @@ El orden expone **dependencias**: no asigna waves, responsables, modelos ni tecn
 | **H-0.9-G** | ¿CV/bench F17-BIS certifica el PDF EN→ES? | **RECHAZADA como garantía**, 0.8 FROZEN |
 | **H-0.9-H** | ¿37 DQ y 22 DC exigen resoluciones independientes? | **RECHAZADA** como inferencia de cardinalidad: son IDs de origen, incluyen DQ-0.1-04/05 ya resueltas y dominios repetidos. La asignación completa de destinos individuales queda pendiente en §16; esto **no** afirma que todos los diferimientos hayan sido resueltos |
 
-## 16. DQ Y DC — CLASIFICACIÓN POR AUTORIDAD (SEGUNDA PASADA)
+## 16. TRANSFERENCIA INDIVIDUAL DQ/DC — TERCERA PASADA
 
-**37 DQ-IDs históricos:** 0.1=5, 0.2=4, 0.3=4, 0.4=4, 0.5=4, 0.6=4, 0.7=5, 0.8=7. En 0.1, DQ-04 y DQ-05 ya figuran **RESUELTAS**; el conteo no representa 37 asuntos abiertos. Hay referencias ya parcialmente reconciliadas por posteriores HITOs y deben deduplicarse por destino antes del cierre.
+**Principio de cierre §8.2:** `RESUELTA EN ORIGEN` solo se usa cuando el HITO FROZEN declara la cuestión resuelta (DQ-0.1-04/05). `DIFERIDA` incluye subtipos **DELIMITADA**, **CONDICIONAL** o **ACOTADA**: el contrato fue estudiado, no se produjo la prueba física/decisión. **Razón común de no-bloqueo:** cada diferimiento deja cerrar la **reconciliación documental** (no pretende ejecutar ni certificar), pero **sí impide** atribuir la garantía no demostrada al PDF EN→ES o aprobar un gate que depende de esa garantía. Cada fila expresa su causa específica y destino. Los destinos hacia HITOs ya FROZEN se consideran **antecedentes**, no pruebas ejecutadas.
 
-**22 DC-IDs históricos:** 0.1=0, 0.2=0, 0.3=3, 0.4=4, 0.5=3, 0.6=4, 0.7=4, 0.8=4. **No equivalen a 22 nuevos ADR ni decisiones ya aprobadas.** No crear DC adicionales solo por reagrupación.
+### 16.1 Disposición individual de los 37 DQ-IDs heredados
 
-**DQ-0.9-01 — CONTRASTE PARCIAL, NO RESUELTA:** NADR-F17BIS-03 §5.1 R1/R4 está `APPROVED/FROZEN` y prescribe jerarquía y canonización de firma AST; NADR-F17BIS-16 §5.2 R4–8 permite contratos distintos por propósito, no elimina todo contrato del hash alternativo. El código `compute_ast_hash` se autodescribe para parsers/topología, **pero** `prepare_contextual_plan` lo emplea en la ruta OCR activa y `ASTRegistry` identifica generaciones por ese hash; falta decidir formalmente la **semántica exigible de identidad de generación** de D-1/D-2, sin importar todo F17-BIS ni desplazar 0.3 por interpretación. **Observed** E-025…028; **Required** Scope/principios y reglas históricas solo en su frontera compatible; **Decision** no existe excepción/contrato nuevo aprobado. **No-bloqueo:** no hay motivo para revocar los GAP-0.3-01/02 FROZEN por lectura sola, ni para adelantar remediación; sí impide cerrar esa elección normativa para implementación. **Destino:** ADR Maestro PPPR, comprobar contrato de generación/callers en diseño; NADR adicional solo si existe vacío verificado.
+| DQ original | Estado forense | Evidencia faltante / razón de no resolución | Destino vinculable |
+|---|---|---|---|
+| DQ-0.1-01 | DIFERIDA | No se ejecutó cambio real de identidad/configuración entre generaciones | ADR Maestro (identidad) → testigo focal de replay autorizado |
+| DQ-0.1-02 | DIFERIDA | No hay cuenta, credenciales, coste ni egress verificados | ADR proveedor/presupuesto → Execution Plan autorizado |
+| DQ-0.1-03 | DIFERIDA | Lanzadores externos al Git/host no inspeccionados | ADR modalidad → preflight del plan según modalidad |
+| DQ-0.1-04 | RESUELTA EN ORIGEN | Perímetro 0.2–0.9 asignado en §6.2 del HITO 0.1 | **Sin nueva decisión**; conservar ID y cobertura |
+| DQ-0.1-05 | RESUELTA EN ORIGEN | Owner aprobó nomenclatura PPPR; **merge general #66** sigue gate futuro distinto | **Sin nueva decisión de nombre**; integración según §6.7 y owner |
+| DQ-0.2-01 | DIFERIDA | Orden de lectura multicolumna no evaluado con GT físico independiente | ADR alcance/oráculos → testigo científico autorizado |
+| DQ-0.2-02 | DIFERIDA | Glifos/visual y material físico requieren corpus con custodia | ADR oráculo STEM/visual → plan aprobado |
+| DQ-0.2-03 | DIFERIDA | Modalidades STEM no cubiertas por prueba física autorizada | ADR criterios de cobertura → corpus autorizado/issue #34 |
+| DQ-0.2-04 | DIFERIDA, DELIMITADA | Propagación perfilado→G5 auditada por código, impacto físico no medido | GAP-0.2-02 + ADR layout → testigo G5 |
+| DQ-0.3-01 | DIFERIDA | Sutura trans-página real requiere documento conocido y criterio independiente | ADR evidencia de ingesta → testigo seguro |
+| DQ-0.3-02 | DIFERIDA | Abreviaturas y cortes oracionales STEM no juzgados empíricamente | ADR oráculo lingüístico → plan de validación |
+| DQ-0.3-03 | DIFERIDA, DELIMITADA | Consumidores G3/G5 inspeccionados; preservación física no acreditada | ADR invariantes STEM → oráculos E2E |
+| DQ-0.3-04 | DIFERIDA | Aplanamiento H2/H3 observado, frecuencia y efecto físico requieren PDFs | GAP-0.3-01/GAP-0.6-02 → ADR jerarquía/testigo |
+| DQ-0.4-01 | DIFERIDA | Guardias JSON/math con fake, proveedor real no autorizado | ADR proveedor → testigo focal en Execution Plan |
+| DQ-0.4-02 | DIFERIDA, DELIMITADA | W06/UNKNOWN caracterizado en PPPR.0.5, eficacia real de recuperación no ensayada | GAP-0.5-01/02/03 → ADR/Execution Plan F18 |
+| DQ-0.4-03 | DIFERIDA | Tokenizador, ventana y factura del backend elegido no existen aún | DC-0.4-01/03/04 → ADR presupuesto |
+| DQ-0.4-04 | DIFERIDA | Modelo/proveedor comercial vigente todavía no seleccionado ni probado | DC-0.4-04 → ADR modelo/privacidad/costo |
+| DQ-0.5-01 | DIFERIDA, DELIMITADA | Lease tras espera es GAP estático; impacto/timing no ensayados | GAP-0.5-02 → testigo offline focal aprobado |
+| DQ-0.5-02 | DIFERIDA, ACOTADA | Crash físico/SIGKILL no probados; **power loss universal no es garantía exigida por F18** | ADR disponibilidad F18 → testigo sólo en alcance aprobado |
+| DQ-0.5-03 | DIFERIDA, DELIMITADA | PPPR.0.7 verificó Compose versionado, no host realmente activo | DC-0.7-01/03/04 → gate operacional del plan |
+| DQ-0.5-04 | DIFERIDA | Correlación excepción, reembolso/cobro y duplicación remota requieren proveedor | ADR observabilidad/costos F18 → plan con autorización |
+| DQ-0.6-01 | DIFERIDA | No hay compilación real de UTF-8/math/imágenes ni procedencia de macros | ADR texto literal vs TeX; testigo físico autorizado |
+| DQ-0.6-02 | DIFERIDA, DELIMITADA | Perfil/figura/drift necesita salida PDF y criterio visual independiente | GAP-0.2-02 + DC-0.6-03 → ADR/testigo |
+| DQ-0.6-03 | DIFERIDA | No hubo SIGKILL/FS+SQLite; power loss universal no se presume | ADR F18/plan, testigo de crash sólo si aplicable |
+| DQ-0.6-04 | DIFERIDA, CONDICIONAL | Ningún root con fallback completo y backing acreditado; DEGRADED no adoptado | DC-0.6-04 → ADR decide si pertenece al producto |
+| DQ-0.7-01 | DIFERIDA | Proveedor/secrets/host comercial desconocidos, sin credenciales ni egress | DC-0.4-04/DC-0.7-02 → ADR/plan |
+| DQ-0.7-02 | DIFERIDA, DELIMITADA | C2 contenedor sí, puente CLI host Windows→Docker no autorizado ni comprobado | DC-0.7-01 → ADR modalidad, preflight posterior |
+| DQ-0.7-03 | DIFERIDA | Versiones/ACL/UID/volúmenes/SQLite del host externo no observables en Git | DC-0.7-03/04 → plan del modo aprobado |
+| DQ-0.7-04 | DIFERIDA | Digest/cachés, redes y entrega real de secretos no verificados | ADR seguridad mínima → gate aislado del plan |
+| DQ-0.7-05 | DIFERIDA, DELIMITADA | Workflows no cubren PR interno; testigo C2 fake histórico no prueba CI científico | DC-0.8-04 → ADR/Execution Plan de gates |
+| DQ-0.8-01 | DIFERIDA, BLOQUEA CV FÍSICA | Falta materialización autorizada de 15 PDFs y verificación de custodia/hash | Owner + issue #34; plan sólo tras permiso |
+| DQ-0.8-02 | DIFERIDA | Modelo EN→ES y muestras bilingües independientes sin aprobación | ADR proveedor/oráculo → evaluación autorizada |
+| DQ-0.8-03 | DIFERIDA | Identidades SHA compartidas, particiones/protocolo ejecutado no acreditado | ADR independencia del benchmark, sin inferir leakage |
+| DQ-0.8-04 | DIFERIDA | Matemáticas, tablas, diagramas, layout del PDF español sin prueba física | ADR invariantes/cobertura → plan de validación |
+| DQ-0.8-05 | DIFERIDA | CI extrae PDF→AST, no existe gate científico del sujeto EN→ES contratado | DC-0.8-01/02/04 → ADR gate de producto |
+| DQ-0.8-06 | DIFERIDA, CONDICIONAL | CLI preflight legacy no recalcula GT hash allí; caller certificante actual no acreditado | ADR sujeto/reutilización → revisión subtool sólo si gate |
+| DQ-0.8-07 | DIFERIDA, CONDICIONAL | Post-run recibe provenance bool y colapsa duplicados; caller/gate no acreditado | ADR sujeto/reutilización → testigo focal sólo si gate |
 
-### 16.1 Familias de transferencia (sin crear decisiones nuevas)
+**Censo:** 37 IDs rastreados sin reasignación; **2 RESUELTAS en origen**, **35 DIFERIDAS** total (incluidas DELIMITADA, ACOTADA o CONDICIONAL), todas con razón y destino. **No** son 35 nuevos tickets ni bloquean por sí solos el cierre de Fase 0; bloquean las afirmaciones de garantía que cada una delimita.
 
-| Familia de gobierno | DQ/DC de origen representativas | Qué se transfiere y qué permanece fuera |
+### 16.2 Disposición individual de los 22 DC-IDs heredados
+
+**Regla §8.3:** los DC son cuestiones de decisión, no GAPs técnicos adicionales ni una autorización de diseño. La agrupación causal puede llevar a una misma decisión ADR; **no** requiere 22 NADR/ADR ni implementación nueva. Los fragmentos de decisión ya fijados por el owner se preservan.
+
+| DC original | Naturaleza y estado | Destino sin decisión presupuesta |
 |---|---|---|
-| **Alcance de producto EN→ES y traducción de headings** | DC-0.3-01/02, DC-0.4-02/04, DQ-0.8-02/04 | **ADR Maestro:** lengua destino ya decidida, política de headings, proveedor y criterio lingüístico aún por decidir |
-| **Modelo, presupuesto, pago/egress** | DQ-0.1-02, DQ-0.4-01/03/04, DQ-0.5-04, DQ-0.7-01, DC-0.4-01/03/04, DC-0.7-02 | Elección de backend y controles mínimos; **NO VERIFICABLE** sin cuenta autorizada. No diseñar doble stack ni asumir modelo |
-| **Identidades, AST y geometría STEM** | DQ-0.1-01, DQ-0.2-01…04, DQ-0.3-01…04, DC-0.3-03, DC-0.6-02/03 | Mantener los GAP de fuente y semántica del hash; testigos físicos y criterio de preservación solo tras autorización |
-| **FSM, leases, UNKNOWN y recuperabilidad** | DQ-0.4-02, DQ-0.5-01…03, DQ-0.6-03, DC-0.5-01…03 | ADR/plan con F18 vigente; sin retry ciego ni ensayo destructivo sobre SQLite del usuario |
-| **Compilación, fallback y layout G5** | DQ-0.6-01/02/04, DC-0.6-01/02/03/04 | Distinguir código literal de TeX legítimo, jerarquía y DEGRADED condicional; no promover la macro textual retirada |
-| **Modo de operación/host** | DQ-0.1-03, DQ-0.7-02…05, DC-0.7-01/03/04 | Selección de modalidad, mounts, Compose efectivo, secretos y preflight; host desconocido no es fallo ejecutado |
-| **Certificación y corpus** | DQ-0.8-01/03/05/06/07, DC-0.8-01…04 | Contrato de sujeto/oráculo, issue #34, integridad y reutilización restringida del tooling; no nuevo framework por defecto |
-| **Gobernanza ya delimitada** | DQ-0.1-04/05 | **RESUELTAS** en HITO 0.1 para nomenclatura/perímetro; conservar IDs, no trasladar como dos tareas |
+| DC-0.3-01 | Política **PENDIENTE** sobre traducir headings o PRESERVE | ADR Maestro EN→ES |
+| DC-0.3-02 | Criterio **PENDIENTE** de H1/H2/H3 y linaje de jerarquía | ADR Maestro layout/STEM |
+| DC-0.3-03 | Contrato **PENDIENTE** de normalización/identidad, sin NFKC automática | ADR Maestro identidad; NADR sólo si falta norma |
+| DC-0.4-01 | Presupuesto por llamada, techo/medición **PENDIENTE** | ADR Maestro proveedor/FinOps |
+| DC-0.4-02 | **FIJADO** solo EN→ES; expresión verificable source/target **PENDIENTE** | ADR Maestro contrato → plan |
+| DC-0.4-03 | Fallback real o rechazo fail-closed **PENDIENTE** | ADR Maestro → plan |
+| DC-0.4-04 | **FIJADA** renovación de inferencia; proveedor/modelo real **PENDIENTE** | ADR Maestro backend → evaluación autorizada |
+| DC-0.5-01 | Escalamiento UNKNOWN sin retry ciego **PENDIENTE** | ADR Maestro/F18 → plan |
+| DC-0.5-02 | Validación de lease al comenzar efecto **PENDIENTE** | ADR Maestro/F18 → plan |
+| DC-0.5-03 | Rol de sweeper, reconciliación FSM/queue/reporting **PENDIENTE** | ADR Maestro/F18 → plan |
+| DC-0.6-01 | Contrato literal CODE/TABLE vs TeX legítimo **PENDIENTE** | ADR Maestro → plan |
+| DC-0.6-02 | Representación visual HEADING por niveles **PENDIENTE** | ADR Maestro → plan |
+| DC-0.6-03 | Perfiles/páginas/figuras y criterio de publicación **PENDIENTE** | ADR Maestro → plan |
+| DC-0.6-04 | Admisión DEGRADED/fallback **CONDICIONAL, NO APROBADA** | ADR Maestro sólo si se adopta |
+| DC-0.7-01 | Modalidad CLI host/contenedor/foreground **PENDIENTE** | ADR Maestro modalidad → plan |
+| DC-0.7-02 | Mecanismo de secrets tras elección de proveedor **PENDIENTE** | ADR Maestro → plan |
+| DC-0.7-03 | Controles imagen/red/cache/ACL mínimos **PENDIENTES** | ADR Maestro proporcional → plan |
+| DC-0.7-04 | Preflight operacional no destructivo **PENDIENTE** | Execution Plan tras aprobar modalidad |
+| DC-0.8-01 | Sujeto/capas de certificación **PENDIENTES** | ADR Maestro |
+| DC-0.8-02 | Oráculos lingüísticos/STEM/visuales e independencia **PENDIENTES** | ADR Maestro → plan científico autorizado |
+| DC-0.8-03 | Custodia y provisión de PDFs **PENDIENTES** por autorización owner | Owner / issue #34 → plan condicionado |
+| DC-0.8-04 | Gates/atribución mínima/costo/aislamiento **PENDIENTES** | ADR Maestro → plan |
 
-**Control de cobertura:** los agrupamientos anteriores son una **matriz de familias y referencias representativas**, todavía no una disposición individual exhaustiva de los 37 DQ/22 DC; algunas referencias atraviesan más de una familia y **no se contabilizan de nuevo**. Un HITO referido como destino (0.7 u 0.8) puede haber delimitado la falta de evidencia sin haber producido la prueba física. No dar `RESUELTA` por remisión automática.
+**Censo:** 22 candidatos identificados, **0 soluciones aprobadas por este HITO**, dos con parte del alcance ya fijada en PPPR.0.4 (EN→ES y renovar inferencia). El ADR Maestro debe decidir solo lo imprescindible; el plan posterior transformará decisiones aprobadas en tareas y gates, sin crear un documento paralelo de priorización.
+
+### 16.3 DQ-0.9-01 — contrato de hash aplicado a identidad de generación
+
+**Estado:** **DIFERIDA DOCUMENTALMENTE AL ADR MAESTRO, NO RESUELTA POR PRESUNCIÓN.** `NADR-F17BIS-03` FROZEN R1/R4 exige jerarquía y contenido normalizado para su firma AST; `NADR-F17BIS-16` FROZEN R4–8 permite hashes con propósitos distintos y documentados. El código `compute_ast_hash` declara uso alternativo para comparación de parsers y excluye `heading_level/depth`, pero `prepare_contextual_plan` lo calcula en la ruta OCR y `ASTRegistry` usa `(document_id,ast_hash)` como identidad durable. **Observed:** E-0.9-025…028. **Required:** preservar identidad y linaje semánticos de la generación bajo Scope/principios; aplicabilidad normativa histórica **solo por sujeto compatible**. **Decision:** contrato exacto de identidad de generación no quedó aprobado por D-1/D-2. **Motivo de diferimiento:** requiere decisión de significado e invalidación que no corresponde a una auditoría. **No bloquea** reconciliar GAP-0.3-01/02 (se mantienen P1 OPEN sin corrección ni rebaja), **sí bloquea** decidir cómo corregirlos. **Destino:** ADR Maestro PPPR; NADR adicional solo ante vacío normativo demostrado, testigo posterior bajo plan aprobado.
+
+### 16.4 Criterio de unicidad y destinos por familia
+
+- **Ningún DQ/DC se declara resuelto por mera referencia a PPPR.0.7/0.8**. Esos HITOs registraron testigos y límites, no certificación real de host/PDF.
+- **Ninguna fila crea obligación duplicada:** presupuesto/selección de backend, layout/perfiles, recuperación F18 y ciencia/oráculos atraviesan varias fuentes y se coordinan **por familia de decisión** en §12, sin perder sus IDs.
+- **Dueño de decisión:** owner/ADR Maestro para política de producto, sujeto científico, modalidad, modelo y contrato de identidad; Execution Plan para operacionalizar únicamente decisiones aprobadas; issue #34 para corpus autorizado. No asignar propietarios de ejecución antes del plan.
+- **Frontera anti-scope creep:** subtools F17-BIS, modalidad host no escogida y DEGRADED condicional permanecen observaciones/candidatos; no se prescriben mecanismos nuevos.
 
 ## 17. RECONCILIACIÓN HISTÓRICA Y NO-REGRESIÓN
 
@@ -192,8 +260,8 @@ El orden expone **dependencias**: no asigna waves, responsables, modelos ni tecn
 
 ## 21. CIERRE — IN_PROGRESS
 
-**NO FROZEN — IN_PROGRESS v1.0.1.** Dos pasadas globales: **30 E-IDs P2 propios**, ocho hipótesis con disposición terminal respecto de su enunciado (H-H rechaza multiplicación ingenua de obligaciones), 14 GAP-IDs P1 **heredados** y cero nuevos, un par causalmente duplicado, un ID retirado y dos candidatos no confirmados; 37 DQ/22 DC de origen **agrupados por familias, todavía no todos con disposición individual**. Ninguna prueba científica, proveedor, Tectonic, Docker ni CI ejecutados. No acreditar `PRODUCT_READINESS=PASS`.
+**NO FROZEN — IN_PROGRESS v1.0.2.** Tres pasadas globales: **30 E-IDs P2 propios**, ocho hipótesis terminales, 14 GAP-IDs P1 heredados sin nuevos GAP, un solapamiento causal confirmado, un ID retirado y dos candidatos no confirmados; **37 DQ-IDs individualizados (2 resueltas en origen, 35 diferidas justificadas)** y **22 DC-IDs individualizados (todos candidatos no aprobados en este HITO)**. DQ-0.9-01 diferida al ADR de forma expresa. Ninguna prueba científica, proveedor, Tectonic, Docker ni CI ejecutados. No acreditar `PRODUCT_READINESS=PASS`.
 
-**Pendiente para §8.1–8.2 y FROZEN:** disponer individualmente los DQ/DC restantes (resuelto, transferido o NO VERIFICABLE con motivo/no-bloqueo/destino); cerrar o diferir explícitamente DQ-0.9-01 con el ADR como consumidor; revisar suficiencia de cruces causales y priorización sin convertir familias en soluciones. Después, emitir checklist, garantías positivas/negativas y gate explícito al ADR Maestro, sin abrir documentación paralela.
+**Pendiente para §8.1–8.2 y FROZEN:** control final de suficiencia de GAP Matrix y scopes, revisión de contradicciones, de autoridad y del checklist §8.1; registrar garantías positivas/negativas y el paso a ADR Maestro sin imponer nuevas obligaciones. La disposición DQ/DC y DQ-0.9-01 ya quedó tipada sin ejecución. Después, emitir checklist, garantías positivas/negativas y gate explícito al ADR Maestro, sin abrir documentación paralela.
 
 **Gobernanza:** un Markdown en rama corta `pppr/hito-0.9` nacida de `pdf-pdf-product-readiness@10a95ebb`; PR interno Draft hacia rama general. PR #66 permanece Draft a `main`. FROZEN metodológico y aprobación owner para merge son **gates separados**. Al integrar, verificar rama general, eliminar rama corta y recién entonces comenzar ADR Maestro desde nuevo HEAD.
