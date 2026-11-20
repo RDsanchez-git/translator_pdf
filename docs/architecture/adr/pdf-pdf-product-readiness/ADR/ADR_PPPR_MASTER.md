@@ -66,11 +66,11 @@ Las decisiones siguientes preservan dimensiones **ortogonales**; ninguna implica
 | Reabrir, superseder o imponer íntegramente F17-BIS/F18 por analogía histórica | **Gobernanza del ADR/NADR de la capacidad afectada** mediante decisión explícita; FROZEN previo permanece |
 | Definir programación, responsables personales, batches, story points, rollout o rollback | **Execution Plan único** de esta iniciativa, después de normas aprobadas |
 | Crear registros Exit Review/Findings por anticipación | **Gates de ejecución y revisión post-implementación** según metodología general §6.5–6.6 |
-| Publicar una vía alternativa `DEGRADED` como salida inicial del producto **sin una política explícita aprobada** | **Decisión constitucional DC-12 de este Maestro** (pendiente Board): propuesta de excluir DEGRADED del alcance inicial; si en el futuro se quiere admitir, **ADR sucesor o ADR de subfase expresamente autorizado** y luego norma/plan/testigo conforme a ese alcance |
+| Admitir un PDF `DEGRADED` como **resultado final conforme o certificado** del producto inicial | **DC-12 ratificada por Board** según comunicación del owner (2026-11-20): resultado parcial no conforme; artefacto parcial inequívocamente etiquetado puede usarse para diagnóstico/recuperación sin certificación. Una admisión futura como resultado conforme exige **ADR sucesor o ADR de subfase autorizado**, contrato y testigos; no se prohíbe diagnóstico por esta política |
 
 ## 5. INVARIANTES Y REGLAS DE GOBERNANZA
 
-**Invariantes constitucionales propuestas (sujetas a aprobación de este Maestro; no son reglas RFC-2119 nuevas):**
+**Invariantes constitucionales (parcialmente ratificadas como políticas de alcance DC-03/05/08/09/12; aprobación integral del Maestro aún pendiente; no son reglas RFC-2119 nuevas):**
 
 1. **Unidad de ruta:** existe un solo flujo productivo soportado para el alcance inicial; rutas históricas o herramientas de laboratorio no se convierten en vías alternativas por la puerta de atrás.
 2. **Intención lingüística explícita:** la entrada en inglés y el destino español forman parte del significado verificable de una generación, sin presuponer producto multilingüe.
@@ -78,7 +78,7 @@ Las decisiones siguientes preservan dimensiones **ortogonales**; ninguna implica
 4. **Identidad con propósito:** toda identidad usada para cache, guardia, linaje o certificación tiene semántica y sensibilidad acordes a su consumidor; la coincidencia de hashes no reemplaza una prueba independiente.
 5. **Inferencia compatible y acotada:** el alcance EN→ES contempla un backend vigente y autorizado, coherencia entre modelo realmente invocado, capacidad de contexto, presupuesto total e identidad de petición; una alternativa de inferencia no demostrada no equivale a fallback viable.
 6. **Autoridad al efecto:** inferencia y publicación quedan sujetas a autoridad vigente, manejo explícito de estados inciertos y evitación de segundos efectos remotos ciegos.
-7. **Degradación explícita:** un resultado parcial o fallido conserva su condición y no se presenta como un PDF íntegro o certificado. **La admisión comercial de DEGRADED no se presupone**, conforme a DC-12 pendiente de ratificación.
+7. **Degradación explícita:** un resultado parcial o fallido conserva su condición y no se presenta como PDF final íntegro/certificado. **DC-12 ratificada:** `DEGRADED` no se acepta como resultado conforme inicial; no impide artefactos parciales inequívocamente etiquetados para diagnóstico/recuperación, sin aprobación automática de su productor.
 8. **Sujeto-oráculo-resultado inseparables:** el **PDF científico final EN→ES** es el sujeto de aceptación del producto inicial; cada afirmación de calidad tiene evidencia independiente y límites reproducibles. Extracción PDF→AST, técnica fake y ciencia del PDF final no se colapsan.
 9. **Custodia, privacidad y costo:** ningún testigo científico o proveedor comercial se interpreta como autorizado por la sola existencia de herramientas, configuraciones o documentos.
 
