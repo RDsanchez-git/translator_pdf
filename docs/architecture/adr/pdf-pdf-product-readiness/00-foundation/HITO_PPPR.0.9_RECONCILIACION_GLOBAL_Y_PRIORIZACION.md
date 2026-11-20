@@ -1,8 +1,8 @@
 # HITO_PPPR.0.9_RECONCILIACION_GLOBAL_Y_PRIORIZACION.md
 
-**Estado:** IN_PROGRESS v1.0.2  
+**Estado:** FROZEN v1.0.3  
 **Fecha de apertura:** 2026-11-20  
-**Congelamiento:** N/A  
+**Congelamiento documental:** 2026-11-20  
 **Iniciativa:** PPPR, auditoría forense de Fase 0 transversal (no fase nueva del roadmap)  
 **Tipo:** Reconciliation HITO / Gap Matrix transversal  
 **Mandato:** consolidar y reconciliar E/GAP/DQ/DC de PPPR.0.1–0.8 FROZEN, sin reabrir decisiones cerradas; distinguir identidad causal, propagación y observaciones históricas, ordenar riesgos por dependencia y entregar una base forense para ADR Maestro. **No** diseñar ni implementar.  
@@ -18,6 +18,7 @@
 | 1.0.0-IN_PROGRESS | 2026-11-20 | Primera pasada de reconciliación 0.1–0.8: 270 E-IDs de origen, 14 GAP-IDs P1 OPEN heredados con un par causalmente duplicado, un GAP-ID histórico retirado, dos GAP-IDs candidatos no confirmados, 37 DQ-IDs y 22 DC-IDs registrados. Clasificación inicial de diferencias, propagaciones, hipótesis y dependencias para ADR. Sin GAP nuevo, pruebas ni FROZEN. |
 | 1.0.1-IN_PROGRESS | 2026-11-20 | Segunda pasada focal: inspección de NADR-F17BIS-03/16 y consumidores efectivos de compute_ast_hash; tensión de contrato alternativo vs uso de generación sin rebajar GAP-0.3. Primera agrupación de DQ/DC por propietarios y estado; H-0.9-H rechaza multiplicación 37+22 por ID, sin declarar resueltos asuntos físicos. 30 E-IDs P2, 8 hipótesis con disposición terminal de la pregunta, una DQ-0.9 pendiente. Sin tests ni FROZEN. |
 | 1.0.2-IN_PROGRESS | 2026-11-20 | Tercera pasada: disposición individual exacta de 37 DQ-IDs (2 resueltas en origen, 35 diferidas/delimitadas) y 22 DC-IDs (candidatos no aprobados; EN→ES y renovar inferencia predecididos parcialmente), con razón, no-bloqueo, destino y familia; §14 clasifica scope de familias sin alterar severidad/propiedad. DQ-0.9-01 diferida al ADR. Sin nuevas pruebas, GAP o FROZEN. |
+| 1.0.3-FROZEN | 2026-11-20 | Cierre §8.1–8.2, §9.2–9.4 y estructura §11.2: Gap Matrix de 13 unidades causales preliminares/14 GAP-IDs P1 OPEN heredados con 10 columnas y Decision Scope; 30 E-IDs P2, 8 hipótesis terminales, 37 DQ dispuestas individualmente, 22 DC con destinos, DQ-0.9-01 explícitamente diferida; garantías, límites y transición al ADR Maestro sin implementación. |
 
 ## 1. RESUMEN EJECUTIVO
 
@@ -76,7 +77,7 @@ Una observación downstream de un mismo defecto upstream no autoriza otro GAP. L
 | W06/recuperación | UNKNOWN sin escalamiento, lease antes del semáforo, sweeper con inconsistencia declarada | F18 vigente y principios de autoridad/fail-closed | Reconciliación de mecanismos existentes y pruebas focales, no retry ciego |
 | Host/CI/ciencia | Compose no acredita host; CV extrae AST, C2 fake | Producto comercial/ científico debe disponer de evidencia acorde al sujeto | Modalidad de operación, oráculos y gates independientes EN→ES |
 
-## 10. REGISTRO DE EVIDENCIA FORENSE — PRIMERA Y SEGUNDA PASADA
+## 10. REGISTRO DE EVIDENCIA FORENSE — RECONCILIACIÓN FINAL
 
 **P2 en 0.9** = evidencia de *reconciliación transversal*, no rebaja severidad P1 de los GAP-IDs de origen.
 
@@ -126,28 +127,47 @@ Una observación downstream de un mismo defecto upstream no autoriza otro GAP. L
 
 El orden expone **dependencias**: no asigna waves, responsables, modelos ni tecnologías. La priorización ejecutiva y el Execution Plan siguen siendo futuros y requieren aprobación.
 
-## 14. GAP MATRIX TRANSVERSAL (ESTADOS HEREDADOS)
+## 14. GAP MATRIX TRANSVERSAL — VEREDICTO FROZEN
 
-| ID original | E-ID origen | Estado FROZEN | Reconciliación |
-|---|---|---|---|
-| **GAP-0.1-01** | 0.1 E-002 | **P1 OPEN** | MISMA CAUSA que 0.4-02; preservar ambos IDs |
-| **GAP-0.2-01** | 0.2 E-011 | **P1 OPEN** | Perfil/muestreo page number |
-| **GAP-0.2-02** | 0.2 E-012 | **P1 OPEN** | page width 612.0; E-0.6-028 solo propagación |
-| **GAP-0.3-01** | 0.3 E-010 | **P1 OPEN** | AST hash sin jerarquía, no igual a render |
-| **GAP-0.3-02** | 0.3 E-020 | **P1 OPEN** | Unicode/canonización; aplicabilidad NADR-03 pendiente |
-| **GAP-0.4-01** | 0.4 E-001/013 | **P1 OPEN** | Modelo retirado según HITO |
-| **GAP-0.4-02** | 0.4 E-002 | **P1 OPEN** | Dueño causal del cruce con GAP-0.1-01 |
-| **GAP-0.4-03** | 0.4 E-003/011/012 | **P1 OPEN** | Destino EN→ES no explícito |
-| **GAP-0.4-04** | 0.4 E-019 | **P1 OPEN** | Core+contexto puede exceder fallback |
-| **GAP-0.5-01** | 0.5 E-019 | **P1 OPEN** | UNKNOWN sin escalamiento |
-| **GAP-0.5-02** | 0.5 E-020 | **P1 OPEN** | Lease no revalidado tras semáforo |
-| **GAP-0.5-03** | 0.5 E-032 | **P1 OPEN** | Sweeper Compose/estados/reporting |
-| **GAP-0.6-01** | 0.6 E-025 | **P1 OPEN** | CODE/TABLE TeX crudo |
-| **GAP-0.6-02** | 0.6 E-026 | **P1 OPEN** | HEADING en render (distinto hash AST) |
+**Unidad de consolidación:** una fila por **núcleo causal preliminar**, sin borrar ninguno de los 14 GAP-IDs heredados. Cada fila conserva el finding de origen, el comportamiento observado, el requisito que justificó su severidad en el HITO FROZEN y el **Decision Scope** de §7.2. Las severidades P1 son **heredadas**, no reclasificaciones nuevas; no atribuir incidentes físicos no observados. **Decision Record asignado** indica destino documental **PENDIENTE**, no un ADR aprobado.
 
-**Fuera del total activo:** GAP-0.6-03 **HISTÓRICO RETIRADO**, con E-0.6-027 conservada, por NADR-F17BIS-06 PROPOSED; GAP-0.7-01/02 **CANDIDATOS NO CONFIRMADOS** (secrets/montaje CLI host), sujetos a decisiones de modo y proveedor. PPPR.0.8 no añadió GAP productivo. **Conteo: 14 identificadores OPEN; 13 unidades causales preliminares tras un solo par duplicado verificado.** Ningún GAP antiguo se marca RESOLVED aquí.
+### 14.1 Matriz de 13 unidades causales preliminares (§11.2)
 
-## 15. HIPÓTESIS DE RECONCILIACIÓN — PRIMERA PASADA
+| GAP-ID de origen | Componentes afectados | Finding / E-ID fuente | Estado actual observado | Requerimiento arquitectónico objetivo | Brecha identificada | Severidad heredada | Consecuencia arquitectónica demostrable / límite | Decision Scope | Decision Record destino |
+|---|---|---|---|---|---|---|---|---|---|
+| **GAP-0.2-01** | OCR→`NodeGeometryAdapter`, perfilado | 0.2 E-011/013 | `page_number` no llega al muestreo | Política `FirstPagesSamplingPolicy(max_pages)`, principios de índices físicos | No se respetan primeras páginas cuando `max_pages >= 1` | **P1 LOCAL OPEN** | Perfil no acotado; impacto en papers NOT_RUN | LOCAL | ADR Maestro PPPR → plan aprobado |
+| **GAP-0.2-02** | OCR geometry→perfil→G5 | 0.2 E-012/017; 0.6 E-028 | `relative_center_x` usa ancho fijo `612.0` | Geometría relativa al ancho de página real, linaje físico | Clasificación de centro puede variar con formato de página | **P1 LOCAL OPEN** | Distorsión de perfil transferible; PDF físico NO VERIFICABLE | CROSS-CUTTING | ADR Maestro PPPR → plan aprobado |
+| **GAP-0.3-01** | `compute_ast_hash`, contexto/plan | 0.3 E-010/012; 0.9 E-027/028 | Pre-image omite `heading_level/depth` | Identidad de generación con semántica y jerarquía acordadas; NADR-03 histórico según ámbito | Firmas iguales para jerarquías distintas con texto/tipo/orden iguales | **P1 LOCAL OPEN** | Identidad semántica insuficiente en frontera; DQ-0.9-01 conserva decisión de contrato | CROSS-CUTTING | ADR Maestro (identidad de generación, PENDIENTE) |
+| **GAP-0.3-02** | OCR texto→AST hash | 0.3 E-020; 0.9 E-025–028 | `strip()` sin canonización Unicode anterior al pre-image | Determinismo semántico compatible STEM; NADR-03 FROZEN según sujeto | Equivalencias Unicode pueden tener firmas distintas | **P1 LOCAL OPEN** | Desalineación de identidad; algoritmo concreto NO DECIDIDO | CROSS-CUTTING | ADR Maestro (semántica canónica, PENDIENTE) |
+| **GAP-0.4-01** | G3, modelo/proveedor | 0.4 E-001/013 | Modelo configurado retirado según HITO 0.4 | Backend vigente para producto EN→ES autorizado | Configuración de inferencia obsoleta | **P1 LOCAL OPEN** | Disponibilidad real no acreditada; sin call comercial | LOCAL | ADR Maestro (backend, PENDIENTE) |
+| **GAP-0.1-01 ↔ GAP-0.4-02** | `PromptBuilder`, `GroqProvider`, presupuesto G3 | 0.1 E-002; 0.4 E-002; 0.9 E-003 | `SWITCH_MODEL` deja `envelope.model_name` sin conmutar | Contrato tipado y fail-closed: selección física consistente con presupuesto | Fallback lógico ≠ modelo enviado | **2 IDs P1 LOCAL OPEN; 1 causa** | Puede intentar primaria con ventana de fallback; no error HTTP observado | CROSS-CUTTING | ADR Maestro (política fallback, PENDIENTE) |
+| **GAP-0.4-03** | CLI→OCR→prompt G3 | 0.4 E-003/011/012 | Destino `es` no transmitido explícitamente | Producto EN→ES ya fijado por owner, contrato explícito | Idioma objetivo no verificable en request | **P1 LOCAL OPEN** | Traducción a español no garantizada por el contrato; fake no prueba lengua | CROSS-CUTTING | ADR Maestro (contrato EN→ES, PENDIENTE) |
+| **GAP-0.4-04** | `PromptBudgetCalculator`, builder | 0.4 E-019 | Fallback compara núcleo, admite contexto que excede ventana | Aceptación solo si total cabe en ventana real | `required_window_size` puede superar fallback | **P1 LOCAL OPEN** | Admisión lógica de request físicamente inviable; distinto de conmutación | LOCAL | ADR Maestro (presupuesto/fallback, PENDIENTE) |
+| **GAP-0.5-01** | `queue.db`, W06/UNKNOWN, CLI | 0.5 E-019/022/026 | Cuarentena sin escalamiento recurrente conectado | F18 R11, recuperación supervisada sin retry ciego | UNKNOWN puede permanecer sin señal configurable | **P1 LOCAL OPEN** | Bloqueo indefinido lógico, no llamada duplicada observada | CROSS-CUTTING | ADR Maestro + F18 existente → plan |
+| **GAP-0.5-02** | Lease, semáforo, provider I/O | 0.5 E-020/021 | Check lease previo a espera del semáforo | F18 R2, autoridad vigente al iniciar efecto externo | Falta revalidación durable inmediata al efecto | **P1 LOCAL OPEN** | Efecto podría iniciar con lease vencido; sin gasto medido | CROSS-CUTTING | ADR Maestro + F18 existente → plan |
+| **GAP-0.5-03** | Compose sweeper, FSM/queue/receipts | 0.5 E-032/023; 0.7 §14 | Selectores/transición/reporting no concuerdan | F18 R8/R10, recuperación coherente y observable | Sweeper declara estados diferentes de los que consulta/transiciona | **P1 LOCAL OPEN** | Reparación/observabilidad no fiables bajo composición declarada; host NOT_RUN | CROSS-CUTTING | ADR Maestro + F18 existente → plan |
+| **GAP-0.6-01** | G5 renderer CODE/TABLE | 0.6 E-025/013/032 | Contenido literal se incorpora como TeX sin protección contextual adecuada | Scope §4: código e identificadores intactos | Literal puede mutar o impedir compilar | **P1 LOCAL OPEN** | Preservación no garantizada; salida física NOT_RUN | LOCAL | ADR Maestro (contrato literal/TeX) → plan |
+| **GAP-0.6-02** | G5 renderer HEADING | 0.6 E-026/014 | Nivel/profundidad descartados antes de TeX | Scope: jerarquía estética y linaje; principios IV | H1/H2/H3 no quedan representados con distinción exigible | **P1 LOCAL OPEN** | Aplanamiento representacional, **no** GAP de hash de 0.3 | CROSS-CUTTING | ADR Maestro (jerarquía/layout) → plan |
+
+### 14.2 Estadísticas globales y exclusiones
+
+| Indicador | Valor | Interpretación |
+|---|---:|---|
+| HITOs FROZEN de origen | 8 | PPPR.0.1–0.8, sin modificaciones retroactivas |
+| E-IDs heredados | 270 | 44+21+20+21+34+42+39+49, sin contar de nuevo E-0.9 |
+| GAP-IDs P1 OPEN heredados | **14** | 0.1:1, 0.2:2, 0.3:2, 0.4:4, 0.5:3, 0.6:2 |
+| Duplicidad causal verificada | **1 par** | GAP-0.1-01 ↔ GAP-0.4-02, IDs conservados |
+| Unidades causales preliminares | **13** | 14 IDs menos un solapamiento; no equivalen a 13 tareas aprobadas |
+| GAP-IDs retirados / candidatos no confirmados | 1 / 2 | GAP-0.6-03 histórico; GAP-0.7-01/02 candidatos, **excluidos** de OPEN |
+| GAPs nuevos por PPPR.0.8/0.9 | **0** | Observaciones P2 ≠ incumplimientos productivos nuevos |
+| DQ-IDs heredados / resueltos en origen / diferidos | 37 / 2 / 35 | Disposición individual §16, diferidos no bloquean auditoría |
+| DC-IDs heredados | 22 | Ningún mecanismo nuevo aprobado por 0.9 |
+
+**No-regresión:** el GAP de geometría 0.2-02 se propaga a G5 sin generar un segundo ID; el hash jerárquico de 0.3-01 y el render HEADING de 0.6-02 son contratos distintos. `NADR-F17BIS-06` está `PROPOSED`, por lo que no revive `GAP-0.6-03`. Los dos candidatos de despliegue de 0.7 carecen de modalidad/proveedor aprobado. Las observaciones `E-0.8-026/046/047` de certificación histórica siguen P2 con DQ-06/07, no se convierten en GAP productivo.
+
+**Estado:** todos los GAP originales siguen OPEN; ninguna reparación ni aceptación de riesgo ha sido aprobada. El ADR Maestro examinará **consecuencia, aplicabilidad y opciones mínimas**, no comenzará con 13 recetas técnicas. Esta Gap Matrix reconcilia la evidencia ya emitida; no introduce un segundo registro operacional de implementación.
+
+## 15. HIPÓTESIS DE RECONCILIACIÓN — VEREDICTOS TERMINALES
 
 | ID | Pregunta | Veredicto actual |
 |---|---|---|
@@ -158,7 +178,7 @@ El orden expone **dependencias**: no asigna waves, responsables, modelos ni tecn
 | **H-0.9-E** | ¿GAP-0.6-03 sigue vigente? | **RECHAZADA**, retirado |
 | **H-0.9-F** | ¿0.7-01/02 son P1 activos? | **RECHAZADA**, candidatos |
 | **H-0.9-G** | ¿CV/bench F17-BIS certifica el PDF EN→ES? | **RECHAZADA como garantía**, 0.8 FROZEN |
-| **H-0.9-H** | ¿37 DQ y 22 DC exigen resoluciones independientes? | **RECHAZADA** como inferencia de cardinalidad: son IDs de origen, incluyen DQ-0.1-04/05 ya resueltas y dominios repetidos. La asignación completa de destinos individuales queda pendiente en §16; esto **no** afirma que todos los diferimientos hayan sido resueltos |
+| **H-0.9-H** | ¿37 DQ y 22 DC exigen resoluciones independientes? | **RECHAZADA**: §16 dispone los 37 DQ y 22 DC uno a uno, incluyendo DQ-0.1-04/05 resueltas; familias causales compartidas **no** implican 59 ADR/tareas ni resuelven la evidencia física todavía diferida |
 
 ## 16. TRANSFERENCIA INDIVIDUAL DQ/DC — TERCERA PASADA
 
@@ -258,10 +278,40 @@ El orden expone **dependencias**: no asigna waves, responsables, modelos ni tecn
 - Issue #34 sigue custodia autorizada de 15 PDFs. No fabricar hashes/GT, bajar threshold, inferir leakage ni equiparar HARD_FAIL topológico histórico con traducción actual. Issue #36 OPEN no prueba defecto nuevo en D-1/D-2 por título.
 - Se mantienen todos los E/GAP IDs y veredictos FROZEN previos. Ninguna implementación ni suite científica se inició en este HITO.
 
-## 21. CIERRE — IN_PROGRESS
+## 21. CIERRE DEL HITO PPPR.0.9 — FROZEN v1.0.3
 
-**NO FROZEN — IN_PROGRESS v1.0.2.** Tres pasadas globales: **30 E-IDs P2 propios**, ocho hipótesis terminales, 14 GAP-IDs P1 heredados sin nuevos GAP, un solapamiento causal confirmado, un ID retirado y dos candidatos no confirmados; **37 DQ-IDs individualizados (2 resueltas en origen, 35 diferidas justificadas)** y **22 DC-IDs individualizados (todos candidatos no aprobados en este HITO)**. DQ-0.9-01 diferida al ADR de forma expresa. Ninguna prueba científica, proveedor, Tectonic, Docker ni CI ejecutados. No acreditar `PRODUCT_READINESS=PASS`.
+**Veredicto:** **FROZEN documental v1.0.3 — 2026-11-20.** El mandato de reconciliación global de Fase 0 queda **CERRADO** sobre código `main@1d21cfe`, ocho HITOs FROZEN, estados Git verificados y contratos aplicables. **14 GAP-IDs P1 heredados OPEN**, 13 núcleos causales preliminares, **30 E-0.9 P2**, ocho hipótesis terminales, 37 DQ heredadas (2 resueltas en origen, 35 diferidas con causas/destinos), 22 DC heredados sin soluciones aprobadas y DQ-0.9-01 diferida explícitamente al ADR Maestro. **0 GAP nuevos**, sin ejecución ni cambio productivo. No equivale a cierre de GAP ni a `PRODUCT_READINESS=PASS`.
 
-**Pendiente para §8.1–8.2 y FROZEN:** control final de suficiencia de GAP Matrix y scopes, revisión de contradicciones, de autoridad y del checklist §8.1; registrar garantías positivas/negativas y el paso a ADR Maestro sin imponer nuevas obligaciones. La disposición DQ/DC y DQ-0.9-01 ya quedó tipada sin ejecución. Después, emitir checklist, garantías positivas/negativas y gate explícito al ADR Maestro, sin abrir documentación paralela.
+### 21.1 Checklist de suficiencia §8.1 y plantilla Gap Matrix §11.2
 
-**Gobernanza:** un Markdown en rama corta `pppr/hito-0.9` nacida de `pdf-pdf-product-readiness@10a95ebb`; PR interno Draft hacia rama general. PR #66 permanece Draft a `main`. FROZEN metodológico y aprobación owner para merge son **gates separados**. Al integrar, verificar rama general, eliminar rama corta y recién entonces comenzar ADR Maestro desde nuevo HEAD.
+| Requisito | Estado y evidencia |
+|---|---|
+| Metadata/versión, changelog, baselines | **CUMPLE** — cabecera y v1.0.0→v1.0.3 FROZEN; `main` y rama general pinneados |
+| Alcance, fuentes y 100% de los componentes del mandato | **CUMPLE** — §3/§4: ocho HITOs FROZEN reconciliados; código actual reusado a través de E-IDs, componentes externos NO VERIFICABLE; no se atribuye exhaustividad física |
+| Límite epistemológico | **CUMPLE** — §2/§7: Observed ≠ Required ≠ Decision y límite por sujeto F17-BIS |
+| Evidencias estables/severidad | **CUMPLE** — §10: E-0.9-001…030 P2 estables; los P1 originales siguen en sus fuentes |
+| Matriz por subsistema, ámbitos y destino normativo | **CUMPLE** — §14.1: 10 columnas §11.2, 13 núcleos que conservan los 14 GAP-IDs y trazan E-ID, estado, requisito, consecuencia, scope y ADR destino **pendiente** |
+| Estadística global y exclusiones | **CUMPLE** — §14.2: GAP OPEN/retirado/candidato, 270 E heredadas; ausencia de doble conteo |
+| Hipótesis sin abiertas | **CUMPLE** — §15: H-0.9-A…H terminales, la falta de garantía externa permanece en DQ |
+| DQ/DC con causa, no-bloqueo y destino | **CUMPLE** — §16: 37 DQ individualizadas, 22 DC individualizados y DQ-0.9-01 diferida al ADR |
+| Contradicciones/autoridad/no-regresión | **CUMPLE** — §14.2/§17: 0.1↔0.4 conmutación duplicada; 0.2→0.6 perfil; 0.3 vs 0.6 heading; NADR-06 `PROPOSED`, F18 vigente |
+| Resumen, veredicto, garantías y cadena Git | **CUMPLE** — §1, §21.2/21.3: resultados parciales, sin certificación, secuencia al ADR |
+| Flujo de governance | **CUMPLE documentalmente** — PR #74 deberá permanecer Draft hasta revisión y aprobación separada para merge; PR #66 Draft; `main` intacto |
+
+La estructura híbrida deliberada conserva las secciones forenses necesarias para rastrear decisiones y DQ/DC, **más** los diez campos y estadísticas de Gap Matrix exigidos por §11.2. No obliga a crear una segunda Gap Matrix ni un documento de priorización paralelo.
+
+### 21.2 Regla §8.2 — diferimientos y garantías
+
+- **NO VERIFICABLE / diferido justificadamente:** la ejecución científica y lingüística real EN→ES, independencia de particiones, fidelidad STEM/visual física, proveedor real/costo/privacidad, host y crash, materialización/custodia de 15 PDF, así como reutilización de preflight/post-run F17-BIS. §16 identifica motivo y destino; **no bloquean cierre de auditoría read-only** porque se ha establecido qué se desconoce, pero **sí bloquean** dar las respectivas garantías o autorizar gates científicos ficticios.
+- **DQ-0.9-01:** la discrepancia entre propósito declarado de `compute_ast_hash` y su uso como identidad de generación exige **decisión de semántica aplicable** en ADR Maestro; no revoca GAP-0.3-01/02 ni promulga normalización concreta.
+- **POSITIVO demostrado por lectura:** D-1/D-2 selecciona una ruta única; E/GAP/decisiones están trazados sin perder sus IDs; controles de fallos y continuidad fake tienen fronteras conocidas; las limitaciones de tooling histórico, perfiles, TeX, firmas y FSM tienen propietarios documentales.
+- **NEGATIVO / no acreditado:** traducción científica correcta, entrega comercial, proveedor vigente, factura/costo observado, continuidad host, CI científico end-to-end, certificación de PDF final, corrección o aceptación de ningún GAP. El conteo de GAP-IDs no demuestra incidentes reales ni defectos físicos medidos.
+- **NOT_RUN:** CI, pytest, proveedores/LLM, Docker/Compose, host Windows, Tectonic, SQLite del owner, corpus/GT privados, pruebas físicas, alteración de manifest/hashes y tareas de implementación.
+
+### 21.3 Cierre de Fase 0, siguiente gate y Git
+
+**Fase 0 (auditoría forense) queda documentalmente completada por PPPR.0.1–0.9 FROZEN**, sujeto a integración interna autorizada del PR #74; esto **no** cierra la iniciativa PPPR ni aprueba producto, ADR o plan.
+
+**Secuencia:** owner revisa y aprueba por separado la integración del PR interno #74 → merge solo a `pdf-pdf-product-readiness` → verificar SHA/HITO FROZEN → eliminar rama `pppr/hito-0.9` → iniciar **ADR Maestro** desde el HEAD general actualizado, sin reabrir HITOs ni crear ADR/NADR por reflejo. Luego, si es necesario, ADR de subfase / NADR compatibles y aprobados → un Execution Plan → revisión y aprobación del paquete documental del **PR #66** antes de integrar a `main` → implementación mediante PRs separados posteriores, nunca en este HITO.
+
+**Gobernanza:** PPPR.0.9 puede estar FROZEN y **PR #74 seguir Draft**; una cosa es suficiencia documental y otra autorización de merge. Se preserva `main@1d21cfe`, PR #66 Draft y la regla de no apilar ramas cortas.
