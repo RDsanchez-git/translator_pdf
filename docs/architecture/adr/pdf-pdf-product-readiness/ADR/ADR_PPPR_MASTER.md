@@ -1,13 +1,13 @@
 # ARCHITECTURE DECISION RECORD (ADR)
 ## ADR PPPR: PDF→PDF Product Readiness — Traducción científica EN→ES (ADR Maestro)
 
-* **Estado:** PROPOSED
+* **Estado:** FROZEN
 * **Fecha de Emisión Original:** 2026-11-20
-* **Fecha de Congelamiento:** —
+* **Fecha de Congelamiento:** 2026-11-20
 * **Autor:** Architecture Board / Staff Engineering
-* **Fase:** PPPR — unidad transversal de gobernanza de nivel Maestro **aprobada por el Board según comunicación del owner de 2026-11-20** (DC-01). No introduce fase numerada del ROADMAP; `ADR_PPPR_MASTER.md` en `docs/architecture/adr/pdf-pdf-product-readiness/ADR/` es especialización documental autorizada **para PPPR exclusivamente**. El ADR integral sigue PROPOSED hasta cierre del DC Log y checklist.
+* **Fase:** PPPR — unidad transversal de gobernanza de nivel Maestro **aprobada por el Board según comunicación del owner de 2026-11-20** (DC-01). No introduce fase numerada del ROADMAP; `ADR_PPPR_MASTER.md` en `docs/architecture/adr/pdf-pdf-product-readiness/ADR/` es especialización documental autorizada **para PPPR exclusivamente**. El ADR integral está FROZEN tras cierre del DC Log y checklist canónico, con aprobación integral comunicada por el owner el 2026-11-20.
 * **Módulos Afectados:** CLI/ingesta, OCR y perfiles documentales, AST/normalización/chunking, G3 e inferencia, autoridad W06/FSM/SQLite, G5/ensamblado, empaquetado local, tests/CI y certificación de producto.
-* **Aprobación Architecture Board:** **PENDIENTE DE APROBACIÓN INTEGRAL / FROZEN**. DC-01 y políticas DC-03/05/08/09/12 ratificadas según comunicación del owner el **2026-11-20**; las demás disposiciones de §8 se adoptan en este borrador **por mandato explícito de decisión técnica del owner** en esta conversación. Sin acta externa independiente ni autorización final para FROZEN o merge acreditadas.
+* **Aprobación Architecture Board:** **INTEGRAL — 2026-11-20**, comunicada expresamente por el owner en esta conversación sobre el contenido del HEAD revisado **`3e0d3332391c629559ac107c2557e4fab4c18152`** del PR #75. **FROZEN autorizado**. El owner autorizó también, en acto separado, integrar PR #75 **solo en `pdf-pdf-product-readiness`**; **PR #66 y `main` quedan excluidos**. Procedencia: comunicación directa del owner, sin atribuir acta externa, firmas o revisión formal inexistentes.
 * **Derivado de:** ROADMAP_ARQUITECTONICO_LP v3.0 (Etapa I: nacimiento del traductor científico; Etapa II: madurez operativa), PROJECT_SCOPE.md, ENGINEERING_PRINCIPLES.md, convergencia D-1/D-2 y PPPR.0.1–0.9 FROZEN.
 * **Supersede:** — (primera propuesta PPPR; no reemplaza ADR F18 ni ADR F17-BIS)
 
@@ -17,7 +17,7 @@ El ROADMAP v3.0 describe un producto local de un nodo que traduce documentos cie
 
 La convergencia D-1/D-2 seleccionó una ruta operativa única **CLI → OCR → G3 → G5 → PDF**, apoyada por contratos de estado y testigos técnicos delimitados. El owner definió la meta inicial **exclusivamente EN→ES** y la necesidad de renovar la inferencia obsoleta, **sin** aprobar aquí proveedor, modelo, implementación ni modalidad comercial. La iniciativa PPPR reúne evidencia transversal para decidir las capacidades mínimas que faltan antes de poder acreditar esa meta.
 
-**Relación formal con el ROADMAP y autoridad de DC-01:** PPPR no figura como fase numerada en ROADMAP v3.0. El Board **aprobó**, según comunicación del owner de **2026-11-20**, su tratamiento excepcional como **unidad transversal de gobernanza de nivel Maestro**, con nombre/hogar documental específicos exclusivamente para PPPR. No se modifica ROADMAP, no se reabre Fase 18 ni se establece precedente automático. **La constitución de la unidad queda resuelta (DC-01); el ADR como paquete sigue PROPOSED** aunque su §8 ya dispone las 12 DC: faltan verificación final del checklist y aprobación integral del Architecture Board para FROZEN.
+**Relación formal con el ROADMAP y autoridad de DC-01:** PPPR no figura como fase numerada en ROADMAP v3.0. El Board **aprobó**, según comunicación del owner de **2026-11-20**, su tratamiento excepcional como **unidad transversal de gobernanza de nivel Maestro**, con nombre/hogar documental específicos exclusivamente para PPPR. No se modifica ROADMAP, no se reabre Fase 18 ni se establece precedente automático. **La constitución de la unidad (DC-01) y el ADR integral están aprobados; este Maestro es FROZEN** con 12 DC dispuestas y checklist 14/14. Esto no demuestra aceptación operativa ni científica del producto.
 
 ## 2. PROBLEMA ARQUITECTÓNICO Y ESTADO OBSERVADO
 
@@ -51,7 +51,7 @@ Las decisiones siguientes preservan dimensiones **ortogonales**; ninguna implica
 
 ## 4. ALCANCE Y NO-OBJETIVOS (OUT OF SCOPE)
 
-**Capacidades in-scope de la unidad transversal PPPR ratificada; el presente ADR integral sigue PROPOSED:** continuidad observable de la ruta única PDF→PDF; traducción explícita inicialmente EN→ES con inferencia vigente; integridad estructural y matemática desde documento fuente hasta salida; identidad coherente con consumidores reales; autoridad/fail-closed ante efectos, pausas y recuperación; salida PDF con reporte atribuible; operación local según modalidad aprobada; y evidencia técnica/científica diferenciada por sujeto, privacidad y custodia.
+**Capacidades in-scope de la unidad transversal PPPR ratificada; el presente ADR integral está FROZEN:** continuidad observable de la ruta única PDF→PDF; traducción explícita inicialmente EN→ES con inferencia vigente; integridad estructural y matemática desde documento fuente hasta salida; identidad coherente con consumidores reales; autoridad/fail-closed ante efectos, pausas y recuperación; salida PDF con reporte atribuible; operación local según modalidad aprobada; y evidencia técnica/científica diferenciada por sujeto, privacidad y custodia.
 
 **No-objetivos y dueño documental/temporal explícito:**
 
@@ -70,7 +70,7 @@ Las decisiones siguientes preservan dimensiones **ortogonales**; ninguna implica
 
 ## 5. INVARIANTES Y REGLAS DE GOBERNANZA
 
-**Invariantes constitucionales (parcialmente ratificadas como políticas de alcance DC-03/05/08/09/12; aprobación integral del Maestro aún pendiente; no son reglas RFC-2119 nuevas):**
+**Invariantes constitucionales del Maestro aprobado integralmente (las políticas DC-03/05/08/09/12 habían sido ratificadas antes; no son reglas RFC-2119 nuevas):**
 
 1. **Unidad de ruta:** existe un solo flujo productivo soportado para el alcance inicial; rutas históricas o herramientas de laboratorio no se convierten en vías alternativas por la puerta de atrás.
 2. **Intención lingüística explícita:** la entrada en inglés y el destino español forman parte del significado verificable de una generación, sin presuponer producto multilingüe.
@@ -89,7 +89,7 @@ Las decisiones siguientes preservan dimensiones **ortogonales**; ninguna implica
 **Árbol de capacidades y dependencia lógica propuesta**, sin asignar fases numeradas del ROADMAP, fechas, waves ni trabajos técnicos:
 
 ```text
-PPPR (unidad transversal de gobernanza ratificada; ADR integral PROPOSED)
+PPPR (unidad transversal de gobernanza ratificada; ADR integral FROZEN)
  ├─ Delimitación de contrato de producto y garantía EN→ES
  │   ├─ Identidad y conservación de entrada/documento
  │   └─ Sujeto y oráculos de aceptación técnica/científica
@@ -122,7 +122,7 @@ El orden refleja **dependencias epistemológicas y de capacidades**, no obliga a
 
 **Regla de cierre:** conforme a `2_METH_ADR_MASTER.md` v1.0.1 §5, un DC se resuelve con evidencia/decisión de alcance justificada o se difiere **terminalmente** a un artefacto/fase identificable. Resolver **la autoridad del contrato** no supone haber corregido código ni verificado físicamente los GAP. Se conservan los **22 DC heredados**, **37 DQ heredadas más DQ-0.9-01** y sus destinos individuales en HITO PPPR.0.9 §16; este Maestro consolida **12 DC de nivel constitucional**, sin borrar IDs forenses.
 
-**Procedencia de autoridad:** DC-01 y las políticas DC-03/05/08/09/12 fueron aprobadas por comunicación del owner el **2026-11-20**. En esta revisión el owner pidió explícitamente «como board que eres, revisa y decide»; las restantes resoluciones se registran como **decisiones de gobernanza técnica adoptadas por ese mandato dentro del borrador**. La conversación es su referencia de procedencia; **no se afirma acta externa, revisión independiente del Board ni aprobación integral del ADR**. La decisión final de FROZEN y su fecha permanecen separadas en el header.
+**Procedencia de autoridad:** DC-01 y las políticas DC-03/05/08/09/12 fueron ratificadas por comunicación del owner el **2026-11-20**. Las restantes resoluciones del §8 se tomaron por delegación explícita del owner y fueron objeto de revisión técnica posterior. **El owner aprobó adicionalmente el ADR integral en HEAD `3e0d3332391c629559ac107c2557e4fab4c18152`, autorizó FROZEN e indicó separadamente integrar el PR #75 en la rama general**, todo comunicado el 2026-11-20. No se inventan actas externas, revisión de GitHub ni evidencia científica.
 
 | DC | Pregunta y evidencia de origen | Resolución de alcance / política | Destino de obligaciones subordinadas, sujeto a validación de cierre §5 |
 |---|---|---|---|
@@ -157,14 +157,14 @@ En esa etapa se examina para cada capacidad aprobada la suficiencia de reglas **
 
 **Resultado de control 11:** **CUMPLE DOCUMENTALMENTE** por cierre de las preguntas constitucionales con fundamento forense y decisión del ámbito Maestro. Esto **no** implica que los GAP estén corregidos ni que exista certificación científica del PDF final.
 
-**Gate separado:** el ADR permanece `PROPOSED`; falta **aprobación integral expresa del Architecture Board con fecha en el header**. El permiso de merge de PR #75 es otro acto distinto, aún no concedido.
+**Gate de estado satisfecho:** aprobación integral de este ADR y autorización de **FROZEN** comunicadas expresamente por el owner y registradas con fecha en header. **La autorización de merge del PR #75 hacia `pdf-pdf-product-readiness` fue concedida por separado**; la integración material se verifica en GitHub. No alcanza al PR #66 ni a `main`.
 
 ## 9. ARCHITECTURE GOVERNANCE FRAMEWORK
 
 **Cadena normativa interna PPPR, sin prefijar normas futuras:**
 
 ```text
-ADR Maestro PPPR (capacidades; aún PROPOSED)
+ADR Maestro PPPR (capacidades; FROZEN)
   → [ADR de subfase solo ante decisión arquitectónica autónoma]
   → etapa normativa PPPR: cotejo de NADR FROZEN compatibles por sujeto
     → NADR adicionales solo si son necesarios, sin número prefijado
@@ -174,21 +174,21 @@ ADR Maestro PPPR (capacidades; aún PROPOSED)
 
 Los HITOs PPPR.0.1–0.9 de `00-foundation/` son **evidencia vinculante de entrada**, no nivel normativo de esa cadena. Los NADRs existentes F18 y los F17-BIS compatibles conservan su autoridad propia, sin reproducirse ni modificarse por este ADR. La jerarquía global se incorpora **por referencia** a `docs/architecture/1_METHODOLOGY_FOR_ORDERED_PIPELINE_CHANGES.md` §2, sin duplicar su pirámide. La plantilla y el ciclo de vida de este artefacto siguen `docs/architecture/2_METH_ADR_MASTER.md` v1.0.1 FROZEN.
 
-**Interpretación de compatibilidad metodológica de esta revisión de gobernanza:** `2_METH_ADR_MASTER.md` v1.0.1 cita general **v1.4.0**, mientras `main@1d21cfe` contiene general **v1.3.0 FROZEN**. Se comprobó directamente que v1.3.0 contiene jerarquía §2, taxonomía §3.1/3.2, precedencia §6.1/6.2, convención §7.2 y anti-proliferación §8.4/§9. El header de la metodología Maestro declara que esas reglas citadas ya estaban presentes desde v1.3.0. **Decisión interpretativa:** aplicar la plantilla Maestro v1.0.1 FROZEN y las reglas compatibles efectivamente verificadas de general v1.3.0, **sin afirmar equivalencia global con el texto v1.4.0 no disponible, sin modificar FROZEN y sin crear metodología nueva**. La aprobación integral del ADR sigue pendiente aunque esta discrepancia editorial no exige, por lo observado, un proyecto normativo separado.
+**Interpretación de compatibilidad metodológica de esta revisión de gobernanza:** `2_METH_ADR_MASTER.md` v1.0.1 cita general **v1.4.0**, mientras `main@1d21cfe` contiene general **v1.3.0 FROZEN**. Se comprobó directamente que v1.3.0 contiene jerarquía §2, taxonomía §3.1/3.2, precedencia §6.1/6.2, convención §7.2 y anti-proliferación §8.4/§9. El header de la metodología Maestro declara que esas reglas citadas ya estaban presentes desde v1.3.0. **Decisión interpretativa:** aplicar la plantilla Maestro v1.0.1 FROZEN y las reglas compatibles efectivamente verificadas de general v1.3.0, **sin afirmar equivalencia global con el texto v1.4.0 no disponible, sin modificar FROZEN y sin crear metodología nueva**. La aprobación integral del ADR fue comunicada el 2026-11-20 y registrada en header; esta discrepancia editorial no exige, por lo observado, un proyecto normativo separado.
 
 ## 10. DEFINITION OF DONE (DoD) EN DOS NIVELES
 
-**Nivel A — gobernanza del ADR Maestro (condiciones de FROZEN):** header y diez secciones exigidas por `2_METH_ADR_MASTER.md` v1.0.1; §2 con E/GAP de auditoría FROZEN; distinciones §3, alcance §4 con destinos, invariantes §5 sin RFC-2119, §6 lógico sin tareas, §7 histórico y **§8 con 12/12 DC resueltas constitucionalmente o diferidas terminalmente a una autoridad identificada**, según la regla §5 canónica. DC-06/09 están resueltas en este Maestro; su posterior materialización normativa no es una decisión pendiente. §9 referencia metodología general sin duplicar pirámide; interpretación v1.3.0/v1.4.0 asentada en §9. **Para FROZEN falta la aprobación integral explícita del Architecture Board con fecha en header**; la autorización de integración Git será separada. Ninguna cantidad ni identidad de NADR futuros está aprobada.
+**Nivel A — gobernanza del ADR Maestro (condiciones de FROZEN):** header y diez secciones exigidas por `2_METH_ADR_MASTER.md` v1.0.1; §2 con E/GAP de auditoría FROZEN; distinciones §3, alcance §4 con destinos, invariantes §5 sin RFC-2119, §6 lógico sin tareas, §7 histórico y **§8 con 12/12 DC resueltas constitucionalmente o diferidas terminalmente a una autoridad identificada**, según la regla §5 canónica. DC-06/09 están resueltas en este Maestro; su posterior materialización normativa no es una decisión pendiente. §9 referencia metodología general sin duplicar pirámide; interpretación v1.3.0/v1.4.0 asentada en §9. **Nivel A FROZEN:** aprobación integral expresa comunicada por el owner con fecha en header; autorización separada para integración Git concedida respecto del PR #75. Ninguna cantidad ni identidad de NADR futuros está aprobada.
 
 **Nivel B — cierre global de la iniciativa PPPR (no acreditado):** ruta única capaz de aceptar PDFs científicos permitidos, traducir EN→ES con inferencia vigente y controlada, preservar invariantes STEM y estructura por observación reproducible, ensamblar salidas con estado atribuible, recuperar incertidumbres sin efectos externos no autorizados y operar bajo una modalidad local validada; evidencia independiente para cada nivel de calidad, con custodia/privacidad/costo y criterios de aceptación aprobados. GAP-IDs originales tratados y cerrados con falsadores atribuibles cuando correspondan, sin declarar PASS por CI extraction-only, fake o missing corpus. El cierre real requiere Execution Plan autorizado, implementación y verificaciones pertinentes, más revisiones de gobernanza; no se sustituye con el presente documento.
 
 ### 10.1 Checklist pre-FROZEN — aplicación de `2_METH_ADR_MASTER.md` v1.0.1 §8 (2026-11-20)
 
-Se registra aquí el **resultado de inspección documental revalidado tras alinear las preguntas DC-06/09 con su resolución constitucional**, no una aprobación del Architecture Board, ejecución de producto ni acto de congelamiento. La checklist tiene **14 controles** y un gate pendiente: aprobación integral.
+Se registra aquí el **resultado final de inspección documental**, complementado con la **aprobación integral y autorización de FROZEN expresas** comunicadas por el owner el **2026-11-20**. La checklist tiene **14/14 controles conformes**; ello no acredita ejecución ni aceptación científica del producto.
 
 | # | Comprobación canónica | Veredicto documental y testigo |
 |---|---|---|
-| 1 | Header completo, aprobación del Board con fecha | **PENDIENTE** — header contiene ratificaciones parciales fechadas, pero **no** aprobación integral del Maestro; fecha de congelamiento `—` |
+| 1 | Header completo, aprobación del Board con fecha | **CUMPLE** — aprobación integral comunicada por el owner el 2026-11-20 sobre HEAD `3e0d3332391c629559ac107c2557e4fab4c18152`, con FROZEN y fecha registrados en header. Sin acta externa atribuida |
 | 2 | Diez secciones exactas | **CUMPLE** — §§1–10; §2.1 y §8.1/8.2, §10.1 son subsecciones, no niveles nuevos |
 | 3 | §1 deriva objetivos ROADMAP | **CUMPLE** — ROADMAP v3.0, Etapas I/II, alcance EN→ES y PPPR transversal autorizado por DC-01 |
 | 4 | §2 evidencia de `00-foundation/` | **CUMPLE** — E-IDs y GAP-IDs referenciados a PPPR.0.1–0.9 FROZEN |
@@ -203,8 +203,8 @@ Se registra aquí el **resultado de inspección documental revalidado tras aline
 | 13 | §10 DoD Nivel A y Nivel B, no por tarea | **CUMPLE** — gobernanza del ADR diferenciada de producto científicamente acreditado |
 | 14 | Maestros anteriores no reformateados (abuelamiento) | **CUMPLE** — diff del PR #75 limitado a `ADR_PPPR_MASTER.md`; ningún Maestro histórico modificado |
 
-**Resultado revalidado:** **13/14 controles satisfechos documentalmente; 1/14 pendiente** (control 1: aprobación integral del Architecture Board con fecha). La lectura de `2_METH_ADR_MASTER.md` v1.0.1 y general v1.3.0 FROZEN se documenta en §9 sin presumir equivalencia total con v1.4.0 no disponible. Ningún estado de PR ni ratificación parcial se convierte en aprobación final por inferencia.
+**Resultado final:** **14/14 controles satisfechos**; aprobación integral y fecha de FROZEN registradas conforme a la comunicación expresa del owner. La lectura de `2_METH_ADR_MASTER.md` v1.0.1 y general v1.3.0 FROZEN se documenta en §9 sin presumir equivalencia total con v1.4.0 no disponible. La aprobación integral deriva de la comunicación expresa adicional, no de inferirla desde ratificaciones parciales o el estado del PR.
 
-**Gate para cambiar de estado:** el órgano competente debe aprobar **integralmente este texto en su HEAD final**, con fecha en el header, y autorizar expresamente su paso a FROZEN. La validación técnica documental del control 11 no sustituye la aprobación integral. **El merge del PR #75 es un acto separado**, no autorizado por completar esta tabla; PR #66 y `main` permanecen fuera de este gate.
+**Gate de FROZEN cumplido:** el owner aprobó integralmente el contenido revisado del HEAD `3e0d3332391c629559ac107c2557e4fab4c18152` y autorizó el estado FROZEN el **2026-11-20**. §8: **12/12 DC dispuestas**; checklist §10.1: **14/14 conforme**. **El merge del PR #75 en `pdf-pdf-product-readiness` se autorizó separadamente por el owner** y debe verificarse en GitHub. **PR #66 y `main` no están autorizados para merge.**
 
-**Estado actual respecto de ambos niveles:** **PROPOSED**: las 12 DC cuentan con resolución constitucional o destino terminal documental; DC-06/09 cierran en este Maestro. Falta **aprobación integral/final del Board** para FROZEN. Nivel B sigue **NO ACREDITADO**: no hay NADR PPPR adicionales aprobados, Execution Plan aprobado ni evidencia de calidad física/científica. Sin autorización de implementación, proveedor de pago, corpus/GT privados ni merge de PR #75/#66.
+**Estado actual respecto de ambos niveles:** **Nivel A — FROZEN:** 12 DC con respuesta constitucional o destino terminal, checklist 14/14 y aprobación integral fechada comunicada por el owner. **Nivel B — NO ACREDITADO:** no hay NADR PPPR adicionales aprobados, Execution Plan aprobado ni evidencia de calidad física/científica. No se autoriza implementar, usar proveedores pagados, manipular corpus/GT privado ni integrar PR #66 a `main`.
