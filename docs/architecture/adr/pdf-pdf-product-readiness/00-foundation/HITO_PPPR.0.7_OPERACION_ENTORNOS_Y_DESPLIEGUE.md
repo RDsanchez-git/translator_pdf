@@ -1,6 +1,6 @@
 # HITO_PPPR.0.7_OPERACION_ENTORNOS_Y_DESPLIEGUE.md
 
-**Estado:** FROZEN v1.0.4  
+**Estado:** FROZEN v1.0.5  
 **Fecha de emisión:** 2026-11-20  
 **Congelamiento:** 2026-11-20  
 **Tipo de artefacto:** Forensic Flow Audit — operación y entornos de la ruta única PDF→PDF  
@@ -18,26 +18,24 @@
 |---|---|---|
 | 1.0.0-IN_PROGRESS | 2026-11-20 | Apertura desde merge #71: censo de tres variantes Compose y root CLI; 26 E-IDs, dos candidatos P1 con causalidad de configuración, 9 hipótesis y límites de host; contraste con runbook C0–C4 y PPPR.0.4/0.5. Sin FROZEN ni pruebas nuevas. |
 | 1.0.1-IN_PROGRESS | 2026-11-20 | Segunda pasada: 34 E-IDs todos P2; dos IDs candidatos sin GAP confirmado, nueve hipótesis parcialmente clasificadas, C2 con admisión intra-contenedor comprobada documentalmente, y PPPR.0.4 con proveedor pendiente. DQ/DC se incorporan al cierre de esta pasada. No tests ni FROZEN. |
-
 | 1.0.2-IN_PROGRESS | 2026-11-20 | Tercera pasada: confrontación con Docker Docs de `!override` (Compose 2.24.4+), transmisión explícita de secrets, preflight exclusivo LAB, privilegios/imagen y modalidad inside-container; 39 evidencias P2, 0 GAP P1 confirmado, 2 IDs candidatos NO CONFIRMADOS. Checklist final pendiente. NOT_RUN. |
-
 | 1.0.3-IN_PROGRESS | 2026-11-20 | Cierre de hipótesis: 9 disposiciones terminales con propiedades observadas y restricciones físicas NO VERIFICABLE; 39 E-IDs P2, 5 DQ, 4 DC. Se prepara checklist formal de cierre; sin tests ni cambios productivos. |
-
 | 1.0.4-FROZEN | 2026-11-20 | Checklist formal §§8.1–8.2, 9.2–9.4 y garantías: 39 E P2, 0 GAP propios OPEN, 2 IDs candidatos no confirmados, 9 hipótesis terminales, 5 DQ y 4 DC. Cierre de auditoría estática, NO operación comercial ni CI PASS. |
+| 1.0.5-FROZEN | 2026-11-20 | Corrección documental puntual posterior a FROZEN según metodología §1.2: resumen ejecutivo alineado con severidades finales y cierre, eliminación de texto residual `NO FROZEN` tras §21.4 y continuidad del changelog histórico. **Sin cambios** a 39 E-IDs, hipótesis, GAP candidatos, DQ/DC, causalidad o garantías; NOT_RUN. |
 
 ## 1. RESUMEN EJECUTIVO
 
 **Hecho de composición:** la opción seleccionada en el Atlas es CLI/admisión → OCR Router → `runtime/engine.py` (G3) → `apps/compiler/__main__.py` (G5) → PDF. `docker-compose.yml` es una base heredada que contiene fake/chaos y benchmark; `docker-compose.runtime.yml` sustituye montajes/estado y desactiva componentes de laboratorio por `profiles: [lab]`. `docker-compose.convergence-lab.yml` añade una composición controlada **solo para laboratorio offline con fake**, no un perfil productivo real. `docker-compose.golden.yml` presenta una intención histórica de calidad, pero no demuestra por sí solo que sea el launcher operativo aprobado.
 
-**Primera tensión operacional observada:** un proceso G3 con traducciones a inferir exige `GROQ_API_KEY` en `runtime.engine._create_chunk_processor`, pero la composición `docker-compose.yml` + `docker-compose.runtime.yml` **no** declara ese secreto en el ambiente del servicio `llm_worker`; el host puede poseer una variable o archivo `.env` y Docker Compose **no la transmite automáticamente al contenedor salvo declaración explícita u otra inyección**. El laboratorio sí suministra una credencial *dummy*. **GAP-0.7-01 provisional P1 LOCAL**: arranque declarado sin wiring de credencial requerido para inferencia real, si no hay inyección externa no versionada; no se afirma que se haya intentado un POST real.
+**Credenciales de G3 — observación P2, candidato GAP-0.7-01 NO CONFIRMADO:** `runtime/engine.py::_create_chunk_processor` requiere `GROQ_API_KEY` cuando existe inferencia; `docker-compose.yml` + `docker-compose.runtime.yml` no declaran su inyección en `llm_worker`, mientras que el laboratorio emplea una clave *dummy*. Una variable en PowerShell o `.env` no llega automáticamente al contenedor sin un mecanismo de entrega explícito. **No hay proveedor/modelo comercial definitivo aprobado** (PPPR.0.4), ni consta una llamada real al proveedor: la decisión de backend y secretos permanece en DQ-0.7-01/DC-0.7-02.
 
-**Segunda tensión operacional observada:** la CLI por defecto deposita el PDF en `<repo>/data/inbox` del host; la composición runtime reconfigura OCR para observar `/app/data/inbox` dentro del volumen nombrado `g3_runtime_data` y **no** monta la carpeta de inbox del host. Por tanto, **la invocación CLI desde el checkout host no alcanza automáticamente el OCR de Compose**, salvo uso de una admisión dentro del namespace del contenedor u otra transferencia/configuración host no acreditada. **GAP-0.7-02 provisional P1 LOCAL**, limitado a la combinación *CLI host + stack runtime*; no decir que el laboratorio C2 falló (tuvo inbox compartido) ni que todo uso de CLI está bloqueado.
+**Admisión entre host y Docker — observación P2, candidato GAP-0.7-02 NO CONFIRMADO:** la CLI ejecutada desde el checkout host escribe por defecto en `<repo>/data/inbox`, mientras OCR en Compose utiliza `/app/data/inbox` en el volumen nombrado `g3_runtime_data`, sin bind automático del inbox host. **C2 acreditó históricamente la modalidad funcional de admisión mediante CLI dentro del contenedor**, con `--inbox-dir /app/data/inbox` y proveedor fake. No está aprobado el contrato de CLI Windows directa hacia ese daemon; permanece en DQ-0.7-02/DC-0.7-01, sin negar la continuidad demostrada en el laboratorio.
 
 **Límites prioritarios:** `docker compose up` no fue ejecutado; no se inspeccionaron máquinas Windows ni volúmenes reales, configuraciones expandidas, permisos, certificados, versiones efectivas o secretos. No extrapolar evidencia de laboratorio C0–C4 con fake a egress/hosting comercial. El sweeper de Compose es un **GAP-0.5-03 preexistente**, no se abre uno duplicado aquí.
 
-**Veredicto:** **IN_PROGRESS**. Se requiere completar causalidad de los dos GAPs candidatos, compatibilidad efectiva de Compose, inventario de fuentes de configuración/credenciales/archivos, falsadores y checklist final §8.1–8.2 antes de FROZEN.
+**Dictamen vigente:** auditoría estática **FROZEN v1.0.5**, **39 evidencias P2**, **cero GAP propios OPEN** y **dos identificadores candidatos NO CONFIRMADOS**. Nueve hipótesis terminales, cinco Deferred Questions y cuatro Decision Candidates con destino. El cierre no acredita un despliegue comercial, tests, CI, Docker activo, inferencia real ni certificación científica.
 
-**FROZEN v1.0.4 — cierre documental:** 39 evidencias E-0.7-001…039, todas P2; cero GAP local P1 OPEN y dos IDs candidatos NO CONFIRMADOS con transferencia de decisiones. La clasificación terminal de nueve hipótesis y cinco DQ no acredita proveedor, host Windows, Docker/Compose efectivo, compatibilidad física de cachés, seguridad operacional ni traducción EN→ES real.
+**Garantía limitada del cierre:** la configuración y los contratos observables quedaron inventariados con los límites de §§2, 15 y 21; no se acreditan proveedor/modelo, host Windows, Compose efectivo, accesibilidad física de cachés, seguridad operacional ni traducción EN→ES real.
 
 ## 2. LÍMITE EPISTEMOLÓGICO Y REGLAS DE INSPECCIÓN
 
@@ -208,13 +206,13 @@ Se verificó por código la redirección `SQLITE_STATE_DIR` y creación lazy de 
 | F17-BIS | P6 histórico multirruta y NADR-F17BIS-06 PROPOSED | No norma principal ni obligaciones MUST aplicables automáticamente |
 
 **Riesgos condicionados, no incidentes probados:** si se elige Groq y se lanza sin secret, G3 falla cerrado al necesitar inferencia; si se exige CLI host frente a OCR Docker sin transferencia, el PDF quedará en otro inbox. Debe decidirse primero modalidad y backend. El laboratorio fake no convierte esos escenarios en un PASS comercial ni autoriza ejecutar servicios.
-## 21. CIERRE PPPR.0.7 — FROZEN v1.0.4
+## 21. CIERRE PPPR.0.7 — FROZEN v1.0.5
 
 ### 21.1 Checklist §8.1–8.2: revisión formal de suficiencia
 
 | Control | Resultado respaldado |
 |---|---|
-| Metadata, changelog, SHA y fecha | **CUMPLE**: versiones v1.0.0–v1.0.4, baseline main/gobernanza y fecha de congelamiento |
+| Metadata, changelog, SHA y fecha | **CUMPLE**: versiones v1.0.0–v1.0.5 (corrección editorial post-FROZEN conforme metodología §1.2), baseline main/gobernanza y fecha de congelamiento |
 | Perímetro y epistemología | **CUMPLE para auditoría estática**: §§2–5, distinción AUDITADO/REFERENCIADO/NO VERIFICABLE; Windows, Docker físico y proveedor comercial fuera de garantías |
 | Fuentes, precedencia y §9.2 | **CUMPLE**: código, Compose, Dockerfile, Atlas descriptivo, runbook C0/C2 histórico, PPPR.0.1–0.6, Scope/principios, F18 y Docker Docs contextual. F17-BIS PROPOSED no es MUST |
 | Evidencias, IDs y severidades | **CUMPLE**: 39 E-IDs consecutivos, 39 P2, 0 P0/P1; reclasificación de E-008/009 documentada |
@@ -229,7 +227,7 @@ Se verificó por código la redirección `SQLITE_STATE_DIR` y creación lazy de 
 
 ### 21.2 Veredicto y garantías positivas/negativas
 
-**HITO FROZEN DOCUMENTAL v1.0.4 (2026-11-20)**: censo y análisis estático de operación, configuración, despliegue y aislamiento de la ruta D-1/D-2 en `main@1d21cfe958cc1de8a33824fed748cd6fe9260f42`. Solo se garantiza **lo observable en archivos y contratos**: separaciones entre YAML base/runtime/lab/golden, namespaces de CLI/volúmenes, redirección SQLite, claves esperadas por G3, preflight exclusivo LAB, caché Tectonic prevista, límites de la imagen y workflows existentes. El C2 original acredita históricamente la admisión dentro del contenedor con fake, no se reejecutó hoy.
+**HITO FROZEN DOCUMENTAL v1.0.5 (2026-11-20)**: censo y análisis estático de operación, configuración, despliegue y aislamiento de la ruta D-1/D-2 en `main@1d21cfe958cc1de8a33824fed748cd6fe9260f42`. Solo se garantiza **lo observable en archivos y contratos**: separaciones entre YAML base/runtime/lab/golden, namespaces de CLI/volúmenes, redirección SQLite, claves esperadas por G3, preflight exclusivo LAB, caché Tectonic prevista, límites de la imagen y workflows existentes. El C2 original acredita históricamente la admisión dentro del contenedor con fake, no se reejecutó hoy.
 
 **NO SE GARANTIZA**: Compose efectivo en Windows, credencial/producto comercial, modelo Groq vigente, EN→ES real, egress/FinOps, accesibilidad/permisos de volúmenes/DB, aislamiento externo, reproducción de imagen/cachés, Tectonic físico, recuperación crash, CI PASS ni fidelidad visual o científica. `PRODUCT_READINESS=PASS` sigue prohibido. Los tests, servicios, Docker Desktop, LLM, bases SQLite del propietario y corpus/oráculos no se tocaron.
 
@@ -244,8 +242,3 @@ Metodología ordenada v1.3.0 FROZEN → metodología forense v1.2.0 FROZEN → D
 **HITO preparado para revisión/aprobación explícita en PR #72**, rama `pppr/hito-0.7` → `pdf-pdf-product-readiness`, un único Markdown. **FROZEN documental no equivale a aprobación externa ni CI PASS**. Tras aprobación y merge: verificar FROZEN en la rama general, eliminar la rama corta y abrir PPPR.0.8 desde el HEAD general actualizado. PR #66 sigue Draft hacia main, que permanece intacto. No activar Docker, cuentas reales, corpus o SQLite sin autorización/gate físico aislado.
 
 > FROZEN documental ≠ despliegue comercial listo ≠ proveedor EN→ES verificado ≠ PASS CI ≠ certificación STEM.
-
-
-**NO FROZEN — v1.0.1.** 34 E-IDs (34 P2, 0 P1), 2 GAP candidatos **NO CONFIRMADOS**, 9 hipótesis parcialmente clasificadas, 5 Deferred Questions con razón/no-bloqueo/destino y 4 Decision Candidates sin aprobación. Resta checklist §8.1–8.2 y verificaciones finales de alcance/contraejemplos; host/Compose físico NO VERIFICABLE. Sin tests, CI, Docker, API, SQLite/corpus ni implementación.
-
-**Gate Git:** PR interno Draft con **solo este HITO**, `pppr/hito-0.7` → `pdf-pdf-product-readiness`; PR general #66 sigue Draft hacia `main`. No FROZEN, no merge y no cambios de código de producción. Luego de cierre y autorización: integrar, verificar en general, eliminar rama corta antes de abrir PPPR.0.8.
