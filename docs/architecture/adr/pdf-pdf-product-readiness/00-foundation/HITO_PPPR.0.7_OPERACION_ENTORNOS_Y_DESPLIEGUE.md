@@ -1,6 +1,6 @@
 # HITO_PPPR.0.7_OPERACION_ENTORNOS_Y_DESPLIEGUE.md
 
-**Estado:** IN_PROGRESS v1.0.1  
+**Estado:** IN_PROGRESS v1.0.2  
 **Fecha de emisión:** 2026-11-20  
 **Congelamiento:** N/A  
 **Tipo de artefacto:** Forensic Flow Audit — operación y entornos de la ruta única PDF→PDF  
@@ -18,6 +18,8 @@
 |---|---|---|
 | 1.0.0-IN_PROGRESS | 2026-11-20 | Apertura desde merge #71: censo de tres variantes Compose y root CLI; 26 E-IDs, dos candidatos P1 con causalidad de configuración, 9 hipótesis y límites de host; contraste con runbook C0–C4 y PPPR.0.4/0.5. Sin FROZEN ni pruebas nuevas. |
 | 1.0.1-IN_PROGRESS | 2026-11-20 | Segunda pasada: 34 E-IDs todos P2; dos IDs candidatos sin GAP confirmado, nueve hipótesis parcialmente clasificadas, C2 con admisión intra-contenedor comprobada documentalmente, y PPPR.0.4 con proveedor pendiente. DQ/DC se incorporan al cierre de esta pasada. No tests ni FROZEN. |
+
+| 1.0.2-IN_PROGRESS | 2026-11-20 | Tercera pasada: confrontación con Docker Docs de `!override` (Compose 2.24.4+), transmisión explícita de secrets, preflight exclusivo LAB, privilegios/imagen y modalidad inside-container; 39 evidencias P2, 0 GAP P1 confirmado, 2 IDs candidatos NO CONFIRMADOS. Checklist final pendiente. NOT_RUN. |
 
 ## 1. RESUMEN EJECUTIVO
 
@@ -131,6 +133,12 @@ Host / PowerShell (NO INSPECCIONADO)
 | **E-0.7-032** | P2 | `.runtime.yml` ubica Toxiproxy/fake Gemini bajo perfiles lab, sustituye `depends_on` de G3 y pone `IS_BENCHMARK=0`; `.convergence-lab.yml` agrega fake Groq y red `internal:true` ausente en base. | Red sin egress pertenece al laboratorio; no atribuir la misma garantía a Compose runtime comercial ni afirmar stack efectivo ejecutado. | TOPOLOGÍAS DISTINTAS |
 | **E-0.7-033** | P2 | `Dockerfile` usa imagen Python 3.11 flotante, descarga Tectonic 0.15.0 sin checksum explícito, instala dependencias sin lock y no fija `USER`; overlay runtime no declara `user` ni `cap_drop`. | Riesgos de build/supply-chain y privilegios si se construye esa imagen; C2 usa otra imagen histórica. Sin host/contrato de despliegue no convertir a P1. | RIESGO P2 |
 | **E-0.7-034** | P2 | `.github/workflows/{ci,continuous-verification}.yml` disparan PR hacia main/pipeline_stabilization, no hacia rama general PPPR; tests de preflight son lab/fake y de HostTectonicRunner usan mock. | No inferir CI PASS o test físico desde código versionado o PR Draft #72. | CI NOT_RUN |
+
+| **E-0.7-035** | P2 | `docker-compose.runtime.yml` usa `volumes: !override`, `depends_on: !override` y `GEMINI_API_URL: !reset null`; Docker Docs exige Compose v2.24.4+ para `!override`. | Regla de parser oficial, **no** versión efectiva de Docker Desktop del propietario. El C0 histórico valida LAB, no producto. | H-F / DQ-03 |
+| **E-0.7-036** | P2 | Según Docker Docs, variables de shell o `.env` sirven para interpolar; no se entregan a un contenedor sin `environment`, `env_file` u otra inyección explícita. Compose base+runtime carece de `GROQ_API_KEY`; el LAB sí pasa dummy. | Es ausencia declarativa, no prueba de inexistencia de configuración privada del operador o decisión de proveedor. | H-B / DQ-01 |
+| **E-0.7-037** | P2 | `apps/lab/convergence_compose_preflight.py::inspect_topology/main` inspecciona TRES YAML y exige red interna, fake Groq, UID, `nocopy` y clave dummy, mostrando códigos saneados. | Preflight de C0 exclusivo LAB; no acredita Compose comercial ni host actual. Testigo NOT_RUN en este HITO. | H-F/I |
+| **E-0.7-038** | P2 | `Dockerfile` no fija USER ni checksum de Tectonic descargado; `docker-compose.runtime.yml` no fija user/cap_drop. `apps/lab/convergence_db_bootstrap.py` fija UID10001 y declara explícitamente no ser para producto. | Riesgo contextual P2 de privilegios/imagen, sin prueba de explotación ni contrato de host; no importar controles LAB como garantía comercial. | H-E/H / DQ-04 |
+| **E-0.7-039** | P2 | `apps/cli/main.py::handle_translate` soporta `--inbox-dir` y `--run` foreground; C2 histórico ejecutó admisión CLI dentro de contenedor con `/app/data/inbox`, y OCR inspecciona `workspace_dir/data/inbox`. | Continuidad del LAB histórico sin probar CLI Windows a daemon Docker; falta contrato de modalidad host. | H-A / DQ-02 |
 
 **Segunda pasada §7.1:** E-0.7-001…034, **34 E-IDs estables y todos P2**; E-008/009 pasan de P1 candidato a P2 por falta de contrato de despliegue comercial/host aprobado. Las observaciones permanecen; GAP-0.7-01/02 solo son IDs **CANDIDATOS NO CONFIRMADOS**, no OPEN ni implementables. Sin P0/P1 confirmados ni PASS físico.
 
