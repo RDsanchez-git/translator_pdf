@@ -257,7 +257,7 @@ result.append(LatexEscaper.escape(text[position:]))
 
 ## 16. RESPUESTAS AL MANDATO — SEGUNDA PASADA
 
-Hay una sola ruta G5 compartida entre foreground y daemon; el compilador físico se invoca en directorio efímero y publica un artefacto privado con CAS antes de promocionarlo. La preservación STEM tiene mecanismos verificables de fragmentos math e imágenes por SHA, pero **no** se certifica equivalencia científica ni visual de PDF→PDF. La segunda pasada confirmó tres discrepancias tipadas: literal CODE/TABLE sin protección contextual, jerarquía HEADING descartada y macros TeX legítimas de texto escapadas. Se preservan como hallazgos locales por separado de la geométrica upstream (GAP-0.2-02) y del gate científico de PPPR.0.8. No se presume ejecución de TeX, duplicación de artifacts ni corrupción física observada.
+Hay una sola ruta G5 compartida entre foreground y daemon; el compilador físico se invoca en directorio efímero y publica un artefacto privado con CAS antes de promocionarlo. La preservación STEM tiene mecanismos verificables de fragmentos math e imágenes por SHA, pero **no** se certifica equivalencia científica ni visual de PDF→PDF. La segunda pasada observó tres conductas tipadas; la revisión v1.0.3 confirmó **dos GAPs vigentes** (CODE/TABLE literal y jerarquía HEADING) y reclasificó **E-0.6-027** (macro de texto escapada) como **OBS P2**, retirando GAP-0.6-03 por autoridad insuficiente del NADR-F17BIS-06 PROPOSED. La geometría upstream conserva su GAP-0.2-02 y el gate científico queda para PPPR.0.8. No se presume ejecución de TeX, duplicación de artifacts ni corrupción física observada.
 
 ### 16.1 Resultado focal H-0.6-F (Observed / Required / Decision)
 
@@ -266,6 +266,22 @@ Hay una sola ruta G5 compartida entre foreground y daemon; el compilador físico
 **Required:** PROJECT_SCOPE §4 exige integridad; ENGINEERING_PRINCIPLES §IV prohíbe degradación silenciosa; CompilationService y DocumentAssembler son el flujo implementado D-1/D-2 según Atlas, no una obligación que dependa de F17BIS-06 PROPOSED. Sin SHA válido falla cerrado.
 
 **Decision:** NO se acredita que el root soportado produzca un PDF DEGRADED, así que no se crea GAP-0.6-04 por inferencia. La pérdida de AssemblyReport es una incompatibilidad **condicional** si esa rama se hace alcanzable; DQ-0.6-04 solicita falsador y DC-0.6-04 decide si habilitarla antes de implementar. No es una aprobación de fallback al inglés en un producto en→es.
+
+## 17. RECONCILIACIÓN DE FUENTES Y CONTINUIDAD DE LA RUTA ÚNICA
+
+| Fuente | Estado real comprobado | Utilidad y límite para el G5 actual |
+|---|---|---|
+| **D-1/D-2 + Atlas** `pipeline-stabilization/handoff/ATLAS_RUTA_OPERATIVA_UNICA_PDF_PDF.md` v1.0.2 | Decisión convergida + **mapa AS-IMPLEMENTED**, corte `6818e86` del 2026-11-13 | Selecciona CLI→OCR→G3→G5, distingue daemon/foreground y R1/R3; **no es NADR ni acredita HEAD automáticamente** |
+| **Código `main@1d21cfe`** | Git compare `6818e86…1d21cfe` devuelve **78 rutas cambiadas en conjunto**; entre `apps/`, `core/`, `infra/`, `runtime/`, solo cambiaron `runtime/recovery.py` y `runtime/resumer.py` | Los entrypoints/consumidores principales G5 del Atlas no cambiaron en ese delta; el código efectivamente leído sigue siendo evidencia primaria |
+| `docs/architecture/PROJECT_SCOPE.md` §§2/4 y `ENGINEERING_PRINCIPLES.md` §§II/IV | Objetivos de producto y principios de conservación matemática/código, jerarquía visual y linaje | Obligan a evaluar GAP-0.6-01/02 sin depender de propuestas antiguas; no exigen pixel-perfect ni ejecutar todo texto que parezca macro TeX |
+| PPPR.0.1–0.5 FROZEN + F18 | Auditorías y decisiones posteriores sobre rutas, identidad, G3, receipts, FSM, leasing y recuperación | Preservar contratos actuales y destinos de GAP upstream; no restablecer journal legacy ni rutas alternativas |
+| HITO P6 de F17-BIS | Diagnóstico forense de un compilador antiguo que eludía CompilationService, tenía un DockerRunner engañoso y rutas de I/O compartidas | **HISTÓRICO**: los riesgos justifican inspeccionar, pero no describen el G5 conectado en `main` |
+| NADR-F17BIS-06 v1.0.0 | **PROPOSED**, aunque su cuerpo usa MUST R5–R12 | **Sin autoridad normativa vigente**; el antiguo GAP-0.6-03 se retira como GAP confirmado, conservando E-027 y su destino DQ-01 |
+| NADR-F17BIS-09 v1.0.0 | **APPROVED — FROZEN**, §5.2 aislamiento de artefactos y §5.1 Event Log exclusivo | §5.2 es compatible con HostTectonicRunner/artefacto privado; §5.1 debe reconciliarse con F18, no se aplica mecánicamente al G5 convergido |
+
+**Regla de evidencia y no-regresión:** Atlas ayuda a localizar el recorrido; HEAD decide qué está conectado; las obligaciones se evalúan según estado formal y frontera. Los testigos de laboratorio con fake y los tests versionados leídos no prueban fidelidad STEM ni operación comercial. Ningún documento histórico se reescribe y ninguna propuesta se eleva a FROZEN por interpretación.
+
+**Corrección registrada, sin pérdida de trazabilidad:** E-0.6-027 conserva su identificador y comportamiento observado, pero cambia de P1 a P2 por falta de norma aprobada aplicable. El ID `GAP-0.6-03` queda **histórico/RETIRADO**, no renumerado ni contado entre los dos GAPs P1 OPEN. Si un contrato futuro requiere macros de texto como sintaxis ejecutable, habrá que reabrir la pregunta con evidencia y decisión, no por automatismo F17-BIS.
 
 ## 21. CIERRE DEL HITO — IN_PROGRESS
 
