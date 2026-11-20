@@ -1,8 +1,8 @@
 # HITO_PPPR.0.6_G5_ENSAMBLADO_Y_PDF_SALIDA.md
 
-**Estado:** IN_PROGRESS v1.0.3  
+**Estado:** FROZEN v1.0.4  
 **Fecha de emisión:** 2026-11-19  
-**Congelamiento:** N/A  
+**Congelamiento:** 2026-11-19  
 **Tipo:** Forensic Flow Audit — G5, representación TeX, compilación y salida PDF  
 **Iniciativa:** PPPR, Fase 0 de auditoría documental transversal; no altera fases del roadmap.  
 **Baseline productivo:** `main@1d21cfe958cc1de8a33824fed748cd6fe9260f42` (no modificar).  
@@ -20,6 +20,7 @@
 | 1.0.1-IN_PROGRESS | 2026-11-19 | Segunda pasada: 34 E-IDs, 3 fichas P1 locales y 3 GAP OPEN sobre CODE/TABLE literal, semántica HEADING y macros TeX legítimas fuera de math. H-0.6-A/B confirmadas, C/D/E/F/G/H/I delimitadas; antecedente GAP-0.2-02 y P6 reconciliados. Testigos NOT_RUN, sin FROZEN ni implementación. |
 | 1.0.2-IN_PROGRESS | 2026-11-19 | Tercera pasada de H-0.6-F: 42 E-IDs, 3 GAP P1 OPEN sin cuarto GAP precipitado, 9 hipótesis clasificadas, 4 DQ y 4 DC. Cobertura G3-B3/3b, repositorio fallback legacy y señal condicional AssemblyReport contrastados; NOT_RUN, no FROZEN. |
 | 1.0.3-IN_PROGRESS | 2026-11-19 | Corrección de autoridad a pedido del owner: Atlas D-1/D-2 y código HEAD son primarios; NADR-F17BIS-06 PROPOSED deja de fundamentar GAP. E-027 se reclasifica a P2 y GAP-0.6-03 se retira como GAP confirmado conservando ID y traza. Dos GAP P1 OPEN sustentados por alcance/principios actuales; NOT_RUN y NO FROZEN. |
+| 1.0.4-FROZEN | 2026-11-19 | Cierre documental §8.1–8.2 y §9.2–9.4: 42 evidencias estables, 2 fichas P1, 2 GAP P1 OPEN, GAP-03 histórico RETIRADO, H-A…I terminales, 4 DQ con motivo/no-bloqueo/destino, 4 DC, Atlas/PPPR/F18 reconciliados. Sin tests, CI, Tectonic, corpus, producción ni PASS científico. |
 
 ## 1. RESUMEN EJECUTIVO
 
@@ -29,7 +30,7 @@ El G5 soportado recibe un documento `READY_FOR_ASSEMBLY` desde el flujo CLI→OC
 
 **Hallazgos vigentes:** **GAP-0.6-01** (CODE/TABLE literal entra como TeX crudo) y **GAP-0.6-02** (HEADING pierde nivel en render) siguen **P1 LOCAL OPEN**, sustentados por alcance y principios actuales. El escaper sí transforma macros textuales fuera de math (E-027), pero **GAP-0.6-03 fue retirado como GAP confirmado**: su MUST específico se tomó de NADR-F17BIS-06 **PROPOSED** y no se acreditó que macros de estilo extraídas de PDF deban ejecutarse como TeX. No se observó Tectonic real.
 
-**Veredicto de autoridad:** **IN_PROGRESS v1.0.3**, 42 E-IDs (2 P1/40 P2), dos GAP P1 OPEN y un ID de GAP histórico retirado con justificación. Falta checklist §8.1–8.2; ni FROZEN ni `PRODUCT_READINESS=PASS`.
+**Veredicto de cierre forense:** **FROZEN documental v1.0.4** para el flujo G5 actual en `main@1d21cfe`: 42 E-IDs (2 P1, 40 P2), **2 GAP P1 LOCAL OPEN**, un tercer ID histórico retirado con traza, 9 hipótesis terminales, 4 DQ y 4 DC. Completado §8.1–8.2 por evidencia estática. Ni aprobación externa, certificación STEM ni `PRODUCT_READINESS=PASS`.
 
 ## 2. LÍMITE EPISTEMOLÓGICO Y MÉTODO FORENSE
 
@@ -39,7 +40,7 @@ El G5 soportado recibe un documento `READY_FOR_ASSEMBLY` desde el flujo CLI→OC
 - **NO VERIFICABLE en este corte:** fidelidad tipográfica, equivalencia visual PDF original/objetivo, exactitud matemática real, protección ante fallos físicos de almacenamiento, fondos privados de corpus GT, font coverage, recuperación SIGKILL, medidas de costo y calidad idiomática `en→es`.
 - **No se modificaron:** producción, tests, estados SQLite, output físico, corpora/certificación, configuración de proveedor ni otros HITOs FROZEN.
 
-## 3. ALCANCE AUDITADO — INVENTARIO INICIAL
+## 3. ALCANCE AUDITADO — PERÍMETRO FINAL
 
 | Frontera | Código/artefacto observado | Estado |
 |---|---|---|
@@ -47,17 +48,17 @@ El G5 soportado recibe un documento `READY_FOR_ASSEMBLY` desde el flujo CLI→OC
 | Daemon assembler y fases FSM | `apps/compiler/__main__.py::AssemblerWorkerDaemon` | **AUDITADO** (E-003/004/020) |
 | Lease, fencing y crash | `infra/db/assembly_recovery.py::AssemblyLeaseRepository` | **AUDITADO focal** (E-005/018/019) |
 | AST/continuidad, OMIT, proyecciones | `core/compiler/context_resolver.py::CQRSAssemblyContextResolver` | **AUDITADO** (E-006) |
-| Aceptación/degradación/fallback | `core/compiler/assembler.py`, `core/compiler/service.py`, `infra/db/document_repository.py` | **AUDITADO focal** (E-007/008) |
+| Aceptación/degradación/fallback | `core/compiler/{assembler,service,assembly_context}.py`, `infra/db/document_repository.py`; productores `runtime/{engine,publication_pipeline}.py`, `infra/db/staged_publication.py`, `core/chunking/{manifest_contract,result_contract}.py`; `core/pipeline/orchestrator.py` solo legacy | **AUDITADO POR COMPOSICIÓN** E-007/008, E-035…042; fallback excepcional sin productor soportado acreditado |
 | Perfil y geometría | `infra/db/profile_store.py`, `apps/compiler/__main__.py::RenderGeometryAdapter` | **AUDITADO focal** (E-009/010) |
-| Render por tipo, TeX y estructura | `core/compiler/rendering/{context,implementations,mapper,models}.py`, `apps/compiler/tex_builder.py`; `core/ast/{builder,models,strategy}.py` | **AUDITADO focal** (E-011…015 y E-025…027/033), tres incongruencias P1 |
+| Render por tipo, TeX y estructura | `core/compiler/rendering/{context,implementations,mapper,models}.py`, `apps/compiler/tex_builder.py`, `core/ast/{builder,models,strategy}.py` | **AUDITADO FOCAL** E-011…015, E-025…029/033: dos discrepancias P1 vigentes y una observación P2 reclasificada |
 | Imágenes y materialización física | `core/compiler/rendering/image_assets.py`, `apps/compiler/tectonic_runner.py` | **AUDITADO focal** (E-016/017) |
 | Testigos offline | B03, B02.2/B02.4/B02.5, G3/B4.4, G5 lease/worker, TeX renderer/Tectonic | **LEÍDOS · NOT_RUN** (E-021…023) |
-| Historia P6 | HITO F17BIS P6 y NADR-F17BIS-06/-09 | **RECONCILIACIÓN POR DELTA**; no reabrir automáticamente P6-H01…04 |
+| Historia P6 | HITO F17BIS P6 y NADR-F17BIS-06 PROPOSED/-09 FROZEN compatible | **RECONCILIADO POR DELTA** §17, E-027/003; no transferir antiguo P6-H01…04 |
 | Calidad real PDF en corpus, GT, producto y despliegue | PPPR.0.8/0.9 y PPPR.0.7 según contrato | **REFERENCIADO / NO VERIFICABLE** |
 
 ## 4. FUENTES DE EVIDENCIA
 
-**Código activo fijo:** `main@1d21cfe958cc1de8a33824fed748cd6fe9260f42`: `apps/cli/pdf_product.py`; `apps/compiler/{__main__,tectonic_runner,tex_builder}.py`; `infra/db/{assembly_recovery,profile_store,materialized_repo,document_repository}.py`; `core/ast/{builder,models,strategy,enums}.py`; `core/normalization/explicit_math.py`; `infra/extraction/providers/{pymupdf_provider,pymupdf_math_visual}.py`; `core/compiler/{assembly_context,context_resolver,assembler,service}.py`; `core/compiler/rendering/{mapper,models,context,implementations,image_assets}.py`.
+**Código fijo auditado:** `main@1d21cfe958cc1de8a33824fed748cd6fe9260f42`: `apps/cli/pdf_product.py`, `apps/compiler/{__main__,tectonic_runner,tex_builder}.py`, `runtime/{engine,publication_pipeline}.py`, `infra/db/{assembly_recovery,profile_store,materialized_repo,document_repository,staged_publication}.py`, `core/ast/{builder,models,strategy,enums}.py`, `core/normalization/{explicit_math,enrichers/context_enricher}.py`, `core/chunking/{contextual_plan,manifest_contract,result_contract}.py`, `core/compiler/{assembly_context,context_resolver,assembler,service}.py`, `core/compiler/rendering/{mapper,models,context,implementations,image_assets}.py`, `infra/extraction/providers/{pymupdf_provider,pymupdf_math_visual}.py`. **Solo contraste legacy:** `core/pipeline/orchestrator.py` (productor `original_chunks` de otro root); no pasa a D-1/D-2.
 
 **Fuentes CLASIFICADAS:** `docs/architecture/adr/pipeline-stabilization/handoff/ATLAS_RUTA_OPERATIVA_UNICA_PDF_PDF.md` v1.0.2, AS-IMPLEMENTED DESCRIPTIVO de D-1/D-2; `docs/architecture/{PROJECT_SCOPE,ENGINEERING_PRINCIPLES}.md`; PPPR.0.1–0.5 FROZEN y NADR F18 vigentes. NADR-F17BIS-06 v1.0.0 **PROPOSED** (sin fuerza normativa); NADR-F17BIS-09 v1.0.0 **APPROVED/FROZEN** (solo §5.2 compatible); HITO P6 F17-BIS histórico. Tests B02/B03/G5 solo leídos, NOT_RUN.
 
@@ -96,9 +97,9 @@ CLI run_admitted_pdf
 
 **Lectura estricta:** la línea feliz no prueba eficacia de render visual; un crash entre rename y commit puede dejar el PDF en filesystem con FSM no COMPLETED, situación de recuperación regenerable documentada, no commit distribuido. Los checks de header/estado no comparan páginas, fórmulas, figuras ni layout.
 
-## 10. REGISTRO DE EVIDENCIA FORENSE — TERCERA PASADA (NO FROZEN)
+## 10. REGISTRO DE EVIDENCIA FORENSE — FINAL
 
-| E-ID | Sev. inicial | Observed (archivo::símbolo) | Required/Decision/límite | Disposición |
+| E-ID | Severidad final | Observed (archivo::símbolo) | Required/Decision/límite | Disposición |
 |---|---|---|---|---|
 | **E-0.6-001** | P2 | `pdf_product.py::run_admitted_pdf` ejecuta solo la rama G5 si FSM READY_FOR_ASSEMBLY; para COMPLETED verifica PDF sin reconstruir. | Ruta única/estado operacional D-1/D-2; no implica calidad visual. | OBSERVADO |
 | **E-0.6-002** | P2 | `pdf_product.py::preflight_product_run` exige Tectonic y tres bases; `_verify_published_pdf` requiere regular, tamaño mínimo y prefijo `%PDF-`. | Precondición y predicado de éxito **operativos**, no validador integral PDF ni benchmark. | OBSERVADO |
@@ -143,7 +144,7 @@ CLI run_admitted_pdf
 | **E-0.6-041** | P2 | SQLiteDocumentRepository.get_verified_payload exige fila original_chunks(job_id,chunk_id), hash almacenado igual al esperado y SHA real sobre bytes. Ausencia o deriva se convierten en ASTConsistencyError antes de invocar Tectonic. | La tolerancia porcentual no elude la verificación criptográfica ni autoriza texto original arbitrario. | FAIL-CLOSED |
 | **E-0.6-042** | P2 | AssemblyReport.failure_reasons/missing_projection_nodes/degradation_applied no llega a salida física G5. El log de publicación incluye document_id y latency; PDFProductResult comprueba header/FSM y mantiene scientific_status=NOT_CERTIFIED. | Si se decide admitir DEGRADED en producto, hará falta una señal auditable; no se ha observado dicha ejecución en el root soportado. | LÍMITE / DC-04 |
 
-**Severidad v1.0.3:** 42 E-IDs estables: **2 P1 (E-025/026), 40 P2**. Se registra explícitamente la reclasificación E-027 P1→P2 por autoridad PROPOSED, sin borrar el ID ni su Observed; el GAP-0.6-03 histórico está retirado como GAP activo. E-039/042 siguen condicionales y ningún P0/incidente se afirma.
+**Severidad final §7.1:** 42 E-IDs estables E-0.6-001…042; **dos P1 LOCAL** (E-0.6-025/026) con perjuicio estructural sustentado por scope/principios; las otras **40 P2** corresponden a mecanismos, riesgos condicionados o límites. E-0.6-027 se conserva y registra su transición P1→P2; `GAP-0.6-03` sigue solo como ID histórico RETIRADO. Sin P0, falla de Tectonic ejecutada ni daño físico acreditado.
 
 ### Fichas P1 vigentes y ficha histórica reclasificada (§4.7)
 
@@ -204,13 +205,13 @@ result.append(LatexEscaper.escape(text[position:]))
 # LatexEscaper: "\\" → "\\textbackslash{}", "{" → "\\{", "}" → "\\}"
 ```
 
-- **Observed:** el parser protege delimitadores matemáticos explícitos y entornos whitelisted; un comando de texto TeX legítimo `\\textbf{Resultado}` fuera de math queda escapado a glifos literales y ya no formatea negrita. `test_text_render_strategy` prueba prosa/matemáticas, no este caso. No se afirma que el PDF fuente conserve habitualmente comandos TeX ni que el proveedor siempre los entregue.
+- **Observed:** el render conserva delimitadores matemáticos explícitos y entornos whitelist; una secuencia textual como `\\textbf{Resultado}` fuera de math se escapa a glifos literales y no actúa como macro de formato. No está acreditado si esos bytes proceden de TeX legítimo, texto de PDF o salida del proveedor. El testigo `test_text_render_strategy` no resuelve la procedencia, y fue **NOT_RUN**.
 - **Required:** NADR-F17BIS-06 R5–R8 menciona macros textuales, pero **PROPOSED** no establece un MUST vigente. PROJECT_SCOPE §4 exige preservar fórmulas y código, no determina que una macro de estilo textual extraída de PDF se ejecute como marcado TeX.
 - **Decision:** procedencia de macro textual y si representa texto literal o marcado autorizado quedan por decidir solo si la ruta lo requiere; no prescribir parser nuevo.
-- **Consecuencia:** cuando la entrada contiene TeX legítimo fuera de math, la representación estructural se pierde de forma determinista; no se infiere un defecto de protección math ya cubierta.
+- **Consecuencia delimitada:** si la fuente fuese realmente marcado TeX autorizado, su efecto tipográfico no se ejecutaría; si fuese texto literal extraído del PDF, escaparlo puede ser correcto. **No hay pérdida de contrato actual demostrada** ni fallo de preservación de matemáticas explícitas.
 - **Severidad:** **P2 OBS / NO GAP CONFIRMADO**. ID GAP-0.6-03 (emitido v1.0.1) **RETIRADO como GAP activo en v1.0.3**, con traza a DQ-0.6-01/DC-0.6-01.
 
-## 14. GAPS CONSOLIDADOS — RECTIFICACIÓN DE AUTORIDAD
+## 14. GAPS CONSOLIDADOS — FINAL (2 OPEN, 1 ID RETIRADO)
 
 | GAP | Observed → Required y consecuencia | Evidencia | Estado y destino |
 |---|---|---|---|
@@ -222,31 +223,31 @@ result.append(LatexEscaper.escape(text[position:]))
 
 **GAPs antecedentes no subsanados por esta auditoría:** PPPR.0.2 (perfiles/geometry), PPPR.0.3 (identidad/canonización), PPPR.0.4 (modelo/prompt/budget) y PPPR.0.5 (W06/leases/sweeper) mantienen sus destinos. No se reasignan aquí.
 
-## 15. HIPÓTESIS — CLASIFICACIÓN DE TERCERA PASADA
+## 15. HIPÓTESIS TERMINALES, DQ Y DC (§8.1–8.2)
 
 | ID | Pregunta y falsador específico | Estado |
 |---|---|---|
-| **H-0.6-A** | ¿CODE/TABLE crudos contienen caracteres o comandos que TeX interpreta en vez de presentar literalmente? | **CONFIRMADA BRECHA POR COMPOSICIÓN** E-025 → GAP-01; ejemplos estáticos, sin ejecución de Tectonic |
-| **H-0.6-B** | ¿HEADING pierde jerarquía tipada antes del TeX? | **CONFIRMADA** E-026 → GAP-02; pérdida del nivel, no de existencia del nodo |
-| **H-0.6-C** | ¿Se preservan math delimitados y macros legítimas? | **PARCIAL/NO VERIFICABLE**: math delimitado protegido; TeX textual fuera de math se escapa, pero F17BIS-06 PROPOSED no impone interpretarlo como comando; evidencia E-012/027/029 → DQ-0.6-01 |
-| **H-0.6-D** | ¿A4 fijo y 612×792 preservan geometría para figuras? | **PROPAGACIÓN CONFIRMADA** E-028/033 de GAP-0.2-02 (ancho ausente); tolerancia de layout real NO VERIFICABLE → DQ-0.6-02 |
-| **H-0.6-E** | ¿La ventana `os.replace`→COMMIT se recupera? | **CONTENCIÓN POR CÓDIGO** E-018/019/031, G5/2 testigo NOT_RUN; fallos físicos NO VERIFICABLE → DQ-0.6-03 |
-| **H-0.6-F** | ¿DEGRADED mezcla missing PASSTHROUGH y TRANSLATE y qué llega al operador? | **CERRADA PARA EL PERÍMETRO ESTÁTICO** E-035…042: ratio cuenta ambos; G3 publica íntegro; fallback SHA con origen legacy no conectado y sin fila falla cerrado. Si un productor válido habilitara DEGRADED, AssemblyReport se perdería; NO VERIFICABLE en root seleccionado → DQ-04/DC-04, no cuarto GAP |
-| **H-0.6-G** | ¿B02.5 e IMAGE preservan activos verificables? | **CONFIRMADA INTEGRIDAD DE BYTES**, E-015/016/023; detección general de fórmulas y fidelidad visual real NO VERIFICABLE → DQ-0.6-01 |
-| **H-0.6-H** | ¿Compila Tectonic en español/Unicode/math bajo condiciones reales? | **NO VERIFICABLE** sin compilador/corpus real: DQ-0.6-01 → PPPR.0.8 |
-| **H-0.6-I** | ¿El gate final certifica ciencia/layout? | **RECHAZADA COMO GARANTÍA** E-002/024: solo FSM+header; `NOT_CERTIFIED` explícito, validación científica diferida a PPPR.0.8/0.9 |
+| **H-0.6-A** | ¿CODE/TABLE crudos contienen caracteres TeX interpretables en vez de literal? | **CONFIRMADA EN CÓDIGO** E-025 → GAP-0.6-01; caso estructural tipado, Tectonic NOT_RUN |
+| **H-0.6-B** | ¿HEADING pierde jerarquía tipada antes del TeX? | **CONFIRMADA EN CÓDIGO** E-026 → GAP-0.6-02; pérdida de nivel, no de existencia del nodo |
+| **H-0.6-C** | ¿Se preservan math delimitados y macros textuales? | **CONFIRMADA PARA SPANS EXPLÍCITOS** E-012/029; **NO VERIFICABLE para macros textuales** E-027, pues procedencia y obligación aprobada desconocidas → DQ-0.6-01. No GAP-03 |
+| **H-0.6-D** | ¿A4 fijo y 612×792 preservan geometría de figuras? | **CONFIRMADA PROPAGACIÓN POR CÓDIGO** E-028/033 de GAP-0.2-02; **NO VERIFICABLE** tolerancia visual del paper → DQ-0.6-02 |
+| **H-0.6-E** | ¿La ventana `os.replace`→COMMIT se recupera? | **CONFIRMADA RUTA LÓGICA DE RECUPERACIÓN** E-018/019/031 por código/contratos G5/2 NOT_RUN; **NO VERIFICABLE** ante SIGKILL/power loss reales → DQ-0.6-03 |
+| **H-0.6-F** | ¿DEGRADED mezcla ausencia PASSTHROUGH/TRANSLATE y qué se informa? | **CONFIRMADA POLÍTICA POR CÓDIGO** E-035…042: ratio sobre todos los ensamblables, G3 publica cobertura completa, fallback sin SHA falla cerrado. **NO VERIFICABLE** productor soportado que publique DEGRADED y pierda señal → DQ-0.6-04 / DC-0.6-04. No cuarto GAP |
+| **H-0.6-G** | ¿B02.5 e IMAGE preservan activos? | **CONFIRMADA INTEGRIDAD DE BYTES POR CÓDIGO** E-015/016/023; **NO VERIFICABLE** fidelidad visual/math de corpus → DQ-0.6-01 |
+| **H-0.6-H** | ¿Tectonic físico compila español, Unicode, macros y assets? | **NO VERIFICABLE** sin compilación/control de fuentes y PDF real; testigos NOT_RUN → DQ-0.6-01, PPPR.0.8 |
+| **H-0.6-I** | ¿El gate final certifica ciencia/layout? | **RECHAZADA COMO GARANTÍA** E-002/024: verificación solo FSM+cabecera PDF y estado `NOT_CERTIFIED`; puerta científica PPPR.0.8/0.9 |
 
 
-### 15.1 Deferred Questions provisionales (NO VERIFICABLE / pendientes)
+### 15.1 Deferred Questions finales (§8.2): motivo, no-bloqueo y destino
 
-| ID | Razón y no-bloqueo de segunda pasada | Destino |
+| ID | Motivo de NO VERIFICABLE y razón explícita de no-bloqueo del mandato estático | Destino |
 |---|---|---|
-| **DQ-0.6-01** | Compilación UTF-8/math y procedencia de macros de texto no matemáticas requieren contrato de entrada y testigo; PDF extraído como prosa no garantiza que `\textbf` sea estilo ejecutable. No bloquea auditoría estática | PPPR.0.8/0.9 y ADR Maestro solo si el canal TeX se requiere |
-| **DQ-0.6-02** | Tolerancia geométrica legítima, page_width por página y drift de figura* no se miden; misma raíz que GAP-0.2-02 | ADR Maestro y PPPR.0.8; no duplicar GAP upstream |
-| **DQ-0.6-03** | Crash físico entre rename/COMMIT y recuperación SIGKILL/power loss no ensayados; testigos G5 offline solo leídos | PPPR.0.7 (entorno) / PPPR.0.8 (testigo focal) |
-| **DQ-0.6-04** | ¿Hay una composición soportada que provea simultáneamente original_chunks verificables y control_plane(chunk_id,payload_sha256) para <=5% de proyecciones ausentes? No se acredita en OCR→G3 actual; sin backing falla cerrado. No bloquea inventario estático, pero impide afirmar un PDF DEGRADED real y su falta de señal | ADR Maestro/PPPR.0.8, testigo focal solo si se mantiene esta capacidad |
+| **DQ-0.6-01** | Tectonic físico, UTF-8/acentos, math, imagen y procedencia de macros textuales exigen compilador/fixtures y contrato del canal de entrada. PDF extraído como prosa no obliga a ejecutar `\textbf`. **No bloquea** identificar la ruta y los dos incumplimientos tipados por código; sí impide PASS científico y declarar GAP-03. | PPPR.0.8/0.9; ADR Maestro solo si se decide admitir TeX textual ejecutable |
+| **DQ-0.6-02** | Tolerancia real al drift de `figure*`, dimensiones por página y reconstrucción visual requieren originales, oráculo/criterio de comparación y compilación. **No bloquea** observar por código la propagación E-028 del **GAP-0.2-02** ya vigente; no se duplica en G5. | PPPR.0.8 para falsador físico; ADR Maestro/Execution Plan de GAP-0.2-02 |
+| **DQ-0.6-03** | SIGKILL, `os.replace`→COMMIT, power loss y recuperación física de filesystem/SQLite no se ensayaron; G5/2 es testigo versionado NOT_RUN. **No bloquea** mapear orden, CAS y recuperación lógica de código; sí limita toda promesa de durabilidad física universal. | PPPR.0.7 (entorno), PPPR.0.8 (testigo focal autorizado) |
+| **DQ-0.6-04** | No se acreditó root soportado que provea `original_chunks` válido más `control_plane(chunk_id,payload_sha256)` con ≤5% de proyecciones ausentes. Fallback sin backing falla cerrado; pérdida del `AssemblyReport` sería **condicional**. **No bloquea** cartografiar G3→G5 ni sus límites actuales; impide afirmar un PDF DEGRADED publicado. | ADR Maestro PPPR/PPPR.0.8, testigo focal solo si esa capacidad se adopta |
 
-### 15.2 Decision Candidates preliminares (no aprobados)
+### 15.2 Decision Candidates finales (ninguno aprobado)
 
 | ID | Pregunta futura | Autoridad |
 |---|---|---|
@@ -255,7 +256,7 @@ result.append(LatexEscaper.escape(text[position:]))
 | **DC-0.6-03** | Tratamiento del perfil de página/figuras y evidencia suficiente de publicación científica; reconciliar con upstream PPPR.0.2 y downstream PPPR.0.8 | ADR Maestro PPPR → Execution Plan según necesidad |
 | **DC-0.6-04** | Determinar si DEGRADED con fallback pertenece realmente a la ruta producto. Solo si se habilita: política por clase de fallo y observabilidad verificable de AssemblyReport, sin infraestructura nueva presupuesta | ADR Maestro PPPR → Execution Plan condicionado |
 
-## 16. RESPUESTAS AL MANDATO — SEGUNDA PASADA
+## 16. RESPUESTAS AL MANDATO — FINAL
 
 Hay una sola ruta G5 compartida entre foreground y daemon; el compilador físico se invoca en directorio efímero y publica un artefacto privado con CAS antes de promocionarlo. La preservación STEM tiene mecanismos verificables de fragmentos math e imágenes por SHA, pero **no** se certifica equivalencia científica ni visual de PDF→PDF. La segunda pasada observó tres conductas tipadas; la revisión v1.0.3 confirmó **dos GAPs vigentes** (CODE/TABLE literal y jerarquía HEADING) y reclasificó **E-0.6-027** (macro de texto escapada) como **OBS P2**, retirando GAP-0.6-03 por autoridad insuficiente del NADR-F17BIS-06 PROPOSED. La geometría upstream conserva su GAP-0.2-02 y el gate científico queda para PPPR.0.8. No se presume ejecución de TeX, duplicación de artifacts ni corrupción física observada.
 
@@ -283,8 +284,48 @@ Hay una sola ruta G5 compartida entre foreground y daemon; el compilador físico
 
 **Corrección registrada, sin pérdida de trazabilidad:** E-0.6-027 conserva su identificador y comportamiento observado, pero cambia de P1 a P2 por falta de norma aprobada aplicable. El ID `GAP-0.6-03` queda **histórico/RETIRADO**, no renumerado ni contado entre los dos GAPs P1 OPEN. Si un contrato futuro requiere macros de texto como sintaxis ejecutable, habrá que reabrir la pregunta con evidencia y decisión, no por automatismo F17-BIS.
 
-## 21. CIERRE DEL HITO — IN_PROGRESS
+## 21. CIERRE DEL HITO PPPR.0.6 — FROZEN v1.0.4
 
-**NO FROZEN — IN_PROGRESS v1.0.3.** Corrección normativa basada en Atlas D-1/D-2, HEAD actual y F17-BIS: 42 E-IDs (2 P1, 40 P2), 2 GAP P1 OPEN y GAP-03 histórico retirado, 9 hipótesis, 4 DQ y 4 DC. Resta checklist §8.1–8.2 y registrar delta/no-regresión documental. Sin tests, Tectonic, Docker, LLM, corpus o implementación.
+### 21.1 Checklist metodológico de cierre (§8.1–8.2)
 
-**Política Git:** mantener PR interno **Draft** exclusivamente de este Markdown desde `pppr/hito-0.6` hacia `pdf-pdf-product-readiness`. Mantener PR general #66 Draft; `main` intacto. No modificar implementación ni ejecutar pruebas científicas sin autorización; tras cierre FROZEN y aprobación, integrar, verificar, eliminar rama corta y comenzar PPPR.0.7 desde el HEAD general nuevo.
+| Condición de cierre | Disposición verificada |
+|---|---|
+| Metadata, SHA productivo, fecha y changelog | **CUMPLE** — encabezado, corte `main@1d21cfe`, versiones v1.0.0–v1.0.4 |
+| Límite epistemológico y read-only | **CUMPLE** — §2: Observed ≠ Required ≠ Decision; tests `NOT_RUN` y ningún PASS científico |
+| Alcance y 100 % de fronteras declaradas | **CUMPLE para el mandato estático** — §3–5 y §10: CLI/daemon, resolver, G3-proyecciones, dominio/fallback, render, TeX, Tectonic, lease/FSM/publish, perfiles/assets y testigos; G5 físico/host, corpus, GT y proveedor explícitamente NO VERIFICABLE |
+| Fuentes clasificadas y normas vigentes | **CUMPLE** — §4/17: Atlas descriptivo D-1/D-2, código actual, PROJECT_SCOPE/principios, PPPR.0.1–0.5 FROZEN, F18; F17BIS-06 PROPOSED no convertido en MUST |
+| Mapa de flujo y límites de atomicidad | **CUMPLE** — §5: queue/FSM attached, recibos previos G3, artefacto privado y `os.replace` anterior a COMMIT; ningún 2PC asumido |
+| IDs de evidencias y severidad §7.1 | **CUMPLE** — §10: E-0.6-001…042, **2 P1 LOCAL** y 40 P2, sin renumerar E-027 |
+| Fichas extendidas P1 (§4.7) | **CUMPLE** — E-0.6-025/026: fuente/símbolo, código, Observed, Required vigente, Decision, consecuencia, severidad y destino |
+| GAPs con evidencia, contrato, estado y destino (§4.8) | **CUMPLE** — §14: GAP-0.6-01/02 **P1 LOCAL · OPEN**, ADR Maestro PPPR → Execution Plan. GAP-0.6-03 conserva ID **HISTÓRICO/RETIRADO**, con razón y E-027 P2 |
+| Hipótesis terminales | **CUMPLE** — §15: H-0.6-A…I clasificadas como CONFIRMADA, RECHAZADA o NO VERIFICABLE por propiedad, sin TO BE VERIFIED sin destino |
+| DQ (§8.2) y decisiones separadas | **CUMPLE** — §15.1/15.2: **4 DQ** con motivo/no-bloqueo/destino y **4 DC** sin implementación aprobada |
+| Reconciliación de contradicciones y no-regresión | **CUMPLE** — §17: Git delta Atlas `6818e86` → main, P6 histórico, NADR-F17BIS-06 PROPOSED, -09 FROZEN compatible, PPPR.0.2/0.3/0.5 y F18 |
+| Garantías positivas/negativas y cadena de gobernanza | **CUMPLE** — §§21.2–21.4: no ciencia ni producción acreditada, preservación de ruta y gate Git |
+| Tests, CI, Tectonic real, GT/corpus, fault injection | **NOT_RUN / NO REQUERIDOS PARA ESTE CIERRE ESTÁTICO**; sin inferir ejecución, equivalencia visual, PASSED CI ni autorización de producto |
+
+**Resolución §8.2:** los límites empíricos no verificados no obstaculizan el mandato de analizar código y contratos actuales, pero **sí** impiden cerrar los dos GAP P1, acreditar publicación de un PDF DEGRADED, certificar Tectonic real o declarar `PRODUCT_READINESS=PASS`. Cada límite queda localizado en una DQ con motivo, justificación de no-bloqueo y destino.
+
+### 21.2 Veredicto final y garantías
+
+**HITO FROZEN v1.0.4 — 2026-11-19**, exclusivamente como *Flow Audit* documental de la ruta PDF→PDF D-1/D-2 seleccionada en `main@1d21cfe958cc1de8a33824fed748cd6fe9260f42`. El HITO no certifica código, servicio, papers ni despliegue.
+
+**Observado por código:** CLI y daemon comparten G5; AST se valida por unicidad/orden antes de OMIT; G3 publica proyecciones de generación completa antes de `READY_FOR_ASSEMBLY`; ausencia de proyección en G5 está sujeta a política y fallback SHA que falla cerrado cuando falta backing; las imágenes se verifican por contenido; spans matemáticos explícitos se preservan dentro de su contrato; Tectonic se invoca con directorio efímero y artefacto privado; el lease/owner CAS protege la publicación, con `os.replace` físico anterior al COMMIT. Estos son **mecanismos lógicos estáticos**, no ensayos físicos.
+
+**Persisten P1 LOCAL OPEN:** **GAP-0.6-01** (CODE/TABLE literal tratado como TeX crudo) y **GAP-0.6-02** (jerarquía HEADING pierde representación). El previo **GAP-0.6-03 fue RETIRADO como GAP confirmado** al verificarse que su REQUIRED venía de NADR-F17BIS-06 PROPOSED; E-0.6-027 sigue P2, no borrada, con DQ/DC pertinente. El 5 % DEGRADED no es 5 % de traducción perdida y no se probó una ruta soportada que produzca PDF degradado.
+
+**NO GARANTIZADO:** equivalencia visual/topológica de PDFs reales, supervivencia de cualquier fórmula no extraída, semántica matemática, cobertura de figuras vectoriales, tipografía Unicode/acentos en ejecución Tectonic, exactitud lingüística inglés→español, publicación física tras SIGKILL/power loss, integridad del corpus GT o `PRODUCT_READINESS=PASS`. Tests y componentes mencionados fueron leídos pero **NOT_RUN**; no se ejecutó API LLM, SQLite del usuario, Docker, Tectonic, corpus ni código productivo.
+
+### 21.3 Cadena de gobernanza y no-regresión
+
+Metodología general v1.3.0 FROZEN → metodología forense v1.2.0 FROZEN → D-1/D-2 con Atlas descriptivo de ruta única → `PROJECT_SCOPE`/principios → evidencia del HEAD `main@1d21cfe`, PPPR.0.1–0.5 FROZEN, ADR/NADR F18 aplicables y NADR-F17BIS-09 §5.2 compatible (sin importar automáticamente §5.1) → **PPPR.0.6 FROZEN** → PPPR.0.7–0.9 → ADR Maestro PPPR / ADR-NADR estrictamente necesarios → Execution Plan aprobado, integración de gobernanza en main → implementación posterior por PR separado.
+
+**No-regresión:** no reactivar R1/R3, DockerRunner ficticio, Event Log legacy como fuente del G3 seleccionado, 2PC o reemplazo de CompilationService por intuición. Las cuestiones de revalidación de proveedor/idioma pertenecen a PPPR.0.4 y las de durabilidad W06 a PPPR.0.5. El Atlas es mapa descriptivo del commit `6818e86`, no autoridad normativa que modifique el HEAD ni imponga el contrato multirruta de F17-BIS.
+
+### 21.4 Gate Git y transferencia
+
+**Documento preparado para revisión/aprobación explícita del propietario en PR #71**, todavía Draft, exclusivamente de este Markdown, `pppr/hito-0.6` → `pdf-pdf-product-readiness`. FROZEN documental **no equivale a aprobación de revisión GitHub, CI PASS o merge**.
+
+Después de aprobación e integración interna: verificar PPPR.0.6 FROZEN en rama general; eliminar `pppr/hito-0.6`; abrir PPPR.0.7 desde el HEAD general nuevo. **PR general #66 sigue Draft** hacia `main` hasta terminar Fase 0, ADR Maestro, ADR/NADR imprescindibles y Execution Plan aprobado. **No hacer cambios de producción antes de integrar gobernanza autorizada a main**.
+
+> FROZEN documental ≠ GAPs resueltos ≠ compilación real acreditada ≠ fidelidad científica certificada ≠ autorización de implementación.
