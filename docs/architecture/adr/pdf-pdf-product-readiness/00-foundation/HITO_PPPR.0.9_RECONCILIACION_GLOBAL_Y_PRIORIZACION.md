@@ -1,10 +1,10 @@
 # HITO_PPPR.0.9_RECONCILIACION_GLOBAL_Y_PRIORIZACION.md
 
-**Estado:** FROZEN v1.0.3  
+**Estado:** FROZEN v1.0.4  
 **Fecha de apertura:** 2026-11-20  
 **Congelamiento documental:** 2026-11-20  
 **Iniciativa:** PPPR, auditoría forense de Fase 0 transversal (no fase nueva del roadmap)  
-**Tipo:** Reconciliation HITO / Gap Matrix transversal  
+**Tipo:** HITO de reconciliación transversal **con Gap Matrix incorporada**; no sustituye ni redefine la plantilla compacta §11.2  
 **Mandato:** consolidar y reconciliar E/GAP/DQ/DC de PPPR.0.1–0.8 FROZEN, sin reabrir decisiones cerradas; distinguir identidad causal, propagación y observaciones históricas, ordenar riesgos por dependencia y entregar una base forense para ADR Maestro. **No** diseñar ni implementar.  
 **Código de producto anclado:** `main@1d21cfe958cc1de8a33824fed748cd6fe9260f42`.  
 **Baseline de gobernanza:** `pdf-pdf-product-readiness@10a95ebb3adf7a070dd70e047a59fae0814445cb`, con PPPR.0.1–0.8 FROZEN.  
@@ -19,12 +19,13 @@
 | 1.0.1-IN_PROGRESS | 2026-11-20 | Segunda pasada focal: inspección de NADR-F17BIS-03/16 y consumidores efectivos de compute_ast_hash; tensión de contrato alternativo vs uso de generación sin rebajar GAP-0.3. Primera agrupación de DQ/DC por propietarios y estado; H-0.9-H rechaza multiplicación 37+22 por ID, sin declarar resueltos asuntos físicos. 30 E-IDs P2, 8 hipótesis con disposición terminal de la pregunta, una DQ-0.9 pendiente. Sin tests ni FROZEN. |
 | 1.0.2-IN_PROGRESS | 2026-11-20 | Tercera pasada: disposición individual exacta de 37 DQ-IDs (2 resueltas en origen, 35 diferidas/delimitadas) y 22 DC-IDs (candidatos no aprobados; EN→ES y renovar inferencia predecididos parcialmente), con razón, no-bloqueo, destino y familia; §14 clasifica scope de familias sin alterar severidad/propiedad. DQ-0.9-01 diferida al ADR. Sin nuevas pruebas, GAP o FROZEN. |
 | 1.0.3-FROZEN | 2026-11-20 | Cierre §8.1–8.2, §9.2–9.4 y estructura §11.2: Gap Matrix de 13 unidades causales preliminares/14 GAP-IDs P1 OPEN heredados con 10 columnas y Decision Scope; 30 E-IDs P2, 8 hipótesis terminales, 37 DQ dispuestas individualmente, 22 DC con destinos, DQ-0.9-01 explícitamente diferida; garantías, límites y transición al ADR Maestro sin implementación. |
+| 1.0.4-FROZEN | 2026-11-20 | Corrección documental posterior a FROZEN: §1 elimina calificadores provisionales impropios del dictamen; cabecera, §14 y §21 aclaran que es un HITO de reconciliación con Gap Matrix incorporada, no cumplimiento literal de la plantilla compacta de cinco secciones; §16/§21 distinguen 37 DQ heredadas y DQ-0.9-01 nueva. Sin alterar evidencia, GAPs, decisiones ni pruebas. |
 
 ## 1. RESUMEN EJECUTIVO
 
-**Hallazgo central provisional:** la ruta única D-1/D-2 seleccionada (CLI→OCR→G3→G5→PDF) tiene continuidad operacional histórica con fake y contratos técnicos comprobables, **pero no certificación de traducción científica EN→ES**. Sus ocho HITOs de auditoría FROZEN registran 270 E-IDs, 14 GAP-IDs P1 activos de origen y preguntas de decisión/evidencia todavía pertinentes. Los **14 IDs no equivalen automáticamente a 14 causas independientes**: GAP-0.1-01 y GAP-0.4-02 observan la misma falta de conmutación física del modelo. El HITO 0.9 preserva ambos IDs y evita duplicar trabajo futuro.
+**Hallazgo central:** la ruta única D-1/D-2 seleccionada (CLI→OCR→G3→G5→PDF) tiene continuidad operacional histórica con fake y contratos técnicos comprobables, **pero no certificación de traducción científica EN→ES**. Sus ocho HITOs de auditoría FROZEN registran 270 E-IDs, 14 GAP-IDs P1 activos de origen y preguntas de decisión/evidencia todavía pertinentes. Los **14 IDs no equivalen automáticamente a 14 causas independientes**: GAP-0.1-01 y GAP-0.4-02 observan la misma falta de conmutación física del modelo. El HITO 0.9 preserva ambos IDs y evita duplicar trabajo futuro.
 
-**Dictamen inicial:** 14 GAP-IDs P1 OPEN heredados; tras ese único solapamiento confirmado, **13 unidades causales preliminares** (no se han descartado otras coincidencias). No se crean P1 nuevos, no se cierran GAP anteriores, no hay `PRODUCT_READINESS=PASS`. La futura prioridad ejecutiva corresponde al ADR Maestro y al plan aprobado, no a esta auditoría.
+**Dictamen de cierre:** 14 GAP-IDs P1 OPEN heredados; tras ese único solapamiento confirmado, **13 unidades causales preliminares** (no se han descartado otras coincidencias). No se crean P1 nuevos, no se cierran GAP anteriores, no hay `PRODUCT_READINESS=PASS`. La futura prioridad ejecutiva corresponde al ADR Maestro y al plan aprobado, no a esta auditoría.
 
 ## 2. LÍMITE EPISTEMOLÓGICO / OBSERVED ≠ REQUIRED ≠ DECISION
 
@@ -129,6 +130,8 @@ El orden expone **dependencias**: no asigna waves, responsables, modelos ni tecn
 
 ## 14. GAP MATRIX TRANSVERSAL — VEREDICTO FROZEN
 
+**Naturaleza documental:** esta matriz de diez campos está **incorporada al HITO de reconciliación PPPR.0.9**. La plantilla compacta de cinco secciones definida en §11.2 es específica del tipo documental *Gap Matrix* independiente; no se declara que este HITO híbrido reproduzca literalmente su estructura ni se introduce una plantilla alternativa. Se preserva un único artefacto de reconciliación, sin duplicar el inventario o crear una segunda fuente de autoridad.
+
 **Unidad de consolidación:** una fila por **núcleo causal preliminar**, sin borrar ninguno de los 14 GAP-IDs heredados. Cada fila conserva el finding de origen, el comportamiento observado, el requisito que justificó su severidad en el HITO FROZEN y el **Decision Scope** de §7.2. Las severidades P1 son **heredadas**, no reclasificaciones nuevas; no atribuir incidentes físicos no observados. **Decision Record asignado** indica destino documental **PENDIENTE**, no un ADR aprobado.
 
 ### 14.1 Matriz de 13 unidades causales preliminares (§11.2)
@@ -226,7 +229,7 @@ El orden expone **dependencias**: no asigna waves, responsables, modelos ni tecn
 | DQ-0.8-06 | DIFERIDA, CONDICIONAL | CLI preflight legacy no recalcula GT hash allí; caller certificante actual no acreditado | ADR sujeto/reutilización → revisión subtool sólo si gate |
 | DQ-0.8-07 | DIFERIDA, CONDICIONAL | Post-run recibe provenance bool y colapsa duplicados; caller/gate no acreditado | ADR sujeto/reutilización → testigo focal sólo si gate |
 
-**Censo:** 37 IDs rastreados sin reasignación; **2 RESUELTAS en origen**, **35 DIFERIDAS** total (incluidas DELIMITADA, ACOTADA o CONDICIONAL), todas con razón y destino. **No** son 35 nuevos tickets ni bloquean por sí solos el cierre de Fase 0; bloquean las afirmaciones de garantía que cada una delimita.
+**Censo:** 37 DQ-IDs **heredados de PPPR.0.1–0.8** rastreados sin reasignación; **2 RESUELTAS en origen**, **35 DIFERIDAS** total (incluidas DELIMITADA, ACOTADA o CONDICIONAL), todas con razón y destino. **No** son 35 nuevos tickets ni bloquean por sí solos el cierre de Fase 0; bloquean las afirmaciones de garantía que cada una delimita.
 
 ### 16.2 Disposición individual de los 22 DC-IDs heredados
 
@@ -257,9 +260,9 @@ El orden expone **dependencias**: no asigna waves, responsables, modelos ni tecn
 | DC-0.8-03 | Custodia y provisión de PDFs **PENDIENTES** por autorización owner | Owner / issue #34 → plan condicionado |
 | DC-0.8-04 | Gates/atribución mínima/costo/aislamiento **PENDIENTES** | ADR Maestro → plan |
 
-**Censo:** 22 candidatos identificados, **0 soluciones aprobadas por este HITO**, dos con parte del alcance ya fijada en PPPR.0.4 (EN→ES y renovar inferencia). El ADR Maestro debe decidir solo lo imprescindible; el plan posterior transformará decisiones aprobadas en tareas y gates, sin crear un documento paralelo de priorización.
+**Censo:** 22 DC-IDs **heredados** identificados, **0 soluciones aprobadas por este HITO**, dos con parte del alcance ya fijada en PPPR.0.4 (EN→ES y renovar inferencia). El ADR Maestro debe decidir solo lo imprescindible; el plan posterior transformará decisiones aprobadas en tareas y gates, sin crear un documento paralelo de priorización.
 
-### 16.3 DQ-0.9-01 — contrato de hash aplicado a identidad de generación
+### 16.3 DQ-0.9-01 — pregunta **nueva de PPPR.0.9** sobre identidad de generación
 
 **Estado:** **DIFERIDA DOCUMENTALMENTE AL ADR MAESTRO, NO RESUELTA POR PRESUNCIÓN.** `NADR-F17BIS-03` FROZEN R1/R4 exige jerarquía y contenido normalizado para su firma AST; `NADR-F17BIS-16` FROZEN R4–8 permite hashes con propósitos distintos y documentados. El código `compute_ast_hash` declara uso alternativo para comparación de parsers y excluye `heading_level/depth`, pero `prepare_contextual_plan` lo calcula en la ruta OCR y `ASTRegistry` usa `(document_id,ast_hash)` como identidad durable. **Observed:** E-0.9-025…028. **Required:** preservar identidad y linaje semánticos de la generación bajo Scope/principios; aplicabilidad normativa histórica **solo por sujeto compatible**. **Decision:** contrato exacto de identidad de generación no quedó aprobado por D-1/D-2. **Motivo de diferimiento:** requiere decisión de significado e invalidación que no corresponde a una auditoría. **No bloquea** reconciliar GAP-0.3-01/02 (se mantienen P1 OPEN sin corrección ni rebaja), **sí bloquea** decidir cómo corregirlos. **Destino:** ADR Maestro PPPR; NADR adicional solo ante vacío normativo demostrado, testigo posterior bajo plan aprobado.
 
@@ -278,27 +281,27 @@ El orden expone **dependencias**: no asigna waves, responsables, modelos ni tecn
 - Issue #34 sigue custodia autorizada de 15 PDFs. No fabricar hashes/GT, bajar threshold, inferir leakage ni equiparar HARD_FAIL topológico histórico con traducción actual. Issue #36 OPEN no prueba defecto nuevo en D-1/D-2 por título.
 - Se mantienen todos los E/GAP IDs y veredictos FROZEN previos. Ninguna implementación ni suite científica se inició en este HITO.
 
-## 21. CIERRE DEL HITO PPPR.0.9 — FROZEN v1.0.3
+## 21. CIERRE DEL HITO PPPR.0.9 — FROZEN v1.0.4
 
-**Veredicto:** **FROZEN documental v1.0.3 — 2026-11-20.** El mandato de reconciliación global de Fase 0 queda **CERRADO** sobre código `main@1d21cfe`, ocho HITOs FROZEN, estados Git verificados y contratos aplicables. **14 GAP-IDs P1 heredados OPEN**, 13 núcleos causales preliminares, **30 E-0.9 P2**, ocho hipótesis terminales, 37 DQ heredadas (2 resueltas en origen, 35 diferidas con causas/destinos), 22 DC heredados sin soluciones aprobadas y DQ-0.9-01 diferida explícitamente al ADR Maestro. **0 GAP nuevos**, sin ejecución ni cambio productivo. No equivale a cierre de GAP ni a `PRODUCT_READINESS=PASS`.
+**Veredicto:** **FROZEN documental v1.0.4 — 2026-11-20.** El mandato de reconciliación global de Fase 0 queda **CERRADO** sobre código `main@1d21cfe`, ocho HITOs FROZEN, estados Git verificados y contratos aplicables. **14 GAP-IDs P1 heredados OPEN**, 13 núcleos causales preliminares, **30 E-0.9 P2**, ocho hipótesis terminales, 37 DQ heredadas (2 resueltas en origen, 35 diferidas con causas/destinos) **más una DQ nueva, DQ-0.9-01** (diferida al ADR Maestro); 22 DC heredados sin soluciones aprobadas. **0 GAP nuevos**, sin ejecución ni cambio productivo. No equivale a cierre de GAP ni a `PRODUCT_READINESS=PASS`.
 
-### 21.1 Checklist de suficiencia §8.1 y plantilla Gap Matrix §11.2
+### 21.1 Checklist de suficiencia §8.1 y campos de Gap Matrix §11.2
 
 | Requisito | Estado y evidencia |
 |---|---|
-| Metadata/versión, changelog, baselines | **CUMPLE** — cabecera y v1.0.0→v1.0.3 FROZEN; `main` y rama general pinneados |
+| Metadata/versión, changelog, baselines | **CUMPLE** — cabecera y v1.0.0→v1.0.4 FROZEN; `main` y rama general pinneados |
 | Alcance, fuentes y 100% de los componentes del mandato | **CUMPLE** — §3/§4: ocho HITOs FROZEN reconciliados; código actual reusado a través de E-IDs, componentes externos NO VERIFICABLE; no se atribuye exhaustividad física |
 | Límite epistemológico | **CUMPLE** — §2/§7: Observed ≠ Required ≠ Decision y límite por sujeto F17-BIS |
 | Evidencias estables/severidad | **CUMPLE** — §10: E-0.9-001…030 P2 estables; los P1 originales siguen en sus fuentes |
-| Matriz por subsistema, ámbitos y destino normativo | **CUMPLE** — §14.1: 10 columnas §11.2, 13 núcleos que conservan los 14 GAP-IDs y trazan E-ID, estado, requisito, consecuencia, scope y ADR destino **pendiente** |
+| Campos de la Gap Matrix incorporada (no plantilla literal) | **CUMPLE contenido** — §14.1: 10 columnas exigidas por §11.2, 13 núcleos que conservan 14 GAP-IDs y trazan E-ID, estado, requisito, consecuencia, scope y destino ADR **pendiente**; la estructura de cinco secciones de una Gap Matrix autónoma **NO aplica literalmente** a este HITO de reconciliación |
 | Estadística global y exclusiones | **CUMPLE** — §14.2: GAP OPEN/retirado/candidato, 270 E heredadas; ausencia de doble conteo |
 | Hipótesis sin abiertas | **CUMPLE** — §15: H-0.9-A…H terminales, la falta de garantía externa permanece en DQ |
-| DQ/DC con causa, no-bloqueo y destino | **CUMPLE** — §16: 37 DQ individualizadas, 22 DC individualizados y DQ-0.9-01 diferida al ADR |
+| DQ/DC con causa, no-bloqueo y destino | **CUMPLE** — §16: 37 DQ heredadas (2 resueltas, 35 diferidas), **1 DQ nueva DQ-0.9-01** diferida al ADR y 22 DC heredados individualizados |
 | Contradicciones/autoridad/no-regresión | **CUMPLE** — §14.2/§17: 0.1↔0.4 conmutación duplicada; 0.2→0.6 perfil; 0.3 vs 0.6 heading; NADR-06 `PROPOSED`, F18 vigente |
 | Resumen, veredicto, garantías y cadena Git | **CUMPLE** — §1, §21.2/21.3: resultados parciales, sin certificación, secuencia al ADR |
 | Flujo de governance | **CUMPLE documentalmente** — PR #74 deberá permanecer Draft hasta revisión y aprobación separada para merge; PR #66 Draft; `main` intacto |
 
-La estructura híbrida deliberada conserva las secciones forenses necesarias para rastrear decisiones y DQ/DC, **más** los diez campos y estadísticas de Gap Matrix exigidos por §11.2. No obliga a crear una segunda Gap Matrix ni un documento de priorización paralelo.
+**Relación con §11.2:** el artefacto es un **HITO de reconciliación con Gap Matrix incorporada**, no una Gap Matrix autónoma ni una excepción que reemplace su plantilla compacta de cinco secciones. Reutiliza los **diez campos mínimos** y sus estadísticas, y mantiene las secciones forenses necesarias para trazabilidad E/GAP/DQ/DC. No se afirma conformidad literal de estructura; tampoco se crean una segunda matriz o un estándar documental nuevo.
 
 ### 21.2 Regla §8.2 — diferimientos y garantías
 
