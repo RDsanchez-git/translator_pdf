@@ -1,8 +1,8 @@
 # HITO_PPPR.0.7_OPERACION_ENTORNOS_Y_DESPLIEGUE.md
 
-**Estado:** IN_PROGRESS v1.0.3  
+**Estado:** FROZEN v1.0.4  
 **Fecha de emisión:** 2026-11-20  
-**Congelamiento:** N/A  
+**Congelamiento:** 2026-11-20  
 **Tipo de artefacto:** Forensic Flow Audit — operación y entornos de la ruta única PDF→PDF  
 **Iniciativa:** PPPR, Fase 0 documental transversal (no fase numerada del roadmap)  
 **Baseline productivo inspeccionado:** `main@1d21cfe958cc1de8a33824fed748cd6fe9260f42`  
@@ -23,6 +23,8 @@
 
 | 1.0.3-IN_PROGRESS | 2026-11-20 | Cierre de hipótesis: 9 disposiciones terminales con propiedades observadas y restricciones físicas NO VERIFICABLE; 39 E-IDs P2, 5 DQ, 4 DC. Se prepara checklist formal de cierre; sin tests ni cambios productivos. |
 
+| 1.0.4-FROZEN | 2026-11-20 | Checklist formal §§8.1–8.2, 9.2–9.4 y garantías: 39 E P2, 0 GAP propios OPEN, 2 IDs candidatos no confirmados, 9 hipótesis terminales, 5 DQ y 4 DC. Cierre de auditoría estática, NO operación comercial ni CI PASS. |
+
 ## 1. RESUMEN EJECUTIVO
 
 **Hecho de composición:** la opción seleccionada en el Atlas es CLI/admisión → OCR Router → `runtime/engine.py` (G3) → `apps/compiler/__main__.py` (G5) → PDF. `docker-compose.yml` es una base heredada que contiene fake/chaos y benchmark; `docker-compose.runtime.yml` sustituye montajes/estado y desactiva componentes de laboratorio por `profiles: [lab]`. `docker-compose.convergence-lab.yml` añade una composición controlada **solo para laboratorio offline con fake**, no un perfil productivo real. `docker-compose.golden.yml` presenta una intención histórica de calidad, pero no demuestra por sí solo que sea el launcher operativo aprobado.
@@ -34,6 +36,8 @@
 **Límites prioritarios:** `docker compose up` no fue ejecutado; no se inspeccionaron máquinas Windows ni volúmenes reales, configuraciones expandidas, permisos, certificados, versiones efectivas o secretos. No extrapolar evidencia de laboratorio C0–C4 con fake a egress/hosting comercial. El sweeper de Compose es un **GAP-0.5-03 preexistente**, no se abre uno duplicado aquí.
 
 **Veredicto:** **IN_PROGRESS**. Se requiere completar causalidad de los dos GAPs candidatos, compatibilidad efectiva de Compose, inventario de fuentes de configuración/credenciales/archivos, falsadores y checklist final §8.1–8.2 antes de FROZEN.
+
+**FROZEN v1.0.4 — cierre documental:** 39 evidencias E-0.7-001…039, todas P2; cero GAP local P1 OPEN y dos IDs candidatos NO CONFIRMADOS con transferencia de decisiones. La clasificación terminal de nueve hipótesis y cinco DQ no acredita proveedor, host Windows, Docker/Compose efectivo, compatibilidad física de cachés, seguridad operacional ni traducción EN→ES real.
 
 ## 2. LÍMITE EPISTEMOLÓGICO Y REGLAS DE INSPECCIÓN
 
@@ -96,7 +100,7 @@ Host / PowerShell (NO INSPECCIONADO)
   No equiparar fake lab ↔ proveedor/modelo comercial válido.
 ```
 
-## 10. REGISTRO DE EVIDENCIA — PRIMERA PASADA
+## 10. REGISTRO DE EVIDENCIA — FINAL
 
 | E-ID | Severidad provisional | OBSERVED (archivo::símbolo) | REQUIRED / DECISION / límite | Disposición |
 |---|---|---|---|---|
@@ -142,7 +146,7 @@ Host / PowerShell (NO INSPECCIONADO)
 | **E-0.7-038** | P2 | `Dockerfile` no fija USER ni checksum de Tectonic descargado; `docker-compose.runtime.yml` no fija user/cap_drop. `apps/lab/convergence_db_bootstrap.py` fija UID10001 y declara explícitamente no ser para producto. | Riesgo contextual P2 de privilegios/imagen, sin prueba de explotación ni contrato de host; no importar controles LAB como garantía comercial. | H-E/H / DQ-04 |
 | **E-0.7-039** | P2 | `apps/cli/main.py::handle_translate` soporta `--inbox-dir` y `--run` foreground; C2 histórico ejecutó admisión CLI dentro de contenedor con `/app/data/inbox`, y OCR inspecciona `workspace_dir/data/inbox`. | Continuidad del LAB histórico sin probar CLI Windows a daemon Docker; falta contrato de modalidad host. | H-A / DQ-02 |
 
-**Segunda pasada §7.1:** E-0.7-001…034, **34 E-IDs estables y todos P2**; E-008/009 pasan de P1 candidato a P2 por falta de contrato de despliegue comercial/host aprobado. Las observaciones permanecen; GAP-0.7-01/02 solo son IDs **CANDIDATOS NO CONFIRMADOS**, no OPEN ni implementables. Sin P0/P1 confirmados ni PASS físico.
+**Severidad final §7.1:** E-0.7-001…039, **39 E-IDs estables, todos P2**. E-008/009 fueron reclasificadas sin reasignar sus IDs en v1.0.1. Los dos IDs GAP-0.7-01/02 son **CANDIDATOS NO CONFIRMADOS**, no GAP OPEN. El cero P1 nuevo no elimina el GAP-0.5-03 del sweeper ni los GAP de G3 en PPPR.0.4; tampoco acredita el despliegue comercial.
 
 ## 14. GAPs CANDIDATOS — NO CONFIRMADOS (0 GAP OPEN)
 
@@ -204,7 +208,43 @@ Se verificó por código la redirección `SQLITE_STATE_DIR` y creación lazy de 
 | F17-BIS | P6 histórico multirruta y NADR-F17BIS-06 PROPOSED | No norma principal ni obligaciones MUST aplicables automáticamente |
 
 **Riesgos condicionados, no incidentes probados:** si se elige Groq y se lanza sin secret, G3 falla cerrado al necesitar inferencia; si se exige CLI host frente a OCR Docker sin transferencia, el PDF quedará en otro inbox. Debe decidirse primero modalidad y backend. El laboratorio fake no convierte esos escenarios en un PASS comercial ni autoriza ejecutar servicios.
-## 21. CIERRE DEL HITO — IN_PROGRESS
+## 21. CIERRE PPPR.0.7 — FROZEN v1.0.4
+
+### 21.1 Checklist §8.1–8.2: revisión formal de suficiencia
+
+| Control | Resultado respaldado |
+|---|---|
+| Metadata, changelog, SHA y fecha | **CUMPLE**: versiones v1.0.0–v1.0.4, baseline main/gobernanza y fecha de congelamiento |
+| Perímetro y epistemología | **CUMPLE para auditoría estática**: §§2–5, distinción AUDITADO/REFERENCIADO/NO VERIFICABLE; Windows, Docker físico y proveedor comercial fuera de garantías |
+| Fuentes, precedencia y §9.2 | **CUMPLE**: código, Compose, Dockerfile, Atlas descriptivo, runbook C0/C2 histórico, PPPR.0.1–0.6, Scope/principios, F18 y Docker Docs contextual. F17-BIS PROPOSED no es MUST |
+| Evidencias, IDs y severidades | **CUMPLE**: 39 E-IDs consecutivos, 39 P2, 0 P0/P1; reclasificación de E-008/009 documentada |
+| Fichas §4.7 para P0/P1 | **NO APLICA**: ninguno confirmado dentro del modo de despliegue decidido; no convertir riesgos de modalidades no aprobadas en defectos P1 |
+| GAPs y destinos §4.8 | **CUMPLE**: 0 GAP propios OPEN; GAP-0.7-01/02 mantienen identificadores de **candidato NO CONFIRMADO**, evidencia y causas en §14, DQ/DC de destino, no son work items autorizados |
+| Hipótesis y dudas §8.1–8.2 | **CUMPLE**: H-0.7-A…I terminales por propiedad; cinco DQ con motivo, no-bloqueo del mandato estático y destino; cuatro DC separadas sin decisiones prematuras |
+| Reconciliación §9.3–9.4 | **CUMPLE**: §17 distingue C2 fake, Windows→Docker, Groq/config futura, GAP-0.5-03, PPPR.0.4 y PPPR.0.6; no retorna a topología F17-BIS |
+| Garantías, gobernanza y siguiente paso | **CUMPLE**: §§21.2–21.4; FROZEN documental revisable en PR #72, general #66 Draft, ninguna implementación |
+| Docker, Compose, tests, LLM, Tectonic real, host, SQLite privado o corpus GT | **NOT_RUN / NO REQUERIDOS para cerrar el mandato estático**, indispensables antes de certificar puesta en producción o fidelidad científica |
+
+**Resolución §8.2:** las incertidumbres físicas NO VERIFICABLE no bloquean la descripción y clasificación de la configuración versionada; **sí** bloquean cualquier afirmación de disponibilidad comercial o de funcionamiento real de la variante host/Compose. Si se seleccionara exactamente el backend Groq actual sin inyección, faltaría entregar la clave; si se exigiera CLI Windows→daemon Docker, faltaría un puente definido. No se autoriza asumir que esos modos ya son productivos.
+
+### 21.2 Veredicto y garantías positivas/negativas
+
+**HITO FROZEN DOCUMENTAL v1.0.4 (2026-11-20)**: censo y análisis estático de operación, configuración, despliegue y aislamiento de la ruta D-1/D-2 en `main@1d21cfe958cc1de8a33824fed748cd6fe9260f42`. Solo se garantiza **lo observable en archivos y contratos**: separaciones entre YAML base/runtime/lab/golden, namespaces de CLI/volúmenes, redirección SQLite, claves esperadas por G3, preflight exclusivo LAB, caché Tectonic prevista, límites de la imagen y workflows existentes. El C2 original acredita históricamente la admisión dentro del contenedor con fake, no se reejecutó hoy.
+
+**NO SE GARANTIZA**: Compose efectivo en Windows, credencial/producto comercial, modelo Groq vigente, EN→ES real, egress/FinOps, accesibilidad/permisos de volúmenes/DB, aislamiento externo, reproducción de imagen/cachés, Tectonic físico, recuperación crash, CI PASS ni fidelidad visual o científica. `PRODUCT_READINESS=PASS` sigue prohibido. Los tests, servicios, Docker Desktop, LLM, bases SQLite del propietario y corpus/oráculos no se tocaron.
+
+**Hallazgos vivos:** GAP-0.7-01/02 son **IDs candidatos NO CONFIRMADOS**, no GAPs propios OPEN; la configuración sí tiene dos límites condicionados que deberán revisarse tras decisión de modalidad/backend. PPPR.0.5 conserva GAP-0.5-03 sobre sweeper y PPPR.0.4 conserva GAPs de proveedor/modelo/idioma, no duplicados aquí.
+
+### 21.3 Cadena de gobernanza
+
+Metodología ordenada v1.3.0 FROZEN → metodología forense v1.2.0 FROZEN → D-1/D-2 y Atlas AS-IMPLEMENTED descriptivo → PROJECT_SCOPE/principios y código actual, PPPR.0.1–0.6 FROZEN, F18 aplicable → **PPPR.0.7 FROZEN** → PPPR.0.8–0.9 → ADR Maestro / ADR-NADR estrictamente necesarios → Execution Plan aprobado → único PR general #66 aprobado e integrado en `main` → implementación por PR posteriores conforme a plan y tests.
+
+### 21.4 Estado Git y siguiente gate
+
+**HITO preparado para revisión/aprobación explícita en PR #72**, rama `pppr/hito-0.7` → `pdf-pdf-product-readiness`, un único Markdown. **FROZEN documental no equivale a aprobación externa ni CI PASS**. Tras aprobación y merge: verificar FROZEN en la rama general, eliminar la rama corta y abrir PPPR.0.8 desde el HEAD general actualizado. PR #66 sigue Draft hacia main, que permanece intacto. No activar Docker, cuentas reales, corpus o SQLite sin autorización/gate físico aislado.
+
+> FROZEN documental ≠ despliegue comercial listo ≠ proveedor EN→ES verificado ≠ PASS CI ≠ certificación STEM.
+
 
 **NO FROZEN — v1.0.1.** 34 E-IDs (34 P2, 0 P1), 2 GAP candidatos **NO CONFIRMADOS**, 9 hipótesis parcialmente clasificadas, 5 Deferred Questions con razón/no-bloqueo/destino y 4 Decision Candidates sin aprobación. Resta checklist §8.1–8.2 y verificaciones finales de alcance/contraejemplos; host/Compose físico NO VERIFICABLE. Sin tests, CI, Docker, API, SQLite/corpus ni implementación.
 
