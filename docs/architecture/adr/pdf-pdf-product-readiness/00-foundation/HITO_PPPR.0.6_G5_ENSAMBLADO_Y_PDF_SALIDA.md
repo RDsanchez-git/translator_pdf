@@ -1,6 +1,6 @@
 # HITO_PPPR.0.6_G5_ENSAMBLADO_Y_PDF_SALIDA.md
 
-**Estado:** FROZEN v1.0.4  
+**Estado:** FROZEN v1.0.5  
 **Fecha de emisión:** 2026-11-19  
 **Congelamiento:** 2026-11-19  
 **Tipo:** Forensic Flow Audit — G5, representación TeX, compilación y salida PDF  
@@ -21,6 +21,7 @@
 | 1.0.2-IN_PROGRESS | 2026-11-19 | Tercera pasada de H-0.6-F: 42 E-IDs, 3 GAP P1 OPEN sin cuarto GAP precipitado, 9 hipótesis clasificadas, 4 DQ y 4 DC. Cobertura G3-B3/3b, repositorio fallback legacy y señal condicional AssemblyReport contrastados; NOT_RUN, no FROZEN. |
 | 1.0.3-IN_PROGRESS | 2026-11-19 | Corrección de autoridad a pedido del owner: Atlas D-1/D-2 y código HEAD son primarios; NADR-F17BIS-06 PROPOSED deja de fundamentar GAP. E-027 se reclasifica a P2 y GAP-0.6-03 se retira como GAP confirmado conservando ID y traza. Dos GAP P1 OPEN sustentados por alcance/principios actuales; NOT_RUN y NO FROZEN. |
 | 1.0.4-FROZEN | 2026-11-19 | Cierre documental §8.1–8.2 y §9.2–9.4: 42 evidencias estables, 2 fichas P1, 2 GAP P1 OPEN, GAP-03 histórico RETIRADO, H-A…I terminales, 4 DQ con motivo/no-bloqueo/destino, 4 DC, Atlas/PPPR/F18 reconciliados. Sin tests, CI, Tectonic, corpus, producción ni PASS científico. |
+| 1.0.5-FROZEN | 2026-11-19 | Corrección normativa puntual posterior al cierre, nueva versión conforme §1.2: E-0.6-006 deja de atribuir fuerza contractual a NADR-F17BIS-06 PROPOSED; vínculo explícito a validación de `CQRSAssemblyContextResolver` y `PROJECT_SCOPE.md` §4. Evidencias, IDs, severidades, GAPs, DQ/DC, límites y veredicto sin cambios. |
 
 ## 1. RESUMEN EJECUTIVO
 
@@ -106,7 +107,7 @@ CLI run_admitted_pdf
 | **E-0.6-003** | P2 | `pdf_product.py::_run_g5` y `apps/compiler/__main__.py::main` inyectan `CompilationService`, `DocumentAssembler`, `SQLiteProfileStore`, `CQRSAssemblyContextResolver`, `HostTectonicRunner`. | Ruta D-1/D-2 y Atlas §3.3; bypass histórico P6-H01 no vigente. NADR-F17BIS-06 PROPOSED no se usa como MUST. | RECONCILIACIÓN |
 | **E-0.6-004** | P2 | `AssemblerWorkerDaemon::_process_assembly_task` reclama tarea y hace heartbeat de conexión dedicada; compila a `.assembly_<uuid>.pdf` y usa `leases.publish`. | Contrato G5/2 de autoridad y artefacto privado; no prueba compilar documento científico real. | OBSERVADO |
 | **E-0.6-005** | P2 | `AssemblyLeaseRepository::claim/advance/publish` liga `owner/execution_id/TTL` a queue.db y FSM adjunta, con CAS antes de publish. | F18 autoridad/attempt; no asumir cancelación física de Tectonic. | OBSERVADO |
-| **E-0.6-006** | P2 | `CQRSAssemblyContextResolver::resolve` valida AST completo, unicidad y continuidad `sequence_id` antes de excluir OMIT; usa `projection_version=1` y generación AST. | Contrato NADR-06 de secuencia íntegra y no falsos gaps tras OMIT. | OBSERVADO |
+| **E-0.6-006** | P2 | `CQRSAssemblyContextResolver::resolve` valida el AST completo, su unicidad y la continuidad de `sequence_id` antes de excluir `OMIT`; usa `projection_version=1` y generación AST. | Validación de secuencia y continuidad observada directamente en `CQRSAssemblyContextResolver`, relacionada con el requisito de completitud topológica de `docs/architecture/PROJECT_SCOPE.md` §4. NADR-F17BIS-06 se conserva únicamente como antecedente **PROPOSED**, sin fuerza normativa vigente. | OBSERVADO |
 | **E-0.6-007** | P2 | `DocumentAssembler::assemble` acepta completo o DEGRADED si faltan hasta 5 % de proyecciones con `allow_fallback=True`, rechaza más. | Política de aceptación explícita; no equiparar DEGRADED a fidelidad ni disponibilidad de payload. | OBSERVADO |
 | **E-0.6-008** | P2 | `CompilationService::compile_document_with_assets` busca proyección por nodo o `get_verified_payload` con `chunk_id/payload_sha256` y falla ante falta/drift. | Fallback criptográficamente verificado cuando hay datos; calidad científica no evaluada. | OBSERVADO |
 | **E-0.6-009** | P2 | `SQLiteProfileStore::save/get` guarda layout/tipo con SHA por documento en `documents.db` y rechaza tampering/replay conflict. | Perfil durable de OCR→G5, no fuente de geometría física exacta. | OBSERVADO |
@@ -284,13 +285,13 @@ Hay una sola ruta G5 compartida entre foreground y daemon; el compilador físico
 
 **Corrección registrada, sin pérdida de trazabilidad:** E-0.6-027 conserva su identificador y comportamiento observado, pero cambia de P1 a P2 por falta de norma aprobada aplicable. El ID `GAP-0.6-03` queda **histórico/RETIRADO**, no renumerado ni contado entre los dos GAPs P1 OPEN. Si un contrato futuro requiere macros de texto como sintaxis ejecutable, habrá que reabrir la pregunta con evidencia y decisión, no por automatismo F17-BIS.
 
-## 21. CIERRE DEL HITO PPPR.0.6 — FROZEN v1.0.4
+## 21. CIERRE DEL HITO PPPR.0.6 — FROZEN v1.0.5
 
 ### 21.1 Checklist metodológico de cierre (§8.1–8.2)
 
 | Condición de cierre | Disposición verificada |
 |---|---|
-| Metadata, SHA productivo, fecha y changelog | **CUMPLE** — encabezado, corte `main@1d21cfe`, versiones v1.0.0–v1.0.4 |
+| Metadata, SHA productivo, fecha y changelog | **CUMPLE** — encabezado, corte `main@1d21cfe`, versiones v1.0.0–v1.0.5; corrección normativa de E-0.6-006 sin modificación del cierre |
 | Límite epistemológico y read-only | **CUMPLE** — §2: Observed ≠ Required ≠ Decision; tests `NOT_RUN` y ningún PASS científico |
 | Alcance y 100 % de fronteras declaradas | **CUMPLE para el mandato estático** — §3–5 y §10: CLI/daemon, resolver, G3-proyecciones, dominio/fallback, render, TeX, Tectonic, lease/FSM/publish, perfiles/assets y testigos; G5 físico/host, corpus, GT y proveedor explícitamente NO VERIFICABLE |
 | Fuentes clasificadas y normas vigentes | **CUMPLE** — §4/17: Atlas descriptivo D-1/D-2, código actual, PROJECT_SCOPE/principios, PPPR.0.1–0.5 FROZEN, F18; F17BIS-06 PROPOSED no convertido en MUST |
@@ -308,7 +309,7 @@ Hay una sola ruta G5 compartida entre foreground y daemon; el compilador físico
 
 ### 21.2 Veredicto final y garantías
 
-**HITO FROZEN v1.0.4 — 2026-11-19**, exclusivamente como *Flow Audit* documental de la ruta PDF→PDF D-1/D-2 seleccionada en `main@1d21cfe958cc1de8a33824fed748cd6fe9260f42`. El HITO no certifica código, servicio, papers ni despliegue.
+**HITO FROZEN v1.0.5 — 2026-11-19**, exclusivamente como *Flow Audit* documental de la ruta PDF→PDF D-1/D-2 seleccionada en `main@1d21cfe958cc1de8a33824fed748cd6fe9260f42`. El HITO no certifica código, servicio, papers ni despliegue.
 
 **Observado por código:** CLI y daemon comparten G5; AST se valida por unicidad/orden antes de OMIT; G3 publica proyecciones de generación completa antes de `READY_FOR_ASSEMBLY`; ausencia de proyección en G5 está sujeta a política y fallback SHA que falla cerrado cuando falta backing; las imágenes se verifican por contenido; spans matemáticos explícitos se preservan dentro de su contrato; Tectonic se invoca con directorio efímero y artefacto privado; el lease/owner CAS protege la publicación, con `os.replace` físico anterior al COMMIT. Estos son **mecanismos lógicos estáticos**, no ensayos físicos.
 
@@ -318,7 +319,7 @@ Hay una sola ruta G5 compartida entre foreground y daemon; el compilador físico
 
 ### 21.3 Cadena de gobernanza y no-regresión
 
-Metodología general v1.3.0 FROZEN → metodología forense v1.2.0 FROZEN → D-1/D-2 con Atlas descriptivo de ruta única → `PROJECT_SCOPE`/principios → evidencia del HEAD `main@1d21cfe`, PPPR.0.1–0.5 FROZEN, ADR/NADR F18 aplicables y NADR-F17BIS-09 §5.2 compatible (sin importar automáticamente §5.1) → **PPPR.0.6 FROZEN** → PPPR.0.7–0.9 → ADR Maestro PPPR / ADR-NADR estrictamente necesarios → Execution Plan aprobado, integración de gobernanza en main → implementación posterior por PR separado.
+Metodología general v1.3.0 FROZEN → metodología forense v1.2.0 FROZEN (nueva versión FROZEN v1.0.5 por corrección localizada conforme §1.2) → D-1/D-2 con Atlas descriptivo de ruta única → `PROJECT_SCOPE`/principios → evidencia del HEAD `main@1d21cfe`, PPPR.0.1–0.5 FROZEN, ADR/NADR F18 aplicables y NADR-F17BIS-09 §5.2 compatible (sin importar automáticamente §5.1) → **PPPR.0.6 FROZEN** → PPPR.0.7–0.9 → ADR Maestro PPPR / ADR-NADR estrictamente necesarios → Execution Plan aprobado, integración de gobernanza en main → implementación posterior por PR separado.
 
 **No-regresión:** no reactivar R1/R3, DockerRunner ficticio, Event Log legacy como fuente del G3 seleccionado, 2PC o reemplazo de CompilationService por intuición. Las cuestiones de revalidación de proveedor/idioma pertenecen a PPPR.0.4 y las de durabilidad W06 a PPPR.0.5. El Atlas es mapa descriptivo del commit `6818e86`, no autoridad normativa que modifique el HEAD ni imponga el contrato multirruta de F17-BIS.
 
