@@ -1,6 +1,6 @@
 # HITO_PPPR.0.7_OPERACION_ENTORNOS_Y_DESPLIEGUE.md
 
-**Estado:** IN_PROGRESS v1.0.2  
+**Estado:** IN_PROGRESS v1.0.3  
 **Fecha de emisión:** 2026-11-20  
 **Congelamiento:** N/A  
 **Tipo de artefacto:** Forensic Flow Audit — operación y entornos de la ruta única PDF→PDF  
@@ -20,6 +20,8 @@
 | 1.0.1-IN_PROGRESS | 2026-11-20 | Segunda pasada: 34 E-IDs todos P2; dos IDs candidatos sin GAP confirmado, nueve hipótesis parcialmente clasificadas, C2 con admisión intra-contenedor comprobada documentalmente, y PPPR.0.4 con proveedor pendiente. DQ/DC se incorporan al cierre de esta pasada. No tests ni FROZEN. |
 
 | 1.0.2-IN_PROGRESS | 2026-11-20 | Tercera pasada: confrontación con Docker Docs de `!override` (Compose 2.24.4+), transmisión explícita de secrets, preflight exclusivo LAB, privilegios/imagen y modalidad inside-container; 39 evidencias P2, 0 GAP P1 confirmado, 2 IDs candidatos NO CONFIRMADOS. Checklist final pendiente. NOT_RUN. |
+
+| 1.0.3-IN_PROGRESS | 2026-11-20 | Cierre de hipótesis: 9 disposiciones terminales con propiedades observadas y restricciones físicas NO VERIFICABLE; 39 E-IDs P2, 5 DQ, 4 DC. Se prepara checklist formal de cierre; sin tests ni cambios productivos. |
 
 ## 1. RESUMEN EJECUTIVO
 
@@ -151,21 +153,21 @@ Host / PowerShell (NO INSPECCIONADO)
 
 **No duplicar:** GAP-0.5-03 sweeper, GAP-0.4-01 proveedor/modelo retirado, GAP-0.4-03 destino en→es, GAP-0.2-02 geometría/G5; no suponer que configuración potencialmente incorrecta ha producido daño comercial.
 
-## 15. HIPÓTESIS EN SEGUNDA PASADA Y CUESTIONES DIFERIDAS
+## 15. HIPÓTESIS — CLASIFICACIÓN TERMINAL Y CUESTIONES DIFERIDAS
 
 | ID | Pregunta y falsador | Estado |
 |---|---|---|
-| **H-0.7-A** | ¿CLI host y OCR Docker comparten inbox? | **CONFIRMADA diferencia estática** E-002/009; **RESUELTA para C2** por admisión dentro del contenedor E-027/028; **NO VERIFICABLE** el soporte de CLI Windows→Compose → DQ-0.7-02 |
-| **H-0.7-B** | ¿La credencial llega al proveedor comercial elegido? | **CONFIRMADA ausencia Groq en Compose base+runtime** E-008/029; backend comercial y launcher externos **NO VERIFICABLE** → DQ-0.7-01, PPPR.0.4 |
-| **H-0.7-C** | ¿Bootstrap y apertura de documents/quotas usan namespace correcto? | **CONFIRMADA POR CÓDIGO** E-016/017/018/031: rutas `infra/db/*.db` redirigidas por `SQLITE_STATE_DIR`, documents.db creada al usarse; permisos reales **NO VERIFICABLE** → DQ-0.7-03 |
-| **H-0.7-D** | ¿Inbox, archive, error, assets y output están disponibles? | **CONFIRMADA TOPOLOGÍA DECLARATIVA** E-006/019/020; lectura y escritura física en host/volúmenes **NO VERIFICABLE** → DQ-0.7-03 |
-| **H-0.7-E** | ¿Tectonic, imagen y dependencias se reproducen en entorno real sin egress? | **CONFIRMADO riesgo de build sin digest/lock** E-021/033; Tectonic real/host **NO VERIFICABLE** → DQ-0.7-04 |
-| **H-0.7-F** | ¿El Compose runtime excluye chaos y benchmark? | **CONFIRMADA CONFIGURACIÓN YAML** E-005/007/032: profiles lab y `IS_BENCHMARK=0`; configuración efectiva host **NO VERIFICABLE** → DQ-0.7-03 |
-| **H-0.7-G** | ¿Reconciler/sweeper están declarados y operan seguros? | **CONFIRMADA DECLARACIÓN** E-025/032; no duplicar **GAP-0.5-03**; contenedores activos no observados → DQ-0.7-03 |
-| **H-0.7-H** | ¿Secrets, red, privilegios y logs son adecuados para producción? | **RIESGOS P2 OBS** E-029/032/033; host y configuración secreta **NO VERIFICABLE** → DQ-0.7-04 |
-| **H-0.7-I** | ¿CI y fake acreditan despliegue o ciencia? | **RECHAZADA COMO GARANTÍA** E-011/012/023/026/034; tests NOT_RUN, C2 histórico fake → DQ-0.7-05 |
+| **H-0.7-A** | ¿CLI host y OCR Docker comparten inbox? | **CONFIRMADA** diferencia de namespace para CLI host/Compose, E-002/009/039; **RESUELTA** continuidad C2 usando CLI dentro de contenedor E-027; modo Windows→daemon **NO VERIFICABLE** DQ-0.7-02 |
+| **H-0.7-B** | ¿La clave Groq llega a G3 por Compose base+runtime? | **CONFIRMADA** ausencia declarativa E-008/029/036; backend futuro/operador **NO VERIFICABLE** DQ-0.7-01 y PPPR.0.4 |
+| **H-0.7-C** | ¿Bootstrap y bases documents/cuotas convergen en SQLite? | **CONFIRMADA EN CÓDIGO** E-016/017/018/031 con SQLITE_STATE_DIR y lazy init; ACL/volumen **NO VERIFICABLE** DQ-0.7-03 |
+| **H-0.7-D** | ¿Inbox, archive/error, assets y output están disponibles? | **CONFIRMADA** topología YAML y rutas por código E-006/019/020; accesibilidad física **NO VERIFICABLE** DQ-0.7-03 |
+| **H-0.7-E** | ¿Tectonic, imagen y dependencias son reproducibles offline? | **NO VERIFICABLE** sin build/cache/host; riesgos de Dockerfile P2 E-021/033/038 y destino DQ-0.7-04 |
+| **H-0.7-F** | ¿Runtime excluye chaos/benchmark y acepta tags Compose? | **CONFIRMADA** intención en YAML E-005/007/032/035/037; !override exige Compose >=2.24.4; config efectiva host **NO VERIFICABLE** DQ-0.7-03 |
+| **H-0.7-G** | ¿Reconciler/sweeper son correctos en runtime? | **CONFIRMADA** declaración en Compose E-025/032; seguridad lógica **GAP-0.5-03** FROZEN, no duplicar; proceso vivo **NO VERIFICABLE** DQ-0.7-03 |
+| **H-0.7-H** | ¿Red, privilegios, logs y secrets son aptos en el host comercial? | **NO VERIFICABLE** sin selección de despliegue ni acceso a host, E-029/032/033/038; DQ-0.7-04 / DC-0.7-03 |
+| **H-0.7-I** | ¿CI y fake C2 constituyen PASS comercial y científico? | **RECHAZADA COMO GARANTÍA** E-011/012/023/026/034/037, NOT_RUN; DQ-0.7-05 |
 
-### 15.1 Deferred Questions de segunda pasada (§8.2; no cerradas como garantía)
+### 15.1 Deferred Questions finales (§8.2: motivo, no-bloqueo y destino)
 
 | ID | Motivo de NO VERIFICABLE y efecto sobre cierre estático | Destino |
 |---|---|---|
@@ -175,7 +177,7 @@ Host / PowerShell (NO INSPECCIONADO)
 | **DQ-0.7-04** | Los digest de build, cachés Tectonic, exposición de red, usuario real, logs y entrega de secrets no se verificaron en imagen/host productivo. **No bloquea** registrar riesgos acotados; sí impide garantía de seguridad/despliegue. | ADR Maestro/Execution Plan; testigo focal PPPR.0.8 si se autoriza |
 | **DQ-0.7-05** | Los workflows no incluyen PR a la rama general y la suite de este HITO no se ejecutó; C2 es histórico con fake. **No bloquea** revisión de archivos, sí cualquier afirmación de CI/LLM real o ciencia PASS. | PPPR.0.8/0.9 y gobernanza futura de CI |
 
-### 15.2 Decision Candidates (NO APROBADOS)
+### 15.2 Decision Candidates finales (NO APROBADOS)
 
 | ID | Pregunta estrictamente pendiente | Destino |
 |---|---|---|
