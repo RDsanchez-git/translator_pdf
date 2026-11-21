@@ -1,19 +1,22 @@
 # NADR-FPPPR-01: Legitimidad y Trazabilidad de la Conformidad Científica del PDF Final EN→ES
 
-**DRAFT v0.4.0 — NO APPROVED / NO FROZEN**
+**FROZEN v1.0.0 — aprobación integral del Architecture Board comunicada por el owner el 2026-11-20.**
 
 ## 1. METADATA
 
 * **Decision ID:** NADR-FPPPR-01
 * **Título:** Legitimidad y Trazabilidad de la Conformidad Científica del PDF Final EN→ES.
 * **Clase de Decisión:** GOVERNANCE / DATA.
-* **Nivel de Cumplimiento:** MANDATORY únicamente después de aprobación; sin fuerza normativa mientras permanezca DRAFT.
-* **Versión:** 0.4.0 — revisión focal de R8/R10, aplicabilidad F18 y metadatos candidatos; sin aprobación normativa.
-* **Ciclo de Vida:** DRAFT.
-* **Vigente Desde:** Pendiente de aprobación; no vigente durante la revisión.
+* **Nivel de Cumplimiento:** MANDATORY.
+* **Versión:** 1.0.0.
+* **Ciclo de Vida:** FROZEN.
+* **Fecha de Aprobación Integral:** 2026-11-20, comunicada expresamente por el owner como decisión del Architecture Board respecto del contenido del PR #76, HEAD `575b1a5838e043e383257eaba8f7613a04190190` (borrador v0.4.0).
+* **Fecha de Congelamiento:** 2026-11-20; FROZEN autorizado en la misma comunicación.
+* **Procedencia de Autoridad:** Comunicación directa del owner en esta conversación; no se presume acta externa, firma ni revisión GitHub formal independiente.
+* **Vigente Desde:** Etapa normativa PPPR — 2026-11-20, tras aprobación integral del Board. Vincula el futuro Execution Plan PPPR conforme a la metodología; no autoriza por sí mismo implementación ni certificación de producto.
 * **Autoridad:** Architecture Board.
-* **Responsable Técnico:** Staff Engineering / PPPR — rol técnico propuesto; **designación formal pendiente de ratificación por el Architecture Board**. No se asigna una persona.
-* **Capacidad Arquitectónica:** `CAP-PPPR-01` (**código propuesto, pendiente de ratificación canónica**) — Legitimidad, atribuibilidad y vigencia de afirmaciones de conformidad científica sobre el PDF final traducido EN→ES. Este código provisional no constituye registro oficial de capacidad.
+* **Responsable Técnico:** Staff Engineering / PPPR — rol ratificado por aprobación integral del NADR; no se designa una persona.
+* **Capacidad Arquitectónica:** `CAP-PPPR-01` (Legitimidad, atribuibilidad y vigencia de conformidad científica PDF final EN→ES) — Gobernar la correspondencia verificable entre sujeto, evidencia independiente, criterios autorizados, resultados y validez temporal del dictamen científico del PDF final traducido. Código ratificado en la aprobación integral de este NADR.
 * **Evidencia Forense:** E-0.8-006/014/020/021; E-0.9-016…019; E-0.6-024; DQ-0.8-01…05. Los E-IDs citados son P2 históricos; no se crean GAP nuevos.
 * **Referencias Cruzadas:**
   * **Depende de:** ADR_PPPR_MASTER.md FROZEN (DC-09/10/11/12) como autoridad constitucional superior.
@@ -26,7 +29,7 @@
 
 ## 2. ARCHITECTURE RISK SCORE
 
-Puntuación preliminar del riesgo de carecer de una regla de conformidad científica propia del producto. No representa incidentes medidos ni modifica la clasificación de GAP históricos.
+Puntuación de riesgo arquitectónico ratificada en la aprobación integral del NADR. No representa incidentes medidos ni modifica la clasificación de GAP históricos.
 
 | Dimensión | Puntaje | Justificación |
 | :--- | ---: | :--- |
@@ -35,11 +38,11 @@ Puntuación preliminar del riesgo de carecer de una regla de conformidad cientí
 | Recuperabilidad | 3/5 | Dificultad para reconstruir el fundamento o determinar vigencia de un dictamen anterior. |
 | Seguridad | 2/5 | Riesgo de referencias utilizadas sin procedencia o autoridad acreditadas; no existe incidente acreditado. |
 | Financiero | 3/5 | Decisiones o evaluaciones costosas sustentadas en afirmaciones científicas inválidas. |
-| **Total** | **15/25** | **S2 — ALTO, provisional hasta revisión del Board.** |
+| **Total** | **15/25** | **S2 — ALTO, ratificado por el Board.** |
 
-* **Total Score:** `15/25` — suma provisional de las cinco dimensiones.
+* **Total Score:** `15/25` — suma de las cinco dimensiones.
 
-**Severidad:** `S2` (ALTO, provisional; pendiente de ratificación del Board).
+**Severidad:** `S2` (ALTO), ratificada en aprobación integral del Board.
 
 ## 3. DECISIÓN EJECUTIVA
 
@@ -78,7 +81,7 @@ Estas observaciones no crean GAP P1 nuevos ni demuestran que se haya emitido una
 
 ## 5. REGLAS NORMATIVAS (RFC 2119)
 
-**Reglas propuestas sin vigencia mientras este documento permanezca DRAFT.**
+**Reglas normativas vigentes para esta capacidad tras la aprobación integral y FROZEN de este NADR.**
 
 ### 5.1 Sujeto y dimensiones de conformidad PPPR
 
@@ -182,4 +185,4 @@ Los falsadores abstractos de atribución pueden diseñarse sin corpus privado. L
 * **No gobierna** inferencia G3, renderizado G5 ni fórmulas criptográficas de identidad de generación; tampoco gobierna autoridad de ejecución, efectos inciertos o recuperación operacional, bajo los contratos F18 aplicables.
 * **No prescribe** clases, módulos, formatos, herramientas, tecnologías, tareas, Definition of Done o despliegues; esas responsabilidades pertenecen al Execution Plan aprobado.
 
-**Nota de gobernanza:** las once reglas RFC 2119 son exclusivamente propuestas mientras este NADR permanezca DRAFT. No constituyen certificación científica PPPR, no alteran el ADR Maestro FROZEN y no autorizan evaluación física, comercial o con corpus privado.
+**Nota de gobernanza:** las once reglas RFC 2119 constituyen el contrato normativo FROZEN de esta capacidad. Su aprobación no equivale a certificación científica PPPR, no constituye ni autoriza oráculos o criterios de calidad no aprobados, no altera el ADR Maestro FROZEN y no habilita evaluación física, comercial o con corpus privado sin permisos y planificación correspondientes.
