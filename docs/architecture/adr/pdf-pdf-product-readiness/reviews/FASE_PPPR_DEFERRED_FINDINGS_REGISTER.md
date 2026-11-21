@@ -1,11 +1,11 @@
 # FASE_PPPR_DEFERRED_FINDINGS_REGISTER.md
 
 **Documento:** `docs/architecture/adr/pdf-pdf-product-readiness/reviews/FASE_PPPR_DEFERRED_FINDINGS_REGISTER.md`  
-**Versión:** 0.1.7  
-**Estado:** IN_PROGRESS — G1 COMPLETED/PASS; G2/Wave 2.1 IMPLEMENTED/CORRECTION_IN_REVIEW (3 Tasks; verificación 10/10 PENDING_FINAL_REVALIDATION en PR #85 Draft), Wave 2.2 PENDING y Gate 2 Exit Review NOT_RUN. Ningún DF/GF nuevo fuera del alcance de los GAP-0.2-01/02 ya catalogados; 14 GAP P1 forenses históricos conservan OPEN hasta revisión/cierre competente. ARCHIVED únicamente al cierre PPPR.
+**Versión:** 0.1.8  
+**Estado:** IN_PROGRESS — G1 COMPLETED/PASS; G2/Wave 2.1 3 Tasks implementadas y 10/10 reglas CI_VERIFIED / BOARD_ACCEPTANCE_PENDING en PR #85 Draft, Wave 2.2 PENDING y Gate 2 Exit Review NOT_RUN. Ningún DF/GF nuevo fuera del alcance de los GAP-0.2-01/02 ya catalogados; 14 GAP P1 forenses históricos conservan OPEN hasta revisión/cierre competente. ARCHIVED únicamente al cierre PPPR.
 **Fecha de creación:** 2026-11-21  
 **Última actualización:** 2026-11-21  
-**Derivado de:** `PHASE_PPPR_EXECUTION_PLAN.md` v0.5.6 APPROVED/LIVING — G1 PASS, G2 IN_PROGRESS, Wave2.1 3/3 DONE, Wave2.2 PENDING; PR #85, CI #44955114310 SUCCESS en código `2542d6aed46d044d5384b7004070cb3bb1c8deb7`.
+**Derivado de:** `PHASE_PPPR_EXECUTION_PLAN.md` v0.5.7 APPROVED/LIVING — G1 PASS, G2 IN_PROGRESS, Wave2.1 3/3 DONE, Wave2.2 PENDING; PR #85, CI #44955114310 SUCCESS en código `2542d6aed46d044d5384b7004070cb3bb1c8deb7`.
 **Ámbito:** PPPR (iniciativa transversal PDF→PDF; no fase histórica numerada).  
 **Propósito:** Registro único y auditable de hallazgos `DF`/`GF` **que surjan durante la ejecución y los Exit Reviews** del Execution Plan: identificación, clasificación, decisión, resolución, batch y evidencia de implementación.
 
@@ -23,7 +23,9 @@
 
 **Límites explícitos:** `ExtractionProviderFactory` conecta únicamente PyMuPDF. Los falsadores de la ruta de producto NO acreditan Docling histórico (`provs[0]`, fallback `page_no=1`, BBox `+0.01`), ni se incorpora un proveedor alternativo. `PhysicalRegion.source_document` puede conservar rutas locales en el AST persistido; evaluar minimización/redacción y privacidad antes de habilitar egress externo, que aquí NO está autorizado. El historial de 14 GAP P1 continúa OPEN; CV científica FAIL/DEFERRED, Wave 2.2 PENDING, Gate 2 Exit Review NOT_RUN y `PRODUCT_READINESS=NOT_CERTIFIED`. Ninguna Task, NADR, Gate, criterio fijo, DF/GF ficticio ni PR adicional.
 
-**Interpretación del register:** la corrección requerida está dentro de GAP-0.2-01/02; no se inventa DF/GF por observación de revisión ni se adelanta cierre forense del Gate 2. CI y revisión pendientes.
+**Interpretación del register:** la corrección requerida está dentro de GAP-0.2-01/02; no se inventa DF/GF por observación de revisión ni se adelanta cierre forense del Gate 2. CI técnica correctiva SUCCESS; revisión final del Board/merge pendientes.
+
+**Addendum de revalidación técnica del HEAD correctivo (2026-11-21; no es Gate 2 Exit Review):** [CI técnica #44961625659](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44961625659) completó **SUCCESS** sobre SHA `0dc091fa7f1b3a3bbd38f9841ba4c8805061475b` con tres jobs SUCCESS (Static Analysis, Unit Test Suite, Integration Test Suite); Pyright **0 errors/0 warnings/0 informations**, import-linter PASS, unitarios **250 PASS / 1257 deselected / 3 warnings**; suite completa `pytest -m "not e2e"` **1483 PASS / 4 SKIPPED / 20 E2E deselected / 3 warnings**. No sumar la selección de 250 tests al resultado de 1483. Los falsadores correctivos OCR/SQLite/consumidor y el caso mixto están en el HEAD evaluado. La evidencia técnica para FPPPR-04 R9/R10 y los diez requisitos queda **CI_VERIFIED / BOARD_ACCEPTANCE_PENDING**: el Board debe revisar la corrección y el owner conserva autoridad exclusiva de merge. **PR #85 OPEN/Draft sin merge, Wave 2.2 PENDING, G2 Exit Review NOT_RUN, 14 GAP P1 OPEN, CV científica FAIL/DEFERRED, PRODUCT_READINESS NOT_CERTIFIED.**
 
 **Decisión específica del owner y dictamen ajustado favorable del Architecture Board (2026-11-21):** para **PPPR exclusivamente**, se autoriza publicar este esqueleto `IN_PROGRESS` en GitHub **antes del cierre** y actualizarlo de manera incremental cada vez que se identifique, clasifique o resuelva un hallazgo, se complete una Task relacionada o se realice un Exit Review/batch. El owner autorizó explícitamente el merge documental del PR #81 únicamente hacia `pdf-pdf-product-readiness`; el Board expresó dictamen ajustado **favorable a esa integración**. Esto constituye una **autorización particular de calendario y versionado operativo** frente al momento general de commiteo indicado en `1_METHODOLOGY_FOR_ORDERED_PIPELINE_CHANGES.md` §6.7: **no reforma el texto general, no concede excepciones a otras fases** ni altera los requisitos de evidencia. `ARCHIVED` solo al cierre formal de PPPR. El documento `IN_PROGRESS` **no implica** G1 iniciado, permisos de código, pruebas, materiales privados, egress ni certificación.
 
@@ -42,6 +44,7 @@
 | 0.1.6 | 2026-11-21 | G2/Wave 2.1 implementada y verificada con CI #44955114310 (Pyright 0/0, suite técnica 1478 PASS, 4 SKIPPED, 20 E2E deselected). Correcciones in-scope GAP-0.2-01/02 sin atribuir cierre forense previo a Exit Review. Sin DF/GF nuevo fuera del alcance, sin batches ni revisión de G2. Misma PR #85 que código/pruebas y Evidence Log. |
 
 | 0.1.7 | 2026-11-21 | Addendum Board PR #85, R9/R10 OCR/SQLite corregidos a nivel código, CI correctiva pendiente; mantiene 14 GAP OPEN, sin DF/GF inventados ni Gate2 Exit Review. |
+| 0.1.8 | 2026-11-21 | CI técnica correctiva #44961625659 SUCCESS, 10 reglas CI_VERIFIED/Board pendiente, sin declarar nuevo DF/GF ni cerrar 14 GAP P1. PR #85 permanece Draft; G2 Exit Review NOT_RUN. |
 
 ---
 

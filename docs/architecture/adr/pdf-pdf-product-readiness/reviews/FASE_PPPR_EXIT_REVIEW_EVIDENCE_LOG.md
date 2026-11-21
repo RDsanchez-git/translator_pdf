@@ -1,11 +1,11 @@
 # FASE_PPPR_EXIT_REVIEW_EVIDENCE_LOG.md
 
 **Documento:** `docs/architecture/adr/pdf-pdf-product-readiness/reviews/FASE_PPPR_EXIT_REVIEW_EVIDENCE_LOG.md`  
-**Versión:** 0.1.8  
-**Estado:** IN_PROGRESS — G1 Exit Review REALIZADO/PASS; G2/Wave 2.1 corrección requerida en PR #85, 3 Tasks implementadas y 10 reglas PENDING_FINAL_REVALIDATION del nuevo HEAD, Wave 2.2 pendiente y Gate 2 Exit Review NOT_RUN. Evidencia de W2.1 registrada como checkpoint de Tasks, **no** como análisis forense de un DF/GF nuevo; FROZEN solo al cierre formal PPPR.
+**Versión:** 0.1.9  
+**Estado:** IN_PROGRESS — G1 Exit Review REALIZADO/PASS; G2/Wave 2.1 corrección PR #85 CI técnica SUCCESS, 3 Tasks implementadas y 10 reglas CI_VERIFIED / BOARD_ACCEPTANCE_PENDING, Wave 2.2 pendiente y Gate 2 Exit Review NOT_RUN. Evidencia de W2.1 registrada como checkpoint de Tasks, **no** como análisis forense de un DF/GF nuevo; FROZEN solo al cierre formal PPPR.
 **Fecha:** 2026-11-21  
 **Última actualización:** 2026-11-21  
-**Derivado de:** `PHASE_PPPR_EXECUTION_PLAN.md` v0.5.6 APPROVED / LIVING — G1 PASS/COMPLETED, G2 IN_PROGRESS con Wave2.1 3/3 DONE por CI #44955114310 sobre código `2542d6aed46d044d5384b7004070cb3bb1c8deb7`; Gate2 Exit Review NOT_RUN.
+**Derivado de:** `PHASE_PPPR_EXECUTION_PLAN.md` v0.5.7 APPROVED / LIVING — G1 PASS/COMPLETED, G2 IN_PROGRESS con Wave2.1 3/3 DONE por CI #44955114310 sobre código `2542d6aed46d044d5384b7004070cb3bb1c8deb7`; Gate2 Exit Review NOT_RUN.
 **Ámbito:** PPPR, ruta única `CLI → OCR → G3 → G5 → PDF`.  
 **Propósito:** Registro forense incremental, por Gate Exit Review, que conserva los fundamentos empíricos, los archivos examinados, los límites de evidencia y las reglas que justifican la clasificación de **cada hallazgo nuevo DF/GF** del Deferred Findings Register.
 
@@ -27,6 +27,8 @@
 
 **Falsadores adicionales del addendum (NOT_VERIFIED hasta CI nuevo HEAD):** `tests/integration/test_g3_b4_2_ocr_router_durable_plan.py` recorre OCR con nodo válido e indeterminado hasta SQLite y reinicio; `tests/integration/test_g3_b4_4_profile_projection_assembly.py` comprueba lectura, hash, replay y render conservador; `tests/unit/test_pppr_g2_physical_provenance.py` añade mezcla de fuentes e inmutabilidad. Son sintéticos/offline, sin PDFs privados, proveedor comercial ni CV científica. No hay Exit Review G2.
 
+**Addendum de revalidación técnica del HEAD correctivo (2026-11-21; no es Gate 2 Exit Review):** [CI técnica #44961625659](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44961625659) completó **SUCCESS** sobre SHA `0dc091fa7f1b3a3bbd38f9841ba4c8805061475b` con tres jobs SUCCESS (Static Analysis, Unit Test Suite, Integration Test Suite); Pyright **0 errors/0 warnings/0 informations**, import-linter PASS, unitarios **250 PASS / 1257 deselected / 3 warnings**; suite completa `pytest -m "not e2e"` **1483 PASS / 4 SKIPPED / 20 E2E deselected / 3 warnings**. No sumar la selección de 250 tests al resultado de 1483. Los falsadores correctivos OCR/SQLite/consumidor y el caso mixto están en el HEAD evaluado. La evidencia técnica para FPPPR-04 R9/R10 y los diez requisitos queda **CI_VERIFIED / BOARD_ACCEPTANCE_PENDING**: el Board debe revisar la corrección y el owner conserva autoridad exclusiva de merge. **PR #85 OPEN/Draft sin merge, Wave 2.2 PENDING, G2 Exit Review NOT_RUN, 14 GAP P1 OPEN, CV científica FAIL/DEFERRED, PRODUCT_READINESS NOT_CERTIFIED.**
+
 **Checkpoint W1.2 (2026-11-21):** los resultados de la verificación de Tasks se conservan en Execution Plan §2.1.2 y [issue #34](https://github.com/RDsanchez-git/translator_pdf/issues/34). Sobre el mismo HEAD `67affe9ffa9d68b09788c5cc6fdff6dc3467b546`: [GitHub CI #44935045055](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44935045055) `SUCCESS`, Pyright 0 errores/0 advertencias, import-linter PASS, `not e2e` 1454 PASS, 4 SKIPPED, 20 E2E deselected; [CV #44935045265](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44935045265) `FAIL / BASELINE_INTEGRITY_FAILURE (exit 3)` por 15 PDF faltantes. [Resolución excepcional G1 ratificada por owner, comentario 7069421655](https://github.com/RDsanchez-git/translator_pdf/issues/34#issuecomment-7069421655) **solo** para §2.1.3(3). El fallo CV es previo y queda visible; la revisión W1.2 no creó nuevo DF/GF ni reclasificó el issue #34. **Esta nota NO es una entrada forense de DF/GF ni un Gate Exit Review realizado.**
 
 **Decisión específica del owner y dictamen ajustado favorable del Architecture Board (2026-11-21):** para **PPPR exclusivamente**, se autoriza integrar este esqueleto `IN_PROGRESS` **antes de cerrar la fase** y versionar incrementalmente su evidencia **desde el descubrimiento de cada DF/GF y durante las Tasks/Gate Exit Reviews**, conforme a §1.3. El owner autorizó explícitamente el merge documental del PR #81 a `pdf-pdf-product-readiness`, y el Board emitió dictamen ajustado **favorable a esa integración**. Es una **autorización puntual de calendario de publicación** frente a `1_METHODOLOGY_FOR_ORDERED_PIPELINE_CHANGES.md` §6.7, **sin modificar su regla general ni extenderla a otras fases**. Cada entrada validada sigue inmutable; el documento entero será `FROZEN` **solo al cierre formal de PPPR**. La publicación temprana no afirma revisión ejecutada, resultado científico ni autoriza comenzar G1.
@@ -45,6 +47,7 @@
 | 0.1.7 | 2026-11-21 | Checkpoint de Wave2.1: procedencia física, geometría y muestreo verificados en GitHub CI #44955114310 y falsadores sintéticos; sin Exit Review G2 ni DF/GF nuevos fuera de GAP-0.2-01/02 históricos, sin certificación científica. Se actualiza con código/tests en el mismo PR #85. |
 
 | 0.1.8 | 2026-11-21 | Addendum Board sobre PR #85 y falsadores OCR/SQLite, persistencia y consumidor conservador; CI del nuevo HEAD pendiente, R9/R10 NO nuevamente VERIFIED. Sin Gate2 Exit Review, cierre GAP ni certificación científica. |
+| 0.1.9 | 2026-11-21 | Revalidación técnica CI #44961625659 SUCCESS en commit `0dc091fa7f1b`, nuevos falsadores OCR persistencia y consumidor PASS. Diez reglas CI_VERIFIED, aceptación Board pendiente; sin Gate2 Exit Review ni CV científica certificada. |
 
 ---
 
