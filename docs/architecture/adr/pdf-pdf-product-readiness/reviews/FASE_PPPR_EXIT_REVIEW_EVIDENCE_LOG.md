@@ -1,11 +1,11 @@
 # FASE_PPPR_EXIT_REVIEW_EVIDENCE_LOG.md
 
 **Documento:** `docs/architecture/adr/pdf-pdf-product-readiness/reviews/FASE_PPPR_EXIT_REVIEW_EVIDENCE_LOG.md`  
-**Versión:** 0.1.4  
-**Estado:** IN_PROGRESS — checkpoints documentales/técnicos W1.1 y W1.2 registrados como referencias de Tasks (**4/4 DONE**), **sin DF/GF nuevos ni Gate Exit Review**. Las pruebas científicas CV siguen FAIL/DEFERRED; FROZEN solo al cierre PPPR.
+**Versión:** 0.1.5  
+**Estado:** IN_PROGRESS — G1 Exit Review **REALIZADO el 2026-11-21, sin Gate PASS (BLOCKED/PENDING_CI_HEAD)**; evidencia de Tasks en Execution Plan; **0 DF/GF nuevos** en el alcance de la revisión, sin crear entradas forenses ficticias. CV científica FAIL/DEFERRED. FROZEN exclusivamente al cierre formal de PPPR.
 **Fecha:** 2026-11-21  
 **Última actualización:** 2026-11-21  
-**Derivado de:** `PHASE_PPPR_EXECUTION_PLAN.md` v0.5.2 APPROVED / LIVING / IN_PROGRESS — G1/W1.1 y W1.2 completas, G1 Exit Review NOT_RUN, G2–G6 PENDING.  
+**Derivado de:** `PHASE_PPPR_EXECUTION_PLAN.md` v0.5.3 APPROVED / LIVING / IN_PROGRESS; G1 Exit Review realizado y BLOCKED por CI técnica aún sin resultado final sobre `718a81a7816ef91710b3a86b00cc4326b0b18262`; G2–G6 PENDING.
 **Ámbito:** PPPR, ruta única `CLI → OCR → G3 → G5 → PDF`.  
 **Propósito:** Registro forense incremental, por Gate Exit Review, que conserva los fundamentos empíricos, los archivos examinados, los límites de evidencia y las reglas que justifican la clasificación de **cada hallazgo nuevo DF/GF** del Deferred Findings Register.
 
@@ -14,6 +14,8 @@
 > **Este documento NO es:** el Execution Plan, el Findings Register, un repositorio de resultados por batch, un NADR, un nuevo HITO forense ni una certificación del PDF final EN→ES.
 
 **Baseline inicial del esqueleto (conservada):** 30 Tasks TODO y G1–G6 PENDING, sin Exit Review ni pruebas. **Checkpoint Wave 1.1 (2026-11-21):** Tasks 1.1.1/1.1.2 verificadas documentalmente sobre los HEAD y blobs citados en el Execution Plan §2.1.1; **no se detectó DF/GF nuevo dentro de esa revisión estática acotada**. No constituye hallazgo clasificado ni Gate Exit Review; Pyright, pytest, CI, OCR, E2E, corpus privado e inferencia NOT_RUN. Los 14 GAP-ID P1 forenses continúan OPEN y `PRODUCT_READINESS=NOT_CERTIFIED`.
+
+**Gate 1 Exit Review registrado (2026-11-21):** revisión efectiva de criterios §2.1.3(1–4) y control §2.1.4 del Execution Plan, HEAD `718a81a7816ef91710b3a86b00cc4326b0b18262`. Baseline/trazabilidad/dependencias documentales verificadas; excepción ratificada en issue #34. La CI técnica del HEAD actual [#44951655134](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44951655134) **estaba IN_PROGRESS** al fijar el veredicto, con análisis estático SUCCESS y pruebas restantes todavía pendientes; CV [#44951655082](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44951655082) **FAIL** por 15 PDF faltantes, **no considerada PASS**. El Review se realizó, **G1 BLOCKED/PENDING_CI_HEAD**, no se habilita G2. No se identificó DF/GF nuevo en este ámbito: **ninguna entrada forense §2.N**, sin fabricar `CLOSED (NAR)` ni alterar hallazgos preexistentes.
 
 **Checkpoint W1.2 (2026-11-21):** los resultados de la verificación de Tasks se conservan en Execution Plan §2.1.2 y [issue #34](https://github.com/RDsanchez-git/translator_pdf/issues/34). Sobre el mismo HEAD `67affe9ffa9d68b09788c5cc6fdff6dc3467b546`: [GitHub CI #44935045055](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44935045055) `SUCCESS`, Pyright 0 errores/0 advertencias, import-linter PASS, `not e2e` 1454 PASS, 4 SKIPPED, 20 E2E deselected; [CV #44935045265](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44935045265) `FAIL / BASELINE_INTEGRITY_FAILURE (exit 3)` por 15 PDF faltantes. [Resolución excepcional G1 ratificada por owner, comentario 7069421655](https://github.com/RDsanchez-git/translator_pdf/issues/34#issuecomment-7069421655) **solo** para §2.1.3(3). El fallo CV es previo y queda visible; la revisión W1.2 no creó nuevo DF/GF ni reclasificó el issue #34. **Esta nota NO es una entrada forense de DF/GF ni un Gate Exit Review realizado.**
 
@@ -28,6 +30,7 @@
 | 0.1.2 | 2026-11-21 | Formaliza autorización particular del owner y dictamen ajustado favorable del Board para publicación/versionado incremental temprano de PPPR, sin alterar §6.7, inmutabilidad ni FROZEN final. |
 | 0.1.3 | 2026-11-21 | Checkpoint W1.1: baseline y trazabilidad comprobados en Execution Plan §2.1.1; sin DF/GF ni Exit Review nuevos; no se inventan entradas forenses. |
 | 0.1.4 | 2026-11-21 | Checkpoint W1.2: CI técnica y CV científica con veredictos reales separados, ratificación acotada del owner y dependencias pendientes. Sin nuevo DF/GF ni Exit Review; la prueba de Tasks sigue en Execution Plan. |
+| 0.1.5 | 2026-11-21 | Primer Gate Exit Review real: G1 revisado con 4 Tasks DONE y criterios documentales satisfechos; CI del HEAD 718a81a aún IN_PROGRESS durante revisión, por tanto G1 BLOCKED/PENDING_CI. CV FAIL/DEFERRED visible, 0 DF/GF nuevos. Sin análisis forense de findings inexistentes ni FROZEN. |
 
 ---
 
@@ -198,23 +201,38 @@ Referencia exacta `NADR/ADR/ENGINEERING_PRINCIPLES §/Rn` y explicación de su c
 
 ## 3. GATE EXIT REVIEW SUMMARY
 
-**Estado tras W1.2:** los seis Gate Exit Reviews permanecen `NOT_RUN`. G1 está `IN_PROGRESS` tras W1.1 y W1.2 completas, **sin revisión de salida ejecutada ni PASS**; G2–G6 PENDING. Ningún veredicto de Gate, nuevo DF/GF ni decisión de Exit Review fue registrado.
+**Estado (2026-11-21): G1 REVIEW_REALIZADO / GATE_BLOCKED_PENDING_CI_HEAD**, sin PASS; G2–G6 `NOT_RUN`. Se examinó la elegibilidad de cierre de G1 bajo sus criterios inmutables y la resolución de autoridad ratificada. **0 hallazgos DF/GF nuevos en este alcance**: la tabla de evidencia por finding (§2) sigue sin entradas, lo que no demuestra que el producto carezca de defectos.
 
 | Gate del Execution Plan | Revisión real | Evidencia por DF/GF | Decisión/veredicto |
 |---|---|---|---|
-| G1 — Baseline y autoridad | NOT_RUN (G1 IN_PROGRESS, W1.1/W1.2 completas) | Sin nuevas entradas DF/GF; CI/CV de Tasks en plan §2.1.2 | Sin veredicto de Gate |
+| G1 — Baseline y autoridad | **REALIZADO 2026-11-21**; 4/4 Tasks DONE | **0 DF/GF nuevos**, sin entradas §2 ficticias. Evidencia de Tasks en Execution Plan §2.1.4 | **BLOCKED/PENDING_CI_HEAD; NO GATE PASS** |
 | G2 — Procedencia e identidad | NOT_RUN | No registrada | PENDING |
 | G3 — Seguridad de efectos e inferencia | NOT_RUN | No registrada | PENDING |
 | G4 — Reconstrucción G5/PDF | NOT_RUN | No registrada | PENDING |
 | G5 — Host e integración E2E | NOT_RUN | No registrada | PENDING |
 | G6 — Ciencia y cierre | NOT_RUN | No registrada | PENDING |
 
-**Estructura a agregar al realizar un Gate Exit Review real:**
+### 3.1 Gate 1 Exit Review (2026-11-21) — REVISIÓN REALIZADA, SIN PASS
 
-- `### 3.N Gate N Exit Review (fecha real, SHA, alcance y veredicto)`.
-- Tabla `DF/GF | ¿Válido? | ¿Resoluble? | ¿Técnico? | Decisión | Evidencia §2.N | Referencia al Findings Register`.
-- Resumen por decisiones, hipótesis pendientes, revisiones tardías, fuentes reales y limitaciones.
-- Registro claro de `REVIEW_REALIZADO` frente a `GATE_PASS/FAIL/BLOCKED`, y en G6 resultado `PRODUCT_READINESS` independiente.
+**Baseline del review:** `pdf-pdf-product-readiness@718a81a7816ef91710b3a86b00cc4326b0b18262`. CI técnica de referencia anterior `67affe9ffa9d68b09788c5cc6fdff6dc3467b546`, diferenciada del HEAD sujeto al review. **Objeto real:** conformidad de las Tasks 1.1.1–1.2.2 y de los cuatro Exit Criteria de G1, sin pretensión de validar G2–G6 o ciencia EN→ES.
+
+**Evidencia y límites observados:**
+
+| Criterio/control | Evidencia verificable | Alcance y decisión |
+|---|---|---|
+| G1 §2.1.3(1) | `main@1d21cfe9…`; gobernanza `718a81a…`; PR #82 y PR #83 documentales; raíz CLI/OCR/G3/G5 en fuentes versionadas (§2.1.1 del plan) | **PASS documental**, no E2E ni código nuevo |
+| G1 §2.1.3(2) | 40/40 reglas PPPR con responsable único; clasificación histórica 104 = 79 A/25 C; 14/14 GAP-ID P1 de HITO PPPR.0.9 conservados | **PASS de trazabilidad**, no reparación de los GAP |
+| G1 §2.1.3(3) | [Ratificación del owner `PPPR-G1-CI-SCOPE-01`](https://github.com/RDsanchez-git/translator_pdf/issues/34#issuecomment-7069421655); [CI #44935045055](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44935045055) anterior SUCCESS; [CI del HEAD #44951655134](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44951655134) **IN_PROGRESS** al revisar (análisis estático SUCCESS, suite aún no terminada) | **PENDING_CI_HEAD**, no atribuir PASS de ejecución anterior al HEAD actual |
+| CV científica separada | [CV #44951655082](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44951655082) **FAIL**, 15 PDFs no disponibles; ámbito de excepción ratificada por owner solo G1 | **FAIL/DEFERRED, nunca PASS científico** |
+| G1 §2.1.3(4) | Matriz §2.1.2 del plan, solicitante/autoridad/condición/consumidor; permisos externos no concedidos | **PASS documental**; cada Gate consumidor queda condicionado |
+| Nuevos DF/GF | No apareció observación nueva susceptible de clasificar en este scope; issue #34 y 14 GAP P1 se mantienen como antecedentes | **0 DF/GF nuevos**, no inventar `CLOSED (NAR)` ni un falso positivo |
+| Gate resultante | 4/4 Tasks DONE; CI de HEAD sin veredicto final al momento de revisión | **REVIEW_REALIZADO / GATE BLOCKED_PENDING_CI**, G2 `PENDING` |
+
+**Matriz de hallazgos del Exit Review:** sin filas DF/GF nuevos porque **ninguno fue identificado en el alcance revisado**. No se emite una clasificación `CLOSED (NAR)` para un hallazgo inexistente ni un GF por el diferimiento históricamente autorizado. El Findings Register §2.1 contiene **la decisión operativa y el resumen**, mientras este apartado conserva alcance y referencias de evidencia. Si la CI actual concluye con fallo nuevo, capturar inmediatamente el hallazgo, asignar ID y agregar su evidencia §2.N antes de clasificar.
+
+**Dictamen fechado:** Gate 1 Exit Review **realizado** el 2026-11-21. **G1 permanece IN_PROGRESS / BLOCKED_PENDING_CI_HEAD, sin PASS**. Al recibir CI íntegra del HEAD actual, nueva evaluación fechada del control pendiente, sin borrar este testigo ni inferir certificación científica.
+
+**Estructura de revisiones de otros Gates:** al ejecutar un Gate posterior, agregar `### 3.N Gate N Exit Review (fecha, HEAD, sujeto, veredicto)` y las referencias individuales §2.N de cualquier DF/GF efectivamente identificado. Una revisión realizada sin PASS no equivale a cierre del Gate.
 
 ---
 
