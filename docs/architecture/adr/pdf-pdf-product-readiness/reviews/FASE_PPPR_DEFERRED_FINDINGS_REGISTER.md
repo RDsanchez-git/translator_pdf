@@ -1,11 +1,11 @@
 # FASE_PPPR_DEFERRED_FINDINGS_REGISTER.md
 
 **Documento:** `docs/architecture/adr/pdf-pdf-product-readiness/reviews/FASE_PPPR_DEFERRED_FINDINGS_REGISTER.md`  
-**Versión:** 0.1.5  
-**Estado:** IN_PROGRESS — G1/W1.1 y W1.2 4/4 Tasks DONE; **G1 COMPLETED/PASS el 2026-11-21 tras reevaluación del Exit Review con CI del HEAD en SUCCESS**. El registro original de revisión temporalmente BLOCKED se conserva en §2.1 con complemento fechado. **0 DF/GF nuevos** en G1; issue #34 y 14 GAP P1 son anteriores y continúan abiertos. ARCHIVED solo al cierre PPPR.
+**Versión:** 0.1.6  
+**Estado:** IN_PROGRESS — G1 COMPLETED/PASS; G2/Wave 2.1 IMPLEMENTED/VERIFIED (3/3 Tasks DONE en PR #85 sujeto a integración), Wave 2.2 PENDING y Gate 2 Exit Review NOT_RUN. Ningún DF/GF nuevo fuera del alcance de los GAP-0.2-01/02 ya catalogados; 14 GAP P1 forenses históricos conservan OPEN hasta revisión/cierre competente. ARCHIVED únicamente al cierre PPPR.
 **Fecha de creación:** 2026-11-21  
 **Última actualización:** 2026-11-21  
-**Derivado de:** `PHASE_PPPR_EXECUTION_PLAN.md` v0.5.4 APPROVED/LIVING — G1 COMPLETED/PASS sobre HEAD evaluado `pdf-pdf-product-readiness@718a81a7816ef91710b3a86b00cc4326b0b18262`; G2 habilitado pero no iniciado.
+**Derivado de:** `PHASE_PPPR_EXECUTION_PLAN.md` v0.5.5 APPROVED/LIVING — G1 PASS, G2 IN_PROGRESS, Wave2.1 3/3 DONE, Wave2.2 PENDING; PR #85, CI #44955114310 SUCCESS en código `2542d6aed46d044d5384b7004070cb3bb1c8deb7`.
 **Ámbito:** PPPR (iniciativa transversal PDF→PDF; no fase histórica numerada).  
 **Propósito:** Registro único y auditable de hallazgos `DF`/`GF` **que surjan durante la ejecución y los Exit Reviews** del Execution Plan: identificación, clasificación, decisión, resolución, batch y evidencia de implementación.
 
@@ -16,6 +16,8 @@
 **Registro post Gate 1 Exit Review (2026-11-21, realizado, pero NO Gate PASS):** los cuatro Exit Criteria se examinaron con las evidencias del Execution Plan §2.1.4. Baseline, trazabilidad normativa y matriz de autoridades **acreditados documentalmente**; la excepción G1 `PPPR-G1-CI-SCOPE-01` está ratificada. La [CI #44951655134](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44951655134) sobre `718a81a…` **estaba IN_PROGRESS durante el review** (Static Analysis SUCCESS, suite restante sin resultado final), por lo que se dejó el **Gate BLOCKED/PENDING_CI**; la [CV #44951655082](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44951655082) permanece **FAIL**, ciencia NO CERTIFICADA. La revisión de G1 **no identificó hallazgos nuevos DF/GF**: no se crean registros `DF-01/GF-01` de relleno ni `CLOSED (NAR)` para ausencias de findings. Issue #34 y HITO PPPR.0.9 conservan sus identidades y autoridad.
 
 **Complemento de cierre G1 (2026-11-21; posterior al review inicial, no lo reemplaza):** GitHub Actions [CI #44951655134](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44951655134) finalizó **completed/SUCCESS**, HEAD `718a81a7816ef91710b3a86b00cc4326b0b18262`; Static Analysis (Pyright + import-linter), Unit Test Suite e Integration Test Suite completaron **SUCCESS**, incluido el paso técnico `not e2e`. Con la excepción `PPPR-G1-CI-SCOPE-01` ratificada específicamente para §2.1.3(3), **los cuatro Exit Criteria de G1 quedaron acreditados y G1=PASS/COMPLETED** tras la reevaluación. La [CV #44951655082](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44951655082) continúa **FAIL/DEFERRED**, sin test científico PASS, por el corpus histórico ausente. **0 DF/GF nuevos** y 14 GAP P1 OPEN. G2 habilitado por precedencia, todavía sin iniciar.
+
+**Checkpoint de Wave 2.1 (2026-11-21; NO es un Gate 2 Exit Review):** las Tasks `2.1.1`, `2.1.2` y `2.1.3` implementaron los diez falsadores de NADR-FPPPR-04 FROZEN en la ruta física y el perfilado, sin importar contratos nuevos ni alterar NADR. [CI GitHub #44955114310](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44955114310) **completed/SUCCESS** del commit `2542d6aed46d044d5384b7004070cb3bb1c8deb7`: Pyright 0 errores/0 advertencias, import-linter PASS, 248 unitarios PASS y suite técnica `not e2e` 1478 PASS, 4 SKIPPED y 20 E2E deselected. La actualización de gobernanza ocurre **en el mismo PR #85** después del resultado. Se corrigieron en alcance los problemas conocidos `GAP-0.2-01/02` (sampler/geometry) **sin declararlos cerrados formalmente**, pendientes de evaluación global en Gate2; no surgió un `DF` o `GF` nuevo **fuera de lo planificado**. Los hallazgos P1 existentes siguen identificados en HITO PPPR.0.9; el informe de CI técnico no certifica ciencia ni habilita W2.2 retroactivamente.
 
 **Decisión específica del owner y dictamen ajustado favorable del Architecture Board (2026-11-21):** para **PPPR exclusivamente**, se autoriza publicar este esqueleto `IN_PROGRESS` en GitHub **antes del cierre** y actualizarlo de manera incremental cada vez que se identifique, clasifique o resuelva un hallazgo, se complete una Task relacionada o se realice un Exit Review/batch. El owner autorizó explícitamente el merge documental del PR #81 únicamente hacia `pdf-pdf-product-readiness`; el Board expresó dictamen ajustado **favorable a esa integración**. Esto constituye una **autorización particular de calendario y versionado operativo** frente al momento general de commiteo indicado en `1_METHODOLOGY_FOR_ORDERED_PIPELINE_CHANGES.md` §6.7: **no reforma el texto general, no concede excepciones a otras fases** ni altera los requisitos de evidencia. `ARCHIVED` solo al cierre formal de PPPR. El documento `IN_PROGRESS` **no implica** G1 iniciado, permisos de código, pruebas, materiales privados, egress ni certificación.
 
@@ -31,6 +33,7 @@
 | 0.1.3 | 2026-11-21 | Checkpoint al cierre de W1.2: CI técnica SUCCESS, CV científica FAIL/DEFERRED visible, resolución G1 ratificada por owner, permisos consumidores pendientes; no nuevos DF/GF ni Gate Exit Review. |
 | 0.1.4 | 2026-11-21 | Gate 1 Exit Review realizado: 4/4 Tasks verificadas, sin nuevos DF/GF, issue #34 histórico no duplicado. Gate BLOCKED/PENDING_CI del HEAD 718a81a; CI previo PASS, CI del HEAD aún IN_PROGRESS; CV científica FAIL/DEFERRED. Sin batches ni Gate PASS. |
 | 0.1.5 | 2026-11-21 | Complemento posterior: CI #44951655134 SUCCESS en HEAD evaluado; G1 Exit Review pasa de bloqueo transitorio documentado a PASS/COMPLETED. CV científica permanece FAIL/DEFERRED, sin DF/GF nuevos, sin batches; G2 habilitado pero no iniciado. |
+| 0.1.6 | 2026-11-21 | G2/Wave 2.1 implementada y verificada con CI #44955114310 (Pyright 0/0, suite técnica 1478 PASS, 4 SKIPPED, 20 E2E deselected). Correcciones in-scope GAP-0.2-01/02 sin atribuir cierre forense previo a Exit Review. Sin DF/GF nuevo fuera del alcance, sin batches ni revisión de G2. Misma PR #85 que código/pruebas y Evidence Log. |
 
 ---
 
@@ -127,7 +130,7 @@ Cada DF/GF exigirá: texto original, fecha/origen Gate/Wave/Task, rutas/SHAs de 
 | Gate previsto | Exit Review | Hallazgos registrados por esta revisión |
 |---|---|---|
 | G1 — Baseline, autoridad y preparación | **REALIZADO 2026-11-21; reevaluación CI final → G1 PASS/COMPLETED** | **0 DF/GF nuevos**; issue #34 y GAP P1 históricos no duplicados |
-| G2 — Ingesta física e identidad | NOT_RUN | Sin entradas |
+| G2 — Ingesta física e identidad | NOT_RUN (Wave 2.1 3/3 Tasks DONE, Wave 2.2 pendiente) | Sin nuevo DF/GF fuera de GAP-0.2-01/02 ya previstos; sin Exit Review |
 | G3 — Seguridad de efectos e inferencia G3 | NOT_RUN | Sin entradas |
 | G4 — Reconstrucción G5 y PDF | NOT_RUN | Sin entradas |
 | G5 — Integración y operación real | NOT_RUN | Sin entradas |
@@ -253,12 +256,12 @@ El documento se declara `ARCHIVED` **solo** tras cierre formal de PPPR, verifica
 
 | Categoría | Estado actual |
 |---|---|
-| Gates revisados | **1 realizado: G1 (inicialmente BLOCKED por CI, posterior PASS/COMPLETED)**; G2–G6 NOT_RUN |
-| Hallazgos PPPR registrados nuevos | **0 DF/GF nuevos observados en revisión G1**; issue #34 y GAP P1 históricos no duplicados |
+| Gates revisados | **1 realizado: G1 PASS/COMPLETED**; G2 IN_PROGRESS/Wave2.1 completa, Exit Review G2 NOT_RUN; G3–G6 NOT_RUN |
+| Hallazgos PPPR registrados nuevos | **0 DF/GF nuevos fuera del alcance planificado** en G1 y W2.1; GAP-0.2-01/02 preexistentes no duplicados; no inferir ausencia global de defectos |
 | Hallazgos analizados/resueltos/diferidos | **0 nuevos en Gate 1; clasificación N/A** (no inventar NAR) |
 | Batches ejecutados | NOT_RUN |
 | Estado de los Exit Reviews | **G1 REVIEW_REALIZADO / CI posterior SUCCESS → PASS/COMPLETED; G2–G6 NOT_RUN** |
-| Estado operativo del Register | **IN_PROGRESS — complemento de cierre G1 registrado, sin batch ni cierre de la fase** |
+| Estado operativo del Register | **IN_PROGRESS — checkpoint W2.1 tras CI real, sin batch de findings ni Gate 2 Exit Review** |
 | Cierre de fase | **PENDIENTE / NO ARCHIVED** |
 
 ---
