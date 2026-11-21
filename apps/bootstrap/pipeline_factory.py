@@ -189,8 +189,8 @@ def build_extraction_pipeline(config: ExtractionConfiguration | None = None) -> 
         page_number: int,
         reading_order: int,
         source_document: str,
-        page_width: float,
-        page_height: float,
+        page_width: float | None,
+        page_height: float | None,
     ) -> LayoutBlockDraft:
         """
         Traduce LayoutBlock (dominio) a LayoutBlockDraft (DTO de FlatASTBuilder).
@@ -230,8 +230,8 @@ def build_extraction_pipeline(config: ExtractionConfiguration | None = None) -> 
                     page.page_number,
                     reading_order,
                     document_layout.source_path,
-                    page.dimensions.width,
-                    page.dimensions.height,
+                    page.dimensions.width if page.dimensions_accredited else None,
+                    page.dimensions.height if page.dimensions_accredited else None,
                 )
                 draft_blocks.append(draft)
                 reading_order += 1
