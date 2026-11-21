@@ -1,17 +1,17 @@
 # PHASE_PPPR_EXECUTION_PLAN.md — PDF→PDF Product Readiness
 ## Implementation Execution Plan & Rule-Centric Traceability Matrix
 
-**Version:** 0.5.0
+**Version:** 0.5.1
 **Status:** APPROVED
 **Document Lifecycle:** LIVING DOCUMENT — NOT FROZEN; cierre al completar formalmente la fase.
-**Execution Status:** NOT_STARTED — G1–G6 PENDING, Tasks TODO/NOT_RUN.
+**Execution Status:** IN_PROGRESS — owner autorizó iniciar G1 el 2026-11-21; W1.1 verificada (2 Tasks DONE en este PR), W1.2 PENDING, G1 Exit Review NOT_RUN; G2–G6 PENDING.
 **Architecture Board Approval:** Contenido v0.5.0 aprobado integralmente el 2026-11-21 según dictamen comunicado por el owner, sobre HEAD `0d920f6b8bdcefe60f6be081e645b0140c162e5b`. Estructura 6/12/30 y clasificación 104 = 79 A / 0 B / 25 C ratificadas; no se presupone un review formal de GitHub ni acta externa.
-**Execution Authorization:** NOT_GRANTED. Merge documental autorizado posteriormente por el owner únicamente hacia `pdf-pdf-product-readiness`; sin permiso para iniciar G1, código, pruebas físicas, corpus privado, egress, gasto, certificación ni integración a `main`.
+**Execution Authorization:** GRANTED por el owner el 2026-11-21 para comenzar implementación controlada de PPPR desde G1. Los tres documentos vivos se actualizan al **cierre de cada Wave**. La autorización no concede corpus privado, egress, proveedor, gasto, certificación científica, host ni merge a `main`; G2–G6 no iniciados.
 **Date:** 2026-11-21
 **Supersedes:** DRAFT v0.4.0 — revisión focal del Architecture Board sobre HEAD `1631510c666b7c82696c8136884d6da1353aada4`; no sustituye normas FROZEN
 **Derived From:** ADR_PPPR_MASTER.md FROZEN; NADR-FPPPR-01/02/03/04 FROZEN; metodología general v1.3.0 FROZEN; `5_METH_EXECUTION_PLAN.md`; HITOs PPPR.0.1–0.9 FROZEN.
 **Governance Bridge:** Única fuente de verdad temporal de reglas → Tasks → Waves → Gates → evidencia de implementación. Los NADR conservan autoridad constitucional; ninguna Task aquí autoriza por sí sola código, corpus, egress, pagos, evaluación científica ni merge a `main`.
-**Estado de autoridad:** el Architecture Board **aprobó integralmente** el contenido de v0.5.0 sobre HEAD `0d920f6b8bdcefe60f6be081e645b0140c162e5b`, con sus 40 reglas PPPR, clasificación histórica ratificada 79 A / 0 B / 25 C, falsadores, criterios de Gate y reservas DC-04/ciencia. El owner autorizó por acto posterior y separado el merge documental del PR #80 **solo hacia `pdf-pdf-product-readiness`**, manteniendo este plan **APPROVED, vivo y NO FROZEN** hasta el cierre efectivo de la fase. No se autorizó iniciar G1, ejecutar Tasks, operar proveedor, usar corpus privado ni integrar PR #66 a `main`.
+**Estado de autoridad:** el plan v0.5.0 fue aprobado integralmente por el Architecture Board, e integrado por PR #80; el owner autorizó después iniciar G1 (2026-11-21) y actualizar los tres registros vivos al cerrar Waves. Este v0.5.1 registra progreso verificable, **sin** alterar reglas FROZEN, responsables, secuencia ni criterios de salida. La Wave 1.1 es una auditoría documental estática, no un PASS de código, CI, Gate 1 ni del producto.
 **Baseline documental de contraste:** `pdf-pdf-product-readiness@e759a55c18a2c96aa7dc8473d4afd7c48ee7adc2`; `main@1d21cfe958cc1de8a33824fed748cd6fe9260f42` (código auditado por HITOs). Revalidar ambos HEAD antes del PR y antes de ejecutar; no tratar la referencia histórica como checkout activo.
 
 ### Changelog
@@ -23,6 +23,7 @@
 | 0.4.0-DRAFT | 2026-11-21 | Dictamen focal Board: G3 solo cierra con reglas propias DONE por falsadores offline suficientes; G5 mantiene prueba comercial separada. Clasificación histórica respaldada por consumidores y falsadores, sin resultados inventados. Estructura y protocolo de documento vivo preservados. |
 | 0.5.0-DRAFT | 2026-11-21 | Distingue en §7.H falsador normativo del Gate propietario y regresión/integración posterior; excluye por sujeto la aplicación literal de F18-01 R4, conservando DC-04. Censo revisado 104 = 79 A / 0 B / 25 C. Estructura 6/12/30 y criterios de G3 intactos. |
 | 0.5.0-APPROVED (LIVING) | 2026-11-21 | Aprobación integral del Board sobre HEAD `0d920f6b8bdcefe60f6be081e645b0140c162e5b`; formalización de autoridad sin alterar reglas, Tasks ni Exit Criteria. Ejecución NOT_STARTED; plan NO FROZEN, actualizable con evidencia y avances. |
+| 0.5.1-APPROVED (LIVING) | 2026-11-21 | Cierre verificado Wave 1.1: Tasks 1.1.1 y 1.1.2 DONE por auditoría documental; G1 IN_PROGRESS, W1.2 PENDING; 40 reglas PPPR, 104 históricas, 14 GAP-ID reconciliados sin pruebas de runtime. Los tres documentos de gobernanza se actualizan juntos al cierre de la Wave. |
 
 ---
 
@@ -203,27 +204,30 @@ Las decisiones del ADR Maestro DC-03/08/09/10/12 permanecen invariantes: EN→ES
 **Objective:** Baseline, autoridad y preparación.
 **Execution Mode:** Secuencial para la definición; gestiones externas autónomas pueden avanzar en paralelo.
 **Rollback Plan (propuesto):** Solo artefactos documentales hasta aprobación del plan; descartar branch corta sin tocar main.
-**Gate Status:** PENDING · NOT_RUN
-**Inicio/Cierre:** pendiente; definir en ejecución autorizada.
+**Gate Status:** IN_PROGRESS — W1.1 COMPLETE / W1.2 PENDING; Gate Exit Review NOT_RUN
+**Inicio/Cierre:** inicio 2026-11-21 / cierre de Gate PENDIENTE.
 
 #### 2.1.1 Wave 1.1 — Baseline y trazabilidad
 
-**Wave Status:** PENDING · NOT_RUN · sin autorización de inicio.
-**Fechas:** pendiente / pendiente.
+**Wave Status:** COMPLETE — 2 Tasks verificadas documentalmente; sin cierre de G1.
+**Fechas:** inicio 2026-11-21 / fin 2026-11-21 (publicación bajo PR de cierre W1.1).
 
 | Task | Description | Rules Implemented / frontera | GAP / evidencia | Risk | Deps | Status |
 |---|---|---|---|---|---|---|
-| **1.1.1** | Fijar baseline de producto y gobernanza | — (preparación, control o verification; no regla PPPR nueva) | PPPR.0.1/0.9; D-1/D-2 | MEDIUM | — | TODO |
-| **1.1.2** | Trazabilidad canónica y frontera de normas | — (preparación, control o verification; no regla PPPR nueva) | PPPR.0.9 §14; ADR Maestro §8.1 | HIGH | 1.1.1 | TODO |
+| **1.1.1** | Fijar baseline de producto y gobernanza | — (preparación, control o verification; no regla PPPR nueva) | PPPR.0.1/0.9; D-1/D-2 | MEDIUM | — | DONE |
+| **1.1.2** | Trazabilidad canónica y frontera de normas | — (preparación, control o verification; no regla PPPR nueva) | PPPR.0.9 §14; ADR Maestro §8.1 | HIGH | 1.1.1 | DONE |
 
 **Condiciones de verificación por Task — obligatorias cuando se ejecute:**
 
 - **1.1.1:** Fijar main de producto, HEAD de la rama PPPR, D-1/D-2 y el alcance CLI→OCR→G3→G5→PDF; dejar delimitado el PR documental #66 sin merge a main. **Falsador / evidencia de salida:** Registro reproducible de SHAs, rutas y diferencia entre gobierno y código; ninguna tarea posterior sobre baseline incierta.
-  - Notas de implementación: PENDIENTE; registrar rutas, SHAs, pruebas y resultados reales al pasar a DONE; ninguna prueba declarada ejecutada.
+  - **Ejecución/verificación documental (2026-11-21):** los HEAD consultados directamente en GitHub son **producto** `main@1d21cfe958cc1de8a33824fed748cd6fe9260f42` y **gobernanza** `pdf-pdf-product-readiness@f84e99ea2d68643eb2370ffb8134dd2dc364409e` (base previa al PR de W1.1). PR #66: `OPEN/DRAFT` hacia `main`, sin merge. El HITO `HITO_PPPR.0.1_RUTA_Y_PERIMETRO.md` FROZEN (blob `75a4bbe0f4359a3345cb994083365b7b4f230f5f`) sustenta D-1/D-2.
+  - **Roots corroborados a nivel de código en `main`:** `pyproject.toml` (blob `eb879608e13931506a623be791b9d28b47a59183`) → CLI `apps/cli/main.py` (`ec69a16a75cbd3b333c6365bc222acab9974fec0`) → `apps/cli/pdf_product.py` (`4dd66b97ec0a9c007e1d58b9f6bcaa82c1576322`), donde `_ingest`, `_run_g3` y `_run_g5` conectan OCR `apps/ocr_router/__main__.py` (`e65659c29f1c2fb60455a6b98e034d75023474e2`), G3 `runtime/engine.py` (`7855efc8e758f9430ef3ca0c8c8edc2a02386c4d`) y G5 `apps/compiler/__main__.py` (`c6a0cdba8385172fb74562a21ef2f146544177a2`). **Límite:** composición estática, sin ejecución E2E ni acreditación de proveedor/host.
 - **1.1.2:** Vincular en este único plan las reglas FPPPR FROZEN, reglas históricas estrictamente compatibles, 14 GAP-ID y autoridad del ADR Maestro; identificar implementador único y verificadores. **Falsador / evidencia de salida:** Auditoría de cobertura 40/40 sin doble propiedad, 14 GAP-ID con destino y ningún NADR histórico importado por analogía.
-  - Notas de implementación: PENDIENTE; registrar rutas, SHAs, pruebas y resultados reales al pasar a DONE; ninguna prueba declarada ejecutada.
+  - **Ejecución/verificación documental (2026-11-21):** censo mecanizado read-only de las reglas §5 de NADR FPPPR FROZEN y de §7 del plan: **40/40** (11 + 9 + 10 + 10), **40 propietarios principales únicos**, todos apuntando a Tasks existentes. Las seis normas F17-BIS/F18 cotejadas aportan **104/104 referencias** a §1.6; **79 clase A** con Task principal única y reflejo exacto en §7.H, **25 clase C**; **0 B acreditadas**. La lectura de reglas no demuestra cumplimiento en runtime.
+  - **GAP-ID:** contraste `HITO_PPPR.0.9_RECONCILIACION_GLOBAL_Y_PRIORIZACION.md` FROZEN §14.1 (blob `8f7587c80a6b19809c6a21ee8991738df1db612c`) con Tasks §2: **14/14 P1 OPEN referenciados con destino**; 13 causas preliminares por solapamiento `GAP-0.1-01` ↔ `GAP-0.4-02`. No incorporar `GAP-0.6-03` retirado ni candidatos PPPR.0.7. **No se declararon reglas DONE ni GAP reparados.**
+  - **Reproducción:** comparar los IDs §5 de los cuatro `docs/architecture/adr/pdf-pdf-product-readiness/NADR/` FROZEN con §7 y Tasks; hacer lo mismo con las seis normas F17-BIS/F18 vs §1.6/§7.H; comparar HITO.0.9 §14.1 con la columna GAP de §2. Auditoría automatizada en sesión de lectura, sin script persistido ni escrituras de código. **Pyright, pytest, CI, E2E, corpus privado e inferencia: NOT_RUN.**
 
-**Notas de referencia cruzada y hallazgos:** las referencias a reglas usadas por otros gates como comprobación son **verification**; aquí no se duplica su implementación. No hay DF/GF identificados en este borrador. Toda observación futura se deriva al único Findings Register conforme a §8.
+**Notas de referencia cruzada y hallazgos (cierre W1.1):** la auditoría revisó referencias, **no implementó reglas de G2–G6**. No se observó DF/GF nuevo en esta revisión documental acotada; ello no implica ausencia de defectos y los 14 GAP-ID siguen OPEN. Los registros vivos se actualizan juntos al terminar la Wave; **no se realizó Exit Review de G1**.
 
 #### 2.1.2 Wave 1.2 — Preparación y autorizaciones
 
@@ -742,13 +746,13 @@ Ningún Gate ni este DoD autorizan por sí solos el merge del PR #66 a `main`, l
 
 | Gate | Tasks DONE | Rules DONE | Rules DEFERRED | Rules PENDING | Gate Status |
 |---|---|---|---|---|---|
-| G1 | `COUNT(task.status == DONE ∧ gate=G1)` | `COUNT(regla única: Task principal DONE ∧ falsador normativo del Gate propietario PASS)` | `COUNT(regla diferida con autoridad)` | `COUNT(regla única: Task principal pendiente ∨ falsador del Gate propietario no acreditado)` | PENDING / NOT_RUN |
+| G1 | `COUNT(task.status == DONE ∧ gate=G1)` | `COUNT(regla única: Task principal DONE ∧ falsador normativo del Gate propietario PASS)` | `COUNT(regla diferida con autoridad)` | `COUNT(regla única: Task principal pendiente ∨ falsador del Gate propietario no acreditado)` | **IN_PROGRESS — W1.1 2/2 DONE; W1.2 TODO; Exit Review NOT_RUN** |
 | G2 | `COUNT(task.status == DONE ∧ gate=G2)` | `COUNT(regla única: Task principal DONE ∧ falsador normativo del Gate propietario PASS)` | `COUNT(regla diferida con autoridad)` | `COUNT(regla única: Task principal pendiente ∨ falsador del Gate propietario no acreditado)` | PENDING / NOT_RUN |
 | G3 | `COUNT(task.status == DONE ∧ gate=G3)` | `COUNT(regla única: Task principal DONE ∧ falsador normativo del Gate propietario PASS)` | `COUNT(regla diferida con autoridad)` | `COUNT(regla única: Task principal pendiente ∨ falsador del Gate propietario no acreditado)` | PENDING / NOT_RUN |
 | G4 | `COUNT(task.status == DONE ∧ gate=G4)` | `COUNT(regla única: Task principal DONE ∧ falsador normativo del Gate propietario PASS)` | `COUNT(regla diferida con autoridad)` | `COUNT(regla única: Task principal pendiente ∨ falsador del Gate propietario no acreditado)` | PENDING / NOT_RUN |
 | G5 | `COUNT(task.status == DONE ∧ gate=G5)` | `COUNT(regla única: Task principal DONE ∧ falsador normativo del Gate propietario PASS)` | `COUNT(regla diferida con autoridad)` | `COUNT(regla única: Task principal pendiente ∨ falsador del Gate propietario no acreditado)` | PENDING / NOT_RUN |
 | G6 | `COUNT(task.status == DONE ∧ gate=G6)` | `COUNT(regla única: Task principal DONE ∧ falsador normativo del Gate propietario PASS)` | `COUNT(regla diferida con autoridad)` | `COUNT(regla única: Task principal pendiente ∨ falsador del Gate propietario no acreditado)` | PENDING / NOT_RUN |
-| **TOTAL** | `SUM(tasks DONE únicas)` | `COUNT(reglas únicas verificadas)` | `COUNT(reglas formalmente diferidas)` | `COUNT(reglas pendientes)` | PENDING / NOT_RUN |
+| **TOTAL** | `SUM(tasks DONE únicas)` | `COUNT(reglas únicas verificadas)` | `COUNT(reglas formalmente diferidas)` | `COUNT(reglas pendientes)` | **IN_PROGRESS — 2/30 Tasks DONE, 28 TODO; 40 PPPR + 79 históricas A sin verificación DONE; G1 sin PASS** |
 
 Actualización solo tras cambios verificables: regla derivada de Task principal y **falsadores propios del Gate propietario**, sin doble contabilizar verificaciones de integración. Los filtros computan por separado las 40 reglas FPPPR y el subconjunto histórico de **79 reglas clase A ratificadas para el alcance del plan** en §1.6/§7; ninguna exclusión C es DEFERRED. Ningún Gate es PASS con reglas propias PENDING; las pruebas G5 de regresión vinculadas a reglas de Gates 2/3 **no** se computan como obligación normativa pendiente para su DONE. **G3** exige sus diez reglas FPPPR-03 DONE mediante §2.3.5; **G5** registra el proveedor real y puede provocar un finding/regresión de G3, pero no sirve como evidencia normativa diferida necesaria para haber cerrado G3. `PRODUCT_READINESS` se deriva por separado conforme a §5/§2.6.3; sin autoridad científica sigue NOT_CERTIFIED/BLOCKED.
 
@@ -947,4 +951,4 @@ Marcar `ELIMINADO` en §4 solo con causa/autoridad registradas; si afecta una re
 
 ---
 
-**Nota final de gobernanza:** `APPROVED v0.5.0 — LIVING DOCUMENT / NOT FROZEN`. Dictamen integral del Board sobre HEAD `0d920f6b8bdcefe60f6be081e645b0140c162e5b`; merge documental autorizado separadamente por el owner. La clasificación 104 = 79 A / 0 B / 25 C rige el alcance planificado, no acredita su cumplimiento. **G1–G6 PENDING, Tasks TODO/NOT_RUN, ejecución NO autorizada por estos actos y PRODUCT_READINESS=NOT_CERTIFIED**. Durante la implementación autorizada actualizar §2, §3, §6, §7, evidencias y Exit Reviews; marcar FROZEN solo al cierre formal y documentado de la fase completada. `main` y PR #66 fuera de alcance.
+**Nota final de gobernanza:** `APPROVED v0.5.1 — LIVING DOCUMENT / NOT FROZEN`. Owner autorizó iniciar G1 el 2026-11-21. **Wave 1.1 verificada documentalmente con Tasks 1.1.1 y 1.1.2 DONE en este PR; W1.2 TODO; G1 IN_PROGRESS, Exit Review NOT_RUN; G2–G6 PENDING.** No se ejecutaron Pyright/CI/pytest, OCR, inferencia o verificación científica. 14 GAP-ID P1 aún OPEN, reglas de G2–G6 sin cambios y `PRODUCT_READINESS=NOT_CERTIFIED`. Actualizar los tres documentos vivos solo al cierre de Wave conforme a autorización del owner; no reescribir criterios de Gates iniciados. `main` y PR #66 excluidos.
