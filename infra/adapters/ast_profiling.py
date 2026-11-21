@@ -115,7 +115,7 @@ class FirstPagesSamplingPolicy:
             for region in node.metadata.physical_regions
         }
         # Rechazar la mezcla global aun cuando un nodo también tenga varias fuentes.
-        if len(sources) > 1:
+        if len(sources) > 1 and len(nodes) > 1:
             return SamplingReport(
                 nodes=(),
                 coverage=SamplingCoverage.INDETERMINATE,
