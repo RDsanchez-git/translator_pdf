@@ -1,6 +1,6 @@
 # NADR-FPPPR-01: Legitimidad y Trazabilidad de la Conformidad Científica del PDF Final EN→ES
 
-**DRAFT v0.2.0 — NO APPROVED / NO FROZEN**
+**DRAFT v0.3.0 — NO APPROVED / NO FROZEN**
 
 ## 1. METADATA
 
@@ -8,7 +8,7 @@
 * **Título:** Legitimidad y Trazabilidad de la Conformidad Científica del PDF Final EN→ES.
 * **Clase de Decisión:** GOVERNANCE / DATA.
 * **Nivel de Cumplimiento:** MANDATORY únicamente después de aprobación; sin fuerza normativa mientras permanezca DRAFT.
-* **Versión:** 0.2.0 — borrador para revisión interna.
+* **Versión:** 0.3.0 — revisión focal de R8/R10, falsadores y campos canónicos del riesgo; aún no aprobada.
 * **Ciclo de Vida:** DRAFT.
 * **Vigente Desde:** Pendiente de aprobación; no vigente durante la revisión.
 * **Autoridad:** Architecture Board.
@@ -36,6 +36,10 @@ Puntuación preliminar del riesgo de carecer de una regla de conformidad cientí
 | Seguridad | 2/5 | Riesgo de referencias utilizadas sin procedencia o autoridad acreditadas; no existe incidente acreditado. |
 | Financiero | 3/5 | Decisiones o evaluaciones costosas sustentadas en afirmaciones científicas inválidas. |
 | **Total** | **15/25** | **S2 — ALTO, provisional hasta revisión del Board.** |
+
+* **Total Score:** `15/25` — suma provisional de las cinco dimensiones.
+
+**Severidad:** `S2` (ALTO, provisional; pendiente de ratificación del Board).
 
 ## 3. DECISIÓN EJECUTIVA
 
@@ -98,13 +102,13 @@ Estas observaciones no crean GAP P1 nuevos ni demuestran que se haya emitido una
 
 7. Toda afirmación científica positiva **MUST** mantener una relación verificable entre documento fuente, identidad y contrato de generación relevantes, PDF final evaluado, referencias utilizadas, versiones de criterios aplicados y resultado obtenido. La ausencia de un vínculo necesario **MUST** impedir atribuir conformidad positiva a esa generación.
 
-8. Cuando el PDF final evaluado sea materialmente distinto de otro artefacto, el dictamen anterior **MUST NOT** atribuirse al nuevo PDF como si este hubiera sido evaluado. Cualquier afirmación de conformidad del nuevo sujeto **MUST** contar con evidencia válida correspondiente a él, conforme al contrato autorizado.
+8. La atribución de un dictamen científico **MUST** corresponder al PDF final realmente evaluado. Si el artefacto al que se pretende atribuir difiere del sujeto evaluado, el dictamen anterior **MUST NOT** presentarse como conformidad de ese artefacto, salvo que un contrato de equivalencia científica previamente aprobado y verificable permita dicha atribución y exista evidencia de que se cumplen sus condiciones. El nombre, la ruta o los metadatos de un archivo, por sí solos, **MUST NOT** establecer identidad ni equivalencia científica; sin equivalencia acreditada, la atribución al nuevo artefacto **MUST** rechazarse.
 
 9. Cuando cambie una referencia o un criterio relevante para el fundamento de una afirmación, su vigencia **MUST** determinarse según las reglas de validez aprobadas antes de presentarla como conformidad actual. Si esa vigencia no puede acreditarse, la afirmación **MUST NOT** declararse vigente. La evidencia histórica **MUST** conservar la atribución y el contexto de la evaluación original; la pérdida de vigencia no autoriza reescribir el resultado anterior.
 
 ### 5.4 Certificación sin falsos positivos
 
-10. Una evaluación inválida, incompleta, carente de evidencia necesaria o interrumpida por un fallo operacional **MUST NOT** producir conformidad científica positiva. Estas condiciones **MUST** permanecer distinguibles de un rechazo científico válido obtenido mediante una evaluación completa y **MUST NOT** interpretarse automáticamente como demostración de divergencia científica.
+10. Para cada dimensión y alcance objeto de una afirmación, una evaluación inválida, incompleta, carente de evidencia necesaria o interrumpida por un fallo operacional **MUST NOT** producir conformidad científica positiva respecto de ese alcance. La falta o invalidez de evidencia de una dimensión **MUST NOT** invalidar automáticamente una evaluación válida de otra; su resultado **MUST NOT** extrapolarse a dimensiones no evaluadas ni a conformidad integral. La evaluación inválida o incompleta **MUST** permanecer distinguible de un rechazo científico válido y **MUST NOT** interpretarse automáticamente como demostración de divergencia científica.
 
 11. Un PDF parcial, DEGRADED o expresamente no certificado **MUST NOT** presentarse como resultado final científicamente conforme de PPPR. Los artefactos de diagnóstico o recuperación **MAY** conservarse bajo una identificación inequívoca de su condición no conforme, dentro de los límites de DC-12.
 
@@ -126,7 +130,8 @@ Falsadores previstos para implementación y evaluación posteriores bajo goberna
 * Verificar que una afirmación positiva identifique PDF final, generación, dimensiones, referencias, criterios aprobados y resultado.
 * Verificar que la autoridad de referencias y criterios no se infiera de archivos, hashes o valores de configuración.
 * Verificar la distinción entre evaluación científica válida, fallo operacional e incompletitud.
-* Verificar que no se atribuya silenciosamente un dictamen a otra generación o artefacto.
+* Verificar que no se atribuya silenciosamente un dictamen a otra generación o artefacto, y que cualquier excepción de equivalencia tenga un contrato aprobado y evidencia verificable.
+* Verificar que la ausencia de una dimensión no invalide evaluaciones válidas de las otras, pero impida la promoción a conformidad integral.
 
 **Validation (dinámica / comportamental):**
 
@@ -136,9 +141,12 @@ Falsadores previstos para implementación y evaluación posteriores bajo goberna
 | Solo extracción PDF→AST o proveedor fake | No certifica la traducción final. |
 | Falta evidencia de una dimensión exigida | No emitir conformidad integral. |
 | Referencia sin autoridad acreditada | No emitir conformidad positiva. |
+| La propia salida evaluada se presenta como única prueba independiente de su corrección | Rechazar la evidencia como independencia suficiente; no emitir conformidad positiva basada en autovalidación. |
 | Criterio seleccionado después de observar resultados | No certificar con ese criterio retrospectivo. |
-| Dictamen de otro PDF final | No atribuirlo al nuevo sujeto. |
-| Cambio de referencia o criterio relevante sin vigencia acreditada | No reutilizar dictamen como vigente; conservar evidencia histórica. |
+| Dictamen de otro PDF final, sin contrato de equivalencia y evidencia aprobados | No atribuirlo al nuevo sujeto, aunque nombre, ruta o metadatos coincidan. |
+| Artefacto diferente con equivalencia científica expresamente autorizada y acreditada | Evaluar la atribución únicamente bajo ese contrato; no presumir equivalencia por identidad de nombre o metadatos. |
+| Cambio de referencia o criterio relevante sin vigencia acreditada | No reutilizar dictamen como vigente; conservar sin reescribir la evidencia histórica atribuida al resultado original. |
+| Evaluación lingüística válida, dimensión visual sin evidencia suficiente | Conservar el resultado lingüístico con su alcance explícito; no emitir conformidad integral ni inferir que el PDF final DEGRADED sea conforme. |
 | Evaluación válida con resultado desfavorable | Rechazo científico distinguible de fallo operacional. |
 | Evaluación incompleta o fallida | No emitir conformidad positiva ni inventar divergencia. |
 | Artefacto parcial o DEGRADED | No presentarlo como conforme. |
