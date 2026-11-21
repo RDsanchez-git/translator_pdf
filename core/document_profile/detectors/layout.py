@@ -27,30 +27,48 @@ class HeuristicLayoutDetector:
         return min(left_ratio + right_ratio, 1.0)
 
     def detect(self, input_data: ProfileInput) -> LayoutDetection:
-        total_valid = 0
-        left_mass = 0
-        right_mass = 0
-
+        # La bimodalidad es una propiedad de cada página física:
+        # bloques a la izquierda en una página y a la derecha en otra
+        # no constituyen evidencia de doble columna en ninguna de ellas.
+        page_counts: dict[int, list[int]] = {}
         for node in input_data.nodes:
             geom = self._geom_extractor.extract(node)
-            if not geom:
+            if geom is None:
                 continue
-
-            total_valid += 1
+            counts = page_counts.setdefault(geom.page_number, [0, 0, 0])
+            counts[0] += 1
             if geom.relative_center_x <= self._LEFT_CLUSTER_MAX:
-                left_mass += 1
+                counts[1] += 1
             elif geom.relative_center_x >= self._RIGHT_CLUSTER_MIN:
-                right_mass += 1
+                counts[2] += 1
 
-        if total_valid == 0:
+        if not page_counts:
             return LayoutDetection(layout=PageLayout.UNKNOWN, confidence=0.0)
 
-        left_ratio, right_ratio = self._compute_cluster_densities(total_valid, left_mass, right_mass)
-        
-        is_bimodal = (left_ratio >= self._CLUSTER_DENSITY_THRESHOLD and 
-                      right_ratio >= self._CLUSTER_DENSITY_THRESHOLD)
-
-        layout_type = PageLayout.DOUBLE_COLUMN if is_bimodal else PageLayout.SINGLE_COLUMN
-        confidence = self._compute_confidence(left_ratio, right_ratio, is_bimodal)
-
-        return LayoutDetection(layout=layout_type, confidence=confidence)
+        per_page: list[LayoutDetection] = []
+        for total, left_mass, right_mass in page_counts.values():
+            left_ratio, right_ratio = self._compute_cluster_densities(
+                total, left_mass, right_mass
+            )
+            is_bimodal = (
+                left_ratio >= self._CLUSTER_DENSITY_THRESHOLD
+                and right_ratio >= self._CLUSTER_DENSITY_THRESHOLD
+            )
+            per_page.append(
+                LayoutDetection(
+                    layout=(
+                        PageLayout.DOUBLE_COLUMN
+                        if is_bimodal else PageLayout.SINGLE_COLUMN
+                    ),
+                    confidence=self._compute_confidence(
+                        left_ratio, right_ratio, is_bimodal
+                    ),
+                )
+            )
+        if len({finding.layout for finding in per_page}) != 1:
+            # No existe MIXED en la taxonomía pública: declarar incertidumbre.
+            return LayoutDetection(layout=PageLayout.UNKNOWN, confidence=0.0)
+        return LayoutDetection(
+            layout=per_page[0].layout,
+            confidence=min(finding.confidence for finding in per_page),
+        )
