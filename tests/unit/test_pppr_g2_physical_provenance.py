@@ -159,6 +159,30 @@ def test_builder_does_not_forge_geometry_when_bbox_is_missing() -> None:
 
 
 @pytest.mark.unit
+def test_missing_geometry_is_attributed_to_node_without_global_rejection() -> None:
+    sampler = FirstPagesSamplingPolicy(NodeGeometryAdapter(), max_pages=2)
+    valid = _node("valid", [_region(1)])
+    without_width = _node("missing-width", [_region(2, width=None)])
+    report = sampler.sample_with_report([valid, without_width])
+    assert [node.node_id for node in report.nodes] == ["valid", "missing-width"]
+    assert report.coverage == SamplingCoverage.STRICT_SCOPE
+    assert report.geometry_reasons == ("missing-width:PAGE_WIDTH_UNVERIFIED",)
+
+
+@pytest.mark.unit
+def test_profile_diagnostics_identify_unverified_geometry_without_faking_width() -> None:
+    geometry = NodeGeometryAdapter()
+    profiler = HeuristicDocumentProfiler(
+        layout_detector=HeuristicLayoutDetector(geometry),
+        type_detector=HeuristicTypeDetector(NodeSemanticAdapter()),
+        sampler=FirstPagesSamplingPolicy(geometry, max_pages=2),
+    )
+    result = profiler.profile(ProfileInput(nodes=[_node("bad", [_region(1, width=None)])]))
+    assert result.diagnostics.sampling_coverage == SamplingCoverage.STRICT_SCOPE
+    assert result.diagnostics.geometry_reasons == ("bad:PAGE_WIDTH_UNVERIFIED",)
+
+
+@pytest.mark.unit
 def test_first_n_physical_pages_not_first_n_encountered() -> None:
     sampler = FirstPagesSamplingPolicy(NodeGeometryAdapter(), max_pages=2)
     nodes = [_node("late", [_region(5)]), _node("second", [_region(2)])]
