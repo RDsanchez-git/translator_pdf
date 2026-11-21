@@ -1,7 +1,7 @@
 # FASE_PPPR_EXIT_REVIEW_EVIDENCE_LOG.md
 
 **Documento:** `docs/architecture/adr/pdf-pdf-product-readiness/reviews/FASE_PPPR_EXIT_REVIEW_EVIDENCE_LOG.md`  
-**Versión:** 0.1.1  
+**Versión:** 0.1.2  
 **Estado:** IN_PROGRESS — **esqueleto sin evidencia nueva registrada**; FROZEN únicamente al cierre formal de PPPR.  
 **Fecha:** 2026-11-21  
 **Última actualización:** 2026-11-21  
@@ -15,14 +15,15 @@
 
 **Estado empírico inicial:** las 30 Tasks siguen `TODO`; ningún Gate Exit Review, prueba Pyright/CI, test físico, evaluación científica ni batch se ha ejecutado para construir este documento. **No hay DF/GF nuevos documentados**; ello no prueba que no existan defectos. Los 14 GAP-ID P1 de HITO PPPR.0.9 son la **baseline histórica**, no entradas recién descubiertas. `PRODUCT_READINESS=NOT_CERTIFIED`.
 
-**Publicación anticipada para revisión:** el owner solicitó crear este **esqueleto** junto al Findings Register antes de ejecutar G1. `1_METHODOLOGY_FOR_ORDERED_PIPELINE_CHANGES.md` §6.7 ubica el commiteo formal del Evidence Log **FROZEN al cierre de la fase**; publicar un borrador vacío ahora es una anticipación documental **sometida a revisión y autorización expresa antes del merge**, nunca prueba de Exit Review ejecutado ni excepción para cerrar artefactos sin evidencia. Las entradas forenses futuras permanecen inmutables una vez registradas, aunque se agreguen nuevas entradas en Gates posteriores.
+**Decisión específica del owner y dictamen ajustado favorable del Architecture Board (2026-11-21):** para **PPPR exclusivamente**, se autoriza integrar este esqueleto `IN_PROGRESS` **antes de cerrar la fase** y versionar incrementalmente su evidencia **desde el descubrimiento de cada DF/GF y durante las Tasks/Gate Exit Reviews**, conforme a §1.3. El owner autorizó explícitamente el merge documental del PR #81 a `pdf-pdf-product-readiness`, y el Board emitió dictamen ajustado **favorable a esa integración**. Es una **autorización puntual de calendario de publicación** frente a `1_METHODOLOGY_FOR_ORDERED_PIPELINE_CHANGES.md` §6.7, **sin modificar su regla general ni extenderla a otras fases**. Cada entrada validada sigue inmutable; el documento entero será `FROZEN` **solo al cierre formal de PPPR**. La publicación temprana no afirma revisión ejecutada, resultado científico ni autoriza comenzar G1.
 
 ### Changelog
 
 | Versión | Fecha | Cambio |
 |---|---|---|
 | 0.1.0 | 2026-11-21 | Esqueleto metodológico PPPR; 0 entradas forenses, 6 Gates NOT_RUN; preparado para construcción incremental sin publicar evidencia ficticia. |
-| 0.1.1 | 2026-11-21 | Precisión editorial del Board: captura temprana de observaciones al detectar DF/GF y consolidación forense inmutable durante Gate Exit Review; §6.7 sigue pendiente de autorización metodológica expresa para publicar anticipadamente el esqueleto. |
+| 0.1.1 | 2026-11-21 | Precisión editorial del Board: captura temprana de observaciones al detectar DF/GF y consolidación forense inmutable durante Gate Exit Review. |
+| 0.1.2 | 2026-11-21 | Formaliza autorización particular del owner y dictamen ajustado favorable del Board para publicación/versionado incremental temprano de PPPR, sin alterar §6.7, inmutabilidad ni FROZEN final. |
 
 ---
 
@@ -263,4 +264,4 @@ Una **clasificación operativa** se cambia **en el Register** por decisión docu
 
 ---
 
-**Nota de Gobernanza:** Evidence Log de PPPR, de naturaleza forense y **sin autoridad normativa**. Esqueleto creado anticipadamente por solicitud del owner, pendiente de revisión formal de su momento de commiteo según metodología general §6.7. `IN_PROGRESS` significa *documento habilitado para construcción*, **NO** que haya empezado G1 o que existan revisiones completadas. Se congelará solo cuando concluyan la fase, las revisiones y la reconciliación forense.`
+**Nota de Gobernanza:** Evidence Log de PPPR, de naturaleza forense y **sin autoridad normativa**. Esqueleto publicado anticipadamente por decisión específica del owner con dictamen ajustado favorable del Board; autorización particular de calendario PPPR registrada en el encabezado, sin reforma general de §6.7. `IN_PROGRESS` significa *documento habilitado para construcción*, **NO** que haya empezado G1 o que existan revisiones completadas. Se congelará solo cuando concluyan la fase, las revisiones y la reconciliación forense.`
