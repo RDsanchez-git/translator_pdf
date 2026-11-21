@@ -1,7 +1,7 @@
 # FASE_PPPR_EXIT_REVIEW_EVIDENCE_LOG.md
 
 **Documento:** `docs/architecture/adr/pdf-pdf-product-readiness/reviews/FASE_PPPR_EXIT_REVIEW_EVIDENCE_LOG.md`  
-**Versión:** 0.1.0  
+**Versión:** 0.1.1  
 **Estado:** IN_PROGRESS — **esqueleto sin evidencia nueva registrada**; FROZEN únicamente al cierre formal de PPPR.  
 **Fecha:** 2026-11-21  
 **Última actualización:** 2026-11-21  
@@ -22,6 +22,7 @@
 | Versión | Fecha | Cambio |
 |---|---|---|
 | 0.1.0 | 2026-11-21 | Esqueleto metodológico PPPR; 0 entradas forenses, 6 Gates NOT_RUN; preparado para construcción incremental sin publicar evidencia ficticia. |
+| 0.1.1 | 2026-11-21 | Precisión editorial del Board: captura temprana de observaciones al detectar DF/GF y consolidación forense inmutable durante Gate Exit Review; §6.7 sigue pendiente de autorización metodológica expresa para publicar anticipadamente el esqueleto. |
 
 ---
 
@@ -91,7 +92,9 @@ Las variantes de `RESOLVED`, `DEFERRED — FASE {X}` y otros estados admisibles 
 
 Para cada entrada futura, registrar como mínimo: origen Gate/Wave/Task, texto exacto del hallazgo y cambios de formulación, código/documentos inspeccionados con SHAs y referencias, hecho observado, hipótesis, condiciones negativas verificadas, impacto sobre PPPR, regla aplicable, alcance/gap/no-gap, autoridad que clasifica, límites del resultado y vínculo al Findings Register. No inventar números de tests, hechos de proveedor, autorizaciones o permisos.
 
-Las entradas de evidencia **se añaden a medida que se cierra cada Gate y no se reescriben después** por cambios operativos de batches. Si aparece nueva información, agregar un complemento fechado y relacionado que preserve la evidencia original y explique el cambio de clasificación que realizará el Findings Register.
+**Momento 1 — descubrimiento del hallazgo (captura inmediata, todavía no validada en Exit Review).** Cuando se detecta un DF/GF durante una Task, asignar su ID estable en el Findings Register, registrar allí su estado `PENDING_REVIEW` y **capturar de inmediato en este Log** la observación original, fecha, Gate/Wave/Task, archivos y SHAs, testigos disponibles, condiciones de reproducción y límites de verificación. Distinguir expresamente `OBSERVADO`, `HIPÓTESIS` y `NO_VERIFICADO`. Esta captura inicial no equivale a una clasificación final, evidencia completa, Gate Exit Review ejecutado ni autorización de trabajo nuevo.
+
+**Momento 2 — Gate Exit Review (validación y cierre de la entrada forense).** Durante la revisión real del Gate, completar y contrastar los apartados §2.N, determinar gap/no-gap/limitación y regla aplicable, vincular la **decisión** al Findings Register y registrar HEAD/fecha/autoridad de la revisión. **A partir de su validación, la entrada forense queda inmutable** frente a los batches de resolución. Si aparece información posterior, conservar la evidencia previa y añadir **complemento fechado y vinculado al mismo ID**, mientras que la reclasificación y sus resultados se documentan en el Findings Register. **No posponer la captura inicial hasta el cierre del Gate**.
 
 ### 1.4 Árbol de decisión del Gate Exit Review
 
