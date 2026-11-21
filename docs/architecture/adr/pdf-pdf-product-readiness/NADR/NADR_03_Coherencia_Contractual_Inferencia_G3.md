@@ -1,19 +1,22 @@
 # NADR-FPPPR-03: Coherencia Contractual de la Inferencia EN→ES — Intención, Selección y Admisión de la Petición Efectiva
 
-**DRAFT v0.2.0 — NO APPROVED / NO FROZEN**
+**FROZEN v1.0.0 — aprobado integralmente por el Architecture Board el 2026-11-20; congelamiento documental autorizado.**
 
 ## 1. METADATA
 
-- **Decision ID:** `NADR-FPPPR-03` — identificador validado para candidato; ratificación formal pendiente.
+- **Decision ID:** `NADR-FPPPR-03` — identificador ratificado por el Architecture Board.
 - **Título:** Coherencia Contractual de la Inferencia EN→ES — Intención, Selección y Admisión de la Petición Efectiva.
 - **Clase de Decisión:** OPERATIONAL / DATA.
-- **Nivel de Cumplimiento:** MANDATORY únicamente tras aprobación integral.
-- **Versión:** 0.2.0 — correcciones focales R4, R5/R6 y R10; falsadores §7.
-- **Ciclo de Vida:** DRAFT.
-- **Vigente Desde:** Pendiente de aprobación.
+- **Nivel de Cumplimiento:** MANDATORY.
+- **Versión:** 1.0.0 — primera versión FROZEN; diez reglas RFC 2119 aprobadas sin alteraciones desde DRAFT v0.2.0.
+- **Ciclo de Vida:** FROZEN.
+- **Fecha de Aprobación Integral:** 2026-11-20; decisión expresa del Architecture Board comunicada por el owner sobre PR #78, HEAD `cea98b19f603f632ef7f45396cd566d9bb0f41d4` (DRAFT v0.2.0).
+- **Fecha de Congelamiento Documental:** 2026-11-20; autorizado en la misma decisión.
+- **Procedencia de Autoridad:** Comunicación directa del owner en esta conversación; no se presume acta externa, firma ni review formal independiente en GitHub. El owner autorizó posteriormente en la misma intervención la integración del PR #78 exclusivamente en `pdf-pdf-product-readiness`.
+- **Vigente Desde:** Etapa normativa PPPR — 2026-11-20 tras la aprobación integral del Board; su ejecución posterior requiere el Execution Plan y las autorizaciones aplicables.
 - **Autoridad:** Architecture Board.
-- **Responsable Técnico:** Staff Engineering / G3 — rol propuesto, pendiente de ratificación; no designa persona.
-- **Capacidad Arquitectónica:** `CAP-PPPR-03` — código candidato no ratificado. Coherencia verificable entre intención lingüística, selección de backend/modelo, admisión presupuestaria y petición efectiva de inferencia G3.
+- **Responsable Técnico:** Staff Engineering / G3 — rol ratificado por el Architecture Board; no se designa persona.
+- **Capacidad Arquitectónica:** `CAP-PPPR-03` — código ratificado por el Architecture Board. Coherencia verificable entre intención lingüística, selección de backend/modelo, admisión presupuestaria y petición efectiva de inferencia G3.
 - **Evidencia Forense:** `GAP-0.1-01`, `GAP-0.4-01…04`; `E-0.1-002/023`; `E-0.4-001/002/003/005/006/011/012/013/014/017/019`; reconciliación PPPR.0.9 §14.
 - **Referencias Cruzadas:**
   - **Depende de:** ADR Maestro PPPR FROZEN, especialmente DC-02 y DC-03.
@@ -23,11 +26,11 @@
   - **Conflictúa con:** admitir o despachar una petición cuya intención, modelo, ventana, autorización o presupuesto no correspondan a la operación efectiva.
   - **Reemplaza a:** N/A.
 
-No se crea una fase numerada del ROADMAP ni se modifica la gobernanza de contratos FROZEN existentes. El Architecture Board validó la necesidad y cohesión de esta capacidad y autorizó la revisión en PR Draft tras incorporar tres correcciones focales; **no aprobó el contenido integral, FROZEN ni merge**.
+No se crea una fase numerada del ROADMAP ni se modifica la gobernanza de contratos FROZEN existentes. El Architecture Board aprobó integralmente las diez reglas de esta capacidad, ratificó sus metadatos y autorizó FROZEN v1.0.0; la integración se autorizó expresamente como acto posterior y separado. No se autorizan implementación, egress, gasto comercial ni certificación científica.
 
 ## 2. ARCHITECTURE RISK SCORE
 
-Estimación provisional del riesgo arquitectónico de una inferencia contractual o presupuestariamente incoherente. No describe incidentes comerciales observados.
+Puntuación de riesgo arquitectónico ratificada por el Architecture Board para una inferencia contractual o presupuestariamente incoherente. No describe incidentes comerciales observados.
 
 | Dimensión | Puntaje | Justificación |
 |---|---:|---|
@@ -36,10 +39,10 @@ Estimación provisional del riesgo arquitectónico de una inferencia contractual
 | Recuperabilidad | 2/5 | La atribución deficiente de una decisión complica el diagnóstico; F18 gobierna la recuperación operacional. |
 | Seguridad | 3/5 | Una selección o despacho sin verificación de autoridad puede vulnerar las restricciones de egress; no se acredita exposición real. |
 | Financiero | 3/5 | La admisión incompatible con presupuesto o condiciones comerciales puede ocasionar gasto no previsto; no hay cargos medidos. |
-| **Total** | **15/25** | **S2 — ALTO, provisional** |
+| **Total** | **15/25** | **S2 — ALTO, ratificado por el Board** |
 
 - **Total Score:** `15/25`.
-- **Severidad:** `S2` (ALTO), pendiente de ratificación del Architecture Board.
+- **Severidad:** `S2` (ALTO), ratificada por el Architecture Board (15/25).
 
 ## 3. DECISIÓN EJECUTIVA
 
@@ -84,7 +87,7 @@ No se presupone proveedor comercial aprobado ni gasto previamente autorizado.
 
 ## 5. REGLAS NORMATIVAS (RFC 2119)
 
-**Las reglas siguientes son propuestas y carecen de vigencia mientras el NADR permanezca DRAFT.**
+**Las siguientes diez reglas RFC 2119 constituyen el contrato normativo aprobado por el Architecture Board y FROZEN v1.0.0 de esta capacidad.**
 
 ### 5.1 Intención lingüística y petición efectiva
 
@@ -175,7 +178,7 @@ Los escenarios de admisión pueden formalizarse mediante testigos sintéticos y 
 | `NADR-FPPPR-02` FROZEN | **Frontera de reconstrucción:** fidelidad representacional del contenido y la jerarquía en G5. |
 | Futuro `PHASE_PPPR_EXECUTION_PLAN.md` | **Destino de materialización:** selección autorizada de proveedores/modelos, mecanismos, falsadores y presupuestos aplicables, sin introducir decisiones constitucionales nuevas. |
 
-Las relaciones de ámbito o contraste no constituyen dependencias normativas recíprocas nuevas. Antes de FROZEN deberá comprobarse la clasificación de las relaciones exigida por `4_METH_NADR.md` §8, sin editar contratos FROZEN para simular reciprocidad.
+Las relaciones de ámbito o contraste no constituyen dependencias normativas recíprocas nuevas. El cotejo de suficiencia y clasificación de relaciones conforme a `4_METH_NADR.md` §8 quedó aprobado por el Architecture Board para este FROZEN: se reconocen los contratos F17-BIS/F18 y NADR-FPPPR-01/02 en sus fronteras vigentes, sin declarar nuevas dependencias directas ni editar documentos FROZEN para simular reciprocidad.
 
 ## 9. FRONTERA NORMATIVA (QUÉ NO GOBIERNA ESTE NADR)
 
@@ -190,4 +193,4 @@ Las relaciones de ámbito o contraste no constituyen dependencias normativas rec
 - **No autoriza** gasto comercial, transmisión de corpus privados, pruebas físicas, implementación o integración a `main`.
 - **No prescribe** clases, funciones, SDK, arquitectura de proveedor, código, tareas ni Definition of Done.
 
-**Nota de gobernanza:** el presente documento es exclusivamente un candidato DRAFT. Sus diez reglas no tienen vigencia y requieren revisión y aprobación integral independientes. No se ha seleccionado proveedor, reparado GAP alguno ni ejecutado testigos científicos o comerciales.
+**Nota de gobernanza:** las diez reglas constituyen el contrato normativo FROZEN de esta capacidad. La aprobación no selecciona ni acredita proveedor/modelo, no concede autorización de egress o presupuesto, no repara GAP, no implica ejecución de pruebas ni constituye certificación científica del producto. La implementación se somete al futuro Execution Plan y a permisos independientes.
