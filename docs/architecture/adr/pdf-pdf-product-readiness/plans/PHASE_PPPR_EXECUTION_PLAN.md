@@ -1,10 +1,10 @@
 # PHASE_PPPR_EXECUTION_PLAN.md — PDF→PDF Product Readiness
 ## Implementation Execution Plan & Rule-Centric Traceability Matrix
 
-**Version:** 0.5.3
+**Version:** 0.5.4
 **Status:** APPROVED
 **Document Lifecycle:** LIVING DOCUMENT — NOT FROZEN; cierre al completar formalmente la fase.
-**Execution Status:** IN_PROGRESS — G1 4/4 Tasks DONE (W1.1/W1.2); Gate 1 Exit Review **REALIZADO (2026-11-21), BLOCKED/PENDING_CI del HEAD `718a81a…`**, sin PASS ni cierre; G2–G6 PENDING. Resolución metodológica G1 ratificada, CV científica FAIL/DEFERRED conservada.
+**Execution Status:** IN_PROGRESS — **G1 COMPLETED/PASS el 2026-11-21**, 4/4 Tasks DONE y Exit Review realizado con reevaluación posterior de CI del SHA `718a81a…` en SUCCESS (run #44951655134); G2–G6 aún PENDING/NOT_RUN. El diferimiento de CV científica sigue **FAIL/DEFERRED** por resolución metodológica G1 exclusiva; no certifica Product Readiness.
 **Architecture Board Approval:** Contenido v0.5.0 aprobado integralmente el 2026-11-21 según dictamen comunicado por el owner, sobre HEAD `0d920f6b8bdcefe60f6be081e645b0140c162e5b`. Estructura 6/12/30 y clasificación 104 = 79 A / 0 B / 25 C ratificadas; no se presupone un review formal de GitHub ni acta externa.
 **Execution Authorization:** GRANTED por el owner el 2026-11-21 para comenzar implementación controlada de PPPR desde G1. Los tres documentos vivos se actualizan al **cierre de cada Wave**. La autorización no concede corpus privado, egress, proveedor, gasto, certificación científica, host ni merge a `main`; G2–G6 no iniciados.
 **Date:** 2026-11-21
@@ -26,6 +26,7 @@
 | 0.5.1-APPROVED (LIVING) | 2026-11-21 | Cierre verificado Wave 1.1: Tasks 1.1.1 y 1.1.2 DONE por auditoría documental; G1 IN_PROGRESS, W1.2 PENDING; 40 reglas PPPR, 104 históricas, 14 GAP-ID reconciliados sin pruebas de runtime. Los tres documentos de gobernanza se actualizan juntos al cierre de la Wave. |
 | 0.5.2-APPROVED (LIVING) | 2026-11-21 | W1.2: Tasks 1.2.1/1.2.2 verificadas; CI GitHub #44935045055 SUCCESS sobre SHA `67affe9…`, CV #44935045265 FAIL/DEFERRED, excepción acotada `PPPR-G1-CI-SCOPE-01` ratificada por el owner en issue #34. Dependencias G5/G6 sin permiso siguen explícitas. G1 IN_PROGRESS, Exit Review NOT_RUN. Actualización coordinada de los tres registros al cierre de Wave. |
 | 0.5.3-APPROVED (LIVING) | 2026-11-21 | Gate 1 Exit Review ejecutado sobre la evidencia de 4 Tasks: criterios 1,2,4 acreditados; criterio 3 pendiente de CI técnica del HEAD `718a81a…` al momento de esta revisión. Resultado BLOCKED/PENDING_CI (sin PASS). CV científica FAIL/DEFERRED por vía aprobada §2.1.3(3), sin nuevos DF/GF; findings/evidence log reflejan review realizado. |
+| 0.5.4-APPROVED (LIVING) | 2026-11-21 | G1 Exit Review reevaluado tras finalizar CI #44951655134 SUCCESS sobre HEAD exacto `718a81a…`: G1 PASS/COMPLETED por los cuatro Exit Criteria y excepción `PPPR-G1-CI-SCOPE-01` limitada a G1. Mantiene constancia inicial de BLOCKED por CI en curso; CV científica FAIL/DEFERRED, 0 DF/GF nuevos, G2 no iniciado. Tres registros vivos sincronizados al cierre del Gate. |
 
 ---
 
@@ -206,8 +207,8 @@ Las decisiones del ADR Maestro DC-03/08/09/10/12 permanecen invariantes: EN→ES
 **Objective:** Baseline, autoridad y preparación.
 **Execution Mode:** Secuencial para la definición; gestiones externas autónomas pueden avanzar en paralelo.
 **Rollback Plan (propuesto):** Solo artefactos documentales hasta aprobación del plan; descartar branch corta sin tocar main.
-**Gate Status:** IN_PROGRESS — W1.1 y W1.2 COMPLETE (4/4 Tasks DONE), Gate Exit Review **REALIZADO 2026-11-21**; **BLOCKED/PENDING_CI actual del HEAD**, sin PASS ni cierre de G1.
-**Inicio/Cierre:** inicio 2026-11-21 / cierre de Gate PENDIENTE.
+**Gate Status:** **COMPLETED / PASS (2026-11-21)** — W1.1 y W1.2 COMPLETE (4/4 Tasks DONE); Exit Review REALIZADO y reevaluado después de que CI del HEAD finalizara SUCCESS. Solo G1; G2 aún no iniciado.
+**Inicio/Cierre:** inicio 2026-11-21 / **cierre satisfactorio G1: 2026-11-21**.
 
 #### 2.1.1 Wave 1.1 — Baseline y trazabilidad
 
@@ -290,6 +291,10 @@ Las decisiones del ADR Maestro DC-03/08/09/10/12 permanecen invariantes: EN→ES
 | Notas y pruebas de cada Task | **PASS documental**: §2.1.1–2.1.2 con SHAs, runs, limitaciones y autorización externa |
 
 **Veredicto real del Exit Review:** **REVIEW_PERFORMED / GATE_BLOCKED_PENDING_CI**; fecha 2026-11-21. **El Gate no está COMPLETED y G2 no se habilita**. Revisión y cierre posterior condicionado a evidencia CI íntegra para el HEAD requerido, sin relajar pruebas y con nuevo registro del veredicto (mantener histórico). **0 DF/GF nuevos** no significa ausencia de defectos.
+
+**Acta complementaria de reevaluación posterior del mismo Exit Review (2026-11-21; preserva el dictamen inicial):** el bloqueo temporal precedente se levantó **después** de que GitHub Actions concluyera la [CI requerida #44951655134](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44951655134) con **SUCCESS** sobre el HEAD exacto `718a81a7816ef91710b3a86b00cc4326b0b18262`; jobs **Static Analysis (Pyright + import-linter), Unit Test Suite, Integration Test Suite** en `completed/success`, incluido el paso `Run complete technical pytest suite (excluding scientific E2E)`. La CI anterior #44935045055 también había pasado, pero **no** se emplea para sustituir el run del SHA actual. El criterio **§2.1.3(3) queda PASS solo por el alcance técnico excepcional formalmente ratificado en [issue #34](https://github.com/RDsanchez-git/translator_pdf/issues/34#issuecomment-7069421655)**. Los criterios (1), (2) y (4) ya tenían verificación documental positiva, 4/4 Tasks DONE, **cero reglas PPPR implementadoras propias de G1**, 0 nuevos DF/GF, Register §2.1 y Evidence Log §3.1 reconciliados.
+
+**Veredicto final posterior al levantamiento de bloqueo: `G1=PASS / COMPLETED` (2026-11-21).** El review inicialmente bloqueado permanece como testigo histórico y **no se reetiqueta retroactivamente como PASS**. La [CV científica #44951655082](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44951655082) conserva **FAIL / BASELINE_INTEGRITY_FAILURE**, cobertura científica `DEFERRED`; no se aprovisionaron 15 PDF ni se modificaron guardas, oráculos, umbrales o workflows. **G2 queda habilitado por la cascada, pero no iniciado con esta actualización**. Los requisitos de datos/egress/ciencia de G5–G6 permanecen `NOT_GRANTED/PENDING`, y `PRODUCT_READINESS=NOT_CERTIFIED`. Este cierre se realiza sobre el **HEAD de producto/gobernanza evaluado**; PR #84 modifica solo tres Markdown de seguimiento y no constituye validación de software nuevo.
 
 ---
 
@@ -703,7 +708,7 @@ Se completa solo después de un Exit Review real, con referencias al Evidence Lo
 
 | Gate | Fecha cierre | Rules DONE / Total | Tasks DONE / Total | Hallazgos derivados | Observaciones |
 |---|---|---|---|---|---|
-| G1 | **SIN CIERRE** (review 2026-11-21) | **0/0** reglas propietarias G1 (normas G2–G6 pendientes) | **4/4** | **0 nuevos** | **REVIEW_PERFORMED / BLOCKED_PENDIENTE_CI_HEAD** en `718a81a…`; CI #44951655134 IN_PROGRESS en review; CV FAIL/DEFERRED por resolución aprobada; G2 no habilitado |
+| G1 | **2026-11-21 (PASS)** | **0/0** reglas propietarias G1 (normas G2–G6 pendientes) | **4/4** | **0 nuevos** | **REVIEW_REALIZADO → inicialmente BLOCKED/PENDING_CI → reevaluación PASS tras CI #44951655134 SUCCESS en `718a81a…`; CV científica FAIL/DEFERRED por excepción exclusiva G1. G2 habilitado, no iniciado** |
 | G2 | — | Derivar de §7 | Derivar de §2 | — | PENDING · NOT_RUN |
 | G3 | — | Derivar de §7 | Derivar de §2 | — | PENDING · NOT_RUN |
 | G4 | — | Derivar de §7 | Derivar de §2 | — | PENDING · NOT_RUN |
@@ -754,13 +759,13 @@ Ningún Gate ni este DoD autorizan por sí solos el merge del PR #66 a `main`, l
 
 | Gate | Tasks DONE | Rules DONE | Rules DEFERRED | Rules PENDING | Gate Status |
 |---|---|---|---|---|---|
-| G1 | `COUNT(task.status == DONE ∧ gate=G1)` | `COUNT(regla única: Task principal DONE ∧ falsador normativo del Gate propietario PASS)` | `COUNT(regla diferida con autoridad)` | `COUNT(regla única: Task principal pendiente ∨ falsador del Gate propietario no acreditado)` | **IN_PROGRESS — W1.1+W1.2 completas, 4/4 DONE; Exit Review REALIZADO, BLOCKED/PENDING_CI_HEAD, sin PASS** |
+| G1 | `COUNT(task.status == DONE ∧ gate=G1)` | `COUNT(regla única: Task principal DONE ∧ falsador normativo del Gate propietario PASS)` | `COUNT(regla diferida con autoridad)` | `COUNT(regla única: Task principal pendiente ∨ falsador del Gate propietario no acreditado)` | **COMPLETED/PASS — W1.1+W1.2 completas, 4/4 DONE, CI HEAD SUCCESS; CV científica FAIL/DEFERRED, G2 PENDING** |
 | G2 | `COUNT(task.status == DONE ∧ gate=G2)` | `COUNT(regla única: Task principal DONE ∧ falsador normativo del Gate propietario PASS)` | `COUNT(regla diferida con autoridad)` | `COUNT(regla única: Task principal pendiente ∨ falsador del Gate propietario no acreditado)` | PENDING / NOT_RUN |
 | G3 | `COUNT(task.status == DONE ∧ gate=G3)` | `COUNT(regla única: Task principal DONE ∧ falsador normativo del Gate propietario PASS)` | `COUNT(regla diferida con autoridad)` | `COUNT(regla única: Task principal pendiente ∨ falsador del Gate propietario no acreditado)` | PENDING / NOT_RUN |
 | G4 | `COUNT(task.status == DONE ∧ gate=G4)` | `COUNT(regla única: Task principal DONE ∧ falsador normativo del Gate propietario PASS)` | `COUNT(regla diferida con autoridad)` | `COUNT(regla única: Task principal pendiente ∨ falsador del Gate propietario no acreditado)` | PENDING / NOT_RUN |
 | G5 | `COUNT(task.status == DONE ∧ gate=G5)` | `COUNT(regla única: Task principal DONE ∧ falsador normativo del Gate propietario PASS)` | `COUNT(regla diferida con autoridad)` | `COUNT(regla única: Task principal pendiente ∨ falsador del Gate propietario no acreditado)` | PENDING / NOT_RUN |
 | G6 | `COUNT(task.status == DONE ∧ gate=G6)` | `COUNT(regla única: Task principal DONE ∧ falsador normativo del Gate propietario PASS)` | `COUNT(regla diferida con autoridad)` | `COUNT(regla única: Task principal pendiente ∨ falsador del Gate propietario no acreditado)` | PENDING / NOT_RUN |
-| **TOTAL** | `SUM(tasks DONE únicas)` | `COUNT(reglas únicas verificadas)` | `COUNT(reglas formalmente diferidas)` | `COUNT(reglas pendientes)` | **IN_PROGRESS — 4/30 Tasks DONE, 26 TODO; G1 review REALIZADO/BLOCKED por CI actual pendiente; reglas posteriores PENDING; G2 no iniciado** |
+| **TOTAL** | `SUM(tasks DONE únicas)` | `COUNT(reglas únicas verificadas)` | `COUNT(reglas formalmente diferidas)` | `COUNT(reglas pendientes)` | **IN_PROGRESS — 4/30 Tasks DONE, 26 TODO; G1 COMPLETED/PASS tras CI HEAD SUCCESS, G2–G6 PENDING; reglas posteriores aún no certificadas** |
 
 Actualización solo tras cambios verificables: regla derivada de Task principal y **falsadores propios del Gate propietario**, sin doble contabilizar verificaciones de integración. Los filtros computan por separado las 40 reglas FPPPR y el subconjunto histórico de **79 reglas clase A ratificadas para el alcance del plan** en §1.6/§7; ninguna exclusión C es DEFERRED. Ningún Gate es PASS con reglas propias PENDING; las pruebas G5 de regresión vinculadas a reglas de Gates 2/3 **no** se computan como obligación normativa pendiente para su DONE. **G3** exige sus diez reglas FPPPR-03 DONE mediante §2.3.5; **G5** registra el proveedor real y puede provocar un finding/regresión de G3, pero no sirve como evidencia normativa diferida necesaria para haber cerrado G3. `PRODUCT_READINESS` se deriva por separado conforme a §5/§2.6.3; sin autoridad científica sigue NOT_CERTIFIED/BLOCKED.
 
@@ -959,4 +964,4 @@ Marcar `ELIMINADO` en §4 solo con causa/autoridad registradas; si afecta una re
 
 ---
 
-**Nota final de gobernanza:** `APPROVED v0.5.3 — LIVING DOCUMENT / NOT FROZEN`. W1.1 y W1.2 4/4 DONE; **G1 Exit Review realizado el 2026-11-21, veredicto BLOCKED/PENDING_CI_HEAD** sin Gate PASS, al requerir resultado final de CI técnica sobre `718a81a…`. CI previa en `67affe9…` PASS, no sustituta del run actual en curso. CV científica FAIL/DEFERRED por resolución acotada G1 aprobada; **0 nuevos DF/GF** en alcance revisado y 14 GAP P1 siguen OPEN. Findings Register y Evidence Log registran el review, sin inventar findings. G2–G6 PENDING y `PRODUCT_READINESS=NOT_CERTIFIED`. Ningún criterio de Gate se reescribió; `main`/PR #66 intactos.
+**Nota final de gobernanza:** `APPROVED v0.5.4 — LIVING DOCUMENT / NOT FROZEN`. **Gate 1 completado por Exit Review/reevaluación fechada el 2026-11-21**, 4/4 Tasks DONE y CI #44951655134 SUCCESS sobre `718a81a…`, con excepción aprobada `PPPR-G1-CI-SCOPE-01` estrictamente para §2.1.3(3). El review inicialmente BLOCKED por CI en curso se conserva, con addendum y resultado final PASS. CV científica **FAIL/DEFERRED**, jamás PASS; 0 nuevos DF/GF observados, 14 GAP-ID P1 históricos permanecen OPEN. **G2 habilitado pero no iniciado**, G3–G6 PENDING, `PRODUCT_READINESS=NOT_CERTIFIED`. Sin cambios de criterios, NADR FROZEN, código ni `main`/PR #66; los tres documentos vivos se actualizaron juntos al cierre del Gate.
