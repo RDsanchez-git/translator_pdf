@@ -52,7 +52,7 @@ from apps.llm_workers.prompt_builder import PromptBuilder
 from apps.llm_workers.routing import LLMProvider
 
 from core.layout.models import LayoutBlockDraft
-from core.domain.document import LayoutBlock, BoundingBox
+from core.domain.document import LayoutBlock
 
 from core.context.context_registry import ContextRegistry
 from core.context.dynamic_resolver import DynamicContextResolver
@@ -184,7 +184,14 @@ def build_extraction_pipeline(config: ExtractionConfiguration | None = None) -> 
     mapper = FlatASTBuilder()
     layout_validator = DocumentLayoutValidator()
 
-    def _layout_block_to_draft(block: LayoutBlock, page_number: int, reading_order: int) -> LayoutBlockDraft:
+    def _layout_block_to_draft(
+        block: LayoutBlock,
+        page_number: int,
+        reading_order: int,
+        source_document: str,
+        page_width: float,
+        page_height: float,
+    ) -> LayoutBlockDraft:
         """
         Traduce LayoutBlock (dominio) a LayoutBlockDraft (DTO de FlatASTBuilder).
         
@@ -196,7 +203,10 @@ def build_extraction_pipeline(config: ExtractionConfiguration | None = None) -> 
             block_id=block.block_id,
             logical_type=block.logical_type.value,
             content=block.content.normalized,
-            bbox=block.bbox if block.bbox is not None else BoundingBox(x0=0, y0=0, x1=1, y1=1),
+            bbox=block.bbox,  # Ausencia real: no fabricar un bbox unitario.
+            source_document=source_document,
+            page_width=page_width,
+            page_height=page_height,
             confidence=block.metadata.confidence.ocr if block.metadata.confidence else 1.0,
             provider_native_id=str(block.metadata.provider.native_block_index) if block.metadata.provider else None,
             page_index=page_number,
@@ -215,7 +225,14 @@ def build_extraction_pipeline(config: ExtractionConfiguration | None = None) -> 
         reading_order = 0
         for page in document_layout.pages:
             for block in page.blocks:
-                draft = _layout_block_to_draft(block, page.page_number, reading_order)
+                draft = _layout_block_to_draft(
+                    block,
+                    page.page_number,
+                    reading_order,
+                    document_layout.source_path,
+                    page.dimensions.width,
+                    page.dimensions.height,
+                )
                 draft_blocks.append(draft)
                 reading_order += 1
         
