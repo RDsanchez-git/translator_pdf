@@ -10,7 +10,6 @@ from core.ast.models import ASTNode
 from core.ast.enums import ContentNodeType
 from core.document_profile.extractors import NodeGeometry
 from core.document_profile.models import SamplingCoverage, SamplingReport
-from core.document_profile.ports import ProfileSamplingPolicy, ReportingSamplingPolicy
 
 
 @dataclass(frozen=True, slots=True)
@@ -175,8 +174,3 @@ class FirstPagesSamplingPolicy:
 
     def sample(self, nodes: Sequence[ASTNode]) -> Sequence[ASTNode]:
         return self.sample_with_report(nodes).nodes
-
-
-# Comprobación estática de interfaces, sin instanciar adaptadores inválidos.
-_geometry_port: type[NodeGeometryAdapter] = NodeGeometryAdapter
-_sampling_port: type[FirstPagesSamplingPolicy] = FirstPagesSamplingPolicy
