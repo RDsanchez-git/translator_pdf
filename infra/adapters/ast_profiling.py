@@ -59,6 +59,23 @@ class NodeGeometryAdapter:
         )
 
 
+    def explain_missing(self, node: ASTNode) -> str | None:
+        """Motivo físico atribuible; el None del puerto extract() no es PASS."""
+        if self.extract(node) is not None:
+            return None
+        regions = node.metadata.physical_regions
+        if not regions:
+            return "PHYSICAL_PROVENANCE_UNVERIFIED"
+        if len(regions) != 1:
+            return "MULTIREGION_GEOMETRY_NOT_ACREDITED"
+        region = regions[0]
+        if region.bbox is None:
+            return "BBOX_UNVERIFIED"
+        if not region.bbox.is_normalized and region.page_width is None:
+            return "PAGE_WIDTH_UNVERIFIED"
+        return "COORDINATE_TRANSFORM_UNVERIFIED"
+
+
 class NodeSemanticAdapter:
     """Proyección semántica a la taxonomía canónica del AST."""
 
@@ -144,10 +161,16 @@ class FirstPagesSamplingPolicy:
             SamplingCoverage.PARTIAL if has_partial else
             SamplingCoverage.STRICT_SCOPE
         )
+        geometry_reasons = tuple(
+            f"{node.node_id}:{reason}"
+            for node in selected
+            if (reason := self._geom_extractor.explain_missing(node)) is not None
+        )
         return SamplingReport(
             nodes=tuple(selected),
             coverage=coverage,
             reasons=tuple(reasons),
+            geometry_reasons=geometry_reasons,
         )
 
     def sample(self, nodes: Sequence[ASTNode]) -> Sequence[ASTNode]:
