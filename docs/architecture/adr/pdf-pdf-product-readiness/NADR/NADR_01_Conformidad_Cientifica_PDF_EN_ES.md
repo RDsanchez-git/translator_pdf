@@ -1,6 +1,6 @@
 # NADR-FPPPR-01: Legitimidad y Trazabilidad de la Conformidad Científica del PDF Final EN→ES
 
-**DRAFT v0.3.0 — NO APPROVED / NO FROZEN**
+**DRAFT v0.4.0 — NO APPROVED / NO FROZEN**
 
 ## 1. METADATA
 
@@ -8,12 +8,12 @@
 * **Título:** Legitimidad y Trazabilidad de la Conformidad Científica del PDF Final EN→ES.
 * **Clase de Decisión:** GOVERNANCE / DATA.
 * **Nivel de Cumplimiento:** MANDATORY únicamente después de aprobación; sin fuerza normativa mientras permanezca DRAFT.
-* **Versión:** 0.3.0 — revisión focal de R8/R10, falsadores y campos canónicos del riesgo; aún no aprobada.
+* **Versión:** 0.4.0 — revisión focal de R8/R10, aplicabilidad F18 y metadatos candidatos; sin aprobación normativa.
 * **Ciclo de Vida:** DRAFT.
 * **Vigente Desde:** Pendiente de aprobación; no vigente durante la revisión.
 * **Autoridad:** Architecture Board.
-* **Responsable Técnico:** Pendiente de designación formal (rol técnico candidato: Staff Engineering / PPPR).
-* **Capacidad Arquitectónica:** Código CAP pendiente de validación — Legitimidad, atribuibilidad y vigencia de afirmaciones de conformidad científica sobre el PDF final traducido EN→ES.
+* **Responsable Técnico:** Staff Engineering / PPPR — rol técnico propuesto; **designación formal pendiente de ratificación por el Architecture Board**. No se asigna una persona.
+* **Capacidad Arquitectónica:** `CAP-PPPR-01` (**código propuesto, pendiente de ratificación canónica**) — Legitimidad, atribuibilidad y vigencia de afirmaciones de conformidad científica sobre el PDF final traducido EN→ES. Este código provisional no constituye registro oficial de capacidad.
 * **Evidencia Forense:** E-0.8-006/014/020/021; E-0.9-016…019; E-0.6-024; DQ-0.8-01…05. Los E-IDs citados son P2 históricos; no se crean GAP nuevos.
 * **Referencias Cruzadas:**
   * **Depende de:** ADR_PPPR_MASTER.md FROZEN (DC-09/10/11/12) como autoridad constitucional superior.
@@ -102,13 +102,13 @@ Estas observaciones no crean GAP P1 nuevos ni demuestran que se haya emitido una
 
 7. Toda afirmación científica positiva **MUST** mantener una relación verificable entre documento fuente, identidad y contrato de generación relevantes, PDF final evaluado, referencias utilizadas, versiones de criterios aplicados y resultado obtenido. La ausencia de un vínculo necesario **MUST** impedir atribuir conformidad positiva a esa generación.
 
-8. La atribución de un dictamen científico **MUST** corresponder al PDF final realmente evaluado. Si el artefacto al que se pretende atribuir difiere del sujeto evaluado, el dictamen anterior **MUST NOT** presentarse como conformidad de ese artefacto, salvo que un contrato de equivalencia científica previamente aprobado y verificable permita dicha atribución y exista evidencia de que se cumplen sus condiciones. El nombre, la ruta o los metadatos de un archivo, por sí solos, **MUST NOT** establecer identidad ni equivalencia científica; sin equivalencia acreditada, la atribución al nuevo artefacto **MUST** rechazarse.
+8. Un dictamen científico **MUST** atribuirse únicamente al PDF final efectivamente evaluado. Si el artefacto al que se pretende atribuir difiere del sujeto evaluado, ese dictamen **MUST NOT** presentarse como conformidad del nuevo artefacto. La coincidencia de nombre, ruta o metadatos **MUST NOT** considerarse demostración de identidad científica ni autorizar el traslado del dictamen a otro PDF.
 
 9. Cuando cambie una referencia o un criterio relevante para el fundamento de una afirmación, su vigencia **MUST** determinarse según las reglas de validez aprobadas antes de presentarla como conformidad actual. Si esa vigencia no puede acreditarse, la afirmación **MUST NOT** declararse vigente. La evidencia histórica **MUST** conservar la atribución y el contexto de la evaluación original; la pérdida de vigencia no autoriza reescribir el resultado anterior.
 
 ### 5.4 Certificación sin falsos positivos
 
-10. Para cada dimensión y alcance objeto de una afirmación, una evaluación inválida, incompleta, carente de evidencia necesaria o interrumpida por un fallo operacional **MUST NOT** producir conformidad científica positiva respecto de ese alcance. La falta o invalidez de evidencia de una dimensión **MUST NOT** invalidar automáticamente una evaluación válida de otra; su resultado **MUST NOT** extrapolarse a dimensiones no evaluadas ni a conformidad integral. La evaluación inválida o incompleta **MUST** permanecer distinguible de un rechazo científico válido y **MUST NOT** interpretarse automáticamente como demostración de divergencia científica.
+10. Para cada dimensión y alcance objeto de una afirmación, una evaluación inválida, incompleta, carente de evidencia necesaria o interrumpida por un fallo operacional **MUST NOT** producir conformidad científica positiva respecto de ese alcance. La falta o invalidez de evidencia en una dimensión **MUST NOT** invalidar automáticamente el resultado científico válido de otra; tal resultado **MUST** conservarse identificado estrictamente con su dimensión y alcance y **MUST NOT** interpretarse como certificado parcial de producto, conformidad integral ni conformidad del PDF final. Las evaluaciones inválidas o incompletas **MUST** distinguirse de un rechazo científico válido y **MUST NOT** interpretarse automáticamente como demostración de divergencia científica.
 
 11. Un PDF parcial, DEGRADED o expresamente no certificado **MUST NOT** presentarse como resultado final científicamente conforme de PPPR. Los artefactos de diagnóstico o recuperación **MAY** conservarse bajo una identificación inequívoca de su condición no conforme, dentro de los límites de DC-12.
 
@@ -130,8 +130,8 @@ Falsadores previstos para implementación y evaluación posteriores bajo goberna
 * Verificar que una afirmación positiva identifique PDF final, generación, dimensiones, referencias, criterios aprobados y resultado.
 * Verificar que la autoridad de referencias y criterios no se infiera de archivos, hashes o valores de configuración.
 * Verificar la distinción entre evaluación científica válida, fallo operacional e incompletitud.
-* Verificar que no se atribuya silenciosamente un dictamen a otra generación o artefacto, y que cualquier excepción de equivalencia tenga un contrato aprobado y evidencia verificable.
-* Verificar que la ausencia de una dimensión no invalide evaluaciones válidas de las otras, pero impida la promoción a conformidad integral.
+* Verificar que un dictamen permanezca atribuido al PDF final efectivamente evaluado y no pueda trasladarse a otro artefacto por coincidencia de nombre, ruta o metadatos.
+* Verificar que los resultados científicos válidos por dimensión preserven su alcance sin convertirse en certificados parciales de producto, conformidad integral ni conformidad del PDF final.
 
 **Validation (dinámica / comportamental):**
 
@@ -143,10 +143,9 @@ Falsadores previstos para implementación y evaluación posteriores bajo goberna
 | Referencia sin autoridad acreditada | No emitir conformidad positiva. |
 | La propia salida evaluada se presenta como única prueba independiente de su corrección | Rechazar la evidencia como independencia suficiente; no emitir conformidad positiva basada en autovalidación. |
 | Criterio seleccionado después de observar resultados | No certificar con ese criterio retrospectivo. |
-| Dictamen de otro PDF final, sin contrato de equivalencia y evidencia aprobados | No atribuirlo al nuevo sujeto, aunque nombre, ruta o metadatos coincidan. |
-| Artefacto diferente con equivalencia científica expresamente autorizada y acreditada | Evaluar la atribución únicamente bajo ese contrato; no presumir equivalencia por identidad de nombre o metadatos. |
+| Dictamen de otro PDF final, aunque nombre, ruta o metadatos coincidan | No atribuirlo al nuevo sujeto; no se autoriza transferencia de conformidad entre PDFs. |
 | Cambio de referencia o criterio relevante sin vigencia acreditada | No reutilizar dictamen como vigente; conservar sin reescribir la evidencia histórica atribuida al resultado original. |
-| Evaluación lingüística válida, dimensión visual sin evidencia suficiente | Conservar el resultado lingüístico con su alcance explícito; no emitir conformidad integral ni inferir que el PDF final DEGRADED sea conforme. |
+| Evaluación lingüística válida, dimensión visual sin evidencia suficiente | Conservar el resultado lingüístico con alcance explícito como evidencia científica; no emitir certificado parcial de producto, conformidad integral ni declarar conforme el PDF final. |
 | Evaluación válida con resultado desfavorable | Rechazo científico distinguible de fallo operacional. |
 | Evaluación incompleta o fallida | No emitir conformidad positiva ni inventar divergencia. |
 | Artefacto parcial o DEGRADED | No presentarlo como conforme. |
@@ -155,7 +154,7 @@ Los falsadores abstractos de atribución pueden diseñarse sin corpus privado. L
 
 ## 8. RELACIÓN CON OTROS ARTEFACTOS
 
-**Interpretación de relaciones:** las normas F17-BIS y F18 provienen de un producto y sujetos anteriores. Su estado FROZEN no importa automáticamente sus obligaciones a PPPR. Las referencias siguientes son contrastes o delimitaciones de ámbito, salvo la autoridad constitucional explícita del Maestro.
+**Interpretación de relaciones:** los contratos F17-BIS y F18 conservan autoridad normativa dentro de sus ámbitos vigentes. Su aplicabilidad a cada obligación PPPR depende del sujeto, la responsabilidad, las condiciones y la compatibilidad demostrada; no se presume por analogía ni se excluye globalmente. F17-BIS aporta contrastes históricos de certificación PDF→AST, mientras F18 mantiene autoridad aplicable a responsabilidades operacionales de la ruta PPPR (ejecución, efectos inciertos y recuperación) donde sus contratos así lo gobiernan. Este NADR no modifica esas fronteras.
 
 | Artefacto | Relación |
 | :--- | :--- |
@@ -166,6 +165,7 @@ Los falsadores abstractos de atribución pueden diseñarse sin corpus privado. L
 | NADR-F17BIS-24 FROZEN | **Contraste histórico:** integridad de certificación y separación de resultados de su ámbito. |
 | NADR-F17BIS-25 FROZEN | **Delimitación de sujeto:** CV extracción PDF→AST no certifica el PDF final EN→ES. |
 | NADR-F17BIS-27/28 FROZEN | **Contraste histórico:** semántica de resultados y trazabilidad de CV, sin importar estados ni baseline. |
+| NADR-F18-03/04/05 FROZEN | **Responsabilidad operacional aplicable por ámbito:** autoridad de ejecución y efectos inciertos, persistencia recuperable y observabilidad de intentos. Conservan fuerza dentro de su alcance en la ruta PPPR; no constituyen reglas sobre el oráculo ni el dictamen científico de este NADR. |
 | Política científica futura, si fuese necesaria | **Condición de autoridad:** solo una decisión arquitectónica competente puede establecer un nuevo modelo de confianza o autoridad científica que exceda el Maestro. |
 | Futuro Execution Plan PPPR único | **Destino de implementación:** no crea por sí mismo normas, políticas científicas ni permisos. |
 
@@ -174,12 +174,12 @@ Los falsadores abstractos de atribución pueden diseñarse sin corpus privado. L
 ## 9. FRONTERA NORMATIVA (QUÉ NO GOBIERNA ESTE NADR)
 
 * **No gobierna** la Continuous Verification histórica de extracción PDF→AST, sus Ground Truth sellados, su baseline o su evaluación topológica.
-* **No adopta automáticamente** normas F17-BIS o F18 por su estado FROZEN; la compatibilidad de sujeto, propósito y frontera debe demostrarse antes de considerarlas aplicables.
+* **No adopta automáticamente** reglas ajenas a su sujeto por su estado FROZEN. Las obligaciones F17-BIS/F18 conservan autoridad dentro de sus ámbitos; F18-03/04/05 continúan gobernando las responsabilidades operacionales aplicables de la ruta PPPR sin que este NADR las reinterprete o sustituya.
 * **No decide** quién constituye, valida o aprueba oráculos científicos EN→ES ni crea un modelo de confianza de evaluadores.
 * **No determina** métricas, umbrales, algoritmos, protocolos estadísticos, particiones o tamaños de muestra.
 * **No permite** que una ejecución, configuración técnica o Execution Plan cree autoridad científica retrospectivamente.
 * **No autoriza** el acceso a corpus privados, la obtención de los quince PDF ausentes, la transmisión a terceros ni contratación de proveedores.
-* **No gobierna** inferencia G3, renderizado G5, fórmulas criptográficas de identidad de generación ni recuperación operacional.
+* **No gobierna** inferencia G3, renderizado G5 ni fórmulas criptográficas de identidad de generación; tampoco gobierna autoridad de ejecución, efectos inciertos o recuperación operacional, bajo los contratos F18 aplicables.
 * **No prescribe** clases, módulos, formatos, herramientas, tecnologías, tareas, Definition of Done o despliegues; esas responsabilidades pertenecen al Execution Plan aprobado.
 
 **Nota de gobernanza:** las once reglas RFC 2119 son exclusivamente propuestas mientras este NADR permanezca DRAFT. No constituyen certificación científica PPPR, no alteran el ADR Maestro FROZEN y no autorizan evaluación física, comercial o con corpus privado.
