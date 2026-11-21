@@ -1,7 +1,7 @@
 # FASE_PPPR_DEFERRED_FINDINGS_REGISTER.md
 
 **Documento:** `docs/architecture/adr/pdf-pdf-product-readiness/reviews/FASE_PPPR_DEFERRED_FINDINGS_REGISTER.md`  
-**Versión:** 0.1.0  
+**Versión:** 0.1.1  
 **Estado:** IN_PROGRESS — estructura preparada, **sin ejecución iniciada ni hallazgos registrados**; se archivará al cierre formal de PPPR.  
 **Fecha de creación:** 2026-11-21  
 **Última actualización:** 2026-11-21  
@@ -11,7 +11,16 @@
 
 **Estado empírico inicial:** Gates 1–6 `PENDING/NOT_RUN`, 30 Tasks `TODO`, sin Exit Review ni batches ejecutados. **No hay DF/GF nuevos registrados en este documento**; esto no implica ausencia de defectos. Los 14 `GAP-ID` P1 OPEN de PPPR.0.9 siguen siendo la baseline forense del Execution Plan y **no** se copian como hallazgos nuevos.
 
-**Nota de publicación anticipada:** esqueleto documental solicitado expresamente por el owner antes de iniciar G1. La metodología general `1_METHODOLOGY_FOR_ORDERED_PIPELINE_CHANGES.md` §6.7 sitúa el commiteo formal de estos artefactos en el cierre de fase. La integración anticipada de este *esqueleto vacío* requiere revisión expresa de esa diferencia de momento; **no equivale a cierre de fase ni autorización de ejecución**. Las reglas de clasificación y cierre siguen siendo las de las metodologías superiores.
+**Decisión específica del owner y dictamen ajustado favorable del Architecture Board (2026-11-21):** para **PPPR exclusivamente**, se autoriza publicar este esqueleto `IN_PROGRESS` en GitHub **antes del cierre** y actualizarlo de manera incremental cada vez que se identifique, clasifique o resuelva un hallazgo, se complete una Task relacionada o se realice un Exit Review/batch. El owner autorizó explícitamente el merge documental del PR #81 únicamente hacia `pdf-pdf-product-readiness`; el Board expresó dictamen ajustado **favorable a esa integración**. Esto constituye una **autorización particular de calendario y versionado operativo** frente al momento general de commiteo indicado en `1_METHODOLOGY_FOR_ORDERED_PIPELINE_CHANGES.md` §6.7: **no reforma el texto general, no concede excepciones a otras fases** ni altera los requisitos de evidencia. `ARCHIVED` solo al cierre formal de PPPR. El documento `IN_PROGRESS` **no implica** G1 iniciado, permisos de código, pruebas, materiales privados, egress ni certificación.
+
+---
+
+### Changelog
+
+| Versión | Fecha | Cambio |
+|---|---|---|
+| 0.1.0 | 2026-11-21 | Esqueleto inicial sin DF/GF ni Exit Reviews. |
+| 0.1.1 | 2026-11-21 | Registra autorización puntual del owner y dictamen ajustado favorable del Board para publicación/actualización incremental PPPR, sin modificar §6.7 ni el cierre ARCHIVED. |
 
 ---
 
