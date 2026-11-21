@@ -17,6 +17,7 @@ class SamplingReport:
     nodes: Sequence[ASTNode]
     coverage: SamplingCoverage
     reasons: tuple[str, ...] = ()
+    geometry_reasons: tuple[str, ...] = ()
 
 
 class PageLayout(StrEnum):
@@ -55,6 +56,7 @@ class ProfileDiagnostics:
     type_confidence: float
     sampling_coverage: SamplingCoverage = SamplingCoverage.INDETERMINATE
     sampling_reasons: tuple[str, ...] = ()
+    geometry_reasons: tuple[str, ...] = ()
 
 @dataclass(slots=True, frozen=True)
 class ProfilingResult:
