@@ -1,15 +1,15 @@
 # FASE_PPPR_DEFERRED_FINDINGS_REGISTER.md
 
 **Documento:** `docs/architecture/adr/pdf-pdf-product-readiness/reviews/FASE_PPPR_DEFERRED_FINDINGS_REGISTER.md`  
-**Versión:** 0.1.1  
-**Estado:** IN_PROGRESS — estructura preparada, **sin ejecución iniciada ni hallazgos registrados**; se archivará al cierre formal de PPPR.  
+**Versión:** 0.1.2  
+**Estado:** IN_PROGRESS — G1 iniciado; Wave 1.1 completada como auditoría documental (Tasks 1.1.1/1.1.2 DONE), W1.2 pendiente. Sin nuevos DF/GF encontrados en ese alcance, Exit Reviews NOT_RUN y batches NOT_RUN. ARCHIVED únicamente al cierre PPPR.  
 **Fecha de creación:** 2026-11-21  
 **Última actualización:** 2026-11-21  
-**Derivado de:** `PHASE_PPPR_EXECUTION_PLAN.md` v0.5.0 APPROVED / LIVING / NOT_STARTED, rama `pdf-pdf-product-readiness`.  
+**Derivado de:** `PHASE_PPPR_EXECUTION_PLAN.md` v0.5.1 APPROVED / LIVING / IN_PROGRESS (G1/W1.1), branch de cierre `pppr/g1-wave-1-1` sobre `pdf-pdf-product-readiness@f84e99ea2d68643eb2370ffb8134dd2dc364409e`.  
 **Ámbito:** PPPR (iniciativa transversal PDF→PDF; no fase histórica numerada).  
 **Propósito:** Registro único y auditable de hallazgos `DF`/`GF` **que surjan durante la ejecución y los Exit Reviews** del Execution Plan: identificación, clasificación, decisión, resolución, batch y evidencia de implementación.
 
-**Estado empírico inicial:** Gates 1–6 `PENDING/NOT_RUN`, 30 Tasks `TODO`, sin Exit Review ni batches ejecutados. **No hay DF/GF nuevos registrados en este documento**; esto no implica ausencia de defectos. Los 14 `GAP-ID` P1 OPEN de PPPR.0.9 siguen siendo la baseline forense del Execution Plan y **no** se copian como hallazgos nuevos.
+**Baseline al crear el esqueleto:** G1–G6 PENDING, 30 Tasks TODO, sin hallazgos ni Exit Reviews. **Checkpoint tras W1.1 (2026-11-21):** G1 IN_PROGRESS, dos Tasks de baseline/trazabilidad DONE por verificación documental; W1.2 pendiente, G1 Exit Review NOT_RUN. La auditoría estática acotada **no originó DF/GF nuevo**; no demuestra ausencia general de defectos. Los 14 `GAP-ID` P1 OPEN de PPPR.0.9 continúan como referencias históricas, no nuevos findings.
 
 **Decisión específica del owner y dictamen ajustado favorable del Architecture Board (2026-11-21):** para **PPPR exclusivamente**, se autoriza publicar este esqueleto `IN_PROGRESS` en GitHub **antes del cierre** y actualizarlo de manera incremental cada vez que se identifique, clasifique o resuelva un hallazgo, se complete una Task relacionada o se realice un Exit Review/batch. El owner autorizó explícitamente el merge documental del PR #81 únicamente hacia `pdf-pdf-product-readiness`; el Board expresó dictamen ajustado **favorable a esa integración**. Esto constituye una **autorización particular de calendario y versionado operativo** frente al momento general de commiteo indicado en `1_METHODOLOGY_FOR_ORDERED_PIPELINE_CHANGES.md` §6.7: **no reforma el texto general, no concede excepciones a otras fases** ni altera los requisitos de evidencia. `ARCHIVED` solo al cierre formal de PPPR. El documento `IN_PROGRESS` **no implica** G1 iniciado, permisos de código, pruebas, materiales privados, egress ni certificación.
 
@@ -21,6 +21,7 @@
 |---|---|---|
 | 0.1.0 | 2026-11-21 | Esqueleto inicial sin DF/GF ni Exit Reviews. |
 | 0.1.1 | 2026-11-21 | Registra autorización puntual del owner y dictamen ajustado favorable del Board para publicación/actualización incremental PPPR, sin modificar §6.7 ni el cierre ARCHIVED. |
+| 0.1.2 | 2026-11-21 | Checkpoint posterior a W1.1: no nuevos DF/GF detectados en auditoría documental; G1 IN_PROGRESS, 1.1.1/1.1.2 DONE, W1.2 pendiente, Exit Review y batches NOT_RUN. |
 
 ---
 
@@ -112,11 +113,11 @@ Cada DF/GF exigirá: texto original, fecha/origen Gate/Wave/Task, rutas/SHAs de 
 
 ## 2. GATE EXIT REVIEWS
 
-**Estado inicial:** **ningún Gate Exit Review realizado**. El plan tiene seis Gates, todos `PENDING/NOT_RUN`. Los apartados `2.N` se agregan **solo** cuando se ejecute una revisión real; no se crean actas ficticias.
+**Estado actualizado tras W1.1:** **ningún Gate Exit Review realizado**. G1 está IN_PROGRESS con W1.1 completa, W1.2 pendiente; G2–G6 PENDING. Las evidencias de las Tasks están en el Execution Plan §2.1.1, no en este Register. Los apartados `2.N` se agregan **solo** tras un Exit Review real, sin actas ficticias.
 
 | Gate previsto | Exit Review | Hallazgos registrados por esta revisión |
 |---|---|---|
-| G1 — Baseline, autoridad y preparación | NOT_RUN | Sin entradas |
+| G1 — Baseline, autoridad y preparación | NOT_RUN (G1 IN_PROGRESS, W1.1 completa) | Sin nuevos DF/GF en W1.1 |
 | G2 — Ingesta física e identidad | NOT_RUN | Sin entradas |
 | G3 — Seguridad de efectos e inferencia G3 | NOT_RUN | Sin entradas |
 | G4 — Reconstrucción G5 y PDF | NOT_RUN | Sin entradas |
@@ -226,12 +227,12 @@ El documento se declara `ARCHIVED` **solo** tras cierre formal de PPPR, verifica
 
 | Categoría | Estado actual |
 |---|---|
-| Gates revisados | NOT_RUN (G1–G6 pendientes) |
-| Hallazgos PPPR registrados nuevos | Sin entradas a la fecha de creación |
+| Gates revisados | NOT_RUN (G1 IN_PROGRESS; Exit Review G1 aún no realizado; G2–G6 PENDING) |
+| Hallazgos PPPR registrados nuevos | Ninguno identificado en la revisión estática acotada W1.1, sin afirmar ausencia de defectos |
 | Hallazgos analizados/resueltos/diferidos | NOT_RUN |
 | Batches ejecutados | NOT_RUN |
 | Estado de los Exit Reviews | **NO_INICIADOS** |
-| Estado operativo del Register | **IN_PROGRESS (esqueleto), sin trabajo ejecutado** |
+| Estado operativo del Register | **IN_PROGRESS — actualizado al cierre de W1.1; sin revisión de findings ni batch** |
 | Cierre de fase | **PENDIENTE / NO ARCHIVED** |
 
 ---
