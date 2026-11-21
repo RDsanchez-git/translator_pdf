@@ -1,35 +1,38 @@
 # NADR-FPPPR-04 — Integridad de Procedencia Física y Geometría Verificable del Documento
 
-**DRAFT v0.3.0 — NO APPROVED / NO FROZEN**
+**FROZEN v1.0.0 — aprobado integralmente por el Architecture Board el 2026-11-21 sobre DRAFT v0.3.0 (HEAD `c07580b4c122bb4892cf48f41ce7b555ab178005`); congelamiento documental autorizado.**
 
 ## 1. METADATA
 
-- **Decision ID:** `NADR-FPPPR-04` — identificador candidato, pendiente de ratificación.
+- **Decision ID:** `NADR-FPPPR-04` — identificador ratificado por el Architecture Board.
 - **Título:** Integridad de Procedencia Física y Geometría Verificable del Documento.
 - **Clase de Decisión:** `DATA / STRUCTURAL`.
-- **Nivel de Cumplimiento:** `MANDATORY` únicamente después de aprobación integral.
-- **Versión:** `0.3.0` — corrección focal de R8 y sus falsadores conforme al dictamen del Architecture Board sobre v0.2.0; sin aprobación integral.
-- **Ciclo de Vida:** `DRAFT`.
-- **Vigente Desde:** Pendiente de aprobación.
+- **Nivel de Cumplimiento:** `MANDATORY`.
+- **Versión:** `1.0.0` — primera versión FROZEN; diez reglas RFC 2119 aprobadas íntegramente y sin alteraciones desde DRAFT v0.3.0.
+- **Ciclo de Vida:** `FROZEN`.
+- **Fecha de Aprobación Integral:** 2026-11-21; decisión comunicada por el owner en nombre del Architecture Board sobre PR #79, HEAD `c07580b4c122bb4892cf48f41ce7b555ab178005` (DRAFT v0.3.0).
+- **Fecha de Congelamiento Documental:** 2026-11-21; autorizado en la misma comunicación.
+- **Procedencia de Autoridad:** Comunicación directa del owner en esta conversación; no se presupone acta externa, firma ni review formal de GitHub. En instrucción posterior separada, el owner autorizó el merge del PR #79 exclusivamente hacia `pdf-pdf-product-readiness`, sin incluir `main` ni PR #66.
+- **Vigente Desde:** Etapa normativa PPPR — 2026-11-21, tras aprobación integral; toda materialización posterior queda condicionada al Execution Plan y autorizaciones pertinentes.
 - **Autoridad:** Architecture Board.
-- **Responsable Técnico:** `Staff Engineering / Ingesta y Perfilado` — rol propuesto, sin designación personal y pendiente de ratificación.
-- **Capacidad Arquitectónica:** `CAP-PPPR-04` — código candidato, no ratificado. Preservación y utilización verificable de procedencia por página, referencias geométricas y dimensiones físicas entre la extracción, la representación estructural y sus consumidores.
+- **Responsable Técnico:** `Staff Engineering / Ingesta y Perfilado` — rol ratificado por el Architecture Board; no se designa persona.
+- **Capacidad Arquitectónica:** `CAP-PPPR-04` — código ratificado por el Architecture Board. Preservación y utilización verificable de procedencia por página, referencias geométricas y dimensiones físicas entre la extracción, la representación estructural y sus consumidores.
 - **Evidencia Forense:** `GAP-0.2-01/02`; `E-0.2-011/012/013/017/020`; `E-0.6-010/028`; `E-0.9-006/007`; `PROJECT_SCOPE.md` §§2/4; `ENGINEERING_PRINCIPLES.md` §§III–IV.
 - **Referencias Cruzadas:**
   - **Depende de:** `ADR_PPPR_MASTER.md` FROZEN, especialmente §5 (preservación y linaje) y §8.1 (suficiencia normativa).
-  - **Influencia prevista:** futuro `PHASE_PPPR_EXECUTION_PLAN.md`, previa aprobación integral.
+  - **Influencia prevista:** futuro `PHASE_PPPR_EXECUTION_PLAN.md`; materialización sujeta a su aprobación y al gate de suficiencia normativa.
   - **Contratos compatibles por ámbito:** `NADR-F17BIS-01/02` FROZEN y `NADR-FPPPR-02` FROZEN.
   - **Referencia de contraste:** `NADR-F17BIS-04`, cuyo estado publicado es APPROVED con formalización editorial FROZEN pendiente.
   - **Conflictúa con:** atribución ficticia de páginas; normalización geométrica con dimensiones no acreditadas; pérdida silenciosa de procedencia multipágina; muestreos presentados como físicamente acotados sin garantía de ello.
   - **Reemplaza a:** `N/A`.
 
-El Architecture Board ha ratificado la necesidad de esta capacidad y autorizado la apertura de un PR interno Draft una vez precisada R8, según el dictamen comunicado por el owner. **No existe aprobación integral de las diez reglas, del risk score ni autorización de FROZEN, merge o implementación.**
+El Architecture Board aprobó integralmente las diez reglas, el identificador, la capacidad, el responsable como rol, el riesgo 13/25 — S2, las fronteras y las relaciones normativas, según decisión comunicada por el owner sobre el HEAD revisado. Se autorizó el FROZEN v1.0.0 y, en instrucción posterior separada, el merge **solo** hacia `pdf-pdf-product-readiness`. No se autorizan implementación, pruebas físicas ni certificación científica.
 
 PPPR continúa siendo una iniciativa transversal de gobernanza, no una fase numerada del ROADMAP.
 
 ## 2. ARCHITECTURE RISK SCORE
 
-Evaluación provisional del riesgo arquitectónico de interpretar geometrías físicas sin procedencia y escala acreditables.
+Evaluación ratificada por el Architecture Board del riesgo arquitectónico de interpretar geometrías físicas sin procedencia y escala acreditables.
 
 | **Dimensión**   | **Puntaje** | **Justificación**                                                                                                               |
 | --------------- | ----------: | ------------------------------------------------------------------------------------------------------------------------------- |
@@ -38,10 +41,10 @@ Evaluación provisional del riesgo arquitectónico de interpretar geometrías f�
 | Recuperabilidad |         3/5 | Una decisión geométrica incorrecta puede ser difícil de atribuir y reproducir si no conserva la procedencia utilizada.          |
 | Seguridad       |         1/5 | No se acredita explotación, exposición de datos ni una vulnerabilidad de seguridad directamente vinculada a estos GAP.          |
 | Financiero      |         2/5 | El muestreo mal acotado puede generar procesamiento adicional; no se dispone de mediciones de coste o impacto financiero.       |
-| **Total**       |   **13/25** | **S2 — ALTO, provisional**                                                                                                      |
+| **Total**       |   **13/25** | **S2 — ALTO, ratificado por el Architecture Board**                                                                                                      |
 
 - **Total Score:** `13/25`.
-- **Severidad:** `S2` — pendiente de ratificación del Architecture Board.
+- **Severidad:** `S2` — ratificada por el Architecture Board.
 - **Límite probatorio:** el riesgo deriva de incumplimientos estructurales demostrados, no de una tasa observada de errores en un corpus científico.
 
 ## 3. DECISIÓN EJECUTIVA
@@ -131,7 +134,7 @@ Estas normas aportan garantías compatibles, pero no expresan conjuntamente el c
 
 ## 5. REGLAS NORMATIVAS (RFC 2119)
 
-**Las siguientes reglas son propuestas. No tienen vigencia normativa mientras este NADR permanezca DRAFT.**
+**Las siguientes diez reglas RFC 2119 constituyen el contrato normativo FROZEN aprobado integralmente por el Architecture Board. Su implementación no queda autorizada por esta aprobación documental.**
 
 ### 5.1 Procedencia física y correspondencia entre páginas y regiones
 
@@ -229,7 +232,7 @@ La evaluación de fidelidad física o científica con PDFs reales requiere crite
 
 Las relaciones con NADR existentes son de **compatibilidad y delimitación**, no dependencias normativas directas nuevas. No se declaran relaciones recíprocas que los contratos históricos no contengan.
 
-Antes de FROZEN deberá comprobarse nuevamente la clasificación de relaciones exigida por `4_METH_NADR.md` §8. No se editarán documentos FROZEN para fabricar reciprocidad.
+El Architecture Board aprobó la clasificación de relaciones de §8 tras revisión integral conforme a `4_METH_NADR.md`. No se modifican documentos FROZEN de otras capacidades para fabricar reciprocidad.
 
 ## 9. FRONTERA NORMATIVA (QUÉ NO GOBIERNA ESTE NADR)
 
@@ -246,4 +249,4 @@ Antes de FROZEN deberá comprobarse nuevamente la clasificación de relaciones e
 - **No introduce** estados operacionales, mecanismos de recuperación o reintentos que alteren los contratos F18.
 - **No prescribe** tareas, responsables individuales, algoritmos, bibliotecas, Definition of Done, ejecución de pruebas o despliegues; esas decisiones pertenecen al futuro Execution Plan y sus autorizaciones.
 
-**Nota de gobernanza:** este documento es un candidato DRAFT. Las diez reglas propuestas no son vinculantes y requieren revisión y aprobación integral del Architecture Board. No se han reparado los GAP de PPPR.0.2, ejecutado falsadores, demostrado fidelidad científica ni autorizado implementación, FROZEN o merge.
+**Nota de gobernanza:** las diez reglas constituyen el contrato normativo FROZEN de esta capacidad. La aprobación y el merge interno no reparan los GAP de PPPR.0.2, no ejecutan falsadores (`NOT_RUN`), no acreditan fidelidad científica ni autorizan código, pruebas físicas, egress, gasto o integración a `main`. La implementación requiere el Execution Plan aprobado y sus autorizaciones independientes.
