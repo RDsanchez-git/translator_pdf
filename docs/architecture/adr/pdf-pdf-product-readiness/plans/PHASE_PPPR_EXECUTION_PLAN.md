@@ -1,13 +1,13 @@
 # PHASE_PPPR_EXECUTION_PLAN.md — PDF→PDF Product Readiness
 ## Implementation Execution Plan & Rule-Centric Traceability Matrix
 
-**Version:** 0.3.0
+**Version:** 0.4.0
 **Status:** DRAFT — NO APPROVED / NO FROZEN
 **Date:** 2026-11-21
-**Supersedes:** DRAFT v0.2.0 — revisión focal del Architecture Board; no sustituye normas FROZEN
+**Supersedes:** DRAFT v0.3.0 — revisión focal del Architecture Board sobre HEAD `9c73652dd64c1115a064b9454ee2d7051d0bdc2e`; no sustituye normas FROZEN
 **Derived From:** ADR_PPPR_MASTER.md FROZEN; NADR-FPPPR-01/02/03/04 FROZEN; metodología general v1.3.0 FROZEN; `5_METH_EXECUTION_PLAN.md`; HITOs PPPR.0.1–0.9 FROZEN.
 **Governance Bridge:** Única fuente de verdad temporal de reglas → Tasks → Waves → Gates → evidencia de implementación. Los NADR conservan autoridad constitucional; ninguna Task aquí autoriza por sí sola código, corpus, egress, pagos, evaluación científica ni merge a `main`.
-**Estado de autoridad:** el Architecture Board considera aprobable la estructura 6 Gates / 12 Waves / 30 Tasks, **sin aprobación integral**. La presente revisión focal v0.3.0 responde al dictamen sobre v0.2.0: clasificación histórica por sujeto y regla, separación G1 aprobación/ejecución, derivación G3→G5, falsador de jerarquía física y candidato científico legítimo. Las reservas DC-04 y autoridad científica siguen vigentes. **No se autorizaron** ejecución, FROZEN, pruebas con material privado ni merge a `main`.
+**Estado de autoridad:** el Architecture Board mantuvo favorable la cascada 6/12/30, **sin aprobación integral**. Su dictamen sobre DRAFT v0.3.0 exige cerrar G3 sin reglas pendientes hasta G5 ni excepción a `5_METH_EXECUTION_PLAN.md`, y sustentar por sujeto y falsador la clasificación histórica F17-BIS/F18. Se preservan las correcciones de G1, DC-04, HEADING físico y candidato científico G6. **No** se autoriza FROZEN, merge, ejecución, corpus privado, egress comercial ni integración a `main`.
 **Baseline documental de contraste:** `pdf-pdf-product-readiness@e759a55c18a2c96aa7dc8473d4afd7c48ee7adc2`; `main@1d21cfe958cc1de8a33824fed748cd6fe9260f42` (código auditado por HITOs). Revalidar ambos HEAD antes del PR y antes de ejecutar; no tratar la referencia histórica como checkout activo.
 
 ### Changelog
@@ -16,6 +16,7 @@
 | 0.1.0-DRAFT | 2026-11-21 | Primer plan candidato: 6 Gates, 12 Waves, 30 Tasks; dos reservas del Board; trazabilidad primaria de reglas PPPR, GAP y falsadores; sin implementación ni ensayos. |
 | 0.2.0-DRAFT | 2026-11-21 | Corrige G1 sin excepción autoatribuida, individualiza reglas históricas aplicables y excluidas, distingue G3 offline/G5 real, separa evaluación de Product Readiness en G6, reescribe runbook como operaciones de release, minimiza dependencias y separa responsabilidades HEADING; mantiene 6/12/30 y las 40 reglas PPPR intactas. |
 | 0.3.0-DRAFT | 2026-11-21 | Revisión focal Board: censo histórico individual 104 (80 A/0 B/24 C), distinción G1 documental/ejecutado, derivación G3/G5, jerarquía PDF físico y candidato científico de G6; pendiente de ratificación. |
+| 0.4.0-DRAFT | 2026-11-21 | Dictamen focal Board: G3 solo cierra con reglas propias DONE por falsadores offline suficientes; G5 mantiene prueba comercial separada. Clasificación histórica respaldada por consumidores y falsadores, sin resultados inventados. Estructura y protocolo de documento vivo preservados. |
 
 ---
 
@@ -48,7 +49,7 @@ PRs productivos + tests + Exit Review Evidence Log / Findings Register
 
 - Identificador canónico: `NADR-FPPPR-XX §5.Y Rn`; no se inventan IDs de reglas. El corpus de NADR FROZEN es su fuente de texto autoritativa; este plan solo asigna responsabilidades y estados.
 - Cada regla PPPR tiene exactamente una **Task principal de materialización** en §2; una Task diferente puede verificarla cuando resulte necesario, identificando esa relación como verification, no doble implementación.
-- Las reglas históricas se referencian **individualmente por §5.Y Rn**, con clasificación cerrada para este DRAFT en §1.6, Task primaria en §2 y una fila por regla aplicable en §7. `APLICABLE POR FRONTERA` significa que una obligación abstracta gobierna un consumidor efectivo D-1/D-2, **no adopción del resto de su NADR** ni certificación de su implementación actual. `EXCLUIDA` significa fuera del sujeto de PPPR o no justificada por evidencia actual, no derogada ni modificada en el programa histórico.
+- Las reglas históricas se cotejan **individualmente por §5.Y Rn**: §1.6 identifica consumidor, precondición y frontera; §2 asigna Task principal; §7.H fija falsador y evidencia por regla. `A` es aplicable y requiere verificación, no equivale a defecto; `C` excluye por sujeto, no por ausencia de GAP. Cada Gate solo obtiene PASS cuando **todas las reglas con Task principal allí están DONE**, sin obligación pendiente en gate posterior.
 - Un identificador PPPR mantiene un único dueño; las verificaciones posteriores, la adecuación de consumidores y los testigos G5/G6 se referencian como **verificación complementaria**, sin segunda implementación de la misma regla.
 - Se preservan los **14 GAP-ID P1 OPEN** de PPPR.0.9 §14, con **13 núcleos causales preliminares**; `GAP-0.1-01` y `GAP-0.4-02` comparten causa pero mantienen sus IDs. No son tasks ni findings nuevos.
 - `DF-XX` y `GF-XX` solo nacen durante ejecución y se clasifican en el Deferred Findings Register; no crear un segundo registro en este plan.
@@ -62,7 +63,7 @@ PRs productivos + tests + Exit Review Evidence Log / Findings Register
 ### 1.4 Estados, riesgos y pruebas
 
 - Estados de Tasks: `TODO`, `IN_PROGRESS`, `DONE`, `BLOCKED` o `ELIMINADO` con justificación y revisión. Un status textual no es evidencia de una ejecución.
-- Estados de reglas: **derivados** de Task principal, falsadores y verificaciones complementarias obligatorias, incluso si pertenecen a Gates posteriores. Una regla permanece `PENDING` mientras una evidencia requerida esté `NOT_RUN`, `BLOCKED` o `FAIL`, aun con la Task principal `DONE`. Para las reglas G3 cuyo sujeto requiere comprobación efectiva, se exige también `5.2.3` de G5; G3 solo puede cerrar su **alcance contractual/offline**, sin marcar esas reglas DONE ni declarar proveedor real acreditado.
+- **Estado de reglas derivado y precedencia:** para `DONE` se exige Task principal `DONE` y evidencia suficiente de verification/validation del **Gate propietario**. Un testigo posterior no puede quedar programado como verificación normativa pendiente de una regla de Gate cerrado. Si una obligación no se puede acreditar en su Gate, este queda `BLOCKED` hasta modificación formal de frontera o decisión metodológica **superior** previa; no se permite PASS parcial. G5 añade pruebas de funcionamiento real y puede detectar regresión que obligue a reabrir un gate anterior, sin fingir que G3 ya probó ese resultado físico.
 - Riesgo: `LOW`, `MEDIUM`, `HIGH`, `CRITICAL`, como priorización del plan **propuesta**, sin reclasificar P1 forenses ni severidades de NADR.
 - **Estado global inicial:** TODO / NOT_RUN, Gate 1 PENDING, Gates 2–6 PENDING, ninguna salida PASS. `PRODUCT_READINESS=NOT_CERTIFIED` hasta que exista evaluación válida y decisión competente; **no** equivale a evaluación negativa realizada. No se han ejecutado Pyright, CI, tests, Docker, proveedor, Tectonic, corpus ni benchmarks en esta redacción.
 - **Triple separación de resultados:** `Task=DONE` acredita trabajo y evidencia de esa tarea; `Gate Exit Review=REALIZADO` acredita que hubo revisión aun cuando concluya `FAIL`/`BLOCKED`; `PRODUCT_READINESS=PASS` solo procede ante conformidad científica **positiva** en todas las dimensiones exigidas, junto con la satisfacción técnica, permisos y criterios aprobados. Ninguna de las tres etiquetas sustituye otra.
@@ -358,7 +359,7 @@ El cierre exige todas las Tasks del Gate `DONE`, reglas implementadas/verificada
 ### 2.3 Gate 3 — Inferencia EN→ES y seguridad de efectos
 
 **Objective:** Inferencia EN→ES y seguridad de efectos.
-**Execution Mode:** Waves 3.1→3.2, **contratos y falsadores offline**, sin despachar I/O comercial en G3. La admisión contractual y la evidencia documental de capacidad se distinguen de disponibilidad física, respuesta real y coste operativo, que se verificarán únicamente en G5 con permisos.
+**Execution Mode:** Waves 3.1→3.2, contratos y falsadores **offline** sin efecto comercial. PASS de G3 exige cierre de todas las reglas propias con prueba suficiente; G5 comprueba adicionalmente funcionamiento/disponibilidad efectiva y costes reales, pero **no** es un requisito de cierre diferido de una regla G3. Si falta documentación atribuible de modelo/compatibilidad para la admisión que se pretende, G3 BLOCKED: no se suple por un identificador de modelo ni por una simulación.
 **Rollback Plan (propuesto):** Rollback mediante cambios revisados conservando receipts/UNKNOWN; nunca reejecutar un efecto incierto para compensar fallo.
 **Gate Status:** PENDING · NOT_RUN
 **Inicio/Cierre:** pendiente; definir en ejecución autorizada.
@@ -403,7 +404,7 @@ El cierre exige todas las Tasks del Gate `DONE`, reglas implementadas/verificada
 
 - **3.2.1:** Propagar y acreditar origen EN y destino ES desde generación hasta solicitud efectiva sin confiar en configuración o prompt supuesto. **Falsador / evidencia de salida:** Petición efectiva demuestra EN→ES; ausencia de intención requerida produce rechazo antes de I/O.
   - Notas de implementación: PENDIENTE; registrar rutas, SHAs, pruebas y resultados reales al pasar a DONE; ninguna prueba declarada ejecutada.
-- **3.2.2:** Comprobar **documentalmente** vigencia y capacidades declaradas del backend/modelo candidato y materializar selección/fallback coherentes con el **request construido offline**; si la evidencia documental es insuficiente, el backend es inadmisible. No declarar comprobada la disponibilidad efectiva, aceptación del provider ni el coste real hasta `5.2.3`. **Falsador / evidencia de salida:** `SWITCH_MODEL` conmuta el identificador físico simulado y reevalúa permisos/límites antes de despacho o falla cerrado; ninguna llamada comercial ni prueba de disponibilidad real atribuida a G3.
+- **3.2.2:** Comprobar **documentalmente** vigencia y capacidades declaradas del backend/modelo candidato y materializar selección/fallback coherentes con el **request construido offline**; si la evidencia documental es insuficiente, el backend es inadmisible. No declarar comprobada la disponibilidad efectiva, aceptación del provider ni el coste real hasta `5.2.3`. **Falsador / evidencia de salida:** `SWITCH_MODEL` modifica modelo, capacidades, límites y autorización en el **request serializado capturado por spy pre-efecto**, o falla antes del envío. Para R3, documento de proveedor fechado y atribuible debe acreditar vigencia, disponibilidad declarada *aplicable* y capacidad de cualquier backend declarado admisible; si no existe, G3 queda BLOCKED para esa admisión. Ninguna llamada comercial, aceptación del proveedor o uptime se atribuye a G3.
   - Notas de implementación: PENDIENTE; registrar rutas, SHAs, pruebas y resultados reales al pasar a DONE; ninguna prueba declarada ejecutada.
 - **3.2.3:** Implementar y probar **offline** la política de admisión por límites de entrada/salida/ventana total, estimación, credenciales/permisos/precondiciones y presupuesto, con trazabilidad de petición construida, rechazo antes del efecto y frontera de incertidumbre F18. Se prueban negativos con spy/mock sin permitir I/O externo; el permiso real, los cargos y el comportamiento del proveedor se acreditan después en `5.2.3`. **Falsador / evidencia de salida:** contexto+instrucciones+reserva exceden ventana ⇒ `NO DISPATCH`; sin autorización efectiva ⇒ `NO DISPATCH`; un intento posiblemente iniciado no equivale a rechazo. Una simulación favorable no constituye autorización de egress ni presupuesto.
   - Notas de implementación: PENDIENTE; registrar rutas, SHAs, pruebas y resultados reales al pasar a DONE; ninguna prueba declarada ejecutada.
@@ -412,29 +413,43 @@ El cierre exige todas las Tasks del Gate `DONE`, reglas implementadas/verificada
 
 #### 2.3.3 Gate 3 — Exit Criteria (fijos antes de ejecución)
 
-1. Autoridad vigente comprobada al comienzo del efecto; UNKNOWN permanece recuperable con escalamiento y sin retry ciego; sweeper coherente con FSM/receipts/fuentes autoritativas.
-2. Construcción del request EN→ES, selección/fallback hacia el modelo **identificado en el request offline**, límites parciales/totales, estimación, políticas de autorización y presupuesto **verificables sin egress**; ninguna petición inadmisible debe llegar al punto de despacho en los falsadores negativos. Evidencia documental de capacidades del backend candidato suficiente para evaluar compatibilidad, **sin atribuir todavía disponibilidad física o uso real**.
-3. Falsadores offline de `GAP-0.4-01…04`, solapamiento `GAP-0.1-01` y `GAP-0.5-01…03` verifican rechazos, selección, autoridad y recuperación. **Disponibilidad efectiva del proveedor, permisos, coste observado y respuesta física quedan pendientes de `5.2.3` en G5**. El Exit Review G3 acredita solo su alcance contractual/offline. Las reglas FPPPR-03 con complemento G5 obligatorio permanecen `PENDING` en §7 aunque su Task principal G3 esté `DONE`; no se declaran reglas DONE ni PASS comercial prematuramente.
-4. Pyright 0 errors/0 warnings, suite de regresión y Gate Exit Review en verde con alcance autorizado.
+1. Todas las Tasks `3.1.1–3.2.3` y **todas las reglas PPPR e históricas cuyo propietario está en Gate 3** deben alcanzar `DONE` con verificación/validación suficiente **antes** de declarar `G3=PASS`; ninguna regla puede quedar PENDING hasta G5.
+2. Autoridad vigente al iniciar efecto; UNKNOWN y escalamiento/recuperación sin retry ciego; coherencia de sweeper, FSM, receipts y fuentes locales. Probar offline recuperación y persistencia SQLite bajo modelo de fallos F18: una prueba única de sweeper no acredita las demás reglas de durabilidad, versionado ni observabilidad.
+3. Petición efectiva EN→ES capturada antes del despacho con transporte espía; fallback coherente con modelo y límites del request; evidencia documental **auténtica y temporalmente aplicable** de vigencia, disponibilidad declarada y capacidades para admisión; presupuesto, egress y estimaciones verificados. Las precondiciones ausentes provocan `NO DISPATCH`. **Las diez reglas `NADR-FPPPR-03` tienen falsador propio en §2.3.5 y ninguna pasa por declaración.**
+4. Pyright 0 errors/0 warnings; suite aplicable, falsadores de G3, Evidence Log y Findings Register completos. G5 requiere luego prueba comercial **distinta** (`5.2.3`) con permiso efectivo, modelo, respuesta, disponibilidad observada y coste, sin sustituir ni postergar el cierre normativo de G3.
 
 #### 2.3.4 Gate 3 — Exit Review
 
-El cierre de **G3 contractual/offline** exige Tasks G3 DONE, falsadores y decisiones de contrato offline acreditados, criterios propios del Gate, Findings Register y Evidence Log completos. Las reglas que requieren `5.2.3` conservan estado `PENDING` hasta G5; el Exit Review registra los complementos pendientes y no confunde el cierre del alcance G3 con cumplimiento integral de las reglas o proveedor real. Este cierre por alcance fijado exige aceptación del Board al aprobar el plan; no constituye excepción metodológica autoatribuida. Ninguna dependencia externa pendiente puede sustituirse por fake ni por un CONDITIONAL PASS informal.
+El Gate 3 solo recibe `PASS` si **todas** sus Tasks están `DONE`, y todas sus reglas PPPR e históricas asignadas están `DONE` en §7 tras superar los falsadores de su sujeto. El review registra evidencia contractual/offline con SHA y alcance, **no** disponibilidad ni costes reales. Si falta una evidencia exigible en G3, permanece `BLOCKED`; se solicita cambio formal de frontera o decisión metodológica superior antes de G4, nunca un «cierre por alcance» autoatribuido. Una contradicción posterior en G5 genera finding y exige volver a verificar el contrato afectado, no usar un PASS anterior para ocultarla.
 
 | Control canónico | Estado inicial |
 |---|---|
-| Tasks del Gate en DONE | NOT_RUN |
-| Reglas: cumplimiento contractual/offline verificado; complementos G5 PENDING | NOT_RUN |
-| Gate Exit Criteria satisfechos y evidencia física/lógica | NOT_RUN |
-| Hallazgos derivados al register + Exit Review Evidence Log | NOT_RUN |
-| Pyright: 0 errors / 0 warnings | NOT_RUN |
-| Suite completa exigible por metodología, y regresiones en verde | NOT_RUN |
-| Notas y pruebas por Task completas | NOT_RUN |
+| Tasks del Gate 3 DONE | ❌ NOT_RUN |
+| Reglas con Task principal en Gate 3 todas DONE en §7 | ❌ NOT_RUN |
+| Falsadores individuales y criterios G3 completos | ❌ NOT_RUN |
+| Hallazgos/Evidence Log y notas con SHAs | ❌ NOT_RUN |
+| Pyright 0 errors/0 warnings y suite exigible PASS | ❌ NOT_RUN |
+| Exit Review con veredicto real | ❌ NOT_RUN |
 
-**Veredicto:** PENDING / NOT_RUN (futuro PASS, CONDITIONAL PASS solo con decisión formal de alcance si procede, o FAIL; nunca de manera retroactiva).
-**Fecha de verificación:** —
+**Veredicto:** PENDING / NOT_RUN. **No** se autoriza PASS parcial ni se trasladan reglas G3 pendientes a G5.
 
----
+#### 2.3.5 Falsadores normativos individuales de NADR-FPPPR-03 para Gate 3
+
+Se examina el **contrato pre-efecto** sobre el request realmente serializado (spy/mock sin red) y su relación con generación, admisión y políticas. Un test negativo sin evidencia positiva suficiente para declarar backend admisible no autoriza una admisión. G5 verifica físicamente el proveedor, egress y coste, como un **sujeto de integración adicional**.
+
+| Regla | Task | Falsador obligatorio para DONE en G3 | Afirmación excluida |
+|---|---|---|---|
+| `NADR-FPPPR-03 §5.1 R1` | `3.2.1` | Cambiar/omitir origen EN o destino ES en generación invalida la intención o causa rechazo antes de I/O | No acredita calidad lingüística |
+| `NADR-FPPPR-03 §5.1 R2` | `3.2.1` | Espiar request efectivo: indica EN→ES igual a generación; configuración `es` no propagada ⇒ rechazo | No equivale a respuesta real |
+| `NADR-FPPPR-03 §5.2 R3` | `3.2.2` | Documento fuente de proveedor, fecha, modelo, disponibilidad aplicable y capacidad; invalidarlo ⇒ no declararlo admisible | No demuestra uptime real |
+| `NADR-FPPPR-03 §5.2 R4` | `3.2.2` | Forzar fallback: modelo físico capturado y límites, presupuesto y egress reevaluados; alternativa no acreditada ⇒ rechazo | No demuestra ejecución comercial |
+| `NADR-FPPPR-03 §5.3 R5` | `3.2.3` | Probar exceso independiente de entrada, salida, ventana total y request agregado ⇒ NO DISPATCH | No infiere límites del provider real |
+| `NADR-FPPPR-03 §5.3 R6` | `3.2.3` | Medición/estimación conservadora cubre request serializado y modelo efectivo; discordancia no cubierta ⇒ rechazo | No impone tokenizador universal |
+| `NADR-FPPPR-03 §5.3 R7` | `3.2.3` | Autorización ausente/incompatible de destino, datos, fin, retención o training ⇒ pre-efecto bloqueado | No concede egress real |
+| `NADR-FPPPR-03 §5.3 R8` | `3.2.3` | Falta autorización monetaria ⇒ NO DISPATCH aun si hay cuota/tokens; fallback exige reevaluación | No acredita cargos ni presupuesto aprobado |
+| `NADR-FPPPR-03 §5.4 R9` | `3.2.3` | Admisión vinculada a generación, modelo, idioma, estimador, permisos y request; ruptura de vínculo ⇒ rechazo atribuible | No confunde intento con generación |
+| `NADR-FPPPR-03 §5.4 R10` | `3.2.3` | Cada precondición inválida falla antes de envío con causa; efecto incierto sigue UNKNOWN/F18 y nunca «no inicio» | No declara seguro el retry incierto |
+
 
 ### 2.4 Gate 4 — Reconstrucción G5 y PDF
 
