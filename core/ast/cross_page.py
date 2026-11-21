@@ -60,6 +60,7 @@ class MetadataMerger:
         return NodeMetadata(
             bboxes=m1.bboxes + m2.bboxes,
             pages=sorted(list(set(m1.pages + m2.pages))),
+            physical_regions=m1.physical_regions + m2.physical_regions,
             provider_native_id=m1.provider_native_id or m2.provider_native_id,
             confidence=lowest_confidence,
             layout_reading_order=m1.layout_reading_order,
