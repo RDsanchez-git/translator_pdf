@@ -21,6 +21,7 @@ class HeuristicDocumentProfiler:
         doc_type: TypeDetection,
         sampling_coverage: SamplingCoverage = SamplingCoverage.INDETERMINATE,
         sampling_reasons: tuple[str, ...] = (),
+        geometry_reasons: tuple[str, ...] = (),
     ) -> ProfilingResult:
         profile = InferredDocumentProfile(
             layout=layout.layout,
@@ -30,7 +31,8 @@ class HeuristicDocumentProfiler:
             layout_confidence=layout.confidence,
             type_confidence=doc_type.confidence,
             sampling_coverage=sampling_coverage,
-            sampling_reasons=sampling_reasons
+            sampling_reasons=sampling_reasons,
+            geometry_reasons=geometry_reasons
         )
         return ProfilingResult(profile=profile, diagnostics=diagnostics)
 
@@ -38,11 +40,13 @@ class HeuristicDocumentProfiler:
         # Contrato legado de muestreo: sin informe no se atribuye cobertura.
         coverage = SamplingCoverage.INDETERMINATE
         reasons: tuple[str, ...] = ("SAMPLING_COVERAGE_UNVERIFIED",)
+        geometry_reasons: tuple[str, ...] = ("GEOMETRY_UNASSESSED_LEGACY_SAMPLER",)
         if isinstance(self._sampler, ReportingSamplingPolicy):
             report = self._sampler.sample_with_report(input_data.nodes)
             sampled_nodes = report.nodes
             coverage = report.coverage
             reasons = report.reasons
+            geometry_reasons = report.geometry_reasons
         else:
             sampled_nodes = self._sampler.sample(input_data.nodes)
 
@@ -55,4 +59,5 @@ class HeuristicDocumentProfiler:
             type_detection,
             sampling_coverage=coverage,
             sampling_reasons=reasons,
+            geometry_reasons=geometry_reasons,
         )
