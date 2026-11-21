@@ -8,7 +8,7 @@ from core.ast.builder import FlatASTBuilder
 from core.ast.cross_page import MetadataMerger
 from core.ast.enums import ContentNodeType
 from core.ast.models import ASTNode, NodeMetadata, ParagraphPayload, PhysicalRegion
-from core.document_profile.models import ProfileInput, SamplingCoverage
+from core.document_profile.models import ProfileInput, SamplingCoverage, PageLayout
 from core.document_profile.detectors.layout import HeuristicLayoutDetector
 from core.document_profile.detectors.semantic import HeuristicTypeDetector
 from core.document_profile.profiler import HeuristicDocumentProfiler
@@ -180,6 +180,44 @@ def test_profile_diagnostics_identify_unverified_geometry_without_faking_width()
     result = profiler.profile(ProfileInput(nodes=[_node("bad", [_region(1, width=None)])]))
     assert result.diagnostics.sampling_coverage == SamplingCoverage.STRICT_SCOPE
     assert result.diagnostics.geometry_reasons == ("bad:PAGE_WIDTH_UNVERIFIED",)
+
+
+@pytest.mark.unit
+def test_columns_on_different_pages_do_not_create_false_bimodality() -> None:
+    left_box = BoundingBox(x0=10, y0=20, x1=30, y1=40)
+    right_box = BoundingBox(x0=70, y0=20, x1=90, y1=40)
+    nodes = [
+        _node("left-page-1", [_region(1, width=100, bbox=left_box)]),
+        _node("right-page-2", [_region(2, width=100, bbox=right_box)]),
+    ]
+    result = HeuristicLayoutDetector(NodeGeometryAdapter()).detect(ProfileInput(nodes=nodes))
+    assert result.layout == PageLayout.SINGLE_COLUMN
+
+
+@pytest.mark.unit
+def test_two_columns_on_one_verified_page_stay_bimodal() -> None:
+    left_box = BoundingBox(x0=10, y0=20, x1=30, y1=40)
+    right_box = BoundingBox(x0=70, y0=20, x1=90, y1=40)
+    nodes = [
+        _node("left", [_region(1, width=100, bbox=left_box)]),
+        _node("right", [_region(1, width=100, bbox=right_box)]),
+    ]
+    result = HeuristicLayoutDetector(NodeGeometryAdapter()).detect(ProfileInput(nodes=nodes))
+    assert result.layout == PageLayout.DOUBLE_COLUMN
+
+
+@pytest.mark.unit
+def test_mixed_single_double_page_layout_is_explicitly_unknown() -> None:
+    left_box = BoundingBox(x0=10, y0=20, x1=30, y1=40)
+    right_box = BoundingBox(x0=70, y0=20, x1=90, y1=40)
+    nodes = [
+        _node("p1-left", [_region(1, width=100, bbox=left_box)]),
+        _node("p1-right", [_region(1, width=100, bbox=right_box)]),
+        _node("p2-left", [_region(2, width=100, bbox=left_box)]),
+    ]
+    result = HeuristicLayoutDetector(NodeGeometryAdapter()).detect(ProfileInput(nodes=nodes))
+    assert result.layout == PageLayout.UNKNOWN
+    assert result.confidence == 0.0
 
 
 @pytest.mark.unit
