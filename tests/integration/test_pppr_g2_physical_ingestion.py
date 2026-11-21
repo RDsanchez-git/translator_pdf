@@ -18,9 +18,9 @@ def test_production_parser_retains_verified_page_regions_with_mixed_sizes(
     source = tmp_path / "physical_provenance_two_pages.pdf"
     with fitz.open() as pdf:
         first = pdf.new_page(width=300, height=400)
-        first.insert_text((195, 100), "The first measured result.", fontsize=10)
+        first.insert_text((70, 100), "First measured result.", fontsize=10)
         second = pdf.new_page(width=400, height=500)
-        second.insert_text((285, 120), "The second measured result.", fontsize=10)
+        second.insert_text((110, 120), "Second measured result.", fontsize=10)
         pdf.save(str(source))
 
     nodes = build_extraction_pipeline().parse(str(source))
