@@ -48,7 +48,7 @@ def _node(node_id: str, regions: list[PhysicalRegion]) -> ASTNode:
         metadata=NodeMetadata(
             pages=[r.page_number for r in regions],
             bboxes=[r.bbox for r in regions if r.bbox is not None],
-            physical_regions=regions,
+            physical_regions=tuple(regions),
         ),
     )
 
@@ -128,15 +128,15 @@ def test_builder_maps_real_physical_reference_without_parallel_guess() -> None:
         page_height=400,
     )
     node = FlatASTBuilder.build(LayoutBlockCollection(blocks=[draft]))[0]
-    assert node.metadata.physical_regions == [
+    assert node.metadata.physical_regions == (
         PhysicalRegion(
             source_document="physical.pdf",
             page_number=2,
             page_width=300,
             page_height=400,
             bbox=bbox,
-        )
-    ]
+        ),
+    )
     assert NodeGeometryAdapter().extract(node) is not None
 
 
@@ -308,3 +308,28 @@ def test_profiler_exposes_partial_sampling_in_diagnostics() -> None:
     result = profiler.profile(input_data)
     assert result.diagnostics.sampling_coverage == SamplingCoverage.PARTIAL
     assert "mixed:CROSS_BOUNDARY_CONTENT_OMITTED" in result.diagnostics.sampling_reasons
+
+
+@pytest.mark.unit
+def test_sampler_rejects_mixed_document_global_with_locally_mixed_node() -> None:
+    sampler = FirstPagesSamplingPolicy(NodeGeometryAdapter(), max_pages=2)
+    nodes = [
+        _node("a", [_region(1, document="a.pdf")]),
+        _node("b", [_region(2, document="b.pdf")]),
+        _node("mixed", [
+            _region(1, document="a.pdf"), _region(2, document="b.pdf"),
+        ]),
+    ]
+    result = sampler.sample_with_report(nodes)
+    assert result.nodes == ()
+    assert result.coverage == SamplingCoverage.INDETERMINATE
+    assert result.reasons == ("MIXED_SOURCE_DOCUMENTS_IN_PROFILE",)
+
+
+@pytest.mark.unit
+def test_physical_region_collection_is_deeply_immutable() -> None:
+    md = NodeMetadata(physical_regions=[_region(1)])
+    assert isinstance(md.physical_regions, tuple)
+    with pytest.raises(AttributeError):
+        md.physical_regions.append(_region(2))
+    assert len(md.physical_regions) == 1

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from enum import StrEnum
 from dataclasses import dataclass
 from collections.abc import Sequence
@@ -49,6 +51,8 @@ class TypeDetection:
 class InferredDocumentProfile:
     layout: PageLayout
     document_type: DocumentType | None
+    # None: registro legado; su evidencia física NO está acreditada.
+    physical_diagnostics: ProfileDiagnostics | None = None
 
 @dataclass(slots=True, frozen=True)
 class ProfileDiagnostics:

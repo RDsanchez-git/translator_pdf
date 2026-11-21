@@ -33,7 +33,7 @@ class NodeMetadata(BaseModel):
     # bajo el contexto de tipado de Pyright para evitar 'list[Unknown]'
     bboxes: List[BoundingBox] = Field(default_factory=lambda: [])
     pages: List[int] = Field(default_factory=lambda: [])
-    physical_regions: List[PhysicalRegion] = Field(default_factory=lambda: [])
+    physical_regions: Tuple[PhysicalRegion, ...] = Field(default_factory=tuple)
     provider_native_id: Optional[str] = None
     confidence: float = Field(default=1.0, ge=0.0, le=1.0)
     layout_reading_order: int = -1

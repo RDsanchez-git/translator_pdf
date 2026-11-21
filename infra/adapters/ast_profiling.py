@@ -114,12 +114,8 @@ class FirstPagesSamplingPolicy:
             for node in nodes
             for region in node.metadata.physical_regions
         }
-        # El caso de un nodo ya ambiguo se informa por ID más abajo;
-        # la mezcla de nodos de documentos distintos se informa globalmente.
-        if len(sources) > 1 and all(
-            len({r.source_document for r in n.metadata.physical_regions}) <= 1
-            for n in nodes
-        ):
+        # Rechazar la mezcla global aun cuando un nodo también tenga varias fuentes.
+        if len(sources) > 1:
             return SamplingReport(
                 nodes=(),
                 coverage=SamplingCoverage.INDETERMINATE,

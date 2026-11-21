@@ -23,16 +23,16 @@ class HeuristicDocumentProfiler:
         sampling_reasons: tuple[str, ...] = (),
         geometry_reasons: tuple[str, ...] = (),
     ) -> ProfilingResult:
-        profile = InferredDocumentProfile(
-            layout=layout.layout,
-            document_type=doc_type.document_type
-        )
         diagnostics = ProfileDiagnostics(
             layout_confidence=layout.confidence,
             type_confidence=doc_type.confidence,
             sampling_coverage=sampling_coverage,
             sampling_reasons=sampling_reasons,
             geometry_reasons=geometry_reasons
+        )
+        profile = InferredDocumentProfile(
+            layout=layout.layout, document_type=doc_type.document_type,
+            physical_diagnostics=diagnostics,
         )
         return ProfilingResult(profile=profile, diagnostics=diagnostics)
 

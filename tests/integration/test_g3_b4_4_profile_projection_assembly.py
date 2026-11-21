@@ -17,7 +17,10 @@ from core.compiler.assembler import AssemblyPolicy, DocumentAssembler
 from core.compiler.context_resolver import CQRSAssemblyContextResolver
 from core.compiler.rendering.mapper import DefaultRenderUnitMapper
 from core.compiler.service import CompilationService
-from core.document_profile.models import InferredDocumentProfile, PageLayout
+from core.document_profile.models import (
+    InferredDocumentProfile, PageLayout, ProfileDiagnostics, SamplingCoverage,
+)
+from core.compiler.rendering.context import RenderContextFactory
 from core.domain.document import DocumentType
 from infra.db.materialized_repo import MaterializedPlaneRepository
 from infra.db.profile_store import SQLiteProfileStore
@@ -203,3 +206,66 @@ def test_restarted_ast_profile_and_projection_build_tex_without_external_service
         tex = service.compile_document(context)
         assert "Translated paragraph" in tex
         assert "p1" in tex
+
+
+@pytest.mark.integration
+def test_physical_evidence_survives_restart_and_constrains_rendering(tmp_path):
+    evidence = ProfileDiagnostics(
+        layout_confidence=0.9, type_confidence=0.8,
+        sampling_coverage=SamplingCoverage.INDETERMINATE,
+        sampling_reasons=("legacy:UNVERIFIED_PHYSICAL_PROVENANCE",),
+        geometry_reasons=("node:PAGE_WIDTH_UNVERIFIED",),
+    )
+    profile = InferredDocumentProfile(
+        layout=PageLayout.DOUBLE_COLUMN, document_type=None,
+        physical_diagnostics=evidence,
+    )
+    path = tmp_path / "documents.db"
+    with sqlite3.connect(path) as conn:
+        SQLiteProfileStore(conn).save("doc", profile)
+    with sqlite3.connect(path) as conn:
+        store = SQLiteProfileStore(conn)
+        loaded = store.get("doc")
+        assert loaded == profile
+        assert loaded is not None
+        assert "twocolumn" not in " ".join(
+            RenderContextFactory.create(loaded).structure.begin_document()
+        )
+        store.save("doc", profile)
+        different = InferredDocumentProfile(
+            layout=PageLayout.DOUBLE_COLUMN, document_type=None,
+            physical_diagnostics=ProfileDiagnostics(
+                layout_confidence=0.9, type_confidence=0.8,
+                sampling_coverage=SamplingCoverage.STRICT_SCOPE,
+            ),
+        )
+        with pytest.raises(ValueError, match="G3_B4_4_PROFILE_REPLAY_CONFLICT"):
+            store.save("doc", different)
+        conn.execute(
+            "UPDATE inferred_document_profiles SET diagnostics_json='{}' WHERE document_id='doc'"
+        )
+        conn.commit()
+        with pytest.raises(ValueError, match="PPPR_G2_PROFILE_DIAGNOSTICS_HASH_DRIFT"):
+            store.get("doc")
+
+
+@pytest.mark.integration
+def test_legacy_profile_migrates_as_unverified_not_as_accredited(tmp_path):
+    with sqlite3.connect(tmp_path / "legacy.db") as conn:
+        conn.execute("""CREATE TABLE inferred_document_profiles (
+            document_id TEXT PRIMARY KEY NOT NULL,
+            layout TEXT NOT NULL, document_type TEXT, profile_sha256 TEXT NOT NULL
+        )""")
+        digest = SQLiteProfileStore._digest("doc", PageLayout.DOUBLE_COLUMN.value, None)
+        conn.execute(
+            "INSERT INTO inferred_document_profiles VALUES (?,?,?,?)",
+            ("doc", PageLayout.DOUBLE_COLUMN.value, None, digest),
+        )
+        conn.commit()
+        store = SQLiteProfileStore(conn)
+        legacy = store.get("doc")
+        assert legacy is not None
+        assert legacy.physical_diagnostics is None
+        assert "twocolumn" not in " ".join(
+            RenderContextFactory.create(legacy).structure.begin_document()
+        )

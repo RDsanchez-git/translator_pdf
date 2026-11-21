@@ -128,7 +128,7 @@ class FlatASTBuilder:
         metadata = NodeMetadata(
             bboxes=[block.bbox] if block.bbox is not None else [],
             pages=[block.page_index] if block.page_index >= 1 else [],
-            physical_regions=regions,
+            physical_regions=tuple(regions),
             confidence=block.confidence,
             provider_native_id=block.provider_native_id,
             layout_reading_order=index,
