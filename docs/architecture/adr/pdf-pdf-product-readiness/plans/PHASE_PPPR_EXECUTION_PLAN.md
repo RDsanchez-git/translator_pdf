@@ -1,10 +1,10 @@
 # PHASE_PPPR_EXECUTION_PLAN.md — PDF→PDF Product Readiness
 ## Implementation Execution Plan & Rule-Centric Traceability Matrix
 
-**Version:** 0.2.0
+**Version:** 0.3.0
 **Status:** DRAFT — NO APPROVED / NO FROZEN
 **Date:** 2026-11-21
-**Supersedes:** DRAFT v0.1.0 — revisión focal del Architecture Board; no sustituye normas FROZEN
+**Supersedes:** DRAFT v0.2.0 — revisión focal del Architecture Board; no sustituye normas FROZEN
 **Derived From:** ADR_PPPR_MASTER.md FROZEN; NADR-FPPPR-01/02/03/04 FROZEN; metodología general v1.3.0 FROZEN; `5_METH_EXECUTION_PLAN.md`; HITOs PPPR.0.1–0.9 FROZEN.
 **Governance Bridge:** Única fuente de verdad temporal de reglas → Tasks → Waves → Gates → evidencia de implementación. Los NADR conservan autoridad constitucional; ninguna Task aquí autoriza por sí sola código, corpus, egress, pagos, evaluación científica ni merge a `main`.
 **Estado de autoridad:** el Architecture Board evaluó favorablemente la hipótesis 6 Gates / 12 Waves / 30 Tasks, **sin aprobación integral**: requirió correcciones bloqueantes sobre G1 (suite/corpus), trazabilidad individual histórica, distinción G3 contractual vs G5 real y resultado científico G6, además de mejoras de runbook/dependencias/HEADING. Continúan vigentes las dos reservas originales sobre identidad por consumidor y autoridad científica. **No se autorizaron** ejecución, FROZEN, pruebas con material privado ni merge a `main`.
@@ -15,6 +15,7 @@
 |---|---|---|
 | 0.1.0-DRAFT | 2026-11-21 | Primer plan candidato: 6 Gates, 12 Waves, 30 Tasks; dos reservas del Board; trazabilidad primaria de reglas PPPR, GAP y falsadores; sin implementación ni ensayos. |
 | 0.2.0-DRAFT | 2026-11-21 | Corrige G1 sin excepción autoatribuida, individualiza reglas históricas aplicables y excluidas, distingue G3 offline/G5 real, separa evaluación de Product Readiness en G6, reescribe runbook como operaciones de release, minimiza dependencias y separa responsabilidades HEADING; mantiene 6/12/30 y las 40 reglas PPPR intactas. |
+| 0.3.0-DRAFT | 2026-11-21 | Revisión focal Board: censo histórico individual 104 (80 A/0 B/24 C), distinción G1 documental/ejecutado, derivación G3/G5, jerarquía PDF físico y candidato científico de G6; pendiente de ratificación. |
 
 ---
 
@@ -71,22 +72,122 @@ PRs productivos + tests + Exit Review Evidence Log / Findings Register
 La secuencia productiva auditada es CLI→OCR→G3→G5→PDF en nodo único, no los programas F17/F17-BIS/18 anteriores a convergencia. `NADR-F17BIS-06` PROPOSED no constituye obligación FROZEN; `NADR-F17BIS-04` APPROVED pendiente de formalización editorial tampoco se convierte por reflejo en norma nueva de PPPR. El subconjunto de normas F18 aplicado a autoridad, incertidumbre, durabilidad y observabilidad se justifica por código conectado PPPR.0.5 y DC-07, no por importar una rama antigua.
 Las decisiones del ADR Maestro DC-03/08/09/10/12 permanecen invariantes: EN→ES inicial; no egress ni gasto sin permisos; modalidad local CLI en contenedor y un nodo; aceptación científica del PDF final; `DEGRADED` no conforme; custodia del corpus bajo owner.
 
-### 1.6 Cierre propuesto del subconjunto histórico aplicable (sin importación global)
+### 1.6 Clasificación individual de reglas históricas por sujeto y frontera — propuesta
 
-La siguiente clasificación deriva del contraste con los sujetos efectivamente conectados de D-1/D-2 (HITOs PPPR.0.3/0.5/0.9 y ADR Maestro DC-04/DC-07) y con las reglas FROZEN. **Cierra el conjunto de reglas que este DRAFT propone implementar/verificar**, sujeto a aprobación integral del Board. No afirma que estén implementadas ni amplía su ámbito. Cada regla **incluida** tiene un único responsable en §2 y fila individual en §7; toda exclusión deja intacto el contrato histórico en su ámbito original.
+**Criterio:** la falta de un GAP independiente no justifica excluir una regla de un contrato aplicable. Se confrontan el estado FROZEN, el sujeto y la frontera real D-1/D-2. Las cláusulas condicionales siguen condicionadas; no se presume permiso de egress, reintento, gasto ni un defecto nuevo.
 
-| Contrato histórico FROZEN | Reglas incluidas por sujeto PPPR | Reglas no incorporadas a este plan y justificación de frontera |
-|---|---|---|
-| `NADR-F17BIS-03` | R1, R4, R6 (firma semántica AST); R8, R9 (firma y linaje tras transformación). | R2/R3/R5/R7 y R10–R13: restricciones adicionales o segregación de capacidades del programa anterior **sin incumplimiento independiente acreditado en D-1/D-2**; no se presumen nuevas tareas. Se mantiene la obligación de excluir metadata operacional donde el contrato de firma aplicable ya lo exige. |
-| `NADR-F17BIS-16` | R4–R7 (múltiples hashes por propósito documentado y determinista). | R1–R3, R8–R16: autoridad de oráculo/baseline científica histórica, contrato canónico con `node_id` y `ground_truth_state`, estados de sellado/cadena global. **R8 no se traslada** a la identidad de generación EN→ES; sus hashes no se sustituyen por uno universal. |
-| `NADR-F18-01` | R3 y R8 (no contaminar identidad científica/generación con scheduling o ejecución). | R1/R2/R4–R7 y R9–R20: composición y comparación científica históricas basadas en baseline sellada y modo de ejecución F18; no se adopta ese sujeto, sus identidades ni el guard diferencial como constituyentes forzosos de la generación traducida. |
-| `NADR-F18-03` | R1, R2 (preautoridad vigente), R5, R7–R11 y R22 (incertidumbre, no retry ciego, escalamiento recuperable). | R3/R4/R6/R12–R21/R23 no se trasladan como **nuevas tareas principales autónomas**: pueden operar como límites complementarios de no reversibilidad, autorización excepcional o cooperación de proveedor solo cuando un testigo autorizado los alcance. No se habilitan reintentos externos ni se descarta su autoridad en su ámbito originario. |
-| `NADR-F18-04` | R2, R5, R7, R8, R10, R15, R16 (confirmación durable, idempotencia, coherencia de recuperación y no inferencia de ausencia de efecto). | R1/R3/R4/R6/R9/R11–R14: cláusulas históricas o complementarias cuya implementación separada **no se demostró necesaria** en el perímetro PPPR actual. No se cambian WAL, modelo de fallos ni durabilidad permitida por el ADR F18.2. |
-| `NADR-F18-05` | R1–R3, R10, R13 (correlación, distinción de identidades y observabilidad fiel). | R4–R9 y R11/R12/R14–R16: medición y economía de efectos extraordinarios o implementación de telemetría no justificada como tarea nueva de la ruta inicial. No se afirma cumplimiento de esas reglas fuera del subconjunto comprobado. |
+**Categorías:** **A:** aplicable, con implementación o verificación por acreditar; **B:** aplicable ya satisfecha, exige evidencia directa de consumidor y pruebas efectivas; **C:** no aplicable al sujeto PPPR, excluida con justificación de frontera. Ninguna B se acredita desde una auditoría documental de código sin tests ejecutados. Las reglas A pueden resultar ya implementadas y no implican ochenta reparaciones.
 
-**Punto de control `1.1.2`:** corroborar cada inclusión contra el consumidor/efecto realmente conectado antes de tratarla como obligación ejecutable; si una inclusión o exclusión cambia por evidencia material, la corrección exige revisión/aprobación del plan y, si cambia una norma, decisión arquitectónica competente. Las 40 reglas PPPR permanecen intactas y con propiedad principal separada. El subconjunto histórico aquí propuesto suma **32 reglas individuales**, todas con estado inicial `PENDING / NOT_RUN`; no son 32 Tasks ni reglas PPPR nuevas. Las pruebas sobre caché solo se exigen si está realmente conectada; una caché histórica no adoptada queda fuera.
+**Censo para decisión del Board:** 104 reglas examinadas individualmente; **80 A, 0 B, 24 C**. Clasificación propuesta, no ratificación integral ni importación indiscriminada de arquitectura histórica. `1.1.2` debe comprobar aplicabilidad y evidencias de cumplimiento en el HEAD ejecutado.
 
----
+| Regla histórica FROZEN | Categoría | Task principal si aplicable | Justificación |
+|---|---|---|---|
+| `NADR-F17BIS-03 §5.1 R1` | A — aplicable, evidencia pendiente | `2.2.1` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F17BIS-03 §5.1 R2` | A — aplicable, evidencia pendiente | `2.2.1` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F17BIS-03 §5.1 R3` | A — aplicable, evidencia pendiente | `2.2.1` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F17BIS-03 §5.1 R4` | A — aplicable, evidencia pendiente | `2.2.1` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F17BIS-03 §5.1 R5` | A — aplicable, evidencia pendiente | `2.2.2` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F17BIS-03 §5.2 R6` | A — aplicable, evidencia pendiente | `2.2.1` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F17BIS-03 §5.2 R7` | A — aplicable, evidencia pendiente | `2.2.1` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F17BIS-03 §5.3 R8` | A — aplicable, evidencia pendiente | `2.2.3` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F17BIS-03 §5.3 R9` | A — aplicable, evidencia pendiente | `2.2.3` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F17BIS-03 §5.4 R10` | A — aplicable, evidencia pendiente | `2.2.2` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F17BIS-03 §5.4 R11` | A — aplicable, evidencia pendiente | `2.2.2` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F17BIS-03 §5.4 R12` | A — aplicable, evidencia pendiente | `2.2.2` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F17BIS-03 §5.4 R13` | A — aplicable, evidencia pendiente | `2.2.2` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F17BIS-16 §5.1 R1` | C — no aplicable a PPPR | — | Identidad del oráculo histórico |
+| `NADR-F17BIS-16 §5.1 R2` | C — no aplicable a PPPR | — | Identidad del oráculo histórico |
+| `NADR-F17BIS-16 §5.1 R3` | C — no aplicable a PPPR | — | Identidad del oráculo histórico |
+| `NADR-F17BIS-16 §5.2 R4` | A — aplicable, evidencia pendiente | `2.2.2` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F17BIS-16 §5.2 R5` | A — aplicable, evidencia pendiente | `2.2.2` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F17BIS-16 §5.2 R6` | A — aplicable, evidencia pendiente | `2.2.2` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F17BIS-16 §5.2 R7` | A — aplicable, evidencia pendiente | `2.2.2` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F17BIS-16 §5.2 R8` | C — no aplicable a PPPR | — | Hash de baseline con identidad de nodo |
+| `NADR-F17BIS-16 §5.3 R9` | C — no aplicable a PPPR | — | Estado y sellado de oráculo histórico |
+| `NADR-F17BIS-16 §5.3 R10` | C — no aplicable a PPPR | — | Estado y sellado de oráculo histórico |
+| `NADR-F17BIS-16 §5.3 R11` | C — no aplicable a PPPR | — | Estado y sellado de oráculo histórico |
+| `NADR-F17BIS-16 §5.3 R12` | C — no aplicable a PPPR | — | Estado y sellado de oráculo histórico |
+| `NADR-F17BIS-16 §5.4 R13` | C — no aplicable a PPPR | — | Identidad global de baseline científica histórica |
+| `NADR-F17BIS-16 §5.4 R14` | C — no aplicable a PPPR | — | Identidad global de baseline científica histórica |
+| `NADR-F17BIS-16 §5.4 R15` | C — no aplicable a PPPR | — | Identidad global de baseline científica histórica |
+| `NADR-F17BIS-16 §5.4 R16` | C — no aplicable a PPPR | — | Identidad global de baseline científica histórica |
+| `NADR-F18-01 §5.1 R1` | C — no aplicable a PPPR | — | Composición de scientific baseline histórica |
+| `NADR-F18-01 §5.1 R2` | C — no aplicable a PPPR | — | Composición de scientific baseline histórica |
+| `NADR-F18-01 §5.1 R3` | A — aplicable, evidencia pendiente | `2.2.2` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-01 §5.1 R4` | A — aplicable, evidencia pendiente | `2.2.2` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-01 §5.1 R5` | C — no aplicable a PPPR | — | Composición de scientific baseline histórica |
+| `NADR-F18-01 §5.2 R6` | C — no aplicable a PPPR | — | Guard/comparación diferencial de modos F18 no adoptados |
+| `NADR-F18-01 §5.2 R7` | C — no aplicable a PPPR | — | Guard/comparación diferencial de modos F18 no adoptados |
+| `NADR-F18-01 §5.2 R8` | A — aplicable, evidencia pendiente | `2.2.2` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-01 §5.2 R9` | C — no aplicable a PPPR | — | Guard/comparación diferencial de modos F18 no adoptados |
+| `NADR-F18-01 §5.3 R10` | A — aplicable, evidencia pendiente | `3.1.1` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-01 §5.3 R11` | A — aplicable, evidencia pendiente | `3.1.1` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-01 §5.3 R12` | A — aplicable, evidencia pendiente | `3.1.1` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-01 §5.3 R13` | A — aplicable, evidencia pendiente | `3.1.1` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-01 §5.4 R14` | C — no aplicable a PPPR | — | Guard/comparación diferencial de modos F18 no adoptados |
+| `NADR-F18-01 §5.4 R15` | C — no aplicable a PPPR | — | Guard/comparación diferencial de modos F18 no adoptados |
+| `NADR-F18-01 §5.4 R16` | A — aplicable, evidencia pendiente | `2.2.2` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-01 §5.4 R17` | C — no aplicable a PPPR | — | Guard/comparación diferencial de modos F18 no adoptados |
+| `NADR-F18-01 §5.4 R18` | C — no aplicable a PPPR | — | Guard/comparación diferencial de modos F18 no adoptados |
+| `NADR-F18-01 §5.5 R19` | C — no aplicable a PPPR | — | Identidad científica y de ejecución impuesta a artefactos históricos F18; no equivale a generación EN→ES |
+| `NADR-F18-01 §5.5 R20` | C — no aplicable a PPPR | — | Identidad científica y de ejecución impuesta a artefactos históricos F18; no equivale a generación EN→ES |
+| `NADR-F18-03 §5.1 R1` | A — aplicable, evidencia pendiente | `3.1.1` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-03 §5.1 R2` | A — aplicable, evidencia pendiente | `3.1.1` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-03 §5.1 R3` | A — aplicable, evidencia pendiente | `3.1.1` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-03 §5.1 R4` | A — aplicable, evidencia pendiente | `3.1.1` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-03 §5.2 R5` | A — aplicable, evidencia pendiente | `3.1.2` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-03 §5.2 R6` | A — aplicable, evidencia pendiente | `3.1.2` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-03 §5.2 R7` | A — aplicable, evidencia pendiente | `3.1.2` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-03 §5.2 R8` | A — aplicable, evidencia pendiente | `3.1.2` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-03 §5.3 R9` | A — aplicable, evidencia pendiente | `3.1.2` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-03 §5.3 R10` | A — aplicable, evidencia pendiente | `3.1.2` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-03 §5.3 R11` | A — aplicable, evidencia pendiente | `3.1.2` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-03 §5.3 R12` | A — aplicable, evidencia pendiente | `3.1.2` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-03 §5.3 R13` | A — aplicable, evidencia pendiente | `3.1.2` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-03 §5.3 R14` | A — aplicable, evidencia pendiente | `3.1.2` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-03 §5.3 R15` | A — aplicable, evidencia pendiente | `3.1.2` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-03 §5.4 R16` | A — aplicable, evidencia pendiente | `3.1.2` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-03 §5.4 R17` | A — aplicable, evidencia pendiente | `3.1.2` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-03 §5.4 R18` | A — aplicable, evidencia pendiente | `3.1.2` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-03 §5.5 R19` | A — aplicable, evidencia pendiente | `3.1.1` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-03 §5.5 R20` | A — aplicable, evidencia pendiente | `3.1.1` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-03 §5.6 R21` | A — aplicable, evidencia pendiente | `3.1.2` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-03 §5.6 R22` | A — aplicable, evidencia pendiente | `3.1.2` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-03 §5.6 R23` | A — aplicable, evidencia pendiente | `3.1.2` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-04 §5.1 R1` | A — aplicable, evidencia pendiente | `3.1.3` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-04 §5.1 R2` | A — aplicable, evidencia pendiente | `3.1.3` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-04 §5.1 R3` | A — aplicable, evidencia pendiente | `3.1.3` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-04 §5.1 R4` | A — aplicable, evidencia pendiente | `3.1.3` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-04 §5.2 R5` | A — aplicable, evidencia pendiente | `3.1.3` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-04 §5.2 R6` | A — aplicable, evidencia pendiente | `3.1.3` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-04 §5.2 R7` | A — aplicable, evidencia pendiente | `3.1.3` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-04 §5.3 R8` | A — aplicable, evidencia pendiente | `3.1.3` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-04 §5.3 R9` | A — aplicable, evidencia pendiente | `3.1.3` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-04 §5.3 R10` | A — aplicable, evidencia pendiente | `3.1.3` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-04 §5.4 R11` | A — aplicable, evidencia pendiente | `3.1.3` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-04 §5.4 R12` | A — aplicable, evidencia pendiente | `3.1.3` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-04 §5.4 R13` | A — aplicable, evidencia pendiente | `3.1.3` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-04 §5.4 R14` | A — aplicable, evidencia pendiente | `3.1.3` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-04 §5.5 R15` | A — aplicable, evidencia pendiente | `3.1.3` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-04 §5.5 R16` | A — aplicable, evidencia pendiente | `3.1.3` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-05 §5.1 R1` | A — aplicable, evidencia pendiente | `3.1.3` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-05 §5.1 R2` | A — aplicable, evidencia pendiente | `3.1.3` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-05 §5.1 R3` | A — aplicable, evidencia pendiente | `3.1.3` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-05 §5.2 R4` | A — aplicable, evidencia pendiente | `5.2.2` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-05 §5.2 R5` | A — aplicable, evidencia pendiente | `5.2.2` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-05 §5.2 R6` | A — aplicable, evidencia pendiente | `5.2.2` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-05 §5.2 R7` | A — aplicable, evidencia pendiente | `5.2.2` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-05 §5.3 R8` | A — aplicable, evidencia pendiente | `5.2.2` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-05 §5.3 R9` | A — aplicable, evidencia pendiente | `5.2.2` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-05 §5.3 R10` | A — aplicable, evidencia pendiente | `3.1.3` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-05 §5.4 R11` | A — aplicable, evidencia pendiente | `3.1.2` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-05 §5.4 R12` | A — aplicable, evidencia pendiente | `5.2.3` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-05 §5.5 R13` | A — aplicable, evidencia pendiente | `3.1.3` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-05 §5.5 R14` | A — aplicable, evidencia pendiente | `3.1.3` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-05 §5.5 R15` | A — aplicable, evidencia pendiente | `3.1.3` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+| `NADR-F18-05 §5.5 R16` | A — aplicable, evidencia pendiente | `3.1.3` | Sujeto compatible con D-1/D-2; verificación/corrección pendiente según condición de la regla |
+
+**Límites específicos:** F17BIS-16 R8 es baseline/oráculo y no impone `node_id` en la generación traducida. F18-01 se aprovecha solo por sus restricciones compatibles de separación conceptual, no por su baseline sellada ni su guard diferencial. F18-03/04/05 aplican a las responsabilidades operacionales cubiertas por DC-07 y a las condiciones efectivamente materializadas; sin activar por presunción mecanismos excepcionales. Las exclusiones conservan íntegra la autoridad histórica.
 
 ## 2. GATES, WAVES & TASKS (única secuencia temporal autorizable)
 
