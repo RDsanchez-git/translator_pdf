@@ -198,6 +198,34 @@ def test_sampler_must_not_combine_different_source_documents() -> None:
 
 
 @pytest.mark.unit
+def test_sampler_rejects_multiple_source_documents_across_nodes() -> None:
+    sampler = FirstPagesSamplingPolicy(NodeGeometryAdapter(), max_pages=2)
+    nodes = [
+        _node("a", [_region(1, document="a.pdf")]),
+        _node("b", [_region(2, document="b.pdf")]),
+    ]
+    report = sampler.sample_with_report(nodes)
+    assert report.nodes == ()
+    assert report.coverage == SamplingCoverage.INDETERMINATE
+    assert report.reasons == ("MIXED_SOURCE_DOCUMENTS_IN_PROFILE",)
+
+
+@pytest.mark.unit
+def test_sampling_never_infers_page_from_legacy_parallel_lists() -> None:
+    sampler = FirstPagesSamplingPolicy(NodeGeometryAdapter(), max_pages=1)
+    bbox = BoundingBox(x0=10, y0=20, x1=20, y1=30)
+    legacy = ASTNode(
+        node_id="legacy-bbox",
+        node_type=ContentNodeType.PARAGRAPH,
+        payload=ParagraphPayload(content="unknown physical attribution"),
+        metadata=NodeMetadata(pages=[1], bboxes=[bbox]),
+    )
+    report = sampler.sample_with_report([legacy])
+    assert report.nodes == ()
+    assert report.coverage == SamplingCoverage.INDETERMINATE
+
+
+@pytest.mark.unit
 def test_sampler_rejects_nonpositive_max_pages() -> None:
     with pytest.raises(ValueError, match=">= 1"):
         FirstPagesSamplingPolicy(NodeGeometryAdapter(), max_pages=0)
