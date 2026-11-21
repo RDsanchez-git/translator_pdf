@@ -92,6 +92,19 @@ class FirstPagesSamplingPolicy:
         self._max_pages = max_pages
 
     def sample_with_report(self, nodes: Sequence[ASTNode]) -> SamplingReport:
+        # El perfil de un documento no puede fusionar páginas de dos fuentes.
+        sources = {
+            region.source_document
+            for node in nodes
+            for region in node.metadata.physical_regions
+        }
+        if len(sources) > 1:
+            return SamplingReport(
+                nodes=(),
+                coverage=SamplingCoverage.INDETERMINATE,
+                reasons=("MIXED_SOURCE_DOCUMENTS_IN_PROFILE",),
+            )
+
         selected: list[ASTNode] = []
         reasons: list[str] = []
         has_unknown = False
