@@ -414,17 +414,17 @@ El cierre exige todas las Tasks del Gate `DONE`, reglas implementadas/verificada
 
 1. Autoridad vigente comprobada al comienzo del efecto; UNKNOWN permanece recuperable con escalamiento y sin retry ciego; sweeper coherente con FSM/receipts/fuentes autoritativas.
 2. Construcción del request EN→ES, selección/fallback hacia el modelo **identificado en el request offline**, límites parciales/totales, estimación, políticas de autorización y presupuesto **verificables sin egress**; ninguna petición inadmisible debe llegar al punto de despacho en los falsadores negativos. Evidencia documental de capacidades del backend candidato suficiente para evaluar compatibilidad, **sin atribuir todavía disponibilidad física o uso real**.
-3. Falsadores offline de `GAP-0.4-01…04`, solapamiento `GAP-0.1-01` y `GAP-0.5-01…03` verifican rechazos, selección, autoridad y recuperación; errores pre-efecto e incertidumbre post-efecto no se confunden. **La disponibilidad efectiva del proveedor, el coste observado y la respuesta física quedan expresamente pendientes de `5.2.3` en G5** y no se computan como PASS de G3.
+3. Falsadores offline de `GAP-0.4-01…04`, solapamiento `GAP-0.1-01` y `GAP-0.5-01…03` verifican rechazos, selección, autoridad y recuperación. **Disponibilidad efectiva del proveedor, permisos, coste observado y respuesta física quedan pendientes de `5.2.3` en G5**. El Exit Review G3 acredita solo su alcance contractual/offline. Las reglas FPPPR-03 con complemento G5 obligatorio permanecen `PENDING` en §7 aunque su Task principal G3 esté `DONE`; no se declaran reglas DONE ni PASS comercial prematuramente.
 4. Pyright 0 errors/0 warnings, suite de regresión y Gate Exit Review en verde con alcance autorizado.
 
 #### 2.3.4 Gate 3 — Exit Review
 
-El cierre exige todas las Tasks del Gate `DONE`, reglas implementadas/verificadas con evidencia enlazada en §7, criterios anteriores acreditados, Findings Register y Evidence Log actualizados según metodología. Ninguna dependencia externa pendiente puede sustituirse por fake ni por un CONDITIONAL PASS informal.
+El cierre de **G3 contractual/offline** exige Tasks G3 DONE, falsadores y decisiones de contrato offline acreditados, criterios propios del Gate, Findings Register y Evidence Log completos. Las reglas que requieren `5.2.3` conservan estado `PENDING` hasta G5; el Exit Review registra los complementos pendientes y no confunde el cierre del alcance G3 con cumplimiento integral de las reglas o proveedor real. Este cierre por alcance fijado exige aceptación del Board al aprobar el plan; no constituye excepción metodológica autoatribuida. Ninguna dependencia externa pendiente puede sustituirse por fake ni por un CONDITIONAL PASS informal.
 
 | Control canónico | Estado inicial |
 |---|---|
 | Tasks del Gate en DONE | NOT_RUN |
-| Reglas asociadas implementadas y verificadas | NOT_RUN |
+| Reglas: cumplimiento contractual/offline verificado; complementos G5 PENDING | NOT_RUN |
 | Gate Exit Criteria satisfechos y evidencia física/lógica | NOT_RUN |
 | Hallazgos derivados al register + Exit Review Evidence Log | NOT_RUN |
 | Pyright: 0 errors / 0 warnings | NOT_RUN |
@@ -760,16 +760,16 @@ Este es el **único apéndice de regla → Task principal**; las tablas de §2 c
 | `NADR-FPPPR-02 §5.3 R8` | PENDING / NOT_RUN | Task `4.2.2` — evidencia no disponible | Sin cambios implementados; falsadores en §2 |
 | `NADR-FPPPR-02 §5.3 R9` | PENDING / NOT_RUN | Task `4.2.2` — evidencia no disponible | Sin cambios implementados; falsadores en §2 |
 | **NADR-FPPPR-03** | | | |
-| `NADR-FPPPR-03 §5.1 R1` | PENDING / NOT_RUN | Task `3.2.1` — evidencia no disponible | Sin cambios implementados; falsadores en §2 |
-| `NADR-FPPPR-03 §5.1 R2` | PENDING / NOT_RUN | Task `3.2.1` — evidencia no disponible | Sin cambios implementados; falsadores en §2 |
-| `NADR-FPPPR-03 §5.2 R3` | PENDING / NOT_RUN | Task `3.2.2` — evidencia no disponible | Sin cambios implementados; falsadores en §2 |
-| `NADR-FPPPR-03 §5.2 R4` | PENDING / NOT_RUN | Task `3.2.2` — evidencia no disponible | Sin cambios implementados; falsadores en §2 |
-| `NADR-FPPPR-03 §5.3 R5` | PENDING / NOT_RUN | Task `3.2.3` — evidencia no disponible | Sin cambios implementados; falsadores en §2 |
-| `NADR-FPPPR-03 §5.3 R6` | PENDING / NOT_RUN | Task `3.2.3` — evidencia no disponible | Sin cambios implementados; falsadores en §2 |
-| `NADR-FPPPR-03 §5.3 R7` | PENDING / NOT_RUN | Task `3.2.3` — evidencia no disponible | Sin cambios implementados; falsadores en §2 |
-| `NADR-FPPPR-03 §5.3 R8` | PENDING / NOT_RUN | Task `3.2.3` — evidencia no disponible | Sin cambios implementados; falsadores en §2 |
-| `NADR-FPPPR-03 §5.4 R9` | PENDING / NOT_RUN | Task `3.2.3` — evidencia no disponible | Sin cambios implementados; falsadores en §2 |
-| `NADR-FPPPR-03 §5.4 R10` | PENDING / NOT_RUN | Task `3.2.3` — evidencia no disponible | Sin cambios implementados; falsadores en §2 |
+| `NADR-FPPPR-03 §5.1 R1` | PENDING / NOT_RUN | Task `3.2.1` — evidencia no disponible | G3 Task principal y pruebas offline; **verificación complementaria obligatoria `5.2.3`** para propiedades efectivas requeridas de proveedor/request/permiso/coste. `PENDING` hasta ambas evidencias. |
+| `NADR-FPPPR-03 §5.1 R2` | PENDING / NOT_RUN | Task `3.2.1` — evidencia no disponible | G3 Task principal y pruebas offline; **verificación complementaria obligatoria `5.2.3`** para propiedades efectivas requeridas de proveedor/request/permiso/coste. `PENDING` hasta ambas evidencias. |
+| `NADR-FPPPR-03 §5.2 R3` | PENDING / NOT_RUN | Task `3.2.2` — evidencia no disponible | G3 Task principal y pruebas offline; **verificación complementaria obligatoria `5.2.3`** para propiedades efectivas requeridas de proveedor/request/permiso/coste. `PENDING` hasta ambas evidencias. |
+| `NADR-FPPPR-03 §5.2 R4` | PENDING / NOT_RUN | Task `3.2.2` — evidencia no disponible | G3 Task principal y pruebas offline; **verificación complementaria obligatoria `5.2.3`** para propiedades efectivas requeridas de proveedor/request/permiso/coste. `PENDING` hasta ambas evidencias. |
+| `NADR-FPPPR-03 §5.3 R5` | PENDING / NOT_RUN | Task `3.2.3` — evidencia no disponible | G3 Task principal y pruebas offline; **verificación complementaria obligatoria `5.2.3`** para propiedades efectivas requeridas de proveedor/request/permiso/coste. `PENDING` hasta ambas evidencias. |
+| `NADR-FPPPR-03 §5.3 R6` | PENDING / NOT_RUN | Task `3.2.3` — evidencia no disponible | G3 Task principal y pruebas offline; **verificación complementaria obligatoria `5.2.3`** para propiedades efectivas requeridas de proveedor/request/permiso/coste. `PENDING` hasta ambas evidencias. |
+| `NADR-FPPPR-03 §5.3 R7` | PENDING / NOT_RUN | Task `3.2.3` — evidencia no disponible | G3 Task principal y pruebas offline; **verificación complementaria obligatoria `5.2.3`** para propiedades efectivas requeridas de proveedor/request/permiso/coste. `PENDING` hasta ambas evidencias. |
+| `NADR-FPPPR-03 §5.3 R8` | PENDING / NOT_RUN | Task `3.2.3` — evidencia no disponible | G3 Task principal y pruebas offline; **verificación complementaria obligatoria `5.2.3`** para propiedades efectivas requeridas de proveedor/request/permiso/coste. `PENDING` hasta ambas evidencias. |
+| `NADR-FPPPR-03 §5.4 R9` | PENDING / NOT_RUN | Task `3.2.3` — evidencia no disponible | G3 Task principal y pruebas offline; **verificación complementaria obligatoria `5.2.3`** para propiedades efectivas requeridas de proveedor/request/permiso/coste. `PENDING` hasta ambas evidencias. |
+| `NADR-FPPPR-03 §5.4 R10` | PENDING / NOT_RUN | Task `3.2.3` — evidencia no disponible | G3 Task principal y pruebas offline; **verificación complementaria obligatoria `5.2.3`** para propiedades efectivas requeridas de proveedor/request/permiso/coste. `PENDING` hasta ambas evidencias. |
 | **NADR-FPPPR-04** | | | |
 | `NADR-FPPPR-04 §5.1 R1` | PENDING / NOT_RUN | Task `2.1.1` — evidencia no disponible | Sin cambios implementados; falsadores en §2 |
 | `NADR-FPPPR-04 §5.1 R2` | PENDING / NOT_RUN | Task `2.1.1` — evidencia no disponible | Sin cambios implementados; falsadores en §2 |
