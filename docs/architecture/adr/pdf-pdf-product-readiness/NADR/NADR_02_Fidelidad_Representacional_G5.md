@@ -1,19 +1,22 @@
 # NADR-FPPPR-02: Fidelidad de Representación del Contenido Protegido y de la Jerarquía Documental en G5
 
-**DRAFT v0.3.0 — NO APPROVED / NO FROZEN**
+**FROZEN v1.0.0 — aprobado integralmente por el Architecture Board el 2026-11-20; congelamiento documental autorizado.**
 
 ## 1. METADATA
 
-- **Decision ID:** `NADR-FPPPR-02` — identificador propuesto, validado para PR Draft; ratificación formal pendiente.
+- **Decision ID:** `NADR-FPPPR-02` — identificador ratificado por el Architecture Board.
 - **Título:** Fidelidad de Representación del Contenido Protegido y de la Jerarquía Documental en G5.
 - **Clase de Decisión:** `DATA / STRUCTURAL`.
-- **Nivel de Cumplimiento:** MANDATORY únicamente después de aprobación integral.
-- **Versión:** `0.3.0` — corrección focal R3/R8, evidencia E-0.6-012 y falsadores §7.
-- **Ciclo de Vida:** DRAFT.
-- **Vigente Desde:** Pendiente de aprobación.
+- **Nivel de Cumplimiento:** MANDATORY.
+- **Versión:** `1.0.0` — primera versión FROZEN; nueve reglas RFC 2119 aprobadas sin alteraciones desde DRAFT v0.3.0.
+- **Ciclo de Vida:** FROZEN.
+- **Fecha de Aprobación Integral:** 2026-11-20; decisión expresa comunicada por el owner en nombre del Architecture Board sobre PR #77, HEAD `a0421fc289fdee2c3d0374a9e2dba0ec6c6b1de8` (DRAFT v0.3.0).
+- **Fecha de Congelamiento Documental:** 2026-11-20; autorizado en la misma comunicación.
+- **Procedencia de Autoridad:** Comunicación directa del owner en esta conversación; no se presupone acta externa, firma ni review formal de GitHub. El merge del PR #77 requiere autorización separada.
+- **Vigente Desde:** Etapa normativa PPPR — 2026-11-20, tras aprobación integral del Board; orienta el futuro Execution Plan PPPR sin autorizar implementación ni certificación científica.
 - **Autoridad:** Architecture Board.
-- **Responsable Técnico:** Staff Engineering / G5 — rol propuesto, pendiente de ratificación.
-- **Capacidad Arquitectónica:** `CAP-PPPR-02` (código candidato, no ratificado) — Fidelidad de representación del contenido protegido y de la jerarquía documental durante la reconstrucción.
+- **Responsable Técnico:** Staff Engineering / G5 — rol ratificado por el Architecture Board; no se designa una persona.
+- **Capacidad Arquitectónica:** `CAP-PPPR-02` (código ratificado) — Fidelidad de representación del contenido protegido y de la jerarquía documental durante la reconstrucción.
 - **Evidencia Forense:** `GAP-0.6-01/02`; `E-0.6-012/013/014/025/026`; `E-0.3-013/018/019`; `PROJECT_SCOPE.md` §§2/4.
 - **Referencias Cruzadas:**
   - **Depende de:** `ADR_PPPR_MASTER.md` FROZEN, especialmente DC-05 y DC-06.
@@ -23,7 +26,7 @@
   - **Conflictúa con:** interpretar contenido literal como instrucciones, descartar jerarquía válida y declarar fidelidad representacional no acreditada.
   - **Reemplaza a:** N/A.
 
-Este candidato utiliza la convención excepcional PPPR autorizada. No constituye una fase numerada del ROADMAP. La autorización del Board es exclusivamente para revisión documental interna mediante PR Draft: no constituye aprobación integral, FROZEN ni merge.
+Este NADR utiliza la convención excepcional PPPR autorizada. No constituye una fase numerada del ROADMAP. Su aprobación integral y FROZEN son documentales y no autorizan por sí solos el merge del PR #77, ejecución de pruebas, implementación ni certificación del producto.
 
 ## 2. ARCHITECTURE RISK SCORE
 
@@ -36,10 +39,10 @@ Riesgo arquitectónico de carecer de reglas verificables específicas para la fi
 | Recuperabilidad | 3/5 | La pérdida de procedencia o estructura dificulta atribuir el origen de una degradación. |
 | Seguridad | 2/5 | Riesgo de interpretación no deseada del contenido como marcado; no se demuestra explotación. |
 | Financiero | 2/5 | Riesgo de reensamblado y revisión adicional, sin impacto económico medido. |
-| **Total** | **14/25** | **S2 — ALTO, provisional** |
+| **Total** | **14/25** | **S2 — ALTO, ratificado por el Board** |
 
 - **Total Score:** `14/25`.
-- **Severidad:** `S2` — pendiente de ratificación del Architecture Board.
+- **Severidad:** `S2` — ALTO, ratificado por el Architecture Board (14/25).
 
 ## 3. DECISIÓN EJECUTIVA
 
@@ -86,7 +89,7 @@ La capacidad requerida no equivale a identidad semántica del AST, validación c
 
 ## 5. REGLAS NORMATIVAS (RFC 2119)
 
-**Reglas propuestas, sin vigencia durante el estado DRAFT.**
+**Reglas normativas aprobadas por el Architecture Board; vigentes para esta capacidad desde FROZEN v1.0.0.**
 
 ### 5.1 Protección de la interpretación del contenido
 
@@ -180,4 +183,4 @@ Las referencias de ámbito o contraste no se declaran dependencias normativas re
 - **No prescribe** tareas, Definition of Done, despliegue, proveedores o métricas de aceptación científica.
 - **No autoriza** implementación, evaluaciones comerciales, uso de corpus privados ni merge.
 
-**Nota de gobernanza:** las nueve reglas son exclusivamente propuestas mientras este NADR permanezca DRAFT. La aprobación de su base documental para PR Draft no constituye FROZEN ni certificación del producto, y tampoco constituye autorización de implementación.
+**Nota de gobernanza:** las nueve reglas constituyen el contrato normativo FROZEN de esta capacidad. La aprobación integral no repara los GAP forenses, no constituye certificación científica del producto, no acredita pruebas ejecutadas y no autoriza implementación ni merge del PR #77; estas acciones permanecen sometidas a sus gates y autorizaciones propias.
