@@ -1,11 +1,11 @@
 # FASE_PPPR_EXIT_REVIEW_EVIDENCE_LOG.md
 
 **Documento:** `docs/architecture/adr/pdf-pdf-product-readiness/reviews/FASE_PPPR_EXIT_REVIEW_EVIDENCE_LOG.md`  
-**Versión:** 0.1.3  
-**Estado:** IN_PROGRESS — checkpoint documental de Wave 1.1 registrado como referencia, **sin nuevos DF/GF ni Gate Exit Review**. FROZEN únicamente al cierre formal de PPPR.  
+**Versión:** 0.1.4  
+**Estado:** IN_PROGRESS — checkpoints documentales/técnicos W1.1 y W1.2 registrados como referencias de Tasks (**4/4 DONE**), **sin DF/GF nuevos ni Gate Exit Review**. Las pruebas científicas CV siguen FAIL/DEFERRED; FROZEN solo al cierre PPPR.
 **Fecha:** 2026-11-21  
 **Última actualización:** 2026-11-21  
-**Derivado de:** `PHASE_PPPR_EXECUTION_PLAN.md` v0.5.1 APPROVED / LIVING / IN_PROGRESS — G1/W1.1 documental completa, W1.2 pendiente, G1 Exit Review NOT_RUN.  
+**Derivado de:** `PHASE_PPPR_EXECUTION_PLAN.md` v0.5.2 APPROVED / LIVING / IN_PROGRESS — G1/W1.1 y W1.2 completas, G1 Exit Review NOT_RUN, G2–G6 PENDING.  
 **Ámbito:** PPPR, ruta única `CLI → OCR → G3 → G5 → PDF`.  
 **Propósito:** Registro forense incremental, por Gate Exit Review, que conserva los fundamentos empíricos, los archivos examinados, los límites de evidencia y las reglas que justifican la clasificación de **cada hallazgo nuevo DF/GF** del Deferred Findings Register.
 
@@ -14,6 +14,8 @@
 > **Este documento NO es:** el Execution Plan, el Findings Register, un repositorio de resultados por batch, un NADR, un nuevo HITO forense ni una certificación del PDF final EN→ES.
 
 **Baseline inicial del esqueleto (conservada):** 30 Tasks TODO y G1–G6 PENDING, sin Exit Review ni pruebas. **Checkpoint Wave 1.1 (2026-11-21):** Tasks 1.1.1/1.1.2 verificadas documentalmente sobre los HEAD y blobs citados en el Execution Plan §2.1.1; **no se detectó DF/GF nuevo dentro de esa revisión estática acotada**. No constituye hallazgo clasificado ni Gate Exit Review; Pyright, pytest, CI, OCR, E2E, corpus privado e inferencia NOT_RUN. Los 14 GAP-ID P1 forenses continúan OPEN y `PRODUCT_READINESS=NOT_CERTIFIED`.
+
+**Checkpoint W1.2 (2026-11-21):** los resultados de la verificación de Tasks se conservan en Execution Plan §2.1.2 y [issue #34](https://github.com/RDsanchez-git/translator_pdf/issues/34). Sobre el mismo HEAD `67affe9ffa9d68b09788c5cc6fdff6dc3467b546`: [GitHub CI #44935045055](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44935045055) `SUCCESS`, Pyright 0 errores/0 advertencias, import-linter PASS, `not e2e` 1454 PASS, 4 SKIPPED, 20 E2E deselected; [CV #44935045265](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44935045265) `FAIL / BASELINE_INTEGRITY_FAILURE (exit 3)` por 15 PDF faltantes. [Resolución excepcional G1 ratificada por owner, comentario 7069421655](https://github.com/RDsanchez-git/translator_pdf/issues/34#issuecomment-7069421655) **solo** para §2.1.3(3). El fallo CV es previo y queda visible; la revisión W1.2 no creó nuevo DF/GF ni reclasificó el issue #34. **Esta nota NO es una entrada forense de DF/GF ni un Gate Exit Review realizado.**
 
 **Decisión específica del owner y dictamen ajustado favorable del Architecture Board (2026-11-21):** para **PPPR exclusivamente**, se autoriza integrar este esqueleto `IN_PROGRESS` **antes de cerrar la fase** y versionar incrementalmente su evidencia **desde el descubrimiento de cada DF/GF y durante las Tasks/Gate Exit Reviews**, conforme a §1.3. El owner autorizó explícitamente el merge documental del PR #81 a `pdf-pdf-product-readiness`, y el Board emitió dictamen ajustado **favorable a esa integración**. Es una **autorización puntual de calendario de publicación** frente a `1_METHODOLOGY_FOR_ORDERED_PIPELINE_CHANGES.md` §6.7, **sin modificar su regla general ni extenderla a otras fases**. Cada entrada validada sigue inmutable; el documento entero será `FROZEN` **solo al cierre formal de PPPR**. La publicación temprana no afirma revisión ejecutada, resultado científico ni autoriza comenzar G1.
 
@@ -25,6 +27,7 @@
 | 0.1.1 | 2026-11-21 | Precisión editorial del Board: captura temprana de observaciones al detectar DF/GF y consolidación forense inmutable durante Gate Exit Review. |
 | 0.1.2 | 2026-11-21 | Formaliza autorización particular del owner y dictamen ajustado favorable del Board para publicación/versionado incremental temprano de PPPR, sin alterar §6.7, inmutabilidad ni FROZEN final. |
 | 0.1.3 | 2026-11-21 | Checkpoint W1.1: baseline y trazabilidad comprobados en Execution Plan §2.1.1; sin DF/GF ni Exit Review nuevos; no se inventan entradas forenses. |
+| 0.1.4 | 2026-11-21 | Checkpoint W1.2: CI técnica y CV científica con veredictos reales separados, ratificación acotada del owner y dependencias pendientes. Sin nuevo DF/GF ni Exit Review; la prueba de Tasks sigue en Execution Plan. |
 
 ---
 
@@ -127,7 +130,7 @@ No implementar correcciones durante el Exit Review. Las decisiones de código pe
 
 ## 2. ESTRUCTURA POR FINDING
 
-**Estado:** **SIN ENTRADAS DF/GF, NOT_RUN**. La verificación documental W1.1 está documentada por Task en el Execution Plan §2.1.1; la ausencia de findings nuevos durante esa revisión acotada **no constituye una entrada forense ni un `CLOSED (NAR)` artificial**. Esta sección se amplía solo cuando exista un hallazgo nuevo real. No se generan apartados `2.1 DF-01` ficticios.
+**Estado:** **SIN ENTRADAS DF/GF, NOT_RUN**. La verificación W1.1 documental y W1.2 técnica/autoridades está documentada por Task en Execution Plan §§2.1.1–2.1.2, con enlaces a los runs y decisión externa. La ausencia de hallazgos nuevos en ese alcance **no constituye entrada forense, `CLOSED (NAR)` ni resultado científico artificial**. Esta sección solo se amplía cuando exista un hallazgo nuevo real. No se crean apartados `2.1 DF-01` ficticios.
 
 **Plantilla operativa de cada entrada futura (no es evidencia registrada):**
 
@@ -195,11 +198,11 @@ Referencia exacta `NADR/ADR/ENGINEERING_PRINCIPLES §/Rn` y explicación de su c
 
 ## 3. GATE EXIT REVIEW SUMMARY
 
-**Estado tras W1.1:** los seis Gate Exit Reviews permanecen `NOT_RUN`. G1 está `IN_PROGRESS` por la comprobación documental W1.1, **sin revisión de salida ejecutada**; G2–G6 PENDING. Ningún veredicto, DF/GF ni decisión de Exit Review fue registrado.
+**Estado tras W1.2:** los seis Gate Exit Reviews permanecen `NOT_RUN`. G1 está `IN_PROGRESS` tras W1.1 y W1.2 completas, **sin revisión de salida ejecutada ni PASS**; G2–G6 PENDING. Ningún veredicto de Gate, nuevo DF/GF ni decisión de Exit Review fue registrado.
 
 | Gate del Execution Plan | Revisión real | Evidencia por DF/GF | Decisión/veredicto |
 |---|---|---|---|
-| G1 — Baseline y autoridad | NOT_RUN (G1 IN_PROGRESS, W1.1 completa) | Sin nuevas entradas DF/GF | Sin veredicto de Gate |
+| G1 — Baseline y autoridad | NOT_RUN (G1 IN_PROGRESS, W1.1/W1.2 completas) | Sin nuevas entradas DF/GF; CI/CV de Tasks en plan §2.1.2 | Sin veredicto de Gate |
 | G2 — Procedencia e identidad | NOT_RUN | No registrada | PENDING |
 | G3 — Seguridad de efectos e inferencia | NOT_RUN | No registrada | PENDING |
 | G4 — Reconstrucción G5/PDF | NOT_RUN | No registrada | PENDING |

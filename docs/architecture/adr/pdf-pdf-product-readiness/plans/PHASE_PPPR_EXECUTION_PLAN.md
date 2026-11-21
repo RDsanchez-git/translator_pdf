@@ -1,17 +1,17 @@
 # PHASE_PPPR_EXECUTION_PLAN.md — PDF→PDF Product Readiness
 ## Implementation Execution Plan & Rule-Centric Traceability Matrix
 
-**Version:** 0.5.1
+**Version:** 0.5.2
 **Status:** APPROVED
 **Document Lifecycle:** LIVING DOCUMENT — NOT FROZEN; cierre al completar formalmente la fase.
-**Execution Status:** IN_PROGRESS — owner autorizó iniciar G1 el 2026-11-21; W1.1 verificada (2 Tasks DONE en este PR), W1.2 PENDING, G1 Exit Review NOT_RUN; G2–G6 PENDING.
+**Execution Status:** IN_PROGRESS — owner autorizó iniciar G1 el 2026-11-21. W1.1 2/2 DONE (PR #82 MERGED) y W1.2 2/2 DONE por evidencia documental y CI técnica ratificada (PR de cierre W1.2); **G1 Exit Review NOT_RUN, G1 sin PASS**, G2–G6 PENDING.
 **Architecture Board Approval:** Contenido v0.5.0 aprobado integralmente el 2026-11-21 según dictamen comunicado por el owner, sobre HEAD `0d920f6b8bdcefe60f6be081e645b0140c162e5b`. Estructura 6/12/30 y clasificación 104 = 79 A / 0 B / 25 C ratificadas; no se presupone un review formal de GitHub ni acta externa.
 **Execution Authorization:** GRANTED por el owner el 2026-11-21 para comenzar implementación controlada de PPPR desde G1. Los tres documentos vivos se actualizan al **cierre de cada Wave**. La autorización no concede corpus privado, egress, proveedor, gasto, certificación científica, host ni merge a `main`; G2–G6 no iniciados.
 **Date:** 2026-11-21
 **Supersedes:** DRAFT v0.4.0 — revisión focal del Architecture Board sobre HEAD `1631510c666b7c82696c8136884d6da1353aada4`; no sustituye normas FROZEN
 **Derived From:** ADR_PPPR_MASTER.md FROZEN; NADR-FPPPR-01/02/03/04 FROZEN; metodología general v1.3.0 FROZEN; `5_METH_EXECUTION_PLAN.md`; HITOs PPPR.0.1–0.9 FROZEN.
 **Governance Bridge:** Única fuente de verdad temporal de reglas → Tasks → Waves → Gates → evidencia de implementación. Los NADR conservan autoridad constitucional; ninguna Task aquí autoriza por sí sola código, corpus, egress, pagos, evaluación científica ni merge a `main`.
-**Estado de autoridad:** el plan v0.5.0 fue aprobado integralmente por el Architecture Board, e integrado por PR #80; el owner autorizó después iniciar G1 (2026-11-21) y actualizar los tres registros vivos al cerrar Waves. Este v0.5.1 registra progreso verificable, **sin** alterar reglas FROZEN, responsables, secuencia ni criterios de salida. La Wave 1.1 es una auditoría documental estática, no un PASS de código, CI, Gate 1 ni del producto.
+**Estado de autoridad:** el plan aprobado v0.5.0 sigue siendo APPROVED/LIVING/NOT FROZEN. El owner autorizó implementar desde G1; el 2026-11-21 ratificó expresamente `PPPR-G1-CI-SCOPE-01`, acto documentado en issue #34 comentario `7069421655`, **solo para §2.1.3(3)**. La CI técnica de `pdf-pdf-product-readiness@67affe9ffa9d68b09788c5cc6fdff6dc3467b546` es el alcance inicial exigible de G1; la CV científica es FAIL/DEFERRED y no se declara PASS. **La Wave 1.2 se documenta al completarse; G1 no se cierra sin Exit Review posterior**. Ninguna autorización de corpus privado, egress, presupuesto, host, ciencia, G2 ni `main` se infiere.
 **Baseline documental de contraste:** `pdf-pdf-product-readiness@e759a55c18a2c96aa7dc8473d4afd7c48ee7adc2`; `main@1d21cfe958cc1de8a33824fed748cd6fe9260f42` (código auditado por HITOs). Revalidar ambos HEAD antes del PR y antes de ejecutar; no tratar la referencia histórica como checkout activo.
 
 ### Changelog
@@ -24,6 +24,7 @@
 | 0.5.0-DRAFT | 2026-11-21 | Distingue en §7.H falsador normativo del Gate propietario y regresión/integración posterior; excluye por sujeto la aplicación literal de F18-01 R4, conservando DC-04. Censo revisado 104 = 79 A / 0 B / 25 C. Estructura 6/12/30 y criterios de G3 intactos. |
 | 0.5.0-APPROVED (LIVING) | 2026-11-21 | Aprobación integral del Board sobre HEAD `0d920f6b8bdcefe60f6be081e645b0140c162e5b`; formalización de autoridad sin alterar reglas, Tasks ni Exit Criteria. Ejecución NOT_STARTED; plan NO FROZEN, actualizable con evidencia y avances. |
 | 0.5.1-APPROVED (LIVING) | 2026-11-21 | Cierre verificado Wave 1.1: Tasks 1.1.1 y 1.1.2 DONE por auditoría documental; G1 IN_PROGRESS, W1.2 PENDING; 40 reglas PPPR, 104 históricas, 14 GAP-ID reconciliados sin pruebas de runtime. Los tres documentos de gobernanza se actualizan juntos al cierre de la Wave. |
+| 0.5.2-APPROVED (LIVING) | 2026-11-21 | W1.2: Tasks 1.2.1/1.2.2 verificadas; CI GitHub #44935045055 SUCCESS sobre SHA `67affe9…`, CV #44935045265 FAIL/DEFERRED, excepción acotada `PPPR-G1-CI-SCOPE-01` ratificada por el owner en issue #34. Dependencias G5/G6 sin permiso siguen explícitas. G1 IN_PROGRESS, Exit Review NOT_RUN. Actualización coordinada de los tres registros al cierre de Wave. |
 
 ---
 
@@ -204,7 +205,7 @@ Las decisiones del ADR Maestro DC-03/08/09/10/12 permanecen invariantes: EN→ES
 **Objective:** Baseline, autoridad y preparación.
 **Execution Mode:** Secuencial para la definición; gestiones externas autónomas pueden avanzar en paralelo.
 **Rollback Plan (propuesto):** Solo artefactos documentales hasta aprobación del plan; descartar branch corta sin tocar main.
-**Gate Status:** IN_PROGRESS — W1.1 COMPLETE / W1.2 PENDING; Gate Exit Review NOT_RUN
+**Gate Status:** IN_PROGRESS — W1.1 y W1.2 COMPLETE (4/4 Tasks DONE), Gate Exit Review NOT_RUN; **sin veredicto PASS**.
 **Inicio/Cierre:** inicio 2026-11-21 / cierre de Gate PENDIENTE.
 
 #### 2.1.1 Wave 1.1 — Baseline y trazabilidad
@@ -231,22 +232,25 @@ Las decisiones del ADR Maestro DC-03/08/09/10/12 permanecen invariantes: EN→ES
 
 #### 2.1.2 Wave 1.2 — Preparación y autorizaciones
 
-**Wave Status:** PENDING · NOT_RUN · sin autorización de inicio.
-**Fechas:** pendiente / pendiente.
+**Wave Status:** COMPLETE — Task 1.2.1 y 1.2.2 verificadas; **G1 aún requiere Exit Review**.
+**Fechas:** inicio 2026-11-21 / cierre 2026-11-21 (cierre documentado en PR W1.2 sujeto a revisión/merge).
 
 | Task | Description | Rules Implemented / frontera | GAP / evidencia | Risk | Deps | Status |
 |---|---|---|---|---|---|---|
-| **1.2.1** | Habilitar controles reproducibles | — (preparación, control o verification; no regla PPPR nueva) | PPPR.0.8; issue #34 | HIGH | 1.1.1 | TODO |
-| **1.2.2** | Registrar autorizaciones y dependencias externas | — (preparación, control o verification; no regla PPPR nueva) | ADR Maestro DC-03/08/10; PPPR-01 §5.2 | CRITICAL | 1.1.2 | TODO |
+| **1.2.1** | Habilitar controles reproducibles | — (preparación, control o verification; no regla PPPR nueva) | PPPR.0.8; issue #34 | HIGH | 1.1.1 | DONE |
+| **1.2.2** | Registrar autorizaciones y dependencias externas | — (preparación, control o verification; no regla PPPR nueva) | ADR Maestro DC-03/08/10; PPPR-01 §5.2 | CRITICAL | 1.1.2 | DONE |
 
 **Condiciones de verificación por Task — obligatorias cuando se ejecute:**
 
 - **1.2.1:** Caracterizar CI, Pyright, suite exigida y falsadores offline, y **determinar si la ausencia de 15 PDF del issue #34 bloquea realmente el conjunto requerido**. Vía predeterminada: tramitar con el owner/custodio el aprovisionamiento legítimo, con licencias y verificaciones de integridad, para ejecutar la suite completa sin alterar los oráculos. Vía excepcional **solo si la anterior es imposible o no procede**: elevar a la autoridad metodológica/Board una solicitud de alcance inicial verificable y de las pruebas que quedarían pendientes; **el Execution Plan no concede esa excepción**. **Falsador / evidencia de salida:** Suite requerida satisfactoria bajo alcance formal vigente; si faltan corpus o decisión de autoridad, Gate 1 `BLOCKED`, no PASS de una suite parcial. El diagnóstico inicial puede realizarse sin afirmar que CI está verde.
-  - Notas de implementación: PENDIENTE; registrar rutas, SHAs, pruebas y resultados reales al pasar a DONE; ninguna prueba declarada ejecutada.
+  - **Verificación ejecutada / DONE (2026-11-21):** CI técnica de GitHub [run #44935045055](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44935045055), `SUCCESS` sobre **governance HEAD `67affe9ffa9d68b09788c5cc6fdff6dc3467b546`**: Pyright 1.1.414 **0 errors/0 warnings**, import-linter PASS, 225 unitarios seleccionados PASS y suite técnica versionada `pytest -m "not e2e"` **1454 PASS, 4 SKIPPED, 20 E2E deselected y 3 warnings de pytest**. Los 225 tests corresponden a un paso diferente, **no sumarlos** a los 1454. Tests de integración/fake offline incluidos en workflow. `pytest`, `pyright` local **NO ejecutados en esta sesión**; fuente GitHub Actions y SHAs del runner.
+  - **Resultado científico separado:** [CV #44935045265](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44935045265), misma revisión, **FAIL / BASELINE_INTEGRITY_FAILURE (exit 3)** por 15 PDF canónicos ausentes en el runner. Manifest 21 identidades, 6 PDF en Git. No se aprovisionó el corpus, no se alteraron manifest, oráculos, umbrales, workflows ni fail-closed, no se atribuye veredicto científico.
+  - **Acto metodológico externo ratificado:** [issue #34, comentario 7069421655](https://github.com/RDsanchez-git/translator_pdf/issues/34#issuecomment-7069421655) registra la ratificación **expresa del owner** de `PPPR-G1-CI-SCOPE-01`, exclusivamente para **Exit Criterion §2.1.3(3)**, aceptando como exigible inicialmente CI técnica completa en HEAD evaluado y conservando CV como FAIL/DEFERRED hasta autorización posterior. Autoridad: owner del programa; fecha: 2026-11-21. No constituye un PASS de G1 ni permite iniciar G2; la evaluación del Gate se hace en su Exit Review.
 - **1.2.2:** Registrar cada dependencia externa con **rol solicitante, autoridad decisora, evidencia exigida y Task/Gate consumidor** (tabla siguiente). Se puede tramitar desde G1 sin requerir que **todas** las autorizaciones de G5/G6 estén concedidas para cerrar G1. **Falsador / evidencia de salida:** estado solicitado/otorgado/denegado/no iniciado atribuible; ninguna solicitud equivale a aprobación, ninguna aprobación se infiere de configuración y el gate consumidor queda `BLOCKED` cuando el permiso efectivo falte.
-  - Notas de implementación: PENDIENTE; registrar rutas, SHAs, pruebas y resultados reales al pasar a DONE; ninguna prueba declarada ejecutada.
+  - **Verificación documental / DONE (2026-11-21):** se identificaron solicitantes, responsables de autorización, condiciones documentales y consumidores en la matriz siguiente. El owner autorizó el **inicio de G1** y ratificó **únicamente** la vía CI técnica `PPPR-G1-CI-SCOPE-01`. Todas las autorizaciones futuras de corpus EN→ES científico, egress de datos, modelo/presupuesto, host y certificación permanecen **NOT_GRANTED/PENDING** en sus Gates consumidores; no se interpretan como implícitas. Issue #34 permanece OPEN y el benchmark científico diferido.
+  - **Falsador superado para esta Task:** ausencia de permisos en G5/G6 está explícita por fila, con rol solicitante, autoridad, condición de desbloqueo y Gate consumidor. Faltante real de permiso bloquea el **Gate consumidor**; no se convierte en permiso por existencia de configuración. La excepción G1 tiene acto externo verificable; no se autoatribuyó en el plan. Referencia: [issue #34, comentario 7069421655](https://github.com/RDsanchez-git/translator_pdf/issues/34#issuecomment-7069421655). **El Exit Review G1 sigue NOT_RUN**.
 
-**Registro de desbloqueos de `1.2.2` (estatus inicial: PENDIENTE; ningún permiso otorgado por este plan):**
+**Registro de desbloqueos de `1.2.2` (verificado al cierre W1.2, 2026-11-21):** esta tabla identifica roles, autoridades y condiciones de cada dependencia. **Solo** están acreditadas la autorización para iniciar G1 y la excepción de alcance técnico de G1 registrada en el issue #34; ninguna otra autorización se concede o presume. El diferimiento de custodia/benchmark continúa y bloquea cualquier consumer que requiera CV real. Las filas conservan los requisitos de autorización originales aprobados:
 
 | Dependencia | Rol que la solicita/gestiona | Autoridad que debe concederla | Evidencia y condición de desbloqueo | Consumidor |
 |---|---|---|---|---|
@@ -257,7 +261,7 @@ Las decisiones del ADR Maestro DC-03/08/09/10/12 permanecen invariantes: EN→ES
 | Host, red, secretos, volúmenes | Staff Engineering / operación, con owner | Owner/autoridad operacional aplicable | Modalidad de nodo único, permisos y controles de entorno acreditados | `5.1.1–5.1.2` |
 | Política de autoridad, confianza, criterios científicos | Staff Engineering / evaluación, con owner | Autoridad científica/Board competente, **no** Execution Plan | Política aprobada, independencia, umbrales/criterios y versiones **anteriores** a evaluación certificante | `6.1.1–6.2.2` |
 
-**Notas de referencia cruzada y hallazgos:** las referencias a reglas usadas por otros gates como comprobación son **verification**; aquí no se duplica su implementación. No hay DF/GF identificados en este borrador. Toda observación futura se deriva al único Findings Register conforme a §8.
+**Checkpoint de hallazgos tras W1.2:** controles CI/CV contrastados sin adulteración; la situación de 15 PDF ausentes ya está registrada como issue #34/HITO PPPR y **no es un DF nuevo descubierto en esta Wave**. No se originó otro DF/GF nuevo en el alcance de W1.2; ello no demuestra que el producto carezca de defectos. Findings Register y Evidence Log se actualizan juntos en el PR de cierre de Wave. **No se realizó Gate 1 Exit Review**.
 
 #### 2.1.3 Gate 1 — Exit Criteria (fijos antes de ejecución)
 
@@ -746,13 +750,13 @@ Ningún Gate ni este DoD autorizan por sí solos el merge del PR #66 a `main`, l
 
 | Gate | Tasks DONE | Rules DONE | Rules DEFERRED | Rules PENDING | Gate Status |
 |---|---|---|---|---|---|
-| G1 | `COUNT(task.status == DONE ∧ gate=G1)` | `COUNT(regla única: Task principal DONE ∧ falsador normativo del Gate propietario PASS)` | `COUNT(regla diferida con autoridad)` | `COUNT(regla única: Task principal pendiente ∨ falsador del Gate propietario no acreditado)` | **IN_PROGRESS — W1.1 2/2 DONE; W1.2 TODO; Exit Review NOT_RUN** |
+| G1 | `COUNT(task.status == DONE ∧ gate=G1)` | `COUNT(regla única: Task principal DONE ∧ falsador normativo del Gate propietario PASS)` | `COUNT(regla diferida con autoridad)` | `COUNT(regla única: Task principal pendiente ∨ falsador del Gate propietario no acreditado)` | **IN_PROGRESS — W1.1+W1.2 COMPLETE, 4/4 Tasks DONE; Exit Review NOT_RUN, G1 sin PASS** |
 | G2 | `COUNT(task.status == DONE ∧ gate=G2)` | `COUNT(regla única: Task principal DONE ∧ falsador normativo del Gate propietario PASS)` | `COUNT(regla diferida con autoridad)` | `COUNT(regla única: Task principal pendiente ∨ falsador del Gate propietario no acreditado)` | PENDING / NOT_RUN |
 | G3 | `COUNT(task.status == DONE ∧ gate=G3)` | `COUNT(regla única: Task principal DONE ∧ falsador normativo del Gate propietario PASS)` | `COUNT(regla diferida con autoridad)` | `COUNT(regla única: Task principal pendiente ∨ falsador del Gate propietario no acreditado)` | PENDING / NOT_RUN |
 | G4 | `COUNT(task.status == DONE ∧ gate=G4)` | `COUNT(regla única: Task principal DONE ∧ falsador normativo del Gate propietario PASS)` | `COUNT(regla diferida con autoridad)` | `COUNT(regla única: Task principal pendiente ∨ falsador del Gate propietario no acreditado)` | PENDING / NOT_RUN |
 | G5 | `COUNT(task.status == DONE ∧ gate=G5)` | `COUNT(regla única: Task principal DONE ∧ falsador normativo del Gate propietario PASS)` | `COUNT(regla diferida con autoridad)` | `COUNT(regla única: Task principal pendiente ∨ falsador del Gate propietario no acreditado)` | PENDING / NOT_RUN |
 | G6 | `COUNT(task.status == DONE ∧ gate=G6)` | `COUNT(regla única: Task principal DONE ∧ falsador normativo del Gate propietario PASS)` | `COUNT(regla diferida con autoridad)` | `COUNT(regla única: Task principal pendiente ∨ falsador del Gate propietario no acreditado)` | PENDING / NOT_RUN |
-| **TOTAL** | `SUM(tasks DONE únicas)` | `COUNT(reglas únicas verificadas)` | `COUNT(reglas formalmente diferidas)` | `COUNT(reglas pendientes)` | **IN_PROGRESS — 2/30 Tasks DONE, 28 TODO; 40 PPPR + 79 históricas A sin verificación DONE; G1 sin PASS** |
+| **TOTAL** | `SUM(tasks DONE únicas)` | `COUNT(reglas únicas verificadas)` | `COUNT(reglas formalmente diferidas)` | `COUNT(reglas pendientes)` | **IN_PROGRESS — 4/30 Tasks DONE, 26 TODO; reglas PPPR e históricas A sin verificación DONE; G1 Exit Review NOT_RUN** |
 
 Actualización solo tras cambios verificables: regla derivada de Task principal y **falsadores propios del Gate propietario**, sin doble contabilizar verificaciones de integración. Los filtros computan por separado las 40 reglas FPPPR y el subconjunto histórico de **79 reglas clase A ratificadas para el alcance del plan** en §1.6/§7; ninguna exclusión C es DEFERRED. Ningún Gate es PASS con reglas propias PENDING; las pruebas G5 de regresión vinculadas a reglas de Gates 2/3 **no** se computan como obligación normativa pendiente para su DONE. **G3** exige sus diez reglas FPPPR-03 DONE mediante §2.3.5; **G5** registra el proveedor real y puede provocar un finding/regresión de G3, pero no sirve como evidencia normativa diferida necesaria para haber cerrado G3. `PRODUCT_READINESS` se deriva por separado conforme a §5/§2.6.3; sin autoridad científica sigue NOT_CERTIFIED/BLOCKED.
 
@@ -951,4 +955,4 @@ Marcar `ELIMINADO` en §4 solo con causa/autoridad registradas; si afecta una re
 
 ---
 
-**Nota final de gobernanza:** `APPROVED v0.5.1 — LIVING DOCUMENT / NOT FROZEN`. Owner autorizó iniciar G1 el 2026-11-21. **Wave 1.1 verificada documentalmente con Tasks 1.1.1 y 1.1.2 DONE en este PR; W1.2 TODO; G1 IN_PROGRESS, Exit Review NOT_RUN; G2–G6 PENDING.** No se ejecutaron Pyright/CI/pytest, OCR, inferencia o verificación científica. 14 GAP-ID P1 aún OPEN, reglas de G2–G6 sin cambios y `PRODUCT_READINESS=NOT_CERTIFIED`. Actualizar los tres documentos vivos solo al cierre de Wave conforme a autorización del owner; no reescribir criterios de Gates iniciados. `main` y PR #66 excluidos.
+**Nota final de gobernanza:** `APPROVED v0.5.2 — LIVING DOCUMENT / NOT FROZEN`. G1 autorizado por el owner; Wave 1.1 (PR #82 MERGED) y Wave 1.2 (cierre documentado en PR pendiente de revisión) **4/4 Tasks DONE**, con evidencia técnica sobre SHA `67affe9…` y resolución acotada `PPPR-G1-CI-SCOPE-01` **APPROVED por owner**, registrada en issue #34. CV científica permanece `FAIL/DEFERRED`, sin certificación y sin material privado redistribuido. **Gate 1 IN_PROGRESS, su Exit Review NO ejecutado y sin PASS; G2–G6 PENDING**. No se modifican NADR FROZEN, Exit Criteria ni regla científica; `PRODUCT_READINESS=NOT_CERTIFIED`. Tres registros vivos actualizados al cierre de Wave. `main` y PR #66 fuera de alcance.
