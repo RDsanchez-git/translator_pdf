@@ -895,7 +895,9 @@ Este es el **único apéndice de regla → Task principal**; las tablas de §2 c
 
 ## 8. FINDINGS REGISTER REFERENCE
 
-Los hallazgos que **surjan de la implementación** se derivarán, cuando comience esa etapa, a un único register propio de PPPR en `docs/architecture/adr/pdf-pdf-product-readiness/reviews/` con nomenclatura excepcional PPPR que apruebe la autoridad aplicable conforme a metodología general §§3.5/6.5–6.7. No se crea ahora para rellenar plantillas. El *Exit Review Evidence Log* se construirá incrementalmente por Gate y se congelará al cierre; los resultados/batches operativos irán al Deferred Findings Register.
+Los hallazgos **que surjan durante la ejecución autorizada** se derivarán a **un único** `docs/architecture/adr/pdf-pdf-product-readiness/reviews/FASE_PPPR_DEFERRED_FINDINGS_REGISTER.md`, que custodiará IDs, clasificación, decisiones, batches y resolución. La evidencia forense detallada de cada DF/GF se añadirá Gate por Gate a `docs/architecture/adr/pdf-pdf-product-readiness/reviews/FASE_PPPR_EXIT_REVIEW_EVIDENCE_LOG.md`, con entradas inmutables una vez registradas. Ambos son **esqueletos vivos** preparados a solicitud del owner, **sin hallazgos ni revisiones ejecutadas**; esto no modifica los 14 GAP-ID de PPPR.0.9 ni autoriza iniciar G1.
+
+**Control del momento de publicación:** la metodología general `1_METHODOLOGY_FOR_ORDERED_PIPELINE_CHANGES.md` §6.7 prevé el commiteo formal de estos registros al cierre de fase (`ARCHIVED` el Register, `FROZEN` el Evidence Log). La propuesta de publicarlos ahora como esqueletos `IN_PROGRESS` se somete a revisión expresa de autoridad como **adelanto documental**, sin anticipar cierre ni redefinir su ciclo de vida. Su aprobación no altera los Exit Criteria, los permisos de ejecución o la autoridad científica.
 
 Este plan registra únicamente referencias a `DF-XX`/`GF-XX` cuando existan, nunca clasificación, remediación ni historial duplicados. La ausencia actual de findings nuevos significa **NOT_RUN**, no cero defectos.
 
