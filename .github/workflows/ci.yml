@@ -4,7 +4,7 @@ on:
   push:
     branches: [main, develop]
   pull_request:
-    branches: [main, pipeline_stabilization]
+    branches: [main, pipeline_stabilization, pdf-pdf-product-readiness]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
