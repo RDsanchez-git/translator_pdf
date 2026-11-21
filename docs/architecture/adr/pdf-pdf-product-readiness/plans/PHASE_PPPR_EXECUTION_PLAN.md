@@ -1,10 +1,10 @@
 # PHASE_PPPR_EXECUTION_PLAN.md — PDF→PDF Product Readiness
 ## Implementation Execution Plan & Rule-Centric Traceability Matrix
 
-**Version:** 0.5.4
+**Version:** 0.5.5
 **Status:** APPROVED
 **Document Lifecycle:** LIVING DOCUMENT — NOT FROZEN; cierre al completar formalmente la fase.
-**Execution Status:** IN_PROGRESS — **G1 COMPLETED/PASS el 2026-11-21**, 4/4 Tasks DONE y Exit Review realizado con reevaluación posterior de CI del SHA `718a81a…` en SUCCESS (run #44951655134); G2–G6 aún PENDING/NOT_RUN. El diferimiento de CV científica sigue **FAIL/DEFERRED** por resolución metodológica G1 exclusiva; no certifica Product Readiness.
+**Execution Status:** IN_PROGRESS — **G1 COMPLETED/PASS**, G2 IN_PROGRESS: **Wave 2.1 3/3 Tasks DONE** verificada mediante CI técnica GitHub [#44955114310](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44955114310) en commit de implementación `2542d6aed46d044d5384b7004070cb3bb1c8deb7`, PR #85 Draft sujeto a revisión/merge. **Wave 2.2 PENDING, G2 Exit Review NOT_RUN, G2 NO PASS**, G3–G6 PENDING. CV científica histórica sigue FAIL/DEFERRED sin extensión de la excepción exclusiva G1; `PRODUCT_READINESS=NOT_CERTIFIED`.
 **Architecture Board Approval:** Contenido v0.5.0 aprobado integralmente el 2026-11-21 según dictamen comunicado por el owner, sobre HEAD `0d920f6b8bdcefe60f6be081e645b0140c162e5b`. Estructura 6/12/30 y clasificación 104 = 79 A / 0 B / 25 C ratificadas; no se presupone un review formal de GitHub ni acta externa.
 **Execution Authorization:** GRANTED por el owner el 2026-11-21 para comenzar implementación controlada de PPPR desde G1. Los tres documentos vivos se actualizan al **cierre de cada Wave**. La autorización no concede corpus privado, egress, proveedor, gasto, certificación científica, host ni merge a `main`; G2–G6 no iniciados.
 **Date:** 2026-11-21
@@ -27,6 +27,7 @@
 | 0.5.2-APPROVED (LIVING) | 2026-11-21 | W1.2: Tasks 1.2.1/1.2.2 verificadas; CI GitHub #44935045055 SUCCESS sobre SHA `67affe9…`, CV #44935045265 FAIL/DEFERRED, excepción acotada `PPPR-G1-CI-SCOPE-01` ratificada por el owner en issue #34. Dependencias G5/G6 sin permiso siguen explícitas. G1 IN_PROGRESS, Exit Review NOT_RUN. Actualización coordinada de los tres registros al cierre de Wave. |
 | 0.5.3-APPROVED (LIVING) | 2026-11-21 | Gate 1 Exit Review ejecutado sobre la evidencia de 4 Tasks: criterios 1,2,4 acreditados; criterio 3 pendiente de CI técnica del HEAD `718a81a…` al momento de esta revisión. Resultado BLOCKED/PENDING_CI (sin PASS). CV científica FAIL/DEFERRED por vía aprobada §2.1.3(3), sin nuevos DF/GF; findings/evidence log reflejan review realizado. |
 | 0.5.4-APPROVED (LIVING) | 2026-11-21 | G1 Exit Review reevaluado tras finalizar CI #44951655134 SUCCESS sobre HEAD exacto `718a81a…`: G1 PASS/COMPLETED por los cuatro Exit Criteria y excepción `PPPR-G1-CI-SCOPE-01` limitada a G1. Mantiene constancia inicial de BLOCKED por CI en curso; CV científica FAIL/DEFERRED, 0 DF/GF nuevos, G2 no iniciado. Tres registros vivos sincronizados al cierre del Gate. |
+| 0.5.5-APPROVED (LIVING) | 2026-11-21 | **G2/Wave 2.1** implementada y verificada en PR #85: Tasks 2.1.1/2.1.2/2.1.3 DONE; 10/10 reglas FPPPR-04 verificadas por falsadores unitarios e integración PDF sintético; Pyright 0/0, import-linter PASS, unit 248 PASS, suite técnica 1478 PASS / 4 SKIPPED / 20 E2E deselected. Código y tres documentos vivos **en el mismo PR**. G2 IN_PROGRESS, W2.2 pendiente, sin Exit Review ni certificación científica; GAP-0.2-01/02 requieren revisión de Gate antes de cierre formal. |
 
 ---
 
@@ -303,30 +304,30 @@ Las decisiones del ADR Maestro DC-03/08/09/10/12 permanecen invariantes: EN→ES
 **Objective:** Ingesta física e identidad.
 **Execution Mode:** Cascada G2 tras cierre formal de G1; waves 2.1 y 2.2 sucesivas.
 **Rollback Plan (propuesto):** Revertir adaptadores/cambios de identidad por PR; mantener compatibilidad/invalidez explícita de claves durables sin migración silenciosa.
-**Gate Status:** PENDING · NOT_RUN
-**Inicio/Cierre:** pendiente; definir en ejecución autorizada.
+**Gate Status:** IN_PROGRESS — W2.1 COMPLETE / W2.2 PENDING; G2 Exit Review NOT_RUN, sin PASS.
+**Inicio/Cierre:** inicio 2026-11-21 / cierre G2 PENDIENTE.
 
 #### 2.2.1 Wave 2.1 — Procedencia y geometría
 
-**Wave Status:** PENDING · NOT_RUN · sin autorización de inicio.
-**Fechas:** pendiente / pendiente.
+**Wave Status:** COMPLETE (3/3 Tasks DONE y falsadores acreditados en CI del commit de código; publicación bajo PR #85 pendiente de merge).
+**Fechas:** inicio 2026-11-21 / cierre de ejecución y verificación W2.1 2026-11-21; PR #85 Draft.
 
 | Task | Description | Rules Implemented / frontera | GAP / evidencia | Risk | Deps | Status |
 |---|---|---|---|---|---|---|
-| **2.1.1** | Procedencia página–región | NADR-FPPPR-04 §5.1 R1; NADR-FPPPR-04 §5.1 R2; NADR-FPPPR-04 §5.1 R3 | GAP-0.2-01/02; E-0.2-011/012 | HIGH | 1.1.2,1.2.1 | TODO |
-| **2.1.2** | Geometría y transformación acreditada | NADR-FPPPR-04 §5.2 R4; NADR-FPPPR-04 §5.2 R5; NADR-FPPPR-04 §5.2 R6; NADR-FPPPR-04 §5.4 R10 | GAP-0.2-02; E-0.2-012/020 | HIGH | 2.1.1 | TODO |
-| **2.1.3** | Muestreo estricto e incertidumbre | NADR-FPPPR-04 §5.3 R7; NADR-FPPPR-04 §5.3 R8; NADR-FPPPR-04 §5.4 R9 | GAP-0.2-01; E-0.2-011 | HIGH | 2.1.1 | TODO |
+| **2.1.1** | Procedencia página–región | NADR-FPPPR-04 §5.1 R1; NADR-FPPPR-04 §5.1 R2; NADR-FPPPR-04 §5.1 R3 | GAP-0.2-01/02; E-0.2-011/012 | HIGH | 1.1.2,1.2.1 | DONE |
+| **2.1.2** | Geometría y transformación acreditada | NADR-FPPPR-04 §5.2 R4; NADR-FPPPR-04 §5.2 R5; NADR-FPPPR-04 §5.2 R6; NADR-FPPPR-04 §5.4 R10 | GAP-0.2-02; E-0.2-012/020 | HIGH | 2.1.1 | DONE |
+| **2.1.3** | Muestreo estricto e incertidumbre | NADR-FPPPR-04 §5.3 R7; NADR-FPPPR-04 §5.3 R8; NADR-FPPPR-04 §5.4 R9 | GAP-0.2-01; E-0.2-011 | HIGH | 2.1.1 | DONE |
 
 **Condiciones de verificación por Task — obligatorias cuando se ejecute:**
 
 - **2.1.1:** Garantizar vínculo verificable documento/página/región para nodos simples y multipágina; resolver ambigüedad sin inferir asociación por posición de listas. **Falsador / evidencia de salida:** Nodos multipágina conservan procedencia y un BBox ambiguo se declara indeterminado; ninguna página 0 ficticia acreditada.
-  - Notas de implementación: PENDIENTE; registrar rutas, SHAs, pruebas y resultados reales al pasar a DONE; ninguna prueba declarada ejecutada.
+  - **Resultado 2026-11-21 — DONE / FPPPR-04 R1–R3:** se incorporó `PhysicalRegion` tipada/inmutable en `core/ast/models.py`, con documento fuente, página física >= 1, BBox y medidas observadas; `apps/bootstrap/pipeline_factory.py` propaga la procedencia de `DocumentLayout→LayoutBlockDraft→FlatASTBuilder`. `core/ast/builder.py` conserva la relación región/página sin asumir correspondencia por índices de `pages`/`bboxes`; `core/ast/cross_page.py` conserva las regiones al fusionar nodos multipágina. Compatibilidad AST histórica mantenida sin acreditarla como correspondencia. Prueba PDF sintético real `tests/integration/test_pppr_g2_physical_ingestion.py`; falsadores unitarios en `tests/unit/test_pppr_g2_physical_provenance.py`. No se inventa página 0 ni BBox cuando falta geometría.
 - **2.1.2:** Hacer coherentes espacios de coordenadas, dimensiones físicas reales, geometrías parciales/representativas y trazabilidad de transformaciones hasta el perfilado; no imponer formato AST nuevo por defecto. **Falsador / evidencia de salida:** Caso 300 pt y X 210 pt=0.70, tamaños mixtos, coordenadas ya relativas y geometría parcial reconocida; 612 no se acepta como valor real universal.
-  - Notas de implementación: PENDIENTE; registrar rutas, SHAs, pruebas y resultados reales al pasar a DONE; ninguna prueba declarada ejecutada.
+  - **Resultado 2026-11-21 — DONE / FPPPR-04 R4–R6 y R10:** `infra/adapters/ast_profiling.py` usa únicamente regiones con vínculo físico acreditado, respeta `BoundingBox.is_normalized` y utiliza dimensión real por página al transformar absoluta→relativa, sin fallback 612pt. `core/domain/document.py` y `infra/extraction/providers/docling_provider.py` diferencian dimensiones observadas de dimensiones de respaldo; `apps/bootstrap/pipeline_factory.py` no promueve estas últimas como reales. Se excluye geometría agregada multipágina no acreditada y se exponen motivos atribuibles de incertidumbre. `core/document_profile/detectors/layout.py` evita mezclar masas de páginas diferentes al inferir columnas. Falsadores 300pt/210pt=0.70, 400pt/300pt=0.75, coordenadas ya normalizadas, dimensiones desconocidas, documentos mixtos, regiones parciales y layout mixto; sin hash nuevo, sin garantía pixel-perfect.
 - **2.1.3:** Asegurar límite real por primeras N páginas y tratamiento explícito de nodos fronterizos, cobertura parcial y datos no acreditados. **Falsador / evidencia de salida:** Sobrecobertura nunca PASS estricto; descarte de contenido incluido no implica cobertura completa; fallar localmente sin rechazo global arbitrario.
-  - Notas de implementación: PENDIENTE; registrar rutas, SHAs, pruebas y resultados reales al pasar a DONE; ninguna prueba declarada ejecutada.
+  - **Resultado 2026-11-21 — DONE / FPPPR-04 R7–R9:** `FirstPagesSamplingPolicy` delimita páginas físicas **1..N**, no las N páginas encontradas primero; un nodo que cruza el límite no puede pasar como cobertura estricta y reporta `PARTIAL`; sin procedencia acreditada reporta `INDETERMINATE`, sin asignación de página 0. `core/document_profile/models.py`, `ports.py` y `profiler.py` transmiten `SamplingCoverage`, causas por nodo y `geometry_reasons` sin rechazar arbitrariamente contenidos válidos. Falsadores de límite, pérdida de cobertura, fuente mixta y geometría incierta incluidos. `STRICT_SCOPE` significa solo **acotación**, no cobertura íntegra del PDF ni resultado científico.
 
-**Notas de referencia cruzada y hallazgos:** las referencias a reglas usadas por otros gates como comprobación son **verification**; aquí no se duplica su implementación. No hay DF/GF identificados en este borrador. Toda observación futura se deriva al único Findings Register conforme a §8.
+**Evidencia común de cierre W2.1 (2026-11-21, código en PR #85):** [GitHub CI #44955114310](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44955114310) **completed/SUCCESS** para SHA `2542d6aed46d044d5384b7004070cb3bb1c8deb7`: Pyright **0 errors / 0 warnings / 0 informations**, import-linter PASS, Unit Test Suite **248 PASS / 1254 deselected / 3 warnings**, Integration Test Suite **SUCCESS** con suite técnica completa `pytest -m "not e2e"` **1478 PASS / 4 SKIPPED / 20 E2E deselected / 3 warnings**; no sumar los 248 tests de la ejecución unitaria al total completo. Falsadores nuevos sobre geometrías sintéticas y un PDF temporal físico de dos páginas, sin 15 originales privados ni GT. **No se descubrieron DF/GF nuevos fuera de alcance en esta Wave**; el trabajo corrige los GAP-0.2-01/02 previstos, sin declarar cerrados esos GAP históricos antes del Exit Review de Gate 2. G2 todavía **IN_PROGRESS**, W2.2 TODO, su Exit Review NOT_RUN; los documentos vivos se versionan **al terminar la Wave, dentro del mismo PR #85**.
 
 #### 2.2.2 Wave 2.2 — Identidad y consumidores
 
@@ -760,12 +761,12 @@ Ningún Gate ni este DoD autorizan por sí solos el merge del PR #66 a `main`, l
 | Gate | Tasks DONE | Rules DONE | Rules DEFERRED | Rules PENDING | Gate Status |
 |---|---|---|---|---|---|
 | G1 | `COUNT(task.status == DONE ∧ gate=G1)` | `COUNT(regla única: Task principal DONE ∧ falsador normativo del Gate propietario PASS)` | `COUNT(regla diferida con autoridad)` | `COUNT(regla única: Task principal pendiente ∨ falsador del Gate propietario no acreditado)` | **COMPLETED/PASS — W1.1+W1.2 completas, 4/4 DONE, CI HEAD SUCCESS; CV científica FAIL/DEFERRED, G2 PENDING** |
-| G2 | `COUNT(task.status == DONE ∧ gate=G2)` | `COUNT(regla única: Task principal DONE ∧ falsador normativo del Gate propietario PASS)` | `COUNT(regla diferida con autoridad)` | `COUNT(regla única: Task principal pendiente ∨ falsador del Gate propietario no acreditado)` | PENDING / NOT_RUN |
+| G2 | `COUNT(task.status == DONE ∧ gate=G2)` | `COUNT(regla única: Task principal DONE ∧ falsador normativo del Gate propietario PASS)` | `COUNT(regla diferida con autoridad)` | `COUNT(regla única: Task principal pendiente ∨ falsador del Gate propietario no acreditado)` | **IN_PROGRESS — W2.1 3/3 DONE, W2.2 TODO; 10 FPPPR-04 verificadas; Exit Review NOT_RUN, Gate NO PASS** |
 | G3 | `COUNT(task.status == DONE ∧ gate=G3)` | `COUNT(regla única: Task principal DONE ∧ falsador normativo del Gate propietario PASS)` | `COUNT(regla diferida con autoridad)` | `COUNT(regla única: Task principal pendiente ∨ falsador del Gate propietario no acreditado)` | PENDING / NOT_RUN |
 | G4 | `COUNT(task.status == DONE ∧ gate=G4)` | `COUNT(regla única: Task principal DONE ∧ falsador normativo del Gate propietario PASS)` | `COUNT(regla diferida con autoridad)` | `COUNT(regla única: Task principal pendiente ∨ falsador del Gate propietario no acreditado)` | PENDING / NOT_RUN |
 | G5 | `COUNT(task.status == DONE ∧ gate=G5)` | `COUNT(regla única: Task principal DONE ∧ falsador normativo del Gate propietario PASS)` | `COUNT(regla diferida con autoridad)` | `COUNT(regla única: Task principal pendiente ∨ falsador del Gate propietario no acreditado)` | PENDING / NOT_RUN |
 | G6 | `COUNT(task.status == DONE ∧ gate=G6)` | `COUNT(regla única: Task principal DONE ∧ falsador normativo del Gate propietario PASS)` | `COUNT(regla diferida con autoridad)` | `COUNT(regla única: Task principal pendiente ∨ falsador del Gate propietario no acreditado)` | PENDING / NOT_RUN |
-| **TOTAL** | `SUM(tasks DONE únicas)` | `COUNT(reglas únicas verificadas)` | `COUNT(reglas formalmente diferidas)` | `COUNT(reglas pendientes)` | **IN_PROGRESS — 4/30 Tasks DONE, 26 TODO; G1 COMPLETED/PASS tras CI HEAD SUCCESS, G2–G6 PENDING; reglas posteriores aún no certificadas** |
+| **TOTAL** | `SUM(tasks DONE únicas)` | `COUNT(reglas únicas verificadas)` | `COUNT(reglas formalmente diferidas)` | `COUNT(reglas pendientes)` | **IN_PROGRESS — 7/30 Tasks DONE, 23 TODO; G1 COMPLETED/PASS, G2 IN_PROGRESS (W2.1 3/3), G3–G6 PENDING; reglas posteriores aún no certificadas** |
 
 Actualización solo tras cambios verificables: regla derivada de Task principal y **falsadores propios del Gate propietario**, sin doble contabilizar verificaciones de integración. Los filtros computan por separado las 40 reglas FPPPR y el subconjunto histórico de **79 reglas clase A ratificadas para el alcance del plan** en §1.6/§7; ninguna exclusión C es DEFERRED. Ningún Gate es PASS con reglas propias PENDING; las pruebas G5 de regresión vinculadas a reglas de Gates 2/3 **no** se computan como obligación normativa pendiente para su DONE. **G3** exige sus diez reglas FPPPR-03 DONE mediante §2.3.5; **G5** registra el proveedor real y puede provocar un finding/regresión de G3, pero no sirve como evidencia normativa diferida necesaria para haber cerrado G3. `PRODUCT_READINESS` se deriva por separado conforme a §5/§2.6.3; sin autoridad científica sigue NOT_CERTIFIED/BLOCKED.
 
@@ -811,16 +812,16 @@ Este es el **único apéndice de regla → Task principal**; las tablas de §2 c
 | `NADR-FPPPR-03 §5.4 R9` | PENDING / NOT_RUN | Task `3.2.3` — evidencia no disponible | **Estado derivado:** `PENDING / NOT_RUN`; **criterio:** §2.3.5 R9 (evidencia contractual del Gate 3). `DONE` solo después de Task principal y falsador acreditados en G3. La prueba comercial `5.2.3` de G5 es adicional, **no requisito normativo diferido**. |
 | `NADR-FPPPR-03 §5.4 R10` | PENDING / NOT_RUN | Task `3.2.3` — evidencia no disponible | **Estado derivado:** `PENDING / NOT_RUN`; **criterio:** §2.3.5 R10 (evidencia contractual del Gate 3). `DONE` solo después de Task principal y falsador acreditados en G3. La prueba comercial `5.2.3` de G5 es adicional, **no requisito normativo diferido**. |
 | **NADR-FPPPR-04** | | | |
-| `NADR-FPPPR-04 §5.1 R1` | PENDING / NOT_RUN | Task `2.1.1` — evidencia no disponible | Sin cambios implementados; falsadores en §2 |
-| `NADR-FPPPR-04 §5.1 R2` | PENDING / NOT_RUN | Task `2.1.1` — evidencia no disponible | Sin cambios implementados; falsadores en §2 |
-| `NADR-FPPPR-04 §5.1 R3` | PENDING / NOT_RUN | Task `2.1.1` — evidencia no disponible | Sin cambios implementados; falsadores en §2 |
-| `NADR-FPPPR-04 §5.2 R4` | PENDING / NOT_RUN | Task `2.1.2` — evidencia no disponible | Sin cambios implementados; falsadores en §2 |
-| `NADR-FPPPR-04 §5.2 R5` | PENDING / NOT_RUN | Task `2.1.2` — evidencia no disponible | Sin cambios implementados; falsadores en §2 |
-| `NADR-FPPPR-04 §5.2 R6` | PENDING / NOT_RUN | Task `2.1.2` — evidencia no disponible | Sin cambios implementados; falsadores en §2 |
-| `NADR-FPPPR-04 §5.3 R7` | PENDING / NOT_RUN | Task `2.1.3` — evidencia no disponible | Sin cambios implementados; falsadores en §2 |
-| `NADR-FPPPR-04 §5.3 R8` | PENDING / NOT_RUN | Task `2.1.3` — evidencia no disponible | Sin cambios implementados; falsadores en §2 |
-| `NADR-FPPPR-04 §5.4 R9` | PENDING / NOT_RUN | Task `2.1.3` — evidencia no disponible | Sin cambios implementados; falsadores en §2 |
-| `NADR-FPPPR-04 §5.4 R10` | PENDING / NOT_RUN | Task `2.1.2` — evidencia no disponible | Sin cambios implementados; falsadores en §2 |
+| `NADR-FPPPR-04 §5.1 R1` | DONE / VERIFIED (W2.1, CI #44955114310) | Task `2.1.1` — falsador acreditado en §2.2.1, tests unitarios e integración PDF sintético | Contrato físico verificado en código del PR #85 (SHA `2542d6aed46d`); sin certificación científica ni CI de CV |
+| `NADR-FPPPR-04 §5.1 R2` | DONE / VERIFIED (W2.1, CI #44955114310) | Task `2.1.1` — falsador acreditado en §2.2.1, tests unitarios e integración PDF sintético | Contrato físico verificado en código del PR #85 (SHA `2542d6aed46d`); sin certificación científica ni CI de CV |
+| `NADR-FPPPR-04 §5.1 R3` | DONE / VERIFIED (W2.1, CI #44955114310) | Task `2.1.1` — falsador acreditado en §2.2.1, tests unitarios e integración PDF sintético | Contrato físico verificado en código del PR #85 (SHA `2542d6aed46d`); sin certificación científica ni CI de CV |
+| `NADR-FPPPR-04 §5.2 R4` | DONE / VERIFIED (W2.1, CI #44955114310) | Task `2.1.2` — falsador acreditado en §2.2.1, tests unitarios e integración PDF sintético | Contrato físico verificado en código del PR #85 (SHA `2542d6aed46d`); sin certificación científica ni CI de CV |
+| `NADR-FPPPR-04 §5.2 R5` | DONE / VERIFIED (W2.1, CI #44955114310) | Task `2.1.2` — falsador acreditado en §2.2.1, tests unitarios e integración PDF sintético | Contrato físico verificado en código del PR #85 (SHA `2542d6aed46d`); sin certificación científica ni CI de CV |
+| `NADR-FPPPR-04 §5.2 R6` | DONE / VERIFIED (W2.1, CI #44955114310) | Task `2.1.2` — falsador acreditado en §2.2.1, tests unitarios e integración PDF sintético | Contrato físico verificado en código del PR #85 (SHA `2542d6aed46d`); sin certificación científica ni CI de CV |
+| `NADR-FPPPR-04 §5.3 R7` | DONE / VERIFIED (W2.1, CI #44955114310) | Task `2.1.3` — falsador acreditado en §2.2.1, tests unitarios e integración PDF sintético | Contrato físico verificado en código del PR #85 (SHA `2542d6aed46d`); sin certificación científica ni CI de CV |
+| `NADR-FPPPR-04 §5.3 R8` | DONE / VERIFIED (W2.1, CI #44955114310) | Task `2.1.3` — falsador acreditado en §2.2.1, tests unitarios e integración PDF sintético | Contrato físico verificado en código del PR #85 (SHA `2542d6aed46d`); sin certificación científica ni CI de CV |
+| `NADR-FPPPR-04 §5.4 R9` | DONE / VERIFIED (W2.1, CI #44955114310) | Task `2.1.3` — falsador acreditado en §2.2.1, tests unitarios e integración PDF sintético | Contrato físico verificado en código del PR #85 (SHA `2542d6aed46d`); sin certificación científica ni CI de CV |
+| `NADR-FPPPR-04 §5.4 R10` | DONE / VERIFIED (W2.1, CI #44955114310) | Task `2.1.2` — falsador acreditado en §2.2.1, tests unitarios e integración PDF sintético | Contrato físico verificado en código del PR #85 (SHA `2542d6aed46d`); sin certificación científica ni CI de CV |
 
 ### 7.H Trazabilidad individual de reglas históricas aplicables (clase A; pendiente)
 
@@ -964,4 +965,4 @@ Marcar `ELIMINADO` en §4 solo con causa/autoridad registradas; si afecta una re
 
 ---
 
-**Nota final de gobernanza:** `APPROVED v0.5.4 — LIVING DOCUMENT / NOT FROZEN`. **Gate 1 completado por Exit Review/reevaluación fechada el 2026-11-21**, 4/4 Tasks DONE y CI #44951655134 SUCCESS sobre `718a81a…`, con excepción aprobada `PPPR-G1-CI-SCOPE-01` estrictamente para §2.1.3(3). El review inicialmente BLOCKED por CI en curso se conserva, con addendum y resultado final PASS. CV científica **FAIL/DEFERRED**, jamás PASS; 0 nuevos DF/GF observados, 14 GAP-ID P1 históricos permanecen OPEN. **G2 habilitado pero no iniciado**, G3–G6 PENDING, `PRODUCT_READINESS=NOT_CERTIFIED`. Sin cambios de criterios, NADR FROZEN, código ni `main`/PR #66; los tres documentos vivos se actualizaron juntos al cierre del Gate.
+**Nota final de gobernanza:** `APPROVED v0.5.5 — LIVING DOCUMENT / NOT FROZEN`. G1 COMPLETED/PASS. **G2/Wave 2.1** ejecutada con código, falsadores e integración sintética en PR #85, CI GitHub [#44955114310](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44955114310) **SUCCESS** sobre `2542d6aed46d044d5384b7004070cb3bb1c8deb7`: 3 Tasks DONE, 10 reglas FPPPR-04 DONE/VERIFIED, **7/30 Tasks en total**. Wave 2.2 y G2 Exit Review siguen NOT_RUN: **G2 no PASS ni COMPLETED**, sin cierre prematuro de GAP P1. No DF/GF nuevo fuera de los hallazgos ya previstos; se preservan issue #34, CV científica FAIL/DEFERRED y `PRODUCT_READINESS=NOT_CERTIFIED`. Los otros Gates/criterios/NADRs FROZEN no se modifican; `main` y PR #66 sin merge. Los tres documentos vivos se sincronizaron dentro del **mismo PR #85**, sin PR documental separado.
