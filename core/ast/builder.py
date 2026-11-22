@@ -138,7 +138,7 @@ class FlatASTBuilder:
         explicit_payload = PayloadRegistry.create(
             node_type=semantic_type, 
             raw_data=block.content,
-            heading_level=cls._map_native_level(getattr(block, 'level', 0))
+            heading_level=cls._map_native_level(block.level)
         )
 
         return ASTNode(

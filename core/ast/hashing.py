@@ -1,79 +1,65 @@
+"""Identidad semántica AST para la ruta productiva PPPR (G2/W2.2).
+
+Contrato AST_SEMANTIC_PRODUCT_V2: tipo, contenido Unicode canónico conservador,
+posición de secuencia y jerarquía explícita. Excluye IDs de nodos, metadata
+física, control_plane, geometría y estado operacional.
+
+No es la identidad canónica del oráculo F17-BIS ni una identidad de generación
+EN→ES: cada consumidor debe verificar también sus otras dimensiones relevantes.
+El cambio de contrato invalida la comparación/reutilización basada en el hash
+legacy: nunca aceptar un hash V1 como prueba de identidad V2.
 """
-NADR-03 §5.1, NADR-F17BIS-16 §5.2: Hashing semántico determinista del AST.
 
-CONTRATO ALTERNATIVO (NO CANÓNICO PARA LINAJE):
-Este módulo implementa un contrato alternativo de hashing semántico del AST,
-diseñado para comparación de parsers y evaluación topológica. NO es el
-contrato canónico para el linaje de la baseline científica.
-
-DIFERENCIACIÓN DE CONTRATOS (DC-01 resuelto):
-- compute_ast_hash (ESTE): Contrato alternativo para comparación de parsers.
-  Excluye node_id porque busca comparar contenido semántico puro, independiente
-  de la identidad de los nodos. Dos ASTs con la misma estructura semántica
-  producirán el mismo hash, incluso si los node_id son diferentes.
-
-- OracleSemanticIdentityCalculator (core/benchmark/ground_truth/identity.py):
-  Contrato canónico para linaje de baseline. Incluye node_id porque la identidad
-  del oráculo requiere distinguir nodos, incluso si el contenido es idéntico.
-
-Ambos contratos coexisten legítimamente con propósitos arquitectónicos distintos
-(NADR-F17BIS-16 §5.2 R4-R8).
-
-Este módulo contiene ÚNICAMENTE la función de hashing semántico.
-La lógica de chunking fue extraída a core/chunking/semantic_chunking.py (NADR-03 §5.2).
-"""
+from __future__ import annotations
 
 import json
 from typing import Sequence
+import unicodedata
 
-from core.ast.models import ASTNode
+from core.ast.enums import ContentNodeType
+from core.ast.models import ASTNode, HeadingPayload
 from core.shared.crypto import compute_sha256
+
+_CONTRACT = "AST_SEMANTIC_PRODUCT_V2"
+
+
+def _canonical_stem_text(text: str) -> str:
+    """NFC solo donde no colapsa un símbolo precompuesto por sí solo.
+
+    NFC por defecto colapsa K->K y Ω->Ω. No se presume la equivalencia de
+    símbolos STEM ni se aplica NFKC. La composición diacrítica de letras
+    (e + COMBINING ACUTE -> é) se permite solo si todos los codepoints de
+    entrada son individualmente estables ante NFC. Conserva bytes para
+    casos ambiguos; nunca cambia silenciosamente símbolos químicos/matemáticos.
+    """
+    if any(unicodedata.normalize("NFC", char) != char for char in text):
+        return text
+    return unicodedata.normalize("NFC", text)
 
 
 def compute_ast_hash(ast: Sequence[ASTNode]) -> str:
+    """Firma semántica versionada por contenido/orden/jerarquía.
+
+    Ni node_id ni sequence_id ni source_document forman parte del preimage;
+    un reintento o variación física no cambia esta identidad semántica.
     """
-    NADR-03 §5.1, NADR-F17BIS-16 §5.2: Generación determinística de firma
-    semántica para el AST (contrato alternativo, no canónico para linaje).
-
-    SENSIBILIDAD AL ORDEN (DC-06 resuelto):
-    Esta función ES SENSIBLE al orden de los nodos en la secuencia. El docstring
-    anterior mencionaba "independientemente de su orden de procesamiento", lo cual
-    era ambiguo. La clarificación es:
-    - El orden de los nodos en la secuencia SÍ afecta el hash (es parte de la
-      identidad estructural del AST).
-    - El orden interno de procesamiento (cómo se visitan los nodos durante la
-      serialización) NO afecta el hash (gracias a sort_keys=True en json.dumps).
-
-    El hash EXCLUYE explícitamente:
-    - node_id: identidad efímera del nodo
-    - sequence_id: índice en el documento original
-    - metadata: linaje físico (bboxes, pages, confidence)
-
-    El hash INCLUYE únicamente:
-    - node_type: tipo semántico del nodo
-    - payload: contenido del nodo (vía text_content)
-    - El orden de los nodos en la secuencia
-
-    NOTA: AST V2 (Fase 16.2) es plano. No existe children.
-
-    PROPÓSITO: Comparación de parsers y evaluación topológica. Para linaje de
-    baseline, usar OracleSemanticIdentityCalculator (NADR-F17BIS-16 §5.2 R8).
-    """
-    def serialize_node(n: ASTNode) -> dict:
-        # ASTNode.node_type está tipado definitivamente como ContentNodeType (Fase 16)
-        type_str = n.node_type.value
-
-        # NADR-03 §5.1 R2: Solo incluir node_type y payload
-        # AST V2 es plano, no tiene children
-        return {
-            "type": type_str,
-            "content": n.text_content,
+    elements: list[dict[str, str | int]] = []
+    for node in ast:
+        if node.depth < 0:
+            raise ValueError("PPPR_G2_INVALID_AST_SEMANTIC_DEPTH")
+        element: dict[str, str | int] = {
+            "node_type": node.node_type.value,
+            "content": _canonical_stem_text(node.text_content or ""),
+            "depth": node.depth,
         }
-
-    raw = json.dumps(
-        [serialize_node(n) for n in ast],
-        sort_keys=True,
-        ensure_ascii=False,
-        separators=(",", ":")
-    )
-    return compute_sha256(raw.encode("utf-8"))
+        if node.node_type == ContentNodeType.HEADING:
+            if not isinstance(node.payload, HeadingPayload):
+                raise ValueError("PPPR_G2_INVALID_HEADING_PAYLOAD")
+            # UNKNOWN es una identidad distinta, NO se convierte a H1.
+            element["heading_level"] = node.payload.heading_level.value
+        elements.append(element)
+    encoded = json.dumps(
+        {"contract": _CONTRACT, "nodes": elements},
+        sort_keys=True, ensure_ascii=False, separators=(",", ":"),
+    ).encode("utf-8")
+    return compute_sha256(encoded)
