@@ -26,7 +26,7 @@ from core.utils.telemetry import (
 from core.execution.exceptions import CircuitTripError, CircuitOpenError
 from infra.db.connection import get_connection
 from core.ast.registry import ASTRegistry
-from core.ast.models import TranslationTaskType
+from core.ast.models import TranslationTaskType, ASTNode
 from core.validation.budget import PromptBudgetCalculator, StandardCompressionPolicy
 from core.finops.measurement import InferenceMeasurementService
 from apps.llm_workers.prompt_builder import PromptBuilder
@@ -36,7 +36,7 @@ from runtime.publication_pipeline import advance_staged_document
 from apps.bootstrap.provider_stack_factory import build_provider_stack
 from core.context.snapshot_contract import ContextSnapshotV1
 from infra.db.context_snapshot_repo import DurableContextPlanRepository
-from typing import Mapping
+from typing import Mapping, cast
 
 logger = logging.getLogger(__name__)
 
@@ -148,7 +148,7 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
         verified_reader = getattr(ast_registry, "get_verified_document_ast", None)
         if callable(verified_reader):
             # Production ASTRegistry: disk-backed semantic + artifact integrity.
-            ast = verified_reader(document_id, ast_hash)
+            ast = cast(list[ASTNode], verified_reader(document_id, ast_hash))
         else:
             # Offline/W06 test doubles retain the older ASTProvider contract.
             # The product composition root always supplies ASTRegistry.
