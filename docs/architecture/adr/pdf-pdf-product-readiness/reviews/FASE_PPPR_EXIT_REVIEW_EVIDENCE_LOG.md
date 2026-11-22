@@ -1,11 +1,11 @@
 # FASE_PPPR_EXIT_REVIEW_EVIDENCE_LOG.md
 
 **Documento:** `docs/architecture/adr/pdf-pdf-product-readiness/reviews/FASE_PPPR_EXIT_REVIEW_EVIDENCE_LOG.md`  
-**Versión:** 0.1.13  
-**Estado:** G1 Exit Review REALIZADO/PASS; **G2 Exit Review REALIZADO con 4/4 CRITERIOS PASS** en `ac156be223d2db952e968352bc1ea38c3531186e` / [CI #44977644736](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44977644736) SUCCESS. Tercera revisión Board FAVORABLE, owner autorizó merge posterior al registro, integración PR86 por comprobar. 6/6 Tasks y 30/30 reglas G2 acreditadas; 14 GAP P1 históricos OPEN, CV científica FAIL/DEFERRED, `PRODUCT_READINESS=NOT_CERTIFIED`; G3–G6 PENDING/NOT_RUN.
+**Versión:** 0.1.14  
+**Estado:** G1 Exit Review REALIZADO/PASS; **G2 Exit Review REALIZADO 2026-11-21 (4/4 PASS), G2 COMPLETED/PASS** tras PR86 MERGED 2026-11-22 en `7842bb3c69c2baf792cb9cb3acca088462445d54`; [CI #44978406678](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44978406678) y [CI #44979093690](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44979093690) SUCCESS. 14 GAP P1 OPEN, G3–G6 NOT_RUN, `PRODUCT_READINESS=NOT_CERTIFIED`.  
 **Fecha:** 2026-11-21  
-**Última actualización:** 2026-11-21  
-**Derivado de:** `PHASE_PPPR_EXECUTION_PLAN.md` v0.5.11 APPROVED/LIVING — G2 Exit Review real, 4/4 criterios PASS; owner autoriza merge PR86, integración por verificar; G3 NOT_RUN.
+**Última actualización:** 2026-11-22  
+**Derivado de:** `PHASE_PPPR_EXECUTION_PLAN.md` v0.5.12 APPROVED/LIVING — G2 COMPLETED/PASS tras Exit Review real, PR86 integrado y CI post-merge verificada; G3 NOT_RUN.
 **Ámbito:** PPPR, ruta única `CLI → OCR → G3 → G5 → PDF`.  
 **Propósito:** Registro forense incremental, por Gate Exit Review, que conserva los fundamentos empíricos, los archivos examinados, los límites de evidencia y las reglas que justifican la clasificación de **cada hallazgo nuevo DF/GF** del Deferred Findings Register.
 
@@ -70,6 +70,8 @@
 | 0.1.11 | 2026-11-21 | Checkpoint técnico W2.2/PR #86: AST semántico V2, generación EN→ES y consumidores/replay. CI #44972570392 SUCCESS sobre `a6ce8eb8…`, test interprocesos y nuevo HEAD aún pendientes; sin Board/merge, G2 Exit Review ni validación científica. |
 | 0.1.12 | 2026-11-21 | Addendum Board PR #86: no-clobber AST y vínculo local de integridad del recibo, con falsadores de concurrencia, reinicio y alteración de generación. CI #44975050240 SUCCESS sobre `69d56ef3…`, 3 jobs verdes, 288 unit y 1541 suite; Board/merge pendientes; sin Exit Review G2 ni certificación científica. |
 | 0.1.13 | 2026-11-21 | Gate2 Exit Review REALIZADO en código SHA `ac156be2…`, CI #44977644736 SUCCESS (3/3 jobs, 289 unit PASS, 1542 suite técnica PASS); Board tercera revisión FAVORABLE, 6 Tasks y 30 reglas G2 con evidencia, 4/4 criterios técnicos PASS. Owner autoriza merge PR86 tras este registro; integración pendiente. 14 GAP P1 OPEN, CV sin certificar, G3 NOT_RUN. |
+
+| 0.1.14 | 2026-11-22 | Post-merge PR86: commit `7842bb3c69c2baf792cb9cb3acca088462445d54`, CI pre-merge #44978406678 y post-merge #44979093690 SUCCESS; G2 COMPLETED/PASS, 6/6 Tasks, 30/30 reglas y 4/4 Exit Criteria. Acta pre-merge inalterada; 14 GAP P1 OPEN, CV FAIL/DEFERRED, Product Readiness no certificado, G3 NOT_RUN. |
 
 ---
 
@@ -245,7 +247,7 @@ Referencia exacta `NADR/ADR/ENGINEERING_PRINCIPLES §/Rn` y explicación de su c
 | Gate del Execution Plan | Revisión real | Evidencia por DF/GF | Decisión/veredicto |
 |---|---|---|---|
 | G1 — Baseline y autoridad | **REALIZADO 2026-11-21 + addendum de CI posterior**; 4/4 Tasks DONE | **0 DF/GF nuevos**, sin §2 ficticio. Referencias de criterios en Plan §2.1.4 y CI/CV en §3.1 | **G1 PASS/COMPLETED**; CI del HEAD SUCCESS, CV científica FAIL/DEFERRED |
-| G2 — Procedencia e identidad | **REVIEW_REALIZADO 2026-11-21**, 6 Tasks, 30 reglas G2, [CI #44977644736](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44977644736) SUCCESS, merge PR86 a verificar | **0 DF/GF nuevos detectados en alcance**, Board H1/H2 resueltos en PR, 14 GAP históricos OPEN | **4/4 Exit Criteria PASS técnico; autorización owner para merge** |
+| G2 — Procedencia e identidad | **Exit Review REALIZADO 2026-11-21**, 6 Tasks, 30 reglas G2, CI #44977644736 SUCCESS; **PR86 MERGED 2026-11-22**, CI post-merge SUCCESS | **0 DF/GF nuevos en alcance**; H1/H2 resueltos, 14 GAP P1 históricos OPEN | **4/4 Exit Criteria PASS y G2 COMPLETED/PASS tras verificación de integración** |
 | G3 — Seguridad de efectos e inferencia | NOT_RUN | No registrada | PENDING |
 | G4 — Reconstrucción G5/PDF | NOT_RUN | No registrada | PENDING |
 | G5 — Host e integración E2E | NOT_RUN | No registrada | PENDING |
@@ -295,6 +297,8 @@ Referencia exacta `NADR/ADR/ENGINEERING_PRINCIPLES §/Rn` y explicación de su c
 **Acta de cierre de la revisión:** `REVIEW_REALIZADO / G2_EXIT_CRITERIA_PASS_4_OF_4 / AUTHORIZED_MERGE_PENDING`. Seis Tasks del Gate con implementación/pruebas acreditadas y favorables al Board. El owner autorizó específicamente el merge PR #86 **después de actualizar esta acta**; al instante de esta anotación la integración/HEAD de la rama destino aún no están verificados. `G2 COMPLETED` se declarará solo tras esa comprobación. **0 hallazgos nuevos DF/GF sustentados dentro del ámbito de revisión**: las observaciones técnicas del Board se corrigieron antes de merge y no se duplican como IDs ficticios. Los **14 GAP P1 históricos siguen OPEN** y requieren sus decisiones forenses propias. CV científica FAIL/DEFERRED (15 PDFs privados no presentes), `PRODUCT_READINESS=NOT_CERTIFIED`; alcance PyMuPDF/offline, NO Docling, egress, gasto, host o `main`. La excepción G1 no se extiende a G2 ni se inventa evidencia del corpus. G3 NOT_RUN hasta completar publicación y DoR.
 
 **CI del HEAD documental posterior:** verificación adicional pendiente; no extrapolar el run `ac156be223d2db952e968352bc1ea38c3531186e` al commit de documentación.
+
+**Addendum forense post-merge (2026-11-22; NO sustituye el Exit Review original):** el acta de 2026-11-21 registra correctamente que el merge todavía estaba pendiente. Después, [PR #86](https://github.com/RDsanchez-git/translator_pdf/pull/86) fue MERGED 2026-11-22 03:06:19 UTC; la rama `pdf-pdf-product-readiness` quedó en `7842bb3c69c2baf792cb9cb3acca088462445d54`. El SHA pre-merge `807dd45358dd407d3e0a07682a4088c935b9a96f` superó [CI #44978406678](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44978406678); el merge superó [CI #44979093690](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44979093690) SUCCESS sobre `7842bb3c69c2baf792cb9cb3acca088462445d54` (3/3 jobs, Pyright 0/0/0, import-linter 4/4, 289 unitarios PASS, 95 integración focal PASS y suite `not e2e` 1542 PASS / 4 SKIPPED / 20 E2E excluidos; no sumar suites). Los tres documentos fueron los únicos archivos modificados después del SHA de código revisado `ac156be2…`. Con esa evidencia **G2 COMPLETED/PASS** (sin segunda revisión ni nuevas reglas). [CV #44979093692](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44979093692) terminó FAIL/DEFERRED por `BASELINE_INTEGRITY_FAILURE` y 15 PDFs canónicos ausentes en runner; no es evaluación científica positiva ni negativa. `PRODUCT_READINESS=NOT_CERTIFIED`; 14 GAP P1 OPEN; G3–G6 NOT_RUN; ningún permiso nuevo de egress, proveedor o gasto.
 
 ## 4. TABLA CONSOLIDADA FINAL
 
