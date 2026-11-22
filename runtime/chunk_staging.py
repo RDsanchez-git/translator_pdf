@@ -56,7 +56,7 @@ def stage_claimed_unit(
                 attested_executor = getattr(processor, "execute_chunk_with_generation", None)
                 if not callable(attested_executor):
                     raise ValueError("PPPR_G2_ATTESTED_PROVIDER_MISSING")
-                raw_response, generation_sha256 = attested_executor(plan, unit)
+                raw_response, generation_sha256 = cast(tuple[str, str], attested_executor(plan, unit))
                 root_config_sha256 = getattr(processor, "generation_root_config_sha256", None)
             else:
                 # Historic/offline providers cannot claim an accredited
