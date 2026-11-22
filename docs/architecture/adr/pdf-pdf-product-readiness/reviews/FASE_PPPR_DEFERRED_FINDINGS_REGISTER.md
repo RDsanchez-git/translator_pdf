@@ -1,11 +1,11 @@
 # FASE_PPPR_DEFERRED_FINDINGS_REGISTER.md
 
 **Documento:** `docs/architecture/adr/pdf-pdf-product-readiness/reviews/FASE_PPPR_DEFERRED_FINDINGS_REGISTER.md`  
-**Versión:** 0.1.8  
-**Estado:** IN_PROGRESS — G1 COMPLETED/PASS; G2/Wave 2.1 3 Tasks implementadas y 10/10 reglas CI_VERIFIED / BOARD_ACCEPTANCE_PENDING en PR #85 Draft, Wave 2.2 PENDING y Gate 2 Exit Review NOT_RUN. Ningún DF/GF nuevo fuera del alcance de los GAP-0.2-01/02 ya catalogados; 14 GAP P1 forenses históricos conservan OPEN hasta revisión/cierre competente. ARCHIVED únicamente al cierre PPPR.
+**Versión:** 0.1.9  
+**Estado:** IN_PROGRESS — G1 COMPLETED/PASS; G2/Wave 2.1 3/3 Tasks DONE, diez reglas FPPPR-04 CI_VERIFIED y Board FAVORABLE_A_INTEGRACION (PR #85, sincronización documental previa a merge). Wave2.2 PENDING, Gate2 Exit Review NOT_RUN, 14 GAP P1 OPEN, sin nuevo DF/GF ficticio ni certificación científica. ARCHIVED solo al cierre PPPR.
 **Fecha de creación:** 2026-11-21  
 **Última actualización:** 2026-11-21  
-**Derivado de:** `PHASE_PPPR_EXECUTION_PLAN.md` v0.5.7 APPROVED/LIVING — G1 PASS, G2 IN_PROGRESS, Wave2.1 3/3 DONE, Wave2.2 PENDING; PR #85, CI #44955114310 SUCCESS en código `2542d6aed46d044d5384b7004070cb3bb1c8deb7`.
+**Derivado de:** `PHASE_PPPR_EXECUTION_PLAN.md` v0.5.8 APPROVED/LIVING; G1 PASS, G2/W2.1 3/3 DONE y diez reglas CI_VERIFIED; HEAD auditado por Board `2535860a23236a9325d56c2cb582c1c5d404265f`, CI #44962322464 SUCCESS; PR #85 pendiente de integración al documentar.
 **Ámbito:** PPPR (iniciativa transversal PDF→PDF; no fase histórica numerada).  
 **Propósito:** Registro único y auditable de hallazgos `DF`/`GF` **que surjan durante la ejecución y los Exit Reviews** del Execution Plan: identificación, clasificación, decisión, resolución, batch y evidencia de implementación.
 
@@ -27,6 +27,8 @@
 
 **Addendum de revalidación técnica del HEAD correctivo (2026-11-21; no es Gate 2 Exit Review):** [CI técnica #44961625659](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44961625659) completó **SUCCESS** sobre SHA `0dc091fa7f1b3a3bbd38f9841ba4c8805061475b` con tres jobs SUCCESS (Static Analysis, Unit Test Suite, Integration Test Suite); Pyright **0 errors/0 warnings/0 informations**, import-linter PASS, unitarios **250 PASS / 1257 deselected / 3 warnings**; suite completa `pytest -m "not e2e"` **1483 PASS / 4 SKIPPED / 20 E2E deselected / 3 warnings**. No sumar la selección de 250 tests al resultado de 1483. Los falsadores correctivos OCR/SQLite/consumidor y el caso mixto están en el HEAD evaluado. La evidencia técnica para FPPPR-04 R9/R10 y los diez requisitos queda **CI_VERIFIED / BOARD_ACCEPTANCE_PENDING**: el Board debe revisar la corrección y el owner conserva autoridad exclusiva de merge. **PR #85 OPEN/Draft sin merge, Wave 2.2 PENDING, G2 Exit Review NOT_RUN, 14 GAP P1 OPEN, CV científica FAIL/DEFERRED, PRODUCT_READINESS NOT_CERTIFIED.**
 
+**Checkpoint definitivo para integración W2.1 (2026-11-21; no es Gate 2 Exit Review):** el Architecture Board realizó una segunda revisión **FAVORABLE A LA INTEGRACIÓN** del PR #85 sobre el HEAD `2535860a23236a9325d56c2cb582c1c5d404265f`. [CI final de la revisión Board #44962322464](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44962322464) confirmó **completed/SUCCESS para exactamente ese SHA**, con tres jobs SUCCESS (Static Analysis, Unit Test Suite, Integration Test Suite), Pyright **0 errores / 0 advertencias / 0 informaciones**, import-linter **4/4 contratos conformes**, unitarios **250 PASS / 1257 deselected / 3 advertencias**, y suite completa `pytest -m "not e2e"` **1483 PASS / 4 SKIPPED / 20 E2E deselected / 3 advertencias**. No sumar ejecuciones separadas. La conformidad de los diez falsadores `NADR-FPPPR-04` es **CI_VERIFIED** y el dictamen del Board es **FAVORABLE_A_INTEGRACION**, limitado a la ruta conectada **PyMuPDF**, NO a Docling histórico. El owner **autoriza expresamente el merge del PR #85 tras esta sincronización documental y una CI SUCCESS del HEAD final**. Se trata de autoridad expresada en la conversación, no de un review APPROVED emitido por la API de GitHub. Los checkpoints anteriores (`#44961625659`, `0dc091fa…`) se mantienen como historial, no como evidencia del HEAD `2535860…`. Esta nota se fija **antes de ejecutar el merge**, que se verificará en GitHub después; G2 IN_PROGRESS, Wave 2.2 PENDING, Gate 2 Exit Review NOT_RUN, 14 GAP P1 OPEN, CV científica FAIL/DEFERRED, `PRODUCT_READINESS=NOT_CERTIFIED`, sin permiso de egress.
+
 **Decisión específica del owner y dictamen ajustado favorable del Architecture Board (2026-11-21):** para **PPPR exclusivamente**, se autoriza publicar este esqueleto `IN_PROGRESS` en GitHub **antes del cierre** y actualizarlo de manera incremental cada vez que se identifique, clasifique o resuelva un hallazgo, se complete una Task relacionada o se realice un Exit Review/batch. El owner autorizó explícitamente el merge documental del PR #81 únicamente hacia `pdf-pdf-product-readiness`; el Board expresó dictamen ajustado **favorable a esa integración**. Esto constituye una **autorización particular de calendario y versionado operativo** frente al momento general de commiteo indicado en `1_METHODOLOGY_FOR_ORDERED_PIPELINE_CHANGES.md` §6.7: **no reforma el texto general, no concede excepciones a otras fases** ni altera los requisitos de evidencia. `ARCHIVED` solo al cierre formal de PPPR. El documento `IN_PROGRESS` **no implica** G1 iniciado, permisos de código, pruebas, materiales privados, egress ni certificación.
 
 ---
@@ -45,6 +47,7 @@
 
 | 0.1.7 | 2026-11-21 | Addendum Board PR #85, R9/R10 OCR/SQLite corregidos a nivel código, CI correctiva pendiente; mantiene 14 GAP OPEN, sin DF/GF inventados ni Gate2 Exit Review. |
 | 0.1.8 | 2026-11-21 | CI técnica correctiva #44961625659 SUCCESS, 10 reglas CI_VERIFIED/Board pendiente, sin declarar nuevo DF/GF ni cerrar 14 GAP P1. PR #85 permanece Draft; G2 Exit Review NOT_RUN. |
+| 0.1.9 | 2026-11-21 | Board segunda revisión favorable a integración PR #85, CI final auditada #44962322464 SUCCESS sobre `2535860…`, owner habilita merge tras sincronización y revalidación. Sin nuevo DF/GF ni cierre anticipado de GAP/G2. |
 
 ---
 
