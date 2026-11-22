@@ -161,6 +161,11 @@ class ASTRegistry:
             or not payload["nodes"]
         ):
             raise ValueError("PPPR_G2_AST_PERSISTED_ENVELOPE_MISMATCH")
+        # ASTNode's discriminator model_validator transforms the input dict.
+        # Fingerprint ORIGINAL JSON before validation, never the mutated alias.
+        observed_artifact_sha256 = _artifact_sha256(
+            document_id, ast_hash, payload["nodes"]
+        )
         try:
             nodes = [ASTNode.model_validate(item) for item in payload["nodes"]]
         except Exception as exc:
@@ -172,9 +177,7 @@ class ASTRegistry:
             raise ValueError("PPPR_G2_AST_ORDER_OR_NODE_ID_DRIFT")
         if compute_ast_hash(nodes) != ast_hash:
             raise ValueError("PPPR_G2_AST_SEMANTIC_GENERATION_DRIFT")
-        if payload["artifact_sha256"] != _artifact_sha256(
-            document_id, ast_hash, payload["nodes"]
-        ):
+        if payload["artifact_sha256"] != observed_artifact_sha256:
             raise ValueError("PPPR_G2_AST_ARTIFACT_INTEGRITY_DRIFT")
         # Hydrate RAM only after successful verification; do not trust an
         # earlier cached copy when the persisted artifact may have changed.
