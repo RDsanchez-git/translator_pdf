@@ -139,7 +139,7 @@ def test_only_numbered_section_evidence_can_create_a_heading_level(
     assert result.payload.heading_level == expected
 
 @pytest.mark.unit
-def test_unverified_heading_blocks_durable_contextual_plan_before_enqueue() -> None:
+def test_unverified_heading_is_preserved_and_uses_no_fabricated_h1_context() -> None:
     from core.chunking.contextual_plan import prepare_contextual_plan
 
     class Estimator:
@@ -150,5 +150,11 @@ def test_unverified_heading_blocks_durable_contextual_plan_before_enqueue() -> N
         _heading(HeadingLevel.UNKNOWN),
         _paragraph("A translated paragraph."),
     ]
-    with pytest.raises(ValueError, match="PPPR_G2_UNVERIFIED_HEADING_BEFORE_G3"):
-        prepare_contextual_plan(document_id="doc", raw_ast=nodes, estimator=Estimator())
+    from core.ast.models import TranslationTaskType
+    result = prepare_contextual_plan(document_id="doc", raw_ast=nodes, estimator=Estimator())
+    assert result.ast[0].payload.heading_level == HeadingLevel.UNKNOWN
+    assert result.plan.units[0].chunk_type == TranslationTaskType.PRESERVE
+    assert result.plan.units[0].target_payload == "Methods"
+    assert result.plan.units[1].chunk_type == TranslationTaskType.TRANSLATE
+    assert "H1:" not in result.plan.units[1].context_id
+    assert result.plan.ast_hash == compute_ast_hash(nodes)

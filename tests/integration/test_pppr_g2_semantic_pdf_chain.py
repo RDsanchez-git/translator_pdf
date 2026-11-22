@@ -63,3 +63,37 @@ def test_connected_pdf_chain_preserves_explicitly_numbered_h1_h2_h3(
     assert levels["1.2 Data"] == HeadingLevel.H2
     assert levels["1.2.3 Measurements"] == HeadingLevel.H3
     assert len(compute_ast_hash(nodes)) == 64
+
+
+@pytest.mark.integration
+def test_real_unnumbered_title_keeps_safe_root_context_without_aborting(tmp_path: Path) -> None:
+    """Real PyMuPDF title is UNKNOWN; it is preserved rather than fabricated H1."""
+    from core.ast.models import TranslationTaskType
+    from core.chunking.contextual_plan import prepare_contextual_plan
+    source = tmp_path / "unlabeled_title.pdf"
+    with fitz.open() as document:
+        page = document.new_page(width=400, height=600)
+        page.insert_text((90, 130), "A Scientific Study", fontsize=23)
+        for index in range(3):
+            page.insert_text((65, 210 + 38 * index), "Repeated experiment observations.", fontsize=10)
+        document.save(str(source))
+    nodes = build_extraction_pipeline().parse(str(source))
+    assert any(
+        node.node_type == ContentNodeType.HEADING
+        and isinstance(node.payload, HeadingPayload)
+        and node.payload.heading_level == HeadingLevel.UNKNOWN
+        for node in nodes
+    )
+    class Estimator:
+        def estimate_tokens(self, text: str) -> int:
+            return max(1, len(text) // 4)
+
+    prepared = prepare_contextual_plan(document_id="synthetic", raw_ast=nodes, estimator=Estimator())
+    assert prepared.plan.ast_hash == compute_ast_hash(nodes)
+    for unit in prepared.plan.units:
+        if any(member.node_type == ContentNodeType.HEADING.value for member in unit.members):
+            assert unit.chunk_type == TranslationTaskType.PRESERVE
+            assert all(
+                member.source_text == next(node.text_content for node in nodes if node.node_id == member.node_id)
+                for member in unit.members
+            )
