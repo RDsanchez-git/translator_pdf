@@ -137,3 +137,18 @@ def test_only_numbered_section_evidence_can_create_a_heading_level(
     result = FlatASTBuilder._map_physical_to_logical(draft, 0)
     assert isinstance(result.payload, HeadingPayload)
     assert result.payload.heading_level == expected
+
+@pytest.mark.unit
+def test_unverified_heading_blocks_durable_contextual_plan_before_enqueue() -> None:
+    from core.chunking.contextual_plan import prepare_contextual_plan
+
+    class Estimator:
+        def estimate_tokens(self, text: str) -> int:
+            return len(text) // 4 + 1
+
+    nodes = [
+        _heading(HeadingLevel.UNKNOWN),
+        _paragraph("A translated paragraph."),
+    ]
+    with pytest.raises(ValueError, match="PPPR_G2_UNVERIFIED_HEADING_BEFORE_G3"):
+        prepare_contextual_plan(document_id="doc", raw_ast=nodes, estimator=Estimator())

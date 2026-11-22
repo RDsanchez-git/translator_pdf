@@ -36,7 +36,9 @@ def prepare_contextual_plan(
     if not raw_ast:
         raise ValueError("W08_OCR_EMPTY_AST")
     original_hash = compute_ast_hash(raw_ast)
-    annotated, registry, _, _ = HierarchicalContextEnricher().enrich_document(list(raw_ast))
+    annotated, registry, warnings, _ = HierarchicalContextEnricher().enrich_document(list(raw_ast))
+    if any("PPPR_G2_UNVERIFIED_HEADING_LEVEL" in w.message for w in warnings):
+        raise ValueError("PPPR_G2_UNVERIFIED_HEADING_BEFORE_G3")
     if compute_ast_hash(annotated) != original_hash:
         raise ValueError("W08_OCR_SEMANTIC_AST_DRIFT")
     if registry.get("schema_version") != "1.0.1":
