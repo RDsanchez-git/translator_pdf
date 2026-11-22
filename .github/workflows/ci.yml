@@ -44,7 +44,6 @@ jobs:
   unit-tests:
     name: Unit Test Suite
     runs-on: ubuntu-latest
-    needs: static-analysis
     steps:
       - uses: actions/checkout@v4
 
@@ -65,10 +64,9 @@ jobs:
   integration-tests:
     name: Integration Test Suite
     runs-on: ubuntu-latest
-    # La suite técnica depende de unit-tests y static-analysis.
+    # Los tres jobs son controles independientes y obligatorios.
     # SMOKE científico corre aparte en continuous-verification.yml y es
     # informativo durante Fase 6 (ENFORCEMENT_CONTRACT §3).
-    needs: [unit-tests]
     steps:
       - uses: actions/checkout@v4
 
