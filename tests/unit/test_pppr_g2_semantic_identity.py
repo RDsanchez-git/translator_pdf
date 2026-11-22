@@ -158,3 +158,39 @@ def test_unverified_heading_is_preserved_and_uses_no_fabricated_h1_context() -> 
     assert result.plan.units[1].chunk_type == TranslationTaskType.TRANSLATE
     assert "H1:" not in result.plan.units[1].context_id
     assert result.plan.ast_hash == compute_ast_hash(nodes)
+
+
+
+@pytest.mark.unit
+def test_semantic_hash_reproducible_across_python_processes_and_hash_seeds() -> None:
+    """F17BIS-03 R6/R7: a PID, hash seed and process restart cannot alter V2."""
+    import os
+    from pathlib import Path
+    import subprocess
+    import sys
+
+    script = """
+from core.ast.enums import ContentNodeType, HeadingLevel
+from core.ast.models import ASTNode, HeadingPayload, ParagraphPayload
+from core.ast.hashing import compute_ast_hash
+nodes = [
+    ASTNode(node_id="a", node_type=ContentNodeType.HEADING,
+            payload=HeadingPayload(content="1.2 Methods", heading_level=HeadingLevel.H2),
+            depth=1),
+    ASTNode(node_id="b", node_type=ContentNodeType.PARAGRAPH,
+            payload=ParagraphPayload(content="H₂O ∈ ℝ"), depth=2),
+]
+print(compute_ast_hash(nodes))
+"""
+    root = Path(__file__).resolve().parents[2]
+    outputs = []
+    for seed in ("1", "101"):
+        env = os.environ.copy()
+        env["PYTHONHASHSEED"] = seed
+        completed = subprocess.run(
+            [sys.executable, "-c", script], cwd=root, env=env,
+            capture_output=True, text=True, check=True, timeout=25,
+        )
+        outputs.append(completed.stdout.strip())
+    assert outputs[0] == outputs[1]
+    assert len(outputs[0]) == 64
