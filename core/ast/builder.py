@@ -165,7 +165,7 @@ class FlatASTBuilder:
             return cls._map_native_level(block.level)
         if (block.logical_type or "").upper() != "SECTION":
             return HeadingLevel.UNKNOWN
-        match = re.match(r"^\\s*([1-9]\\d*(?:\\.\\d+){0,2})\\.?\\s+\\S", block.content)
+        match = re.match(r"^\s*([1-9]\d*(?:\.\d+){0,2})\.?\s+\S", block.content)
         if match is None:
             return HeadingLevel.UNKNOWN
         return cls._map_native_level(match.group(1).count(".") + 1)
