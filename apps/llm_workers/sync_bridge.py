@@ -42,6 +42,7 @@ class SyncProviderBridge:
         # Legacy/offline adapters have no verified config. They must never
         # claim product generation identity or authorize economic reuse.
         self.generation_identity_enabled = effective_config_sha256 is not None
+        self.generation_root_config_sha256 = effective_config_sha256
         
         self.prompt_v = prompt_builder.prompt_version
         self.model_v = prompt_builder.model_name
