@@ -14,9 +14,9 @@ from typing import cast
 import pytest
 
 from apps.ocr_router import __main__ as router_module
-from core.ast.enums import ContentNodeType
+from core.ast.enums import ContentNodeType, HeadingLevel
 from core.ast.hashing import compute_ast_hash
-from core.ast.models import ASTNode, ParagraphPayload, NodeMetadata, PhysicalRegion
+from core.ast.models import ASTNode, ParagraphPayload, HeadingPayload, NodeMetadata, PhysicalRegion, TranslationTaskType
 from core.domain.document import BoundingBox
 from core.document_profile.models import SamplingCoverage
 from apps.bootstrap.pipeline_factory import build_document_profiler
@@ -295,3 +295,49 @@ def test_ocr_route_keeps_uncertainty_in_profile_durable_consumer(
         assert h.doc_id[:12] in caplog.text
     with sqlite3.connect(path) as conn:
         assert SQLiteProfileStore(conn).get(h.doc_id) == profile
+
+
+@pytest.mark.integration
+def test_ocr_route_verifies_actual_ast_registry_before_queue_publication(
+    tmp_path, monkeypatch,
+):
+    """Ruta OCR real con repositorio AST físico y contrato de hash V2."""
+    h = _harness(tmp_path, monkeypatch)
+    with closing(h.db):
+        registry = ASTRegistry(workspace_dir=str(tmp_path))
+        h.daemon.ast_registry = registry
+        h.daemon._process_document(h.pdf)
+        verified = registry.get_verified_document_ast(h.doc_id, h.ast_hash)
+        assert verified == h.ast
+        assert h.db.execute("SELECT COUNT(*) FROM chunk_plans").fetchone()[0] == 1
+
+
+@pytest.mark.integration
+def test_ocr_unnumbered_title_preserves_chunk_without_fabricating_h1(tmp_path, monkeypatch):
+    """Actual OCR Router -> verified AST -> queue/snapshots; no global rejection."""
+    h = _harness(tmp_path, monkeypatch)
+    title = ASTNode(
+        node_id="n_one", sequence_id=1, node_type=ContentNodeType.HEADING,
+        payload=HeadingPayload(content="Scientific Study", heading_level=HeadingLevel.UNKNOWN),
+    )
+    h.parser.ast[0] = title
+    h.ast_hash = compute_ast_hash(h.parser.ast)
+    h.fsm.ast_hash = h.ast_hash
+    prep = prepare_contextual_plan(document_id=h.doc_id, raw_ast=h.parser.ast, estimator=_Estimator())
+    h.ast = list(prep.ast)
+    h.plan = prep.plan
+    assert h.plan.units[0].chunk_type == TranslationTaskType.PRESERVE
+    assert h.plan.units[0].target_payload == "Scientific Study"
+    assert h.plan.units[1].chunk_type == TranslationTaskType.TRANSLATE
+    h.daemon.ast_registry = ASTRegistry(workspace_dir=str(tmp_path))
+    with closing(h.db):
+        h.daemon._process_document(h.pdf)
+        assert h.fsm.state == "PROCESSING"
+        assert h.repo.load_chunk_plan(h.doc_id, h.ast_hash, h.ast) == h.plan
+        plan, snapshots = DurableContextPlanRepository(h.repo).load_verified(h.doc_id, h.ast_hash, h.ast)
+        assert plan == h.plan
+        assert len(snapshots) == 1
+        assert all(
+            frame.level == 0
+            for snapshot in snapshots.values() for frame in snapshot.breadcrumbs
+        )

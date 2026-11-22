@@ -19,6 +19,9 @@ class LayoutBlockDraft(BaseModel):
     page_height: Optional[float] = Field(default=None, gt=0)
     confidence: float = Field(1.0, ge=0.0, le=1.0)
     provider_native_id: Optional[str] = None
+    # Nivel SEMÁNTICO acreditado por el productor, 0 = UNKNOWN.
+    # No inferir H1 de señales tipográficas cuando falta esta evidencia.
+    level: int = Field(default=0, ge=0, le=3)
     merge_history: List[str] = Field(default_factory=list)
 
     column_index: Optional[int] = None

@@ -144,6 +144,14 @@ class OCRRouterDaemon:
             # The AST persists separately; queue.db commits plan/tasks/snapshots
             # together, without pretending that these are one cross-file commit.
             self.ast_registry.register_ast(document_id, ast_hash, list(prepared.ast))
+            # En la ruta productiva, no publicar plan/cola hasta releer y
+            # acreditar la generación semántica desde el artefacto físico.
+            # Los fakes de test que no son ASTRegistry no son consumidores
+            # persistentes y mantienen su contrato unitario aislado.
+            if isinstance(self.ast_registry, ASTRegistry):
+                observed = self.ast_registry.get_verified_document_ast(document_id, ast_hash)
+                if tuple(observed) != prepared.ast:
+                    raise ValueError("PPPR_G2_OCR_PERSISTED_AST_DRIFT")
             
             # FSM y cola son commits locales separados: recuperar CREATED/PARSING
             # sin fingir una transacción entre bases SQLite.

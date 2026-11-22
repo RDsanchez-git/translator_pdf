@@ -83,3 +83,38 @@ class InferenceReuseIdentityV1:
             self._body(), sort_keys=True, ensure_ascii=False, separators=(",", ":"),
         ).encode("utf-8")
         return sha256(encoded).hexdigest()
+
+
+@dataclass(frozen=True, slots=True)
+class PPPRGenerationIdentityV1:
+    """Product EN→ES generation key built from the existing W08 reuse candidate.
+
+    Generation != document's AST semantic key != physical artifact digest !=
+    operational attempt or scientific oracle. A replay is never authorized
+    solely because this hash matches; W06 fencing and receipts remain separate.
+    """
+
+    reuse: InferenceReuseIdentityV1
+    source_language: str
+    output_contract_version: str
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.reuse, InferenceReuseIdentityV1):
+            raise TypeError("PPPR_G2_INVALID_GENERATION_REUSE_IDENTITY")
+        _nonempty("source_language", self.source_language)
+        _nonempty("output_contract_version", self.output_contract_version)
+        if self.source_language != "en" or self.reuse.target_language != "es":
+            raise ValueError("PPPR_G2_UNSUPPORTED_PRODUCT_LANGUAGE_PAIR")
+
+    @property
+    def generation_sha256(self) -> str:
+        payload = {
+            "contract": "PPPR_G2_EN_ES_GENERATION_V1",
+            "reuse_sha256": self.reuse.reuse_sha256,
+            "source_language": self.source_language,
+            "target_language": self.reuse.target_language,
+            "output_contract_version": self.output_contract_version,
+        }
+        return sha256(json.dumps(
+            payload, sort_keys=True, ensure_ascii=False, separators=(",", ":"),
+        ).encode("utf-8")).hexdigest()

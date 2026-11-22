@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Sequence, cast
+import logging
 
 from core.ast.enums import ContentNodeType
 from core.ast.hashing import compute_ast_hash
@@ -20,6 +21,7 @@ from core.validation.protocols import TokenEstimatorProtocol
 
 
 _PRESERVE_HEADING = "PRESERVE_HEADING_NO_INFERENCE"
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True, slots=True)
@@ -36,7 +38,13 @@ def prepare_contextual_plan(
     if not raw_ast:
         raise ValueError("W08_OCR_EMPTY_AST")
     original_hash = compute_ast_hash(raw_ast)
-    annotated, registry, _, _ = HierarchicalContextEnricher().enrich_document(list(raw_ast))
+    annotated, registry, warnings, _ = HierarchicalContextEnricher().enrich_document(list(raw_ast))
+    # H1 / Board PR#86: UNKNOWN is not H1 and does not invalidate unrelated
+    # content. The enricher resets uncertain ancestry and records warnings;
+    # the heading itself remains an isolated PRESERVE chunk in the manifest.
+    for warning in warnings:
+        if "PPPR_G2_UNVERIFIED_HEADING_LEVEL" in warning.message:
+            logger.warning("%s", warning.message)
     if compute_ast_hash(annotated) != original_hash:
         raise ValueError("W08_OCR_SEMANTIC_AST_DRIFT")
     if registry.get("schema_version") != "1.0.1":

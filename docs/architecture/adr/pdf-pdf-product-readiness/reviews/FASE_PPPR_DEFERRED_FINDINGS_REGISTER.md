@@ -1,11 +1,11 @@
 # FASE_PPPR_DEFERRED_FINDINGS_REGISTER.md
 
 **Documento:** `docs/architecture/adr/pdf-pdf-product-readiness/reviews/FASE_PPPR_DEFERRED_FINDINGS_REGISTER.md`  
-**Versión:** 0.1.9  
-**Estado:** IN_PROGRESS — G1 COMPLETED/PASS; G2/Wave 2.1 3/3 Tasks DONE, diez reglas FPPPR-04 CI_VERIFIED y Board FAVORABLE_A_INTEGRACION (PR #85, sincronización documental previa a merge). Wave2.2 PENDING, Gate2 Exit Review NOT_RUN, 14 GAP P1 OPEN, sin nuevo DF/GF ficticio ni certificación científica. ARCHIVED solo al cierre PPPR.
+**Versión:** 0.1.12  
+**Estado:** G1 PASS/COMPLETED; **G2 Gate Exit Review REALIZADO / CRITERIOS 4/4 PASS** sobre `ac156be223d2db952e968352bc1ea38c3531186e` y [CI #44977644736](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44977644736) SUCCESS, 6/6 Tasks y 30/30 reglas técnicas G2 verificadas. Tercera revisión Architecture Board FAVORABLE y owner autorizó merge PR86 DESPUÉS de registrar revisión; integración aún por comprobar. Sin nuevos DF/GF identificados en revisión acotada; 14 GAP P1 históricos OPEN; CV científica FAIL/DEFERRED, `PRODUCT_READINESS=NOT_CERTIFIED`, G3–G6 PENDING.
 **Fecha de creación:** 2026-11-21  
 **Última actualización:** 2026-11-21  
-**Derivado de:** `PHASE_PPPR_EXECUTION_PLAN.md` v0.5.8 APPROVED/LIVING; G1 PASS, G2/W2.1 3/3 DONE y diez reglas CI_VERIFIED; HEAD auditado por Board `2535860a23236a9325d56c2cb582c1c5d404265f`, CI #44962322464 SUCCESS; PR #85 pendiente de integración al documentar.
+**Derivado de:** `PHASE_PPPR_EXECUTION_PLAN.md` v0.5.11 APPROVED/LIVING — Gate2 Exit Review realizado con 4/4 criterios PASS técnico, CI #44977644736, merge PR86 autorizado por owner pendiente de verificación; G3 NOT_RUN.
 **Ámbito:** PPPR (iniciativa transversal PDF→PDF; no fase histórica numerada).  
 **Propósito:** Registro único y auditable de hallazgos `DF`/`GF` **que surjan durante la ejecución y los Exit Reviews** del Execution Plan: identificación, clasificación, decisión, resolución, batch y evidencia de implementación.
 
@@ -48,6 +48,9 @@
 | 0.1.7 | 2026-11-21 | Addendum Board PR #85, R9/R10 OCR/SQLite corregidos a nivel código, CI correctiva pendiente; mantiene 14 GAP OPEN, sin DF/GF inventados ni Gate2 Exit Review. |
 | 0.1.8 | 2026-11-21 | CI técnica correctiva #44961625659 SUCCESS, 10 reglas CI_VERIFIED/Board pendiente, sin declarar nuevo DF/GF ni cerrar 14 GAP P1. PR #85 permanece Draft; G2 Exit Review NOT_RUN. |
 | 0.1.9 | 2026-11-21 | Board segunda revisión favorable a integración PR #85, CI final auditada #44962322464 SUCCESS sobre `2535860…`, owner habilita merge tras sincronización y revalidación. Sin nuevo DF/GF ni cierre anticipado de GAP/G2. |
+| 0.1.10 | 2026-11-21 | Checkpoint técnico W2.2 / PR #86: 3 Tasks implementadas, código CI #44972570392 SUCCESS (287 unit, 1536 suite técnica PASS); test posterior interprocesos PENDING, Board/merge pendientes, Gate2 Exit Review NOT_RUN y 14 GAP P1 OPEN; sin DF/GF inventados. |
+| 0.1.11 | 2026-11-21 | Segundo dictamen Board PR #86 FAVORABLE CON RESERVA, mitigación de sobrescritura AST y prueba de coherencia durable del recibo. CI correctiva #44975050240 SUCCESS en `69d56ef3…`; no nuevos DF/GF inventados ni cierre de GAP, Board/merge pendientes, Gate2 Exit Review NOT_RUN. |
+| 0.1.12 | 2026-11-21 | Gate2 Exit Review realmente ejecutado: 6/6 Tasks, 30 reglas propias G2 verificadas; CI #44977644736 SUCCESS sobre `ac156be2…` (289 unit PASS, 1542 suite técnica PASS), Board tercera revisión FAVORABLE y owner autoriza merge posterior a este registro. Criterios 4/4 PASS, 14 GAP P1 OPEN, sin DF/GF nuevos detectados ni CV científica certificada, G3 pendiente. |
 
 ---
 
@@ -144,7 +147,7 @@ Cada DF/GF exigirá: texto original, fecha/origen Gate/Wave/Task, rutas/SHAs de 
 | Gate previsto | Exit Review | Hallazgos registrados por esta revisión |
 |---|---|---|
 | G1 — Baseline, autoridad y preparación | **REALIZADO 2026-11-21; reevaluación CI final → G1 PASS/COMPLETED** | **0 DF/GF nuevos**; issue #34 y GAP P1 históricos no duplicados |
-| G2 — Ingesta física e identidad | NOT_RUN (Wave 2.1 3/3 Tasks DONE, Wave 2.2 pendiente) | Sin nuevo DF/GF fuera de GAP-0.2-01/02 ya previstos; sin Exit Review |
+| G2 — Ingesta física e identidad | **REVIEW_REALIZADO / 4/4 CRITERIOS PASS** ([CI #44977644736](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44977644736)), PR86 autorizado para merge, integración por comprobar | **0 nuevos DF/GF detectados en scope**, observaciones H1/H2 Board resueltas en PR86; 14 GAP P1 históricos OPEN sin cierre forense |
 | G3 — Seguridad de efectos e inferencia G3 | NOT_RUN | Sin entradas |
 | G4 — Reconstrucción G5 y PDF | NOT_RUN | Sin entradas |
 | G5 — Integración y operación real | NOT_RUN | Sin entradas |
@@ -176,6 +179,30 @@ Cada DF/GF exigirá: texto original, fecha/origen Gate/Wave/Task, rutas/SHAs de 
 - Si el criterio requerido no se cumple, registrar `BLOCKED` aunque el review se haya realizado.
 
 ---
+
+**Checkpoint técnico Wave 2.2 / PR #86 (2026-11-21; NO Gate 2 Exit Review):** implementación y falsadores de Tasks 2.2.1–2.2.3 integrados en la rama del PR #86, **sin merge**; [CI #44972570392](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44972570392) **completed/SUCCESS** sobre SHA exacto `a6ce8eb88e2c9bf50114cba26d0ecb7a80e0a865`, 3/3 jobs SUCCESS, Pyright 0 errors/0 warnings/0 informations, import-linter PASS; unitarios **287 PASS / 1273 deselected / 3 warnings** y suite `pytest -m "not e2e"` **1536 PASS / 4 SKIPPED / 20 E2E deselected / 3 warnings**. No sumar ejecuciones separadas. Se añadió después el falsador de reproducibilidad entre procesos/PYTHONHASHSEED en `tests/unit/test_pppr_g2_semantic_identity.py`, commit `9ab965622fcd65f7a300522598a8c696943bf79a`; su CI [#44974172865](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44974172865) **IN_PROGRESS al registrar este checkpoint**, NO certificada por el run del SHA anterior.
+
+**2.2.1 — Identidad semántica / incertidumbre:** `core/ast/hashing.py` define `AST_SEMANTIC_PRODUCT_V2`, sensible a texto, orden, nivel H1/H2/H3 y profundidad y ajeno a IDs operacionales/geometría. Canonización Unicode NFC conservadora sin colapsar símbolos STEM. `core/layout/models.py` y `core/ast/builder.py` transportan nivel explícito y admiten evidencia de encabezados numerados (`1`, `1.2`, `1.2.3`) probada con PDF temporal en `tests/integration/test_pppr_g2_semantic_pdf_chain.py`; los encabezados no numerados permanecen `UNKNOWN` y `core/chunking/contextual_plan.py` los conserva como `PRESERVE` sin inventar H1 ni abortar OCR, con falsador en `tests/integration/test_g3_b4_2_ocr_router_durable_plan.py`. No se certifica reconocimiento jerárquico universal de PDFs.
+
+**2.2.2 — Propósito de generación EN→ES:** `core/prompting/inference_identity.py` define `PPPRGenerationIdentityV1` basada en el candidato W08 `InferenceReuseIdentityV1`, separando identidad semántica, identidad de generación y autoridad de intento W06. Incluye documento/AST, manifest, chunk, snapshot de contexto, prompt efectivo, idioma fuente/destino, proveedor/modelo, versión de prompt, contrato de salida y configuración efectiva/ruta de presupuesto. `apps/llm_workers/sync_bridge.py` materializa la identidad y `runtime/chunk_staging.py` la pasa al recibo durable en `infra/db/control_repo.py`, con migración SQLite aditiva y falsadores de variación de dimensiones en `tests/unit/test_pppr_g2_generation_identity.py`; no presume que dos generaciones tengan resultados científicos idénticos.
+
+**2.2.3 — Consumidores reales e integridad:** `ASTRegistry.get_verified_document_ast` relee el JSON persistido y acredita hash semántico V2 más `artifact_sha256` separado para `node_id`, `strategy`, metadatos y demás campos durables; `core/compiler/context_resolver.py` y el runtime productivo usan lectura verificada. La huella local detecta drift accidental, **no es firma de autenticidad criptográfica frente a un actor que controle archivo y hash**. `ChunkPlan`, snapshots, contexto, receipts G3, publicación/ensamblado y replay conservan sus controles específicos; `runtime/engine.py` exige la `root_config_sha256` activa en recuperación productiva y `infra/db/control_repo.py` rechaza recibos de otra configuración, corruptos o legados no atestados. Falsadores de AST manipulado, reinicio, estrategias, jerarquía, idempotencia, cambio de generación, migración SQLite y recorrido CLI offline. La caché `CachedLLMProvider` no seleccionada permanece desactivada y el worker heredado no se presenta como conformidad del producto.
+
+**Gobernanza y frontera:** alcance offline sintético y proveedor de extracción productivo PyMuPDF. `G2 IN_PROGRESS`, Wave 2.2 **TECHNICAL_CI_VERIFIED_PRE_BOARD** sobre SHA `a6ce8eb88e2c9bf50114cba26d0ecb7a80e0a865`, falsador entre procesos y CI del HEAD posterior **pendientes**, 3 Tasks implementadas **sin convertir revisión/merge pendiente en DoD final**. Los 14 GAP-ID P1 permanecen OPEN; no se inventan DF/GF, batches ni Gate 2 Exit Review; CV científica FAIL/DEFERRED (15 PDF privados ausentes, excepción G1 no extensible); sin egress, gasto, evaluación científica, G3, `main` ni PR #66. `PRODUCT_READINESS=NOT_CERTIFIED`. El Board revisará el HEAD documental final después de CI verde y el owner decide el merge.
+
+**Addendum correctivo Architecture Board / Wave 2.2 (2026-11-21; PR #86; NO Gate 2 Exit Review):** segundo dictamen **FAVORABLE CON UNA RESERVA DE INTEGRIDAD**, sobre HEAD documental `9a69c70a700fa55f9370c41651c7e694896bfcac`; autorización de merge **NO emitida**. El Board identificó una colisión legítima entre identidad semántica V2 y contenido durable distinto: `register_ast()` podía sustituir silenciosamente archivos con igual `document_id`/`ast_hash`, pero distinta identidad de nodo, estrategia o procedencia física. **Corrección:** `core/ast/registry.py` comprueba la firma semántica al registrar, escribe un temporal completo y publica mediante `os.link` sin sobrescritura atómica; reintento con contenido idéntico = idempotente; archivo preexistente diferente/corrupto = rechazo y sin mutación de caché. `tests/integration/test_pppr_g2_semantic_registry.py` falsifica conflicto con hash semántico igual, idempotencia y carreras de dos escritores independientes, además de rechazo de artefacto inválido.
+
+**Suficiencia real del recibo de generación:** `infra/db/control_repo.py` y `infra/db/schema_queue.sql` agregan `generation_binding_sha256` a recibos nuevos y migración SQLite aditiva; la vinculación local combina documento, AST, manifiesto, unidad, tarea, ejecución, checksum de respuesta, `generation_sha256` y `root_config_sha256`. El consumidor recalcula esa vinculación en replay productivo: cambio **solo** de `generation_sha256` manteniendo idéntica la configuración raíz y la respuesta ⇒ `PPPR_G2_GENERATION_RECEIPT_BINDING_DRIFT`; recibo sin vinculación bajo validación productiva ⇒ `PPPR_G2_REPLAY_GENERATION_UNVERIFIED`. Falsadores `tests/integration/test_g3_b4_1_worker_coexistence.py` y CLI offline. **Límite de autoridad:** el consumidor comprueba coherencia durable local y configuración raíz, **NO recalcula la preimagen efectiva de prompt/modelo/contexto del productor** ni acredita una firma de autenticidad de tercero; `SyncProviderBridge` sigue siendo el productor de la identidad por propósito. No se convierte el hash semántico en hash universal, no se habilita caché LLM ni se reclaman garantías científicas.
+
+**Evidencia técnica correctiva:** [CI técnica #44975050240](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44975050240) **completed/SUCCESS** para HEAD exacto `69d56ef349fef9443e6dc1fe9390027401c219f9`, jobs Static Analysis, Unit Test Suite e Integration Test Suite **3/3 SUCCESS**, Pyright **0 errores / 0 advertencias / 0 informaciones**, import-linter PASS, unitarios **288 PASS / 1277 deselected / 3 warnings**, integración focal **95 PASS / 1470 deselected**, suite `pytest -m "not e2e"` **1541 PASS / 4 SKIPPED / 20 E2E deselected / 3 warnings**. No sumar ejecuciones separadas. Este resultado acredita **código y falsadores del SHA citado**, no la CI posterior del commit exclusivamente documental. Wave 2.2 **TECHNICAL_CI_VERIFIED_PRE_BOARD**, 3/3 Tasks implementadas pero `IN_PROGRESS/BOARD_PENDING` hasta aceptación formal y autorización de integración. G2 `IN_PROGRESS`, Exit Review `NOT_RUN`, 14 GAP P1 históricos `OPEN`, sin nuevos DF/GF ficticios ni certificación científica, `PRODUCT_READINESS=NOT_CERTIFIED`; sin egress, gastos, host, G3, main ni PR #66.
+
+### 2.2 Gate 2 Exit Review (2026-11-21) — REALIZADO / CRITERIOS PASS
+
+**Sujeto de la revisión:** G2/Wave2.1 integrada por PR #85 (`pdf-pdf-product-readiness@2c42628d…`) y G2/Wave2.2 en PR #86. Tercera revisión Architecture Board **FAVORABLE A LA INTEGRACIÓN**, SHA `0d42ad7f30a9576fa6bec05d0fe336a95de16cc7` y [CI #44975791556](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44975791556) SUCCESS, H1 (no-clobber AST) y H2 (binding local recibos) corregidas. Dos falsadores unitarios normativos finales sin alteración productiva validados en [CI #44977644736](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44977644736) **completed/SUCCESS** sobre `ac156be223d2db952e968352bc1ea38c3531186e`: 3/3 jobs, Pyright 0/0, import-linter 4/4, 289 PASS unitarios y 1542 PASS suite técnica `not e2e`, 4 SKIPPED, 20 E2E excluidos. No sumar selecciones.
+
+**Control forense:** seis Tasks G2 implementadas y aceptadas técnicamente (2.1.1–2.2.3), diez reglas propias FPPPR-04 y veinte reglas históricas de propiedad G2 con falsadores en Execution Plan §7.H. Exit Criteria §2.2.3 **(1)–(4) PASS**: procedencia y muestreo físicos PyMuPDF, falsadores de GAP previstos, jerarquía/Unicode STEM, suficiencia de consumidor durable, CI y regresiones técnicas. Sin nuevo DF/GF sustentado en un defecto abierto identificado por esta revisión acotada; H1/H2 son observaciones correctivas resueltas **antes** de la integración, no se inventan IDs ni `CLOSED (NAR)`. Los **14 GAP P1 históricos permanecen OPEN**: superar un falsador técnico de Gate no significa una decisión forense de cierre.
+
+**Dictamen/autoridad:** owner autoriza expresamente merge del PR #86 **una vez actualizado este Gate2 Exit Review**. El Exit Review está REALIZADO y los cuatro criterios PASS; la ejecución y verificación del merge/HEAD destino se harán después del registro. La aprobación Board llegó por la conversación transmitida por el owner, **no es una review APPROVED de la API de GitHub**. `G2 COMPLETED` y DoR de G3 solo se habilitan luego de verificar integración. La CV científica sigue FAIL/DEFERRED por 15 PDFs privados ausentes; `PRODUCT_READINESS=NOT_CERTIFIED`; ni Docling ni egress/proveedor comercial/host/`main`/PR66 incluidos.
 
 ## 3. TABLA CONSOLIDADA FINAL
 
@@ -270,12 +297,12 @@ El documento se declara `ARCHIVED` **solo** tras cierre formal de PPPR, verifica
 
 | Categoría | Estado actual |
 |---|---|
-| Gates revisados | **1 realizado: G1 PASS/COMPLETED**; G2 IN_PROGRESS/Wave2.1 completa, Exit Review G2 NOT_RUN; G3–G6 NOT_RUN |
+| Gates revisados | **2 realizados**: G1 PASS/COMPLETED; G2 REVIEW_REALIZADO / 4/4 CRITERIOS PASS, merge PR86 pendiente de verificar; G3–G6 NOT_RUN |
 | Hallazgos PPPR registrados nuevos | **0 DF/GF nuevos fuera del alcance planificado** en G1 y W2.1; GAP-0.2-01/02 preexistentes no duplicados; no inferir ausencia global de defectos |
 | Hallazgos analizados/resueltos/diferidos | **0 nuevos en Gate 1; clasificación N/A** (no inventar NAR) |
 | Batches ejecutados | NOT_RUN |
-| Estado de los Exit Reviews | **G1 REVIEW_REALIZADO / CI posterior SUCCESS → PASS/COMPLETED; G2–G6 NOT_RUN** |
-| Estado operativo del Register | **IN_PROGRESS — checkpoint W2.1 tras CI real, sin batch de findings ni Gate 2 Exit Review** |
+| Estado de los Exit Reviews | **G1 REVIEW_REALIZADO/PASS; G2 REVIEW_REALIZADO/CRITERIOS_PASS con CI #44977644736**, integración PR86 por verificar; G3–G6 NOT_RUN |
+| Estado operativo del Register | **IN_PROGRESS — Gate 2 Exit Review ejecutado, 14 GAP P1 OPEN, sin nuevos DF/GF/batches acreditados; G3 pendiente** |
 | Cierre de fase | **PENDIENTE / NO ARCHIVED** |
 
 ---

@@ -44,7 +44,17 @@ class HierarchicalContextEnricher:
                 elif h_level_attr == HeadingLevel.H3:
                     level = 3
                 else:
-                    level = 1
+                    # Unknown physical heading depth is not proof of H1.
+                    # Record an explicit warning; the durable OCR producer
+                    # must reject unresolved structure before publishing G3.
+                    warnings.append(WarningEntry(
+                        severity="WARNING",
+                        message=f"PPPR_G2_UNVERIFIED_HEADING_LEVEL: {node.node_id}",
+                    ))
+                    hierarchy_stack.clear()
+                    last_level = 0
+                    enriched_nodes.append(node)
+                    continue
 
                 title = (node.text_content or "Untitled").lstrip("#").strip()
                 structural_index += 1

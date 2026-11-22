@@ -5,6 +5,8 @@ import time
 import uuid
 import random
 import logging
+import hashlib
+import json
 import threading
 from concurrent.futures import ThreadPoolExecutor
 
@@ -24,7 +26,7 @@ from core.utils.telemetry import (
 from core.execution.exceptions import CircuitTripError, CircuitOpenError
 from infra.db.connection import get_connection
 from core.ast.registry import ASTRegistry
-from core.ast.models import TranslationTaskType
+from core.ast.models import TranslationTaskType, ASTNode
 from core.validation.budget import PromptBudgetCalculator, StandardCompressionPolicy
 from core.finops.measurement import InferenceMeasurementService
 from apps.llm_workers.prompt_builder import PromptBuilder
@@ -34,7 +36,7 @@ from runtime.publication_pipeline import advance_staged_document
 from apps.bootstrap.provider_stack_factory import build_provider_stack
 from core.context.snapshot_contract import ContextSnapshotV1
 from infra.db.context_snapshot_repo import DurableContextPlanRepository
-from typing import Mapping
+from typing import Mapping, cast
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +46,24 @@ EVENT_DB_PATH = "infra/db/event.db"
 MAT_DB_PATH = "infra/db/materialized.db"
 
 GLOBAL_LLM_SEMAPHORE = threading.Semaphore(int(os.getenv("MAX_GLOBAL_LLM_CONCURRENCY", "4")))
+
+
+
+def _product_effective_config_sha256() -> str:
+    """Known EN→ES provider configuration; independent of paid I/O.
+
+    Changes to any output-affecting provider setting MUST update this scope.
+    """
+    options = {
+        "provider_id": "groq", "dialect": "openai_compatible_json_v1",
+        "temperature": 0.00001, "stream": False,
+        "source_language": "en", "target_language": "es",
+        "prompt_version": "v1.0", "model_name": "llama3-70b-8192",
+        "target_lang_expansion": 2.0, "response_contract": "G3_CHUNK_RESPONSE_V1",
+    }
+    return hashlib.sha256(json.dumps(
+        options, ensure_ascii=False, sort_keys=True, separators=(",", ":"),
+    ).encode("utf-8")).hexdigest()
 
 
 def _create_chunk_processor(context_snapshots: Mapping[str, ContextSnapshotV1]):
@@ -92,10 +112,13 @@ def _create_chunk_processor(context_snapshots: Mapping[str, ContextSnapshotV1]):
             # W08-3 interim: legacy prompt_hash-only cache cannot prove reuse identity.
             cache_db_path=None,
         ))
+        effective_config_sha256 = _product_effective_config_sha256()
         processor = SyncProviderBridge(
             async_provider=provider_stack,
             prompt_builder=builder,
             context_snapshots=context_snapshots,
+            effective_config_sha256=effective_config_sha256,
+            source_language="en", target_language="es", provider_id="groq",
         )
     except BaseException:
         quota_store.close()
@@ -122,7 +145,17 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
     try:
         if os.getenv("IS_BENCHMARK") == "1":
             raise PipelineIntegrityError("G3_B4_3A_BENCHMARK_REQUIRES_OWN_PLAN")
-        ast = ast_registry.get_document_ast(document_id, ast_hash)
+        verified_reader = getattr(ast_registry, "get_verified_document_ast", None)
+        if callable(verified_reader):
+            # Production ASTRegistry: disk-backed semantic + artifact integrity.
+            ast = cast(list[ASTNode], verified_reader(document_id, ast_hash))
+            required_generation_config = _product_effective_config_sha256()
+        else:
+            # Offline/W06 test doubles retain the older ASTProvider contract.
+            # The product composition root always supplies ASTRegistry.
+            # Unattested historical receipts cannot claim product reuse.
+            ast = ast_registry.get_document_ast(document_id, ast_hash)
+            required_generation_config = None
         if not ast or compute_ast_hash(ast) != ast_hash:
             raise PipelineIntegrityError("G3_B4_3A_AST_MISSING_OR_HASH_MISMATCH")
         # A missing, stale or altered snapshot is an integrity failure before
@@ -175,7 +208,8 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
                     mat_conn = get_connection(MAT_DB_PATH, timeout=30)
                     try:
                         advance_staged_document(task_repo, mat_conn, fsm_repo,
-                                                plan, ast, owner_id)
+                                                plan, ast, owner_id,
+                                                required_root_config_sha256=required_generation_config)
                     finally:
                         mat_conn.close()
                     current_state = DocumentState.READY_FOR_ASSEMBLY
@@ -290,7 +324,8 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
                     mat_conn = get_connection(MAT_DB_PATH, timeout=30)
                     try:
                         advance_staged_document(task_repo, mat_conn, fsm_repo,
-                                                plan, ast, owner_id)
+                                                plan, ast, owner_id,
+                                                required_root_config_sha256=required_generation_config)
                     finally:
                         mat_conn.close()
                     current_state = DocumentState.READY_FOR_ASSEMBLY
