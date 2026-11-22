@@ -1,0 +1,29 @@
+name: P2 uv lock bootstrap (temporary)
+on:
+  pull_request:
+    branches: [pdf-pdf-product-readiness]
+
+permissions:
+  contents: read
+
+jobs:
+  resolve-lock:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: astral-sh/setup-uv@v9
+        with:
+          version: '0.10.0'
+      - name: Resolve and export uv.lock
+        run: |
+          uv lock --python 3.11
+          uv lock --check
+          printf 'UV_LOCK_BEGIN\\n'
+          cat uv.lock
+          printf '\\nUV_LOCK_END\\n'
+          printf 'UV_LOCK_BYTES='
+          wc -c < uv.lock
+          sha256sum uv.lock
