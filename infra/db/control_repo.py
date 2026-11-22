@@ -36,6 +36,7 @@ _G3_RESULT_RECEIPTS_DDL = """CREATE TABLE IF NOT EXISTS chunk_result_receipts (
     execution_id TEXT NOT NULL,
     raw_response TEXT,
     response_sha256 TEXT CHECK(response_sha256 IS NULL OR length(response_sha256) = 64),
+    generation_sha256 TEXT CHECK(generation_sha256 IS NULL OR length(generation_sha256) = 64),
     created_at REAL NOT NULL,
     PRIMARY KEY (document_id, ast_hash, chunk_id),
     FOREIGN KEY (task_id) REFERENCES chunk_tasks(task_id),
@@ -222,6 +223,7 @@ class ControlPlaneRepository(ControlPlanePort):
         worker_id: str,
         execution_id: str,
         raw_response: Optional[str],
+        generation_sha256: str | None = None,
     ) -> bool:
         """Fence a validated provider result in queue.db; never acknowledge here.
 
@@ -233,6 +235,12 @@ class ControlPlaneRepository(ControlPlanePort):
 
         if not worker_id or not execution_id:
             raise ValueError("G3_B3_2_MISSING_LEASE_IDENTITY")
+        if generation_sha256 is not None and (
+            not isinstance(generation_sha256, str)
+            or len(generation_sha256) != 64
+            or any(ch not in "0123456789abcdef" for ch in generation_sha256)
+        ):
+            raise ValueError("PPPR_G2_INVALID_GENERATION_DIGEST")
         # B2 enforces persisted digest, AST linkage, and exact queue membership.
         verified = self.load_chunk_plan(plan.document_id, plan.ast_hash, ast)
         if verified != plan:
@@ -243,6 +251,8 @@ class ControlPlaneRepository(ControlPlanePort):
         units = {u.chunk_id: u for u in verified.units}
         unit = units[chunk_id]
         if unit.chunk_type == TranslationTaskType.PRESERVE:
+            if generation_sha256 is not None:
+                raise ValueError("PPPR_G2_PRESERVE_CANNOT_HAVE_GENERATION")
             if raw_response is not None:
                 raise ValueError("G3_B3_2_PRESERVE_MUST_BYPASS_PROVIDER")
             response_sha256 = None
@@ -256,6 +266,13 @@ class ControlPlaneRepository(ControlPlanePort):
         with self._chunk_plan_write_scope():
             # In-place schema addition for already initialized queue.db files.
             self.conn.execute(_G3_RESULT_RECEIPTS_DDL)
+            cols = {row[1] for row in self.conn.execute(
+                "PRAGMA table_info(chunk_result_receipts)"
+            ).fetchall()}
+            if "generation_sha256" not in cols:
+                self.conn.execute(
+                    "ALTER TABLE chunk_result_receipts ADD COLUMN generation_sha256 TEXT"
+                )
             row = self.conn.execute(
                 "SELECT task_state, lease_owner, execution_id, lease_expires_at, state_version "
                 "FROM chunk_tasks WHERE task_id=? AND document_id=? AND ast_hash=? AND node_id=? "
@@ -266,14 +283,14 @@ class ControlPlaneRepository(ControlPlanePort):
                 raise ValueError("G3_B3_2_TASK_NOT_FOUND")
             state, owner, active_execution, expires_at, version = row
             existing = self.conn.execute(
-                "SELECT task_id, execution_id, raw_response, response_sha256 "
+                "SELECT task_id, execution_id, raw_response, response_sha256, generation_sha256 "
                 "FROM chunk_result_receipts WHERE document_id=? AND ast_hash=? AND chunk_id=?",
                 (verified.document_id, verified.ast_hash, chunk_id),
             ).fetchone()
             if existing is not None:
                 if (state == "RESULT_STAGED" and owner == worker_id
                         and active_execution == execution_id
-                        and existing == (task_id, execution_id, raw_response, response_sha256)):
+                        and existing == (task_id, execution_id, raw_response, response_sha256, generation_sha256)):
                     return False  # Byte-identical retry; no change to state or timestamps.
                 raise ValueError("G3_B3_2_STAGED_RECEIPT_CONFLICT")
 
@@ -284,10 +301,10 @@ class ControlPlaneRepository(ControlPlanePort):
 
             self.conn.execute(
                 "INSERT INTO chunk_result_receipts "
-                "(document_id,ast_hash,chunk_id,task_id,execution_id,raw_response,response_sha256,created_at) "
-                "VALUES (?,?,?,?,?,?,?,?)",
+                "(document_id,ast_hash,chunk_id,task_id,execution_id,raw_response,response_sha256,generation_sha256,created_at) "
+                "VALUES (?,?,?,?,?,?,?,?,?)",
                 (verified.document_id, verified.ast_hash, chunk_id, task_id,
-                 execution_id, raw_response, response_sha256, now),
+                 execution_id, raw_response, response_sha256, generation_sha256, now),
             )
             updated = self.conn.execute(
                 "UPDATE chunk_tasks SET task_state='RESULT_STAGED', "

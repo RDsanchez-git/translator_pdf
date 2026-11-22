@@ -5,6 +5,8 @@ import time
 import uuid
 import random
 import logging
+import hashlib
+import json
 import threading
 from concurrent.futures import ThreadPoolExecutor
 
@@ -92,10 +94,26 @@ def _create_chunk_processor(context_snapshots: Mapping[str, ContextSnapshotV1]):
             # W08-3 interim: legacy prompt_hash-only cache cannot prove reuse identity.
             cache_db_path=None,
         ))
+        # Effective Groq product options as used by GroqProvider/Dialect.
+        # This contract must be updated whenever an output-affecting provider
+        # option changes; no prompt_hash-only cache is allowed.
+        effective_options = {
+            "provider_id": "groq", "dialect": "openai_compatible_json_v1",
+            "temperature": 0.00001, "stream": False,
+            "source_language": "en", "target_language": "es",
+            "prompt_version": builder.prompt_version, "model_name": builder.model_name,
+            "target_lang_expansion": 2.0, "response_contract": "G3_CHUNK_RESPONSE_V1",
+        }
+        effective_config_sha256 = hashlib.sha256(json.dumps(
+            effective_options, ensure_ascii=False, sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")).hexdigest()
         processor = SyncProviderBridge(
             async_provider=provider_stack,
             prompt_builder=builder,
             context_snapshots=context_snapshots,
+            effective_config_sha256=effective_config_sha256,
+            source_language="en", target_language="es", provider_id="groq",
         )
     except BaseException:
         quota_store.close()

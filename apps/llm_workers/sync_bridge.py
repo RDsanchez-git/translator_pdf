@@ -7,6 +7,7 @@ from hashlib import sha256
 import re
 from typing import Any, Mapping
 from core.context.snapshot_contract import ContextSnapshotV1
+from core.prompting.inference_identity import InferenceReuseIdentityV1, PPPRGenerationIdentityV1
 from core.ast.models import ASTNode, TranslationTaskType, TranslationUnit
 from apps.llm_workers.routing import LLMProvider
 from apps.llm_workers.prompt_builder import PromptBuilder
@@ -25,12 +26,22 @@ class SyncProviderBridge:
         self, async_provider: LLMProvider, prompt_builder: PromptBuilder,
         timeout_sec: float = 180.0,
         context_snapshots: Mapping[str, ContextSnapshotV1] | None = None,
+        effective_config_sha256: str | None = None,
+        source_language: str = "en", target_language: str = "es",
+        provider_id: str = "groq",
     ):
         self._provider = async_provider
         self._builder = prompt_builder
         self._timeout = timeout_sec
         # None is NOT a root context. Unbound G3 inference is always forbidden.
         self._context_snapshots = dict(context_snapshots or {})
+        self._effective_config_sha256 = effective_config_sha256
+        self._source_language = source_language
+        self._target_language = target_language
+        self._provider_id = provider_id
+        # Legacy/offline adapters have no verified config. They must never
+        # claim product generation identity or authorize economic reuse.
+        self.generation_identity_enabled = effective_config_sha256 is not None
         
         self.prompt_v = prompt_builder.prompt_version
         self.model_v = prompt_builder.model_name
@@ -119,6 +130,18 @@ class SyncProviderBridge:
             raise
 
     def execute_chunk(self, plan: ChunkPlan, unit: TranslationUnit) -> str:
+        return self._execute_chunk_checked(plan, unit, attested=False)[0]
+
+    def execute_chunk_with_generation(self, plan: ChunkPlan, unit: TranslationUnit) -> tuple[str, str]:
+        """Product-only attested result; no attempt/lease in generation SHA."""
+        result, digest = self._execute_chunk_checked(plan, unit, attested=True)
+        if digest is None:
+            raise ValueError("PPPR_G2_GENERATION_IDENTITY_MISSING")
+        return result, digest
+
+    def _execute_chunk_checked(
+        self, plan: ChunkPlan, unit: TranslationUnit, *, attested: bool,
+    ) -> tuple[str, str | None]:
         """Produce a validated G3 response using the existing JSON content dialect.
 
         Transport: {"content": "<serialized G3 JSON object>"}. The provider's
@@ -215,6 +238,25 @@ class SyncProviderBridge:
         built = self._builder.build(prompt_unit, resolved_context=context, target_lang_expansion=2.0)
         if built.status != "success":
             raise RuntimeError(f"G3_B4_3A_PROMPT_REJECTED: {built.message}")
+        generation_sha256: str | None = None
+        if self._effective_config_sha256 is not None:
+            identity = PPPRGenerationIdentityV1(
+                reuse=InferenceReuseIdentityV1(
+                    document_id=plan.document_id, ast_hash=plan.ast_hash,
+                    manifest_sha256=plan.digest, chunk_id=unit.chunk_id,
+                    context_snapshot_sha256=snapshot.snapshot_sha256,
+                    prompt_hash=built.envelope.prompt_hash,
+                    provider_id=self._provider_id, model_name=built.envelope.model_name,
+                    prompt_version=built.envelope.prompt_version,
+                    target_language=self._target_language,
+                    effective_config_sha256=self._effective_config_sha256,
+                ),
+                source_language=self._source_language,
+                output_contract_version="G3_CHUNK_RESPONSE_V1",
+            )
+            generation_sha256 = identity.generation_sha256
+        elif attested:
+            raise ValueError("PPPR_G2_EFFECTIVE_CONFIG_NOT_ACCREDITED")
         future = asyncio.run_coroutine_threadsafe(self._provider.translate(built.envelope), self._loop)
         try:
             result = future.result(timeout=self._timeout)
@@ -231,7 +273,7 @@ class SyncProviderBridge:
                 if len(found) != len(expected) or set(found) != expected:
                     raise ValueError("G3_B4_3A_MATH_TOKEN_LOST_OR_DUPLICATED")
             if not any(math_maps.values()):
-                return result.content
+                return result.content, generation_sha256
 
             # Rebuild ONLY to restore verbatim LaTeX from the source. All identity
             # fields and member coverage have already passed the strict parser.
@@ -252,7 +294,7 @@ class SyncProviderBridge:
             restored = json.dumps(envelope, ensure_ascii=False, sort_keys=True,
                                   separators=(",", ":"))
             parse_chunk_response(plan, unit.chunk_id, restored)
-            return restored
+            return restored, generation_sha256
         except TimeoutError as exc:
             future.cancel()
             raise TimeoutError("G3_B4_3A_PROVIDER_TIMEOUT") from exc

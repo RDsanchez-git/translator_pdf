@@ -44,18 +44,33 @@ def stage_claimed_unit(
     if lease.lease_expires_at <= time.time():
         raise ValueError("G3_B4_3A_EXPIRED_LEASE")
 
+    generation_sha256: str | None = None
     if unit.chunk_type == TranslationTaskType.PRESERVE:
         raw_response = None
     elif unit.chunk_type in (TranslationTaskType.TRANSLATE, TranslationTaskType.PARTIAL):
         if processor is None:
             raise ValueError("G3_B4_3A_PROVIDER_REQUIRED")
         with llm_semaphore:
-            raw_response = processor.execute_chunk(plan, unit)
+            if getattr(processor, "generation_identity_enabled", False):
+                attested_executor = getattr(processor, "execute_chunk_with_generation", None)
+                if not callable(attested_executor):
+                    raise ValueError("PPPR_G2_ATTESTED_PROVIDER_MISSING")
+                raw_response, generation_sha256 = attested_executor(plan, unit)
+            else:
+                # Historic/offline providers cannot claim an accredited
+                # generation; no reuse authority is inferred from this path.
+                raw_response = processor.execute_chunk(plan, unit)
         if not isinstance(cast(object, raw_response), str):
             raise ValueError("G3_B4_3A_PROVIDER_RESPONSE_NOT_TEXT")
     else:
         raise ValueError("G3_B4_3A_UNSUPPORTED_TASK_TYPE")
 
+    if generation_sha256 is not None:
+        return repo.stage_chunk_result(
+            plan, ast, chunk_id=unit.chunk_id, task_id=lease.task_id,
+            worker_id=worker_id, execution_id=lease.execution_id,
+            raw_response=raw_response, generation_sha256=generation_sha256,
+        )
     return repo.stage_chunk_result(
         plan, ast, chunk_id=unit.chunk_id, task_id=lease.task_id,
         worker_id=worker_id, execution_id=lease.execution_id,
