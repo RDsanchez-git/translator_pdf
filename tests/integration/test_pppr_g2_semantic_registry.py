@@ -55,9 +55,9 @@ def test_verified_registry_rejects_mutated_heading_even_with_hot_cache(tmp_path)
 def test_verified_registry_rejects_unbound_legacy_hash_and_envelope_mismatch(tmp_path):
     nodes = _ast()
     registry = ASTRegistry(str(tmp_path))
-    registry.register_ast("document", "0" * 64, nodes)
-    with pytest.raises(ValueError, match="PPPR_G2_AST_SEMANTIC_GENERATION_DRIFT"):
-        registry.get_verified_document_ast("document", "0" * 64)
+    with pytest.raises(ValueError, match="PPPR_G2_AST_REGISTRATION_SEMANTIC_DRIFT"):
+        registry.register_ast("document", "0" * 64, nodes)
+    assert registry.get_document_ast("document", "0" * 64) == []
     correct = compute_ast_hash(nodes)
     registry.register_ast("document", correct, nodes)
     path = tmp_path / "data" / "ast_cache" / f"document.{correct}.ast.json"
@@ -129,3 +129,97 @@ def test_real_assembly_port_uses_verified_ast_instead_of_stale_cache(tmp_path):
     path.write_text(json.dumps(value), encoding="utf-8")
     with pytest.raises(ValueError, match="PPPR_G2_AST_ARTIFACT_INTEGRITY_DRIFT"):
         resolver.resolve("document", digest)
+
+
+@pytest.mark.integration
+def test_registry_same_semantic_key_is_create_once_and_idempotent(tmp_path):
+    """A physical/operationally distinct AST must not replace an existing key."""
+    from core.ast.enums import TranslationStrategy
+    original = _ast()
+    digest = compute_ast_hash(original)
+    registry = ASTRegistry(str(tmp_path))
+    registry.register_ast("document", digest, original)
+    path = tmp_path / "data" / "ast_cache" / f"document.{digest}.ast.json"
+    original_bytes = path.read_bytes()
+    registry.register_ast("document", digest, original)
+    assert path.read_bytes() == original_bytes
+
+    changed = [
+        original[0],
+        original[1].model_copy(update={
+            "node_id": "foreign-paragraph",
+            "strategy": TranslationStrategy.OMIT,
+        }),
+    ]
+    assert compute_ast_hash(changed) == digest
+    with pytest.raises(ValueError, match="PPPR_G2_AST_ARTIFACT_CONFLICT"):
+        registry.register_ast("document", digest, changed)
+    assert path.read_bytes() == original_bytes
+    assert registry.get_verified_document_ast("document", digest) == original
+    assert not list(path.parent.glob("*.tmp"))
+
+
+@pytest.mark.integration
+def test_registry_concurrent_conflicting_writers_never_replace_winner(tmp_path):
+    """Two independent instances racing for one key: exactly one immutable winner."""
+    from concurrent.futures import ThreadPoolExecutor
+    from threading import Barrier
+
+    original = _ast()
+    changed = [original[0], original[1].model_copy(update={"node_id": "other-p"})]
+    digest = compute_ast_hash(original)
+    assert compute_ast_hash(changed) == digest
+    registry_one = ASTRegistry(str(tmp_path))
+    registry_two = ASTRegistry(str(tmp_path))
+    barrier = Barrier(2)
+
+    def publish(registry, nodes):
+        barrier.wait(timeout=10)
+        try:
+            registry.register_ast("document", digest, nodes)
+        except ValueError as exc:
+            assert str(exc) == "PPPR_G2_AST_ARTIFACT_CONFLICT"
+            return False
+        return True
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        a = pool.submit(publish, registry_one, original)
+        b = pool.submit(publish, registry_two, changed)
+        results = (a.result(timeout=20), b.result(timeout=20))
+    assert sorted(results) == [False, True]
+    stored = ASTRegistry(str(tmp_path)).get_verified_document_ast("document", digest)
+    assert stored in (original, changed)
+    assert not list((tmp_path / "data" / "ast_cache").glob("*.tmp"))
+    loser = registry_two if results[0] else registry_one
+    assert loser._cache == {}
+
+
+@pytest.mark.integration
+def test_registry_concurrent_identical_retry_accepts_both_without_mutation(tmp_path):
+    from concurrent.futures import ThreadPoolExecutor
+    from threading import Barrier
+
+    original = _ast()
+    digest = compute_ast_hash(original)
+    barrier = Barrier(2)
+    def publish():
+        barrier.wait(timeout=10)
+        ASTRegistry(str(tmp_path)).register_ast("document", digest, original)
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        futures = [pool.submit(publish) for _ in range(2)]
+        for future in futures:
+            future.result(timeout=20)
+    assert ASTRegistry(str(tmp_path)).get_verified_document_ast("document", digest) == original
+
+
+@pytest.mark.integration
+def test_registry_does_not_replace_invalid_existing_artifact(tmp_path):
+    nodes = _ast()
+    digest = compute_ast_hash(nodes)
+    registry = ASTRegistry(str(tmp_path))
+    path = tmp_path / "data" / "ast_cache" / f"document.{digest}.ast.json"
+    path.write_text("corrupt-artifact", encoding="utf-8")
+    with pytest.raises(ValueError, match="PPPR_G2_AST_EXISTING_ARTIFACT_INVALID"):
+        registry.register_ast("document", digest, nodes)
+    assert path.read_text(encoding="utf-8") == "corrupt-artifact"
+    assert registry._cache == {}
