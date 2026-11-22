@@ -82,40 +82,57 @@ class ASTRegistry:
             logger.error(f"Fallo crítico parseando AST para {document_id}: {e}")
 
     def register_ast(self, document_id: str, ast_hash: str, ast_nodes: list[ASTNode]) -> None:
-        """
-        SOTA Pragmática: Persistencia atómica del AST (Inmune a cortes/OOM)
-        e hidratación inmediata de la caché RAM local.
+        """Publish a complete durable AST once; never replace the same key.
+
+        The semantic hash intentionally excludes operational/physical fields.
+        Therefore two semantically equal ASTs can be distinct durable artifacts.
+        Link a fully written temporary file with O_EXCL-like, atomic no-clobber
+        semantics; concurrent publishers cannot overwrite the winning file.
+        Identical retries are allowed only when the existing envelope matches.
+        The hot cache is changed exclusively after successful publication/retry.
         """
         import tempfile
+        from core.ast.hashing import compute_ast_hash
+
+        if compute_ast_hash(ast_nodes) != ast_hash:
+            raise ValueError("PPPR_G2_AST_REGISTRATION_SEMANTIC_DRIFT")
         cache_key = (document_id, ast_hash)
-        
-        # 1. Sincronización en caché RAM local
-        self._cache[cache_key] = {n.node_id: n for n in ast_nodes}
-        
-        # 2. Preparación del payload respetando tu raíz "nodes"
         final_path = os.path.join(self.ast_dir, f"{document_id}.{ast_hash}.ast.json")
-        nodes_data = [n.model_dump(mode="json") for n in ast_nodes]
+        nodes_data = [node.model_dump(mode="json") for node in ast_nodes]
         payload = {
             "document_id": document_id,
             "ast_hash": ast_hash,
             "nodes": nodes_data,
             "artifact_sha256": _artifact_sha256(document_id, ast_hash, nodes_data),
         }
-        
-        # 3. Escritura Atómica en el mismo sistema de archivos (POSIX/Windows Safe)
+
         fd, temp_path = tempfile.mkstemp(dir=self.ast_dir, suffix=".tmp")
         try:
-            with os.fdopen(fd, "w", encoding="utf-8") as f:
-                json.dump(payload, f, indent=2, ensure_ascii=False)
-            # Reemplazo a nivel de Kernel (Atomic Swap)
-            os.replace(temp_path, final_path)
-        except Exception as e:
+            with os.fdopen(fd, "w", encoding="utf-8") as stream:
+                json.dump(payload, stream, indent=2, ensure_ascii=False)
+                stream.flush()
+                os.fsync(stream.fileno())
+            try:
+                # Atomic hard-link creation succeeds for exactly one concurrent
+                # writer. os.replace would silently destroy earlier bindings.
+                os.link(temp_path, final_path)
+            except FileExistsError:
+                if os.path.islink(final_path):
+                    raise ValueError("PPPR_G2_AST_ARTIFACT_CONFLICT")
+                try:
+                    with open(final_path, "r", encoding="utf-8") as stream:
+                        existing = json.load(stream)
+                except (OSError, ValueError) as exc:
+                    raise ValueError("PPPR_G2_AST_EXISTING_ARTIFACT_INVALID") from exc
+                if existing != payload:
+                    raise ValueError("PPPR_G2_AST_ARTIFACT_CONFLICT")
+                # Identical durable artifact: idempotent retry.
+            self._cache[cache_key] = {node.node_id: node for node in ast_nodes}
+        finally:
             if os.path.exists(temp_path):
-                os.remove(temp_path)
-            logger.error(f"Fallo persistiendo AST atómico para {document_id}: {e}")
-            raise e
-            
-        logger.info(f"AST persistido atómicamente en disco: {document_id[:12]}.ast.json")
+                os.unlink(temp_path)
+
+        logger.info("AST persistido o confirmado idempotente: %s", document_id[:12])
 
     # En core/ast/registry.py, agregar método:
     def get_document_ast(self, document_id: str, ast_hash: str) -> List[ASTNode]:
