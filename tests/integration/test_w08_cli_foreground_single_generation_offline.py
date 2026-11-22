@@ -167,7 +167,7 @@ def test_cli_foreground_context_receipts_projections_and_pdf_same_generation(
         )
         bridge = SyncProviderBridge(
             provider, builder, context_snapshots=context_snapshots,
-            effective_config_sha256=sha256(b"OFFLINE_PROVIDER_EFFECTIVE_CONFIG_V1").hexdigest(),
+            effective_config_sha256=engine._product_effective_config_sha256(),
             source_language="en", target_language="es", provider_id="offline-test",
         )
         processors.append(bridge)
@@ -210,17 +210,18 @@ def test_cli_foreground_context_receipts_projections_and_pdf_same_generation(
         }
 
         rows = queue.execute(
-            "SELECT chunk_id, raw_response, execution_id, generation_sha256 FROM chunk_result_receipts "
+            "SELECT chunk_id, raw_response, execution_id, generation_sha256, root_config_sha256 FROM chunk_result_receipts "
             "WHERE document_id=? AND ast_hash=?",
             (document_id, ast_hash),
         ).fetchall()
         assert len(rows) == len(plan.units) == 4
-        assert sum(raw is not None for _, raw, _, _ in rows) == 2
-        assert all(execution_id for _, _, execution_id, _ in rows)
+        assert sum(raw is not None for _, raw, _, _, _ in rows) == 2
+        assert all(execution_id for _, _, execution_id, _, _ in rows)
         assert all(
-            (generation is not None and len(generation) == 64)
-            if raw is not None else generation is None
-            for _, raw, _, generation in rows
+            (generation is not None and len(generation) == 64
+             and root == engine._product_effective_config_sha256())
+            if raw is not None else generation is None and root is None
+            for _, raw, _, generation, root in rows
         )
 
         projections = materialized.execute(
