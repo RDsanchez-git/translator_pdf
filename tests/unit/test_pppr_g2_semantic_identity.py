@@ -61,7 +61,7 @@ def test_only_physical_metadata_and_runtime_ids_are_excluded() -> None:
     relabelled = _paragraph("E = mc²", node_id="two").model_copy(update={
         "metadata": NodeMetadata(pages=[9], confidence=0.2),
         "sequence_id": 143,
-        "control_plane": {"execution_id": "retry-2"},
+        "control_plane": {"execution_id": "retry-2", "chunk_id": "chunk-alt", "trace_id": "trace-alt"},
     })
     assert compute_ast_hash([original]) == compute_ast_hash([relabelled])
 
