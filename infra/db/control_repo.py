@@ -28,6 +28,27 @@ def _g3_unknown_audit(now: float, execution_id: str, cause: str) -> str:
     )
 
 
+def _generation_receipt_binding_sha256(
+    *, document_id: str, ast_hash: str, manifest_sha256: str,
+    chunk_id: str, task_id: str, execution_id: str,
+    response_sha256: str, generation_sha256: str,
+    root_config_sha256: str,
+) -> str:
+    """Local receipt integrity binding, not a producer preimage verifier."""
+    payload = {
+        "contract": "PPPR_G2_GENERATION_RECEIPT_BINDING_V1",
+        "document_id": document_id, "ast_hash": ast_hash,
+        "manifest_sha256": manifest_sha256, "chunk_id": chunk_id,
+        "task_id": task_id, "execution_id": execution_id,
+        "response_sha256": response_sha256,
+        "generation_sha256": generation_sha256,
+        "root_config_sha256": root_config_sha256,
+    }
+    return sha256(json.dumps(
+        payload, sort_keys=True, ensure_ascii=False, separators=(",", ":"),
+    ).encode("utf-8")).hexdigest()
+
+
 _G3_RESULT_RECEIPTS_DDL = """CREATE TABLE IF NOT EXISTS chunk_result_receipts (
     document_id TEXT NOT NULL,
     ast_hash TEXT NOT NULL,
@@ -38,6 +59,7 @@ _G3_RESULT_RECEIPTS_DDL = """CREATE TABLE IF NOT EXISTS chunk_result_receipts (
     response_sha256 TEXT CHECK(response_sha256 IS NULL OR length(response_sha256) = 64),
     generation_sha256 TEXT CHECK(generation_sha256 IS NULL OR length(generation_sha256) = 64),
     root_config_sha256 TEXT CHECK(root_config_sha256 IS NULL OR length(root_config_sha256) = 64),
+    generation_binding_sha256 TEXT CHECK(generation_binding_sha256 IS NULL OR length(generation_binding_sha256) = 64),
     created_at REAL NOT NULL,
     PRIMARY KEY (document_id, ast_hash, chunk_id),
     FOREIGN KEY (task_id) REFERENCES chunk_tasks(task_id),
@@ -268,13 +290,26 @@ class ControlPlaneRepository(ControlPlanePort):
             parse_chunk_response(verified, chunk_id, raw_response)
             response_sha256 = sha256(raw_response.encode("utf-8")).hexdigest()
 
+        generation_binding_sha256 = None
+        if generation_sha256 is not None and root_config_sha256 is not None:
+            if response_sha256 is None:
+                raise ValueError("PPPR_G2_GENERATION_WITHOUT_RESPONSE")
+            generation_binding_sha256 = _generation_receipt_binding_sha256(
+                document_id=verified.document_id, ast_hash=verified.ast_hash,
+                manifest_sha256=verified.digest, chunk_id=chunk_id,
+                task_id=task_id, execution_id=execution_id,
+                response_sha256=response_sha256,
+                generation_sha256=generation_sha256,
+                root_config_sha256=root_config_sha256,
+            )
+
         with self._chunk_plan_write_scope():
             # In-place schema addition for already initialized queue.db files.
             self.conn.execute(_G3_RESULT_RECEIPTS_DDL)
             cols = {row[1] for row in self.conn.execute(
                 "PRAGMA table_info(chunk_result_receipts)"
             ).fetchall()}
-            for name in ("generation_sha256", "root_config_sha256"):
+            for name in ("generation_sha256", "root_config_sha256", "generation_binding_sha256"):
                 if name not in cols:
                     self.conn.execute(
                         f"ALTER TABLE chunk_result_receipts ADD COLUMN {name} TEXT"
@@ -289,7 +324,7 @@ class ControlPlaneRepository(ControlPlanePort):
                 raise ValueError("G3_B3_2_TASK_NOT_FOUND")
             state, owner, active_execution, expires_at, version = row
             existing = self.conn.execute(
-                "SELECT task_id, execution_id, raw_response, response_sha256, generation_sha256, root_config_sha256 "
+                "SELECT task_id, execution_id, raw_response, response_sha256, generation_sha256, root_config_sha256, generation_binding_sha256 "
                 "FROM chunk_result_receipts WHERE document_id=? AND ast_hash=? AND chunk_id=?",
                 (verified.document_id, verified.ast_hash, chunk_id),
             ).fetchone()
@@ -297,7 +332,7 @@ class ControlPlaneRepository(ControlPlanePort):
                 if (state == "RESULT_STAGED" and owner == worker_id
                         and active_execution == execution_id
                         and existing == (task_id, execution_id, raw_response, response_sha256,
-                                         generation_sha256, root_config_sha256)):
+                                         generation_sha256, root_config_sha256, generation_binding_sha256)):
                     return False  # Byte-identical retry; no change to state or timestamps.
                 raise ValueError("G3_B3_2_STAGED_RECEIPT_CONFLICT")
 
@@ -308,11 +343,11 @@ class ControlPlaneRepository(ControlPlanePort):
 
             self.conn.execute(
                 "INSERT INTO chunk_result_receipts "
-                "(document_id,ast_hash,chunk_id,task_id,execution_id,raw_response,response_sha256,generation_sha256,root_config_sha256,created_at) "
-                "VALUES (?,?,?,?,?,?,?,?,?,?)",
+                "(document_id,ast_hash,chunk_id,task_id,execution_id,raw_response,response_sha256,generation_sha256,root_config_sha256,generation_binding_sha256,created_at) "
+                "VALUES (?,?,?,?,?,?,?,?,?,?,?)",
                 (verified.document_id, verified.ast_hash, chunk_id, task_id,
                  execution_id, raw_response, response_sha256, generation_sha256,
-                 root_config_sha256, now),
+                 root_config_sha256, generation_binding_sha256, now),
             )
             updated = self.conn.execute(
                 "UPDATE chunk_tasks SET task_state='RESULT_STAGED', "
@@ -347,7 +382,8 @@ class ControlPlaneRepository(ControlPlanePort):
         try:
             rows = self.conn.execute(
                 "SELECT r.chunk_id,r.task_id,r.execution_id,r.raw_response,r.response_sha256,"
-                "r.generation_sha256,r.root_config_sha256,t.task_state,t.execution_id "
+                "r.generation_sha256,r.root_config_sha256,r.generation_binding_sha256,"
+                "t.task_state,t.execution_id "
                 "FROM chunk_result_receipts AS r JOIN chunk_tasks AS t "
                 "ON t.task_id=r.task_id AND t.document_id=r.document_id "
                 "AND t.ast_hash=r.ast_hash AND t.node_id=r.chunk_id "
@@ -361,23 +397,36 @@ class ControlPlaneRepository(ControlPlanePort):
         units = {u.chunk_id: u for u in verified.units}
         responses: dict[str, str] = {}
         seen: set[str] = set()
-        for chunk_id, task_id, execution_id, raw, digest, generation, root_config, state, active_execution in rows:
+        for chunk_id, task_id, execution_id, raw, digest, generation, root_config, binding, state, active_execution in rows:
             if (chunk_id in seen or chunk_id not in units or expected[chunk_id] != task_id
                     or state not in allowed_states or execution_id != active_execution):
                 raise ValueError("G3_B3_2_RECEIPT_QUEUE_DRIFT")
             seen.add(chunk_id)
             if units[chunk_id].chunk_type == TranslationTaskType.PRESERVE:
-                if raw is not None or digest is not None or generation is not None or root_config is not None:
+                if (raw is not None or digest is not None or generation is not None
+                        or root_config is not None or binding is not None):
                     raise ValueError("G3_B3_2_INVALID_PRESERVE_RECEIPT")
             else:
                 if not isinstance(raw, str) or digest != sha256(raw.encode("utf-8")).hexdigest():
                     raise ValueError("G3_B3_2_RECEIPT_CHECKSUM_MISMATCH")
                 parse_chunk_response(verified, chunk_id, raw)
-                if required_root_config_sha256 is not None and (
-                    not isinstance(generation, str) or len(generation) != 64
-                    or root_config != required_root_config_sha256
-                ):
-                    raise ValueError("PPPR_G2_REPLAY_GENERATION_UNVERIFIED")
+                if required_root_config_sha256 is not None:
+                    if (
+                        not isinstance(generation, str) or len(generation) != 64
+                        or any(ch not in "0123456789abcdef" for ch in generation)
+                        or root_config != required_root_config_sha256
+                        or not isinstance(binding, str)
+                    ):
+                        raise ValueError("PPPR_G2_REPLAY_GENERATION_UNVERIFIED")
+                    expected_binding = _generation_receipt_binding_sha256(
+                        document_id=verified.document_id, ast_hash=verified.ast_hash,
+                        manifest_sha256=verified.digest, chunk_id=chunk_id,
+                        task_id=task_id, execution_id=execution_id,
+                        response_sha256=digest, generation_sha256=generation,
+                        root_config_sha256=root_config,
+                    )
+                    if binding != expected_binding:
+                        raise ValueError("PPPR_G2_GENERATION_RECEIPT_BINDING_DRIFT")
                 responses[chunk_id] = raw
         if seen != set(units):
             raise ValueError("G3_B3_2_INCOMPLETE_STAGED_PLAN")
