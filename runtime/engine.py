@@ -122,7 +122,7 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
     try:
         if os.getenv("IS_BENCHMARK") == "1":
             raise PipelineIntegrityError("G3_B4_3A_BENCHMARK_REQUIRES_OWN_PLAN")
-        ast = ast_registry.get_document_ast(document_id, ast_hash)
+        ast = ast_registry.get_verified_document_ast(document_id, ast_hash)
         if not ast or compute_ast_hash(ast) != ast_hash:
             raise PipelineIntegrityError("G3_B4_3A_AST_MISSING_OR_HASH_MISMATCH")
         # A missing, stale or altered snapshot is an integrity failure before

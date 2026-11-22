@@ -1,11 +1,27 @@
 import os
 import json
 import logging
+from hashlib import sha256
 from typing import Optional, Dict, Tuple, List
 
 from core.ast.models import ASTNode 
 
 logger = logging.getLogger(__name__)
+
+def _artifact_sha256(document_id: str, ast_hash: str, nodes: list[object]) -> str:
+    """Independent durable artifact digest, including IDs, strategy and geometry.
+
+    Distinct from AST semantic identity and from EN→ES generation identity.
+    Detects accidental persisted changes; not a digital signature against an
+    attacker capable of rewriting both data and its digest.
+    """
+    canonical = json.dumps(
+        {"contract": "PPPR_G2_AST_ARTIFACT_V1",
+         "document_id": document_id, "ast_hash": ast_hash, "nodes": nodes},
+        sort_keys=True, ensure_ascii=False, separators=(",", ":"),
+    ).encode("utf-8")
+    return sha256(canonical).hexdigest()
+
 
 class ASTRegistry:
     """
@@ -78,10 +94,12 @@ class ASTRegistry:
         
         # 2. Preparación del payload respetando tu raíz "nodes"
         final_path = os.path.join(self.ast_dir, f"{document_id}.{ast_hash}.ast.json")
+        nodes_data = [n.model_dump(mode="json") for n in ast_nodes]
         payload = {
             "document_id": document_id,
             "ast_hash": ast_hash,
-            "nodes": [n.model_dump() for n in ast_nodes]
+            "nodes": nodes_data,
+            "artifact_sha256": _artifact_sha256(document_id, ast_hash, nodes_data),
         }
         
         # 3. Escritura Atómica en el mismo sistema de archivos (POSIX/Windows Safe)
@@ -136,7 +154,7 @@ class ASTRegistry:
             raise ValueError("PPPR_G2_AST_ARTIFACT_UNAVAILABLE") from exc
         if (
             not isinstance(payload, dict)
-            or set(payload) != {"document_id", "ast_hash", "nodes"}
+            or set(payload) != {"document_id", "ast_hash", "nodes", "artifact_sha256"}
             or payload["document_id"] != document_id
             or payload["ast_hash"] != ast_hash
             or not isinstance(payload["nodes"], list)
@@ -154,6 +172,10 @@ class ASTRegistry:
             raise ValueError("PPPR_G2_AST_ORDER_OR_NODE_ID_DRIFT")
         if compute_ast_hash(nodes) != ast_hash:
             raise ValueError("PPPR_G2_AST_SEMANTIC_GENERATION_DRIFT")
+        if payload["artifact_sha256"] != _artifact_sha256(
+            document_id, ast_hash, payload["nodes"]
+        ):
+            raise ValueError("PPPR_G2_AST_ARTIFACT_INTEGRITY_DRIFT")
         # Hydrate RAM only after successful verification; do not trust an
         # earlier cached copy when the persisted artifact may have changed.
         self._cache[(document_id, ast_hash)] = {node.node_id: node for node in nodes}

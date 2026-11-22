@@ -62,7 +62,14 @@ class CQRSAssemblyContextResolver:
         log_ctx = {"document_id": document_id[:12], "ast_hash": ast_hash[:12]}
 
         # Paso 1: Cargar AST vía puerto canónico
-        ast_nodes = self._ast_provider.get_document_ast(document_id, ast_hash)
+        # Connected ASTRegistry exposes a verified read. Test doubles and
+        # legacy alternate ports retain their original protocol for migration;
+        # real product assembly must not trust the hot-cache-only read.
+        verified_read = getattr(self._ast_provider, "get_verified_document_ast", None)
+        if callable(verified_read):
+            ast_nodes = verified_read(document_id, ast_hash)
+        else:
+            ast_nodes = self._ast_provider.get_document_ast(document_id, ast_hash)
         if not ast_nodes:
             raise ASTConsistencyError(
                 f"AST vacío o no disponible para {document_id}"
