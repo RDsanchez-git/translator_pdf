@@ -295,3 +295,18 @@ def test_ocr_route_keeps_uncertainty_in_profile_durable_consumer(
         assert h.doc_id[:12] in caplog.text
     with sqlite3.connect(path) as conn:
         assert SQLiteProfileStore(conn).get(h.doc_id) == profile
+
+
+@pytest.mark.integration
+def test_ocr_route_verifies_actual_ast_registry_before_queue_publication(
+    tmp_path, monkeypatch,
+):
+    """Ruta OCR real con repositorio AST físico y contrato de hash V2."""
+    h = _harness(tmp_path, monkeypatch)
+    with closing(h.db):
+        registry = ASTRegistry(workspace_dir=str(tmp_path))
+        h.daemon.ast_registry = registry
+        h.daemon._process_document(h.pdf)
+        verified = registry.get_verified_document_ast(h.doc_id, h.ast_hash)
+        assert verified == h.parser.ast
+        assert h.db.execute("SELECT COUNT(*) FROM chunk_plans").fetchone()[0] == 1
