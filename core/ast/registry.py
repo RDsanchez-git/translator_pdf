@@ -2,13 +2,13 @@ import os
 import json
 import logging
 from hashlib import sha256
-from typing import Optional, Dict, Tuple, List
+from typing import Optional, Dict, Tuple, List, Sequence
 
 from core.ast.models import ASTNode 
 
 logger = logging.getLogger(__name__)
 
-def _artifact_sha256(document_id: str, ast_hash: str, nodes: list[object]) -> str:
+def _artifact_sha256(document_id: str, ast_hash: str, nodes: Sequence[object]) -> str:
     """Independent durable artifact digest, including IDs, strategy and geometry.
 
     Distinct from AST semantic identity and from EN→ES generation identity.
