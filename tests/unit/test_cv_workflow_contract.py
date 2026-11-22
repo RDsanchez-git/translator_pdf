@@ -163,28 +163,36 @@ class TestRegressionGatesJobContract:
 
 @pytest.mark.unit
 class TestInformationalCvJobIsolation:
-    """Los gates científicos siguen visibles sin bloquear los tests de integración.
+    """Los gates científicos siguen visibles sin bloquear los tests técnicos.
 
-    ENFORCEMENT_CONTRACT §3: regression-gates es informativo durante la transición.
-    Una regresión no debe impedir la ejecución de integration-tests, mientras que
-    las dependencias static-analysis -> unit-tests -> integration-tests se conservan.
+    ENFORCEMENT_CONTRACT §3: regression-gates sigue informativo.
+    CI P1: los tres checks técnicos se ejecutan independientemente, sin
+    dependencias entre ellos ni respecto de la verificación científica.
     """
 
     def test_integration_runs_independently_of_regression_outcome(self) -> None:
         technical_jobs = _load_yaml(CI_WORKFLOW)["jobs"]
         scientific_jobs = _load_yaml(CV_WORKFLOW)["jobs"]
-        assert technical_jobs["integration-tests"]["needs"] == ["unit-tests"]
+        assert "integration-tests" in technical_jobs
+        assert "needs" not in technical_jobs["integration-tests"]
         assert "regression-gates" not in technical_jobs
         assert "regression-gates" in scientific_jobs
         assert "needs" not in scientific_jobs["regression-gates"]
 
-    def test_integration_keeps_unit_and_static_prerequisites(self) -> None:
-        data = _load_yaml(CI_WORKFLOW)
-        jobs = data["jobs"]
-        assert jobs["unit-tests"]["needs"] == "static-analysis"
-        integration_command = _get_run_commands(jobs["integration-tests"])
-        assert 'pytest -m "integration and not regression"' in integration_command
+    def test_technical_jobs_are_parallel_and_keep_required_checks(self) -> None:
+        jobs = _load_yaml(CI_WORKFLOW)["jobs"]
+        for job_name in ("static-analysis", "unit-tests", "integration-tests"):
+            assert job_name in jobs
+            assert "needs" not in jobs[job_name]
 
+        static_commands = _get_run_commands(jobs["static-analysis"])
+        unit_commands = _get_run_commands(jobs["unit-tests"])
+        integration_commands = _get_run_commands(jobs["integration-tests"])
+        assert "pyright" in static_commands
+        assert "lint-imports --config pyproject.toml" in static_commands
+        assert 'pytest -m "unit"' in unit_commands
+        assert 'pytest -m "integration and not regression"' in integration_commands
+        assert 'pytest -m "not e2e"' in integration_commands
 
 @pytest.mark.unit
 class TestCvFullProfileWorkflowContract:
