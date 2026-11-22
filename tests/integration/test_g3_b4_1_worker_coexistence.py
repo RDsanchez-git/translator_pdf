@@ -157,3 +157,59 @@ def test_scheduler_considers_only_llm_tasks_even_if_assembler_pending(tmp_path, 
             fsm.commit()
         monkeypatch.setenv("FSM_DB_PATH", str(fsm_path))
         assert (plan.document_id, plan.ast_hash) in repo.find_documents_with_pending_chunks(10)
+
+
+@pytest.mark.integration
+def test_durable_generation_receipt_rejects_cross_contract_replay(tmp_path):
+    """Different generation key cannot claim idempotent receipt on same chunk."""
+    ast, plan, queue, materialized, repo = _context(tmp_path)
+    with closing(queue), closing(materialized):
+        lease = repo.pick_task("worker_llm", plan.document_id, plan.ast_hash)
+        assert lease is not None
+        raw = _response(plan, plan.units[0])
+        first_gen = sha256(b"en:es:contract-v1").hexdigest()
+        changed_gen = sha256(b"en:es:contract-v2").hexdigest()
+        kwargs = dict(chunk_id=lease.node_id, task_id=lease.task_id,
+                      worker_id="worker_llm", execution_id=lease.execution_id,
+                      raw_response=raw)
+        assert repo.stage_chunk_result(
+            plan, ast, generation_sha256=first_gen, **kwargs
+        ) is True
+        assert queue.execute(
+            "SELECT generation_sha256 FROM chunk_result_receipts "
+            "WHERE document_id=? AND ast_hash=?",
+            (plan.document_id, plan.ast_hash),
+        ).fetchone() == (first_gen,)
+        assert repo.stage_chunk_result(
+            plan, ast, generation_sha256=first_gen, **kwargs
+        ) is False
+        with pytest.raises(ValueError, match="G3_B3_2_STAGED_RECEIPT_CONFLICT"):
+            repo.stage_chunk_result(
+                plan, ast, generation_sha256=changed_gen, **kwargs
+            )
+
+
+@pytest.mark.integration
+def test_attested_receipt_adds_column_to_existing_legacy_sqlite_table(tmp_path):
+    ast, plan, queue, materialized, repo = _context(tmp_path)
+    with closing(queue), closing(materialized):
+        queue.executescript("""
+            CREATE TABLE chunk_result_receipts (
+              document_id TEXT NOT NULL, ast_hash TEXT NOT NULL,
+              chunk_id TEXT NOT NULL, task_id TEXT NOT NULL, execution_id TEXT NOT NULL,
+              raw_response TEXT, response_sha256 TEXT, created_at REAL NOT NULL,
+              PRIMARY KEY (document_id, ast_hash, chunk_id)
+            );
+        """)
+        lease = repo.pick_task("worker_llm", plan.document_id, plan.ast_hash)
+        assert lease is not None
+        digest = sha256(b"verified EN->ES generation").hexdigest()
+        assert repo.stage_chunk_result(
+            plan, ast, chunk_id=lease.node_id, task_id=lease.task_id,
+            worker_id="worker_llm", execution_id=lease.execution_id,
+            raw_response=_response(plan, plan.units[0]),
+            generation_sha256=digest,
+        ) is True
+        assert queue.execute(
+            "SELECT generation_sha256 FROM chunk_result_receipts"
+        ).fetchone() == (digest,)
