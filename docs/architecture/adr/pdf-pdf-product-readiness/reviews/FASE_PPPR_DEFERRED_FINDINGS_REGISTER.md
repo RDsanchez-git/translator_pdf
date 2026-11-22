@@ -1,11 +1,11 @@
 # FASE_PPPR_DEFERRED_FINDINGS_REGISTER.md
 
 **Documento:** `docs/architecture/adr/pdf-pdf-product-readiness/reviews/FASE_PPPR_DEFERRED_FINDINGS_REGISTER.md`  
-**Versión:** 0.1.12  
-**Estado:** G1 PASS/COMPLETED; **G2 Gate Exit Review REALIZADO / CRITERIOS 4/4 PASS** sobre `ac156be223d2db952e968352bc1ea38c3531186e` y [CI #44977644736](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44977644736) SUCCESS, 6/6 Tasks y 30/30 reglas técnicas G2 verificadas. Tercera revisión Architecture Board FAVORABLE y owner autorizó merge PR86 DESPUÉS de registrar revisión; integración aún por comprobar. Sin nuevos DF/GF identificados en revisión acotada; 14 GAP P1 históricos OPEN; CV científica FAIL/DEFERRED, `PRODUCT_READINESS=NOT_CERTIFIED`, G3–G6 PENDING.
+**Versión:** 0.1.13  
+**Estado:** G1 COMPLETED/PASS; **G2 COMPLETED/PASS** tras Exit Review real 2026-11-21 (4/4 criterios, 6/6 Tasks, 30/30 reglas) y merge de [PR #86](https://github.com/RDsanchez-git/translator_pdf/pull/86) en `7842bb3c69c2baf792cb9cb3acca088462445d54`; [CI #44978406678](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44978406678) y [CI #44979093690](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44979093690) SUCCESS. 14 GAP P1 históricos OPEN; 0 nuevos DF/GF acreditados en G2; G3–G6 NOT_RUN, `PRODUCT_READINESS=NOT_CERTIFIED`.  
 **Fecha de creación:** 2026-11-21  
-**Última actualización:** 2026-11-21  
-**Derivado de:** `PHASE_PPPR_EXECUTION_PLAN.md` v0.5.11 APPROVED/LIVING — Gate2 Exit Review realizado con 4/4 criterios PASS técnico, CI #44977644736, merge PR86 autorizado por owner pendiente de verificación; G3 NOT_RUN.
+**Última actualización:** 2026-11-22  
+**Derivado de:** `PHASE_PPPR_EXECUTION_PLAN.md` v0.5.12 APPROVED/LIVING — G2 COMPLETED/PASS, PR86 integrado y CI post-merge verificada; G3 NOT_RUN.
 **Ámbito:** PPPR (iniciativa transversal PDF→PDF; no fase histórica numerada).  
 **Propósito:** Registro único y auditable de hallazgos `DF`/`GF` **que surjan durante la ejecución y los Exit Reviews** del Execution Plan: identificación, clasificación, decisión, resolución, batch y evidencia de implementación.
 
@@ -51,6 +51,8 @@
 | 0.1.10 | 2026-11-21 | Checkpoint técnico W2.2 / PR #86: 3 Tasks implementadas, código CI #44972570392 SUCCESS (287 unit, 1536 suite técnica PASS); test posterior interprocesos PENDING, Board/merge pendientes, Gate2 Exit Review NOT_RUN y 14 GAP P1 OPEN; sin DF/GF inventados. |
 | 0.1.11 | 2026-11-21 | Segundo dictamen Board PR #86 FAVORABLE CON RESERVA, mitigación de sobrescritura AST y prueba de coherencia durable del recibo. CI correctiva #44975050240 SUCCESS en `69d56ef3…`; no nuevos DF/GF inventados ni cierre de GAP, Board/merge pendientes, Gate2 Exit Review NOT_RUN. |
 | 0.1.12 | 2026-11-21 | Gate2 Exit Review realmente ejecutado: 6/6 Tasks, 30 reglas propias G2 verificadas; CI #44977644736 SUCCESS sobre `ac156be2…` (289 unit PASS, 1542 suite técnica PASS), Board tercera revisión FAVORABLE y owner autoriza merge posterior a este registro. Criterios 4/4 PASS, 14 GAP P1 OPEN, sin DF/GF nuevos detectados ni CV científica certificada, G3 pendiente. |
+
+| 0.1.13 | 2026-11-22 | Reconciliación post-merge de PR86 `7842bb3c69c2baf792cb9cb3acca088462445d54`, CI #44978406678 y #44979093690 SUCCESS; G2 COMPLETED/PASS, 6/6 Tasks y 30/30 reglas. Sin segundo Exit Review, nuevos DF/GF, cierre forense de 14 GAP P1 ni certificación científica; G3 NOT_RUN. |
 
 ---
 
@@ -147,7 +149,7 @@ Cada DF/GF exigirá: texto original, fecha/origen Gate/Wave/Task, rutas/SHAs de 
 | Gate previsto | Exit Review | Hallazgos registrados por esta revisión |
 |---|---|---|
 | G1 — Baseline, autoridad y preparación | **REALIZADO 2026-11-21; reevaluación CI final → G1 PASS/COMPLETED** | **0 DF/GF nuevos**; issue #34 y GAP P1 históricos no duplicados |
-| G2 — Ingesta física e identidad | **REVIEW_REALIZADO / 4/4 CRITERIOS PASS** ([CI #44977644736](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44977644736)), PR86 autorizado para merge, integración por comprobar | **0 nuevos DF/GF detectados en scope**, observaciones H1/H2 Board resueltas en PR86; 14 GAP P1 históricos OPEN sin cierre forense |
+| G2 — Ingesta física e identidad | **Exit Review 2026-11-21 4/4 PASS; PR86 MERGED 2026-11-22 `7842bb3c69c2…`, CI posterior SUCCESS; G2 COMPLETED/PASS** | **0 DF/GF nuevos acreditados en alcance**, observaciones H1/H2 resueltas antes de integración; 14 GAP P1 históricos OPEN |
 | G3 — Seguridad de efectos e inferencia G3 | NOT_RUN | Sin entradas |
 | G4 — Reconstrucción G5 y PDF | NOT_RUN | Sin entradas |
 | G5 — Integración y operación real | NOT_RUN | Sin entradas |
@@ -203,6 +205,8 @@ Cada DF/GF exigirá: texto original, fecha/origen Gate/Wave/Task, rutas/SHAs de 
 **Control forense:** seis Tasks G2 implementadas y aceptadas técnicamente (2.1.1–2.2.3), diez reglas propias FPPPR-04 y veinte reglas históricas de propiedad G2 con falsadores en Execution Plan §7.H. Exit Criteria §2.2.3 **(1)–(4) PASS**: procedencia y muestreo físicos PyMuPDF, falsadores de GAP previstos, jerarquía/Unicode STEM, suficiencia de consumidor durable, CI y regresiones técnicas. Sin nuevo DF/GF sustentado en un defecto abierto identificado por esta revisión acotada; H1/H2 son observaciones correctivas resueltas **antes** de la integración, no se inventan IDs ni `CLOSED (NAR)`. Los **14 GAP P1 históricos permanecen OPEN**: superar un falsador técnico de Gate no significa una decisión forense de cierre.
 
 **Dictamen/autoridad:** owner autoriza expresamente merge del PR #86 **una vez actualizado este Gate2 Exit Review**. El Exit Review está REALIZADO y los cuatro criterios PASS; la ejecución y verificación del merge/HEAD destino se harán después del registro. La aprobación Board llegó por la conversación transmitida por el owner, **no es una review APPROVED de la API de GitHub**. `G2 COMPLETED` y DoR de G3 solo se habilitan luego de verificar integración. La CV científica sigue FAIL/DEFERRED por 15 PDFs privados ausentes; `PRODUCT_READINESS=NOT_CERTIFIED`; ni Docling ni egress/proveedor comercial/host/`main`/PR66 incluidos.
+
+**Addendum post-merge (2026-11-22; NO es nuevo Exit Review/DF/GF):** [PR #86](https://github.com/RDsanchez-git/translator_pdf/pull/86) MERGED luego de autorización y acta, `pdf-pdf-product-readiness` HEAD `7842bb3c69c2baf792cb9cb3acca088462445d54`. [CI #44978406678](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44978406678) y [CI #44979093690](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44979093690) SUCCESS. El estado previo «merge por verificar» se conserva cronológicamente, pero **G2 está ahora COMPLETED/PASS**. [CV #44979093692](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44979093692) FAIL/DEFERRED por `BASELINE_INTEGRITY_FAILURE` (15 PDFs canónicos ausentes en runner); los 14 GAP P1 siguen OPEN, `PRODUCT_READINESS=NOT_CERTIFIED`. G3 NOT_RUN y sin autorización de inicio.
 
 ## 3. TABLA CONSOLIDADA FINAL
 
@@ -297,12 +301,12 @@ El documento se declara `ARCHIVED` **solo** tras cierre formal de PPPR, verifica
 
 | Categoría | Estado actual |
 |---|---|
-| Gates revisados | **2 realizados**: G1 PASS/COMPLETED; G2 REVIEW_REALIZADO / 4/4 CRITERIOS PASS, merge PR86 pendiente de verificar; G3–G6 NOT_RUN |
+| Gates revisados | **2 Exit Reviews reales y cierre técnico:** G1 COMPLETED/PASS; G2 COMPLETED/PASS tras integrar PR86; G3–G6 NOT_RUN |
 | Hallazgos PPPR registrados nuevos | **0 DF/GF nuevos fuera del alcance planificado** en G1 y W2.1; GAP-0.2-01/02 preexistentes no duplicados; no inferir ausencia global de defectos |
 | Hallazgos analizados/resueltos/diferidos | **0 nuevos en Gate 1; clasificación N/A** (no inventar NAR) |
 | Batches ejecutados | NOT_RUN |
-| Estado de los Exit Reviews | **G1 REVIEW_REALIZADO/PASS; G2 REVIEW_REALIZADO/CRITERIOS_PASS con CI #44977644736**, integración PR86 por verificar; G3–G6 NOT_RUN |
-| Estado operativo del Register | **IN_PROGRESS — Gate 2 Exit Review ejecutado, 14 GAP P1 OPEN, sin nuevos DF/GF/batches acreditados; G3 pendiente** |
+| Estado de los Exit Reviews | G1 REVIEW_REALIZADO/PASS; **G2 REVIEW_REALIZADO 4/4 PASS**, CI #44977644736, PR86 integrado y CI post-merge #44979093690 confirmados; G3–G6 NOT_RUN |
+| Estado operativo del Register | **IN_PROGRESS — G2 COMPLETED/PASS, 14 GAP P1 OPEN, sin nuevos DF/GF ni batches acreditados; G3 PENDING/NOT_RUN** |
 | Cierre de fase | **PENDIENTE / NO ARCHIVED** |
 
 ---
