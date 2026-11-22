@@ -71,7 +71,7 @@ def test_verified_registry_rejects_unbound_legacy_hash_and_envelope_mismatch(tmp
 @pytest.mark.integration
 @pytest.mark.parametrize("field, substitute", [
     ("node_id", "foreign-heading"),
-    ("strategy", "OMIT"),
+    ("strategy", "omit"),
     ("metadata", {"pages": [99], "bboxes": [], "physical_regions": [], "confidence": 1.0,
                   "provider_native_id": None, "layout_reading_order": None,
                   "semantic_origin": "PDF_TEXT"}),
@@ -125,7 +125,7 @@ def test_real_assembly_port_uses_verified_ast_instead_of_stale_cache(tmp_path):
     assert resolver.resolve("document", digest).ast_hash == digest
     path = tmp_path / "data" / "ast_cache" / f"document.{digest}.ast.json"
     value = json.loads(path.read_text(encoding="utf-8"))
-    value["nodes"][1]["strategy"] = "OMIT"
+    value["nodes"][1]["strategy"] = "omit"
     path.write_text(json.dumps(value), encoding="utf-8")
     with pytest.raises(ValueError, match="PPPR_G2_AST_ARTIFACT_INTEGRITY_DRIFT"):
         resolver.resolve("document", digest)
