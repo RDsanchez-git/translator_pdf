@@ -172,8 +172,10 @@ def test_durable_generation_receipt_rejects_cross_contract_replay(tmp_path):
         kwargs = dict(chunk_id=lease.node_id, task_id=lease.task_id,
                       worker_id="worker_llm", execution_id=lease.execution_id,
                       raw_response=raw)
+        root = sha256(b"known provider+model+temperature+language").hexdigest()
         assert repo.stage_chunk_result(
-            plan, ast, generation_sha256=first_gen, **kwargs
+            plan, ast, generation_sha256=first_gen,
+            root_config_sha256=root, **kwargs
         ) is True
         assert queue.execute(
             "SELECT generation_sha256 FROM chunk_result_receipts "
@@ -181,11 +183,20 @@ def test_durable_generation_receipt_rejects_cross_contract_replay(tmp_path):
             (plan.document_id, plan.ast_hash),
         ).fetchone() == (first_gen,)
         assert repo.stage_chunk_result(
-            plan, ast, generation_sha256=first_gen, **kwargs
+            plan, ast, generation_sha256=first_gen,
+            root_config_sha256=root, **kwargs
         ) is False
         with pytest.raises(ValueError, match="G3_B3_2_STAGED_RECEIPT_CONFLICT"):
             repo.stage_chunk_result(
-                plan, ast, generation_sha256=changed_gen, **kwargs
+                plan, ast, generation_sha256=changed_gen,
+                root_config_sha256=root, **kwargs
+            )
+        assert len(repo.load_staged_chunk_responses(
+            plan, ast, required_root_config_sha256=root,
+        )) == 1
+        with pytest.raises(ValueError, match="PPPR_G2_REPLAY_GENERATION_UNVERIFIED"):
+            repo.load_staged_chunk_responses(
+                plan, ast, required_root_config_sha256=changed_gen,
             )
 
 
