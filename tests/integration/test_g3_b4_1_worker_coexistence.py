@@ -204,6 +204,8 @@ def test_durable_generation_receipt_rejects_cross_contract_replay(tmp_path):
 def test_attested_receipt_adds_column_to_existing_legacy_sqlite_table(tmp_path):
     ast, plan, queue, materialized, repo = _context(tmp_path)
     with closing(queue), closing(materialized):
+        # Simulate a pre-W2.2 schema without touching real databases.
+        queue.execute("DROP TABLE IF EXISTS chunk_result_receipts")
         queue.executescript("""
             CREATE TABLE chunk_result_receipts (
               document_id TEXT NOT NULL, ast_hash TEXT NOT NULL,
