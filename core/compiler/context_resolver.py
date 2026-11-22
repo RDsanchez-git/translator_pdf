@@ -17,7 +17,9 @@ NO es responsabilidad del Resolver:
 - Renderizar o compilar (pertenece a CompilationService)
 """
 import logging
+from typing import cast
 from core.ast.enums import TranslationStrategy
+from core.ast.models import ASTNode
 from core.compiler.ports import ASTProviderProtocol
 from core.execution.ports import MaterializedPlanePort
 from core.compiler.assembly_context import AssemblyExecutionContext
@@ -67,7 +69,7 @@ class CQRSAssemblyContextResolver:
         # real product assembly must not trust the hot-cache-only read.
         verified_read = getattr(self._ast_provider, "get_verified_document_ast", None)
         if callable(verified_read):
-            ast_nodes = verified_read(document_id, ast_hash)
+            ast_nodes = cast(list[ASTNode], verified_read(document_id, ast_hash))
         else:
             ast_nodes = self._ast_provider.get_document_ast(document_id, ast_hash)
         if not ast_nodes:
