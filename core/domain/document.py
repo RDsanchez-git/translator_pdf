@@ -160,6 +160,8 @@ class LayoutPage(BaseModel):
     model_config = ConfigDict(frozen=True)
     page_number: int = Field(..., ge=1)
     dimensions: PageDimensions
+    # False si el provider solo posee dimensiones de respaldo, no medidas.
+    dimensions_accredited: bool = True
     blocks: List[LayoutBlock] = Field(default_factory=list)
 
 # =====================================================================

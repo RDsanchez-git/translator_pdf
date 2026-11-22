@@ -3,7 +3,7 @@ from typing import List, Dict, Final, Callable, Any
 from core.layout.models import LayoutBlockCollection, LayoutBlockDraft
 from core.ast.enums import ContentNodeType, HeadingLevel, SemanticOrigin
 from core.ast.models import (
-    ASTNode, NodeMetadata, ASTPayload,
+    ASTNode, NodeMetadata, PhysicalRegion, ASTPayload,
     HeadingPayload, ParagraphPayload, MathPayload, CodePayload, 
     TablePayload, ImagePayload, ListPayload
 )
@@ -111,9 +111,24 @@ class FlatASTBuilder:
             semantic_type = ContentNodeType.PARAGRAPH
 
         # SOTA: Conserva el semantic_origin emitido por la fase de extracción
+        # El vínculo región→página solo es acreditado si fue observado en
+        # DocumentLayout. Los DTOs legados mantienen campos históricos, pero
+        # sus listas paralelas no constituyen por sí mismas correspondencia.
+        regions: List[PhysicalRegion] = []
+        if block.source_document and block.page_index >= 1:
+            regions.append(
+                PhysicalRegion(
+                    source_document=block.source_document,
+                    page_number=block.page_index,
+                    bbox=block.bbox,
+                    page_width=block.page_width,
+                    page_height=block.page_height,
+                )
+            )
         metadata = NodeMetadata(
-            bboxes=[block.bbox],
-            pages=[block.page_index],
+            bboxes=[block.bbox] if block.bbox is not None else [],
+            pages=[block.page_index] if block.page_index >= 1 else [],
+            physical_regions=tuple(regions),
             confidence=block.confidence,
             provider_native_id=block.provider_native_id,
             layout_reading_order=index,

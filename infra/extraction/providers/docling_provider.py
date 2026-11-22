@@ -138,6 +138,9 @@ class DoclingProvider(ExtractionProvider):
         sorted_page_numbers = sorted(pages_blocks.keys())
 
         for page_no in sorted_page_numbers:
+            # Si no se observó PageDimensions, el tamaño del contenedor es
+            # meramente de compatibilidad y no puede acreditarse como real.
+            accredited = page_no in pages_dimensions
             width, height = pages_dimensions.get(page_no, (612.0, 792.0))
             orientation = (
                 PageOrientation.PORTRAIT if height >= width else PageOrientation.LANDSCAPE
@@ -152,6 +155,7 @@ class DoclingProvider(ExtractionProvider):
                         orientation=orientation,
                     ),
                     blocks=pages_blocks[page_no],
+                    dimensions_accredited=accredited,
                 )
             )
 

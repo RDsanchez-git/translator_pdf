@@ -2,7 +2,7 @@ import logging
 from dataclasses import dataclass
 from typing import Mapping
 from core.ast.models import ContentNodeType
-from core.document_profile.models import InferredDocumentProfile, PageLayout
+from core.document_profile.models import InferredDocumentProfile, PageLayout, SamplingCoverage
 from core.compiler.rendering.models import RenderUnit, RenderingConfiguration
 from core.compiler.rendering.policies import DocumentStructurePolicy, RenderStrategy
 from core.compiler.rendering.implementations import (
@@ -27,8 +27,19 @@ class RenderContextFactory:
     def create(cls, profile: InferredDocumentProfile) -> RenderContext:
         logger.info(f"Instanciando RenderContext. Layout inferido: {profile.layout}")
         
+        evidence = profile.physical_diagnostics
+        layout_accredited = (
+            evidence is not None
+            and evidence.sampling_coverage == SamplingCoverage.STRICT_SCOPE
+            and not evidence.geometry_reasons
+        )
+        if not layout_accredited:
+            logger.warning(
+                "PPPR_G2_LAYOUT_UNVERIFIED coverage=%s; renderizado conservador de una columna",
+                evidence.sampling_coverage.value if evidence is not None else "LEGACY_UNKNOWN",
+            )
         config = RenderingConfiguration(
-            is_multi_column=(profile.layout == PageLayout.DOUBLE_COLUMN)
+            is_multi_column=(profile.layout == PageLayout.DOUBLE_COLUMN and layout_accredited)
         )
         
         structure = DynamicDocumentStructure(config)

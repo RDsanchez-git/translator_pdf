@@ -10,6 +10,21 @@ from core.shared.identity_contracts import NodeId
 # =====================================================================
 # FAMILIA 1 Y 2: AST V2 COMPOSITION (Estructura Plana y Payloads Tipados)
 # =====================================================================
+class PhysicalRegion(BaseModel):
+    """Acreditación física por región, sin deducir vínculos de listas paralelas.
+
+    El documento y página se originan en DocumentLayout/LayoutPage; bbox puede
+    ser None cuando el extractor no dispone de geometría real.
+    """
+    model_config = ConfigDict(frozen=True)
+
+    source_document: str = Field(min_length=1)
+    page_number: int = Field(ge=1)
+    bbox: Optional[BoundingBox] = None
+    page_width: Optional[float] = Field(default=None, gt=0)
+    page_height: Optional[float] = Field(default=None, gt=0)
+
+
 class NodeMetadata(BaseModel):
     """Value Object inmutable que encapsula el linaje físico y dimensional."""
     model_config = ConfigDict(frozen=True)
@@ -18,6 +33,7 @@ class NodeMetadata(BaseModel):
     # bajo el contexto de tipado de Pyright para evitar 'list[Unknown]'
     bboxes: List[BoundingBox] = Field(default_factory=lambda: [])
     pages: List[int] = Field(default_factory=lambda: [])
+    physical_regions: Tuple[PhysicalRegion, ...] = Field(default_factory=tuple)
     provider_native_id: Optional[str] = None
     confidence: float = Field(default=1.0, ge=0.0, le=1.0)
     layout_reading_order: int = -1

@@ -4,6 +4,7 @@ Uses temporary SQLite queue and faked OCR/profiler/FSM commands; never runs
 Marker, paid LLM services, Docker, or a real PDF parser.
 """
 from contextlib import closing
+import logging
 from hashlib import sha256
 from pathlib import Path
 import sqlite3
@@ -15,7 +16,11 @@ import pytest
 from apps.ocr_router import __main__ as router_module
 from core.ast.enums import ContentNodeType
 from core.ast.hashing import compute_ast_hash
-from core.ast.models import ASTNode, ParagraphPayload
+from core.ast.models import ASTNode, ParagraphPayload, NodeMetadata, PhysicalRegion
+from core.domain.document import BoundingBox
+from core.document_profile.models import SamplingCoverage
+from apps.bootstrap.pipeline_factory import build_document_profiler
+from infra.db.profile_store import SQLiteProfileStore
 from core.ast.registry import ASTRegistry
 from core.chunking.manifest_contract import ChunkPlan
 from core.chunking.contextual_plan import prepare_contextual_plan
@@ -254,3 +259,39 @@ def test_failed_generation_requires_explicit_policy(tmp_path, monkeypatch):
         assert h.parser.calls == 0
         assert h.handler.calls == []
         assert len(list(h.daemon.error_dir.glob('FAILED_*_sample.pdf'))) == 1
+
+
+@pytest.mark.integration
+def test_ocr_route_keeps_uncertainty_in_profile_durable_consumer(
+    tmp_path, monkeypatch, caplog,
+):
+    """Nodo acreditado y nodo indeterminado: evidencia OCR -> SQLite -> reinicio."""
+    h = _harness(tmp_path, monkeypatch)
+    first = h.parser.ast[0]
+    h.parser.ast[0] = first.model_copy(update={
+        "metadata": NodeMetadata(physical_regions=(
+            PhysicalRegion(
+                source_document=str(h.pdf), page_number=1,
+                page_width=300.0, page_height=400.0,
+                bbox=BoundingBox(x0=20, y0=10, x1=80, y1=40),
+            ),
+        ))
+    })
+    assert compute_ast_hash(h.parser.ast) == h.ast_hash
+    h.daemon.document_profiler = build_document_profiler()
+    path = tmp_path / "documents.db"
+    with sqlite3.connect(path) as conn, closing(h.db):
+        h.daemon.profile_store = SQLiteProfileStore(conn)
+        with caplog.at_level(logging.WARNING, logger="ocr_router"):
+            h.daemon._process_document(h.pdf)
+        profile = SQLiteProfileStore(conn).get(h.doc_id)
+        assert profile is not None
+        assert profile.physical_diagnostics is not None
+        assert profile.physical_diagnostics.sampling_coverage == SamplingCoverage.INDETERMINATE
+        assert "n_two:UNVERIFIED_PHYSICAL_PROVENANCE" in (
+            profile.physical_diagnostics.sampling_reasons
+        )
+        assert "PPPR_G2_PROFILE_EVIDENCE" in caplog.text
+        assert h.doc_id[:12] in caplog.text
+    with sqlite3.connect(path) as conn:
+        assert SQLiteProfileStore(conn).get(h.doc_id) == profile
