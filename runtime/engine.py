@@ -48,6 +48,24 @@ MAT_DB_PATH = "infra/db/materialized.db"
 GLOBAL_LLM_SEMAPHORE = threading.Semaphore(int(os.getenv("MAX_GLOBAL_LLM_CONCURRENCY", "4")))
 
 
+
+def _product_effective_config_sha256() -> str:
+    """Known EN→ES provider configuration; independent of paid I/O.
+
+    Changes to any output-affecting provider setting MUST update this scope.
+    """
+    options = {
+        "provider_id": "groq", "dialect": "openai_compatible_json_v1",
+        "temperature": 0.00001, "stream": False,
+        "source_language": "en", "target_language": "es",
+        "prompt_version": "v1.0", "model_name": "llama3-70b-8192",
+        "target_lang_expansion": 2.0, "response_contract": "G3_CHUNK_RESPONSE_V1",
+    }
+    return hashlib.sha256(json.dumps(
+        options, ensure_ascii=False, sort_keys=True, separators=(",", ":"),
+    ).encode("utf-8")).hexdigest()
+
+
 def _create_chunk_processor(context_snapshots: Mapping[str, ContextSnapshotV1]):
     """Initialize paid provider only if at least one unit needs inference."""
     from apps.llm_workers.sync_bridge import SyncProviderBridge
@@ -94,20 +112,7 @@ def _create_chunk_processor(context_snapshots: Mapping[str, ContextSnapshotV1]):
             # W08-3 interim: legacy prompt_hash-only cache cannot prove reuse identity.
             cache_db_path=None,
         ))
-        # Effective Groq product options as used by GroqProvider/Dialect.
-        # This contract must be updated whenever an output-affecting provider
-        # option changes; no prompt_hash-only cache is allowed.
-        effective_options = {
-            "provider_id": "groq", "dialect": "openai_compatible_json_v1",
-            "temperature": 0.00001, "stream": False,
-            "source_language": "en", "target_language": "es",
-            "prompt_version": builder.prompt_version, "model_name": builder.model_name,
-            "target_lang_expansion": 2.0, "response_contract": "G3_CHUNK_RESPONSE_V1",
-        }
-        effective_config_sha256 = hashlib.sha256(json.dumps(
-            effective_options, ensure_ascii=False, sort_keys=True,
-            separators=(",", ":"),
-        ).encode("utf-8")).hexdigest()
+        effective_config_sha256 = _product_effective_config_sha256()
         processor = SyncProviderBridge(
             async_provider=provider_stack,
             prompt_builder=builder,
@@ -193,7 +198,8 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
                     mat_conn = get_connection(MAT_DB_PATH, timeout=30)
                     try:
                         advance_staged_document(task_repo, mat_conn, fsm_repo,
-                                                plan, ast, owner_id)
+                                                plan, ast, owner_id,
+                                                required_root_config_sha256=_product_effective_config_sha256())
                     finally:
                         mat_conn.close()
                     current_state = DocumentState.READY_FOR_ASSEMBLY
@@ -308,7 +314,8 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
                     mat_conn = get_connection(MAT_DB_PATH, timeout=30)
                     try:
                         advance_staged_document(task_repo, mat_conn, fsm_repo,
-                                                plan, ast, owner_id)
+                                                plan, ast, owner_id,
+                                                required_root_config_sha256=_product_effective_config_sha256())
                     finally:
                         mat_conn.close()
                     current_state = DocumentState.READY_FOR_ASSEMBLY
