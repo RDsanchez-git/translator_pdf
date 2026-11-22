@@ -74,3 +74,42 @@ def test_output_generation_not_equal_to_w08_candidate_reuse_key() -> None:
     item = generation()
     assert item.generation_sha256 != item.reuse.reuse_sha256
     assert item != replace(item, output_contract_version="G3_CHUNK_RESPONSE_V2")
+
+
+
+@pytest.mark.unit
+def test_generation_identity_reproducible_across_processes_and_hash_seeds() -> None:
+    """F17BIS-16 §5.2 R7: independent processes produce the same generation key."""
+    import os
+    from pathlib import Path
+    import subprocess
+    import sys
+
+    script = """
+from hashlib import sha256
+from core.prompting.inference_identity import InferenceReuseIdentityV1, PPPRGenerationIdentityV1
+def digest(x):
+    return sha256(x.encode("utf-8")).hexdigest()
+reuse = InferenceReuseIdentityV1(
+    document_id="document", ast_hash=digest("AST_V2"),
+    manifest_sha256=digest("manifest"), chunk_id="chunk",
+    context_snapshot_sha256=digest("context"), prompt_hash=digest("prompt"),
+    provider_id="offline", model_name="offline-model", prompt_version="v1",
+    target_language="es", effective_config_sha256=digest("effective-config"),
+)
+print(PPPRGenerationIdentityV1(
+    reuse=reuse, source_language="en", output_contract_version="G3_CHUNK_RESPONSE_V1",
+).generation_sha256)
+"""
+    root = Path(__file__).resolve().parents[2]
+    values = []
+    for seed in ("3", "107"):
+        env = os.environ.copy()
+        env["PYTHONHASHSEED"] = seed
+        result = subprocess.run(
+            [sys.executable, "-c", script], cwd=root, env=env,
+            capture_output=True, text=True, check=True, timeout=25,
+        )
+        values.append(result.stdout.strip())
+    assert values[0] == values[1]
+    assert len(values[0]) == 64
