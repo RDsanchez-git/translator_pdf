@@ -308,5 +308,5 @@ def test_ocr_route_verifies_actual_ast_registry_before_queue_publication(
         h.daemon.ast_registry = registry
         h.daemon._process_document(h.pdf)
         verified = registry.get_verified_document_ast(h.doc_id, h.ast_hash)
-        assert verified == h.parser.ast
+        assert verified == h.ast
         assert h.db.execute("SELECT COUNT(*) FROM chunk_plans").fetchone()[0] == 1
