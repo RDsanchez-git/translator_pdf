@@ -119,3 +119,21 @@ def test_invalid_heading_level_cannot_be_accredited_by_layout_draft() -> None:
     from pydantic import ValidationError
     with pytest.raises(ValidationError):
         LayoutBlockDraft(logical_type="SECTION", content="Methods", page_index=1, level=4)
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(("text", "expected"), [
+    ("1 Methods", HeadingLevel.H1),
+    ("1.2 Data", HeadingLevel.H2),
+    ("1.2.3 Measurements", HeadingLevel.H3),
+    ("Methods", HeadingLevel.UNKNOWN),
+    ("1.2.3.4 Deeper heading", HeadingLevel.UNKNOWN),
+    ("2.3e5 not a section", HeadingLevel.UNKNOWN),
+])
+def test_only_numbered_section_evidence_can_create_a_heading_level(
+    text: str, expected: HeadingLevel,
+) -> None:
+    draft = LayoutBlockDraft(logical_type="SECTION", content=text, page_index=2)
+    result = FlatASTBuilder._map_physical_to_logical(draft, 0)
+    assert isinstance(result.payload, HeadingPayload)
+    assert result.payload.heading_level == expected
