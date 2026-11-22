@@ -24,14 +24,19 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-          cache: "pip"
-          cache-dependency-path: pyproject.toml # <-- Le decimos que lea de aquí
+
+      - name: Set up uv (locked CI environment)
+        uses: astral-sh/setup-uv@v10.4.0
+        with:
+          version: "0.10.0"
+          enable-cache: true
+          cache-dependency-glob: uv.lock
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip setuptools wheel
-          pip install .[dev]
-          pip list # <-- Nos imprimirá la lista de lo que instaló para poder auditarlo
+          uv sync --locked --extra dev --no-editable --no-python-downloads --python "$(command -v python)"
+          echo "$GITHUB_WORKSPACE/.venv/bin" >> "$GITHUB_PATH"
+          uv pip list --python .venv/bin/python
 
       # pyrightconfig.json: único alcance efectivo core/apps/infra/runtime,
       # Python 3.11 Linux, modo standard. Strict queda fuera de este PR.
@@ -51,11 +56,18 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-          cache: "pip"
+
+      - name: Set up uv (locked CI environment)
+        uses: astral-sh/setup-uv@v10.4.0
+        with:
+          version: "0.10.0"
+          enable-cache: true
+          cache-dependency-glob: uv.lock
 
       - name: Install dependencies
         run: |
-          pip install -e ".[dev]"
+          uv sync --locked --extra dev --no-python-downloads --python "$(command -v python)"
+          echo "$GITHUB_WORKSPACE/.venv/bin" >> "$GITHUB_PATH"
 
       - name: Run unit tests (pytest marker)
         run: |
@@ -74,11 +86,18 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-          cache: "pip"
+
+      - name: Set up uv (locked CI environment)
+        uses: astral-sh/setup-uv@v10.4.0
+        with:
+          version: "0.10.0"
+          enable-cache: true
+          cache-dependency-glob: uv.lock
 
       - name: Install dependencies
         run: |
-          pip install -e ".[dev]"
+          uv sync --locked --extra dev --no-python-downloads --python "$(command -v python)"
+          echo "$GITHUB_WORKSPACE/.venv/bin" >> "$GITHUB_PATH"
 
       # B03 uses loopback HTTP and temporary SQLite, so these are not pure unit tests.
       # This step runs without Docker containers, model credentials, or real PDF corpus.
