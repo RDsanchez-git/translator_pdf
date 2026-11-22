@@ -149,10 +149,13 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
         if callable(verified_reader):
             # Production ASTRegistry: disk-backed semantic + artifact integrity.
             ast = cast(list[ASTNode], verified_reader(document_id, ast_hash))
+            required_generation_config = _product_effective_config_sha256()
         else:
             # Offline/W06 test doubles retain the older ASTProvider contract.
             # The product composition root always supplies ASTRegistry.
+            # Unattested historical receipts cannot claim product reuse.
             ast = ast_registry.get_document_ast(document_id, ast_hash)
+            required_generation_config = None
         if not ast or compute_ast_hash(ast) != ast_hash:
             raise PipelineIntegrityError("G3_B4_3A_AST_MISSING_OR_HASH_MISMATCH")
         # A missing, stale or altered snapshot is an integrity failure before
@@ -206,7 +209,7 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
                     try:
                         advance_staged_document(task_repo, mat_conn, fsm_repo,
                                                 plan, ast, owner_id,
-                                                required_root_config_sha256=_product_effective_config_sha256())
+                                                required_root_config_sha256=required_generation_config)
                     finally:
                         mat_conn.close()
                     current_state = DocumentState.READY_FOR_ASSEMBLY
@@ -322,7 +325,7 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
                     try:
                         advance_staged_document(task_repo, mat_conn, fsm_repo,
                                                 plan, ast, owner_id,
-                                                required_root_config_sha256=_product_effective_config_sha256())
+                                                required_root_config_sha256=required_generation_config)
                     finally:
                         mat_conn.close()
                     current_state = DocumentState.READY_FOR_ASSEMBLY
