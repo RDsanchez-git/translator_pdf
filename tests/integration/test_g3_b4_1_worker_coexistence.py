@@ -194,6 +194,39 @@ def test_durable_generation_receipt_rejects_cross_contract_replay(tmp_path):
         assert len(repo.load_staged_chunk_responses(
             plan, ast, required_root_config_sha256=root,
         )) == 1
+        # Board W2.2: a tampered generation digest alone must not be
+        # accepted under an unchanged root-config digest and valid response.
+        queue.execute(
+            "UPDATE chunk_result_receipts SET generation_sha256=? "
+            "WHERE document_id=? AND ast_hash=? AND chunk_id=?",
+            (changed_gen, plan.document_id, plan.ast_hash, lease.node_id),
+        )
+        queue.commit()
+        with pytest.raises(ValueError, match="PPPR_G2_GENERATION_RECEIPT_BINDING_DRIFT"):
+            repo.load_staged_chunk_responses(
+                plan, ast, required_root_config_sha256=root,
+            )
+        queue.execute(
+            "UPDATE chunk_result_receipts SET generation_sha256=? "
+            "WHERE document_id=? AND ast_hash=? AND chunk_id=?",
+            (first_gen, plan.document_id, plan.ast_hash, lease.node_id),
+        )
+        queue.commit()
+        assert len(repo.load_staged_chunk_responses(
+            plan, ast, required_root_config_sha256=root,
+        )) == 1
+        # A receipt without the independently stored local binding cannot
+        # become an accredited product replay, even if roots still match.
+        queue.execute(
+            "UPDATE chunk_result_receipts SET generation_binding_sha256=NULL "
+            "WHERE document_id=? AND ast_hash=? AND chunk_id=?",
+            (plan.document_id, plan.ast_hash, lease.node_id),
+        )
+        queue.commit()
+        with pytest.raises(ValueError, match="PPPR_G2_REPLAY_GENERATION_UNVERIFIED"):
+            repo.load_staged_chunk_responses(
+                plan, ast, required_root_config_sha256=root,
+            )
         with pytest.raises(ValueError, match="PPPR_G2_REPLAY_GENERATION_UNVERIFIED"):
             repo.load_staged_chunk_responses(
                 plan, ast, required_root_config_sha256=changed_gen,
