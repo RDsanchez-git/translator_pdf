@@ -14,6 +14,7 @@ from typing import Protocol, Sequence, cast
 from core.ast.models import ASTNode, TranslationTaskType, TranslationUnit
 from core.chunking.manifest_contract import ChunkPlan
 from core.execution.ports import TaskLease
+from core.execution.exceptions import G3ExternalEffectNotStartedError
 from infra.db.control_repo import ControlPlaneRepository
 
 
@@ -42,7 +43,7 @@ def stage_claimed_unit(
     if expected_task_id != lease.task_id:
         raise ValueError("G3_B4_3A_LEASE_TASK_MISMATCH")
     if lease.lease_expires_at <= time.time():
-        raise ValueError("G3_B4_3A_EXPIRED_LEASE")
+        raise G3ExternalEffectNotStartedError("G3_B4_3A_EXPIRED_LEASE")
 
     generation_sha256: str | None = None
     root_config_sha256: str | None = None
@@ -50,12 +51,18 @@ def stage_claimed_unit(
         raw_response = None
     elif unit.chunk_type in (TranslationTaskType.TRANSLATE, TranslationTaskType.PARTIAL):
         if processor is None:
-            raise ValueError("G3_B4_3A_PROVIDER_REQUIRED")
+            raise G3ExternalEffectNotStartedError("G3_B4_3A_PROVIDER_REQUIRED")
         with llm_semaphore:
+            # Recheck *durable* owner/execution/expiry after semaphore wait.
+            # This is the last controlled boundary before provider invocation.
+            repo.assert_g3_effect_authority(
+                lease=lease, worker_id=worker_id,
+                document_id=plan.document_id, ast_hash=plan.ast_hash,
+            )
             if getattr(processor, "generation_identity_enabled", False):
                 attested_executor = getattr(processor, "execute_chunk_with_generation", None)
                 if not callable(attested_executor):
-                    raise ValueError("PPPR_G2_ATTESTED_PROVIDER_MISSING")
+                    raise G3ExternalEffectNotStartedError("PPPR_G2_ATTESTED_PROVIDER_MISSING")
                 raw_response, generation_sha256 = cast(tuple[str, str], attested_executor(plan, unit))
                 root_config_sha256 = getattr(processor, "generation_root_config_sha256", None)
             else:

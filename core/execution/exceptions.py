@@ -22,6 +22,13 @@ class LeaseExpiredError(PipelineIntegrityError):
     """El worker perdió la propiedad del documento durante la ejecución."""
     pass
 
+class G3ExternalEffectNotStartedError(ValueError):
+    """Proof of a *local* pre-effect rejection; no provider was invoked.
+
+    This error cannot be used to infer non-execution after provider I/O.
+    """
+
+
 class IllegalStateTransitionError(PipelineIntegrityError):
     """El comando intentó una transición no permitida por el grafo FSM."""
     pass

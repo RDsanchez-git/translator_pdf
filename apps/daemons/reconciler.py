@@ -44,6 +44,38 @@ class ReconcilerDaemon:
         self.stop_event = threading.Event()
         self.is_leader = False
         self.current_epoch = 0
+        # Operator alarm on durable uncertainty; no retry permission implied.
+        value = os.getenv("G3_UNKNOWN_ESCALATION_SEC", "3600")
+        try:
+            self.unknown_escalation_sec = int(value)
+        except ValueError as exc:
+            raise ValueError("PPPR_G3_UNKNOWN_ESCALATION_INVALID_TTL") from exc
+        if self.unknown_escalation_sec < 1:
+            raise ValueError("PPPR_G3_UNKNOWN_ESCALATION_INVALID_TTL")
+
+    def _escalate_g3_unknown(self) -> None:
+        """Report persisted uncertainty without requeuing or rewriting it."""
+        if not self.is_leader:
+            return
+        for finding in self.task_repo.list_due_g3_unknown(self.unknown_escalation_sec):
+            if not self.is_leader:
+                return
+            logger.error(
+                "PPPR_G3_UNKNOWN_OPERATOR_ESCALATION" if finding.audit_valid
+                else "PPPR_G3_UNKNOWN_AUDIT_CORRUPT_REQUIRES_OPERATOR",
+                extra={"extra_data": {
+                    "task_id": finding.task_id,
+                    "document_id": finding.document_id,
+                    "ast_hash": finding.ast_hash,
+                    "chunk_id": finding.chunk_id,
+                    "execution_id": finding.execution_id,
+                    "first_detected_at": finding.first_detected_at,
+                    "cause": finding.cause,
+                    "escalation_after_sec": self.unknown_escalation_sec,
+                    "audit_valid": finding.audit_valid,
+                    "disposition": "MANUAL_REVIEW_ONLY_NO_AUTO_RETRY",
+                }},
+            )
 
     def _sweep_fsm_stalls(self, now_safe: float):
         """SOTA: Reconciliación semántica del documento completo."""
@@ -143,6 +175,7 @@ class ReconcilerDaemon:
                 try:
                     self._sweep_tasks(now_safe)
                     self._sweep_fsm_stalls(now_safe) # Llamada al Vector 3
+                    self._escalate_g3_unknown()
                 except Exception as e:
                     logger.exception(f"Error crítico durante barrido paginado: {e}")
                 
@@ -225,6 +258,22 @@ class ReconcilerDaemon:
                                 "state": state[0] if state else "UNKNOWN",
                             }},
                         )
+                    else:
+                        # Failed CAS may be a legitimate competing recovery;
+                        # if the original expired claim survives, it remains
+                        # unresolved and must not vanish from operator logs.
+                        still = self.task_repo.conn.execute(
+                            "SELECT 1 FROM chunk_tasks WHERE task_id=? "
+                            "AND task_state='PROCESSING' AND lease_owner=? "
+                            "AND execution_id=? AND lease_expires_at=?",
+                            (task_id, lease_owner, execution_id, lease_expires_at),
+                        ).fetchone()
+                        if still:
+                            logger.warning("PPPR_G3_EXPIRED_CLAIM_NOT_RECONCILED",
+                                           extra={"extra_data": {
+                                               "task": task_id,
+                                               "execution_id": execution_id,
+                                           }})
                 else:
                     logger.warning("G3_NON_LLM_STALE_TASK_REQUIRES_SEPARATE_RECOVERY",
                                    extra={"extra_data": {"task": task_id[:8], "worker_type": worker_type}})

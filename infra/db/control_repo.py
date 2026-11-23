@@ -6,7 +6,8 @@ import json
 from hashlib import sha256
 from contextlib import contextmanager
 from typing import Optional, List, Sequence, Generator
-from core.execution.ports import ControlPlanePort, TaskLease
+from core.execution.ports import ControlPlanePort, TaskLease, G3UnknownEscalation
+from core.execution.exceptions import G3ExternalEffectNotStartedError
 from core.execution.exceptions import OptimisticLockError 
 from core.ast.models import ASTNode
 from core.chunking.manifest_contract import ChunkPlan
@@ -24,6 +25,15 @@ def _g3_unknown_audit(now: float, execution_id: str, cause: str) -> str:
     return json.dumps(
         {"code": "G3_W06_EXTERNAL_UNKNOWN", "execution_id": execution_id,
          "first_detected_at": now, "cause": cause},
+        sort_keys=True, separators=(",", ":"),
+    )
+
+
+def _g3_no_start_audit(now: float, execution_id: str, cause: str) -> str:
+    """Positive local no-start evidence (not a provider outcome)."""
+    return json.dumps(
+        {"code": "PPPR_G3_EFFECT_NOT_STARTED", "execution_id": execution_id,
+         "observed_at": now, "cause": cause},
         sort_keys=True, separators=(",", ":"),
     )
 
@@ -468,6 +478,119 @@ class ControlPlaneRepository(ControlPlanePort):
         except Exception:
             self.conn.rollback()
             raise
+
+    def assert_g3_effect_authority(
+        self, *, lease: TaskLease, worker_id: str,
+        document_id: str, ast_hash: str,
+    ) -> None:
+        """Check the *current durable* authority immediately before provider I/O.
+
+        A stale in-memory TaskLease is insufficient: the owner, execution,
+        physical chunk and unexpired lease must still match the persisted row.
+        This check cannot fence an external effect *after* it has started.
+        """
+        now = time.time()
+        if lease.lease_expires_at <= now:
+            raise G3ExternalEffectNotStartedError("G3_B4_3A_EXPIRED_LEASE")
+        row = self.conn.execute(
+            "SELECT 1 FROM chunk_tasks AS t "
+            "WHERE t.task_id=? AND t.document_id=? AND t.ast_hash=? "
+            "AND t.node_id=? AND t.worker_type='LLM' "
+            "AND t.task_state='PROCESSING' AND t.lease_owner=? "
+            "AND t.execution_id=? AND t.lease_expires_at>? "
+            "AND EXISTS (SELECT 1 FROM chunk_plans AS p "
+            "WHERE p.document_id=t.document_id AND p.ast_hash=t.ast_hash) "
+            "AND NOT EXISTS (SELECT 1 FROM chunk_result_receipts AS r "
+            "WHERE r.task_id=t.task_id)",
+            (lease.task_id, document_id, ast_hash, lease.node_id,
+             worker_id, lease.execution_id, now),
+        ).fetchone()
+        if row is None:
+            raise G3ExternalEffectNotStartedError(
+                "PPPR_G3_EFFECT_AUTHORITY_NOT_CURRENT"
+            )
+
+    def mark_g3_proven_no_start(
+        self, *, task_id: str, worker_id: str, execution_id: str, cause: str,
+    ) -> bool:
+        """Requeue only a *proven pre-effect* rejection, fenced by attempt.
+
+        An expired lease alone never proves no effect. The caller MUST invoke
+        this solely for a failure before entering the external provider path.
+        No existing staged receipt can be invalidated by this operation.
+        """
+        if not all((task_id, worker_id, execution_id, cause)):
+            raise ValueError("PPPR_G3_NO_START_IDENTITY_REQUIRED")
+        now = time.time()
+        with self._chunk_plan_write_scope():
+            self.conn.execute(_G3_RESULT_RECEIPTS_DDL)
+            result = self.conn.execute(
+                "UPDATE chunk_tasks SET "
+                "task_state=CASE WHEN retry_count+1 >= max_retries "
+                "THEN 'FAILED' ELSE 'RETRYABLE_ERROR' END, "
+                "retry_count=retry_count+1, lease_owner=NULL, "
+                "lease_expires_at=NULL, error_log=?, "
+                "updated_at=?, state_version=state_version+1 "
+                "WHERE task_id=? AND worker_type='LLM' "
+                "AND task_state='PROCESSING' AND lease_owner=? "
+                "AND execution_id=? "
+                "AND EXISTS (SELECT 1 FROM chunk_plans AS p "
+                "WHERE p.document_id=chunk_tasks.document_id "
+                "AND p.ast_hash=chunk_tasks.ast_hash) "
+                "AND NOT EXISTS (SELECT 1 FROM chunk_result_receipts AS r "
+                "WHERE r.task_id=chunk_tasks.task_id)",
+                (_g3_no_start_audit(now, execution_id, cause),
+                 now, task_id, worker_id, execution_id),
+            )
+            return result.rowcount == 1
+
+    def list_due_g3_unknown(
+        self, escalation_after_sec: float, *, now: float | None = None,
+    ) -> list[G3UnknownEscalation]:
+        """Derive escalation solely from the persisted UNKNOWN audit.
+
+        Corrupt/missing audit metadata is reported as an anomaly immediately;
+        it is never treated as absence of UNKNOWN or a zero-valued metric.
+        """
+        if (isinstance(escalation_after_sec, bool)
+                or not isinstance(escalation_after_sec, (int, float))
+                or not 0 < escalation_after_sec < float("inf")):
+            raise ValueError("PPPR_G3_UNKNOWN_ESCALATION_INVALID_TTL")
+        at = time.time() if now is None else now
+        if not isinstance(at, (int, float)) or not 0 < at < float("inf"):
+            raise ValueError("PPPR_G3_UNKNOWN_ESCALATION_INVALID_TIME")
+        rows = self.conn.execute(
+            "SELECT task_id,document_id,ast_hash,node_id,execution_id,error_log "
+            "FROM chunk_tasks WHERE worker_type='LLM' "
+            "AND task_state=? ORDER BY updated_at ASC,task_id ASC",
+            (_G3_EXTERNAL_UNKNOWN,),
+        ).fetchall()
+        result: list[G3UnknownEscalation] = []
+        for task_id, document_id, ast_hash, chunk_id, execution_id, record in rows:
+            first: float | None = None
+            cause: str | None = None
+            valid = False
+            try:
+                audit = json.loads(record)
+                if isinstance(audit, dict):
+                    observed = audit.get("first_detected_at")
+                    raw_cause = audit.get("cause")
+                    if (audit.get("code") == "G3_W06_EXTERNAL_UNKNOWN"
+                            and audit.get("execution_id") == execution_id
+                            and isinstance(execution_id, str) and execution_id
+                            and type(observed) in (int, float)
+                            and 0 < observed <= at
+                            and isinstance(raw_cause, str) and raw_cause):
+                        first, cause, valid = float(observed), raw_cause, True
+            except (TypeError, ValueError):
+                pass
+            if not valid or (first is not None and at - first >= escalation_after_sec):
+                result.append(G3UnknownEscalation(
+                    task_id=task_id, document_id=document_id, ast_hash=ast_hash,
+                    chunk_id=chunk_id, execution_id=execution_id or "",
+                    first_detected_at=first, cause=cause, audit_valid=valid,
+                ))
+        return result
 
     def acknowledge_execution(self, task_id: str, worker_id: str) -> None:
         now = time.time()
