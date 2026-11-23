@@ -44,7 +44,7 @@ class _CaptureBuilder:
         self.seen.append(resolved_context)
         return SimpleNamespace(
             status="success",
-            envelope=SimpleNamespace(chunk_id=unit.chunk_id),
+            envelope=SimpleNamespace(chunk_id=unit.chunk_id, target_provider="primary"),
         )
 
 

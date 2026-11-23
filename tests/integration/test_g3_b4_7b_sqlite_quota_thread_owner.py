@@ -34,7 +34,11 @@ class _Builder:
     model_name = "fake-local-only"
 
     def build(self, unit, *, resolved_context, target_lang_expansion):
-        return SimpleNamespace(status="success", envelope=object(), message="")
+        return SimpleNamespace(
+            status="success",
+            envelope=SimpleNamespace(chunk_id=unit.chunk_id, target_provider="primary"),
+            message="",
+        )
 
 
 def _one_member_plan():
