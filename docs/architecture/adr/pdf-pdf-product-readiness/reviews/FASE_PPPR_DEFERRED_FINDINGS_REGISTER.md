@@ -1,11 +1,11 @@
 # FASE_PPPR_DEFERRED_FINDINGS_REGISTER.md
 
 **Documento:** `docs/architecture/adr/pdf-pdf-product-readiness/reviews/FASE_PPPR_DEFERRED_FINDINGS_REGISTER.md`  
-**Versión:** 0.1.16  
+**Versión:** 0.1.17  
 **Estado:** G1/G2 COMPLETED/PASS; G3/W3.1 PR90 IN_PROGRESS/CI_PENDING, 3 Tasks aún sin DONE, W3.2 y G3 Exit Review NOT_RUN, 14 GAP P1 históricos OPEN, 0 nuevos DF/GF acreditados, `PRODUCT_READINESS=NOT_CERTIFIED`.  
 **Fecha de creación:** 2026-11-21  
 **Última actualización:** 2026-11-22  
-**Derivado de:** `PHASE_PPPR_EXECUTION_PLAN.md` v0.5.15 APPROVED/LIVING; CI #45100465237 SUCCESS sobre 4340538… y nueva evidencia H2 en SHA posterior aún CI_PENDING; Gate3 Exit Review NOT_RUN.
+**Derivado de:** `PHASE_PPPR_EXECUTION_PLAN.md` v0.5.16 APPROVED/LIVING; CI #45101231199 SUCCESS en 6e83816…, falsador de inalcanzabilidad posterior CI_PENDING; W3.1 NO DONE y G3 Exit Review NOT_RUN.
 **Ámbito:** PPPR (iniciativa transversal PDF→PDF; no fase histórica numerada).  
 **Propósito:** Registro único y auditable de hallazgos `DF`/`GF` **que surjan durante la ejecución y los Exit Reviews** del Execution Plan: identificación, clasificación, decisión, resolución, batch y evidencia de implementación.
 
@@ -56,6 +56,7 @@
 | 0.1.14 | 2026-11-22 | W3.1 PR90 autorizada e implementándose offline: autoridad pos-semáforo, no-inicio CAS, UNKNOWN recuperable y alarma configurable. CI y dictamen Board pendientes; 3 Tasks IN_PROGRESS, 0 DONE nuevas; ningún DF/GF nuevo ni Gate3 Exit Review. 14 GAP P1 históricos OPEN. |
 | 0.1.15 | 2026-11-22 | Board PR90 FAVORABLE CON CORRECCIONES / NO MERGE. H1 HIGH (no-inicio cuota mal clasificado) y H3 MEDIUM (alarma UNKNOWN dependiente de sweeps) mitigados en código y falsadores propuestos CI_PENDING; H2 HIGH exige trazabilidad 24 normas F18-04/05, tabla en Execution Plan §7.H.1 con evidencia parcial/gaps declarados. No se abren DF/GF formales diferidos por observaciones in-scope aún no resueltas; 14 GAP P1 históricos OPEN. |
 | 0.1.16 | 2026-11-22 | Revalidación técnica H1/H3 tras [CI #45100465237](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45100465237) SUCCESS en `4340538…`; nuevos falsadores H2 de reconstrucción derivada desde receipts y exposición de UNKNOWN aun sin auditoría (SHA `0d528b1…`, CI pendiente). No se convierten observaciones in-scope en DF/GF inventados; permanecen reglas parciales F18-05 R14/R15 sin prueba aplicable y Task 3.1.3 no DONE. |
+| 0.1.17 | 2026-11-22 | Board segunda revisión PR90: H1/H3 RESUELTOS, H2 PARCIAL y aplicabilidad de retry excepcional condicionada; [CI #45101231199](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45101231199) SUCCESS sobre `6e83816…`. Falsador adicional de rutas autorizadas de retry UNKNOWN (sin decisión excepcional ficticia) en `ff531d23…`, CI_PENDING. No se abre DF/GF diferido ni se presume normatividad DONE; 14 GAP P1 históricos OPEN. |
 
 ---
 
@@ -214,6 +215,14 @@ Cada DF/GF exigirá: texto original, fecha/origen Gate/Wave/Task, rutas/SHAs de 
 **Board PR #90 — revisión 2026-11-22 sobre `3c5e366e6b948c20f37d82334787826b4c4fb456`: FAVORABLE CON CORRECCIONES / NO MERGE.** H1 HIGH: `PermanentQuotaRejection` / `QuotaTimeoutError` provenían del rate limiter antes de `_underlying.translate` y caían en UNKNOWN genérico; el PR añade catch específico en `runtime/engine.py` y CAS `mark_g3_proven_no_start(permanent=True/False)`, con pruebas de cero I/O y reintento acotado. H3 MEDIUM: sweeps previos ya no bloquean la alarma; `_run_sweep_cycle` aísla excepciones y deduplica por `(task_id,execution_id)` durante TTL en memoria, conservando SQLite como autoridad. H2 HIGH: matriz individual de 24 reglas propietarias de Task 3.1.3, sin presumir cobertura universal. **Estado: CODE_PROPOSED / CI DEL SHA FINAL PENDIENTE, BOARD_REVIEW_PENDING, ningún DONE nuevo**.
 
 **Tratamiento del Register:** H1–H3 son observaciones de revisión del PR90 con remediación en el mismo PR. No constituyen DF/GF diferidos ni están cerradas; si resultara un defecto irresoluble dentro de la Wave se evaluará entonces la apertura formal siguiendo §1. Los 14 GAP P1 históricos no cambian.
+
+**Dictamen de aplicabilidad propuesto para segunda decisión del Board — PR90 / H2 (2026-11-22; no cambia NADR FROZEN):**
+- **PROHIBITED PATH / prueba negativa en alcance:** `NADR-F18-03 §5.3 R13` y `R15` (ninguna vía productiva autorizada de retry de `G3_EXTERNAL_UNKNOWN`); test `test_pppr_g3_unknown_blocks_all_authorized_local_retry_and_legacy_recovery` invoca selección, API de no-inicio, renovación, abandono, liberación, reconocimiento y reconciliación legada sobre el mismo attempt después de UNKNOWN y tras reapertura SQLite. El test prueba rechazo en **interfaces locales existentes**, no integridad frente a escrituras SQL privilegiadas arbitrarias ni una capacidad de aprobación/rematerialización comercial inexistente. Estado **NEW_TEST_CI_PENDING / BOARD_DISPOSITION_PENDING**, no `DONE`.
+- **CONDITION NOT TRIGGERED (a ratificar):** `NADR-F18-03 §5.3 R14`, `NADR-F18-05 §5.4 R11`, `NADR-F18-05 §5.5 R14` y porción de `R15` referida a decisiones excepcionales. Sin camino productivo de autorización, aceptación de riesgo, decisión o retry excepcional, no existe una decisión cuya contabilización o durabilidad pueda falsarse. Este dato no prueba cumplimiento positivo ni permite `DONE` automático. La obligación queda vinculante si se habilita esa capacidad posteriormente; su habilitación exige decisión normativa y tests de autorización, identidad, durabilidad y auditabilidad, sin excepción metodológica implícita.
+- **Obligación actual independiente de condición:** `NADR-F18-05 §5.5 R15` también obliga a separar evidencia autoritativa de métricas derivadas aun sin reejecuciones excepcionales; los tests de UNKNOWN con auditoría ausente, reinicio y alertas volátiles aportan evidencia focal pero **no acreditan universalmente** todo observability-plane. `NADR-F18-04 §5.3 R9` reconstruye el **conjunto derivado ausente** desde receipts locales recuperables; no implica reparación automática de fila corrupta aislada ni supervivencia de fuentes destruidas.
+- **Criterio para cierre:** confirmar en Board la suficiencia de falsadores individuales y la aplicabilidad/inalcanzabilidad **sin reclasificar automáticamente una regla con `CONDITION NOT TRIGGERED` como `DONE`**. Toda brecha que siga aplicable y sin evidencia permanece `PENDING`; no agregar proveedores, colas, oráculos o infraestructura de monitoreo artificiales.
+
+**Estado del Register:** las observaciones del Board sobre este PR son correcciones *in-scope*, no findings diferidos; ninguna aprobación o excepción fue creada y no se reduce el conjunto histórico de 14 GAP P1.
 
 ## 3. TABLA CONSOLIDADA FINAL
 
