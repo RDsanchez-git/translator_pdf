@@ -120,10 +120,12 @@ def test_node_id_metadata_stays_in_one_tex_comment_line(untrusted_id: str) -> No
     # Real TeX commands may occur only in the trusted renderer output, not
     # as a new line introduced by untrusted identifier metadata.
     assert not any(
-        line.lstrip().startswith(("\\input", "\\write18", "\\end{document}"))
+        line.lstrip().startswith(("\\input", "\\write18"))
         for line in rendered.splitlines()
         if not line.startswith("%")
     )
+    # The compiler emits precisely one trusted document terminator.
+    assert rendered.splitlines().count(r"\\end{document}") == 1
     assert r"\noindent texto\ literal" in rendered
 
 
