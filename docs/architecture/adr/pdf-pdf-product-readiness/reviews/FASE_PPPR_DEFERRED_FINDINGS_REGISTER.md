@@ -1,11 +1,11 @@
 # FASE_PPPR_DEFERRED_FINDINGS_REGISTER.md
 
 **Documento:** `docs/architecture/adr/pdf-pdf-product-readiness/reviews/FASE_PPPR_DEFERRED_FINDINGS_REGISTER.md`  
-**Versión:** 0.1.18  
-**Estado:** G1/G2 COMPLETED/PASS; G3/W3.1 PR90 IN_PROGRESS/CI_TECH_SUCCESS, H2 BOARD_DISPOSITION_PENDING, Tasks aún sin DONE; W3.2 y Gate3 Exit Review NOT_RUN; 14 GAP P1 históricos OPEN, 0 nuevos DF/GF diferidos acreditados, `PRODUCT_READINESS=NOT_CERTIFIED`.  
+**Versión:** 0.1.19  
+**Estado:** G1/G2 COMPLETED/PASS; G3/W3.1 PR90 IN_PROGRESS, H1/H3 resueltos, aplicación condicional Board ACCEPTED; F18-05 observabilidad PARCIAL con dos testigos offline nuevos CI_PENDING; ninguna Task G3 DONE. W3.2 y Gate3 Exit Review NOT_RUN; 14 GAP P1 históricos OPEN; `PRODUCT_READINESS=NOT_CERTIFIED`.  
 **Fecha de creación:** 2026-11-21  
 **Última actualización:** 2026-11-22  
-**Derivado de:** `PHASE_PPPR_EXECUTION_PLAN.md` v0.5.17 APPROVED/LIVING; CI #45102292492 SUCCESS sobre 9ea325f…; H2 aplicación condicional pendiente del Board, Gate3 Exit Review NOT_RUN.
+**Derivado de:** `PHASE_PPPR_EXECUTION_PLAN.md` v0.5.18 APPROVED/LIVING; CI #45103595023 SUCCESS sobre 68dec1f…, nuevos falsadores de observabilidad CI_PENDING, sin Gate3 Exit Review.
 **Ámbito:** PPPR (iniciativa transversal PDF→PDF; no fase histórica numerada).  
 **Propósito:** Registro único y auditable de hallazgos `DF`/`GF` **que surjan durante la ejecución y los Exit Reviews** del Execution Plan: identificación, clasificación, decisión, resolución, batch y evidencia de implementación.
 
@@ -58,6 +58,7 @@
 | 0.1.16 | 2026-11-22 | Revalidación técnica H1/H3 tras [CI #45100465237](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45100465237) SUCCESS en `4340538…`; nuevos falsadores H2 de reconstrucción derivada desde receipts y exposición de UNKNOWN aun sin auditoría (SHA `0d528b1…`, CI pendiente). No se convierten observaciones in-scope en DF/GF inventados; permanecen reglas parciales F18-05 R14/R15 sin prueba aplicable y Task 3.1.3 no DONE. |
 | 0.1.17 | 2026-11-22 | Board segunda revisión PR90: H1/H3 RESUELTOS, H2 PARCIAL y aplicabilidad de retry excepcional condicionada; [CI #45101231199](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45101231199) SUCCESS sobre `6e83816…`. Falsador adicional de rutas autorizadas de retry UNKNOWN (sin decisión excepcional ficticia) en `ff531d23…`, CI_PENDING. No se abre DF/GF diferido ni se presume normatividad DONE; 14 GAP P1 históricos OPEN. |
 | 0.1.18 | 2026-11-22 | [CI #45102292492](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45102292492) SUCCESS en HEAD `9ea325f752e0a30fdf66469a9bde60456a702cb9` (3/3 jobs, 289 unitarios, 95 integración focal, 1561 suite `not e2e` PASS, 4 skipped/20 E2E excluidos). Falsador de prohibición de UNKNOWN vía APIs locales ejecutado; H2 pendiente de dictamen por regla y aplicabilidad condicional, sin nueva DF/GF formal ni cambio de 14 GAP P1. 3 Tasks NO DONE / PR90 NO MERGE. |
+| 0.1.19 | 2026-11-23 | Board acepta PROHIBITED PATH local y CONDITION NOT TRIGGERED sin auto-DONE; H1/H3 RESUELTOS, H2 F18-05 R1/R2/R10/R13/R15 PARCIAL. [CI #45103595023](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45103595023) SUCCESS en `68dec1f…`. Auditoría focal de emisores JSON y reconciliador SQLite con dos nuevos tests de formato y alarma sin sink en `518e2a0…` CI_PENDING. Sin DF/GF diferidos nuevos; 14 GAP históricos OPEN, W3.1 NO DONE. |
 
 ---
 
@@ -224,6 +225,10 @@ Cada DF/GF exigirá: texto original, fecha/origen Gate/Wave/Task, rutas/SHAs de 
 - **Criterio para cierre:** confirmar en Board la suficiencia de falsadores individuales y la aplicabilidad/inalcanzabilidad **sin reclasificar automáticamente una regla con `CONDITION NOT TRIGGERED` como `DONE`**. Toda brecha que siga aplicable y sin evidencia permanece `PENDING`; no agregar proveedores, colas, oráculos o infraestructura de monitoreo artificiales.
 
 **Checkpoint CI final para segunda revisión (2026-11-22):** [CI #45102292492](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45102292492) SUCCESS sobre `9ea325f752e0a30fdf66469a9bde60456a702cb9` valida H1/H3 y falsador negativo de retry UNKNOWN en interfaces examinadas. La condición de autorización/reintento excepcional no ocurrió ni existe capacidad productiva implementada; la aplicación normativa debe ratificarse sin marcar automáticamente una regla DONE. No se abre finding diferido por este debate dentro del mismo PR.
+
+**Board — decisión de aplicabilidad recibida (2026-11-23; sin nuevo Exit Review):** H1 y H3 RESUELTOS; `VERIFIED — PROHIBITED PATH` para NADR-F18-03 §5.3 R13 limitado a APIs locales examinadas; `CONDITION NOT TRIGGERED` para F18-03 §5.3 R14/R15 y F18-05 §5.4 R11/§5.5 R14, sin declarar PASS ficticio ni eliminar obligación futura; F18-05 §5.5 R15 **PARCIAL**. Board mantiene **NO MERGE / W3.1 IN_PROGRESS**, demanda cotejo focal de F18-05 §5.1 R1/R2, §5.3 R10 y §5.5 R13/R15 en productores/consumidores realmente conectados. No se autorizan reintentos excepcionales ni telemetría nueva.
+
+**Auditoría focal de emisores realmente conectados (2026-11-23):** `runtime/engine.py` pone `ctx_execution_id` (identidad de intento), `ctx_task_id` (tarea lógica) y `ctx_node_id` (chunk), mientras `core/utils/telemetry.py` (`DistributedContextFilter`+`JSONFormatter`) los serializa; `apps/daemons/reconciler.py` reconstruye alarmas desde `ControlPlaneRepository.list_due_g3_unknown` (SQLite), incluyendo `document_id`, `ast_hash`, `chunk_id`, `task_id`, `execution_id`, `audit_valid`, `first_detected_at` y disposición manual. `core/metrics/metrics.py`, `core/metrics/summary.py` y sus exportadores son agregados heredados de Dispatch/FinOps; **no son lectores/autoridad de UNKNOWN en la ruta G3 inspeccionada**, ni emiten una tasa de duplicación externa en el alcance probado. Se agregan **solo dos falsadores offline** en `tests/integration/test_w06_g3_uncertain_effect_offline.py`: `test_pppr_g3_unknown_worker_json_log_correlates_attempt_to_durable_operation` y `test_pppr_g3_unknown_alarm_recovered_after_ephemeral_json_log_loss`. El primero prueba el formatter+filtro reales y la distinción `trace_id=execution_id` de identidades lógicas/científicas; el segundo descarta el buffer de logs, reinicia el daemon, verifica alarma nuevamente desde SQLite y demuestra que no cambia el attempt ni se habilita retry. **CI de estos dos tests PENDING**. Límites: no pruebas de sinks externos, reporting global, modificaciones SQL privilegiadas, gastos comerciales ni decisiones excepcionales inexistentes.
 
 **Estado del Register:** las observaciones del Board sobre este PR son correcciones *in-scope*, no findings diferidos; ninguna aprobación o excepción fue creada y no se reduce el conjunto histórico de 14 GAP P1.
 
