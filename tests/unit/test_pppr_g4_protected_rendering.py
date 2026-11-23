@@ -125,7 +125,7 @@ def test_node_id_metadata_stays_in_one_tex_comment_line(untrusted_id: str) -> No
         if not line.startswith("%")
     )
     # The compiler emits precisely one trusted document terminator.
-    assert rendered.splitlines().count(r"\\end{document}") == 1
+    assert rendered.splitlines().count(r"\end{document}") == 1
     assert r"\noindent texto\ literal" in rendered
 
 
