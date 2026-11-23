@@ -7,6 +7,7 @@ from hashlib import sha256
 import re
 from typing import Any, Mapping
 from core.context.snapshot_contract import ContextSnapshotV1
+from core.execution.exceptions import G3ExternalEffectNotStartedError
 from core.prompting.inference_identity import InferenceReuseIdentityV1, PPPRGenerationIdentityV1
 from core.ast.models import ASTNode, TranslationTaskType, TranslationUnit
 from apps.llm_workers.routing import LLMProvider
@@ -151,6 +152,10 @@ class SyncProviderBridge:
         """
         if unit.chunk_type not in (TranslationTaskType.TRANSLATE, TranslationTaskType.PARTIAL):
             raise ValueError("G3_B4_3A_PRESERVE_PROVIDER_FORBIDDEN")
+        # The initial product contract is EN→ES, not an implicit provider
+        # default. A contradictory generation configuration cannot dispatch.
+        if (self._source_language, self._target_language) != ("en", "es"):
+            raise G3ExternalEffectNotStartedError("PPPR_G3_LANGUAGE_INTENT_REQUIRED_EN_ES")
         if sum(item.chunk_id == unit.chunk_id for item in plan.units) != 1 or unit not in plan.units:
             raise ValueError("G3_B4_3A_UNIT_NOT_IN_MANIFEST")
 
@@ -210,6 +215,10 @@ class SyncProviderBridge:
                 "spelling; never translate, duplicate, drop, or move it to another member. "
                 "Return no prose, code fences or other fields."
             ),
+            "language_intent": {
+                "source_language": self._source_language,
+                "target_language": self._target_language,
+            },
             "response_binding": {
                 "schema_version": 1,
                 "document_id": plan.document_id,

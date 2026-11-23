@@ -214,7 +214,10 @@ class _FakeProvider:
                                content=self.content)
 
 
-def _bridge(provider: _FakeProvider, builder: _FakeBuilder, plan: ChunkPlan) -> SyncProviderBridge:
+def _bridge(
+    provider: _FakeProvider, builder: _FakeBuilder, plan: ChunkPlan,
+    *, source_language: str = "en", target_language: str = "es",
+) -> SyncProviderBridge:
     # These existing tests exercise transport/placeholder semantics. They
     # inject explicit synthetic snapshots; real producer verification is
     # exercised independently in test_w08_ocr_g3_context_wiring.py.
@@ -229,6 +232,7 @@ def _bridge(provider: _FakeProvider, builder: _FakeBuilder, plan: ChunkPlan) -> 
     return SyncProviderBridge(
         cast(LLMProvider, provider), cast(PromptBuilder, builder),
         context_snapshots=snapshots,
+        source_language=source_language, target_language=target_language,
     )
 
 
@@ -446,3 +450,75 @@ def test_hallucinated_math_token_rejected_in_no_math_unit():
             bridge.execute_chunk(plan, unit)
     finally:
         bridge.shutdown()
+
+
+def test_pppr_w32_wire_request_contains_explicit_en_es_generation_intent():
+    """R1/R2: inspect the real renderer + dialect, not a provider mock string."""
+    from core.finops.measurement import InferenceMeasurementService
+    from core.validation.budget import PromptBudgetCalculator, StandardCompressionPolicy
+    from core.prompting.renderer import PromptRenderer
+    from core.prompting.dialects.openai_compatible import OpenAICompatibleDialect
+
+    _ast, plan = _fixture()
+    unit = next(u for u in plan.units if u.chunk_type == TranslationTaskType.TRANSLATE)
+    provider = _FakeProvider(_response(plan, unit))
+    builder = PromptBuilder(
+        model_name="offline-only", prompt_version="wave-3.2",
+        measurement_service=InferenceMeasurementService(_Estimator()),
+        budget_calculator=PromptBudgetCalculator(),
+        compression_policy=StandardCompressionPolicy(),
+    )
+    snapshots = {
+        unit.context_id: ContextSnapshotV1(
+            document_id=plan.document_id, ast_hash=plan.ast_hash,
+            context_id=unit.context_id,
+            breadcrumbs=(ContextBreadcrumbV1(0, "[ROOT_DOCUMENT_CONTEXT]"),),
+        ),
+    }
+    bridge = SyncProviderBridge(
+        cast(LLMProvider, provider), builder, context_snapshots=snapshots,
+        source_language="en", target_language="es",
+    )
+    try:
+        assert bridge.execute_chunk(plan, unit) == provider.content
+    finally:
+        bridge.shutdown()
+
+    assert len(provider.seen) == 1
+    wire = OpenAICompatibleDialect().build_request_kwargs(
+        PromptRenderer.render(provider.seen[0].schema)
+    )
+    assert len(wire["messages"]) == 2
+    body = json.loads(wire["messages"][1]["content"])
+    assert body["language_intent"] == {
+        "source_language": "en", "target_language": "es",
+    }
+    assert "English (en) into Spanish (es)" in body["instructions"]
+    assert wire["response_format"] == {"type": "json_object"}
+    assert body["response_binding"]["ast_hash"] == plan.ast_hash
+    assert body["response_binding"]["chunk_id"] == unit.chunk_id
+
+
+@pytest.mark.parametrize(
+    ("source", "target"),
+    [("", "es"), ("en", ""), ("fr", "es"), ("en", "fr"), ("ES", "en")],
+)
+def test_pppr_w32_invalid_language_intent_never_calls_provider(source, target):
+    from core.execution.exceptions import G3ExternalEffectNotStartedError
+
+    _ast, plan = _fixture()
+    unit = next(u for u in plan.units if u.chunk_type == TranslationTaskType.TRANSLATE)
+    provider = _FakeProvider(_response(plan, unit))
+    bridge = _bridge(
+        provider, _FakeBuilder(), plan,
+        source_language=source, target_language=target,
+    )
+    try:
+        with pytest.raises(
+            G3ExternalEffectNotStartedError,
+            match="PPPR_G3_LANGUAGE_INTENT_REQUIRED_EN_ES",
+        ):
+            bridge.execute_chunk(plan, unit)
+    finally:
+        bridge.shutdown()
+    assert provider.seen == []
