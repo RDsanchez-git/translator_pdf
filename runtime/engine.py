@@ -254,6 +254,7 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
                                     if not th_task_repo.mark_g3_proven_no_start(
                                         task_id=task.task_id, worker_id=owner_id,
                                         execution_id=task.execution_id, cause=str(exc),
+                                        permanent=exc.permanent,
                                     ):
                                         logger.warning("PPPR_G3_NO_START_CAS_LOST: %s", chunk_id[:8])
                                 else:

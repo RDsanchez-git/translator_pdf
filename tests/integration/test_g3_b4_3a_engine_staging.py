@@ -644,11 +644,28 @@ def test_pppr_w32_real_request_admission_bound_to_generation_and_output_cap():
     """Synthetic approval exercises real renderer, dialect, and bridge, no SDK."""
     from core.prompting.dialects.openai_compatible import OpenAICompatibleDialect
 
+    from core.execution.effect_guard import g3_admission_audit_writer
+
+    attestations: list[tuple[str, str]] = []
     bridge, provider, plan, unit = _w32_product_bridge(_w32_fake_admission())
+    token = g3_admission_audit_writer.set(
+        lambda generation, audit: attestations.append((generation, audit))
+    )
     try:
         response, generation_sha = bridge.execute_chunk_with_generation(plan, unit)
     finally:
+        g3_admission_audit_writer.reset(token)
         bridge.shutdown()
+    assert len(attestations) == 1
+    assert attestations[0][0] == generation_sha
+    decision = json.loads(attestations[0][1])
+    assert decision["contract"] == "PPPR_G3_ADMISSION_V1"
+    assert decision["egress_authorization_ref"] == "FAKE_OFFLINE_EGRESS"
+    assert decision["estimator_evidence_ref"] == "FAKE_OFFLINE_CHAR_ESTIMATOR"
+    assert decision["budget_authorization_ref"] == "FAKE_OFFLINE_BUDGET"
+    assert decision["input_tokens"] <= decision["input_limit"]
+    assert decision["upper_bound_cost"] == "0"
+    assert "Alpha." not in attestations[0][1]
     assert response == provider.content
     assert len(provider.seen) == 1 and len(generation_sha) == 64
     kwargs, _ = build_groq_request_kwargs(
@@ -717,6 +734,124 @@ def test_pppr_w32_product_default_missing_authorizations_blocks_provider():
         with pytest.raises(
             G3ExternalEffectNotStartedError,
             match="PPPR_G3_ADMISSION_EVIDENCE_MISSING",
+        ):
+            bridge.execute_chunk_with_generation(plan, unit)
+    finally:
+        bridge.shutdown()
+    assert provider.seen == []
+
+
+def test_pppr_w32_admission_refs_not_conflated_with_scientific_identity():
+    """Same wire request, different authority reference => different audit."""
+    from dataclasses import replace
+    from core.prompting.dialects.openai_compatible import OpenAICompatibleDialect
+
+    policy = _w32_fake_admission()
+    bridge, provider, plan, unit = _w32_product_bridge(policy)
+    from core.execution.effect_guard import g3_admission_audit_writer
+    token = g3_admission_audit_writer.set(lambda generation, audit: None)
+    try:
+        bridge.execute_chunk_with_generation(plan, unit)
+    finally:
+        g3_admission_audit_writer.reset(token)
+        bridge.shutdown()
+    envelope = provider.seen[0]
+    original = policy.verify(
+        provider_id="groq", root_config_sha256="a"*64, envelope=envelope,
+    )
+    alternative = replace(policy, egress_authorization_ref="FAKE_OTHER_EGRESS").verify(
+        provider_id="groq", root_config_sha256="a"*64, envelope=envelope,
+    )
+    assert original.request_sha256 == alternative.request_sha256
+    assert original.audit_json != alternative.audit_json
+
+
+def test_pppr_w32_durable_admission_joins_attempt_generation_and_receipt(queue):
+    """Actual local control SQLite persists evidence before fake provider effect."""
+    import sqlite3
+    from threading import Semaphore
+
+    policy = _w32_fake_admission()
+    bridge, provider, plan, unit = _w32_product_bridge(policy)
+    lease = queue.repo.pick_task("w32_audit", plan.document_id, plan.ast_hash)
+    assert lease is not None
+    if lease.node_id != unit.chunk_id:
+        preserve = next(u for u in plan.units if u.chunk_id == lease.node_id)
+        assert preserve.chunk_type == TranslationTaskType.PRESERVE
+        assert stage_claimed_unit(
+            queue.repo, plan, queue.ast, preserve, lease,
+            "w32_audit", None, Semaphore(1),
+        )
+        lease = queue.repo.pick_task("w32_audit", plan.document_id, plan.ast_hash)
+    assert lease is not None and lease.node_id == unit.chunk_id
+    try:
+        assert stage_claimed_unit(
+            queue.repo, plan, queue.ast, unit, lease,
+            "w32_audit", bridge, Semaphore(1),
+        )
+    finally:
+        bridge.shutdown()
+    assert len(provider.seen) == 1
+    row = queue.db.execute(
+        "SELECT execution_id,generation_sha256,decision_json,decision_sha256 "
+        "FROM g3_admission_decisions WHERE task_id=?", (lease.task_id,),
+    ).fetchone()
+    assert row is not None
+    execution_id, generation, audit_json, audit_sha = row
+    assert execution_id == lease.execution_id and len(generation) == 64
+    audit = json.loads(audit_json)
+    assert audit["contract"] == "PPPR_G3_ADMISSION_V1"
+    assert audit["budget_authorization_ref"] == "FAKE_OFFLINE_BUDGET"
+    assert audit["input_limit"] == 50000
+    assert audit_sha == sha256((generation + audit_json).encode()).hexdigest()
+    assert queue.db.execute(
+        "SELECT generation_sha256 FROM chunk_result_receipts WHERE task_id=?",
+        (lease.task_id,),
+    ).fetchone() == (generation,)
+    assert "Alpha." not in audit_json
+    # Evidence survives a fresh SQLite connection, not just a process buffer.
+    path = queue.db.execute("PRAGMA database_list").fetchone()[2]
+    with sqlite3.connect(path) as reopened:
+        assert reopened.execute(
+            "SELECT decision_sha256 FROM g3_admission_decisions "
+            "WHERE task_id=? AND execution_id=?",
+            (lease.task_id, execution_id),
+        ).fetchone() == (audit_sha,)
+
+
+@pytest.mark.parametrize(
+    "invalid_amount",
+    ["Infinity", "-Infinity", "NaN", "sNaN"],
+)
+@pytest.mark.parametrize(
+    "field",
+    ["input_price_per_token", "output_price_per_token", "authorized_max_cost"],
+)
+def test_pppr_w32_nonfinite_budget_denied_without_provider(field, invalid_amount):
+    from decimal import Decimal
+    from core.execution.exceptions import G3ExternalEffectNotStartedError
+
+    bridge, provider, plan, unit = _w32_product_bridge(
+        _w32_fake_admission(**{field: Decimal(invalid_amount)}),
+    )
+    try:
+        with pytest.raises(
+            G3ExternalEffectNotStartedError, match="PPPR_G3_BUDGET_NOT_AUTHORIZED",
+        ) as error:
+            bridge.execute_chunk_with_generation(plan, unit)
+        assert error.value.permanent
+    finally:
+        bridge.shutdown()
+    assert provider.seen == []
+
+
+def test_pppr_w32_missing_audit_writer_fails_before_provider():
+    from core.execution.exceptions import G3ExternalEffectNotStartedError
+    bridge, provider, plan, unit = _w32_product_bridge(_w32_fake_admission())
+    try:
+        with pytest.raises(
+            G3ExternalEffectNotStartedError,
+            match="PPPR_G3_ADMISSION_AUDIT_WRITER_REQUIRED",
         ):
             bridge.execute_chunk_with_generation(plan, unit)
     finally:

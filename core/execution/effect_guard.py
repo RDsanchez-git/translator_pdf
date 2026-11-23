@@ -9,3 +9,9 @@ from contextvars import ContextVar
 g3_pre_effect_guard: ContextVar[Callable[[], None] | None] = ContextVar(
     "g3_pre_effect_guard", default=None,
 )
+
+# Worker-thread persistence of an operational attempt's admission evidence.
+# Not a scientific or generation identity component.
+g3_admission_audit_writer: ContextVar[Callable[[str, str], None] | None] = ContextVar(
+    "g3_admission_audit_writer", default=None,
+)

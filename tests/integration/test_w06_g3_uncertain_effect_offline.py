@@ -922,3 +922,89 @@ def test_pppr_g3_unknown_alarm_recovered_after_ephemeral_json_log_loss(
         "w31_log_not_authority", stable[1], stable[2]
     ) is None
     assert len(fake.accepted_calls) == 1
+
+
+@pytest.mark.parametrize(
+    ("failure_mode", "expected_cause", "expected_retries"),
+    [
+        ("estimator_raises", "PPPR_G3_ESTIMATOR_FAILED", 3),
+        ("missing_egress", "PPPR_G3_EGRESS_NOT_AUTHORIZED", 1),
+    ],
+)
+def test_pppr_w32_engine_pre_effect_admission_failure_never_becomes_unknown(
+    subject, monkeypatch, failure_mode, expected_cause, expected_retries,
+):
+    """Real engine/CAS + bridge: failing estimator never starts provider I/O."""
+    from decimal import Decimal
+    from apps.llm_workers.g3_admission import G3PreEffectAdmission
+    from core.finops.measurement import InferenceMeasurementService
+    from core.validation.budget import PromptBudgetCalculator, StandardCompressionPolicy
+
+    class _ExplodingEstimator:
+        def estimate_tokens(self, text: str) -> int:
+            raise RuntimeError("injected offline estimator failure")
+
+    class _BoundedFakeEstimator:
+        def estimate_tokens(self, text: str) -> int:
+            return len(text)
+
+    class _NoProvider:
+        calls = 0
+        async def translate(self, envelope):
+            self.calls += 1
+            raise AssertionError("External provider must never be reached")
+
+    provider = _NoProvider()
+    builder = PromptBuilder(
+        model_name="offline-synthetic", prompt_version="w32",
+        measurement_service=InferenceMeasurementService(_Estimator()),
+        budget_calculator=PromptBudgetCalculator(),
+        compression_policy=StandardCompressionPolicy(),
+    )
+    policy = G3PreEffectAdmission(
+        provider_id="groq", model_name="offline-synthetic",
+        root_config_sha256="a"*64,
+        input_limit=50000, output_limit=4096, context_window=60000,
+        input_estimator=(
+            _ExplodingEstimator() if failure_mode == "estimator_raises"
+            else _BoundedFakeEstimator()
+        ),
+        estimator_evidence_ref="FAKE_OFFLINE_ESTIMATOR",
+        egress_authorization_ref=(
+            "" if failure_mode == "missing_egress" else "FAKE_OFFLINE_EGRESS"
+        ),
+        data_scope_ref="FAKE_DATA", purpose_ref="FAKE_EN_ES",
+        retention_ref="FAKE_RETENTION", training_use_ref="FAKE_TRAINING",
+        budget_authorization_ref="FAKE_OFFLINE_BUDGET",
+        price_evidence_ref="FAKE_OFFLINE_PRICE",
+        input_price_per_token=Decimal("0"),
+        output_price_per_token=Decimal("0"),
+        authorized_max_cost=Decimal("0"),
+    )
+    snapshots = DurableContextPlanRepository(subject.repo).load_verified(
+        subject.plan.document_id, subject.plan.ast_hash, subject.ast,
+    )[1]
+    bridge = SyncProviderBridge(
+        provider, builder, timeout_sec=5.0, context_snapshots=snapshots,
+        effective_config_sha256="a"*64, pre_effect_admission=policy,
+    )
+    monkeypatch.setattr(
+        subject.engine, "_create_chunk_processor",
+        lambda contexts: (bridge, SimpleNamespace(close=lambda: None)),
+    )
+    result = subject.engine.run_pipeline(
+        subject.plan.document_id, subject.plan.ast_hash,
+    )
+    row = subject.queue.execute(
+        "SELECT task_state,retry_count,error_log FROM chunk_tasks "
+        "WHERE worker_type='LLM'",
+    ).fetchone()
+    assert row is not None and row[0] == "FAILED"
+    assert row[1] == expected_retries
+    assert json.loads(row[2])["code"] == "PPPR_G3_EFFECT_NOT_STARTED"
+    assert json.loads(row[2])["cause"] == expected_cause
+    assert subject.queue.execute(
+        "SELECT COUNT(*) FROM chunk_tasks WHERE task_state='G3_EXTERNAL_UNKNOWN'",
+    ).fetchone()[0] == 0
+    assert provider.calls == 0
+    assert result["final_state"] != "READY_FOR_ASSEMBLY"

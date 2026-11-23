@@ -8,6 +8,7 @@ import re
 from typing import Any, Mapping
 from core.context.snapshot_contract import ContextSnapshotV1
 from core.execution.exceptions import G3ExternalEffectNotStartedError
+from core.execution.effect_guard import g3_admission_audit_writer
 from core.prompting.inference_identity import InferenceReuseIdentityV1, PPPRGenerationIdentityV1
 from core.ast.models import ASTNode, TranslationTaskType, TranslationUnit
 from apps.llm_workers.routing import LLMProvider
@@ -158,7 +159,9 @@ class SyncProviderBridge:
         # The initial product contract is EN→ES, not an implicit provider
         # default. A contradictory generation configuration cannot dispatch.
         if (self._source_language, self._target_language) != ("en", "es"):
-            raise G3ExternalEffectNotStartedError("PPPR_G3_LANGUAGE_INTENT_REQUIRED_EN_ES")
+            raise G3ExternalEffectNotStartedError(
+                "PPPR_G3_LANGUAGE_INTENT_REQUIRED_EN_ES", permanent=True,
+            )
         if sum(item.chunk_id == unit.chunk_id for item in plan.units) != 1 or unit not in plan.units:
             raise ValueError("G3_B4_3A_UNIT_NOT_IN_MANIFEST")
 
@@ -255,7 +258,7 @@ class SyncProviderBridge:
         # SWITCH_MODEL must never silently send to the primary model.
         if built.envelope.target_provider != "primary":
             raise G3ExternalEffectNotStartedError(
-                "PPPR_G3_FALLBACK_BACKEND_NOT_ACCREDITED"
+                "PPPR_G3_FALLBACK_BACKEND_NOT_ACCREDITED", permanent=True,
             )
         # Groq decommissioned this product-configured model on 2025-08-30.
         # The product path must fail closed until a replacement's capability,
@@ -264,20 +267,28 @@ class SyncProviderBridge:
         if (self._effective_config_sha256 is not None
                 and built.envelope.model_name == "llama3-70b-8192"):
             raise G3ExternalEffectNotStartedError(
-                "PPPR_G3_PRIMARY_MODEL_DEPRECATED"
+                "PPPR_G3_PRIMARY_MODEL_DEPRECATED", permanent=True,
             )
         generation_sha256: str | None = None
         admission_request_sha256: str | None = None
         if self._effective_config_sha256 is not None:
             if self._pre_effect_admission is None:
                 raise G3ExternalEffectNotStartedError(
-                    "PPPR_G3_ADMISSION_EVIDENCE_MISSING"
+                    "PPPR_G3_ADMISSION_EVIDENCE_MISSING", permanent=True,
                 )
-            admission_request_sha256 = self._pre_effect_admission.verify(
-                provider_id=self._provider_id,
-                root_config_sha256=self._effective_config_sha256,
-                envelope=built.envelope,
-            )
+            try:
+                decision = self._pre_effect_admission.verify(
+                    provider_id=self._provider_id,
+                    root_config_sha256=self._effective_config_sha256,
+                    envelope=built.envelope,
+                )
+            except G3ExternalEffectNotStartedError:
+                raise
+            except Exception as exc:
+                raise G3ExternalEffectNotStartedError(
+                    "PPPR_G3_ADMISSION_LOCAL_FAILURE"
+                ) from exc
+            admission_request_sha256 = decision.request_sha256
             # Bound the actual budget-dependent route and compression decision.
             # The composition-root config alone is not an effective generation key.
             effective_config_sha256 = sha256(json.dumps(
@@ -304,6 +315,19 @@ class SyncProviderBridge:
                 output_contract_version="G3_CHUNK_RESPONSE_V1",
             )
             generation_sha256 = identity.generation_sha256
+            writer = g3_admission_audit_writer.get()
+            if writer is None:
+                raise G3ExternalEffectNotStartedError(
+                    "PPPR_G3_ADMISSION_AUDIT_WRITER_REQUIRED", permanent=True,
+                )
+            try:
+                writer(generation_sha256, decision.audit_json)
+            except G3ExternalEffectNotStartedError:
+                raise
+            except Exception as exc:
+                raise G3ExternalEffectNotStartedError(
+                    "PPPR_G3_ADMISSION_AUDIT_WRITE_FAILED"
+                ) from exc
         elif attested:
             raise ValueError("PPPR_G2_EFFECTIVE_CONFIG_NOT_ACCREDITED")
         future = asyncio.run_coroutine_threadsafe(self._provider.translate(built.envelope), self._loop)
