@@ -9,8 +9,8 @@ from hashlib import sha256
 import json
 from typing import Any, Sequence, cast
 
-from core.ast.models import ASTNode, ChunkMember, TranslationTaskType, TranslationUnit
-from core.ast.enums import ContentNodeType, TranslationStrategy
+from core.ast.models import ASTNode, ChunkMember, HeadingPayload, TranslationTaskType, TranslationUnit
+from core.ast.enums import ContentNodeType, HeadingLevel, TranslationStrategy
 
 _SCHEMA = 1
 
@@ -29,7 +29,7 @@ def _reject_duplicate_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
 
 
 _PROTECTED_TYPES = frozenset({
-    ContentNodeType.HEADING.value, ContentNodeType.DISPLAY_EQUATION.value,
+    ContentNodeType.DISPLAY_EQUATION.value,
     ContentNodeType.INLINE_EQUATION.value, ContentNodeType.CODE.value,
 })
 _PARTIAL_TYPES = frozenset({
@@ -52,8 +52,17 @@ def build_target_payload(members: Sequence[ChunkMember]) -> str:
     return "".join(out)
 
 
-def expected_task_type(member: ChunkMember) -> TranslationTaskType:
-    """Taxonomia segura de política a partir de la identidad ya validada."""
+def expected_task_type(
+    member: ChunkMember, *, heading_level: HeadingLevel | None = None,
+) -> TranslationTaskType:
+    """Shared producer/manifest policy; no hierarchy inferred from text."""
+    if member.node_type == ContentNodeType.HEADING.value:
+        if (member.strategy == TranslationStrategy.TRANSLATE.value
+                and heading_level in (
+                    HeadingLevel.H1, HeadingLevel.H2, HeadingLevel.H3,
+                )):
+            return TranslationTaskType.TRANSLATE
+        return TranslationTaskType.PRESERVE
     if member.strategy in (
         TranslationStrategy.PASSTHROUGH.value, TranslationStrategy.KEEP_ORIGINAL.value
     ) or member.node_type in _PROTECTED_TYPES:
@@ -104,7 +113,11 @@ def validate_chunk_coverage(ast: Sequence[ASTNode], units: Sequence[TranslationU
                 raise ValueError(f"G3_WRONG_NODE_METADATA: {member.node_id}")
             if member.strategy != node.strategy.value:
                 raise ValueError(f"G3_WRONG_STRATEGY: {member.node_id}")
-            if unit.chunk_type != expected_task_type(member):
+            level = (
+                node.payload.heading_level
+                if isinstance(node.payload, HeadingPayload) else None
+            )
+            if unit.chunk_type != expected_task_type(member, heading_level=level):
                 raise ValueError(f"G3_TASK_POLICY_MISMATCH: {member.node_id}")
             if node.strategy == TranslationStrategy.DEFER:
                 raise ValueError(f"G3_UNRESOLVED_STRATEGY: {member.node_id}")

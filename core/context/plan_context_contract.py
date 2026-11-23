@@ -7,9 +7,9 @@ from __future__ import annotations
 
 from typing import Any, Sequence, cast
 
-from core.ast.enums import ContentNodeType
+from core.ast.enums import ContentNodeType, HeadingLevel, TranslationStrategy
 from core.ast.hashing import compute_ast_hash
-from core.ast.models import ASTNode, TranslationTaskType
+from core.ast.models import ASTNode, HeadingPayload, TranslationTaskType
 from core.chunking.manifest_contract import ChunkPlan
 from core.context.snapshot_contract import ContextSnapshotV1
 from core.normalization.enrichers.context_enricher import HierarchicalContextEnricher
@@ -42,12 +42,19 @@ def derive_verified_plan_contexts(
         raise ValueError("W08_CONTEXT_PRODUCER_MAPPING_MISSING")
     mappings = cast(dict[str, list[dict[str, object]]], source_value)
 
-    # The enhancer does not annotate heading nodes. They are expected to be
-    # PRESERVE; translating a heading without a valid context is not allowed.
+    # Verified translating headings are bound to their parent context.
+    # UNKNOWN/unselected headings remain PRESERVE with no inference I/O.
     node_contexts: dict[str, str] = {}
     for original, annotated in zip(ast, enriched, strict=True):
         if original.node_type == ContentNodeType.HEADING:
-            continue
+            if (
+                original.strategy != TranslationStrategy.TRANSLATE
+                or not isinstance(original.payload, HeadingPayload)
+                or original.payload.heading_level not in (
+                    HeadingLevel.H1, HeadingLevel.H2, HeadingLevel.H3,
+                )
+            ):
+                continue
         context_id: object = annotated.control_plane.get("context_id")
         if not isinstance(context_id, str) or context_id not in mappings:
             raise ValueError("W08_CONTEXT_UNVERIFIABLE_SOURCE")
