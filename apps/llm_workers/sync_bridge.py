@@ -248,6 +248,21 @@ class SyncProviderBridge:
         built = self._builder.build(prompt_unit, resolved_context=context, target_lang_expansion=2.0)
         if built.status != "success":
             raise RuntimeError(f"G3_B4_3A_PROMPT_REJECTED: {built.message}")
+        # G3 has no accredited physical fallback endpoint. A logical
+        # SWITCH_MODEL must never silently send to the primary model.
+        if built.envelope.target_provider != "primary":
+            raise G3ExternalEffectNotStartedError(
+                "PPPR_G3_FALLBACK_BACKEND_NOT_ACCREDITED"
+            )
+        # Groq decommissioned this product-configured model on 2025-08-30.
+        # The product path must fail closed until a replacement's capability,
+        # request and pre-effect permissions are attested. Offline legacy
+        # adapters with no product config cannot attest live availability.
+        if (self._effective_config_sha256 is not None
+                and built.envelope.model_name == "llama3-70b-8192"):
+            raise G3ExternalEffectNotStartedError(
+                "PPPR_G3_PRIMARY_MODEL_DEPRECATED"
+            )
         generation_sha256: str | None = None
         if self._effective_config_sha256 is not None:
             # Bound the actual budget-dependent route and compression decision.

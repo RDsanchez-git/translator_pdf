@@ -215,8 +215,9 @@ class _FakeProvider:
 
 
 def _bridge(
-    provider: _FakeProvider, builder: _FakeBuilder, plan: ChunkPlan,
+    provider: _FakeProvider, builder: PromptBuilder, plan: ChunkPlan,
     *, source_language: str = "en", target_language: str = "es",
+    effective_config_sha256: str | None = None,
 ) -> SyncProviderBridge:
     # These existing tests exercise transport/placeholder semantics. They
     # inject explicit synthetic snapshots; real producer verification is
@@ -233,6 +234,7 @@ def _bridge(
         cast(LLMProvider, provider), cast(PromptBuilder, builder),
         context_snapshots=snapshots,
         source_language=source_language, target_language=target_language,
+        effective_config_sha256=effective_config_sha256,
     )
 
 
@@ -517,6 +519,65 @@ def test_pppr_w32_invalid_language_intent_never_calls_provider(source, target):
         with pytest.raises(
             G3ExternalEffectNotStartedError,
             match="PPPR_G3_LANGUAGE_INTENT_REQUIRED_EN_ES",
+        ):
+            bridge.execute_chunk(plan, unit)
+    finally:
+        bridge.shutdown()
+    assert provider.seen == []
+
+
+def test_pppr_w32_real_budget_switch_model_is_rejected_before_provider():
+    """R4: a real SWITCH_MODEL is not physical fallback admission."""
+    from core.finops.measurement import InferenceMeasurementService
+    from core.validation.budget import (
+        BudgetDecisionType, PromptBudgetCalculator, StandardCompressionPolicy,
+    )
+
+    _ast, plan = _fixture()
+    unit = next(u for u in plan.units if u.chunk_type == TranslationTaskType.TRANSLATE)
+    builder = PromptBuilder(
+        model_name="primary-offline", prompt_version="wave32",
+        measurement_service=InferenceMeasurementService(_Estimator()),
+        budget_calculator=PromptBudgetCalculator(
+            primary_window_limit=1, fallback_window_limit=8192,
+            min_output_reserve=256, max_output_reserve=4096,
+        ),
+        compression_policy=StandardCompressionPolicy(),
+    )
+    provider = _FakeProvider(_response(plan, unit))
+    bridge = _bridge(provider, builder, plan)
+    try:
+        with pytest.raises(
+            Exception, match="PPPR_G3_FALLBACK_BACKEND_NOT_ACCREDITED",
+        ):
+            bridge.execute_chunk(plan, unit)
+    finally:
+        bridge.shutdown()
+    assert provider.seen == []
+
+
+def test_pppr_w32_retired_product_model_cannot_call_provider():
+    """R3: documentation says Groq retired llama3-70b-8192 2025-08-30."""
+    from core.finops.measurement import InferenceMeasurementService
+    from core.validation.budget import PromptBudgetCalculator, StandardCompressionPolicy
+    from core.execution.exceptions import G3ExternalEffectNotStartedError
+
+    _ast, plan = _fixture()
+    unit = next(u for u in plan.units if u.chunk_type == TranslationTaskType.TRANSLATE)
+    provider = _FakeProvider(_response(plan, unit))
+    builder = PromptBuilder(
+        model_name="llama3-70b-8192", prompt_version="v1.0",
+        measurement_service=InferenceMeasurementService(_Estimator()),
+        budget_calculator=PromptBudgetCalculator(),
+        compression_policy=StandardCompressionPolicy(),
+    )
+    bridge = _bridge(
+        provider, builder, plan, effective_config_sha256="a" * 64,
+    )
+    try:
+        with pytest.raises(
+            G3ExternalEffectNotStartedError,
+            match="PPPR_G3_PRIMARY_MODEL_DEPRECATED",
         ):
             bridge.execute_chunk(plan, unit)
     finally:
