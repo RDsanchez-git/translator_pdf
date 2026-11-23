@@ -1,11 +1,11 @@
 # FASE_PPPR_DEFERRED_FINDINGS_REGISTER.md
 
 **Documento:** `docs/architecture/adr/pdf-pdf-product-readiness/reviews/FASE_PPPR_DEFERRED_FINDINGS_REGISTER.md`  
-**Versión:** 0.1.13  
-**Estado:** G1 COMPLETED/PASS; **G2 COMPLETED/PASS** tras Exit Review real 2026-11-21 (4/4 criterios, 6/6 Tasks, 30/30 reglas) y merge de [PR #86](https://github.com/RDsanchez-git/translator_pdf/pull/86) en `7842bb3c69c2baf792cb9cb3acca088462445d54`; [CI #44978406678](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44978406678) y [CI #44979093690](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44979093690) SUCCESS. 14 GAP P1 históricos OPEN; 0 nuevos DF/GF acreditados en G2; G3–G6 NOT_RUN, `PRODUCT_READINESS=NOT_CERTIFIED`.  
+**Versión:** 0.1.14  
+**Estado:** G1/G2 COMPLETED/PASS; G3/W3.1 PR90 IN_PROGRESS/CI_PENDING, 3 Tasks aún sin DONE, W3.2 y G3 Exit Review NOT_RUN, 14 GAP P1 históricos OPEN, 0 nuevos DF/GF acreditados, `PRODUCT_READINESS=NOT_CERTIFIED`.  
 **Fecha de creación:** 2026-11-21  
 **Última actualización:** 2026-11-22  
-**Derivado de:** `PHASE_PPPR_EXECUTION_PLAN.md` v0.5.12 APPROVED/LIVING — G2 COMPLETED/PASS, PR86 integrado y CI post-merge verificada; G3 NOT_RUN.
+**Derivado de:** `PHASE_PPPR_EXECUTION_PLAN.md` v0.5.13 APPROVED/LIVING; Wave3.1 en PR90 con CI pendiente, Gate3 Exit Review NOT_RUN.
 **Ámbito:** PPPR (iniciativa transversal PDF→PDF; no fase histórica numerada).  
 **Propósito:** Registro único y auditable de hallazgos `DF`/`GF` **que surjan durante la ejecución y los Exit Reviews** del Execution Plan: identificación, clasificación, decisión, resolución, batch y evidencia de implementación.
 
@@ -53,6 +53,7 @@
 | 0.1.12 | 2026-11-21 | Gate2 Exit Review realmente ejecutado: 6/6 Tasks, 30 reglas propias G2 verificadas; CI #44977644736 SUCCESS sobre `ac156be2…` (289 unit PASS, 1542 suite técnica PASS), Board tercera revisión FAVORABLE y owner autoriza merge posterior a este registro. Criterios 4/4 PASS, 14 GAP P1 OPEN, sin DF/GF nuevos detectados ni CV científica certificada, G3 pendiente. |
 
 | 0.1.13 | 2026-11-22 | Reconciliación post-merge de PR86 `7842bb3c69c2baf792cb9cb3acca088462445d54`, CI #44978406678 y #44979093690 SUCCESS; G2 COMPLETED/PASS, 6/6 Tasks y 30/30 reglas. Sin segundo Exit Review, nuevos DF/GF, cierre forense de 14 GAP P1 ni certificación científica; G3 NOT_RUN. |
+| 0.1.14 | 2026-11-22 | W3.1 PR90 autorizada e implementándose offline: autoridad pos-semáforo, no-inicio CAS, UNKNOWN recuperable y alarma configurable. CI y dictamen Board pendientes; 3 Tasks IN_PROGRESS, 0 DONE nuevas; ningún DF/GF nuevo ni Gate3 Exit Review. 14 GAP P1 históricos OPEN. |
 
 ---
 
@@ -306,7 +307,7 @@ El documento se declara `ARCHIVED` **solo** tras cierre formal de PPPR, verifica
 | Hallazgos analizados/resueltos/diferidos | **0 nuevos en Gate 1; clasificación N/A** (no inventar NAR) |
 | Batches ejecutados | NOT_RUN |
 | Estado de los Exit Reviews | G1 REVIEW_REALIZADO/PASS; **G2 REVIEW_REALIZADO 4/4 PASS**, CI #44977644736, PR86 integrado y CI post-merge #44979093690 confirmados; G3–G6 NOT_RUN |
-| Estado operativo del Register | **IN_PROGRESS — G2 COMPLETED/PASS, 14 GAP P1 OPEN, sin nuevos DF/GF ni batches acreditados; G3 PENDING/NOT_RUN** |
+| Estado operativo del Register | IN_PROGRESS — G1/G2 COMPLETED/PASS, G3 W3.1 PR90 IN_PROGRESS/CI_PENDING, Exit Review G3 NOT_RUN, 14 GAP históricos OPEN |
 | Cierre de fase | **PENDIENTE / NO ARCHIVED** |
 
 ---

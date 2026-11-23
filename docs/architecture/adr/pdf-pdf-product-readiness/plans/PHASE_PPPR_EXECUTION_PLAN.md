@@ -1,12 +1,12 @@
 # PHASE_PPPR_EXECUTION_PLAN.md — PDF→PDF Product Readiness
 ## Implementation Execution Plan & Rule-Centric Traceability Matrix
 
-**Version:** 0.5.12
+**Version:** 0.5.13
 **Status:** APPROVED
 **Document Lifecycle:** LIVING DOCUMENT — NOT FROZEN; cierre al completar formalmente la fase.
-**Execution Status:** G1 COMPLETED/PASS; **G2 COMPLETED/PASS** tras Exit Review real del 2026-11-21 (4/4 criterios PASS, 6/6 Tasks y 30/30 reglas G2; [CI #44977644736](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44977644736) SUCCESS). [PR #86](https://github.com/RDsanchez-git/translator_pdf/pull/86) MERGED en `7842bb3c69c2baf792cb9cb3acca088462445d54` el 2026-11-22; [CI #44979093690](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44979093690) SUCCESS sobre `7842bb3c69c2baf792cb9cb3acca088462445d54` (3/3 jobs, Pyright 0/0/0, import-linter 4/4, 289 unitarios PASS, 95 integración focal PASS y suite `not e2e` 1542 PASS / 4 SKIPPED / 20 E2E excluidos; no sumar suites). **10/30 Tasks DONE, 20 TODO**. G3–G6 PENDING/NOT_RUN sin inicio automático; 14 GAP P1 históricos OPEN; CV científica FAIL/DEFERRED, `PRODUCT_READINESS=NOT_CERTIFIED`.
+**Execution Status:** G1/G2 COMPLETED/PASS; G3/Wave 3.1 **IN_PROGRESS / CI_PENDING**, autorizado por owner para PR #90; W3.2 y Gate3 Exit Review NOT_RUN. Tres Tasks 3.1.1–3.1.3 aún NO DONE. **10/30 DONE, 20 TODO**; 14 GAP históricos OPEN y `PRODUCT_READINESS=NOT_CERTIFIED`. Base del PR90: `6ab1800c6bd20ce2630ae4c9cf8d547fec4477ce` (PR88/PR89 integrados). No se habilita egress, gasto ni proveedor real.
 **Architecture Board Approval:** Contenido v0.5.0 aprobado integralmente el 2026-11-21 según dictamen comunicado por el owner, sobre HEAD `0d920f6b8bdcefe60f6be081e645b0140c162e5b`. Estructura 6/12/30 y clasificación 104 = 79 A / 0 B / 25 C ratificadas; no se presupone un review formal de GitHub ni acta externa.
-**Execution Authorization:** GRANTED por el owner el 2026-11-21 para comenzar implementación controlada de PPPR desde G1. Los tres documentos vivos se actualizan al **cierre de cada Wave**. La autorización no concede corpus privado, egress, proveedor, gasto, certificación científica, host ni merge a `main`; G2 COMPLETED/PASS; G3–G6 no iniciados ni autorizados automáticamente.
+**Execution Authorization:** Autorización del owner para comenzar Wave 3.1 offline en PR #90 (2026-11-22), tras G2 PASS, NADR F18 FROZEN y CI técnica preparada. No autoriza W3.2 automáticamente, proveedor/egress, gastos, corpus, host, certificación ni `main`.
 **Date:** 2026-11-22
 **Supersedes:** DRAFT v0.4.0 — revisión focal del Architecture Board sobre HEAD `1631510c666b7c82696c8136884d6da1353aada4`; no sustituye normas FROZEN
 **Derived From:** ADR_PPPR_MASTER.md FROZEN; NADR-FPPPR-01/02/03/04 FROZEN; metodología general v1.3.0 FROZEN; `5_METH_EXECUTION_PLAN.md`; HITOs PPPR.0.1–0.9 FROZEN.
@@ -37,6 +37,7 @@
 | 0.5.11-APPROVED (LIVING) | 2026-11-21 | Gate 2 Exit Review ejecutado sobre `ac156be2…`, CI #44977644736 SUCCESS (289 unit/1542 suite técnica PASS), 4/4 criterios PASS, 6/6 Tasks verificadas, 10 NADR-FPPPR-04 + 20 normas históricas propietarias de G2. Board tercera revisión FAVORABLE, owner autoriza merge PR86 después del acta; integración posterior a confirmar. 14 GAP OPEN; CV científica NOT_CERTIFIED, G3 PENDING; main intacto. |
 
 | 0.5.12-APPROVED (LIVING) | 2026-11-22 | Reconciliación post-merge de [PR #86](https://github.com/RDsanchez-git/translator_pdf/pull/86): commit `7842bb3c69c2baf792cb9cb3acca088462445d54`, [CI #44978406678](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44978406678) y [CI #44979093690](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44979093690) SUCCESS. G2 COMPLETED/PASS, 6/6 Tasks, 30/30 reglas, Exit Review real 4/4; 10/30 Tasks DONE. Actualiza §2/§3/dashboard §6/§10 y nota final, sin reemplazar el acta histórica; tres documentos vivos juntos en PR correctivo documental. 14 GAP P1 históricos OPEN; CV científica FAIL/DEFERRED, `PRODUCT_READINESS=NOT_CERTIFIED`; G3 NOT_RUN. |
+| 0.5.13-APPROVED (LIVING) | 2026-11-22 | Owner inicia W3.1 offline / PR #90 sobre PR89 merge, CI técnica post-merge #45090693364 SUCCESS. Revalidación de lease/authority después de semáforo, no-inicio CAS, UNKNOWN y alarma configurable, tests offline; Tasks 3.1.x IN_PROGRESS/CI_PENDING, ninguna DONE aún; G3 Exit Review NOT_RUN. |
 
 ---
 
@@ -425,19 +426,19 @@ Las decisiones del ADR Maestro DC-03/08/09/10/12 permanecen invariantes: EN→ES
 **Objective:** Inferencia EN→ES y seguridad de efectos.
 **Execution Mode:** Waves 3.1→3.2, contratos y falsadores **offline** sin efecto comercial. PASS de G3 exige cierre de todas las reglas propias con prueba suficiente; G5 comprueba adicionalmente funcionamiento/disponibilidad efectiva y costes reales, pero **no** es un requisito de cierre diferido de una regla G3. Si falta documentación atribuible de modelo/compatibilidad para la admisión que se pretende, G3 BLOCKED: no se suple por un identificador de modelo ni por una simulación.
 **Rollback Plan (propuesto):** Rollback mediante cambios revisados conservando receipts/UNKNOWN; nunca reejecutar un efecto incierto para compensar fallo.
-**Gate Status:** PENDING · NOT_RUN
-**Inicio/Cierre:** pendiente; definir en ejecución autorizada.
+**Gate Status:** IN_PROGRESS (solo Wave 3.1), Gate3 Exit Review NOT_RUN.
+**Inicio/Cierre:** inicio W3.1 2026-11-22; cierre G3 pendiente.
 
 #### 2.3.1 Wave 3.1 — Seguridad de efectos F18
 
-**Wave Status:** PENDING · NOT_RUN · sin autorización de inicio.
-**Fechas:** pendiente / pendiente.
+**Wave Status:** IN_PROGRESS / CI_PENDING (PR90; no hay Tasks DONE acreditadas).
+**Fechas:** inicio 2026-11-22; cierre pendiente.
 
 | Task | Description | Rules Implemented / frontera | GAP / evidencia | Risk | Deps | Status |
 |---|---|---|---|---|---|---|
-| **3.1.1** | Autoridad vigente al efecto externo | NADR-F18-03 §5.1 R1; NADR-F18-03 §5.1 R2 | GAP-0.5-02; E-0.5-020/021 | CRITICAL | 2.2.2,2.2.3 | TODO |
-| **3.1.2** | Escalamiento de UNKNOWN | NADR-F18-03 §5.2 R5; NADR-F18-03 §5.2 R7; NADR-F18-03 §5.2 R8; NADR-F18-03 §5.3 R9; NADR-F18-03 §5.3 R10; NADR-F18-03 §5.3 R11; NADR-F18-03 §5.6 R22 | GAP-0.5-01; E-0.5-019/022/026 | HIGH | 3.1.1 | TODO |
-| **3.1.3** | Coherencia de sweeper y planos F18 | NADR-F18-04 §5.1 R2; NADR-F18-04 §5.2 R5; NADR-F18-04 §5.2 R7; NADR-F18-04 §5.3 R8; NADR-F18-04 §5.3 R10; NADR-F18-04 §5.5 R15; NADR-F18-04 §5.5 R16; NADR-F18-05 §5.1 R1; NADR-F18-05 §5.1 R2; NADR-F18-05 §5.1 R3; NADR-F18-05 §5.3 R10; NADR-F18-05 §5.5 R13 | GAP-0.5-03; E-0.5-023/032 | HIGH | 3.1.1 | TODO |
+| **3.1.1** | Autoridad vigente al efecto externo | NADR-F18-03 §5.1 R1; NADR-F18-03 §5.1 R2 | GAP-0.5-02; E-0.5-020/021 | CRITICAL | 2.2.2,2.2.3 | IN_PROGRESS / CI_PENDING |
+| **3.1.2** | Escalamiento de UNKNOWN | NADR-F18-03 §5.2 R5; NADR-F18-03 §5.2 R7; NADR-F18-03 §5.2 R8; NADR-F18-03 §5.3 R9; NADR-F18-03 §5.3 R10; NADR-F18-03 §5.3 R11; NADR-F18-03 §5.6 R22 | GAP-0.5-01; E-0.5-019/022/026 | HIGH | 3.1.1 | IN_PROGRESS / CI_PENDING |
+| **3.1.3** | Coherencia de sweeper y planos F18 | NADR-F18-04 §5.1 R2; NADR-F18-04 §5.2 R5; NADR-F18-04 §5.2 R7; NADR-F18-04 §5.3 R8; NADR-F18-04 §5.3 R10; NADR-F18-04 §5.5 R15; NADR-F18-04 §5.5 R16; NADR-F18-05 §5.1 R1; NADR-F18-05 §5.1 R2; NADR-F18-05 §5.1 R3; NADR-F18-05 §5.3 R10; NADR-F18-05 §5.5 R13 | GAP-0.5-03; E-0.5-023/032 | HIGH | 3.1.1 | IN_PROGRESS / CI_PENDING |
 
 **Condiciones de verificación por Task — obligatorias cuando se ejecute:**
 
@@ -1005,4 +1006,4 @@ Marcar `ELIMINADO` en §4 solo con causa/autoridad registradas; si afecta una re
 
 ---
 
-**Nota final de gobernanza (checkpoint 2026-11-22):** `APPROVED v0.5.12 — LIVING/NOT FROZEN`. **G1 y G2 COMPLETED/PASS**. PR #85 MERGED `2c42628d…`; [PR #86](https://github.com/RDsanchez-git/translator_pdf/pull/86) MERGED en `7842bb3c69c2baf792cb9cb3acca088462445d54`, [CI #44979093690](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44979093690) SUCCESS. **10/30 Tasks DONE y 20 TODO**; las 30 reglas propietarias G2 verificadas, G3–G6 PENDING/NOT_RUN. 14 GAP P1 históricos OPEN; CV científica FAIL/DEFERRED, `PRODUCT_READINESS=NOT_CERTIFIED`. Este PR correctivo documental sincroniza los tres registros y no modifica NADR FROZEN, criterios de Gate, código, `main`, PR #66 ni las autorizaciones de G3.
+**Nota final de gobernanza (checkpoint W3.1 / 2026-11-22):** `APPROVED v0.5.13 — LIVING/NOT FROZEN`. **G1 y G2 COMPLETED/PASS**. PR #85 MERGED `2c42628d…`; [PR #86](https://github.com/RDsanchez-git/translator_pdf/pull/86) MERGED en `7842bb3c69c2baf792cb9cb3acca088462445d54`, [CI #44979093690](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44979093690) SUCCESS. **10/30 Tasks DONE y 20 TODO**; las 30 reglas propietarias G2 verificadas, G3/W3.1 IN_PROGRESS/CI_PENDING, W3.2 y G3 Exit Review NOT_RUN, G4–G6 NOT_RUN. 14 GAP P1 históricos OPEN; CV científica FAIL/DEFERRED, `PRODUCT_READINESS=NOT_CERTIFIED`. Este PR correctivo documental sincroniza los tres registros y no modifica NADR FROZEN, criterios de Gate, código, `main`, PR #66 ni las autorizaciones de G3.

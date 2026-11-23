@@ -1,11 +1,11 @@
 # FASE_PPPR_EXIT_REVIEW_EVIDENCE_LOG.md
 
 **Documento:** `docs/architecture/adr/pdf-pdf-product-readiness/reviews/FASE_PPPR_EXIT_REVIEW_EVIDENCE_LOG.md`  
-**Versión:** 0.1.14  
-**Estado:** G1 Exit Review REALIZADO/PASS; **G2 Exit Review REALIZADO 2026-11-21 (4/4 PASS), G2 COMPLETED/PASS** tras PR86 MERGED 2026-11-22 en `7842bb3c69c2baf792cb9cb3acca088462445d54`; [CI #44978406678](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44978406678) y [CI #44979093690](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44979093690) SUCCESS. 14 GAP P1 OPEN, G3–G6 NOT_RUN, `PRODUCT_READINESS=NOT_CERTIFIED`.  
+**Versión:** 0.1.15  
+**Estado:** G1/G2 Exit Reviews REALIZADOS/PASS; G3/W3.1 PR90 IN_PROGRESS/CI_PENDING, W3.2 y Gate3 Exit Review NOT_RUN; 14 GAP P1 OPEN; `PRODUCT_READINESS=NOT_CERTIFIED`.  
 **Fecha:** 2026-11-21  
 **Última actualización:** 2026-11-22  
-**Derivado de:** `PHASE_PPPR_EXECUTION_PLAN.md` v0.5.12 APPROVED/LIVING — G2 COMPLETED/PASS tras Exit Review real, PR86 integrado y CI post-merge verificada; G3 NOT_RUN.
+**Derivado de:** `PHASE_PPPR_EXECUTION_PLAN.md` v0.5.13 APPROVED/LIVING; W3.1 PR90 implementación offline, CI pendiente, sin Exit Review G3.
 **Ámbito:** PPPR, ruta única `CLI → OCR → G3 → G5 → PDF`.  
 **Propósito:** Registro forense incremental, por Gate Exit Review, que conserva los fundamentos empíricos, los archivos examinados, los límites de evidencia y las reglas que justifican la clasificación de **cada hallazgo nuevo DF/GF** del Deferred Findings Register.
 
@@ -72,6 +72,7 @@
 | 0.1.13 | 2026-11-21 | Gate2 Exit Review REALIZADO en código SHA `ac156be2…`, CI #44977644736 SUCCESS (3/3 jobs, 289 unit PASS, 1542 suite técnica PASS); Board tercera revisión FAVORABLE, 6 Tasks y 30 reglas G2 con evidencia, 4/4 criterios técnicos PASS. Owner autoriza merge PR86 tras este registro; integración pendiente. 14 GAP P1 OPEN, CV sin certificar, G3 NOT_RUN. |
 
 | 0.1.14 | 2026-11-22 | Post-merge PR86: commit `7842bb3c69c2baf792cb9cb3acca088462445d54`, CI pre-merge #44978406678 y post-merge #44979093690 SUCCESS; G2 COMPLETED/PASS, 6/6 Tasks, 30/30 reglas y 4/4 Exit Criteria. Acta pre-merge inalterada; 14 GAP P1 OPEN, CV FAIL/DEFERRED, Product Readiness no certificado, G3 NOT_RUN. |
+| 0.1.15 | 2026-11-22 | Checkpoint W3.1 PR90: base `6ab1800…` tras merges PR88/PR89, CI técnica base #45090693364 SUCCESS; tests offline de autoridad, UNKNOWN y alarma introducidos pero aún NO verificados en CI del PR90. Sin G3 Exit Review ni cierre de reglas/Tasks. |
 
 ---
 
@@ -241,6 +242,8 @@ Referencia exacta `NADR/ADR/ENGINEERING_PRINCIPLES §/Rn` y explicación de su c
 ---
 
 ## 3. GATE EXIT REVIEW SUMMARY
+
+**Checkpoint W3.1/PR90 2026-11-22, NO Gate3 Exit Review:** se modifica la autoridad previa al I/O externo tras espera del semáforo, se separa CAS de no-inicio acreditado de UNKNOWN persistente y se agrega alarma de reconciliación configurable sobre SQLite. Falsadores offline de expiración, cambio de owner, corrupción de audit, TTL, reinicio y no-retry introducidos en la rama. **CI final/Board pendientes**; ninguna Task o regla G3 DONE y no se afirma certificación científica ni se habilitan efectos comerciales.
 
 **Estado del Gate 1 (2026-11-21):** Exit Review REALIZADO y, luego del complemento de CI del SHA evaluado en SUCCESS, **G1 PASS/COMPLETED**. La constatación inicial `BLOCKED_PENDING_CI_HEAD` permanece como evidencia temporal en §3.1, sin alteración retroactiva. G2–G6 `NOT_RUN`. **0 hallazgos DF/GF nuevos** y ningún certificado científico; el registro por finding §2 permanece vacío.
 
