@@ -22,7 +22,7 @@ def build_groq_request_kwargs(
 ) -> tuple[dict[str, Any], str]:
     """Single request construction used by admission AND the actual adapter."""
     reserve = envelope.budget_stats.reserved_tokens
-    if reserve <= 0:
+    if type(reserve) is not int or reserve <= 0:
         raise G3ExternalEffectNotStartedError("PPPR_G3_OUTPUT_RESERVE_INVALID")
     rendered = PromptRenderer.render(envelope.schema)
     kwargs: dict[str, Any] = {
