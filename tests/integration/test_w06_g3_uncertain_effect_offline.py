@@ -174,7 +174,10 @@ class _Builder:
     prompt_version = "w06"
 
     def build(self, unit, resolved_context, target_lang_expansion=1.2):
-        return SimpleNamespace(status="success", envelope=SimpleNamespace(chunk_id=unit.chunk_id))
+        return SimpleNamespace(
+            status="success",
+            envelope=SimpleNamespace(chunk_id=unit.chunk_id, target_provider="primary"),
+        )
 
 
 class _AcceptedThenResponseLost:
@@ -675,7 +678,8 @@ def test_pppr_g3_quota_wait_expiry_blocks_external_provider(subject):
             return SimpleNamespace(
                 status="success",
                 envelope=SimpleNamespace(
-                    chunk_id=unit.chunk_id, estimated_tokens=1, telemetry={}
+                    chunk_id=unit.chunk_id, estimated_tokens=1, telemetry={},
+                    target_provider="primary",
                 ),
             )
 
@@ -736,7 +740,10 @@ def test_pppr_g3_quota_rejections_never_become_external_unknown(
         def build(self, unit, resolved_context, target_lang_expansion=1.2):
             return SimpleNamespace(
                 status="success",
-                envelope=SimpleNamespace(chunk_id=unit.chunk_id, estimated_tokens=1, telemetry={}),
+                envelope=SimpleNamespace(
+                    chunk_id=unit.chunk_id, estimated_tokens=1, telemetry={},
+                    target_provider="primary",
+                ),
             )
 
     bridge = SyncProviderBridge(

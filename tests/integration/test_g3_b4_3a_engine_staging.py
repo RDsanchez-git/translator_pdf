@@ -197,8 +197,10 @@ class _FakeBuilder:
 
     def build(self, unit, resolved_context, target_lang_expansion=1.2):
         self.seen.append((unit, resolved_context, target_lang_expansion))
-        envelope = SimpleNamespace(chunk_id=unit.chunk_id,
-                                   schema=SimpleNamespace(payload=SimpleNamespace(content=unit.target_payload)))
+        envelope = SimpleNamespace(
+            chunk_id=unit.chunk_id, target_provider="primary",
+            schema=SimpleNamespace(payload=SimpleNamespace(content=unit.target_payload)),
+        )
         return SimpleNamespace(status="success", envelope=envelope)
 
 
@@ -530,8 +532,9 @@ def test_pppr_w32_real_budget_switch_model_is_rejected_before_provider():
     """R4: a real SWITCH_MODEL is not physical fallback admission."""
     from core.finops.measurement import InferenceMeasurementService
     from core.validation.budget import (
-        BudgetDecisionType, PromptBudgetCalculator, StandardCompressionPolicy,
+        PromptBudgetCalculator, StandardCompressionPolicy,
     )
+    from core.execution.exceptions import G3ExternalEffectNotStartedError
 
     _ast, plan = _fixture()
     unit = next(u for u in plan.units if u.chunk_type == TranslationTaskType.TRANSLATE)
@@ -548,7 +551,8 @@ def test_pppr_w32_real_budget_switch_model_is_rejected_before_provider():
     bridge = _bridge(provider, builder, plan)
     try:
         with pytest.raises(
-            Exception, match="PPPR_G3_FALLBACK_BACKEND_NOT_ACCREDITED",
+            G3ExternalEffectNotStartedError,
+            match="PPPR_G3_FALLBACK_BACKEND_NOT_ACCREDITED",
         ):
             bridge.execute_chunk(plan, unit)
     finally:
