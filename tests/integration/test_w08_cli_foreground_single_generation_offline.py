@@ -134,13 +134,15 @@ def test_cli_foreground_context_receipts_projections_and_pdf_same_generation(
     monkeypatch.setattr(
         pipeline_factory, "build_extraction_pipeline", lambda: _ControlledParser(),
     )
-    # The real G5 CompilationService still renders TeX; only the external
-    # Tectonic binary is replaced with a valid one-page PDF.
+    # The real G5 CompilationService renders the selected EN->ES content;
+    # only the external Tectonic binary is replaced with a one-page PDF.
+    rendered_tex: list[str] = []
     def fake_compile(
         _self: HostTectonicRunner, tex_content: str, output_dir: str,
         output_filename: str = "output.pdf", *, image_assets: Any = (),
     ) -> str:
         assert "\\begin{document}" in tex_content
+        rendered_tex.append(tex_content)
         assert not image_assets
         target = Path(output_dir) / output_filename
         with fitz.open() as pdf:
@@ -223,10 +225,31 @@ def test_cli_foreground_context_receipts_projections_and_pdf_same_generation(
         ).load_verified(document_id, ast_hash, persisted_ast)
         assert isinstance(plan, ChunkPlan)
         units = [u for u in plan.units if u.chunk_type == TranslationTaskType.TRANSLATE]
-        assert len(units) == 2 and len(snapshots) == 2
-        assert units[0].context_id != units[1].context_id
-        assert len(provider.calls) == 2
+        # W4.2: both accredited headings AND their paragraphs now receive
+        # distinct translation units. The headings share the verified root
+        # snapshot; the paragraphs retain their individual H1 contexts.
+        assert len(units) == 4 and len(snapshots) == 3
+        by_node = {u.members[0].node_id: u for u in units}
+        assert set(by_node) == {
+            "h_methods", "p_methods", "h_results", "p_results",
+        }
+        assert all(len(u.members) == 1 for u in units)
+        assert (
+            by_node["h_methods"].context_id
+            == by_node["h_results"].context_id
+        )
+        assert by_node["p_methods"].context_id != by_node["p_results"].context_id
+        assert all(u.context_id in snapshots for u in units)
+        root = snapshots[by_node["h_methods"].context_id]
+        assert len(root.breadcrumbs) == 1
+        assert root.breadcrumbs[0].level == 0
+        assert root.breadcrumbs[0].title == "[ROOT_DOCUMENT_CONTEXT]"
+        assert len(provider.calls) == 4
+        assert {chunk for chunk, _ in provider.calls} == {
+            u.chunk_id for u in units
+        }
         assert {context for _, context in provider.calls} == {
+            ("[ROOT_DOCUMENT_CONTEXT]",),
             ("H1: Methods",), ("H1: Results",),
         }
 
@@ -236,7 +259,7 @@ def test_cli_foreground_context_receipts_projections_and_pdf_same_generation(
             (document_id, ast_hash),
         ).fetchall()
         assert len(rows) == len(plan.units) == 4
-        assert sum(raw is not None for _, raw, _, _, _, _ in rows) == 2
+        assert sum(raw is not None for _, raw, _, _, _, _ in rows) == 4
         assert all(execution_id for _, _, execution_id, _, _, _ in rows)
         assert all(
             (generation is not None and len(generation) == 64
@@ -253,7 +276,12 @@ def test_cli_foreground_context_receipts_projections_and_pdf_same_generation(
         assert {node for node, _ in projections} == {
             "h_methods", "p_methods", "h_results", "p_results",
         }
-        assert all(response for _, response in projections)
+        assert dict(projections) == {
+            "h_methods": "SYNTHETIC_Methods",
+            "p_methods": "SYNTHETIC_Alpha sample.",
+            "h_results": "SYNTHETIC_Results",
+            "p_results": "SYNTHETIC_Beta sample.",
+        }
         pub = materialized.execute(
             "SELECT manifest_sha256 FROM g3_plan_publications "
             "WHERE document_id=? AND ast_hash=?", (document_id, ast_hash),
@@ -264,4 +292,9 @@ def test_cli_foreground_context_receipts_projections_and_pdf_same_generation(
     assert result.is_file()
     with fitz.open(result) as compiled:
         assert compiled.page_count == 1
+    assert len(rendered_tex) == 1
+    assert r"\section*{SYNTHETIC\_Methods}" in rendered_tex[0]
+    assert r"\section*{SYNTHETIC\_Results}" in rendered_tex[0]
+    assert r"SYNTHETIC\_Alpha sample." in rendered_tex[0]
+    assert r"SYNTHETIC\_Beta sample." in rendered_tex[0]
     assert processors
