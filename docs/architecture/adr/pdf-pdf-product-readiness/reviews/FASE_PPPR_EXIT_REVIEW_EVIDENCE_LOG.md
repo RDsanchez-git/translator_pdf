@@ -1,11 +1,11 @@
 # FASE_PPPR_EXIT_REVIEW_EVIDENCE_LOG.md
 
 **Documento:** `docs/architecture/adr/pdf-pdf-product-readiness/reviews/FASE_PPPR_EXIT_REVIEW_EVIDENCE_LOG.md`  
-**Versión:** 0.1.28  
-**Estado:** G1/G2 Exit Reviews PASS, W3.1 integrada, W3.2 3/3 Tasks DONE offline con R1–R10 dispuestas, [CI #45255747256](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45255747256) SUCCESS en 32603508a38df9b08571b97b60796f2f07fac5cc (3/3 jobs; Pyright 0 errors/0 warnings, import-linter 4/4, 289 unit PASS, 95 integración focal PASS, 1610 `not e2e` PASS/4 skipped/20 E2E excluidos; selecciones no sumables). H1–H4 aceptados en rutas falsadas, CI documental/merge pendientes, G3 Exit Review NOT_RUN, 14 GAP P1 OPEN, PRODUCT_READINESS=NOT_CERTIFIED.  
+**Versión:** 0.1.29  
+**Estado:** G3 COMPLETED/PASS (Exit Review REALIZADO 2026-11-23, §2.3.3 4/4 PASS). 6/6 G3 Tasks DONE; 52/52 historic W3.1 rules (44 CI_VERIFIED/SCOPE_REVIEWED, 5 CONDITION_NOT_TRIGGERED/BOARD_SCOPE_ACCEPTED, 2 MODEL_SCOPE_LIMIT_ACCEPTED, 1 ACTIVE_SCOPE_CI_VERIFIED/EXCEPTION_CONDITION_NOT_TRIGGERED) plus 10/10 FPPPR-03 rules W3.2 (R1–R10 disposition per row). CI #45260540282 SUCCESS (3/3 jobs, Pyright 0 errors/0 warnings, import-linter 4/4) on exact integrated SHA 9023ecbe267e2c7a45ce2e52e691e2c1e7a56b81. CV #45260540192 FAIL/DEFERRED (BASELINE_INTEGRITY_FAILURE, exit 3; 15 private canonical PDFs absent); PRODUCT_READINESS=NOT_CERTIFIED. G4–G6 NOT_RUN.
 **Fecha:** 2026-11-21  
 **Última actualización:** 2026-11-23  
-**Derivado de:** Execution Plan v0.5.26, Findings Register v0.1.27, [CI #45255747256](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45255747256) SUCCESS en 32603508a38df9b08571b97b60796f2f07fac5cc (3/3 jobs; Pyright 0 errors/0 warnings, import-linter 4/4, 289 unit PASS, 95 integración focal PASS, 1610 `not e2e` PASS/4 skipped/20 E2E excluidos; selecciones no sumables); NO Gate3 Exit Review.
+**Derivado de:** Execution Plan v0.5.27, Findings Register v0.1.28, integrated HEAD 9023ecbe267e2c7a45ce2e52e691e2c1e7a56b81.
 **Ámbito:** PPPR, ruta única `CLI → OCR → G3 → G5 → PDF`.  
 **Propósito:** Registro forense incremental, por Gate Exit Review, que conserva los fundamentos empíricos, los archivos examinados, los límites de evidencia y las reglas que justifican la clasificación de **cada hallazgo nuevo DF/GF** del Deferred Findings Register.
 
@@ -86,6 +86,7 @@
 | 0.1.26 | 2026-11-23 | Dictamen Board H1 R9 trazabilidad, H2 error estimador pre-I/O, H3 coste no finito. Código y falsadores de commit `fb74ce96…` registrados para revisión de CI y Board; no se atribuye PASS hasta constatar ejecución exacta [CI #45237767800](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45237767800) y CI del HEAD documental. Evidencia SQLite por intento no altera generación científica ni autoriza egress. 3 Tasks IN_PROGRESS y Exit Review G3 NOT_RUN. |
 | 0.1.27 | 2026-11-23 | [CI #45237767800](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45237767800) SUCCESS 3/3 sobre SHA exacto `fb74ce96…`: Pyright 0/0/0, import-linter 4/4, 289 unit, 95 integración focal y 1608 `not e2e` PASS/4 skipped/20 excluidos. H1/H2/H3 cobertura offline, referencia auditoría SQLite separada, no-start CAS, precios finitos; sin re-review Board final ni autorización comercial. CI documental pendiente, R1–R10 no DONE. |
 | 0.1.28 | 2026-11-23 | [CI #45255747256](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45255747256) SUCCESS en 32603508a38df9b08571b97b60796f2f07fac5cc (3/3 jobs; Pyright 0 errors/0 warnings, import-linter 4/4, 289 unit PASS, 95 integración focal PASS, 1610 `not e2e` PASS/4 skipped/20 E2E excluidos; selecciones no sumables). H1–H4 corregidos/aceptados, W3.2 3/3 DONE offline (16/30 global), R1–R10 cotejadas individualmente en §3 y Plan §7; no Gate3 Exit Review ni producto certificado. |
+| 0.1.29 | 2026-11-23 | G3 COMPLETED/PASS (Exit Review REALIZADO 2026-11-23, §2.3.3 4/4 PASS) on pdf-pdf-product-readiness@9023ecbe267e2c7a45ce2e52e691e2c1e7a56b81; CI #45260540282 SUCCESS (3/3 jobs, Pyright 0 errors/0 warnings, import-linter 4/4) on exact integrated SHA 9023ecbe267e2c7a45ce2e52e691e2c1e7a56b81; 6/6 G3 Tasks DONE; 52/52 historic W3.1 rules (44 CI_VERIFIED/SCOPE_REVIEWED, 5 CONDITION_NOT_TRIGGERED/BOARD_SCOPE_ACCEPTED, 2 MODEL_SCOPE_LIMIT_ACCEPTED, 1 ACTIVE_SCOPE_CI_VERIFIED/EXCEPTION_CONDITION_NOT_TRIGGERED) plus 10/10 FPPPR-03 rules W3.2 (R1–R10 disposition per row); 0 new DF/GF; CV #45260540192 FAIL/DEFERRED (BASELINE_INTEGRITY_FAILURE, exit 3; 15 private canonical PDFs absent); PRODUCT_READINESS=NOT_CERTIFIED. |
 
 ---
 
@@ -264,7 +265,7 @@ Referencia exacta `NADR/ADR/ENGINEERING_PRINCIPLES §/Rn` y explicación de su c
 |---|---|---|---|
 | G1 — Baseline y autoridad | **REALIZADO 2026-11-21 + addendum de CI posterior**; 4/4 Tasks DONE | **0 DF/GF nuevos**, sin §2 ficticio. Referencias de criterios en Plan §2.1.4 y CI/CV en §3.1 | **G1 PASS/COMPLETED**; CI del HEAD SUCCESS, CV científica FAIL/DEFERRED |
 | G2 — Procedencia e identidad | **Exit Review REALIZADO 2026-11-21**, 6 Tasks, 30 reglas G2, CI #44977644736 SUCCESS; **PR86 MERGED 2026-11-22**, CI post-merge SUCCESS | **0 DF/GF nuevos en alcance**; H1/H2 resueltos, 14 GAP P1 históricos OPEN | **4/4 Exit Criteria PASS y G2 COMPLETED/PASS tras verificación de integración** |
-| G3 — Seguridad de efectos e inferencia | NOT_RUN | No registrada | PENDING |
+| G3 — Seguridad de efectos e inferencia | **REVIEW_REALIZADO 2026-11-23; 6/6 Tasks and 62/62 G3 rules** | 0 new DF/GF, 14 GAP P1 historical OPEN, see §3.3 | **G3 COMPLETED/PASS (4/4), CI #45260540282 SUCCESS, scientific CV FAIL/DEFERRED** |
 | G4 — Reconstrucción G5/PDF | NOT_RUN | No registrada | PENDING |
 | G5 — Host e integración E2E | NOT_RUN | No registrada | PENDING |
 | G6 — Ciencia y cierre | NOT_RUN | No registrada | PENDING |
@@ -373,6 +374,19 @@ Referencia exacta `NADR/ADR/ENGINEERING_PRINCIPLES §/Rn` y explicación de su c
 | R10 / `3.2.3` | H2 `test_pppr_w32_engine_pre_effect_admission_failure_never_becomes_unknown`, H4 `test_pppr_w32_prompt_builder_local_failure_is_proven_no_start`: SQLite real, 0 provider/receipts/UNKNOWN; W06 efecto incierto | CI_VERIFIED_OFFLINE; UNKNOWN/F18 se mantiene tras posible inicio |
 
 **Límites permanentes del testigo:** R3/R4: rechazo del modelo retirado/fallback lógico sin acreditación, NO modelo comercial admisible; R6: fail-closed sin estimador conservador comercial verificado; R7/R8: sin autorizaciones reales de egress ni gasto. Ninguna regla ni Exit Criterion FROZEN modificado; FAKE_OFFLINE no autoriza egress ni presupuesto. No se crean DF/GF imaginarios, 14 GAP P1 históricos OPEN, CV científica FAIL/DEFERRED, PRODUCT_READINESS=NOT_CERTIFIED; G3 Exit Review NOT_RUN, CI del nuevo HEAD documental y merge PR91 pendientes.
+
+### 3.3 Gate 3 Exit Review — REALIZADO 2026-11-23 / 4 DE 4 PASS
+
+**Evaluated baseline:** pdf-pdf-product-readiness@9023ecbe267e2c7a45ce2e52e691e2c1e7a56b81 after PR90/PR91 MERGED. CI #45260540282 SUCCESS (3/3 jobs, Pyright 0 errors/0 warnings, import-linter 4/4) on exact integrated SHA 9023ecbe267e2c7a45ce2e52e691e2c1e7a56b81. Fixed Exit Criteria are in Execution Plan §2.3.3, unmodified by this review.
+
+| Exit Criterion | Forensic witness / limitation | Verdict |
+|---|---|---|
+| (1) 6 Tasks and owned rules | 6/6 G3 Tasks DONE; 52/52 historic W3.1 rules (44 CI_VERIFIED/SCOPE_REVIEWED, 5 CONDITION_NOT_TRIGGERED/BOARD_SCOPE_ACCEPTED, 2 MODEL_SCOPE_LIMIT_ACCEPTED, 1 ACTIVE_SCOPE_CI_VERIFIED/EXCEPTION_CONDITION_NOT_TRIGGERED) plus 10/10 FPPPR-03 rules W3.2 (R1–R10 disposition per row). §7/§7.H/§7.H.1 distinguish rule-specific test witnesses, conditional non-trigger and durability model limitations. | **PASS 1/4** |
+| (2) Safety/UNKNOWN/recovery F18 | W06 tests: lease, ownership CAS, receipts/SQLite reopen, idempotent recovery/FSM, UNKNOWN alarm and no blind retry; H2/H4 real engine + spy provider confirm no I/O for proven pre-effect rejection. No power-loss or remote atomicity implied. | **PASS 2/4** |
+| (3) EN→ES and contract admission | Rendered EN→ES wire request observed via spy; retired model and unavailable fallback rejected; limits, estimation, permissions, budget, H1 durable admission audit, H3 finite Decimal, H2/H4 proven no-start. offline only: retired Groq model and logical SWITCH_MODEL without attested physical fallback are NO_DISPATCH; no commercial-model availability, verified conservative commercial estimator, egress, authorized budget or spending; UNKNOWN/F18 remains for possibly started effects. | **PASS 3/4 offline** |
+| (4) CI and evidence | CI #45260540282 SUCCESS (3/3 jobs, Pyright 0 errors/0 warnings, import-linter 4/4) on exact integrated SHA 9023ecbe267e2c7a45ce2e52e691e2c1e7a56b81; 3/3 jobs SUCCESS including Pyright 0 errors/0 warnings, import-linter 4/4, G3 tests, Plan v0.5.27 and Findings v0.1.28 cross-referenced. CV #45260540192 FAIL/DEFERRED (BASELINE_INTEGRITY_FAILURE, exit 3; 15 private canonical PDFs absent); PRODUCT_READINESS=NOT_CERTIFIED. | **PASS 4/4** |
+
+**Formal verdict:** G3 COMPLETED/PASS (Exit Review REALIZADO 2026-11-23, §2.3.3 4/4 PASS). 0 DF/GF new in scope; 14 historical GAP P1 remain OPEN. CV #45260540192 FAIL/DEFERRED (BASELINE_INTEGRITY_FAILURE, exit 3; 15 private canonical PDFs absent); PRODUCT_READINESS=NOT_CERTIFIED. Gate G4–G6 NOT_RUN; G3 closure is not permission for commercial egress, spending or executing Gate4. If G5 contradicts an accepted G3 contract, open a finding and revalidate it. This documentary PR needs its own CI and explicit merge approval.
 
 ## 4. TABLA CONSOLIDADA FINAL
 
