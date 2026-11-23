@@ -1,11 +1,11 @@
 # FASE_PPPR_DEFERRED_FINDINGS_REGISTER.md
 
 **Documento:** `docs/architecture/adr/pdf-pdf-product-readiness/reviews/FASE_PPPR_DEFERRED_FINDINGS_REGISTER.md`  
-**Versión:** 0.1.26  
-**Estado:** G1/G2 COMPLETED/PASS, W3.1 integrada, W3.2 3 Tasks IN_PROGRESS. H1/H2/H3 corregidos con CI técnica #45237767800 SUCCESS en fb74ce96…, pero pendientes de re-review Board; ningún DF/GF nuevo diferido con autoridad. 14 GAP P1 históricos OPEN; `PRODUCT_READINESS=NOT_CERTIFIED`.  
+**Versión:** 0.1.27  
+**Estado:** G1/G2 PASS, W3.1 integrada, W3.2 3/3 Tasks DONE offline con 10/10 reglas dispuestas. [CI #45255747256](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45255747256) SUCCESS en 32603508a38df9b08571b97b60796f2f07fac5cc (3/3 jobs; Pyright 0 errors/0 warnings, import-linter 4/4, 289 unit PASS, 95 integración focal PASS, 1610 `not e2e` PASS/4 skipped/20 E2E excluidos; selecciones no sumables). H1–H4 resueltos en rutas falsadas; CI documental/merge pendientes, Gate3 Exit Review NOT_RUN, 14 GAP P1 OPEN y PRODUCT_READINESS=NOT_CERTIFIED.  
 **Fecha de creación:** 2026-11-21  
-**Última actualización:** 2026-11-22  
-**Derivado de:** `PHASE_PPPR_EXECUTION_PLAN.md` v0.5.25 APPROVED/LIVING; CI #45237767800 SUCCESS sobre fb74ce96…, CI documental final pendiente, R3/R4 y W3.2 sin cierre Board.
+**Última actualización:** 2026-11-23  
+**Derivado de:** Execution Plan v0.5.26, Evidence Log v0.1.28; [CI #45255747256](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45255747256) SUCCESS en 32603508a38df9b08571b97b60796f2f07fac5cc (3/3 jobs; Pyright 0 errors/0 warnings, import-linter 4/4, 289 unit PASS, 95 integración focal PASS, 1610 `not e2e` PASS/4 skipped/20 E2E excluidos; selecciones no sumables); CI documental final por verificar.
 **Ámbito:** PPPR (iniciativa transversal PDF→PDF; no fase histórica numerada).  
 **Propósito:** Registro único y auditable de hallazgos `DF`/`GF` **que surjan durante la ejecución y los Exit Reviews** del Execution Plan: identificación, clasificación, decisión, resolución, batch y evidencia de implementación.
 
@@ -66,6 +66,7 @@
 | 0.1.24 | 2026-11-23 | [CI #45111804056](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45111804056) SUCCESS `7b87810a…`; incidentes CI por fakes sin `target_provider` revisados y corregidos. Task 3.2.3 implementa política de admisión positiva solo sintética y bloqueo productivo por falta de autorización, request físico/reserva de salida, límites independientes/estimación/egress/coste; [CI #45113284911](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45113284911) pendiente. Sin DF/GF nuevos ratificados, 14 GAP P1 históricos OPEN, W3.2 NO DONE/NO MERGE. |
 | 0.1.25 | 2026-11-23 | Board H1/R9, H2/estimador no-inicio, H3/Decimal no-finito; parches acotados en PR91 commit `fb74ce96…` con auditoría durable por intento y testigos offline. CI anterior [CI #45114218248](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45114218248) SUCCESS, CI código nuevo [CI #45237767800](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45237767800) y CI documental pendientes. H1-H3 todavía no CLOSE sin re-review, sin DF/GF diferido nuevo por conjetura. 14 GAP históricos OPEN. |
 | 0.1.26 | 2026-11-23 | [CI #45237767800](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45237767800) SUCCESS en `fb74ce96…`: 1608 pruebas técnicas PASS/4 skipped; H1/H2/H3 con falsadores de auditoría, falla local y Decimal no-finito. Cierre formal Board pendiente, no se reclasifica automáticamente como DONE, no se crean DF/GF diferidos sin autoridad. CI del checkpoint documental pendiente. |
+| 0.1.27 | 2026-11-23 | [CI #45255747256](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45255747256) SUCCESS en 32603508a38df9b08571b97b60796f2f07fac5cc (3/3 jobs; Pyright 0 errors/0 warnings, import-linter 4/4, 289 unit PASS, 95 integración focal PASS, 1610 `not e2e` PASS/4 skipped/20 E2E excluidos; selecciones no sumables). Board favorable a H1–H4 y al cierre normativo offline; owner autoriza integrar PR91 sólo tras SUCCESS del HEAD documental final. W3.2 3/3 Tasks DONE offline, R1–R10 en Plan §7, H1–H4 aceptados, 14 GAP P1 históricos OPEN, sin DF/GF nuevos ni Gate3 Exit Review. |
 
 ---
 
@@ -259,6 +260,9 @@ Cada DF/GF exigirá: texto original, fecha/origen Gate/Wave/Task, rutas/SHAs de 
 
 **Verificación de CI de correcciones H1/H2/H3 (2026-11-23):** [CI #45237767800](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45237767800) **SUCCESS** sobre SHA exacto de código `fb74ce968cfaf7a501e8c837ee512a9e4f93b1f4`, 3/3 jobs: Pyright 0 errores/0 warnings/0 informations, import-linter 4/4 contratos, 289 unitarios PASS, integración focal 95 PASS y suite `not e2e` **1608 PASS, 4 SKIPPED, 20 E2E excluidos, 2 warnings**. Los falsadores nuevos cubren el registro CAS durable y recuperación tras reapertura de SQLite, atestaciones diferentes para idéntico request, ausencia de writer, fallo inyectado del estimador en el motor real sin UNKNOWN ni dispatch, política permanente versus retry acotado y rechazos de `NaN`/`Infinity` en los tres importes. **R3/R4 siguen sujetos a la aceptación normativa del Board de fail-closed sin backend comercial admisible; R1–R10 permanecen sin cierre individual formal y las tres Tasks W3.2 IN_PROGRESS.** Esta CI corresponde al SHA de código anterior al checkpoint documental, cuya CI final debe verificarse separadamente. PR91 OPEN/Draft, NO MERGE, Gate3 Exit Review NOT_RUN, 13/30 Tasks DONE, `PRODUCT_READINESS=NOT_CERTIFIED`.
 
+
+**W3.2 cierre documental de findings (2026-11-23, NO Gate3 Exit Review):** Board favorable a H1–H4 y al cierre normativo offline; owner autoriza integrar PR91 sólo tras SUCCESS del HEAD documental final. [CI #45255747256](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45255747256) SUCCESS en 32603508a38df9b08571b97b60796f2f07fac5cc (3/3 jobs; Pyright 0 errors/0 warnings, import-linter 4/4, 289 unit PASS, 95 integración focal PASS, 1610 `not e2e` PASS/4 skipped/20 E2E excluidos; selecciones no sumables). H1 auditoría SQLite CAS, H2 estimador admisión pre-I/O, H3 Decimal finito y H4 prompt build/medición lógica pre-I/O fueron corregidos con falsadores; H4 motor real, SQLite durable, 0 proveedor/recibos/UNKNOWN. R1–R10 en Plan §7 con evidencia y límites; R3/R4: rechazo del modelo retirado/fallback lógico sin acreditación, NO modelo comercial admisible; R6: fail-closed sin estimador conservador comercial verificado; R7/R8: sin autorizaciones reales de egress ni gasto. No se crean DF/GF ficticios por correcciones del mismo scope, ni se cierran los 14 GAP P1 históricos. G3 Exit Review NOT_RUN, 16/30 Tasks DONE, 14 restantes, PRODUCT_READINESS=NOT_CERTIFIED, CI documental/merge pendientes.
+
 ## 3. TABLA CONSOLIDADA FINAL
 
 **Estado:** `NO_ELABORADA / NOT_RUN`. Se consolidará al cierre del último Gate Exit Review; no se presume que habrá cero hallazgos.
@@ -357,7 +361,7 @@ El documento se declara `ARCHIVED` **solo** tras cierre formal de PPPR, verifica
 | Hallazgos analizados/resueltos/diferidos | **0 nuevos en Gate 1; clasificación N/A** (no inventar NAR) |
 | Batches ejecutados | NOT_RUN |
 | Estado de los Exit Reviews | G1 REVIEW_REALIZADO/PASS; **G2 REVIEW_REALIZADO 4/4 PASS**, CI #44977644736, PR86 integrado y CI post-merge #44979093690 confirmados; G3–G6 NOT_RUN |
-| Estado operativo del Register | IN_PROGRESS — G1/G2 COMPLETED/PASS, G3 W3.1 PR90 IN_PROGRESS/CI_PENDING, Exit Review G3 NOT_RUN, 14 GAP históricos OPEN |
+| Estado operativo del Register | IN_PROGRESS — G1/G2 PASS, W3.1 integrada, W3.2 3/3 DONE offline, PR91 merge sujeto a CI documental final; G3 Exit Review NOT_RUN, 14 GAP P1 OPEN, PRODUCT_READINESS=NOT_CERTIFIED |
 | Cierre de fase | **PENDIENTE / NO ARCHIVED** |
 
 ---
