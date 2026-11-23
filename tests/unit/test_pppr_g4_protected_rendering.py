@@ -90,6 +90,44 @@ def test_unclassified_composite_fails_closed_in_real_render_path() -> None:
 
 
 @pytest.mark.unit
+@pytest.mark.parametrize(
+    "untrusted_id",
+    [
+        "n\n\\input{private.tex}\n",
+        "n\r\\input{private.tex}\r",
+        "n\r\n\\input{private.tex}\r\n",
+        "n\x00\x01\x0b\x0c\x1f\x7f\\input{private.tex}",
+        "n\t\\end{document}\t",
+        "n\u0085\u2028\u2029\\input{private.tex}",
+        "n:unrestricted-dto\n\\write18{bad}",
+        r"n\input{private.tex}% literal looking metadata",
+        "",
+    ],
+)
+def test_node_id_metadata_stays_in_one_tex_comment_line(untrusted_id: str) -> None:
+    """H-G4-01: the real TexBuilder must not activate metadata TeX."""
+    profile = InferredDocumentProfile(layout=PageLayout.SINGLE_COLUMN, document_type=None)
+    builder = TexBuilder(RenderContextFactory.create(profile))
+    rendered = builder.build([_unit(ContentNodeType.CODE, "texto literal", untrusted_id)])
+
+    expected = f"% [NODE_ID: {ascii(untrusted_id)}] [TYPE: code]"
+    comment_lines = [line for line in rendered.splitlines() if line.startswith("% [NODE_ID: ")]
+    assert comment_lines == [expected]
+    assert expected.count("\n") == 0
+    assert expected.count("\r") == 0
+    assert all(ord(ch) >= 32 and ord(ch) < 127 for ch in expected)
+    assert rendered.count("% [NODE_ID: ") == 1
+    # Real TeX commands may occur only in the trusted renderer output, not
+    # as a new line introduced by untrusted identifier metadata.
+    assert not any(
+        line.lstrip().startswith(("\\input", "\\write18", "\\end{document}"))
+        for line in rendered.splitlines()
+        if not line.startswith("%")
+    )
+    assert r"\noindent texto\ literal" in rendered
+
+
+@pytest.mark.unit
 def test_mathematical_text_in_paragraph_keeps_accredited_span_only() -> None:
     profile = InferredDocumentProfile(layout=PageLayout.SINGLE_COLUMN, document_type=None)
     builder = TexBuilder(RenderContextFactory.create(profile))
