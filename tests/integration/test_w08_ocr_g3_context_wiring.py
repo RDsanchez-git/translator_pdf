@@ -277,8 +277,15 @@ def test_w42_selected_heading_materializes_fake_es_from_reopened_sqlite(tmp_path
             bridge.shutdown()
         assert provider.calls == 1
         if member.node_type == ContentNodeType.HEADING.value:
+            # The verified root snapshot is level 0, but its prompt-facing
+            # title is intentionally unprefixed by SyncProviderBridge.
+            root_snapshot = snapshots[unit.context_id]
+            assert len(root_snapshot.breadcrumbs) == 1
+            assert root_snapshot.breadcrumbs[0].level == 0
+            assert root_snapshot.breadcrumbs[0].title == "[ROOT_DOCUMENT_CONTEXT]"
+            assert builder.seen[0].context_id == unit.context_id
             assert builder.seen[0].breadcrumbs == (
-                "H0: [ROOT_DOCUMENT_CONTEXT]",
+                "[ROOT_DOCUMENT_CONTEXT]",
             )
     actual = materialize_node_results(plan, responses)
     assert {x.node_id: x.text for x in actual} == selected
