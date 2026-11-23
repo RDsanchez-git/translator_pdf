@@ -3,6 +3,7 @@
 No Docker, real API keys, network, production databases, or historical volumes.
 The contract oracle must PASS: UNKNOWN effects never retry automatically.
 """
+import asyncio
 from dataclasses import replace
 from hashlib import sha256
 import json
@@ -15,6 +16,7 @@ from typing import cast
 import pytest
 
 from apps.llm_workers.sync_bridge import SyncProviderBridge
+from apps.llm_workers.rate_limiter import RateLimitedProvider, QuotaReservation, QuotaRejectionReason
 from apps.llm_workers.prompt_builder import PromptBuilder, PromptEnvelope
 from core.prompting.inference_result import InferenceResult
 from tests.integration._reconciler_test_factory import make_reconciler_with_test_doubles
@@ -488,3 +490,87 @@ def test_pppr_g3_legacy_queue_plan_without_receipts_bootstraps_before_provider(s
         "SELECT execution_id FROM chunk_result_receipts WHERE task_id=?",
         (lease.task_id,)
     ).fetchone() == (lease.execution_id,)
+
+
+def test_pppr_g3_quota_wait_expiry_blocks_external_provider(subject):
+    """Real SyncProviderBridge + RateLimitedProvider, fake quota and provider.
+
+    The first quota reservation waits and changes the *durable* lease. This
+    exercises both the asyncio thread boundary and the post-quota authority
+    guard: the external provider must observe zero calls.
+    """
+    from core.execution.exceptions import G3ExternalEffectNotStartedError
+
+    unit = subject.plan.units[0]
+    lease = subject.repo.pick_task(
+        "w31_quota_wait", subject.plan.document_id, subject.plan.ast_hash
+    )
+    assert lease is not None
+    snapshots = DurableContextPlanRepository(subject.repo).load_verified(
+        subject.plan.document_id, subject.plan.ast_hash, subject.ast
+    )[1]
+    queue_path = subject.queue.execute("PRAGMA database_list").fetchone()[2]
+
+    class _Quota:
+        attempts = 0
+
+        async def reserve(self, estimated_tokens: int, estimated_requests: int = 1):
+            self.attempts += 1
+            if self.attempts == 1:
+                # The quota layer is on the bridge's asyncio thread. The
+                # SQLite connection must therefore be opened in that thread.
+                with sqlite3.connect(queue_path) as conn:
+                    conn.execute(
+                        "UPDATE chunk_tasks SET lease_expires_at=1.0 "
+                        "WHERE task_id=?", (lease.task_id,)
+                    )
+                await asyncio.sleep(0)
+                return QuotaReservation.create_rejected(
+                    QuotaRejectionReason.INSUFFICIENT_RPM, 0, 0, 0
+                )
+            return QuotaReservation.create_granted(1, 1, 0, 10, 10)
+
+    class _FakeProvider:
+        calls = 0
+
+        async def translate(self, envelope):
+            self.calls += 1
+            raise AssertionError("Provider I/O after expired quota wait")
+
+    class _BudgetBuilder:
+        model_name = "offline"
+        prompt_version = "w31"
+
+        def build(self, unit, resolved_context, target_lang_expansion=1.2):
+            return SimpleNamespace(
+                status="success",
+                envelope=SimpleNamespace(
+                    chunk_id=unit.chunk_id, estimated_tokens=1, telemetry={}
+                ),
+            )
+
+    quota = _Quota()
+    external = _FakeProvider()
+    bridge = SyncProviderBridge(
+        RateLimitedProvider(external, cast(object, quota), min_jitter=0,
+                            max_jitter=0, max_wait_seconds=1),
+        cast(PromptBuilder, _BudgetBuilder()),
+        timeout_sec=5.0,
+        context_snapshots=snapshots,
+    )
+    try:
+        with pytest.raises(
+            G3ExternalEffectNotStartedError,
+            match="PPPR_G3_EFFECT_AUTHORITY_NOT_CURRENT",
+        ):
+            stage_claimed_unit(
+                subject.repo, subject.plan, subject.ast, unit, lease,
+                "w31_quota_wait", bridge, Semaphore(1),
+            )
+        assert quota.attempts == 2
+        assert external.calls == 0
+        assert subject.queue.execute(
+            "SELECT COUNT(*) FROM chunk_result_receipts"
+        ).fetchone()[0] == 0
+    finally:
+        bridge.shutdown()
