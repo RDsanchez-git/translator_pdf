@@ -4,6 +4,8 @@ No Docker, real API keys, network, production databases, or historical volumes.
 The contract oracle must PASS: UNKNOWN effects never retry automatically.
 """
 import asyncio
+import io
+import logging
 from dataclasses import replace
 from hashlib import sha256
 import json
@@ -30,6 +32,7 @@ from core.chunking.contextual_plan import prepare_contextual_plan
 from infra.db.context_snapshot_repo import DurableContextPlanRepository
 from infra.db.control_repo import ControlPlaneRepository
 from runtime.chunk_staging import stage_claimed_unit
+from core.utils.telemetry import DistributedContextFilter, JSONFormatter
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -793,3 +796,122 @@ def test_pppr_g3_prior_sweep_failure_does_not_suppress_unknown_escalation(
     assert subject.queue.execute(
         "SELECT task_state,retry_count FROM chunk_tasks WHERE worker_type='LLM'"
     ).fetchone() == ("G3_EXTERNAL_UNKNOWN", 0)
+
+
+def _g3_capture_json_logs():
+    """Attach the actual production formatter/filter; never alter root settings."""
+    output = io.StringIO()
+    handler = logging.StreamHandler(output)
+    handler.setLevel(logging.ERROR)
+    handler.addFilter(DistributedContextFilter())
+    handler.setFormatter(JSONFormatter())
+    logging.getLogger().addHandler(handler)
+    return output, handler
+
+
+def test_pppr_g3_unknown_worker_json_log_correlates_attempt_to_durable_operation(
+    subject, monkeypatch,
+):
+    """F18-05 R1/R2: actual worker log has attempt, logical task and chunk.
+
+    The scientific ast_hash remains a separate persisted identity; the worker
+    trace_id is the attempt execution_id, not a science-identity replacement.
+    """
+    output, handler = _g3_capture_json_logs()
+    try:
+        fake, _ = _run_post_send_loss(subject, monkeypatch)
+    finally:
+        logging.getLogger().removeHandler(handler)
+        handler.close()
+    assert len(fake.accepted_calls) == 1
+    durable = subject.queue.execute(
+        "SELECT document_id,ast_hash,node_id,task_id,execution_id,task_state "
+        "FROM chunk_tasks WHERE worker_type='LLM'"
+    ).fetchone()
+    assert durable is not None and durable[-1] == "G3_EXTERNAL_UNKNOWN"
+    doc_id, ast_hash, chunk_id, task_id, execution_id, _ = durable
+    entries = [json.loads(line) for line in output.getvalue().splitlines()]
+    failures = [item for item in entries
+                if item["message"].startswith("G3_B4_3A_STAGE_FAILURE")]
+    assert len(failures) == 1
+    failure = failures[0]
+    assert failure["task_id"] == task_id
+    assert failure["node_id"] == chunk_id
+    assert failure["trace_id"] == execution_id
+    assert failure["worker_id"] != "-"
+    assert failure["trace_id"] not in (doc_id, ast_hash, task_id, chunk_id)
+    # The logger cannot authorize a new attempt. SQLite remains authoritative.
+    assert subject.repo.pick_task("w31_from_log", doc_id, ast_hash) is None
+
+
+def test_pppr_g3_unknown_alarm_recovered_after_ephemeral_json_log_loss(
+    subject, monkeypatch,
+):
+    """F18-05 R10/R13/R15 in-scope: loss of the log sink loses no UNKNOWN.
+
+    No claims about an external metrics backend or exceptional retry decisions.
+    """
+    fake, _ = _run_post_send_loss(subject, monkeypatch)
+    assert len(fake.accepted_calls) == 1
+    audit = json.loads(subject.queue.execute(
+        "SELECT error_log FROM chunk_tasks WHERE task_state='G3_EXTERNAL_UNKNOWN'"
+    ).fetchone()[0])
+    audit["first_detected_at"] -= 120
+    subject.queue.execute(
+        "UPDATE chunk_tasks SET error_log=? "
+        "WHERE task_state='G3_EXTERNAL_UNKNOWN'",
+        (json.dumps(audit),),
+    )
+    subject.queue.commit()
+    stable = subject.queue.execute(
+        "SELECT task_id,document_id,ast_hash,node_id,execution_id,error_log,"
+        "task_state FROM chunk_tasks WHERE worker_type='LLM'"
+    ).fetchone()
+
+    first_output, first_handler = _g3_capture_json_logs()
+    try:
+        first = make_reconciler_with_test_doubles(
+            None, subject.repo, None, None, None
+        )
+        first.is_leader = True
+        first.unknown_escalation_sec = 30
+        first._escalate_g3_unknown()
+    finally:
+        logging.getLogger().removeHandler(first_handler)
+        first_handler.close()
+    assert "PPPR_G3_UNKNOWN_OPERATOR_ESCALATION" in first_output.getvalue()
+    # A lost external log buffer is *not* a state mutation or a disposition.
+    first_output.close()
+
+    second_output, second_handler = _g3_capture_json_logs()
+    try:
+        restarted = make_reconciler_with_test_doubles(
+            None, subject.repo, None, None, None
+        )
+        restarted.is_leader = True
+        restarted.unknown_escalation_sec = 30
+        restarted._escalate_g3_unknown()
+    finally:
+        logging.getLogger().removeHandler(second_handler)
+        second_handler.close()
+    messages = [json.loads(line) for line in second_output.getvalue().splitlines()]
+    alarms = [e for e in messages
+              if e["message"] == "PPPR_G3_UNKNOWN_OPERATOR_ESCALATION"]
+    assert len(alarms) == 1
+    alarm = alarms[0]
+    assert alarm["task_id"] == stable[0]
+    assert alarm["document_id"] == stable[1]
+    assert alarm["ast_hash"] == stable[2]
+    assert alarm["chunk_id"] == stable[3]
+    assert alarm["execution_id"] == stable[4]
+    assert alarm["first_detected_at"] == audit["first_detected_at"]
+    assert alarm["audit_valid"] is True
+    assert alarm["disposition"] == "MANUAL_REVIEW_ONLY_NO_AUTO_RETRY"
+    assert subject.queue.execute(
+        "SELECT task_id,document_id,ast_hash,node_id,execution_id,error_log,"
+        "task_state FROM chunk_tasks WHERE worker_type='LLM'"
+    ).fetchone() == stable
+    assert subject.repo.pick_task(
+        "w31_log_not_authority", stable[1], stable[2]
+    ) is None
+    assert len(fake.accepted_calls) == 1
