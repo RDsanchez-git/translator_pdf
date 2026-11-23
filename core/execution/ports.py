@@ -40,6 +40,20 @@ class TaskLease:
     absolute_deadline_monotonic: float
 
 @dataclass(frozen=True)
+class G3UnknownEscalation:
+    """Recoverable unresolved provider effect, sourced from the control plane."""
+
+    task_id: str
+    document_id: str
+    ast_hash: str
+    chunk_id: str
+    execution_id: str
+    first_detected_at: float | None
+    cause: str | None
+    audit_valid: bool
+
+
+@dataclass(frozen=True)
 class ReplayPayload:
     raw_response: str
     projection_version: int

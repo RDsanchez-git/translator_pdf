@@ -115,6 +115,49 @@ def test_reopen_uses_durable_queue_receipt_for_idempotent_publication(tmp_path):
         verify_published_nodes(mc2, plan, ast, outputs)
 
 
+
+def test_rebuild_deleted_derived_publication_from_verified_durable_receipts(tmp_path):
+    """F18-04 R9: reconstruct lost *derived* materialization, not provider I/O.
+
+    Scope: staged G3 plan on disposable SQLite; journal/receipt source remains
+    intact. This does not claim automatic repair of an individual corrupted
+    projection or rebuild after queue receipts have become irrecoverable.
+    """
+    ast, plan, qc, mc, queue = _context(tmp_path)
+    with closing(qc), closing(mc):
+        assert publish_staged_plan(queue, mc, plan, ast) is True
+        query = (
+            "SELECT node_id,content_hash,normalized_response,normalized_hash,"
+            "projection_version FROM valid_chunks_cache ORDER BY node_id"
+        )
+        before = mc.execute(query).fetchall()
+        assert len(before) == 2
+        original_receipts = qc.execute(
+            "SELECT task_id,execution_id,response_sha256 FROM chunk_result_receipts "
+            "ORDER BY task_id"
+        ).fetchall()
+        assert len(original_receipts) == len(plan.units)
+
+        # Lose both reconstructible projection data and its derived publication
+        # marker, without altering the authoritative receipts/plan.
+        mc.execute("DELETE FROM valid_chunks_cache")
+        mc.execute("DELETE FROM g3_plan_publications")
+        mc.commit()
+        assert not mc.execute(query).fetchall()
+
+        # The existing publication path deterministically replays verified
+        # local receipts. No provider, new task claim or scientific inference.
+        assert publish_staged_plan(queue, mc, plan, ast) is True
+        assert mc.execute(query).fetchall() == before
+        assert qc.execute(
+            "SELECT task_id,execution_id,response_sha256 FROM chunk_result_receipts "
+            "ORDER BY task_id"
+        ).fetchall() == original_receipts
+        out = materialize_node_results(plan, queue.load_staged_chunk_responses(plan, ast))
+        verify_published_nodes(mc, plan, ast, out)
+        assert publish_staged_plan(queue, mc, plan, ast) is False
+
+
 def test_preserve_node_does_not_require_provider_response(tmp_path):
     ast, plan, qc, mc, queue = _context(tmp_path, preserve=True)
     with closing(qc), closing(mc):

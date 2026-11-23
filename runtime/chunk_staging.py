@@ -7,6 +7,7 @@ outside the repo/provider passed by its caller.
 
 from __future__ import annotations
 
+import sqlite3
 import time
 from threading import Semaphore
 from typing import Protocol, Sequence, cast
@@ -14,6 +15,8 @@ from typing import Protocol, Sequence, cast
 from core.ast.models import ASTNode, TranslationTaskType, TranslationUnit
 from core.chunking.manifest_contract import ChunkPlan
 from core.execution.ports import TaskLease
+from core.execution.exceptions import G3ExternalEffectNotStartedError
+from core.execution.effect_guard import g3_pre_effect_guard
 from infra.db.control_repo import ControlPlaneRepository
 
 
@@ -42,7 +45,7 @@ def stage_claimed_unit(
     if expected_task_id != lease.task_id:
         raise ValueError("G3_B4_3A_LEASE_TASK_MISMATCH")
     if lease.lease_expires_at <= time.time():
-        raise ValueError("G3_B4_3A_EXPIRED_LEASE")
+        raise G3ExternalEffectNotStartedError("G3_B4_3A_EXPIRED_LEASE")
 
     generation_sha256: str | None = None
     root_config_sha256: str | None = None
@@ -50,18 +53,46 @@ def stage_claimed_unit(
         raw_response = None
     elif unit.chunk_type in (TranslationTaskType.TRANSLATE, TranslationTaskType.PARTIAL):
         if processor is None:
-            raise ValueError("G3_B4_3A_PROVIDER_REQUIRED")
+            raise G3ExternalEffectNotStartedError("G3_B4_3A_PROVIDER_REQUIRED")
         with llm_semaphore:
-            if getattr(processor, "generation_identity_enabled", False):
-                attested_executor = getattr(processor, "execute_chunk_with_generation", None)
-                if not callable(attested_executor):
-                    raise ValueError("PPPR_G2_ATTESTED_PROVIDER_MISSING")
-                raw_response, generation_sha256 = cast(tuple[str, str], attested_executor(plan, unit))
-                root_config_sha256 = getattr(processor, "generation_root_config_sha256", None)
-            else:
-                # Historic/offline providers cannot claim an accredited
-                # generation; no reuse authority is inferred from this path.
-                raw_response = processor.execute_chunk(plan, unit)
+            # Recheck *durable* owner/execution/expiry after semaphore wait.
+            # This is the last controlled boundary before provider invocation.
+            repo.assert_g3_effect_authority(
+                lease=lease, worker_id=worker_id,
+                document_id=plan.document_id, ast_hash=plan.ast_hash,
+            )
+            # SyncProviderBridge propagates this context into its asyncio task.
+            # The rate limiter rechecks it after its last quota wait, immediately
+            # before delegating to the actual external provider.
+            queue_path = repo.conn.execute("PRAGMA database_list").fetchone()[2]
+
+            def check_before_external_io() -> None:
+                if not queue_path:
+                    raise G3ExternalEffectNotStartedError(
+                        "PPPR_G3_PRE_EFFECT_QUEUE_NOT_RECOVERABLE"
+                    )
+                # The guard executes on the asyncio thread; do not share the
+                # worker thread's SQLite connection. This is a short read.
+                with sqlite3.connect(queue_path, timeout=5.0) as probe:
+                    ControlPlaneRepository(probe).assert_g3_effect_authority(
+                        lease=lease, worker_id=worker_id,
+                        document_id=plan.document_id, ast_hash=plan.ast_hash,
+                    )
+
+            token = g3_pre_effect_guard.set(check_before_external_io)
+            try:
+                if getattr(processor, "generation_identity_enabled", False):
+                    attested_executor = getattr(processor, "execute_chunk_with_generation", None)
+                    if not callable(attested_executor):
+                        raise G3ExternalEffectNotStartedError("PPPR_G2_ATTESTED_PROVIDER_MISSING")
+                    raw_response, generation_sha256 = cast(tuple[str, str], attested_executor(plan, unit))
+                    root_config_sha256 = getattr(processor, "generation_root_config_sha256", None)
+                else:
+                    # Historic/offline providers cannot claim an accredited
+                    # generation; no reuse authority is inferred from this path.
+                    raw_response = processor.execute_chunk(plan, unit)
+            finally:
+                g3_pre_effect_guard.reset(token)
         if not isinstance(cast(object, raw_response), str):
             raise ValueError("G3_B4_3A_PROVIDER_RESPONSE_NOT_TEXT")
     else:

@@ -23,7 +23,10 @@ from core.utils.telemetry import (
     setup_distributed_logger, 
     ctx_execution_id, ctx_worker_id, ctx_task_id, ctx_node_id
 )
-from core.execution.exceptions import CircuitTripError, CircuitOpenError
+from core.execution.exceptions import (
+    CircuitTripError, CircuitOpenError, G3ExternalEffectNotStartedError,
+    PermanentQuotaRejection, QuotaTimeoutError,
+)
 from infra.db.connection import get_connection
 from core.ast.registry import ASTRegistry
 from core.ast.models import TranslationTaskType, ASTNode
@@ -244,6 +247,37 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
                                     raise PipelineIntegrityError("G3_B4_3A_UNEXPECTED_CLAIMED_CHUNK")
                                 stage_claimed_unit(th_task_repo, plan, ast, unit, task,
                                                    owner_id, processor, GLOBAL_LLM_SEMAPHORE)
+                            except G3ExternalEffectNotStartedError as exc:
+                                # Verified pre-provider rejection: never misclassify
+                                # as uncertain and never clobber a stolen lease.
+                                if unit is not None and unit.chunk_type != TranslationTaskType.PRESERVE:
+                                    if not th_task_repo.mark_g3_proven_no_start(
+                                        task_id=task.task_id, worker_id=owner_id,
+                                        execution_id=task.execution_id, cause=str(exc),
+                                    ):
+                                        logger.warning("PPPR_G3_NO_START_CAS_LOST: %s", chunk_id[:8])
+                                else:
+                                    try:
+                                        th_task_repo.release_task_untouched(task.task_id, owner_id)
+                                    except OptimisticLockError:
+                                        logger.warning("PPPR_G3_PRESERVE_RELEASE_CAS_LOST: %s", chunk_id[:8])
+                            except (PermanentQuotaRejection, QuotaTimeoutError) as exc:
+                                # The rate limiter raised before provider I/O.
+                                # Permanent admission failures never spin; quota
+                                # timeouts use only the existing bounded retry budget.
+                                permanent = isinstance(exc, PermanentQuotaRejection)
+                                if unit is not None and unit.chunk_type != TranslationTaskType.PRESERVE:
+                                    if not th_task_repo.mark_g3_proven_no_start(
+                                        task_id=task.task_id, worker_id=owner_id,
+                                        execution_id=task.execution_id,
+                                        cause=type(exc).__name__, permanent=permanent,
+                                    ):
+                                        logger.warning("PPPR_G3_QUOTA_NO_START_CAS_LOST: %s", chunk_id[:8])
+                                else:
+                                    try:
+                                        th_task_repo.release_task_untouched(task.task_id, owner_id)
+                                    except OptimisticLockError:
+                                        logger.warning("PPPR_G3_PRESERVE_RELEASE_CAS_LOST: %s", chunk_id[:8])
                             except CircuitTripError as exc:
                                 # A circuit trip may follow an external effect: never
                                 # classify it as a proven no-start or blindly requeue.
@@ -258,8 +292,18 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
                                     th_task_repo.release_task_untouched(task.task_id, owner_id)
                                 time.sleep(10.0)
                             except CircuitOpenError:
-                                # CircuitOpenError is a local pre-provider rejection.
-                                th_task_repo.release_task_untouched(task.task_id, owner_id)
+                                # The breaker rejected before provider I/O.
+                                if unit is not None and unit.chunk_type != TranslationTaskType.PRESERVE:
+                                    if not th_task_repo.mark_g3_proven_no_start(
+                                        task_id=task.task_id, worker_id=owner_id,
+                                        execution_id=task.execution_id, cause="CIRCUIT_OPEN",
+                                    ):
+                                        logger.warning("PPPR_G3_NO_START_CAS_LOST: %s", chunk_id[:8])
+                                else:
+                                    try:
+                                        th_task_repo.release_task_untouched(task.task_id, owner_id)
+                                    except OptimisticLockError:
+                                        logger.warning("PPPR_G3_PRESERVE_RELEASE_CAS_LOST: %s", chunk_id[:8])
                                 time.sleep(5.0)
                             except Exception as exc:
                                 logger.exception("G3_B4_3A_STAGE_FAILURE: %s", chunk_id[:8])
