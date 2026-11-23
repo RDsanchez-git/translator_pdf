@@ -1,11 +1,11 @@
 # FASE_PPPR_EXIT_REVIEW_EVIDENCE_LOG.md
 
 **Documento:** `docs/architecture/adr/pdf-pdf-product-readiness/reviews/FASE_PPPR_EXIT_REVIEW_EVIDENCE_LOG.md`  
-**Versión:** 0.1.15  
+**Versión:** 0.1.16  
 **Estado:** G1/G2 Exit Reviews REALIZADOS/PASS; G3/W3.1 PR90 IN_PROGRESS/CI_PENDING, W3.2 y Gate3 Exit Review NOT_RUN; 14 GAP P1 OPEN; `PRODUCT_READINESS=NOT_CERTIFIED`.  
 **Fecha:** 2026-11-21  
 **Última actualización:** 2026-11-22  
-**Derivado de:** `PHASE_PPPR_EXECUTION_PLAN.md` v0.5.13 APPROVED/LIVING; W3.1 PR90 implementación offline, CI pendiente, sin Exit Review G3.
+**Derivado de:** `PHASE_PPPR_EXECUTION_PLAN.md` v0.5.14 APPROVED/LIVING; Board PR90 H1/H2/H3, CI final pendiente, G3 Exit Review NOT_RUN.
 **Ámbito:** PPPR, ruta única `CLI → OCR → G3 → G5 → PDF`.  
 **Propósito:** Registro forense incremental, por Gate Exit Review, que conserva los fundamentos empíricos, los archivos examinados, los límites de evidencia y las reglas que justifican la clasificación de **cada hallazgo nuevo DF/GF** del Deferred Findings Register.
 
@@ -73,6 +73,7 @@
 
 | 0.1.14 | 2026-11-22 | Post-merge PR86: commit `7842bb3c69c2baf792cb9cb3acca088462445d54`, CI pre-merge #44978406678 y post-merge #44979093690 SUCCESS; G2 COMPLETED/PASS, 6/6 Tasks, 30/30 reglas y 4/4 Exit Criteria. Acta pre-merge inalterada; 14 GAP P1 OPEN, CV FAIL/DEFERRED, Product Readiness no certificado, G3 NOT_RUN. |
 | 0.1.15 | 2026-11-22 | Checkpoint W3.1 PR90: base `6ab1800…` tras merges PR88/PR89, CI técnica base #45090693364 SUCCESS; tests offline de autoridad, UNKNOWN y alarma introducidos pero aún NO verificados en CI del PR90. Sin G3 Exit Review ni cierre de reglas/Tasks. |
+| 0.1.16 | 2026-11-22 | Board sobre PR90 3c5e366… FAVORABLE CON CORRECCIONES/NO MERGE, observaciones H1 alta, H2 alta, H3 media; correcciones de cuota NO_START, alarma independiente, nueva prueba PRAGMA y matriz de 24 reglas F18-04/05 como candidatos con gaps. CI del SHA final y segunda revisión Board pendientes, sin reglas/Tasks G3 DONE. |
 
 ---
 
@@ -302,6 +303,10 @@ Referencia exacta `NADR/ADR/ENGINEERING_PRINCIPLES §/Rn` y explicación de su c
 **CI del HEAD documental posterior:** verificación adicional pendiente; no extrapolar el run `ac156be223d2db952e968352bc1ea38c3531186e` al commit de documentación.
 
 **Addendum forense post-merge (2026-11-22; NO sustituye el Exit Review original):** el acta de 2026-11-21 registra correctamente que el merge todavía estaba pendiente. Después, [PR #86](https://github.com/RDsanchez-git/translator_pdf/pull/86) fue MERGED 2026-11-22 03:06:19 UTC; la rama `pdf-pdf-product-readiness` quedó en `7842bb3c69c2baf792cb9cb3acca088462445d54`. El SHA pre-merge `807dd45358dd407d3e0a07682a4088c935b9a96f` superó [CI #44978406678](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44978406678); el merge superó [CI #44979093690](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44979093690) SUCCESS sobre `7842bb3c69c2baf792cb9cb3acca088462445d54` (3/3 jobs, Pyright 0/0/0, import-linter 4/4, 289 unitarios PASS, 95 integración focal PASS y suite `not e2e` 1542 PASS / 4 SKIPPED / 20 E2E excluidos; no sumar suites). Los tres documentos fueron los únicos archivos modificados después del SHA de código revisado `ac156be2…`. Con esa evidencia **G2 COMPLETED/PASS** (sin segunda revisión ni nuevas reglas). [CV #44979093692](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44979093692) terminó FAIL/DEFERRED por `BASELINE_INTEGRITY_FAILURE` y 15 PDFs canónicos ausentes en runner; no es evaluación científica positiva ni negativa. `PRODUCT_READINESS=NOT_CERTIFIED`; 14 GAP P1 OPEN; G3–G6 NOT_RUN; ningún permiso nuevo de egress, proveedor o gasto.
+
+**Board PR #90 — revisión 2026-11-22 sobre `3c5e366e6b948c20f37d82334787826b4c4fb456`: FAVORABLE CON CORRECCIONES / NO MERGE.** H1 HIGH: `PermanentQuotaRejection` / `QuotaTimeoutError` provenían del rate limiter antes de `_underlying.translate` y caían en UNKNOWN genérico; el PR añade catch específico en `runtime/engine.py` y CAS `mark_g3_proven_no_start(permanent=True/False)`, con pruebas de cero I/O y reintento acotado. H3 MEDIUM: sweeps previos ya no bloquean la alarma; `_run_sweep_cycle` aísla excepciones y deduplica por `(task_id,execution_id)` durante TTL en memoria, conservando SQLite como autoridad. H2 HIGH: matriz individual de 24 reglas propietarias de Task 3.1.3, sin presumir cobertura universal. **Estado: CODE_PROPOSED / CI DEL SHA FINAL PENDIENTE, BOARD_REVIEW_PENDING, ningún DONE nuevo**.
+
+**Fuente de evidencia por regla:** Execution Plan §7.H.1; los testigos listados allí se examinaron como candidatos y no se infiere `CI_VERIFIED` por la mera presencia de pruebas. El nuevo test `test_pppr_g3_effective_sqlite_wal_normal_busy_timeout` verifica PRAGMAs efectivos únicamente cuando la CI del HEAD que lo contiene pase. La tolerancia metodológica de G1 NO se aplica a G3. La CV científica continúa FAIL/DEFERRED y no está cubierta por estos tests offline.
 
 ## 4. TABLA CONSOLIDADA FINAL
 

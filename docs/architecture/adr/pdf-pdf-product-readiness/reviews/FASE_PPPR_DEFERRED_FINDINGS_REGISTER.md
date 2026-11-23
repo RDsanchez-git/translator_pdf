@@ -1,11 +1,11 @@
 # FASE_PPPR_DEFERRED_FINDINGS_REGISTER.md
 
 **Documento:** `docs/architecture/adr/pdf-pdf-product-readiness/reviews/FASE_PPPR_DEFERRED_FINDINGS_REGISTER.md`  
-**Versión:** 0.1.14  
+**Versión:** 0.1.15  
 **Estado:** G1/G2 COMPLETED/PASS; G3/W3.1 PR90 IN_PROGRESS/CI_PENDING, 3 Tasks aún sin DONE, W3.2 y G3 Exit Review NOT_RUN, 14 GAP P1 históricos OPEN, 0 nuevos DF/GF acreditados, `PRODUCT_READINESS=NOT_CERTIFIED`.  
 **Fecha de creación:** 2026-11-21  
 **Última actualización:** 2026-11-22  
-**Derivado de:** `PHASE_PPPR_EXECUTION_PLAN.md` v0.5.13 APPROVED/LIVING; Wave3.1 en PR90 con CI pendiente, Gate3 Exit Review NOT_RUN.
+**Derivado de:** `PHASE_PPPR_EXECUTION_PLAN.md` v0.5.14 APPROVED/LIVING, PR90 Board favorable con correcciones H1/H2/H3, CI del HEAD final pendiente; G3 Exit Review NOT_RUN.
 **Ámbito:** PPPR (iniciativa transversal PDF→PDF; no fase histórica numerada).  
 **Propósito:** Registro único y auditable de hallazgos `DF`/`GF` **que surjan durante la ejecución y los Exit Reviews** del Execution Plan: identificación, clasificación, decisión, resolución, batch y evidencia de implementación.
 
@@ -54,6 +54,7 @@
 
 | 0.1.13 | 2026-11-22 | Reconciliación post-merge de PR86 `7842bb3c69c2baf792cb9cb3acca088462445d54`, CI #44978406678 y #44979093690 SUCCESS; G2 COMPLETED/PASS, 6/6 Tasks y 30/30 reglas. Sin segundo Exit Review, nuevos DF/GF, cierre forense de 14 GAP P1 ni certificación científica; G3 NOT_RUN. |
 | 0.1.14 | 2026-11-22 | W3.1 PR90 autorizada e implementándose offline: autoridad pos-semáforo, no-inicio CAS, UNKNOWN recuperable y alarma configurable. CI y dictamen Board pendientes; 3 Tasks IN_PROGRESS, 0 DONE nuevas; ningún DF/GF nuevo ni Gate3 Exit Review. 14 GAP P1 históricos OPEN. |
+| 0.1.15 | 2026-11-22 | Board PR90 FAVORABLE CON CORRECCIONES / NO MERGE. H1 HIGH (no-inicio cuota mal clasificado) y H3 MEDIUM (alarma UNKNOWN dependiente de sweeps) mitigados en código y falsadores propuestos CI_PENDING; H2 HIGH exige trazabilidad 24 normas F18-04/05, tabla en Execution Plan §7.H.1 con evidencia parcial/gaps declarados. No se abren DF/GF formales diferidos por observaciones in-scope aún no resueltas; 14 GAP P1 históricos OPEN. |
 
 ---
 
@@ -208,6 +209,10 @@ Cada DF/GF exigirá: texto original, fecha/origen Gate/Wave/Task, rutas/SHAs de 
 **Dictamen/autoridad:** owner autoriza expresamente merge del PR #86 **una vez actualizado este Gate2 Exit Review**. El Exit Review está REALIZADO y los cuatro criterios PASS; la ejecución y verificación del merge/HEAD destino se harán después del registro. La aprobación Board llegó por la conversación transmitida por el owner, **no es una review APPROVED de la API de GitHub**. `G2 COMPLETED` y DoR de G3 solo se habilitan luego de verificar integración. La CV científica sigue FAIL/DEFERRED por 15 PDFs privados ausentes; `PRODUCT_READINESS=NOT_CERTIFIED`; ni Docling ni egress/proveedor comercial/host/`main`/PR66 incluidos.
 
 **Addendum post-merge (2026-11-22; NO es nuevo Exit Review/DF/GF):** [PR #86](https://github.com/RDsanchez-git/translator_pdf/pull/86) MERGED luego de autorización y acta, `pdf-pdf-product-readiness` HEAD `7842bb3c69c2baf792cb9cb3acca088462445d54`. [CI #44978406678](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44978406678) y [CI #44979093690](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44979093690) SUCCESS. El estado previo «merge por verificar» se conserva cronológicamente, pero **G2 está ahora COMPLETED/PASS**. [CV #44979093692](https://github.com/RDsanchez-git/translator_pdf/actions/runs/44979093692) FAIL/DEFERRED por `BASELINE_INTEGRITY_FAILURE` (15 PDFs canónicos ausentes en runner); los 14 GAP P1 siguen OPEN, `PRODUCT_READINESS=NOT_CERTIFIED`. G3 NOT_RUN y sin autorización de inicio.
+
+**Board PR #90 — revisión 2026-11-22 sobre `3c5e366e6b948c20f37d82334787826b4c4fb456`: FAVORABLE CON CORRECCIONES / NO MERGE.** H1 HIGH: `PermanentQuotaRejection` / `QuotaTimeoutError` provenían del rate limiter antes de `_underlying.translate` y caían en UNKNOWN genérico; el PR añade catch específico en `runtime/engine.py` y CAS `mark_g3_proven_no_start(permanent=True/False)`, con pruebas de cero I/O y reintento acotado. H3 MEDIUM: sweeps previos ya no bloquean la alarma; `_run_sweep_cycle` aísla excepciones y deduplica por `(task_id,execution_id)` durante TTL en memoria, conservando SQLite como autoridad. H2 HIGH: matriz individual de 24 reglas propietarias de Task 3.1.3, sin presumir cobertura universal. **Estado: CODE_PROPOSED / CI DEL SHA FINAL PENDIENTE, BOARD_REVIEW_PENDING, ningún DONE nuevo**.
+
+**Tratamiento del Register:** H1–H3 son observaciones de revisión del PR90 con remediación en el mismo PR. No constituyen DF/GF diferidos ni están cerradas; si resultara un defecto irresoluble dentro de la Wave se evaluará entonces la apertura formal siguiendo §1. Los 14 GAP P1 históricos no cambian.
 
 ## 3. TABLA CONSOLIDADA FINAL
 
