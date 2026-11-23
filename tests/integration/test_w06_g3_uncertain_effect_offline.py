@@ -463,3 +463,28 @@ def test_pppr_g3_reconciler_emits_alarm_without_requeuing(subject, monkeypatch, 
 def test_pppr_g3_invalid_unknown_escalation_ttl_rejected(subject, bad_ttl):
     with pytest.raises(ValueError, match="PPPR_G3_UNKNOWN_ESCALATION_INVALID_TTL"):
         subject.repo.list_due_g3_unknown(bad_ttl)
+
+
+def test_pppr_g3_legacy_queue_plan_without_receipts_bootstraps_before_provider(subject):
+    """G3 legacy queues must create receipt schema before authority SELECT.
+
+    The old database has a valid persisted plan, but no receipt table until
+    the first staging operation. No false UNKNOWN, no skip of authority checks.
+    """
+    subject.queue.execute("DROP TABLE chunk_result_receipts")
+    subject.queue.commit()
+    unit = subject.plan.units[0]
+    lease = subject.repo.pick_task("w31_legacy", subject.plan.document_id,
+                                   subject.plan.ast_hash)
+    assert lease is not None
+    processor = _RecordingChunkProcessor(_response(subject.plan, unit))
+    assert stage_claimed_unit(subject.repo, subject.plan, subject.ast, unit,
+                              lease, "w31_legacy", processor, Semaphore(1))
+    assert len(processor.calls) == 1
+    assert subject.queue.execute(
+        "SELECT task_state FROM chunk_tasks WHERE task_id=?", (lease.task_id,)
+    ).fetchone() == ("RESULT_STAGED",)
+    assert subject.queue.execute(
+        "SELECT execution_id FROM chunk_result_receipts WHERE task_id=?",
+        (lease.task_id,)
+    ).fetchone() == (lease.execution_id,)

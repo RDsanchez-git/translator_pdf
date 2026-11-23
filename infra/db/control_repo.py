@@ -492,6 +492,14 @@ class ControlPlaneRepository(ControlPlanePort):
         now = time.time()
         if lease.lease_expires_at <= now:
             raise G3ExternalEffectNotStartedError("G3_B4_3A_EXPIRED_LEASE")
+        # Legacy queue.db may contain a verified G3 plan but lack the
+        # receipts table until its first staging operation. Prepare the
+        # idempotent schema before consulting it, never after paid I/O.
+        if self.conn.execute(
+            "SELECT 1 FROM sqlite_master "
+            "WHERE type='table' AND name='chunk_result_receipts'"
+        ).fetchone() is None:
+            self.conn.execute(_G3_RESULT_RECEIPTS_DDL)
         row = self.conn.execute(
             "SELECT 1 FROM chunk_tasks AS t "
             "WHERE t.task_id=? AND t.document_id=? AND t.ast_hash=? "
