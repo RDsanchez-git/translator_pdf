@@ -578,7 +578,8 @@ class ControlPlaneRepository(ControlPlanePort):
                     if (audit.get("code") == "G3_W06_EXTERNAL_UNKNOWN"
                             and audit.get("execution_id") == execution_id
                             and isinstance(execution_id, str) and execution_id
-                            and type(observed) in (int, float)
+                            and isinstance(observed, (int, float))
+                            and not isinstance(observed, bool)
                             and 0 < observed <= at
                             and isinstance(raw_cause, str) and raw_cause):
                         first, cause, valid = float(observed), raw_cause, True
