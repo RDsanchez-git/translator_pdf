@@ -456,11 +456,83 @@ def test_pppr_g3_reconciler_emits_alarm_without_requeuing(subject, monkeypatch, 
     with caplog.at_level("ERROR"):
         recon._escalate_g3_unknown()
     assert "PPPR_G3_UNKNOWN_OPERATOR_ESCALATION" in caplog.text
+    # F18-05 R1/R2/R13: derive audit identity from durable control-plane rows
+    # and keep attempt identity distinct from stable logical identifiers.
+    matching = [r for r in caplog.records
+                if r.getMessage() == "PPPR_G3_UNKNOWN_OPERATOR_ESCALATION"]
+    assert len(matching) == 1
+    entry = matching[0].extra_data
+    assert entry["document_id"] == subject.plan.document_id
+    assert entry["ast_hash"] == subject.plan.ast_hash
+    assert entry["chunk_id"] == subject.plan.units[0].chunk_id
+    assert entry["execution_id"] == before[1]
+    assert entry["audit_valid"] is True
+    assert entry["first_detected_at"] == audit["first_detected_at"]
+    assert entry["disposition"] == "MANUAL_REVIEW_ONLY_NO_AUTO_RETRY"
     assert subject.queue.execute(
         "SELECT task_state,execution_id,error_log FROM chunk_tasks "
         "WHERE worker_type='LLM'").fetchone() == before
     assert subject.repo.pick_task(
         "w31_retry", subject.plan.document_id, subject.plan.ast_hash) is None
+
+
+
+def test_pppr_g3_missing_unknown_audit_is_reported_not_zeroed(subject, monkeypatch, caplog):
+    """F18-05 R10/R15: no audit metadata is a visible anomaly, not zero.
+
+    In-memory alarm suppression may be lost on restart; the original durable
+    UNKNOWN identity must still be discoverable and alertable. No exceptional
+    retry decision is created or claimed by this test.
+    """
+    _run_post_send_loss(subject, monkeypatch)
+    prior = subject.queue.execute(
+        "SELECT task_id,document_id,ast_hash,node_id,execution_id,task_state "
+        "FROM chunk_tasks WHERE worker_type='LLM'"
+    ).fetchone()
+    assert prior is not None and prior[5] == "G3_EXTERNAL_UNKNOWN"
+    subject.queue.execute(
+        "UPDATE chunk_tasks SET error_log=NULL WHERE task_id=?", (prior[0],)
+    )
+    subject.queue.commit()
+    due = subject.repo.list_due_g3_unknown(3600)
+    assert len(due) == 1 and due[0].task_id == prior[0]
+    assert due[0].execution_id == prior[4]
+    assert due[0].first_detected_at is None and not due[0].audit_valid
+
+    def leader():
+        daemon = make_reconciler_with_test_doubles(
+            None, subject.repo, None, None, None
+        )
+        daemon.is_leader = True
+        daemon.unknown_escalation_sec = 3600
+        return daemon
+
+    first = leader()
+    with caplog.at_level("ERROR"):
+        first._escalate_g3_unknown()
+        first._escalate_g3_unknown()  # In-memory duplicate suppressed
+        leader()._escalate_g3_unknown()  # Restart: durable UNKNOWN resurfaces
+
+    alarms = [record for record in caplog.records
+              if record.getMessage() ==
+              "PPPR_G3_UNKNOWN_AUDIT_CORRUPT_REQUIRES_OPERATOR"]
+    assert len(alarms) == 2
+    for alarm in alarms:
+        fields = alarm.extra_data
+        assert fields["task_id"] == prior[0]
+        assert fields["document_id"] == prior[1]
+        assert fields["ast_hash"] == prior[2]
+        assert fields["chunk_id"] == prior[3]
+        assert fields["execution_id"] == prior[4]
+        assert fields["audit_valid"] is False
+        assert fields["first_detected_at"] is None
+    assert subject.queue.execute(
+        "SELECT task_id,document_id,ast_hash,node_id,execution_id,task_state "
+        "FROM chunk_tasks WHERE worker_type='LLM'"
+    ).fetchone() == prior
+    assert subject.repo.pick_task(
+        "w31_not_allowed", subject.plan.document_id, subject.plan.ast_hash
+    ) is None
 
 
 @pytest.mark.parametrize("bad_ttl", [0, -1, float("inf"), float("nan"), True])
