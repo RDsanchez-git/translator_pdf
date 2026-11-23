@@ -7,7 +7,8 @@ from core.compiler.rendering.models import RenderUnit, RenderingConfiguration
 from core.compiler.rendering.policies import DocumentStructurePolicy, RenderStrategy
 from core.compiler.rendering.implementations import (
     DynamicDocumentStructure, TextRenderStrategy, 
-    PassthroughRenderStrategy, AdaptiveFloatStrategy
+    PassthroughRenderStrategy, LiteralProtectedRenderStrategy,
+    UnclassifiedMixedRenderStrategy, AdaptiveFloatStrategy
 )
 
 logger = logging.getLogger(__name__)
@@ -45,6 +46,8 @@ class RenderContextFactory:
         structure = DynamicDocumentStructure(config)
         text_strategy = TextRenderStrategy()
         passthrough_strategy = PassthroughRenderStrategy()
+        literal_strategy = LiteralProtectedRenderStrategy()
+        unclassified_mixed_strategy = UnclassifiedMixedRenderStrategy()
         float_strategy = AdaptiveFloatStrategy(config)
 
         strategies_map = {
@@ -55,10 +58,10 @@ class RenderContextFactory:
             
             ContentNodeType.DISPLAY_EQUATION: passthrough_strategy,
             ContentNodeType.INLINE_EQUATION: passthrough_strategy,
-            ContentNodeType.TABLE_SIMPLE: passthrough_strategy,
-            ContentNodeType.TABLE_COMPLEX: passthrough_strategy,
-            ContentNodeType.CODE: passthrough_strategy,
-            ContentNodeType.COMPOSITE_BLOCK: passthrough_strategy,
+            ContentNodeType.TABLE_SIMPLE: literal_strategy,
+            ContentNodeType.TABLE_COMPLEX: literal_strategy,
+            ContentNodeType.CODE: literal_strategy,
+            ContentNodeType.COMPOSITE_BLOCK: unclassified_mixed_strategy,
             
             ContentNodeType.IMAGE: float_strategy
         }

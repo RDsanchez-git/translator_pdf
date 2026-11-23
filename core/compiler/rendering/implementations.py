@@ -79,6 +79,38 @@ class PassthroughRenderStrategy(RenderStrategy):
         return unit.content or ""
 
 
+class LiteralProtectedRenderStrategy(RenderStrategy):
+    """Render contractually literal CODE/TABLE without activating TeX commands.
+
+    Preserves spaces and logical line boundaries explicitly; never interprets
+    math-looking delimiters or macro-looking text in a literal-typed node.
+    """
+
+    @staticmethod
+    def _line(text: str) -> str:
+        # TeX normally collapses whitespace. Preserve each significant space
+        # and tab in a monospaced group without allowing input to define macros.
+        return (
+            LatexEscaper.escape(text)
+            .replace(" ", r"\ ")
+            .replace("\t", r"\hspace*{4em}")
+        )
+
+    def render(self, unit: RenderUnit) -> str:
+        if not unit.content:
+            return ""
+        lines = unit.content.split("\n")
+        encoded = r"\par\noindent ".join(self._line(line) for line in lines)
+        return "\n".join((r"\begingroup\ttfamily\raggedright", r"\noindent " + encoded, r"\par\endgroup"))
+
+
+class UnclassifiedMixedRenderStrategy(RenderStrategy):
+    """Fail closed: COMPOSITE_BLOCK has no per-region authority in RenderUnit."""
+
+    def render(self, unit: RenderUnit) -> str:
+        raise ValueError("PPPR_G4_UNCLASSIFIED_MIXED_RENDER_UNIT")
+
+
 class AdaptiveFloatStrategy(RenderStrategy):
     def __init__(self, config: RenderingConfiguration):
         self._config = config
