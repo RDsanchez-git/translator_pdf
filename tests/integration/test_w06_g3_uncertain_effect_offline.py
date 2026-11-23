@@ -1008,3 +1008,88 @@ def test_pppr_w32_engine_pre_effect_admission_failure_never_becomes_unknown(
     ).fetchone()[0] == 0
     assert provider.calls == 0
     assert result["final_state"] != "READY_FOR_ASSEMBLY"
+
+
+@pytest.mark.parametrize(
+    ("failure_mode", "expected_cause", "expected_retries"),
+    [
+        ("budget_reject", "G3_B4_3A_PROMPT_REJECTED: Presupuesto excedido tras máxima compresión.", 1),
+        ("measurement_raises", "PPPR_G3_PROMPT_BUILD_LOCAL_FAILURE", 3),
+    ],
+)
+def test_pppr_w32_prompt_builder_local_failure_is_proven_no_start(
+    subject, monkeypatch, failure_mode, expected_cause, expected_retries,
+):
+    """Real engine + real builder/measurement + disposable SQLite: no external I/O.
+
+    Budget rejection is deterministic, whereas a local estimator exception
+    consumes only the existing bounded retry budget. Neither is UNKNOWN.
+    """
+    from core.finops.measurement import InferenceMeasurementService
+    from core.validation.budget import PromptBudgetCalculator, StandardCompressionPolicy
+
+    class _ExplodingLogicalEstimator:
+        def estimate_tokens(self, text: str) -> int:
+            raise RuntimeError("H4_OFFLINE_INJECTED_MEASUREMENT_FAILURE")
+
+    class _NoProvider:
+        calls = 0
+
+        async def translate(self, envelope: PromptEnvelope) -> InferenceResult:
+            self.calls += 1
+            raise AssertionError("H4: external provider reached after local failure")
+
+    provider = _NoProvider()
+    builder = PromptBuilder(
+        model_name="offline-synthetic", prompt_version="h4",
+        measurement_service=InferenceMeasurementService(
+            _ExplodingLogicalEstimator() if failure_mode == "measurement_raises"
+            else _Estimator()
+        ),
+        budget_calculator=(
+            PromptBudgetCalculator(primary_window_limit=1, fallback_window_limit=1)
+            if failure_mode == "budget_reject"
+            else PromptBudgetCalculator()
+        ),
+        compression_policy=StandardCompressionPolicy(),
+    )
+    snapshots = DurableContextPlanRepository(subject.repo).load_verified(
+        subject.plan.document_id, subject.plan.ast_hash, subject.ast,
+    )[1]
+    bridge = SyncProviderBridge(
+        provider, builder, timeout_sec=5.0, context_snapshots=snapshots,
+    )
+    monkeypatch.setattr(
+        subject.engine, "_create_chunk_processor",
+        lambda contexts: (bridge, SimpleNamespace(close=lambda: None)),
+    )
+
+    result = subject.engine.run_pipeline(
+        subject.plan.document_id, subject.plan.ast_hash,
+    )
+    row = subject.queue.execute(
+        "SELECT task_state,retry_count,error_log FROM chunk_tasks "
+        "WHERE worker_type='LLM'",
+    ).fetchone()
+    assert row is not None and row[0] == "FAILED"
+    assert row[1] == expected_retries
+    audit = json.loads(row[2])
+    assert audit["code"] == "PPPR_G3_EFFECT_NOT_STARTED"
+    assert audit["cause"] == expected_cause
+    assert provider.calls == 0
+    assert subject.queue.execute(
+        "SELECT COUNT(*) FROM chunk_tasks WHERE task_state='G3_EXTERNAL_UNKNOWN'"
+    ).fetchone()[0] == 0
+    assert subject.queue.execute(
+        "SELECT COUNT(*) FROM chunk_result_receipts"
+    ).fetchone()[0] == 0
+    assert result["final_state"] != "READY_FOR_ASSEMBLY"
+
+    # This is durable evidence, not only a state in the open Python connection.
+    queue_path = subject.queue.execute("PRAGMA database_list").fetchone()[2]
+    with sqlite3.connect(queue_path) as reopened:
+        durable = reopened.execute(
+            "SELECT task_state,retry_count,error_log FROM chunk_tasks "
+            "WHERE worker_type='LLM'",
+        ).fetchone()
+        assert durable == row

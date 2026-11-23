@@ -251,9 +251,27 @@ class SyncProviderBridge:
                 for frame in snapshot.breadcrumbs
             ),
         )
-        built = self._builder.build(prompt_unit, resolved_context=context, target_lang_expansion=2.0)
+        # Prompt assembly and logical measurement are entirely local. They
+        # occur before scheduling the provider coroutine, so failures here
+        # are proven no-start, never an uncertain external effect.
+        try:
+            built = self._builder.build(
+                prompt_unit, resolved_context=context, target_lang_expansion=2.0,
+            )
+        except G3ExternalEffectNotStartedError:
+            raise
+        except Exception as exc:
+            # Measurement/assembly failures may be transient; the engine
+            # enforces its existing bounded retry budget using attempt CAS.
+            raise G3ExternalEffectNotStartedError(
+                "PPPR_G3_PROMPT_BUILD_LOCAL_FAILURE", permanent=False,
+            ) from exc
         if built.status != "success":
-            raise RuntimeError(f"G3_B4_3A_PROMPT_REJECTED: {built.message}")
+            # An explicit BuildFailure is a deterministic local rejection,
+            # unlike an exception from the measurement service.
+            raise G3ExternalEffectNotStartedError(
+                f"G3_B4_3A_PROMPT_REJECTED: {built.message}", permanent=True,
+            )
         # G3 has no accredited physical fallback endpoint. A logical
         # SWITCH_MODEL must never silently send to the primary model.
         if built.envelope.target_provider != "primary":
