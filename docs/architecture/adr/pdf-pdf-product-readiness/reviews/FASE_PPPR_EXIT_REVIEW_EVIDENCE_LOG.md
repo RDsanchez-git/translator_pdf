@@ -1,11 +1,11 @@
 # FASE_PPPR_EXIT_REVIEW_EVIDENCE_LOG.md
 
 **Documento:** `docs/architecture/adr/pdf-pdf-product-readiness/reviews/FASE_PPPR_EXIT_REVIEW_EVIDENCE_LOG.md`  
-**Versión:** 0.1.16  
+**Versión:** 0.1.17  
 **Estado:** G1/G2 Exit Reviews REALIZADOS/PASS; G3/W3.1 PR90 IN_PROGRESS/CI_PENDING, W3.2 y Gate3 Exit Review NOT_RUN; 14 GAP P1 OPEN; `PRODUCT_READINESS=NOT_CERTIFIED`.  
 **Fecha:** 2026-11-21  
 **Última actualización:** 2026-11-22  
-**Derivado de:** `PHASE_PPPR_EXECUTION_PLAN.md` v0.5.14 APPROVED/LIVING; Board PR90 H1/H2/H3, CI final pendiente, G3 Exit Review NOT_RUN.
+**Derivado de:** `PHASE_PPPR_EXECUTION_PLAN.md` v0.5.15 APPROVED/LIVING; H1/H3 CI #45100465237 SUCCESS, falsadores H2 adicionales CI pendientes, sin Gate3 Exit Review.
 **Ámbito:** PPPR, ruta única `CLI → OCR → G3 → G5 → PDF`.  
 **Propósito:** Registro forense incremental, por Gate Exit Review, que conserva los fundamentos empíricos, los archivos examinados, los límites de evidencia y las reglas que justifican la clasificación de **cada hallazgo nuevo DF/GF** del Deferred Findings Register.
 
@@ -74,6 +74,7 @@
 | 0.1.14 | 2026-11-22 | Post-merge PR86: commit `7842bb3c69c2baf792cb9cb3acca088462445d54`, CI pre-merge #44978406678 y post-merge #44979093690 SUCCESS; G2 COMPLETED/PASS, 6/6 Tasks, 30/30 reglas y 4/4 Exit Criteria. Acta pre-merge inalterada; 14 GAP P1 OPEN, CV FAIL/DEFERRED, Product Readiness no certificado, G3 NOT_RUN. |
 | 0.1.15 | 2026-11-22 | Checkpoint W3.1 PR90: base `6ab1800…` tras merges PR88/PR89, CI técnica base #45090693364 SUCCESS; tests offline de autoridad, UNKNOWN y alarma introducidos pero aún NO verificados en CI del PR90. Sin G3 Exit Review ni cierre de reglas/Tasks. |
 | 0.1.16 | 2026-11-22 | Board sobre PR90 3c5e366… FAVORABLE CON CORRECCIONES/NO MERGE, observaciones H1 alta, H2 alta, H3 media; correcciones de cuota NO_START, alarma independiente, nueva prueba PRAGMA y matriz de 24 reglas F18-04/05 como candidatos con gaps. CI del SHA final y segunda revisión Board pendientes, sin reglas/Tasks G3 DONE. |
+| 0.1.17 | 2026-11-22 | Evidencia ejecutada [CI #45100465237](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45100465237) SUCCESS sobre `4340538…`: Pyright 0/0/0, 4/4 import-linter, 289 unit PASS, suite técnica 1558 PASS/4 skipped/20 E2E excluidos (2 warnings pytest). H2 §7.H.1 mapea 24 normas sin acreditar todos sus falsadores; nuevos tests de reconstrucción derivada y auditoría UNKNOWN ausente en `0d528b1…` CI_PENDING. Ningún nuevo Exit Review/Task G3 DONE. |
 
 ---
 
@@ -307,6 +308,8 @@ Referencia exacta `NADR/ADR/ENGINEERING_PRINCIPLES §/Rn` y explicación de su c
 **Board PR #90 — revisión 2026-11-22 sobre `3c5e366e6b948c20f37d82334787826b4c4fb456`: FAVORABLE CON CORRECCIONES / NO MERGE.** H1 HIGH: `PermanentQuotaRejection` / `QuotaTimeoutError` provenían del rate limiter antes de `_underlying.translate` y caían en UNKNOWN genérico; el PR añade catch específico en `runtime/engine.py` y CAS `mark_g3_proven_no_start(permanent=True/False)`, con pruebas de cero I/O y reintento acotado. H3 MEDIUM: sweeps previos ya no bloquean la alarma; `_run_sweep_cycle` aísla excepciones y deduplica por `(task_id,execution_id)` durante TTL en memoria, conservando SQLite como autoridad. H2 HIGH: matriz individual de 24 reglas propietarias de Task 3.1.3, sin presumir cobertura universal. **Estado: CODE_PROPOSED / CI DEL SHA FINAL PENDIENTE, BOARD_REVIEW_PENDING, ningún DONE nuevo**.
 
 **Fuente de evidencia por regla:** Execution Plan §7.H.1; los testigos listados allí se examinaron como candidatos y no se infiere `CI_VERIFIED` por la mera presencia de pruebas. El nuevo test `test_pppr_g3_effective_sqlite_wal_normal_busy_timeout` verifica PRAGMAs efectivos únicamente cuando la CI del HEAD que lo contiene pase. La tolerancia metodológica de G1 NO se aplica a G3. La CV científica continúa FAIL/DEFERRED y no está cubierta por estos tests offline.
+
+**Checkpoint CI y límites adicionales H2 (2026-11-22; NO es Gate3 Exit Review):** [CI #45100465237](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45100465237) completó SUCCESS para código y documentos en `4340538aa78438c4c61b636d15c872dbaa4daee0`: 3/3 jobs; Pyright 0 errores/0 advertencias/0 informaciones; import-linter 4/4; unit 289 PASS y suite `not e2e` 1558 PASS /4 SKIPPED /20 E2E deselected /2 warnings. La suite focal de 95 integración PASS es un subconjunto y NO se suma. El SHA posterior `0d528b1…` agrega **dos falsadores nuevos offline**: reconstrucción del conjunto de proyecciones derivadas tras borrar proyecciones y marcador, usando receipts y plan inalterados, y reexposición de UNKNOWN aun cuando su audit metadata falta, con persistencia del estado tras reinicio del objeto daemon. No garantiza reparación automática de proyección corrupta, durabilidad ante pérdida eléctrica ni telemetría global completa; la **CI del SHA posterior queda pendiente**. No se atribuye PASS a reglas F18-05 condicionales de retry excepcional sin ese camino autorizado. Sin nuevos DF/GF inventados ni cierre Wave 3.1.
 
 ## 4. TABLA CONSOLIDADA FINAL
 
