@@ -16,7 +16,7 @@ from typing import cast
 import pytest
 
 from apps.llm_workers.sync_bridge import SyncProviderBridge
-from apps.llm_workers.rate_limiter import RateLimitedProvider, QuotaReservation, QuotaRejectionReason
+from apps.llm_workers.rate_limiter import RateLimitedProvider, QuotaManagerProtocol, QuotaReservation, QuotaRejectionReason
 from apps.llm_workers.prompt_builder import PromptBuilder, PromptEnvelope
 from core.prompting.inference_result import InferenceResult
 from tests.integration._reconciler_test_factory import make_reconciler_with_test_doubles
@@ -552,7 +552,7 @@ def test_pppr_g3_quota_wait_expiry_blocks_external_provider(subject):
     quota = _Quota()
     external = _FakeProvider()
     bridge = SyncProviderBridge(
-        RateLimitedProvider(external, cast(object, quota), min_jitter=0,
+        RateLimitedProvider(external, cast(QuotaManagerProtocol, quota), min_jitter=0,
                             max_jitter=0, max_wait_seconds=1),
         cast(PromptBuilder, _BudgetBuilder()),
         timeout_sec=5.0,
