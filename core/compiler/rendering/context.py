@@ -7,7 +7,7 @@ from core.compiler.rendering.models import RenderUnit, RenderingConfiguration
 from core.compiler.rendering.policies import DocumentStructurePolicy, RenderStrategy
 from core.compiler.rendering.implementations import (
     DynamicDocumentStructure, TextRenderStrategy, 
-    PassthroughRenderStrategy, LiteralProtectedRenderStrategy,
+    PassthroughRenderStrategy, HeadingRenderStrategy, LiteralProtectedRenderStrategy,
     UnclassifiedMixedRenderStrategy, AdaptiveFloatStrategy
 )
 
@@ -46,13 +46,14 @@ class RenderContextFactory:
         structure = DynamicDocumentStructure(config)
         text_strategy = TextRenderStrategy()
         passthrough_strategy = PassthroughRenderStrategy()
+        heading_strategy = HeadingRenderStrategy()
         literal_strategy = LiteralProtectedRenderStrategy()
         unclassified_mixed_strategy = UnclassifiedMixedRenderStrategy()
         float_strategy = AdaptiveFloatStrategy(config)
 
         strategies_map = {
             ContentNodeType.PARAGRAPH: text_strategy,
-            ContentNodeType.HEADING: text_strategy,
+            ContentNodeType.HEADING: heading_strategy,
             ContentNodeType.LIST: text_strategy,
             ContentNodeType.CAPTION: text_strategy,
             

@@ -3,6 +3,7 @@ from typing import List
 from core.compiler.rendering.policies import DocumentStructurePolicy, RenderStrategy
 from core.compiler.rendering.models import RenderUnit, RenderingConfiguration
 from core.compiler.rendering.image_assets import canonical_image_name
+from core.ast.enums import HeadingLevel
 from core.normalization.explicit_math import find_explicit_math_spans
 
 class LatexEscaper:
@@ -71,6 +72,28 @@ class TextRenderStrategy(RenderStrategy):
             position = end
         result.append(LatexEscaper.escape(text[position:]))
         return "".join(result)
+
+
+class HeadingRenderStrategy(RenderStrategy):
+    """R5-R7: render the actual selected text with the evidenced AST level.
+
+    Starred structural commands avoid inventing/duplicating numbering already
+    present in a source heading. G5 never translates source content.
+    """
+
+    _COMMANDS = {
+        HeadingLevel.H1: r"\section*",
+        HeadingLevel.H2: r"\subsection*",
+        HeadingLevel.H3: r"\subsubsection*",
+    }
+
+    def render(self, unit: RenderUnit) -> str:
+        command = self._COMMANDS.get(unit.heading_level)
+        if command is None:
+            raise ValueError("PPPR_G4_HEADING_LEVEL_UNVERIFIED")
+        if not unit.content.strip():
+            raise ValueError("PPPR_G4_HEADING_CONTENT_MISSING")
+        return f"{command}{{{TextRenderStrategy().render(unit)}}}"
 
 
 class PassthroughRenderStrategy(RenderStrategy):

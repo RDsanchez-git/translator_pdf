@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import Optional
-from core.ast.models import ContentNodeType
+from core.ast.enums import ContentNodeType, HeadingLevel
 
 @dataclass(frozen=True, slots=True)
 class RenderingConfiguration:
@@ -33,3 +33,4 @@ class RenderUnit:
     content: str
     geometry: Optional[RenderGeometry] = None
     asset: Optional[AssetReference] = None
+    heading_level: Optional[HeadingLevel] = None  # G4: source-evidenced H1/H2/H3, never inferred from depth

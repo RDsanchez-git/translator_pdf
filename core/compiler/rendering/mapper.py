@@ -1,5 +1,5 @@
 from typing import Protocol, List, Optional
-from core.ast.models import ASTNode
+from core.ast.models import ASTNode, HeadingPayload
 from core.ast.enums import ContentNodeType
 from core.compiler.rendering.models import RenderUnit, RenderGeometry, AssetReference
 
@@ -52,5 +52,11 @@ class DefaultRenderUnitMapper(RenderUnitMapper):
             node_type=primary_type,
             content=final_text,
             geometry=self._geom_extractor.extract(primary_node),
-            asset=self._asset_extractor.extract(primary_node)
+            asset=self._asset_extractor.extract(primary_node),
+            heading_level=(
+                primary_node.payload.heading_level
+                if primary_type == ContentNodeType.HEADING
+                and isinstance(primary_node.payload, HeadingPayload)
+                else None
+            ),
         )

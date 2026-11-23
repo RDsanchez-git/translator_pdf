@@ -174,32 +174,46 @@ class AssemblerWorkerDaemon:
                 os.unlink(staged_pdf)
 
 class RenderGeometryAdapter:
-    """Extrae RenderGeometry desde ASTNode.metadata.bboxes para el compiler."""
-    _FALLBACK_PAGE_WIDTH = 612.0
-    _FALLBACK_PAGE_HEIGHT = 792.0
+    """Only verified per-page PhysicalRegion dimensions can become G5 geometry.
+
+    Legacy parallel bboxes and fixed Letter page dimensions do not attest
+    physical coordinates; multi-region or partial geometry stays unverified.
+    """
 
     def extract(self, node) -> RenderGeometry | None:
-        metadata = getattr(node, "metadata", None)
-        if not metadata:
+        from math import isfinite
+
+        regions = node.metadata.physical_regions
+        if len(regions) != 1:
             return None
-        bboxes = getattr(metadata, "bboxes", None)
-        if not bboxes or len(bboxes) == 0:
+        region = regions[0]
+        bbox = region.bbox
+        if bbox is None:
             return None
-        primary_bbox = bboxes[0]
-        x0 = getattr(primary_bbox, "x0", None)
-        y0 = getattr(primary_bbox, "y0", None)
-        x1 = getattr(primary_bbox, "x1", None)
-        y1 = getattr(primary_bbox, "y1", None)
-        if x0 is None or y0 is None or x1 is None or y1 is None:
+        values = (bbox.x0, bbox.y0, bbox.x1, bbox.y1)
+        if not all(isfinite(v) for v in values):
             return None
-        pages = getattr(metadata, "pages", None)
-        page_number = pages[0] if pages else 0
+
+        if bbox.is_normalized:
+            if not (0 <= bbox.x0 < bbox.x1 <= 1 and 0 <= bbox.y0 < bbox.y1 <= 1):
+                return None
+            x0, y0, x1, y1 = values
+        else:
+            width, height = region.page_width, region.page_height
+            if (width is None or height is None
+                    or not isfinite(width) or not isfinite(height)
+                    or width <= 0 or height <= 0
+                    or not (0 <= bbox.x0 < bbox.x1 <= width)
+                    or not (0 <= bbox.y0 < bbox.y1 <= height)):
+                return None
+            x0, y0, x1, y1 = (
+                bbox.x0 / width, bbox.y0 / height,
+                bbox.x1 / width, bbox.y1 / height,
+            )
         return RenderGeometry(
-            relative_x=x0 / self._FALLBACK_PAGE_WIDTH,
-            relative_y=y0 / self._FALLBACK_PAGE_HEIGHT,
-            relative_width=(x1 - x0) / self._FALLBACK_PAGE_WIDTH,
-            relative_height=(y1 - y0) / self._FALLBACK_PAGE_HEIGHT,
-            page_number=page_number,
+            relative_x=x0, relative_y=y0,
+            relative_width=x1 - x0, relative_height=y1 - y0,
+            page_number=region.page_number,
         )
 
 

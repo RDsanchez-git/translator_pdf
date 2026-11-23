@@ -24,7 +24,7 @@ from core.document_profile.ports import ProfileStore
 from core.compiler.rendering.mapper import RenderUnitMapper
 from core.compiler.rendering.context import RenderContextFactory
 from core.compiler.rendering.models import RenderUnit, AssetReference
-from core.ast.enums import ContentNodeType
+from core.ast.enums import ContentNodeType, TranslationStrategy
 from apps.compiler.tex_builder import TexBuilder
 
 logger = logging.getLogger(__name__)
@@ -89,6 +89,12 @@ class CompilationService:
         render_units: List[RenderUnit] = []
 
         for node in context.ast_nodes:
+            if (node.node_type == ContentNodeType.HEADING
+                    and node.strategy == TranslationStrategy.TRANSLATE
+                    and node.node_id not in projection_map):
+                raise ASTConsistencyError(
+                    "PPPR_G4_HEADING_TRANSLATION_PROJECTION_REQUIRED"
+                )
             if node.node_id in projection_map:
                 text = projection_map[node.node_id].normalized_response
             else:
@@ -105,7 +111,12 @@ class CompilationService:
                     logger.critical("Base de datos de payloads inaccesible.", extra=log_ctx)
                     raise
 
-            render_units.append(self._mapper.map_to_unit([node], text))
+            rendered = self._mapper.map_to_unit([node], text)
+            # G2 can attest partial physical regions. Never silently substitute
+            # fabricated geometry when such provenance is present but invalid.
+            if node.metadata.physical_regions and rendered.geometry is None:
+                raise ASTConsistencyError("PPPR_G4_GEOMETRY_LOSS_ATTRIBUTABLE")
+            render_units.append(rendered)
 
         # Paso 4: Renderizado LaTeX
         render_context = RenderContextFactory.create(profile)
