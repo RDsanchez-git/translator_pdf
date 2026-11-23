@@ -9,6 +9,7 @@ from hashlib import sha256
 import json
 from pathlib import Path
 import sqlite3
+import time
 from threading import Semaphore
 from types import SimpleNamespace
 from typing import cast
@@ -17,6 +18,7 @@ import pytest
 
 from apps.llm_workers.sync_bridge import SyncProviderBridge
 from apps.llm_workers.rate_limiter import RateLimitedProvider, QuotaManagerProtocol, QuotaReservation, QuotaRejectionReason
+from core.execution.exceptions import PermanentQuotaRejection, QuotaTimeoutError
 from apps.llm_workers.prompt_builder import PromptBuilder, PromptEnvelope
 from core.prompting.inference_result import InferenceResult
 from tests.integration._reconciler_test_factory import make_reconciler_with_test_doubles
@@ -574,3 +576,98 @@ def test_pppr_g3_quota_wait_expiry_blocks_external_provider(subject):
         ).fetchone()[0] == 0
     finally:
         bridge.shutdown()
+
+
+@pytest.mark.parametrize(
+    ("quota_reason", "expected_state", "expected_retries"),
+    [
+        (QuotaRejectionReason.CONFIGURATION_ERROR, "FAILED", 1),
+        (QuotaRejectionReason.INSUFFICIENT_RPM, "FAILED", 3),
+    ],
+)
+def test_pppr_g3_quota_rejections_never_become_external_unknown(
+    subject, monkeypatch, quota_reason, expected_state, expected_retries,
+):
+    """Real engine, bridge and limiter; zero external calls on either quota path."""
+    unit = subject.plan.units[0]
+    external_calls: list[str] = []
+
+    class _NoProvider:
+        async def translate(self, envelope):
+            external_calls.append(envelope.chunk_id)
+            raise AssertionError("No provider dispatch permitted")
+
+    class _Quota:
+        async def reserve(self, estimated_tokens: int, estimated_requests: int = 1):
+            return QuotaReservation.create_rejected(quota_reason, 1e9, 0, 0)
+
+    class _Builder:
+        model_name = "offline"
+        prompt_version = "w31"
+
+        def build(self, unit, resolved_context, target_lang_expansion=1.2):
+            return SimpleNamespace(
+                status="success",
+                envelope=SimpleNamespace(chunk_id=unit.chunk_id, estimated_tokens=1, telemetry={}),
+            )
+
+    bridge = SyncProviderBridge(
+        RateLimitedProvider(_NoProvider(), cast(QuotaManagerProtocol, _Quota()),
+                            max_wait_seconds=0.01, min_jitter=0, max_jitter=0),
+        cast(PromptBuilder, _Builder()), timeout_sec=5.0,
+        context_snapshots=DurableContextPlanRepository(subject.repo).load_verified(
+            subject.plan.document_id, subject.plan.ast_hash, subject.ast,
+        )[1],
+    )
+    if quota_reason == QuotaRejectionReason.INSUFFICIENT_RPM:
+        # The available_at deadline is deliberately beyond the tiny budget.
+        assert bridge._provider.max_wait_seconds == 0.01
+    monkeypatch.setattr(
+        subject.engine, "_create_chunk_processor",
+        lambda contexts: (bridge, SimpleNamespace(close=lambda: None)),
+    )
+    result = subject.engine.run_pipeline(subject.plan.document_id, subject.plan.ast_hash)
+    row = subject.queue.execute(
+        "SELECT task_state,retry_count,error_log FROM chunk_tasks WHERE worker_type='LLM'"
+    ).fetchone()
+    assert external_calls == []
+    assert row[0] == expected_state
+    assert row[1] == expected_retries
+    assert json.loads(row[2])["code"] == "PPPR_G3_EFFECT_NOT_STARTED"
+    assert subject.queue.execute(
+        "SELECT COUNT(*) FROM chunk_tasks WHERE task_state='G3_EXTERNAL_UNKNOWN'"
+    ).fetchone()[0] == 0
+    assert result["final_state"] != "READY_FOR_ASSEMBLY"
+
+
+def test_pppr_g3_prior_sweep_failure_does_not_suppress_unknown_escalation(
+    subject, monkeypatch, caplog,
+):
+    _run_post_send_loss(subject, monkeypatch)
+    raw = subject.queue.execute(
+        "SELECT error_log FROM chunk_tasks WHERE task_state='G3_EXTERNAL_UNKNOWN'"
+    ).fetchone()[0]
+    audit = json.loads(raw)
+    audit["first_detected_at"] -= 100
+    subject.queue.execute(
+        "UPDATE chunk_tasks SET error_log=? WHERE task_state='G3_EXTERNAL_UNKNOWN'",
+        (json.dumps(audit),),
+    )
+    subject.queue.commit()
+    reconciler = make_reconciler_with_test_doubles(None, subject.repo, None, None, None)
+    reconciler.is_leader = True
+    reconciler.unknown_escalation_sec = 5
+
+    def fail_previous_sweep(_):
+        raise RuntimeError("offline injected sweep failure")
+
+    monkeypatch.setattr(reconciler, "_sweep_tasks", fail_previous_sweep)
+    monkeypatch.setattr(reconciler, "_sweep_fsm_stalls", lambda _: None)
+    with caplog.at_level("ERROR"):
+        reconciler._run_sweep_cycle(time.time() - 180)
+        reconciler._run_sweep_cycle(time.time() - 180)
+    assert "RECONCILER_tasks_SWEEP_FAILED" in caplog.text
+    assert caplog.text.count("PPPR_G3_UNKNOWN_OPERATOR_ESCALATION") == 1
+    assert subject.queue.execute(
+        "SELECT task_state,retry_count FROM chunk_tasks WHERE worker_type='LLM'"
+    ).fetchone() == ("G3_EXTERNAL_UNKNOWN", 0)

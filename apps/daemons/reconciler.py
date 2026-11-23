@@ -44,6 +44,9 @@ class ReconcilerDaemon:
         self.stop_event = threading.Event()
         self.is_leader = False
         self.current_epoch = 0
+        # Alert suppression is in-memory only; restarted leaders re-emit due
+        # durable UNKNOWN records, and no operational state is rewritten.
+        self._unknown_last_reported: dict[tuple[str, str], float] = {}
         # Operator alarm on durable uncertainty; no retry permission implied.
         value = os.getenv("G3_UNKNOWN_ESCALATION_SEC", "3600")
         try:
@@ -57,9 +60,19 @@ class ReconcilerDaemon:
         """Report persisted uncertainty without requeuing or rewriting it."""
         if not self.is_leader:
             return
-        for finding in self.task_repo.list_due_g3_unknown(self.unknown_escalation_sec):
+        due = self.task_repo.list_due_g3_unknown(self.unknown_escalation_sec)
+        active = {(f.task_id, f.execution_id) for f in due}
+        self._unknown_last_reported = {
+            key: seen for key, seen in self._unknown_last_reported.items()
+            if key in active
+        }
+        observed_at = time.monotonic()
+        for finding in due:
             if not self.is_leader:
                 return
+            key = (finding.task_id, finding.execution_id)
+            if observed_at - self._unknown_last_reported.get(key, float("-inf")) < self.unknown_escalation_sec:
+                continue
             logger.error(
                 "PPPR_G3_UNKNOWN_OPERATOR_ESCALATION" if finding.audit_valid
                 else "PPPR_G3_UNKNOWN_AUDIT_CORRUPT_REQUIRES_OPERATOR",
@@ -76,6 +89,22 @@ class ReconcilerDaemon:
                     "disposition": "MANUAL_REVIEW_ONLY_NO_AUTO_RETRY",
                 }},
             )
+            self._unknown_last_reported[key] = observed_at
+
+    def _run_sweep_cycle(self, now_safe: float) -> None:
+        """Independent failure boundaries: a broken sweep cannot hide UNKNOWN."""
+        for label, operation in (
+            ("tasks", self._sweep_tasks),
+            ("fsm", self._sweep_fsm_stalls),
+        ):
+            try:
+                operation(now_safe)
+            except Exception:
+                logger.exception("RECONCILER_%s_SWEEP_FAILED", label)
+        try:
+            self._escalate_g3_unknown()
+        except Exception:
+            logger.exception("RECONCILER_G3_UNKNOWN_ESCALATION_FAILED")
 
     def _sweep_fsm_stalls(self, now_safe: float):
         """SOTA: Reconciliación semántica del documento completo."""
@@ -171,13 +200,8 @@ class ReconcilerDaemon:
 
                 now_safe = time.time() - self.INERTIA_WINDOW_SEC
 
-                # BARRIDOS PAGINADOS
-                try:
-                    self._sweep_tasks(now_safe)
-                    self._sweep_fsm_stalls(now_safe) # Llamada al Vector 3
-                    self._escalate_g3_unknown()
-                except Exception as e:
-                    logger.exception(f"Error crítico durante barrido paginado: {e}")
+                # Independent sweeps; UNKNOWN alerting remains live if one fails.
+                self._run_sweep_cycle(now_safe)
                 
                 # SOTA: Jitter en el ciclo principal
                 if self.stop_event.wait(timeout=random.uniform(25.0, 35.0)):

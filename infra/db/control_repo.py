@@ -520,8 +520,9 @@ class ControlPlaneRepository(ControlPlanePort):
 
     def mark_g3_proven_no_start(
         self, *, task_id: str, worker_id: str, execution_id: str, cause: str,
+        permanent: bool = False,
     ) -> bool:
-        """Requeue only a *proven pre-effect* rejection, fenced by attempt.
+        """Set a proven local no-start disposition, fenced by attempt.
 
         An expired lease alone never proves no effect. The caller MUST invoke
         this solely for a failure before entering the external provider path.
@@ -534,7 +535,7 @@ class ControlPlaneRepository(ControlPlanePort):
             self.conn.execute(_G3_RESULT_RECEIPTS_DDL)
             result = self.conn.execute(
                 "UPDATE chunk_tasks SET "
-                "task_state=CASE WHEN retry_count+1 >= max_retries "
+                "task_state=CASE WHEN ?=1 OR retry_count+1 >= max_retries "
                 "THEN 'FAILED' ELSE 'RETRYABLE_ERROR' END, "
                 "retry_count=retry_count+1, lease_owner=NULL, "
                 "lease_expires_at=NULL, error_log=?, "
@@ -547,7 +548,7 @@ class ControlPlaneRepository(ControlPlanePort):
                 "AND p.ast_hash=chunk_tasks.ast_hash) "
                 "AND NOT EXISTS (SELECT 1 FROM chunk_result_receipts AS r "
                 "WHERE r.task_id=chunk_tasks.task_id)",
-                (_g3_no_start_audit(now, execution_id, cause),
+                (int(permanent), _g3_no_start_audit(now, execution_id, cause),
                  now, task_id, worker_id, execution_id),
             )
             return result.rowcount == 1

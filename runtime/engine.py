@@ -25,6 +25,7 @@ from core.utils.telemetry import (
 )
 from core.execution.exceptions import (
     CircuitTripError, CircuitOpenError, G3ExternalEffectNotStartedError,
+    PermanentQuotaRejection, QuotaTimeoutError,
 )
 from infra.db.connection import get_connection
 from core.ast.registry import ASTRegistry
@@ -255,6 +256,23 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
                                         execution_id=task.execution_id, cause=str(exc),
                                     ):
                                         logger.warning("PPPR_G3_NO_START_CAS_LOST: %s", chunk_id[:8])
+                                else:
+                                    try:
+                                        th_task_repo.release_task_untouched(task.task_id, owner_id)
+                                    except OptimisticLockError:
+                                        logger.warning("PPPR_G3_PRESERVE_RELEASE_CAS_LOST: %s", chunk_id[:8])
+                            except (PermanentQuotaRejection, QuotaTimeoutError) as exc:
+                                # The rate limiter raised before provider I/O.
+                                # Permanent admission failures never spin; quota
+                                # timeouts use only the existing bounded retry budget.
+                                permanent = isinstance(exc, PermanentQuotaRejection)
+                                if unit is not None and unit.chunk_type != TranslationTaskType.PRESERVE:
+                                    if not th_task_repo.mark_g3_proven_no_start(
+                                        task_id=task.task_id, worker_id=owner_id,
+                                        execution_id=task.execution_id,
+                                        cause=type(exc).__name__, permanent=permanent,
+                                    ):
+                                        logger.warning("PPPR_G3_QUOTA_NO_START_CAS_LOST: %s", chunk_id[:8])
                                 else:
                                     try:
                                         th_task_repo.release_task_untouched(task.task_id, owner_id)
