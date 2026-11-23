@@ -1,11 +1,11 @@
 # FASE_PPPR_DEFERRED_FINDINGS_REGISTER.md
 
 **Documento:** `docs/architecture/adr/pdf-pdf-product-readiness/reviews/FASE_PPPR_DEFERRED_FINDINGS_REGISTER.md`  
-**Versión:** 0.1.21  
-**Estado:** G1/G2 COMPLETED/PASS; W3.1 3/3 Tasks DONE técnico, 52 reglas históricas con disposición por sujeto en Execution Plan v0.5.20, PR90 OPEN/Draft pendiente CI final documental y merge autorizado por owner; W3.2 y G3 Exit Review NOT_RUN. 14 GAP P1 históricos OPEN; sin nuevos DF/GF diferidos acreditados, `PRODUCT_READINESS=NOT_CERTIFIED`.  
+**Versión:** 0.1.22  
+**Estado:** G1/G2 COMPLETED/PASS; W3.1 PR90 MERGED 3/3 DONE, técnica post-merge SUCCESS, CV SMOKE FAIL por 15 PDF privados faltantes. W3.2 3.2.1 IN_PROGRESS/CI_PENDING, 3.2.2/3.2.3 TODO, G3 Exit Review NOT_RUN; 14 GAP P1 OPEN y `PRODUCT_READINESS=NOT_CERTIFIED`.  
 **Fecha de creación:** 2026-11-21  
 **Última actualización:** 2026-11-22  
-**Derivado de:** `PHASE_PPPR_EXECUTION_PLAN.md` v0.5.20 APPROVED/LIVING; CI #45106195219 SUCCESS sobre c2490e03… y 52 decisiones individuales W3.1; CI documental final requerida antes del merge, sin G3 Exit Review.
+**Derivado de:** `PHASE_PPPR_EXECUTION_PLAN.md` v0.5.21 APPROVED/LIVING; PR90 MERGED, CI #45108175696 SUCCESS/CV #45108175690 FAIL; W3.2 Task3.2.1 CI_PENDING.
 **Ámbito:** PPPR (iniciativa transversal PDF→PDF; no fase histórica numerada).  
 **Propósito:** Registro único y auditable de hallazgos `DF`/`GF` **que surjan durante la ejecución y los Exit Reviews** del Execution Plan: identificación, clasificación, decisión, resolución, batch y evidencia de implementación.
 
@@ -61,6 +61,7 @@
 | 0.1.19 | 2026-11-23 | Board acepta PROHIBITED PATH local y CONDITION NOT TRIGGERED sin auto-DONE; H1/H3 RESUELTOS, H2 F18-05 R1/R2/R10/R13/R15 PARCIAL. [CI #45103595023](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45103595023) SUCCESS en `68dec1f…`. Auditoría focal de emisores JSON y reconciliador SQLite con dos nuevos tests de formato y alarma sin sink en `518e2a0…` CI_PENDING. Sin DF/GF diferidos nuevos; 14 GAP históricos OPEN, W3.1 NO DONE. |
 | 0.1.20 | 2026-11-23 | [CI #45105007281](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45105007281) SUCCESS sobre `a49cd95285ae874dddeaea26011f391e741fa3b1` (289 unit, 95 integración focal, 1563 `not e2e` PASS/4 skipped/20 excluidos). Board R1/R2/R13/R15 F18-05 acreditables en alcance; R10 PARCIAL por ausencia de detección de pérdida de entrega al sink, propuesta de delimitación pendiente. Auditoría individual de testigos F18-04 R1–R16 en plan §7.H.1, R8/R11 aún a ratificar. Sin cambios runtime, findings nuevos ni Task DONE. |
 | 0.1.21 | 2026-11-23 | Cierre técnico W3.1 3/3 Tasks DONE tras revisión de 52 reglas históricas 10+18+24 (ver Plan v0.5.20 §7.H/§7.H.1), [CI #45106195219](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45106195219) SUCCESS sobre `c2490e037d203c2fa291f7b3c046bb4fce5b80fb`. Board favorable a R8/R10/R11 con límites, H1/H3 resueltos y prohibición de retry UNKNOWN probada por APIs locales; condiciones de autorización excepcional no disparadas, R16 evidencia externa no presente, sin tests positivos inventados. CI final del nuevo HEAD documental pendiente; owner autoriza merge PR90 tras SUCCESS. G3 Exit Review NOT_RUN; 14 GAP P1 históricos siguen OPEN, 0 DF/GF diferidos nuevos. |
+| 0.1.22 | 2026-11-23 | W3.1 PR90 MERGED `67c12e70…`, [CI #45108175696](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45108175696) SUCCESS y [CV SMOKE #45108175690](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45108175690) FAIL corpus privado ausente. W3.2 offline iniciada: Task3.2.1 IN_PROGRESS con falsadores EN→ES/request físico, CI_PENDING; otras dos Tasks TODO. Sin nuevos DF/GF acreditados, 14 GAP históricos OPEN y Exit Review G3 NOT_RUN. |
 
 ---
 
@@ -243,6 +244,8 @@ Cada DF/GF exigirá: texto original, fecha/origen Gate/Wave/Task, rutas/SHAs de 
 **Tratamiento del Register:** las observaciones H1/H2/H3 del Board fueron remediadas y verificadas en el PR; las limitaciones aceptadas de alcance no se clasifican artificialmente como DF/GF nuevos ni cierran los 14 GAP P1 históricos. `CONDITION_NOT_TRIGGERED` tampoco crea un permiso ni una excepción. Los criterios del Gate3 completo se revisarán tras Wave 3.2; no se simula ahora Gate Exit Review.
 
 **Estado del Register:** las observaciones del Board sobre este PR son correcciones *in-scope*, no findings diferidos; ninguna aprobación o excepción fue creada y no se reduce el conjunto histórico de 14 GAP P1.
+
+**Wave 3.2 / checkpoint inicial (2026-11-23):** [PR #90](https://github.com/RDsanchez-git/translator_pdf/pull/90) MERGED en `pdf-pdf-product-readiness@67c12e7020d76ab0c471fbf1179687c4d89f1783`; [CI #45108175696](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45108175696) SUCCESS técnica 3/3 sobre ese merge, [CV SMOKE #45108175690](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45108175690) FAIL `BASELINE_INTEGRITY_FAILURE` porque faltan 15 PDF privados en Actions. No atribuir CV PASS, no trasladar excepción G1 a G3. El owner autorizó iniciar **W3.2 offline**, nueva rama `pppr/g3-wave-3-2-contract-admission`, solo tres Tasks existentes y un PR de Wave. `3.2.1` IN_PROGRESS: en `apps/llm_workers/sync_bridge.py` se bloquea idioma ausente o distinto EN→ES antes de I/O, se explicita `language_intent` en el protocolo serializado y `tests/integration/test_g3_b4_3a_engine_staging.py` agrega falsadores de petición efectiva con renderer/dialecto reales, y proveedor espía con cero llamadas para idiomas inválidos. **CI del código nuevo pendiente; R1/R2 NADR-FPPPR-03 siguen PENDING**. `3.2.2` y `3.2.3` permanecen TODO: la auditoría histórica identifica el modelo `llama3-70b-8192` retirado, fallback lógico `SWITCH_MODEL` sin selección física coherente y faltan permisos de egress/presupuesto; no se declaran admitidos ni se ejecutan llamadas reales. 13/30 Tasks DONE, 17 pendientes; G3 IN_PROGRESS, G3 Exit Review NOT_RUN, 14 GAP P1 históricos OPEN y `PRODUCT_READINESS=NOT_CERTIFIED`. Sin cambios a FROZEN, baseline, corpus, egress, claves, gastos ni `main`.
 
 ## 3. TABLA CONSOLIDADA FINAL
 
