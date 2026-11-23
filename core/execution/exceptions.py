@@ -23,10 +23,15 @@ class LeaseExpiredError(PipelineIntegrityError):
     pass
 
 class G3ExternalEffectNotStartedError(ValueError):
-    """Proof of a *local* pre-effect rejection; no provider was invoked.
+    """Proof of local pre-effect rejection, never a post-I/O outcome.
 
-    This error cannot be used to infer non-execution after provider I/O.
+    Permanent admission failures fail once; transient local failures retain
+    the bounded retry budget of the existing control plane.
     """
+
+    def __init__(self, message: str, *, permanent: bool = False) -> None:
+        super().__init__(message)
+        self.permanent = permanent
 
 
 class IllegalStateTransitionError(PipelineIntegrityError):

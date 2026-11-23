@@ -7,10 +7,13 @@ from hashlib import sha256
 import re
 from typing import Any, Mapping
 from core.context.snapshot_contract import ContextSnapshotV1
+from core.execution.exceptions import G3ExternalEffectNotStartedError
+from core.execution.effect_guard import g3_admission_audit_writer
 from core.prompting.inference_identity import InferenceReuseIdentityV1, PPPRGenerationIdentityV1
 from core.ast.models import ASTNode, TranslationTaskType, TranslationUnit
 from apps.llm_workers.routing import LLMProvider
 from apps.llm_workers.prompt_builder import PromptBuilder
+from apps.llm_workers.g3_admission import G3PreEffectAdmission
 from core.execution.constants import CURRENT_PROJECTION_VERSION  # SOTA: Fuente única de verdad
 from core.context.context_resolver import ResolvedContext
 from core.chunking.manifest_contract import ChunkPlan
@@ -29,6 +32,7 @@ class SyncProviderBridge:
         effective_config_sha256: str | None = None,
         source_language: str = "en", target_language: str = "es",
         provider_id: str = "groq",
+        pre_effect_admission: G3PreEffectAdmission | None = None,
     ):
         self._provider = async_provider
         self._builder = prompt_builder
@@ -39,6 +43,7 @@ class SyncProviderBridge:
         self._source_language = source_language
         self._target_language = target_language
         self._provider_id = provider_id
+        self._pre_effect_admission = pre_effect_admission
         # Legacy/offline adapters have no verified config. They must never
         # claim product generation identity or authorize economic reuse.
         self.generation_identity_enabled = effective_config_sha256 is not None
@@ -151,6 +156,12 @@ class SyncProviderBridge:
         """
         if unit.chunk_type not in (TranslationTaskType.TRANSLATE, TranslationTaskType.PARTIAL):
             raise ValueError("G3_B4_3A_PRESERVE_PROVIDER_FORBIDDEN")
+        # The initial product contract is EN→ES, not an implicit provider
+        # default. A contradictory generation configuration cannot dispatch.
+        if (self._source_language, self._target_language) != ("en", "es"):
+            raise G3ExternalEffectNotStartedError(
+                "PPPR_G3_LANGUAGE_INTENT_REQUIRED_EN_ES", permanent=True,
+            )
         if sum(item.chunk_id == unit.chunk_id for item in plan.units) != 1 or unit not in plan.units:
             raise ValueError("G3_B4_3A_UNIT_NOT_IN_MANIFEST")
 
@@ -210,6 +221,10 @@ class SyncProviderBridge:
                 "spelling; never translate, duplicate, drop, or move it to another member. "
                 "Return no prose, code fences or other fields."
             ),
+            "language_intent": {
+                "source_language": self._source_language,
+                "target_language": self._target_language,
+            },
             "response_binding": {
                 "schema_version": 1,
                 "document_id": plan.document_id,
@@ -236,16 +251,68 @@ class SyncProviderBridge:
                 for frame in snapshot.breadcrumbs
             ),
         )
-        built = self._builder.build(prompt_unit, resolved_context=context, target_lang_expansion=2.0)
+        # Prompt assembly and logical measurement are entirely local. They
+        # occur before scheduling the provider coroutine, so failures here
+        # are proven no-start, never an uncertain external effect.
+        try:
+            built = self._builder.build(
+                prompt_unit, resolved_context=context, target_lang_expansion=2.0,
+            )
+        except G3ExternalEffectNotStartedError:
+            raise
+        except Exception as exc:
+            # Measurement/assembly failures may be transient; the engine
+            # enforces its existing bounded retry budget using attempt CAS.
+            raise G3ExternalEffectNotStartedError(
+                "PPPR_G3_PROMPT_BUILD_LOCAL_FAILURE", permanent=False,
+            ) from exc
         if built.status != "success":
-            raise RuntimeError(f"G3_B4_3A_PROMPT_REJECTED: {built.message}")
+            # An explicit BuildFailure is a deterministic local rejection,
+            # unlike an exception from the measurement service.
+            raise G3ExternalEffectNotStartedError(
+                f"G3_B4_3A_PROMPT_REJECTED: {built.message}", permanent=True,
+            )
+        # G3 has no accredited physical fallback endpoint. A logical
+        # SWITCH_MODEL must never silently send to the primary model.
+        if built.envelope.target_provider != "primary":
+            raise G3ExternalEffectNotStartedError(
+                "PPPR_G3_FALLBACK_BACKEND_NOT_ACCREDITED", permanent=True,
+            )
+        # Groq decommissioned this product-configured model on 2025-08-30.
+        # The product path must fail closed until a replacement's capability,
+        # request and pre-effect permissions are attested. Offline legacy
+        # adapters with no product config cannot attest live availability.
+        if (self._effective_config_sha256 is not None
+                and built.envelope.model_name == "llama3-70b-8192"):
+            raise G3ExternalEffectNotStartedError(
+                "PPPR_G3_PRIMARY_MODEL_DEPRECATED", permanent=True,
+            )
         generation_sha256: str | None = None
+        admission_request_sha256: str | None = None
         if self._effective_config_sha256 is not None:
+            if self._pre_effect_admission is None:
+                raise G3ExternalEffectNotStartedError(
+                    "PPPR_G3_ADMISSION_EVIDENCE_MISSING", permanent=True,
+                )
+            try:
+                decision = self._pre_effect_admission.verify(
+                    provider_id=self._provider_id,
+                    root_config_sha256=self._effective_config_sha256,
+                    envelope=built.envelope,
+                )
+            except G3ExternalEffectNotStartedError:
+                raise
+            except Exception as exc:
+                raise G3ExternalEffectNotStartedError(
+                    "PPPR_G3_ADMISSION_LOCAL_FAILURE"
+                ) from exc
+            admission_request_sha256 = decision.request_sha256
             # Bound the actual budget-dependent route and compression decision.
             # The composition-root config alone is not an effective generation key.
             effective_config_sha256 = sha256(json.dumps(
                 {
                     "root_config_sha256": self._effective_config_sha256,
+                    "admission_request_sha256": admission_request_sha256,
                     "effective_target_provider": built.envelope.target_provider,
                     "compression_level": built.envelope.telemetry.get("compression_level"),
                 },
@@ -266,6 +333,19 @@ class SyncProviderBridge:
                 output_contract_version="G3_CHUNK_RESPONSE_V1",
             )
             generation_sha256 = identity.generation_sha256
+            writer = g3_admission_audit_writer.get()
+            if writer is None:
+                raise G3ExternalEffectNotStartedError(
+                    "PPPR_G3_ADMISSION_AUDIT_WRITER_REQUIRED", permanent=True,
+                )
+            try:
+                writer(generation_sha256, decision.audit_json)
+            except G3ExternalEffectNotStartedError:
+                raise
+            except Exception as exc:
+                raise G3ExternalEffectNotStartedError(
+                    "PPPR_G3_ADMISSION_AUDIT_WRITE_FAILED"
+                ) from exc
         elif attested:
             raise ValueError("PPPR_G2_EFFECTIVE_CONFIG_NOT_ACCREDITED")
         future = asyncio.run_coroutine_threadsafe(self._provider.translate(built.envelope), self._loop)

@@ -96,6 +96,8 @@ def test_cli_foreground_context_receipts_projections_and_pdf_same_generation(
     from core.finops.measurement import InferenceMeasurementService
     from core.validation.estimators import ExactBPEEstimator
     from core.validation.budget import PromptBudgetCalculator, StandardCompressionPolicy
+    from apps.llm_workers.g3_admission import G3PreEffectAdmission
+    from decimal import Decimal
 
     monkeypatch.chdir(tmp_path)
     monkeypatch.setattr(connection, "BASE_DIR", tmp_path)
@@ -165,10 +167,29 @@ def test_cli_foreground_context_receipts_projections_and_pdf_same_generation(
             ),
             compression_policy=StandardCompressionPolicy(),
         )
+        # Synthetic, offline-only approvals for the fake provider; never use
+        # these references as real destination or monetary authorization.
+        offline_policy = G3PreEffectAdmission(
+            provider_id="offline-test", model_name="offline-fake",
+            root_config_sha256=engine._product_effective_config_sha256(),
+            input_limit=32768, output_limit=4096, context_window=65536,
+            input_estimator=estimator, estimator_evidence_ref="FAKE_OFFLINE_ESTIMATOR",
+            egress_authorization_ref="FAKE_OFFLINE_EGRESS",
+            data_scope_ref="FAKE_OFFLINE_DATA_SCOPE",
+            purpose_ref="FAKE_OFFLINE_EN_ES",
+            retention_ref="FAKE_OFFLINE_RETENTION",
+            training_use_ref="FAKE_OFFLINE_TRAINING",
+            budget_authorization_ref="FAKE_OFFLINE_BUDGET",
+            price_evidence_ref="FAKE_OFFLINE_PRICING",
+            input_price_per_token=Decimal("0"),
+            output_price_per_token=Decimal("0"),
+            authorized_max_cost=Decimal("0"),
+        )
         bridge = SyncProviderBridge(
             provider, builder, context_snapshots=context_snapshots,
             effective_config_sha256=engine._product_effective_config_sha256(),
             source_language="en", target_language="es", provider_id="offline-test",
+            pre_effect_admission=offline_policy,
         )
         processors.append(bridge)
         return bridge, SimpleNamespace(close=lambda: None)

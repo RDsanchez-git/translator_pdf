@@ -16,7 +16,9 @@ from core.ast.models import ASTNode, TranslationTaskType, TranslationUnit
 from core.chunking.manifest_contract import ChunkPlan
 from core.execution.ports import TaskLease
 from core.execution.exceptions import G3ExternalEffectNotStartedError
-from core.execution.effect_guard import g3_pre_effect_guard
+from core.execution.effect_guard import (
+    g3_pre_effect_guard, g3_admission_audit_writer,
+)
 from infra.db.control_repo import ControlPlaneRepository
 
 
@@ -79,7 +81,16 @@ def stage_claimed_unit(
                         document_id=plan.document_id, ast_hash=plan.ast_hash,
                     )
 
+            def record_admission(generation_sha256: str, audit_json: str) -> None:
+                repo.record_g3_admission_decision(
+                    task_id=lease.task_id, worker_id=worker_id,
+                    execution_id=lease.execution_id,
+                    generation_sha256=generation_sha256,
+                    audit_json=audit_json,
+                )
+
             token = g3_pre_effect_guard.set(check_before_external_io)
+            audit_token = g3_admission_audit_writer.set(record_admission)
             try:
                 if getattr(processor, "generation_identity_enabled", False):
                     attested_executor = getattr(processor, "execute_chunk_with_generation", None)
@@ -92,6 +103,7 @@ def stage_claimed_unit(
                     # generation; no reuse authority is inferred from this path.
                     raw_response = processor.execute_chunk(plan, unit)
             finally:
+                g3_admission_audit_writer.reset(audit_token)
                 g3_pre_effect_guard.reset(token)
         if not isinstance(cast(object, raw_response), str):
             raise ValueError("G3_B4_3A_PROVIDER_RESPONSE_NOT_TEXT")

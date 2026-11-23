@@ -77,6 +77,16 @@ _G3_RESULT_RECEIPTS_DDL = """CREATE TABLE IF NOT EXISTS chunk_result_receipts (
            (raw_response IS NOT NULL AND response_sha256 IS NOT NULL))
 )"""
 
+_G3_ADMISSION_DECISIONS_DDL = """CREATE TABLE IF NOT EXISTS g3_admission_decisions (
+    task_id TEXT NOT NULL REFERENCES chunk_tasks(task_id),
+    execution_id TEXT NOT NULL,
+    generation_sha256 TEXT NOT NULL CHECK(length(generation_sha256)=64),
+    decision_json TEXT NOT NULL,
+    decision_sha256 TEXT NOT NULL CHECK(length(decision_sha256)=64),
+    created_at REAL NOT NULL,
+    PRIMARY KEY(task_id, execution_id)
+)"""
+
 _G3_CHUNK_PLAN_DDL = """CREATE TABLE IF NOT EXISTS chunk_plans (
     document_id TEXT NOT NULL,
     ast_hash TEXT NOT NULL,
@@ -89,6 +99,65 @@ _G3_CHUNK_PLAN_DDL = """CREATE TABLE IF NOT EXISTS chunk_plans (
 class ControlPlaneRepository(ControlPlanePort):
     def __init__(self, conn: sqlite3.Connection):
         self.conn = conn
+
+    def record_g3_admission_decision(
+        self, *, task_id: str, worker_id: str, execution_id: str,
+        generation_sha256: str, audit_json: str,
+    ) -> None:
+        """Fenced immutable per-attempt audit, committed before provider I/O."""
+        if (not all((task_id, worker_id, execution_id))
+                or not isinstance(generation_sha256, str)
+                or len(generation_sha256) != 64
+                or any(c not in "0123456789abcdef" for c in generation_sha256)):
+            raise G3ExternalEffectNotStartedError(
+                "PPPR_G3_ADMISSION_AUDIT_IDENTITY_INVALID", permanent=True,
+            )
+        try:
+            parsed = json.loads(audit_json)
+            if (not isinstance(parsed, dict)
+                    or parsed.get("contract") != "PPPR_G3_ADMISSION_V1"
+                    or not isinstance(parsed.get("request_sha256"), str)
+                    or len(parsed["request_sha256"]) != 64
+                    or json.dumps(parsed, sort_keys=True, ensure_ascii=False,
+                                  separators=(",", ":")) != audit_json):
+                raise ValueError("audit format")
+        except (TypeError, ValueError) as exc:
+            raise G3ExternalEffectNotStartedError(
+                "PPPR_G3_ADMISSION_AUDIT_INVALID", permanent=True,
+            ) from exc
+        digest = sha256((generation_sha256 + audit_json).encode("utf-8")).hexdigest()
+        now = time.time()
+        with self._chunk_plan_write_scope():
+            self.conn.execute(_G3_ADMISSION_DECISIONS_DDL)
+            owner = self.conn.execute(
+                "SELECT 1 FROM chunk_tasks AS t WHERE t.task_id=? "
+                "AND t.worker_type='LLM' AND t.task_state='PROCESSING' "
+                "AND t.lease_owner=? AND t.execution_id=? AND t.lease_expires_at>? "
+                "AND EXISTS (SELECT 1 FROM chunk_plans AS p "
+                "WHERE p.document_id=t.document_id AND p.ast_hash=t.ast_hash)",
+                (task_id, worker_id, execution_id, now),
+            ).fetchone()
+            if owner is None:
+                raise G3ExternalEffectNotStartedError(
+                    "PPPR_G3_ADMISSION_AUDIT_LEASE_NOT_CURRENT"
+                )
+            existing = self.conn.execute(
+                "SELECT generation_sha256,decision_json,decision_sha256 "
+                "FROM g3_admission_decisions WHERE task_id=? AND execution_id=?",
+                (task_id, execution_id),
+            ).fetchone()
+            if existing is not None:
+                if existing != (generation_sha256, audit_json, digest):
+                    raise G3ExternalEffectNotStartedError(
+                        "PPPR_G3_ADMISSION_AUDIT_CONFLICT", permanent=True,
+                    )
+                return
+            self.conn.execute(
+                "INSERT INTO g3_admission_decisions "
+                "(task_id,execution_id,generation_sha256,decision_json,"
+                "decision_sha256,created_at) VALUES (?,?,?,?,?,?)",
+                (task_id, execution_id, generation_sha256, audit_json, digest, now),
+            )
 
     def enqueue_tasks(self, document_id: str, ast_hash: str, nodes: List[str]) -> None:
         """Inyección atómica masiva de chunks con Hash Determinístico compuesto anti-colisiones."""

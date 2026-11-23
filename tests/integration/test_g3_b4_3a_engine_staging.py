@@ -16,6 +16,7 @@ import pytest
 from apps.llm_workers.sync_bridge import SyncProviderBridge
 from apps.llm_workers.routing import LLMProvider
 from apps.llm_workers.prompt_builder import PromptBuilder
+from apps.llm_workers.g3_admission import G3PreEffectAdmission, build_groq_request_kwargs
 from core.ast.enums import ContentNodeType, TranslationStrategy
 from core.ast.models import ASTNode, MathPayload, ParagraphPayload, TranslationTaskType
 from core.ast.grouper import SemanticGroup
@@ -197,8 +198,10 @@ class _FakeBuilder:
 
     def build(self, unit, resolved_context, target_lang_expansion=1.2):
         self.seen.append((unit, resolved_context, target_lang_expansion))
-        envelope = SimpleNamespace(chunk_id=unit.chunk_id,
-                                   schema=SimpleNamespace(payload=SimpleNamespace(content=unit.target_payload)))
+        envelope = SimpleNamespace(
+            chunk_id=unit.chunk_id, target_provider="primary",
+            schema=SimpleNamespace(payload=SimpleNamespace(content=unit.target_payload)),
+        )
         return SimpleNamespace(status="success", envelope=envelope)
 
 
@@ -214,7 +217,12 @@ class _FakeProvider:
                                content=self.content)
 
 
-def _bridge(provider: _FakeProvider, builder: _FakeBuilder, plan: ChunkPlan) -> SyncProviderBridge:
+def _bridge(
+    provider: _FakeProvider, builder: PromptBuilder, plan: ChunkPlan,
+    *, source_language: str = "en", target_language: str = "es",
+    effective_config_sha256: str | None = None,
+    pre_effect_admission: object | None = None,
+) -> SyncProviderBridge:
     # These existing tests exercise transport/placeholder semantics. They
     # inject explicit synthetic snapshots; real producer verification is
     # exercised independently in test_w08_ocr_g3_context_wiring.py.
@@ -229,6 +237,9 @@ def _bridge(provider: _FakeProvider, builder: _FakeBuilder, plan: ChunkPlan) -> 
     return SyncProviderBridge(
         cast(LLMProvider, provider), cast(PromptBuilder, builder),
         context_snapshots=snapshots,
+        source_language=source_language, target_language=target_language,
+        effective_config_sha256=effective_config_sha256,
+        pre_effect_admission=cast("G3PreEffectAdmission | None", pre_effect_admission),
     )
 
 
@@ -446,3 +457,403 @@ def test_hallucinated_math_token_rejected_in_no_math_unit():
             bridge.execute_chunk(plan, unit)
     finally:
         bridge.shutdown()
+
+
+def test_pppr_w32_wire_request_contains_explicit_en_es_generation_intent():
+    """R1/R2: inspect the real renderer + dialect, not a provider mock string."""
+    from core.finops.measurement import InferenceMeasurementService
+    from core.validation.budget import PromptBudgetCalculator, StandardCompressionPolicy
+    from core.prompting.renderer import PromptRenderer
+    from core.prompting.dialects.openai_compatible import OpenAICompatibleDialect
+
+    _ast, plan = _fixture()
+    unit = next(u for u in plan.units if u.chunk_type == TranslationTaskType.TRANSLATE)
+    provider = _FakeProvider(_response(plan, unit))
+    builder = PromptBuilder(
+        model_name="offline-only", prompt_version="wave-3.2",
+        measurement_service=InferenceMeasurementService(_Estimator()),
+        budget_calculator=PromptBudgetCalculator(),
+        compression_policy=StandardCompressionPolicy(),
+    )
+    snapshots = {
+        unit.context_id: ContextSnapshotV1(
+            document_id=plan.document_id, ast_hash=plan.ast_hash,
+            context_id=unit.context_id,
+            breadcrumbs=(ContextBreadcrumbV1(0, "[ROOT_DOCUMENT_CONTEXT]"),),
+        ),
+    }
+    bridge = SyncProviderBridge(
+        cast(LLMProvider, provider), builder, context_snapshots=snapshots,
+        source_language="en", target_language="es",
+    )
+    try:
+        assert bridge.execute_chunk(plan, unit) == provider.content
+    finally:
+        bridge.shutdown()
+
+    assert len(provider.seen) == 1
+    wire = OpenAICompatibleDialect().build_request_kwargs(
+        PromptRenderer.render(provider.seen[0].schema)
+    )
+    assert len(wire["messages"]) == 2
+    body = json.loads(wire["messages"][1]["content"])
+    assert body["language_intent"] == {
+        "source_language": "en", "target_language": "es",
+    }
+    assert "English (en) into Spanish (es)" in body["instructions"]
+    assert wire["response_format"] == {"type": "json_object"}
+    assert body["response_binding"]["ast_hash"] == plan.ast_hash
+    assert body["response_binding"]["chunk_id"] == unit.chunk_id
+
+
+@pytest.mark.parametrize(
+    ("source", "target"),
+    [("", "es"), ("en", ""), ("fr", "es"), ("en", "fr"), ("ES", "en")],
+)
+def test_pppr_w32_invalid_language_intent_never_calls_provider(source, target):
+    from core.execution.exceptions import G3ExternalEffectNotStartedError
+
+    _ast, plan = _fixture()
+    unit = next(u for u in plan.units if u.chunk_type == TranslationTaskType.TRANSLATE)
+    provider = _FakeProvider(_response(plan, unit))
+    bridge = _bridge(
+        provider, _FakeBuilder(), plan,
+        source_language=source, target_language=target,
+    )
+    try:
+        with pytest.raises(
+            G3ExternalEffectNotStartedError,
+            match="PPPR_G3_LANGUAGE_INTENT_REQUIRED_EN_ES",
+        ):
+            bridge.execute_chunk(plan, unit)
+    finally:
+        bridge.shutdown()
+    assert provider.seen == []
+
+
+def test_pppr_w32_real_budget_switch_model_is_rejected_before_provider():
+    """R4: a real SWITCH_MODEL is not physical fallback admission."""
+    from core.finops.measurement import InferenceMeasurementService
+    from core.validation.budget import (
+        PromptBudgetCalculator, StandardCompressionPolicy,
+    )
+    from core.execution.exceptions import G3ExternalEffectNotStartedError
+
+    _ast, plan = _fixture()
+    unit = next(u for u in plan.units if u.chunk_type == TranslationTaskType.TRANSLATE)
+    builder = PromptBuilder(
+        model_name="primary-offline", prompt_version="wave32",
+        measurement_service=InferenceMeasurementService(_Estimator()),
+        budget_calculator=PromptBudgetCalculator(
+            primary_window_limit=1, fallback_window_limit=8192,
+            min_output_reserve=256, max_output_reserve=4096,
+        ),
+        compression_policy=StandardCompressionPolicy(),
+    )
+    provider = _FakeProvider(_response(plan, unit))
+    bridge = _bridge(provider, builder, plan)
+    try:
+        with pytest.raises(
+            G3ExternalEffectNotStartedError,
+            match="PPPR_G3_FALLBACK_BACKEND_NOT_ACCREDITED",
+        ):
+            bridge.execute_chunk(plan, unit)
+    finally:
+        bridge.shutdown()
+    assert provider.seen == []
+
+
+def test_pppr_w32_retired_product_model_cannot_call_provider():
+    """R3: documentation says Groq retired llama3-70b-8192 2025-08-30."""
+    from core.finops.measurement import InferenceMeasurementService
+    from core.validation.budget import PromptBudgetCalculator, StandardCompressionPolicy
+    from core.execution.exceptions import G3ExternalEffectNotStartedError
+
+    _ast, plan = _fixture()
+    unit = next(u for u in plan.units if u.chunk_type == TranslationTaskType.TRANSLATE)
+    provider = _FakeProvider(_response(plan, unit))
+    builder = PromptBuilder(
+        model_name="llama3-70b-8192", prompt_version="v1.0",
+        measurement_service=InferenceMeasurementService(_Estimator()),
+        budget_calculator=PromptBudgetCalculator(),
+        compression_policy=StandardCompressionPolicy(),
+    )
+    bridge = _bridge(
+        provider, builder, plan, effective_config_sha256="a" * 64,
+    )
+    try:
+        with pytest.raises(
+            G3ExternalEffectNotStartedError,
+            match="PPPR_G3_PRIMARY_MODEL_DEPRECATED",
+        ):
+            bridge.execute_chunk(plan, unit)
+    finally:
+        bridge.shutdown()
+    assert provider.seen == []
+
+ 
+
+class _CharBoundEstimator:
+    """Synthetic upper bound in the fake one-character-per-token model."""
+    def estimate_tokens(self, text: str) -> int:
+        return len(text)
+
+
+def _w32_fake_admission(**changes: object) -> G3PreEffectAdmission:
+    from dataclasses import replace
+    from decimal import Decimal
+
+    policy = G3PreEffectAdmission(
+        provider_id="groq", model_name="offline-synthetic",
+        root_config_sha256="a" * 64,
+        input_limit=50000, output_limit=4096, context_window=60000,
+        input_estimator=_CharBoundEstimator(),
+        estimator_evidence_ref="FAKE_OFFLINE_CHAR_ESTIMATOR",
+        egress_authorization_ref="FAKE_OFFLINE_EGRESS", data_scope_ref="FAKE_DATA",
+        purpose_ref="FAKE_EN_ES", retention_ref="FAKE_RETENTION",
+        training_use_ref="FAKE_TRAINING",
+        budget_authorization_ref="FAKE_OFFLINE_BUDGET",
+        price_evidence_ref="FAKE_NO_COMMERCIAL_PRICES",
+        input_price_per_token=Decimal("0"), output_price_per_token=Decimal("0"),
+        authorized_max_cost=Decimal("0"),
+    )
+    return replace(policy, **changes)
+
+
+def _w32_product_bridge(policy: G3PreEffectAdmission | None):
+    from core.finops.measurement import InferenceMeasurementService
+    from core.validation.budget import PromptBudgetCalculator, StandardCompressionPolicy
+
+    _ast, plan = _fixture()
+    unit = next(u for u in plan.units if u.chunk_type == TranslationTaskType.TRANSLATE)
+    provider = _FakeProvider(_response(plan, unit))
+    builder = PromptBuilder(
+        model_name="offline-synthetic", prompt_version="w32",
+        measurement_service=InferenceMeasurementService(_Estimator()),
+        budget_calculator=PromptBudgetCalculator(),
+        compression_policy=StandardCompressionPolicy(),
+    )
+    bridge = _bridge(
+        provider, builder, plan, effective_config_sha256="a" * 64,
+        pre_effect_admission=policy,
+    )
+    return bridge, provider, plan, unit
+
+
+def test_pppr_w32_real_request_admission_bound_to_generation_and_output_cap():
+    """Synthetic approval exercises real renderer, dialect, and bridge, no SDK."""
+    from core.prompting.dialects.openai_compatible import OpenAICompatibleDialect
+
+    from core.execution.effect_guard import g3_admission_audit_writer
+
+    attestations: list[tuple[str, str]] = []
+    bridge, provider, plan, unit = _w32_product_bridge(_w32_fake_admission())
+    token = g3_admission_audit_writer.set(
+        lambda generation, audit: attestations.append((generation, audit))
+    )
+    try:
+        response, generation_sha = bridge.execute_chunk_with_generation(plan, unit)
+    finally:
+        g3_admission_audit_writer.reset(token)
+        bridge.shutdown()
+    assert len(attestations) == 1
+    assert attestations[0][0] == generation_sha
+    decision = json.loads(attestations[0][1])
+    assert decision["contract"] == "PPPR_G3_ADMISSION_V1"
+    assert decision["egress_authorization_ref"] == "FAKE_OFFLINE_EGRESS"
+    assert decision["estimator_evidence_ref"] == "FAKE_OFFLINE_CHAR_ESTIMATOR"
+    assert decision["budget_authorization_ref"] == "FAKE_OFFLINE_BUDGET"
+    assert decision["input_tokens"] <= decision["input_limit"]
+    assert decision["upper_bound_cost"] == "0"
+    assert "Alpha." not in attestations[0][1]
+    assert response == provider.content
+    assert len(provider.seen) == 1 and len(generation_sha) == 64
+    kwargs, _ = build_groq_request_kwargs(
+        provider.seen[0], OpenAICompatibleDialect(),
+    )
+    assert kwargs["model"] == "offline-synthetic"
+    assert kwargs["max_completion_tokens"] == provider.seen[0].budget_stats.reserved_tokens
+    assert kwargs["messages"][1]["content"].find('"language_intent"') >= 0
+
+
+@pytest.mark.parametrize(
+    ("override", "expected"),
+    [
+        ({"input_limit": 1}, "PPPR_G3_INPUT_LIMIT_EXCEEDED"),
+        ({"output_limit": 1}, "PPPR_G3_OUTPUT_LIMIT_EXCEEDED"),
+        ({"context_window": 256}, "PPPR_G3_CONTEXT_WINDOW_EXCEEDED"),
+        ({"estimator_evidence_ref": ""}, "PPPR_G3_ESTIMATOR_NOT_ACCREDITED"),
+        ({"egress_authorization_ref": ""}, "PPPR_G3_EGRESS_NOT_AUTHORIZED"),
+        ({"data_scope_ref": ""}, "PPPR_G3_EGRESS_NOT_AUTHORIZED"),
+        ({"retention_ref": ""}, "PPPR_G3_EGRESS_NOT_AUTHORIZED"),
+        ({"training_use_ref": ""}, "PPPR_G3_EGRESS_NOT_AUTHORIZED"),
+        ({"budget_authorization_ref": ""}, "PPPR_G3_BUDGET_NOT_AUTHORIZED"),
+        ({"price_evidence_ref": ""}, "PPPR_G3_BUDGET_NOT_AUTHORIZED"),
+        ({"model_name": "another-model"}, "PPPR_G3_ADMISSION_SELECTION_DRIFT"),
+        ({"provider_id": "different-provider"}, "PPPR_G3_ADMISSION_SELECTION_DRIFT"),
+        ({"root_config_sha256": "b"*64}, "PPPR_G3_ADMISSION_SELECTION_DRIFT"),
+    ],
+)
+def test_pppr_w32_independent_limits_and_authorities_fail_pre_effect(
+    override, expected,
+):
+    from core.execution.exceptions import G3ExternalEffectNotStartedError
+
+    bridge, provider, plan, unit = _w32_product_bridge(
+        _w32_fake_admission(**override),
+    )
+    try:
+        with pytest.raises(G3ExternalEffectNotStartedError, match=expected):
+            bridge.execute_chunk_with_generation(plan, unit)
+    finally:
+        bridge.shutdown()
+    assert provider.seen == []
+
+
+def test_pppr_w32_budget_ceiling_is_not_rpm_tpm_quota():
+    from decimal import Decimal
+    from core.execution.exceptions import G3ExternalEffectNotStartedError
+
+    bridge, provider, plan, unit = _w32_product_bridge(_w32_fake_admission(
+        input_price_per_token=Decimal("1"),
+        authorized_max_cost=Decimal("0.1"),
+    ))
+    try:
+        with pytest.raises(G3ExternalEffectNotStartedError, match="PPPR_G3_BUDGET_CAP_EXCEEDED"):
+            bridge.execute_chunk_with_generation(plan, unit)
+    finally:
+        bridge.shutdown()
+    assert provider.seen == []
+
+
+def test_pppr_w32_product_default_missing_authorizations_blocks_provider():
+    from core.execution.exceptions import G3ExternalEffectNotStartedError
+
+    bridge, provider, plan, unit = _w32_product_bridge(None)
+    try:
+        with pytest.raises(
+            G3ExternalEffectNotStartedError,
+            match="PPPR_G3_ADMISSION_EVIDENCE_MISSING",
+        ):
+            bridge.execute_chunk_with_generation(plan, unit)
+    finally:
+        bridge.shutdown()
+    assert provider.seen == []
+
+
+def test_pppr_w32_admission_refs_not_conflated_with_scientific_identity():
+    """Same wire request, different authority reference => different audit."""
+    from dataclasses import replace
+    from core.prompting.dialects.openai_compatible import OpenAICompatibleDialect
+
+    policy = _w32_fake_admission()
+    bridge, provider, plan, unit = _w32_product_bridge(policy)
+    from core.execution.effect_guard import g3_admission_audit_writer
+    token = g3_admission_audit_writer.set(lambda generation, audit: None)
+    try:
+        bridge.execute_chunk_with_generation(plan, unit)
+    finally:
+        g3_admission_audit_writer.reset(token)
+        bridge.shutdown()
+    envelope = provider.seen[0]
+    original = policy.verify(
+        provider_id="groq", root_config_sha256="a"*64, envelope=envelope,
+    )
+    alternative = replace(policy, egress_authorization_ref="FAKE_OTHER_EGRESS").verify(
+        provider_id="groq", root_config_sha256="a"*64, envelope=envelope,
+    )
+    assert original.request_sha256 == alternative.request_sha256
+    assert original.audit_json != alternative.audit_json
+
+
+def test_pppr_w32_durable_admission_joins_attempt_generation_and_receipt(queue):
+    """Actual local control SQLite persists evidence before fake provider effect."""
+    import sqlite3
+    from threading import Semaphore
+
+    policy = _w32_fake_admission()
+    bridge, provider, plan, unit = _w32_product_bridge(policy)
+    lease = queue.repo.pick_task("w32_audit", plan.document_id, plan.ast_hash)
+    assert lease is not None
+    if lease.node_id != unit.chunk_id:
+        preserve = next(u for u in plan.units if u.chunk_id == lease.node_id)
+        assert preserve.chunk_type == TranslationTaskType.PRESERVE
+        assert stage_claimed_unit(
+            queue.repo, plan, queue.ast, preserve, lease,
+            "w32_audit", None, Semaphore(1),
+        )
+        lease = queue.repo.pick_task("w32_audit", plan.document_id, plan.ast_hash)
+    assert lease is not None and lease.node_id == unit.chunk_id
+    try:
+        assert stage_claimed_unit(
+            queue.repo, plan, queue.ast, unit, lease,
+            "w32_audit", bridge, Semaphore(1),
+        )
+    finally:
+        bridge.shutdown()
+    assert len(provider.seen) == 1
+    row = queue.db.execute(
+        "SELECT execution_id,generation_sha256,decision_json,decision_sha256 "
+        "FROM g3_admission_decisions WHERE task_id=?", (lease.task_id,),
+    ).fetchone()
+    assert row is not None
+    execution_id, generation, audit_json, audit_sha = row
+    assert execution_id == lease.execution_id and len(generation) == 64
+    audit = json.loads(audit_json)
+    assert audit["contract"] == "PPPR_G3_ADMISSION_V1"
+    assert audit["budget_authorization_ref"] == "FAKE_OFFLINE_BUDGET"
+    assert audit["input_limit"] == 50000
+    assert audit_sha == sha256((generation + audit_json).encode()).hexdigest()
+    assert queue.db.execute(
+        "SELECT generation_sha256 FROM chunk_result_receipts WHERE task_id=?",
+        (lease.task_id,),
+    ).fetchone() == (generation,)
+    assert "Alpha." not in audit_json
+    # Evidence survives a fresh SQLite connection, not just a process buffer.
+    path = queue.db.execute("PRAGMA database_list").fetchone()[2]
+    with sqlite3.connect(path) as reopened:
+        assert reopened.execute(
+            "SELECT decision_sha256 FROM g3_admission_decisions "
+            "WHERE task_id=? AND execution_id=?",
+            (lease.task_id, execution_id),
+        ).fetchone() == (audit_sha,)
+
+
+@pytest.mark.parametrize(
+    "invalid_amount",
+    ["Infinity", "-Infinity", "NaN", "sNaN"],
+)
+@pytest.mark.parametrize(
+    "field",
+    ["input_price_per_token", "output_price_per_token", "authorized_max_cost"],
+)
+def test_pppr_w32_nonfinite_budget_denied_without_provider(field, invalid_amount):
+    from decimal import Decimal
+    from core.execution.exceptions import G3ExternalEffectNotStartedError
+
+    bridge, provider, plan, unit = _w32_product_bridge(
+        _w32_fake_admission(**{field: Decimal(invalid_amount)}),
+    )
+    try:
+        with pytest.raises(
+            G3ExternalEffectNotStartedError, match="PPPR_G3_BUDGET_NOT_AUTHORIZED",
+        ) as error:
+            bridge.execute_chunk_with_generation(plan, unit)
+        assert error.value.permanent
+    finally:
+        bridge.shutdown()
+    assert provider.seen == []
+
+
+def test_pppr_w32_missing_audit_writer_fails_before_provider():
+    from core.execution.exceptions import G3ExternalEffectNotStartedError
+    bridge, provider, plan, unit = _w32_product_bridge(_w32_fake_admission())
+    try:
+        with pytest.raises(
+            G3ExternalEffectNotStartedError,
+            match="PPPR_G3_ADMISSION_AUDIT_WRITER_REQUIRED",
+        ):
+            bridge.execute_chunk_with_generation(plan, unit)
+    finally:
+        bridge.shutdown()
+    assert provider.seen == []
