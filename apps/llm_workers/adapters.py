@@ -6,6 +6,7 @@ import groq
 import google.generativeai as genai
 
 from apps.llm_workers.prompt_builder import PromptEnvelope
+from apps.llm_workers.g3_admission import build_groq_request_kwargs
 from core.execution.exceptions import TransientAPIError, DialectParsingError, MalformedInferenceResponse
 
 from core.prompting.inference_result import InferenceResult
@@ -27,22 +28,15 @@ class GroqProvider:
         self._dialect = dialect
 
     async def translate(self, envelope: PromptEnvelope) -> InferenceResult:
-        # 1. Renderizado Lógico (A moverse en Fase 17 fuera del Provider)
-        rendered = PromptRenderer.render(envelope.schema)
-        
-        # 2. Construcción Física
-        kwargs = self._dialect.build_request_kwargs(rendered)
+        # Share the exact physical request with the pre-effect admission.
+        # max_completion_tokens enforces the requested output reserve on wire.
+        kwargs, expected_key = build_groq_request_kwargs(envelope, self._dialect)
         
         start_time = time.monotonic()
         
         try:
             # 3. I/O Puro
-            response = await self._client.chat.completions.create(
-                model=envelope.model_name,
-                temperature=1e-5,
-                stream=False,
-                **kwargs
-            )
+            response = await self._client.chat.completions.create(**kwargs)
             
             latency = (time.monotonic() - start_time) * 1000
             
@@ -51,7 +45,7 @@ class GroqProvider:
                 raw_response=response,
                 chunk_id=envelope.chunk_id,
                 latency_ms=latency,
-                expected_key=rendered.expected_output_key
+                expected_key=expected_key
             )
             
         except groq.APIStatusError as e:

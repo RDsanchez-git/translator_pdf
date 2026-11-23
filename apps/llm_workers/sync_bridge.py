@@ -12,6 +12,7 @@ from core.prompting.inference_identity import InferenceReuseIdentityV1, PPPRGene
 from core.ast.models import ASTNode, TranslationTaskType, TranslationUnit
 from apps.llm_workers.routing import LLMProvider
 from apps.llm_workers.prompt_builder import PromptBuilder
+from apps.llm_workers.g3_admission import G3PreEffectAdmission
 from core.execution.constants import CURRENT_PROJECTION_VERSION  # SOTA: Fuente única de verdad
 from core.context.context_resolver import ResolvedContext
 from core.chunking.manifest_contract import ChunkPlan
@@ -30,6 +31,7 @@ class SyncProviderBridge:
         effective_config_sha256: str | None = None,
         source_language: str = "en", target_language: str = "es",
         provider_id: str = "groq",
+        pre_effect_admission: G3PreEffectAdmission | None = None,
     ):
         self._provider = async_provider
         self._builder = prompt_builder
@@ -40,6 +42,7 @@ class SyncProviderBridge:
         self._source_language = source_language
         self._target_language = target_language
         self._provider_id = provider_id
+        self._pre_effect_admission = pre_effect_admission
         # Legacy/offline adapters have no verified config. They must never
         # claim product generation identity or authorize economic reuse.
         self.generation_identity_enabled = effective_config_sha256 is not None
@@ -264,12 +267,23 @@ class SyncProviderBridge:
                 "PPPR_G3_PRIMARY_MODEL_DEPRECATED"
             )
         generation_sha256: str | None = None
+        admission_request_sha256: str | None = None
         if self._effective_config_sha256 is not None:
+            if self._pre_effect_admission is None:
+                raise G3ExternalEffectNotStartedError(
+                    "PPPR_G3_ADMISSION_EVIDENCE_MISSING"
+                )
+            admission_request_sha256 = self._pre_effect_admission.verify(
+                provider_id=self._provider_id,
+                root_config_sha256=self._effective_config_sha256,
+                envelope=built.envelope,
+            )
             # Bound the actual budget-dependent route and compression decision.
             # The composition-root config alone is not an effective generation key.
             effective_config_sha256 = sha256(json.dumps(
                 {
                     "root_config_sha256": self._effective_config_sha256,
+                    "admission_request_sha256": admission_request_sha256,
                     "effective_target_provider": built.envelope.target_provider,
                     "compression_level": built.envelope.telemetry.get("compression_level"),
                 },
