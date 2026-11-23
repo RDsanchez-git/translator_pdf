@@ -133,3 +133,20 @@ def test_scheduler_reuses_attached_fsm_database(sqlite_planes: tuple[Path, Path]
         assert ("d2_11_contract_doc", "d2_11_contract_ast") in result
     finally:
         queue_conn.close()
+
+
+def test_pppr_g3_effective_sqlite_wal_normal_busy_timeout(
+    sqlite_planes: tuple[Path, Path],
+) -> None:
+    """F18-04 R3: measure actual connection PRAGMAs, not source-code text.
+
+    Disposable queue file only; SQLite WAL+NORMAL is not a power-loss guarantee.
+    """
+    _, queue_db = sqlite_planes
+    conn = get_connection(str(queue_db), timeout=7)
+    try:
+        assert conn.execute("PRAGMA journal_mode").fetchone() == ("wal",)
+        assert conn.execute("PRAGMA synchronous").fetchone() == (1,)
+        assert conn.execute("PRAGMA busy_timeout").fetchone() == (7000,)
+    finally:
+        conn.close()

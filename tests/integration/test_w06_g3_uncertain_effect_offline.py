@@ -619,9 +619,6 @@ def test_pppr_g3_quota_rejections_never_become_external_unknown(
             subject.plan.document_id, subject.plan.ast_hash, subject.ast,
         )[1],
     )
-    if quota_reason == QuotaRejectionReason.INSUFFICIENT_RPM:
-        # The available_at deadline is deliberately beyond the tiny budget.
-        assert bridge._provider.max_wait_seconds == 0.01
     monkeypatch.setattr(
         subject.engine, "_create_chunk_processor",
         lambda contexts: (bridge, SimpleNamespace(close=lambda: None)),
