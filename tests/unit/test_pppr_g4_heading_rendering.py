@@ -93,8 +93,8 @@ def test_physical_geometry_uses_accredited_page_dimensions_not_letter_fallback()
     g = RenderGeometryAdapter().extract(node)
     assert g is not None
     assert g.page_number == 2
-    assert (g.relative_x, g.relative_y, g.relative_width, g.relative_height) == (
-        .2, .2, .5, .1,
+    assert (g.relative_x, g.relative_y, g.relative_width, g.relative_height) == pytest.approx(
+        (.2, .2, .5, .1), rel=1e-12, abs=1e-12,
     )
 
 
@@ -119,3 +119,56 @@ def test_missing_or_ambiguous_physical_geometry_does_not_fabricate_coordinates()
     assert adapter.extract(_node(HeadingLevel.H1).model_copy(update={
         "metadata": NodeMetadata(physical_regions=(unverified, repeated)),
     })) is None
+
+
+@pytest.mark.unit
+def test_unverified_physical_region_does_not_reject_unrelated_paragraph(caplog):
+    """FPPPR-04 R9: no invented geometry, no blanket document rejection."""
+    from core.ast.models import ParagraphPayload
+    from core.compiler.assembler import DocumentAssembler
+    from core.compiler.assembly_context import AssemblyExecutionContext
+    from core.compiler.service import CompilationService
+    from core.execution.ports import ProjectionRecord
+
+    class NoFallback:
+        def get_verified_payload(self, job_id, chunk_id, expected_sha256):
+            pytest.fail("Complete CURRENT projection must not call fallback")
+
+    class ProfileStore:
+        def get(self, document_id):
+            assert document_id == "synthetic-doc"
+            return InferredDocumentProfile(
+                layout=PageLayout.SINGLE_COLUMN, document_type=None,
+            )
+
+    region = PhysicalRegion(
+        source_document="synthetic-input.pdf", page_number=1,
+        bbox=BoundingBox(x0=20, y0=35, x1=90, y1=75),
+        page_width=None, page_height=None,
+    )
+    node = ASTNode(
+        node_id="paragraph-1", sequence_id=1,
+        node_type=ContentNodeType.PARAGRAPH,
+        payload=ParagraphPayload(content="Original"),
+        metadata=NodeMetadata(physical_regions=(region,)),
+    )
+    mapper = DefaultRenderUnitMapper(RenderGeometryAdapter(), _NoAssets())
+    unit = mapper.map_to_unit([node], "Texto recibido")
+    assert unit.geometry is None
+
+    repository = NoFallback()
+    service = CompilationService(
+        DocumentAssembler(repository),
+        repository, ProfileStore(), mapper,
+    )
+    context = AssemblyExecutionContext(
+        document_id="synthetic-doc", ast_hash="ast-generation",
+        ast_nodes=(node,),
+        projections=(ProjectionRecord("paragraph-1", "Texto recibido", 1),),
+        projection_version=1,
+    )
+    tex = service.compile_document(context)
+    assert "Texto recibido" in tex
+    assert "Original" not in tex
+    assert "PPPR_G4_GEOMETRY_UNVERIFIED" in caplog.text
+    assert "paragraph-1" in caplog.text

@@ -88,7 +88,12 @@ class HeadingRenderStrategy(RenderStrategy):
     }
 
     def render(self, unit: RenderUnit) -> str:
-        command = self._COMMANDS.get(unit.heading_level)
+        # RenderUnit is a transport DTO; its optional level can be absent.
+        # Explicit narrowing keeps the fail-closed contract and Pyright strict.
+        level = unit.heading_level
+        if level is None:
+            raise ValueError("PPPR_G4_HEADING_LEVEL_UNVERIFIED")
+        command = self._COMMANDS.get(level)
         if command is None:
             raise ValueError("PPPR_G4_HEADING_LEVEL_UNVERIFIED")
         if not unit.content.strip():

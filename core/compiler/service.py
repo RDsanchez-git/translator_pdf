@@ -115,7 +115,14 @@ class CompilationService:
             # G2 can attest partial physical regions. Never silently substitute
             # fabricated geometry when such provenance is present but invalid.
             if node.metadata.physical_regions and rendered.geometry is None:
-                raise ASTConsistencyError("PPPR_G4_GEOMETRY_LOSS_ATTRIBUTABLE")
+                # FPPPR-04 R9: provenance that cannot be transformed is
+                # attributable uncertainty, not an automatic rejection of
+                # unrelated logical content. No synthetic geometry is emitted.
+                logger.warning(
+                    "PPPR_G4_GEOMETRY_UNVERIFIED node_id=%r",
+                    node.node_id,
+                    extra=log_ctx,
+                )
             render_units.append(rendered)
 
         # Paso 4: Renderizado LaTeX
