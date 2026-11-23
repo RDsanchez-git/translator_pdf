@@ -260,6 +260,59 @@ def test_w06_restart_never_reinitializes_provider_for_unknown(subject, monkeypat
     assert len(fake.accepted_calls) == 1
 
 
+def test_pppr_g3_unknown_blocks_all_authorized_local_retry_and_legacy_recovery(
+    subject, monkeypatch,
+):
+    """Negative proof for current, authorized *local API* paths only.
+
+    This does not claim resistance to arbitrary privileged SQL rewrites, or
+    demonstrate execution/accounting of an exceptional retry that is absent.
+    """
+    from core.execution.exceptions import OptimisticLockError
+
+    provider, _ = _run_post_send_loss(subject, monkeypatch)
+    assert len(provider.accepted_calls) == 1
+    original = subject.queue.execute(
+        "SELECT task_id,document_id,ast_hash,execution_id,task_state,"
+        "retry_count,error_log FROM chunk_tasks WHERE worker_type='LLM'"
+    ).fetchone()
+    assert original is not None
+    task_id, document_id, ast_hash, execution_id, state, retries, error_log = original
+    assert state == "G3_EXTERNAL_UNKNOWN" and retries == 0
+    assert json.loads(error_log)["code"] == "G3_W06_EXTERNAL_UNKNOWN"
+
+    # A former worker cannot reclassify an uncertain effect as a proven
+    # no-start or resuscitate its expired claim.
+    assert not subject.repo.mark_g3_proven_no_start(
+        task_id=task_id, worker_id="w06_worker",
+        execution_id=execution_id, cause="FORGED_NO_START",
+    )
+    assert not subject.repo.renew_task_lease(task_id, "w06_worker")
+    with pytest.raises(OptimisticLockError):
+        subject.repo.release_task_untouched(task_id, "w06_worker")
+    with pytest.raises(OptimisticLockError):
+        subject.repo.abandon_execution(task_id, "w06_worker", "FORGED_RETRY")
+    with pytest.raises(OptimisticLockError):
+        subject.repo.acknowledge_execution(task_id, "w06_worker")
+
+    # The legacy paths must not take ownership of a G3 plan task.
+    assert not subject.repo.mark_zombie_recovered(task_id, "legacy_recovery")
+    assert not subject.repo.mark_cqrs_reconciled(task_id, "legacy_cqrs")
+
+    # Restart the connection/repository, then query the actual scheduler
+    # selector rather than merely asserting a string state.
+    path = subject.queue.execute("PRAGMA database_list").fetchone()[2]
+    with sqlite3.connect(path) as restarted:
+        repo = ControlPlaneRepository(restarted)
+        assert repo.pick_task("unauthorized_retry", document_id, ast_hash) is None
+        assert restarted.execute(
+            "SELECT task_id,document_id,ast_hash,execution_id,task_state,"
+            "retry_count,error_log FROM chunk_tasks WHERE task_id=?",
+            (task_id,),
+        ).fetchone() == original
+    assert len(provider.accepted_calls) == 1
+
+
 def _set_reconciler_expiry(subject, *, worker="w06_worker"):
     """Establish a real lease, expired snapshot, and independent FSM attachment."""
     import time
