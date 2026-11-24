@@ -110,3 +110,98 @@ def test_real_worker_method_fences_failure_state(sandbox, monkeypatch):
     assert _row(c)[0] == "FAILED"
     assert not (tmp / "translated_doc.pdf").exists()
     assert not list(tmp.glob(".assembly_*.pdf"))
+
+
+def test_real_worker_blocks_unverified_image_width_and_records_attributable_failure(
+    sandbox, monkeypatch,
+):
+    """R8/DC-12: no final artifact or compiler effect for an unverified span."""
+    from hashlib import sha256
+
+    from apps.compiler.__main__ import RenderAssetAdapter, RenderGeometryAdapter
+    from core.ast.enums import ContentNodeType, TranslationStrategy
+    from core.ast.models import ASTNode, ImagePayload
+    from core.compiler.assembler import DocumentAssembler
+    from core.compiler.assembly_context import AssemblyExecutionContext
+    from core.compiler.exceptions import ASTConsistencyError
+    from core.compiler.rendering.mapper import DefaultRenderUnitMapper
+    from core.compiler.service import CompilationService
+    from core.document_profile.models import (
+        InferredDocumentProfile, PageLayout, ProfileDiagnostics, SamplingCoverage,
+    )
+    from core.execution.ports import ProjectionRecord
+
+    c, connect, tmp = sandbox
+    monkeypatch.setenv("COMPILER_OUTPUT_DIR", str(tmp))
+    worker = _worker(c, tmp, monkeypatch)
+    asset = "data/assets/" + sha256(b"synthetic-image").hexdigest() + ".png"
+    node = ASTNode(
+        node_id="figure-1", sequence_id=1, node_type=ContentNodeType.IMAGE,
+        strategy=TranslationStrategy.PASSTHROUGH,
+        payload=ImagePayload(asset_path=asset),
+    )
+    context = AssemblyExecutionContext(
+        document_id="doc", ast_hash="ast",
+        ast_nodes=(node,),
+        projections=(ProjectionRecord(node.node_id, asset, 1),),
+        projection_version=1,
+    )
+
+    class Resolver:
+        def resolve(self, **kwargs):
+            assert kwargs == {
+                "document_id": "doc", "ast_hash": "ast", "projection_version": 1,
+            }
+            return context
+
+    class NoFallback:
+        def get_verified_payload(self, job_id, chunk_id, expected_sha256):
+            pytest.fail("CURRENT projection must not fall back to source")
+
+    class Profiles:
+        def get(self, document_id):
+            assert document_id == "doc"
+            return InferredDocumentProfile(
+                layout=PageLayout.DOUBLE_COLUMN, document_type=None,
+                physical_diagnostics=ProfileDiagnostics(
+                    layout_confidence=1.0, type_confidence=1.0,
+                    sampling_coverage=SamplingCoverage.STRICT_SCOPE,
+                ),
+            )
+
+    class NoRunner:
+        def compile(self, *args, **kwargs):
+            pytest.fail("Unverified image span must not reach Tectonic")
+
+    repo = NoFallback()
+    service = CompilationService(
+        DocumentAssembler(repo), repo, Profiles(),
+        DefaultRenderUnitMapper(RenderGeometryAdapter(), RenderAssetAdapter()),
+    )
+    setattr(worker, "context_resolver", Resolver())
+    setattr(worker, "compilation_service", service)
+    setattr(worker, "runner", NoRunner())
+
+    with pytest.raises(ASTConsistencyError, match="PPPR_G4_IMAGE_WIDTH_UNVERIFIED.*figure-1"):
+        worker._process_assembly_task("doc", "ast")
+
+    # The authorized failure is durable and attributable in the existing
+    # FSM/queue, not merely a transient warning or a successful partial PDF.
+    other = connect()
+    try:
+        assert _fsm(other) == ("FAILED_RETRYABLE", 2, 0)
+        assert _row(other)[0] == "FAILED"
+        reason = "PPPR_G4_IMAGE_WIDTH_UNVERIFIED node_id='figure-1'"
+        assert other.execute(
+            "SELECT failure_reason FROM fsm_db.document_fsm "
+            "WHERE document_id='doc' AND ast_hash='ast'"
+        ).fetchone() == (reason,)
+        assert other.execute(
+            "SELECT error_log FROM chunk_tasks WHERE worker_type='ASSEMBLER'"
+        ).fetchone() == (reason,)
+    finally:
+        other.close()
+
+    assert not (tmp / "translated_doc.pdf").exists()
+    assert not list(tmp.glob(".assembly_*.pdf"))
+

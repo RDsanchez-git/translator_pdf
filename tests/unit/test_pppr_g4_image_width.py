@@ -53,7 +53,7 @@ def _region(width: float | None) -> PhysicalRegion:
 def _image(regions: tuple[PhysicalRegion, ...]) -> ASTNode:
     return ASTNode(
         node_id="figure-1", sequence_id=1, node_type=ContentNodeType.IMAGE,
-        strategy=TranslationStrategy.PRESERVE,
+        strategy=TranslationStrategy.PASSTHROUGH,
         payload=ImagePayload(asset_path=_ASSET),
         metadata=NodeMetadata(physical_regions=regions),
     )
@@ -120,7 +120,11 @@ def test_invalid_width_emits_attributable_safe_tex_comment(
     tex = TexBuilder(RenderContextFactory.create(_profile())).build([unit])
     assert r"\begin{figure}" in tex
     assert r"\begin{figure*}" not in tex
-    assert r"\input{private.tex}" not in tex
+    # Metadata is intentionally retained inside a TeX comment. Only the
+    # non-comment lines can contain active commands from the renderer.
+    active_lines = [line for line in tex.splitlines() if not line.startswith("%")]
+    assert all(r"\input{private.tex}" not in line for line in active_lines)
+    assert f"% [NODE_ID: {ascii(node_id)}] [TYPE: image]" in tex.splitlines()
     comment_lines = [
         line for line in tex.splitlines()
         if line.startswith("% [PPPR_G4_IMAGE_WIDTH_UNVERIFIED]")
@@ -139,19 +143,74 @@ class _NoFallback:
 
 
 class _Profiles:
+    def __init__(self, profile: InferredDocumentProfile):
+        self._profile = profile
+
     def get(self, document_id: str) -> InferredDocumentProfile:
         assert document_id == "synthetic-doc"
-        return _profile()
+        return self._profile
 
 
-def _service() -> CompilationService:
+def _service(profile: InferredDocumentProfile | None = None) -> CompilationService:
     repo = _NoFallback()
-    return CompilationService(DocumentAssembler(repo), repo, _Profiles(), _mapper())
+    return CompilationService(
+        DocumentAssembler(repo), repo, _Profiles(profile or _profile()), _mapper(),
+    )
+
+
+def _image_context(regions: tuple[PhysicalRegion, ...]) -> AssemblyExecutionContext:
+    image = _image(regions)
+    return AssemblyExecutionContext(
+        document_id="synthetic-doc", ast_hash="generation",
+        ast_nodes=(image,),
+        projections=(ProjectionRecord(image.node_id, _ASSET, 1),),
+        projection_version=1,
+    )
 
 
 @pytest.mark.unit
-def test_unverified_two_column_image_blocks_conforming_compilation(caplog) -> None:
-    image = _image((_region(None),))
+@pytest.mark.parametrize(
+    ("page_width", "environment"),
+    [(200.0, r"\begin{figure}"), (80.0, r"\begin{figure*}")],
+)
+def test_compilation_service_accepts_attested_image_width(
+    page_width: float, environment: str,
+) -> None:
+    tex, assets = _service().compile_document_with_assets(
+        _image_context((_region(page_width),))
+    )
+    assert environment in tex
+    assert "PPPR_G4_IMAGE_WIDTH_UNVERIFIED" not in tex
+    assert assets == (AssetReference(path=_ASSET),)
+
+
+@pytest.mark.unit
+def test_single_column_does_not_require_an_image_span_decision() -> None:
+    profile = InferredDocumentProfile(
+        layout=PageLayout.SINGLE_COLUMN, document_type=None,
+        physical_diagnostics=ProfileDiagnostics(
+            layout_confidence=1.0, type_confidence=1.0,
+            sampling_coverage=SamplingCoverage.STRICT_SCOPE,
+        ),
+    )
+    tex, assets = _service(profile).compile_document_with_assets(_image_context(()))
+    assert r"\begin{figure}" in tex
+    assert r"\begin{figure*}" not in tex
+    assert "PPPR_G4_IMAGE_WIDTH_UNVERIFIED" not in tex
+    assert assets == (AssetReference(path=_ASSET),)
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("regions", [
+    (),
+    (_region(None),),
+    (_region(200), _region(200)),
+    (_region(50),),  # bbox outside its accredited page
+])
+def test_unverified_two_column_image_blocks_conforming_compilation(
+    regions: tuple[PhysicalRegion, ...], caplog,
+) -> None:
+    image = _image(regions)
     paragraph = ASTNode(
         node_id="paragraph-2", sequence_id=2,
         node_type=ContentNodeType.PARAGRAPH,
@@ -162,7 +221,7 @@ def test_unverified_two_column_image_blocks_conforming_compilation(caplog) -> No
         document_id="synthetic-doc", ast_hash="generation",
         ast_nodes=(image, paragraph),
         projections=(
-            ProjectionRecord("figure-1", "", 1),
+            ProjectionRecord("figure-1", _ASSET, 1),
             ProjectionRecord("paragraph-2", "Texto independiente", 1),
         ),
         projection_version=1,
