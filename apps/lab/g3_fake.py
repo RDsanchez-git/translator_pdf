@@ -25,10 +25,11 @@ import threading
 from typing import NoReturn, cast
 
 DUMMY_KEY = "translator-pdf-g3-offline-fake-only"
+FAKE_MODEL = "offline-fake"
 PATH = "/openai/v1/chat/completions"
 MAX_BODY = 2 * 1024 * 1024
 _BINDING_KEYS = frozenset(("schema_version", "document_id", "ast_hash", "manifest_sha256", "chunk_id"))
-_PROMPT_KEYS = frozenset(("protocol", "transport", "instructions", "response_binding", "members"))
+_PROMPT_KEYS = frozenset(("protocol", "transport", "instructions", "language_intent", "response_binding", "members"))
 _MEMBER_KEYS = frozenset(("node_id", "segment_index", "source_sha256", "source_text"))
 _HEX64 = re.compile(r"[0-9a-f]{64}\Z")
 
@@ -112,8 +113,13 @@ def _resolve(request: dict, db: Path):
     if type(request) is not dict or request.get("stream") is not False:
         _fail("invalid_http_envelope")
     if (request.get("response_format") != {"type": "json_object"}
-            or type(request.get("model")) is not str or not request["model"]):
+            or type(request.get("model")) is not str):
         _fail("invalid_http_envelope")
+    if request["model"] != FAKE_MODEL:
+        _fail("invalid_offline_model")
+    reserve = request.get("max_completion_tokens")
+    if type(reserve) is not int or reserve <= 0:
+        _fail("invalid_output_reserve")
     messages = request.get("messages")
     if (type(messages) is not list or len(messages) != 2 or
             any(type(m) is not dict for m in messages) or
@@ -128,6 +134,8 @@ def _resolve(request: dict, db: Path):
                                    "content_type": "JSON-serialized G3 response string"} or
             type(prompt["instructions"]) is not str):
         _fail("invalid_g3_protocol")
+    if prompt["language_intent"] != {"source_language": "en", "target_language": "es"}:
+        _fail("invalid_language_intent")
     binding = prompt["response_binding"]
     if type(binding) is not dict or binding.keys() != _BINDING_KEYS:
         _fail("invalid_g3_binding")
@@ -258,7 +266,7 @@ class _Handler(BaseHTTPRequestHandler):
             response = _compact({"content": _compact(result)})
             self._send(200, {
                 "id": "chatcmpl-g3-reusable-offline", "object": "chat.completion",
-                "created": 0, "model": "llama3-70b-8192",
+                "created": 0, "model": FAKE_MODEL,
                 "choices": [{"index": 0, "message": {"role": "assistant", "content": response},
                              "finish_reason": "stop"}],
                 "usage": {"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2},

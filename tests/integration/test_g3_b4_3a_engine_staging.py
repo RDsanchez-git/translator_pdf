@@ -857,3 +857,160 @@ def test_pppr_w32_missing_audit_writer_fails_before_provider():
     finally:
         bridge.shutdown()
     assert provider.seen == []
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize("scenario", ["approved", "missing_admission", "retired_model"])
+def test_pppr_g5_real_bridge_http_fake_and_durable_admission(tmp_path, monkeypatch, scenario):
+    """Real Groq SDK loopback, quota fence, bridge and durable receipt.
+
+    Only the provider is a synthetic echo; no commercial authorization,
+    production composition root, PDF compilation or recovery claim.
+    """
+    import asyncio
+    from contextlib import closing
+    import threading
+
+    from apps.lab.g3_fake import DUMMY_KEY, FAKE_MODEL, FakeServer
+    from apps.llm_workers.adapters import GroqProvider
+    from apps.llm_workers.rate_limiter import QuotaManager, RateLimitedProvider
+    from core.ast.hashing import compute_ast_hash
+    from core.execution.exceptions import G3ExternalEffectNotStartedError
+    from core.finops.measurement import InferenceMeasurementService
+    from core.prompting.dialects.openai_compatible import OpenAICompatibleDialect
+    from core.validation.budget import PromptBudgetCalculator, StandardCompressionPolicy
+
+    nodes, original = _fixture()
+    plan = ChunkPlan.build(
+        sha256(b"pppr-g5-synthetic-http-fixture").hexdigest(),
+        compute_ast_hash(nodes), nodes, original.units,
+    )
+    db_path = tmp_path / "queue.db"
+    root_config = sha256(b"PPPR_G5_HTTP_TEST_ONLY_OFFLINE_CONFIG").hexdigest()
+    model = "llama3-70b-8192" if scenario == "retired_model" else FAKE_MODEL
+    policy = None if scenario == "missing_admission" else _w32_fake_admission(
+        provider_id="offline-test", model_name=FAKE_MODEL,
+        root_config_sha256=root_config,
+    )
+    builder = PromptBuilder(
+        model_name=model, prompt_version="pppr-g5-http-test",
+        measurement_service=InferenceMeasurementService(_Estimator()),
+        budget_calculator=PromptBudgetCalculator(),
+        compression_policy=StandardCompressionPolicy(),
+    )
+    snapshots = {
+        unit.context_id: ContextSnapshotV1(
+            document_id=plan.document_id, ast_hash=plan.ast_hash,
+            context_id=unit.context_id,
+            breadcrumbs=(ContextBreadcrumbV1(0, "[ROOT_DOCUMENT_CONTEXT]"),),
+        )
+        for unit in plan.units if unit.chunk_type != TranslationTaskType.PRESERVE
+    }
+
+    with closing(sqlite3.connect(db_path)) as db:
+        db.execute("PRAGMA foreign_keys=ON")
+        db.executescript((ROOT / "infra/db/schema_queue.sql").read_text(encoding="utf-8"))
+        repo = ControlPlaneRepository(db)
+        repo.enqueue_chunk_plan(plan, nodes)
+        with FakeServer(("127.0.0.1", 0), db_path, max_requests=4) as server:
+            port = server.server_address[1]
+            # No environment-derived proxies; SDK destination must be loopback.
+            for name in ("HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY",
+                         "http_proxy", "https_proxy", "all_proxy"):
+                monkeypatch.delenv(name, raising=False)
+            monkeypatch.setenv("NO_PROXY", "127.0.0.1")
+            monkeypatch.setenv("no_proxy", "127.0.0.1")
+            monkeypatch.setenv("GROQ_BASE_URL", f"http://127.0.0.1:{port}")
+            adapter = GroqProvider(DUMMY_KEY, OpenAICompatibleDialect())
+            assert adapter._client.base_url.host == "127.0.0.1"
+            assert adapter._client.base_url.port == port
+            assert adapter._client.base_url.scheme == "http"
+            provider = RateLimitedProvider(adapter, QuotaManager(1000, 200000))
+            bridge = SyncProviderBridge(
+                provider, builder, timeout_sec=15, context_snapshots=snapshots,
+                effective_config_sha256=root_config, provider_id="offline-test",
+                pre_effect_admission=policy,
+            )
+            thread = threading.Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            try:
+                # Stage PRESERVE through the same adapter, with no HTTP effect.
+                leases = [repo.pick_task("g5_http", plan.document_id, plan.ast_hash)
+                          for _ in plan.units]
+                assert all(leases)
+                by_chunk = {lease.node_id: lease for lease in leases}
+                preserve = next(u for u in plan.units if u.chunk_type == TranslationTaskType.PRESERVE)
+                preserve_lease = by_chunk[preserve.chunk_id]
+                assert stage_claimed_unit(
+                    repo, plan, nodes, preserve, preserve_lease,
+                    "g5_http", bridge, Semaphore(1),
+                )
+                assert server.requests == 0
+                unit = next(u for u in plan.units if u.chunk_type == TranslationTaskType.TRANSLATE)
+                lease = by_chunk[unit.chunk_id]
+                if scenario == "approved":
+                    assert stage_claimed_unit(
+                        repo, plan, nodes, unit, lease, "g5_http", bridge, Semaphore(1),
+                    )
+                    assert server.requests == 1
+                else:
+                    reason = ("PPPR_G3_ADMISSION_EVIDENCE_MISSING"
+                              if scenario == "missing_admission"
+                              else "PPPR_G3_PRIMARY_MODEL_DEPRECATED")
+                    with pytest.raises(G3ExternalEffectNotStartedError, match=reason):
+                        stage_claimed_unit(
+                            repo, plan, nodes, unit, lease, "g5_http", bridge, Semaphore(1),
+                        )
+                    assert server.requests == 0
+            finally:
+                try:
+                    asyncio.run_coroutine_threadsafe(
+                        adapter._client.close(), bridge._loop,
+                    ).result(timeout=5)
+                finally:
+                    bridge.shutdown()
+                    server.shutdown()
+                    thread.join(timeout=5)
+
+        # Reopen independent connection; compare the attempt, admission and receipt.
+        with closing(sqlite3.connect(db_path)) as reopened:
+            assert reopened.execute(
+                "SELECT raw_response,generation_sha256 FROM chunk_result_receipts WHERE task_id=?",
+                (preserve_lease.task_id,),
+            ).fetchone() == (None, None)
+            assert reopened.execute(
+                "SELECT COUNT(*) FROM g3_admission_decisions WHERE task_id=?",
+                (preserve_lease.task_id,),
+            ).fetchone() == (0,)
+            row = reopened.execute(
+                "SELECT execution_id,generation_sha256,decision_json,decision_sha256 "
+                "FROM g3_admission_decisions WHERE task_id=?", (lease.task_id,),
+            ).fetchone()
+            receipt = reopened.execute(
+                "SELECT execution_id,generation_sha256,root_config_sha256,raw_response,"
+                "generation_binding_sha256 FROM chunk_result_receipts WHERE task_id=?",
+                (lease.task_id,),
+            ).fetchone()
+            if scenario != "approved":
+                assert row is None and receipt is None
+                return
+            assert row is not None and receipt is not None
+            execution, generation, audit_json, audit_sha = row
+            assert execution == lease.execution_id
+            assert receipt[:3] == (execution, generation, root_config)
+            assert len(generation) == len(receipt[4]) == 64
+            assert audit_sha == sha256((generation + audit_json).encode()).hexdigest()
+            audit = json.loads(audit_json)
+            assert audit["provider_id"] == "offline-test"
+            assert audit["model_name"] == FAKE_MODEL
+            assert audit["root_config_sha256"] == root_config
+            assert audit["source_language"] == "en" and audit["target_language"] == "es"
+            assert audit["upper_bound_cost"] == "0"
+            assert len(audit["request_sha256"]) == 64
+            parsed = parse_chunk_response(plan, unit.chunk_id, receipt[3])
+            assert [m.translated_text for m in parsed.members] == [
+                m.source_text.strip() for m in unit.members
+            ]
+            assert reopened.execute(
+                "SELECT task_state FROM chunk_tasks WHERE task_id=?", (lease.task_id,),
+            ).fetchone() == ("RESULT_STAGED",)
