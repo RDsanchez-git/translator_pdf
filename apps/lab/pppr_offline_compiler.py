@@ -97,9 +97,30 @@ def verify_fixture_pdf(pdf: Path) -> None:
     import fitz
 
     with fitz.open(pdf) as document:
-        text = " ".join(" ".join(page.get_text().split()) for page in document)
-        lines = [line for page in document for block in page.get_text("dict")["blocks"]
-                 if block["type"] == 0 for line in block["lines"]]
+        text_parts: list[str] = []
+        lines: list[dict] = []
+        for page in document:
+            page_text = page.get_text("text")
+            structured = page.get_text("dict")
+            if not isinstance(page_text, str) or not isinstance(structured, dict):
+                raise ValueError("PPPR_G5_FIXTURE_EXTRACTION_TYPE")
+            text_parts.append(" ".join(page_text.split()))
+            blocks = structured.get("blocks")
+            if not isinstance(blocks, list):
+                raise ValueError("PPPR_G5_FIXTURE_BLOCKS_TYPE")
+            for block in blocks:
+                if not isinstance(block, dict):
+                    raise ValueError("PPPR_G5_FIXTURE_BLOCK_TYPE")
+                if block.get("type") != 0:
+                    continue
+                page_lines = block.get("lines")
+                if not isinstance(page_lines, list):
+                    raise ValueError("PPPR_G5_FIXTURE_LINES_TYPE")
+                for line in page_lines:
+                    if not isinstance(line, dict):
+                        raise ValueError("PPPR_G5_FIXTURE_LINE_TYPE")
+                    lines.append(line)
+        text = " ".join(text_parts)
         sizes: list[float] = []
         for (heading, body), expected_font in zip(
             SECTIONS, ("LMRoman12-Bold", "LMRoman12-Bold", "LMRoman10-Bold"), strict=True

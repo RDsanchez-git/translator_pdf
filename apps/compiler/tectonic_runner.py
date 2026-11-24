@@ -135,15 +135,16 @@ class HostTectonicRunner:
                 logger.info("PPPR_G5_TECTONIC_CACHE_ONLY")
 
             try:
-                result = subprocess.run(
-                    cmd,
-                    capture_output=True,
-                    text=True,
-                    encoding="utf-8",
-                    timeout=120,
-                    cwd=tmp,
-                    env=env,
-                )
+                if env is None:
+                    result = subprocess.run(
+                        cmd, capture_output=True, text=True, encoding="utf-8",
+                        timeout=120, cwd=tmp,
+                    )
+                else:
+                    result = subprocess.run(
+                        cmd, capture_output=True, text=True, encoding="utf-8",
+                        timeout=120, cwd=tmp, env=env,
+                    )
             except subprocess.TimeoutExpired:
                 raise Exception("Fallo de Tectonic: Timeout de 120 segundos excedido.")
 

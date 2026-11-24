@@ -1,6 +1,5 @@
 """Offline compiler inputs and pre-effect guards; no network or native compiler."""
 from hashlib import sha256
-import json
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -69,7 +68,7 @@ def test_cache_only_runner_stages_font_and_config_per_execution(tmp_path, monkey
 def test_default_runner_retains_existing_command(tmp_path, monkeypatch):
     def run(cmd, **kwargs):
         assert cmd == ["tectonic", "--untrusted", "doc.tex"]
-        assert kwargs["env"] is None
+        assert "env" not in kwargs
         assert not (Path(kwargs["cwd"]) / "fonts.conf").exists()
         (Path(kwargs["cwd"]) / "doc.pdf").write_bytes(b"%PDF-1.4")
         return SimpleNamespace(returncode=0, stderr="")

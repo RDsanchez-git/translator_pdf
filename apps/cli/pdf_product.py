@@ -93,10 +93,6 @@ def _ingest(pdf_path: Path, root: Path) -> None:
     from core.ast.registry import ASTRegistry
     from core.execution.handlers import DocumentCommandHandler
 
-    resources = None
-    if offline_scope is not None:
-        offline_scope.validate(document_id)
-        resources = offline_scope.require_compiler_resources()
     with ExitStack() as stack:
         fsm_conn = stack.enter_context(closing(get_connection("infra/db/fsm.db", timeout=30)))
         queue_conn = stack.enter_context(closing(get_connection("infra/db/queue.db", timeout=30)))
@@ -143,6 +139,10 @@ def _run_g5(document_id: str, ast_hash: str, *, offline_scope: OfflineLabScope |
         AssemblerWorkerDaemon, RenderGeometryAdapter, RenderAssetAdapter,
     )
 
+    resources = None
+    if offline_scope is not None:
+        offline_scope.validate(document_id)
+        resources = offline_scope.require_compiler_resources()
     with ExitStack() as stack:
         fsm_conn = stack.enter_context(closing(get_connection("infra/db/fsm.db", timeout=30)))
         queue_conn = stack.enter_context(closing(get_connection("infra/db/queue.db", timeout=30)))
