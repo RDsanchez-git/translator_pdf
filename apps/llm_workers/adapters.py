@@ -58,8 +58,10 @@ class GroqProvider:
                     raise G3ExternalEffectNotStartedError(
                         "PPPR_G5_FREE_DISPATCH_PERMIT_REQUIRED", permanent=True,
                     )
+                # The locked Groq SDK appends /openai/v1/chat/completions
+                # itself. Require the origin, not the OpenAI-compatible prefix.
                 if (not free or self._client.max_retries != 0
-                        or str(self._client.base_url).rstrip("/") != "https://api.groq.com/openai/v1"):
+                        or str(self._client.base_url).rstrip("/") != "https://api.groq.com"):
                     raise G3ExternalEffectNotStartedError(
                         "PPPR_G5_FREE_TRANSPORT_CONFIGURATION_REJECTED", permanent=True,
                     )
@@ -112,6 +114,10 @@ class GroqProvider:
                         # proven no-start or grant a retry based on missing usage.
                         raise MalformedInferenceResponse("PPPR_G5_RESPONSE_ATTRIBUTION_MISSING")
                 if free and permit is not None:
+                    # Keep exact-type validation above (including bool rejection)
+                    # and narrow the optional SDK fields at their typed consumer.
+                    if not isinstance(input_tokens, int) or not isinstance(output_tokens, int):
+                        raise MalformedInferenceResponse("PPPR_G5_RESPONSE_ATTRIBUTION_MISSING")
                     permit.check_reported_usage(input_tokens, output_tokens)
                     if len(response.choices) != 1 or response.choices[0].finish_reason != "stop":
                         raise MalformedInferenceResponse("PPPR_G5_FREE_RESPONSE_NOT_COMPLETE")

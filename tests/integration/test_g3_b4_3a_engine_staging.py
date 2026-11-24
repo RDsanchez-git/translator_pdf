@@ -1205,7 +1205,7 @@ def test_pppr_g5_free_dispatch_bound_to_durable_admission_and_quota(queue, statu
         })
 
     client = AsyncGroq(
-        api_key="synthetic-no-network", base_url="https://api.groq.com/openai/v1", max_retries=0,
+        api_key="synthetic-no-network", base_url="https://api.groq.com", max_retries=0,
         http_client=httpx.AsyncClient(transport=httpx.MockTransport(transport), trust_env=False,
                                      follow_redirects=False),
     )

@@ -170,3 +170,48 @@ async def test_gpt_oss_adapter_without_permit_never_enters_sdk():
             create.assert_not_called()
     finally:
         await provider._client.close()
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize("base_url,retries", [
+    ("https://api.groq.com/openai/v1", 0),
+    ("https://api.groq.com.example.invalid", 0),
+    ("http://api.groq.com", 0),
+    ("https://api.groq.com", 1),
+])
+async def test_free_transport_rejects_wrong_sdk_origin_or_retries(base_url, retries):
+    from groq import AsyncGroq
+    import httpx
+    from apps.llm_workers.adapters import GroqProvider
+    from core.execution import effect_guard as guard
+    from core.utils.telemetry import ctx_task_id, ctx_execution_id
+
+    def reject_io(request):
+        pytest.fail("Rejected transport must never receive a request")
+
+    envelope = replace(_make_envelope(), model_name=GPT_OSS_120B)
+    wire, _ = build_groq_request_kwargs(envelope, OpenAICompatibleDialect())
+    digest = sha256(json.dumps(
+        wire, sort_keys=True, ensure_ascii=False, separators=(",", ":"),
+    ).encode()).hexdigest()
+    permit = guard.FreeWitnessDispatchPermit(digest, time.time_ns() + 60_000_000_000, 100, 256)
+    checked = []
+    task_token = ctx_task_id.set("synthetic-task")
+    execution_token = ctx_execution_id.set("synthetic-execution")
+    guard_token = guard.g3_pre_effect_guard.set(lambda: checked.append(True))
+    permit_token = guard.g3_free_dispatch_permit.set(permit)
+    try:
+        async with AsyncGroq(
+            api_key="synthetic", base_url=base_url, max_retries=retries,
+            http_client=httpx.AsyncClient(transport=httpx.MockTransport(reject_io),
+                                         trust_env=False, follow_redirects=False),
+        ) as client:
+            provider = GroqProvider("synthetic", OpenAICompatibleDialect(), client=client)
+            with pytest.raises(G3ExternalEffectNotStartedError, match="TRANSPORT_CONFIGURATION_REJECTED"):
+                await provider.translate(envelope)
+        assert checked == []  # Reject before even consuming the permit.
+    finally:
+        guard.g3_free_dispatch_permit.reset(permit_token)
+        guard.g3_pre_effect_guard.reset(guard_token)
+        ctx_execution_id.reset(execution_token)
+        ctx_task_id.reset(task_token)
