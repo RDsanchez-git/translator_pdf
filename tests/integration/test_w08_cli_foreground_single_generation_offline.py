@@ -56,8 +56,9 @@ class _ControlledParser:
 
 
 class _OfflineProvider:
-    def __init__(self) -> None:
+    def __init__(self, translations: dict[str, str] | None = None) -> None:
         self.calls: list[tuple[str, tuple[str, ...]]] = []
+        self._translations = translations
 
     async def translate(self, envelope: Any) -> Any:
         # Execute the real PromptBuilder and bridge. Only the HTTP transport is
@@ -71,7 +72,10 @@ class _OfflineProvider:
                 "node_id": m["node_id"],
                 "segment_index": m["segment_index"],
                 "source_sha256": m["source_sha256"],
-                "translated_text": "SYNTHETIC_" + m["source_text"],
+                "translated_text": (
+                    "SYNTHETIC_" + m["source_text"] if self._translations is None
+                    else self._translations[m["source_text"]]
+                ),
             }
             for m in protocol["members"]
         ]
@@ -82,22 +86,8 @@ class _OfflineProvider:
         return SimpleNamespace(chunk_id=envelope.chunk_id, content=raw)
 
 
-@pytest.mark.integration
-def test_cli_foreground_context_receipts_projections_and_pdf_same_generation(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    from apps.bootstrap import pipeline_factory
-    from apps.compiler.tectonic_runner import HostTectonicRunner
-    from core.ast.registry import ASTRegistry
+def _prepare_workspace(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     from infra.db import connection
-    from runtime import engine
-    from apps.llm_workers.sync_bridge import SyncProviderBridge
-    from apps.llm_workers.prompt_builder import PromptBuilder
-    from core.finops.measurement import InferenceMeasurementService
-    from core.validation.estimators import ExactBPEEstimator
-    from core.validation.budget import PromptBudgetCalculator, StandardCompressionPolicy
-    from apps.llm_workers.g3_admission import G3PreEffectAdmission
-    from decimal import Decimal
 
     monkeypatch.chdir(tmp_path)
     monkeypatch.setattr(connection, "BASE_DIR", tmp_path)
@@ -121,42 +111,22 @@ def test_cli_foreground_context_receipts_projections_and_pdf_same_generation(
             )
             conn.commit()
 
-    source = tmp_path / "source.pdf"
-    with fitz.open() as pdf:
-        page = pdf.new_page()
-        page.insert_text((72, 72), "Methods")
-        page.insert_text((72, 98), "Alpha sample.")
-        page.insert_text((72, 150), "Results")
-        page.insert_text((72, 176), "Beta sample.")
-        pdf.save(source)
-    document_id = sha256(source.read_bytes()).hexdigest()
+    return state_dir
 
-    monkeypatch.setattr(
-        pipeline_factory, "build_extraction_pipeline", lambda: _ControlledParser(),
-    )
-    # The real G5 CompilationService renders the selected EN->ES content;
-    # only the external Tectonic binary is replaced with a one-page PDF.
-    rendered_tex: list[str] = []
-    def fake_compile(
-        _self: HostTectonicRunner, tex_content: str, output_dir: str,
-        output_filename: str = "output.pdf", *, image_assets: Any = (),
-    ) -> str:
-        assert "\\begin{document}" in tex_content
-        rendered_tex.append(tex_content)
-        assert not image_assets
-        target = Path(output_dir) / output_filename
-        with fitz.open() as pdf:
-            page = pdf.new_page()
-            page.insert_text((72, 72), "Controlled compiler witness")
-            pdf.save(target)
-        return str(target)
 
-    monkeypatch.setattr(HostTectonicRunner, "compile", fake_compile)
-    import apps.cli.pdf_product as product
-    monkeypatch.setattr(product.shutil, "which", lambda name: "test-tectonic" if name == "tectonic" else None)
+def _install_offline_provider(
+    monkeypatch: pytest.MonkeyPatch, provider: _OfflineProvider,
+) -> list[Any]:
+    from runtime import engine
+    from apps.llm_workers.sync_bridge import SyncProviderBridge
+    from apps.llm_workers.prompt_builder import PromptBuilder
+    from core.finops.measurement import InferenceMeasurementService
+    from core.validation.estimators import ExactBPEEstimator
+    from core.validation.budget import PromptBudgetCalculator, StandardCompressionPolicy
+    from apps.llm_workers.g3_admission import G3PreEffectAdmission
+    from decimal import Decimal
 
-    provider = _OfflineProvider()
-    processors = []
+    processors: list[Any] = []
 
     def fake_processor_factory(context_snapshots: Any) -> tuple[Any, Any]:
         estimator = ExactBPEEstimator()
@@ -197,6 +167,55 @@ def test_cli_foreground_context_receipts_projections_and_pdf_same_generation(
         return bridge, SimpleNamespace(close=lambda: None)
 
     monkeypatch.setattr(engine, "_create_chunk_processor", fake_processor_factory)
+    return processors
+
+
+@pytest.mark.integration
+def test_cli_foreground_context_receipts_projections_and_pdf_same_generation(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from apps.bootstrap import pipeline_factory
+    from apps.compiler.tectonic_runner import HostTectonicRunner
+    from core.ast.registry import ASTRegistry
+    from runtime import engine
+    state_dir = _prepare_workspace(tmp_path, monkeypatch)
+
+    source = tmp_path / "source.pdf"
+    with fitz.open() as pdf:
+        page = pdf.new_page()
+        page.insert_text((72, 72), "Methods")
+        page.insert_text((72, 98), "Alpha sample.")
+        page.insert_text((72, 150), "Results")
+        page.insert_text((72, 176), "Beta sample.")
+        pdf.save(source)
+    document_id = sha256(source.read_bytes()).hexdigest()
+
+    monkeypatch.setattr(
+        pipeline_factory, "build_extraction_pipeline", lambda: _ControlledParser(),
+    )
+    # The real G5 CompilationService renders the selected EN->ES content;
+    # only the external Tectonic binary is replaced with a one-page PDF.
+    rendered_tex: list[str] = []
+    def fake_compile(
+        _self: HostTectonicRunner, tex_content: str, output_dir: str,
+        output_filename: str = "output.pdf", *, image_assets: Any = (),
+    ) -> str:
+        assert "\\begin{document}" in tex_content
+        rendered_tex.append(tex_content)
+        assert not image_assets
+        target = Path(output_dir) / output_filename
+        with fitz.open() as pdf:
+            page = pdf.new_page()
+            page.insert_text((72, 72), "Controlled compiler witness")
+            pdf.save(target)
+        return str(target)
+
+    monkeypatch.setattr(HostTectonicRunner, "compile", fake_compile)
+    import apps.cli.pdf_product as product
+    monkeypatch.setattr(product.shutil, "which", lambda name: "test-tectonic" if name == "tectonic" else None)
+
+    provider = _OfflineProvider()
+    processors = _install_offline_provider(monkeypatch, provider)
     monkeypatch.setattr(
         sys, "argv", ["apps.cli.main", "translate", str(source), "--run"],
     )
