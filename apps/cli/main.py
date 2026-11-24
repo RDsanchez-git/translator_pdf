@@ -70,6 +70,7 @@ def handle_translate(args, *, offline_scope: "OfflineLabScope | None" = None):
         if not getattr(args, "run", False):
             raise SystemExit("PPPR_G5_LAB_FOREGROUND_REQUIRED")
         offline_scope.validate_source(Path(args.file_path))
+        offline_scope.require_compiler_resources()
     elif getattr(args, "run", False) and os.getenv("TPDF_OFFLINE_LAB"):
         raise SystemExit("PPPR_G5_LAB_EXPLICIT_SCOPE_REQUIRED")
     try:

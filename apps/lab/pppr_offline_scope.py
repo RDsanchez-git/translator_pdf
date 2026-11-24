@@ -10,6 +10,10 @@ from pathlib import Path
 import re
 import socket
 import sys
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from apps.compiler.tectonic_runner import CachedTectonicResources
 
 from apps.lab.g3_fake import DUMMY_KEY, FAKE_MODEL
 from apps.llm_workers.g3_admission import G3PreEffectAdmission
@@ -74,6 +78,12 @@ def require_isolated_environment() -> None:
 class OfflineLabScope:
     """Only the launcher passes this explicitly, for one generated PDF."""
     document_id: str
+    compiler_resources: CachedTectonicResources | None = None
+
+    def require_compiler_resources(self) -> CachedTectonicResources:
+        if self.compiler_resources is None:
+            raise G3ExternalEffectNotStartedError("PPPR_G5_LAB_COMPILER_RESOURCES_REQUIRED", permanent=True)
+        return self.compiler_resources
 
     def validate(self, document_id: str) -> None:
         require_isolated_environment()

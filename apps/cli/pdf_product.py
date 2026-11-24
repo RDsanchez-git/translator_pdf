@@ -93,6 +93,10 @@ def _ingest(pdf_path: Path, root: Path) -> None:
     from core.ast.registry import ASTRegistry
     from core.execution.handlers import DocumentCommandHandler
 
+    resources = None
+    if offline_scope is not None:
+        offline_scope.validate(document_id)
+        resources = offline_scope.require_compiler_resources()
     with ExitStack() as stack:
         fsm_conn = stack.enter_context(closing(get_connection("infra/db/fsm.db", timeout=30)))
         queue_conn = stack.enter_context(closing(get_connection("infra/db/queue.db", timeout=30)))
@@ -120,7 +124,7 @@ def _run_g3(document_id: str, ast_hash: str, *, offline_scope: OfflineLabScope |
         run_pipeline(document_id, ast_hash, offline_scope=offline_scope)
 
 
-def _run_g5(document_id: str, ast_hash: str) -> None:
+def _run_g5(document_id: str, ast_hash: str, *, offline_scope: OfflineLabScope | None = None) -> None:
     """One authorized G5 attempt using existing assembler, lease and publisher."""
     from infra.db.connection import get_connection
     from infra.db.control_repo import ControlPlaneRepository
@@ -163,7 +167,7 @@ def _run_g5(document_id: str, ast_hash: str) -> None:
             control_repo=queue_repo, fsm_repo=fsm_repo,
             cmd_handler=DocumentCommandHandler(fsm_repo, task_repo=queue_repo),
             mat_repo=materialized, ast_registry=ast_registry,
-            runner=HostTectonicRunner(), compilation_service=compilation,
+            runner=HostTectonicRunner(cached_resources=resources), compilation_service=compilation,
             context_resolver=resolver,
         )
         worker._process_assembly_task(document_id, ast_hash)
@@ -209,6 +213,7 @@ def run_admitted_pdf(receipt: PDFInboxSubmission, root: Path, *,
         raise PDFProductError("PDF_RUN_INVALID_DOCUMENT_ID")
     if offline_scope is not None:
         offline_scope.validate(document_id)
+        offline_scope.require_compiler_resources()
     elif os.getenv("TPDF_OFFLINE_LAB"):
         raise PDFProductError("PPPR_G5_LAB_EXPLICIT_SCOPE_REQUIRED")
     state = _read_status(document_id)
@@ -237,7 +242,10 @@ def run_admitted_pdf(receipt: PDFInboxSubmission, root: Path, *,
         state = _require_state(document_id, "READY_FOR_ASSEMBLY")
     if state.current_state == "READY_FOR_ASSEMBLY":
         try:
-            _run_g5(document_id, state.ast_hash)
+            if offline_scope is None:
+                _run_g5(document_id, state.ast_hash)
+            else:
+                _run_g5(document_id, state.ast_hash, offline_scope=offline_scope)
         except Exception as exc:
             raise PDFProductError(f'PDF_RUN_G5_EXECUTION_FAILED: {exc}') from exc
         state = _require_state(document_id, "COMPLETED")
