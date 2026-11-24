@@ -119,3 +119,23 @@ async def test_groq_provider_rejects_invalid_reserve_without_sdk_call(invalid_re
         ):
             await provider.translate(bad_envelope)
         create.assert_not_called()
+
+
+@pytest.mark.unit
+@pytest.mark.anyio
+@pytest.mark.parametrize("model,usage,response_id,expected", [
+    ("wrong-model", True, "response-id", "RESPONSE_MODEL_MISMATCH"),
+    ("llama3-70b-8192", False, "response-id", "RESPONSE_ATTRIBUTION_MISSING"),
+    ("llama3-70b-8192", True, "", "RESPONSE_ATTRIBUTION_MISSING"),
+])
+async def test_attributed_response_rejection_is_post_effect(model, usage, response_id, expected):
+    provider = GroqProvider(api_key="fake", dialect=OpenAICompatibleDialect(),
+                            require_attributed_response=True)
+    response = MagicMock()
+    response.model, response.id = model, response_id
+    response.usage = MagicMock(prompt_tokens=15, completion_tokens=20, total_tokens=35) if usage else None
+    with patch.object(provider._client.chat.completions, "create", new_callable=AsyncMock) as create:
+        create.return_value = response
+        with pytest.raises(MalformedInferenceResponse, match=expected):
+            await provider.translate(_make_envelope())
+        create.assert_awaited_once()

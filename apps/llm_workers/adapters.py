@@ -1,6 +1,7 @@
 import time
 import json
 import logging
+from hashlib import sha256
 from groq import AsyncGroq
 import groq
 import google.generativeai as genai
@@ -14,6 +15,7 @@ from core.prompting.dialects.openai_compatible import InferenceDialect
 from core.prompting.renderer import PromptRenderer
 from core.execution.effect_guard import g3_pre_effect_guard
 from core.utils.telemetry import ctx_task_id, ctx_execution_id
+from core.finops.cost_observation import SDK_RESPONSE
 
 logger = logging.getLogger(__name__)
 
@@ -26,9 +28,11 @@ class GroqProvider:
         dialect: InferenceDialect,
         max_retries: int = 0,
         *, client: AsyncGroq | None = None,
+        require_attributed_response: bool = False,
     ):
         self._client = client if client is not None else AsyncGroq(api_key=api_key, max_retries=max_retries)
         self._dialect = dialect
+        self._require_attributed_response = require_attributed_response
 
     async def translate(self, envelope: PromptEnvelope) -> InferenceResult:
         # Share the exact physical request with the pre-effect admission.
@@ -43,12 +47,51 @@ class GroqProvider:
             # request, remote application or provider billing. Only G3's
             # correlated route contributes to the PPPR observation contract.
             task_id, execution_id = ctx_task_id.get(), ctx_execution_id.get()
-            if g3_pre_effect_guard.get() is not None and task_id != "-" and execution_id != "-":
+            correlated = g3_pre_effect_guard.get() is not None and task_id != "-" and execution_id != "-"
+            if correlated:
                 logger.info("PPPR_G3_CLIENT_SDK_ENTRY", extra={"extra_data": {
                     "task_id": task_id, "execution_id": execution_id,
                     "chunk_id": envelope.chunk_id, "observed_at_ns": time.time_ns(),
                 }})
             response = await self._client.chat.completions.create(**kwargs)
+            if correlated or self._require_attributed_response:
+                # Record the observed SDK response before parsing its scientific
+                # payload. Missing usage is unavailable, never zero. A response
+                # is not an invoice or proof of a unique external application.
+                model = getattr(response, "model", None)
+                response_id = getattr(response, "id", None)
+                usage = getattr(response, "usage", None)
+                input_tokens = getattr(usage, "prompt_tokens", None)
+                output_tokens = getattr(usage, "completion_tokens", None)
+                total_tokens = getattr(usage, "total_tokens", None)
+                valid_usage = (
+                    type(input_tokens) is int and input_tokens > 0
+                    and type(output_tokens) is int and output_tokens >= 0
+                    and type(total_tokens) is int and total_tokens == input_tokens + output_tokens
+                )
+                valid_model = isinstance(model, str) and model == envelope.model_name
+                valid_id = isinstance(response_id, str) and bool(response_id.strip())
+                if correlated:
+                    digest = sha256(json.dumps(
+                        kwargs, sort_keys=True, ensure_ascii=False, separators=(",", ":"),
+                    ).encode("utf-8")).hexdigest()
+                    logger.info(SDK_RESPONSE, extra={"extra_data": {
+                        "task_id": task_id, "execution_id": execution_id,
+                        "chunk_id": envelope.chunk_id, "request_sha256": digest,
+                        "observed_at_ns": time.time_ns(),
+                        "response_model": model if isinstance(model, str) else None,
+                        "response_id": response_id if valid_id else None,
+                        "input_tokens": input_tokens if valid_usage else None,
+                        "output_tokens": output_tokens if valid_usage else None,
+                        "total_tokens": total_tokens if valid_usage else None,
+                    }})
+                if self._require_attributed_response:
+                    if not valid_model:
+                        raise MalformedInferenceResponse("PPPR_G5_RESPONSE_MODEL_MISMATCH")
+                    if not valid_id or not valid_usage:
+                        # This is AFTER SDK invocation. Never classify it as
+                        # proven no-start or grant a retry based on missing usage.
+                        raise MalformedInferenceResponse("PPPR_G5_RESPONSE_ATTRIBUTION_MISSING")
             
             latency = (time.monotonic() - start_time) * 1000
             

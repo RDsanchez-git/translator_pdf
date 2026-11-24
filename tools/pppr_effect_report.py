@@ -1,4 +1,4 @@
-"""Read-only post-recovery F18-05 R4–R9 report over an isolated queue snapshot.
+"""Read-only post-recovery F18-05 R4–R9/R12 report over an isolated queue snapshot.
 
 Usage: python -m tools.pppr_effect_report --queue-copy PATH --jsonl PATH
        --document-id SHA --ast-hash SHA --start-ns N --end-ns N
@@ -23,6 +23,9 @@ from typing import Iterable
 from core.finops.effect_observation import (
     RECEIPT_WINDOW, SDK_ENTRY, AttemptKey, build_effect_report,
 )
+
+
+from core.finops.cost_observation import SDK_RESPONSE, observe_attempt_cost
 
 
 def _digest(value: object) -> bool:
@@ -61,6 +64,7 @@ def report_from_snapshot(
         raise ValueError("PPPR_EFFECT_PLAN_REQUIRED")
     admissions: dict[AttemptKey, str] = {}
     chunk_ids: dict[AttemptKey, str] = {}
+    decisions: dict[AttemptKey, dict[str, object]] = {}
     for task, execution, generation, payload, digest, created, chunk in conn.execute(
         "SELECT a.task_id,a.execution_id,a.generation_sha256,a.decision_json,"
         "a.decision_sha256,a.created_at,t.node_id "
@@ -87,6 +91,7 @@ def report_from_snapshot(
             raise ValueError("PPPR_EFFECT_ADMISSION_DUPLICATE")
         admissions[key] = generation
         chunk_ids[key] = chunk
+        decisions[key] = decision
     # Corroborate measured intervals with existing receipt identities. A
     # receipt alone supplies no elapsed time, and an admission alone supplies
     # no result. Do not attempt to reconstruct/repair an incomplete plan.
@@ -103,6 +108,8 @@ def report_from_snapshot(
         receipts.add(key)
 
     events: list[dict[str, object]] = []
+    responses: dict[AttemptKey, list[dict[str, object]]] = {}
+    sdk_counts: dict[AttemptKey, int] = {}
     for line in lines:
         if not line.strip():
             continue
@@ -111,12 +118,12 @@ def report_from_snapshot(
         except ValueError as exc:
             # Permit ordinary non-JSON log lines, but never silently drop a
             # malformed observation (which could hide a repetition).
-            if SDK_ENTRY in line or RECEIPT_WINDOW in line:
+            if SDK_ENTRY in line or RECEIPT_WINDOW in line or SDK_RESPONSE in line:
                 raise ValueError("PPPR_EFFECT_OBSERVATION_LOG_MALFORMED") from exc
             if capture_complete:
                 raise ValueError("PPPR_EFFECT_COMPLETE_CAPTURE_REQUIRES_JSONL") from exc
             continue
-        if not isinstance(event, dict) or event.get("message") not in (SDK_ENTRY, RECEIPT_WINDOW):
+        if not isinstance(event, dict) or event.get("message") not in (SDK_ENTRY, RECEIPT_WINDOW, SDK_RESPONSE):
             continue
         task, execution = event.get("task_id"), event.get("execution_id")
         if not isinstance(task, str) or not isinstance(execution, str):
@@ -124,12 +131,22 @@ def report_from_snapshot(
         key = (task, execution)
         if key not in admissions:
             raise ValueError("PPPR_EFFECT_EVENT_OUTSIDE_SCOPE")
-        if event["message"] == SDK_ENTRY and event.get("chunk_id") != chunk_ids[key]:
+        if event["message"] in (SDK_ENTRY, SDK_RESPONSE) and event.get("chunk_id") != chunk_ids[key]:
             raise ValueError("PPPR_EFFECT_EVENT_CHUNK_MISMATCH")
         if (event["message"] == RECEIPT_WINDOW and event.get("classification") == "MEASURED"
                 and key not in receipts):
             raise ValueError("PPPR_EFFECT_MEASURED_WINDOW_WITHOUT_RECEIPT")
-        events.append(event)
+        if event["message"] == SDK_RESPONSE:
+            stamp = event.get("observed_at_ns")
+            if type(stamp) is not int or not start_ns <= stamp <= end_ns:
+                raise ValueError("PPPR_EFFECT_EVENT_OUTSIDE_SCOPE")
+            if event in responses.get(key, []):
+                raise ValueError("PPPR_COST_DUPLICATE_RESPONSE_EVENT")
+            responses.setdefault(key, []).append(event)
+        else:
+            if event["message"] == SDK_ENTRY:
+                sdk_counts[key] = sdk_counts.get(key, 0) + 1
+            events.append(event)
     report = build_effect_report(
         admissions, events, start_ns=start_ns, end_ns=end_ns, scope=scope,
         capture_complete=capture_complete,
@@ -139,6 +156,16 @@ def report_from_snapshot(
     report["manifest_sha256"] = plans[0][0]
     report["local_receipt_count"] = len(receipts)
     report["external_evidence_scope"] = "NO_PROVIDER_EVIDENCE_ADAPTER"
+    report["cost_observations"] = [
+        {
+            "task_id": key[0], "execution_id": key[1], "generation_sha256": admissions[key],
+            **observe_attempt_cost(
+                decisions[key], responses.get(key, []),
+                sdk_entries=sdk_counts.get(key, 0), capture_complete=capture_complete,
+            ),
+        }
+        for key in sorted(admissions)
+    ]
     return report
 
 

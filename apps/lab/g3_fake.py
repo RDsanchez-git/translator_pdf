@@ -265,7 +265,7 @@ class _Handler(BaseHTTPRequestHandler):
             result = _resolve(_parse(raw), server.db)
             response = _compact({"content": _compact(result)})
             self._send(200, {
-                "id": "chatcmpl-g3-reusable-offline", "object": "chat.completion",
+                "id": f"chatcmpl-g3-reusable-offline-{request_number}", "object": "chat.completion",
                 "created": 0, "model": FAKE_MODEL,
                 "choices": [{"index": 0, "message": {"role": "assistant", "content": response},
                              "finish_reason": "stop"}],

@@ -239,6 +239,7 @@ def test_pppr_g5_attested_generation_recovery(
 def test_pppr_g5_loopback_response_before_receipt_stays_unknown(recovery_subject, monkeypatch, caplog):
     from core.finops.effect_observation import SDK_ENTRY, RECEIPT_WINDOW
     from core.utils.telemetry import JSONFormatter
+    from core.finops.cost_observation import SDK_RESPONSE
     from tools.pppr_effect_report import report_from_snapshot
 
     caplog.set_level("INFO")
@@ -296,7 +297,7 @@ def test_pppr_g5_loopback_response_before_receipt_stays_unknown(recovery_subject
     events = [
         formatter.format(record)
         for record in caplog.records
-        if record.getMessage() in (SDK_ENTRY, RECEIPT_WINDOW)
+        if record.getMessage() in (SDK_ENTRY, RECEIPT_WINDOW, SDK_RESPONSE)
     ]
     assert sum(json.loads(event)["message"] == SDK_ENTRY for event in events) == server.requests == 6
     observation_end = time.time_ns()
@@ -330,6 +331,16 @@ def test_pppr_g5_loopback_response_before_receipt_stays_unknown(recovery_subject
                 scope="SYNTHETIC_INVALID_CAPTURE",
             )
     assert report["local_receipt_count"] == 5
+    costs = report["cost_observations"]
+    assert len(costs) == 6
+    assert len({c["responses"][0]["response_id"] for c in costs}) == 6
+    for cost in costs:
+        assert cost["provider_id"] == lab.PROVIDER_ID
+        assert cost["observed_or_invoiced_cost"]["amount_usd"] is None
+        assert cost["estimated_cost"]["classification"] == "ESTIMATED"
+        assert cost["estimated_cost"]["amount_usd"] == "0"
+        assert cost["responses"][0]["total_tokens"] == 2
+        assert cost["potential_unconfirmed_exposure"]["validated_upper_bound_usd"] is None
     assert report["document_id"] == document_id and report["ast_hash"] == ast_hash
     assert _evidence(state) == evidence
     assert report["client_reexecution_rate"]["value"] == 0

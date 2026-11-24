@@ -159,4 +159,5 @@ class OfflineLoopbackProvider:
         ) as client:
             return await GroqProvider(
                 DUMMY_KEY, OpenAICompatibleDialect(), client=client,
+                require_attributed_response=True,
             ).translate(envelope)
