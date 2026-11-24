@@ -23,6 +23,7 @@ from core.compiler.exceptions import AssemblyRejectedError, ProfileNotFoundError
 from core.document_profile.ports import ProfileStore
 from core.compiler.rendering.mapper import RenderUnitMapper
 from core.compiler.rendering.context import RenderContextFactory
+from core.compiler.rendering.implementations import usable_image_width
 from core.compiler.rendering.models import RenderUnit, AssetReference
 from core.ast.enums import ContentNodeType, TranslationStrategy
 from apps.compiler.tex_builder import TexBuilder
@@ -127,6 +128,21 @@ class CompilationService:
 
         # Paso 4: Renderizado LaTeX
         render_context = RenderContextFactory.create(profile)
+        # NADR-FPPPR-02 R8 / FPPPR-04 R9: unknown two-column image
+        # width cannot be represented as verified narrow. Keep independent
+        # text renderable, but refuse conforming publication of this image.
+        for unit in render_units:
+            if (render_context.is_multi_column
+                    and unit.node_type == ContentNodeType.IMAGE
+                    and usable_image_width(unit.geometry) is None):
+                safe_id = ascii(unit.node_id)
+                logger.error(
+                    "PPPR_G4_IMAGE_WIDTH_UNVERIFIED node_id=%s",
+                    safe_id, extra=log_ctx,
+                )
+                raise ASTConsistencyError(
+                    f"PPPR_G4_IMAGE_WIDTH_UNVERIFIED node_id={safe_id}"
+                )
         builder = TexBuilder(render_context)
 
         assets: list[AssetReference] = []

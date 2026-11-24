@@ -18,6 +18,7 @@ class RenderContext:
     structure: DocumentStructurePolicy
     strategies: Mapping[ContentNodeType, RenderStrategy]
     fallback_strategy: RenderStrategy
+    is_multi_column: bool = False
 
     def render_unit(self, unit: RenderUnit) -> str:
         strategy = self.strategies.get(unit.node_type, self.fallback_strategy)
@@ -70,5 +71,6 @@ class RenderContextFactory:
         return RenderContext(
             structure=structure,
             strategies=strategies_map,
-            fallback_strategy=text_strategy
+            fallback_strategy=text_strategy,
+            is_multi_column=config.is_multi_column,
         )
