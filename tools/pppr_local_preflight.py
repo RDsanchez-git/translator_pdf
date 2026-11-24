@@ -51,52 +51,35 @@ def _read(command: list[str], source: str | None = None) -> str:
                           text=True, check=True, timeout=30).stdout
 
 
-def _false_bind_omitted(docker: list[str]) -> bool:
-    """Calibrate actual Compose JSON serialization without creating resources."""
-    source = """
-services:
-  disabled:
-    image: scratch
-    volumes:
-      - type: bind
-        source: .
-        target: /probe
-        bind:
-          create_host_path: false
-  enabled:
-    image: scratch
-    volumes:
-      - type: bind
-        source: .
-        target: /probe
-        bind:
-          create_host_path: true
-"""
-    model = json.loads(_read(docker + [
-        "compose", "--project-name", "tpdfppprbindprobe", "-f", "-",
-        "config", "--format", "json",
-    ], source))
-    disabled = model["services"]["disabled"]["volumes"][0].get("bind", {})
-    enabled = model["services"]["enabled"]["volumes"][0].get("bind", {})
-    if not isinstance(disabled, dict) or not isinstance(enabled, dict):
-        raise ValueError("unsupported bind serializer")
-    if disabled.get("create_host_path") is False and enabled.get("create_host_path") is True:
-        return False
-    if "create_host_path" not in disabled and enabled.get("create_host_path") is True:
-        return True
-    raise ValueError("ambiguous bind serializer")
+def load_effective_config(docker: list[str], project: str) -> tuple[dict, dict]:
+    """Read the same merged files in canonical and non-interpolated model views.
 
-
-def load_effective_config(docker: list[str], project: str) -> tuple[dict, bool]:
-    """Read actual Compose files; no image operations or containers."""
+    The latter preserves explicit booleans before typed Project serialization.
+    Both views are needed: the non-interpolated model alone is not runtime config.
+    """
     dc = docker + ["compose", "--project-name", project] + [
         arg for file in ("docker-compose.yml", "docker-compose.runtime.yml", "docker-compose.local.yml")
         for arg in ("-f", str(ROOT / file))
     ]
-    return json.loads(_read(dc + ["config", "--format", "json"])), _false_bind_omitted(docker)
+    effective = json.loads(_read(dc + ["config", "--format", "json"]))
+    declared = json.loads(_read(dc + ["config", "--no-interpolate", "--format", "json"]))
+    return effective, declared
 
 
-def inspect(config: dict, project: str, *, false_bind_omitted: bool = False) -> list[str]:
+def _declared_no_create(model: dict, name: str) -> bool:
+    """Require explicit false for the matching merged long-form bind."""
+    mounts = model.get("services", {}).get(name, {}).get("volumes", [])
+    code = [v for v in mounts if isinstance(v, dict) and v.get("target") == "/workspace"]
+    if len(code) != 1:
+        return False
+    mount = code[0]
+    bind = mount.get("bind", {})
+    return (mount.get("type") == "bind" and mount.get("read_only") is True
+            and Path(mount.get("source", "")).resolve() == ROOT
+            and isinstance(bind, dict) and bind.get("create_host_path") is False)
+
+
+def inspect(config: dict, project: str, *, declared: dict | None = None) -> list[str]:
     errors = []
     services = config.get("services", {})
     if set(services) != set(COMMANDS):
@@ -143,9 +126,12 @@ def inspect(config: dict, project: str, *, false_bind_omitted: bool = False) -> 
         targets = {v.get("target"): v for v in volumes}
         code = targets.get("/workspace", {})
         bind = code.get("bind", {})
-        no_create = isinstance(bind, dict) and (
-            bind.get("create_host_path") is False
-            or (false_bind_omitted and "create_host_path" not in bind)
+        # Typed JSON can omit false; only an explicit matching declaration
+        # in the same merged model can disambiguate that omission.
+        no_create = (
+            isinstance(bind, dict)
+            and ("create_host_path" not in bind or bind.get("create_host_path") is False)
+            and _declared_no_create(config if declared is None else declared, name)
         )
         if (len(targets) != len(volumes) or set(targets) != set(MOUNTS) | {"/workspace"}
                 or code.get("type") != "bind" or not code.get("read_only")
@@ -187,8 +173,8 @@ def main() -> int:
         return 2
     docker = ["docker", "--context", args.context]
     try:
-        config, false_bind_omitted = load_effective_config(docker, args.project)
-        errors = inspect(config, args.project, false_bind_omitted=false_bind_omitted)
+        config, declared = load_effective_config(docker, args.project)
+        errors = inspect(config, args.project, declared=declared)
         local = json.loads(_read(docker + ["image", "inspect", IMAGE]))[0]
         if local["Id"] != IMAGE_ID or local["Config"].get("Volumes"):
             errors.append("LOCAL_IMAGE_ID_OR_IMPLICIT_VOLUME_DRIFT")
