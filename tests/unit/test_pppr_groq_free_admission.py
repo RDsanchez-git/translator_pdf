@@ -114,3 +114,59 @@ def test_harmony_preflight_never_initializes_tokenizer(tmp_path, monkeypatch):
         estimators.verify_harmony_rank_cache(tmp_path)
     monkeypatch.setattr(estimators, "HARMONY_RANKS_SHA256", sha256(b"corrupt").hexdigest())
     assert estimators.verify_harmony_rank_cache(tmp_path) == path
+
+
+def test_dispatch_permit_rechecks_authority_and_is_not_reusable(monkeypatch):
+    from core.execution import effect_guard as guard
+    from core.execution.exceptions import MalformedInferenceResponse
+
+    clock = [100]
+    monkeypatch.setattr(guard.time, "time_ns", lambda: clock[0])
+    permit = guard.FreeWitnessDispatchPermit("a"*64, 200, 100, 256)
+    assert permit.reserved_tokens == 356
+    with pytest.raises(G3ExternalEffectNotStartedError, match="AUTHORITY_REQUIRED"):
+        permit.claim("a"*64)
+    seen = []
+    token = guard.g3_pre_effect_guard.set(lambda: seen.append(True))
+    try:
+        with pytest.raises(G3ExternalEffectNotStartedError, match="REQUEST_DRIFT"):
+            permit.claim("b"*64)
+        permit.claim("a"*64)
+        assert seen == [True]
+        with pytest.raises(MalformedInferenceResponse, match="ALREADY_ENTERED"):
+            permit.claim("a"*64)
+        with pytest.raises(MalformedInferenceResponse, match="USAGE_EXCEEDS_ADMISSION"):
+            permit.check_reported_usage(101, 1)
+        with pytest.raises(MalformedInferenceResponse, match="USAGE_EXCEEDS_ADMISSION"):
+            permit.check_reported_usage(100, 257)
+    finally:
+        guard.g3_pre_effect_guard.reset(token)
+
+
+def test_dispatch_permit_rejects_expiry_during_authority_check(monkeypatch):
+    from core.execution import effect_guard as guard
+
+    clock = [100]
+    monkeypatch.setattr(guard.time, "time_ns", lambda: clock[0])
+    permit = guard.FreeWitnessDispatchPermit("a"*64, 200, 100, 256)
+    token = guard.g3_pre_effect_guard.set(lambda: clock.__setitem__(0, 200))
+    try:
+        with pytest.raises(G3ExternalEffectNotStartedError, match="EVIDENCE_STALE"):
+            permit.claim("a"*64)
+    finally:
+        guard.g3_pre_effect_guard.reset(token)
+
+
+@pytest.mark.anyio
+async def test_gpt_oss_adapter_without_permit_never_enters_sdk():
+    from unittest.mock import AsyncMock, patch
+    from apps.llm_workers.adapters import GroqProvider
+
+    provider = GroqProvider(api_key="fake", dialect=OpenAICompatibleDialect())
+    try:
+        with patch.object(provider._client.chat.completions, "create", new_callable=AsyncMock) as create:
+            with pytest.raises(G3ExternalEffectNotStartedError, match="DISPATCH_PERMIT_REQUIRED"):
+                await provider.translate(replace(_make_envelope(), model_name=GPT_OSS_120B))
+            create.assert_not_called()
+    finally:
+        await provider._client.close()

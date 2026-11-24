@@ -1122,3 +1122,114 @@ def test_pppr_g5_free_witness_reservation_is_durable_and_single_use(queue):
         with pytest.raises(G3ExternalEffectNotStartedError, match="ALREADY_RESERVED"):
             repo.record_g3_admission_decision(**kwargs)
         assert reopened.execute("SELECT COUNT(*) FROM g3_admission_decisions").fetchone() == (1,)
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize("status", [200, 429])
+def test_pppr_g5_free_dispatch_bound_to_durable_admission_and_quota(queue, status):
+    """Actual SDK serialization/response, bridge, quota and SQLite; no sockets."""
+    import asyncio
+    from contextlib import closing
+    from decimal import Decimal
+    from groq import AsyncGroq
+    import httpx
+    from apps.llm_workers.adapters import GroqProvider
+    from apps.llm_workers.g3_admission import GPT_OSS_120B, GroqFreeTierWitness
+    from apps.llm_workers.rate_limiter import QuotaManager, RateLimitedProvider
+    from core.execution.exceptions import TransientAPIError
+    from core.execution.effect_guard import g3_free_dispatch_permit
+    from core.finops.measurement import InferenceMeasurementService
+    from core.prompting.dialects.openai_compatible import OpenAICompatibleDialect
+    from core.utils.telemetry import ctx_task_id, ctx_execution_id
+    from core.validation.budget import PromptBudgetCalculator, StandardCompressionPolicy
+
+    unit = next(u for u in queue.plan.units if u.chunk_type == TranslationTaskType.TRANSLATE)
+    lease = queue.repo.pick_task("free-dispatch", queue.plan.document_id, queue.plan.ast_hash)
+    assert lease is not None
+    if lease.node_id != unit.chunk_id:
+        preserve = next(u for u in queue.plan.units if u.chunk_id == lease.node_id)
+        assert stage_claimed_unit(queue.repo, queue.plan, queue.ast, preserve, lease,
+                                  "free-dispatch", None, Semaphore(1))
+        lease = queue.repo.pick_task("free-dispatch", queue.plan.document_id, queue.plan.ast_hash)
+    assert lease is not None and lease.node_id == unit.chunk_id
+    now = time.time_ns()
+    policy = _w32_fake_admission(
+        model_name=GPT_OSS_120B, input_limit=8000, context_window=131072,
+        input_price_per_token=Decimal("0.00000015"), output_price_per_token=Decimal("0.00000060"),
+        free_tier_witness=GroqFreeTierWitness(
+            "synthetic-dispatch", "synthetic-account", "synthetic-quota", "synthetic-entitlement",
+            now-1_000_000, now+60_000_000_000, 30, 1000, 8000, 200000,
+            "FREE", True, True, True,
+        ),
+    )
+    builder = PromptBuilder(
+        model_name=GPT_OSS_120B, prompt_version="synthetic-free-test",
+        measurement_service=InferenceMeasurementService(_Estimator()),
+        budget_calculator=PromptBudgetCalculator(),
+        compression_policy=StandardCompressionPolicy(),
+    )
+    db_path = queue.db.execute("PRAGMA database_list").fetchone()[2]
+    requests = []
+
+    class RecordingQuota(QuotaManager):
+        async def reserve(self, estimated_tokens, estimated_requests=1):
+            permit = g3_free_dispatch_permit.get()
+            assert permit is not None
+            assert estimated_tokens == permit.reserved_tokens
+            return await super().reserve(estimated_tokens, estimated_requests)
+
+    def transport(request):
+        requests.append(request)
+        assert request.method == "POST"
+        assert str(request.url) == "https://api.groq.com/openai/v1/chat/completions"
+        body = json.loads(request.content)
+        with closing(sqlite3.connect(db_path)) as fresh:
+            row = fresh.execute(
+                "SELECT decision_json FROM g3_admission_decisions WHERE task_id=? AND execution_id=?",
+                (lease.task_id, lease.execution_id),
+            ).fetchone()
+        assert row is not None  # committed before physical SDK transport
+        audit = json.loads(row[0])
+        assert audit["request_sha256"] == sha256(json.dumps(
+            body, sort_keys=True, ensure_ascii=False, separators=(",", ":"),
+        ).encode()).hexdigest()
+        assert audit["free_tier_witness"]["reserved_tokens"] == audit["input_tokens"] + audit["reserved_output_tokens"]
+        if status == 429:
+            return httpx.Response(429, json={"error": {"message": "synthetic quota exhausted"}})
+        return httpx.Response(200, json={
+            "id": "synthetic-attributed-id", "object": "chat.completion", "created": 0,
+            "model": GPT_OSS_120B,
+            "choices": [{"index": 0, "finish_reason": "stop",
+                         "message": {"role": "assistant", "content": json.dumps({"content": _response(queue.plan, unit)})}}],
+            "usage": {"prompt_tokens": 10, "completion_tokens": 10, "total_tokens": 20},
+        })
+
+    client = AsyncGroq(
+        api_key="synthetic-no-network", base_url="https://api.groq.com/openai/v1", max_retries=0,
+        http_client=httpx.AsyncClient(transport=httpx.MockTransport(transport), trust_env=False,
+                                     follow_redirects=False),
+    )
+    provider = RateLimitedProvider(GroqProvider("synthetic", OpenAICompatibleDialect(), client=client),
+                                   RecordingQuota(30, 8000))
+    bridge = _bridge(provider, builder, queue.plan, effective_config_sha256="a"*64,
+                     pre_effect_admission=policy)
+    task_token = ctx_task_id.set(lease.task_id)
+    execution_token = ctx_execution_id.set(lease.execution_id)
+    try:
+        if status == 200:
+            assert stage_claimed_unit(queue.repo, queue.plan, queue.ast, unit, lease,
+                                      "free-dispatch", bridge, Semaphore(1))
+        else:
+            with pytest.raises(TransientAPIError, match="429"):
+                stage_claimed_unit(queue.repo, queue.plan, queue.ast, unit, lease,
+                                   "free-dispatch", bridge, Semaphore(1))
+        assert len(requests) == 1
+        assert g3_free_dispatch_permit.get() is None
+        assert queue.db.execute(
+            "SELECT COUNT(*) FROM chunk_result_receipts WHERE raw_response IS NOT NULL"
+        ).fetchone() == (int(status == 200),)
+    finally:
+        ctx_execution_id.reset(execution_token)
+        ctx_task_id.reset(task_token)
+        bridge.shutdown()
+        asyncio.run(client.close())

@@ -7,13 +7,16 @@ import groq
 import google.generativeai as genai
 
 from apps.llm_workers.prompt_builder import PromptEnvelope
-from apps.llm_workers.g3_admission import build_groq_request_kwargs
-from core.execution.exceptions import TransientAPIError, DialectParsingError, MalformedInferenceResponse
+from apps.llm_workers.g3_admission import GPT_OSS_120B, build_groq_request_kwargs
+from core.execution.exceptions import (
+    TransientAPIError, DialectParsingError, MalformedInferenceResponse,
+    G3ExternalEffectNotStartedError,
+)
 
 from core.prompting.inference_result import InferenceResult
 from core.prompting.dialects.openai_compatible import InferenceDialect
 from core.prompting.renderer import PromptRenderer
-from core.execution.effect_guard import g3_pre_effect_guard
+from core.execution.effect_guard import g3_pre_effect_guard, g3_free_dispatch_permit
 from core.utils.telemetry import ctx_task_id, ctx_execution_id
 from core.finops.cost_observation import SDK_RESPONSE
 
@@ -48,13 +51,29 @@ class GroqProvider:
             # correlated route contributes to the PPPR observation contract.
             task_id, execution_id = ctx_task_id.get(), ctx_execution_id.get()
             correlated = g3_pre_effect_guard.get() is not None and task_id != "-" and execution_id != "-"
+            permit = g3_free_dispatch_permit.get()
+            free = envelope.model_name == GPT_OSS_120B
+            if free or permit is not None:
+                if permit is None or not correlated:
+                    raise G3ExternalEffectNotStartedError(
+                        "PPPR_G5_FREE_DISPATCH_PERMIT_REQUIRED", permanent=True,
+                    )
+                if (not free or self._client.max_retries != 0
+                        or str(self._client.base_url).rstrip("/") != "https://api.groq.com/openai/v1"):
+                    raise G3ExternalEffectNotStartedError(
+                        "PPPR_G5_FREE_TRANSPORT_CONFIGURATION_REJECTED", permanent=True,
+                    )
+                digest = sha256(json.dumps(
+                    kwargs, sort_keys=True, ensure_ascii=False, separators=(",", ":"),
+                ).encode("utf-8")).hexdigest()
+                permit.claim(digest)
             if correlated:
                 logger.info("PPPR_G3_CLIENT_SDK_ENTRY", extra={"extra_data": {
                     "task_id": task_id, "execution_id": execution_id,
                     "chunk_id": envelope.chunk_id, "observed_at_ns": time.time_ns(),
                 }})
             response = await self._client.chat.completions.create(**kwargs)
-            if correlated or self._require_attributed_response:
+            if correlated or self._require_attributed_response or free:
                 # Record the observed SDK response before parsing its scientific
                 # payload. Missing usage is unavailable, never zero. A response
                 # is not an invoice or proof of a unique external application.
@@ -85,13 +104,17 @@ class GroqProvider:
                         "output_tokens": output_tokens if valid_usage else None,
                         "total_tokens": total_tokens if valid_usage else None,
                     }})
-                if self._require_attributed_response:
+                if self._require_attributed_response or free:
                     if not valid_model:
                         raise MalformedInferenceResponse("PPPR_G5_RESPONSE_MODEL_MISMATCH")
                     if not valid_id or not valid_usage:
                         # This is AFTER SDK invocation. Never classify it as
                         # proven no-start or grant a retry based on missing usage.
                         raise MalformedInferenceResponse("PPPR_G5_RESPONSE_ATTRIBUTION_MISSING")
+                if free and permit is not None:
+                    permit.check_reported_usage(input_tokens, output_tokens)
+                    if len(response.choices) != 1 or response.choices[0].finish_reason != "stop":
+                        raise MalformedInferenceResponse("PPPR_G5_FREE_RESPONSE_NOT_COMPLETE")
             
             latency = (time.monotonic() - start_time) * 1000
             
