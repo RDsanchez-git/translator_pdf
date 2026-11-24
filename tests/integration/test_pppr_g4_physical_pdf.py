@@ -6,6 +6,7 @@ The typed G5 witness is intentionally separate from extraction capabilities.
 from contextlib import closing
 from hashlib import sha256
 from io import BytesIO
+from math import isfinite
 import os
 from pathlib import Path
 import shutil
@@ -39,7 +40,7 @@ from tests.integration.test_w08_cli_foreground_single_generation_offline import 
 pytestmark = pytest.mark.integration
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture
 def require_physical_compiler():
     required = os.getenv("PPPR_G4_REQUIRE_PHYSICAL_PDF") == "1"
     if shutil.which("tectonic") is None:
@@ -80,6 +81,61 @@ def _source_pdf(path: Path) -> None:
         document.save(path)
 
 
+def _physical_heading_size(lines: list[dict], expected: str) -> float:
+    """Locate one complete physical line, independent of PDF font-run splits.
+
+    A span is an extractor grouping, not a structural heading boundary.
+    Do not join separate lines or allow a substring in unrelated prose.
+    The short, single-line synthetic headings must have a consistent size.
+    """
+    matches = [
+        line for line in lines
+        if "".join(span["text"] for span in line["spans"]).strip() == expected
+    ]
+    assert len(matches) == 1, (
+        f"Expected one physical heading line {expected!r}, got {len(matches)}; "
+        f"observed lines={[''.join(s['text'] for s in l['spans']) for l in lines]!r}"
+    )
+    sizes = [
+        float(span["size"]) for span in matches[0]["spans"]
+        if span["text"].strip()
+    ]
+    assert sizes and all(isfinite(size) and size > 0 for size in sizes), (
+        f"Invalid physical heading sizes for {expected!r}: {sizes!r}"
+    )
+    # PDF point rounding is allowed, not a mix of heading and body sizes.
+    assert max(sizes) - min(sizes) <= 0.05, (
+        f"Inconsistent physical heading sizes for {expected!r}: {sizes!r}"
+    )
+    return min(sizes)
+
+
+def test_heading_oracle_accepts_fragmented_same_size_font_runs() -> None:
+    lines = [{"spans": [
+        {"text": "1 M", "size": 14.35},
+        {"text": "é", "size": 14.34},
+        {"text": "todos", "size": 14.35},
+    ]}]
+    assert _physical_heading_size(lines, "1 Métodos") == pytest.approx(14.34)
+
+
+@pytest.mark.parametrize("runs", [
+    [[("1 M", 14.35), ("étodos", 10.95)]],  # inconsistent size
+    [[("1 M", 14.35)], [("étodos", 14.35)]],  # different physical lines
+    [[("Prefix 1 Métodos", 14.35)]],  # substring only
+    [[("1 Métodos", 14.35)], [("1 Métodos", 14.35)]],  # ambiguous duplicate
+    [[("1 Métodos", float("nan"))]],  # nonfinite geometry
+])
+def test_heading_oracle_rejects_unverified_correspondence(runs) -> None:
+    lines = [
+        {"spans": [{"text": text, "size": size} for text, size in run]}
+        for run in runs
+    ]
+    with pytest.raises(AssertionError):
+        _physical_heading_size(lines, "1 Métodos")
+
+
+@pytest.mark.usefixtures("require_physical_compiler")
 def test_real_source_to_selected_translation_to_physical_pdf(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -160,21 +216,18 @@ def test_real_source_to_selected_translation_to_physical_pdf(
     with fitz.open(result) as compiled:
         assert compiled.page_count >= 1
         text = "\n".join(page.get_text() for page in compiled)
-        spans = [
-            span
+        lines = [
+            line
             for page in compiled
             for block in page.get_text("dict")["blocks"]
             if block["type"] == 0
             for line in block["lines"]
-            for span in line["spans"]
         ]
         heading_sizes = []
         for original, translated, _ in _HEADINGS:
             assert original not in text
             assert translated in text
-            matching = [span["size"] for span in spans if span["text"].strip() == translated]
-            assert matching, f"Missing physical heading span: {translated}"
-            heading_sizes.append(matching[0])
+            heading_sizes.append(_physical_heading_size(lines, translated))
         assert heading_sizes[0] > heading_sizes[1] > heading_sizes[2]
         for original, translated in _BODY:
             assert original not in text
@@ -188,6 +241,7 @@ def test_real_source_to_selected_translation_to_physical_pdf(
         assert (x1 - x0) / (y1 - y0) == pytest.approx(2.0, rel=0.02)
 
 
+@pytest.mark.usefixtures("require_physical_compiler")
 def test_typed_protected_content_and_math_survive_real_compilation(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
