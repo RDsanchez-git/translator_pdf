@@ -1,0 +1,102 @@
+# Supported initial local node, offline until a separately authorized provider
+# configuration is verified. Apply AFTER base + runtime, NEVER with lab overlay.
+# The immutable local image ID must be verified by the preflight before use.
+x-local-worker: &local-worker
+  build: !reset null
+  image: i0-1d/translator-pdf-runtime:r2-d4cda2c-20261031_211824
+  pull_policy: never
+  working_dir: /app
+  user: "10001:10001"
+  restart: "no"
+  cap_drop: [ALL]
+  security_opt: ["no-new-privileges:true"]
+  volumes: !override
+    - type: bind
+      source: .
+      target: /workspace
+      read_only: true
+      bind:
+        create_host_path: false
+    - type: volume
+      source: g3_runtime_state
+      target: /app/state
+      volume: {nocopy: true}
+    - type: volume
+      source: g3_runtime_data
+      target: /app/data
+      volume: {nocopy: true}
+    - type: volume
+      source: g3_runtime_output
+      target: /app/output
+      volume: {nocopy: true}
+    - type: volume
+      source: hf_models_cache
+      target: /app/.cache/hf
+      volume: {nocopy: true}
+    - type: volume
+      source: torch_cache
+      target: /app/.cache/torch
+      volume: {nocopy: true}
+    - type: volume
+      source: tectonic_cache
+      target: /app/.cache/tectonic
+      volume: {nocopy: true}
+  environment: &local-env
+    PYTHONPATH: /workspace
+    PYTHONSAFEPATH: "1"
+    PYTHONDONTWRITEBYTECODE: "1"
+    APP_ROOT: /app
+    TIKTOKEN_CACHE_DIR: /app/data/tiktoken-cache
+    HF_HOME: /app/.cache/hf
+    HUGGINGFACE_HUB_CACHE: /app/.cache/hf
+    TRANSFORMERS_CACHE: /app/.cache/hf
+    TORCH_HOME: /app/.cache/torch
+    TECTONIC_CACHE_DIR: /app/.cache/tectonic
+    IS_BENCHMARK: "0"
+    GROQ_API_KEY: ""
+    GROQ_BASE_URL: ""
+    GEMINI_API_KEY: ""
+    GEMINI_API_URL: ""
+    GOOGLE_API_KEY: ""
+    OPENAI_API_KEY: ""
+    ANTHROPIC_API_KEY: ""
+    HF_TOKEN: ""
+    HUGGING_FACE_HUB_TOKEN: ""
+    HTTP_PROXY: ""
+    HTTPS_PROXY: ""
+    ALL_PROXY: ""
+    http_proxy: ""
+    https_proxy: ""
+    all_proxy: ""
+    NO_PROXY: localhost,127.0.0.1
+    no_proxy: localhost,127.0.0.1
+
+services:
+  db_bootstrap:
+    <<: *local-worker
+    user: "0:0"
+    cap_add: [CHOWN, DAC_OVERRIDE, SETGID, SETUID]
+    command: ["python", "-B", "/workspace/infra/db/local_volume_bootstrap.py"]
+    environment:
+      <<: *local-env
+      TPDF_LOCAL_VOLUME_INIT: EXPLICIT_LOCAL_RUNTIME_VOLUME_INIT
+  ocr_router:
+    <<: *local-worker
+    command: ["python", "-B", "/workspace/apps/ocr_router/__main__.py"]
+  llm_worker:
+    <<: *local-worker
+    command: ["python", "-B", "/workspace/runtime/engine.py"]
+  assembler:
+    <<: *local-worker
+    command: ["python", "-B", "/workspace/apps/compiler/__main__.py"]
+  reconciler:
+    <<: *local-worker
+    command: ["python", "-B", "/workspace/apps/daemons/reconciler.py"]
+  sweeper:
+    <<: *local-worker
+    command: ["python", "-B", "/workspace/runtime/sweeper.py"]
+
+networks:
+  chaos_net:
+    internal: true
+    enable_ipv6: false

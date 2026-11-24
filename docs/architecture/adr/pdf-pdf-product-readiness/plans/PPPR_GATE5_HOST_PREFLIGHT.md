@@ -1,6 +1,6 @@
 # PPPR Gate 5 — Preflight de host y modalidad soportada
 
-**Estado:** procedimiento operativo LIVING / no normativo; Task 5.1.1 IN_PROGRESS, evidencia host NOT_RUN; 5.1.2 y W5.2 TODO. No sustituye al Execution Plan ni modifica criterios de aceptación.
+**Estado:** procedimiento operativo LIVING / no normativo; Task 5.1.1 BOARD_ACCEPTED para DONE; 5.1.2 IN_PROGRESS por H-G5-01; W5.2 NOT_RUN. Reconciliación formal de los tres documentos vivos al cierre de Wave. No sustituye al Execution Plan ni modifica criterios de aceptación.
 
 **Base:** `7ff8b84733a63efd3012adf14070db86cff051ad`, rama `pdf-pdf-product-readiness`. CI post-merge #45314286191 SUCCESS (3/3 jobs); CV #45314286115 FAIL/DEFERRED, BASELINE_INTEGRITY_FAILURE (15 PDF privados ausentes). G1–G4 COMPLETED/PASS; 20/30 Tasks DONE, 14 GAP P1 OPEN, PRODUCT_READINESS=NOT_CERTIFIED.
 
@@ -57,8 +57,44 @@ docker compose -f docker-compose.yml -f docker-compose.runtime.yml config --serv
 
 No publicar `config` expandido: puede incluir secretos. El siguiente paso de implementación debe evaluar de forma saneada servicio/comando, perfiles, mounts, state/data/output, rutas SQLite, usuario, capacidades, secretos presentes/ausentes sin valores, red y aislamiento. Resultado declarativo NO equivale a runtime ni a 5.1.1/5.1.2 DONE.
 
-## 5. P2 — evidencia exigida antes de cerrar W5.1 (NOT_RUN)
+## 5. P2 — procedimiento histórico y evidencia de laboratorio (EJECUTADO en alcance indicado)
 
 Con autorización específica del nodo y presupuesto de recursos, y tras aprobar composición efectiva: usar proyecto nuevo aislado, fuente sintética, cero proveedor comercial; verificar identidad de imagen y contenedor, UID y escritura en volúmenes propios, admisión CLI interna en inbox compartido, visibilidad de mismo estado por conexiones independientes, SQLite WAL y alias, arranque/reinicio y recuperación sin borrar estado, exclusión de roots legacy/lab no autorizados, controles reales de red/secretos. El E2E fake completo y crash/replay pertenecen a W5.2 y no se declaran ejecutados aquí. Preservar artefactos y logs saneados. Si un preflight falla, STOP y RCA antes de reintentar.
 
 **Prohibido en P0/P1:** build/pull, up/run, bootstrap, eliminación de contenedores/volúmenes, down -v, prune, llamadas externas, corpus privado, gasto. No adoptar el host histórico ni seleccionar proveedor por inferencia. Ningún PASS de host se deduce de este documento.
+
+
+## 6. Evidencia efectivamente ejecutada por owner (no acceso directo del Staff al daemon)
+
+- Host Windows/Docker Desktop Linux, Engine 28.5.1, Compose 2.40.3-desktop.1, x86_64, 4 CPU, RAM 12545732608 bytes. Imagen local `sha256:abe5b5dbbc65e8920e0948b189bd9bd090eb395e99420918190128a2ec12b4bd`, UID/GID 10001, Python 3.11.17, SQLite 3.40.1, Tectonic 0.15.0.
+- Worktree inicial `a55d03c9151439d462575d7b7d1ba37bceaa2b10`: imports 5/5, preflight estático C0, bootstrap cuatro planos, aislamiento seis volúmenes (parser Python tras incidencia ALL_PROXY/all_proxy de PowerShell 5.1). Admisión CLI interna sin --run, PDF sintético 867 bytes SHA `c04e85a19df4603540d0100573e8fc477d7b3e0881e5197b472f9327a6642d16`; persistencia independiente, quick_check ok y WAL. Marcadores PPPR_G5_CONTAINER_ADMISSION_PASS y PPPR_G5_CROSS_CONTAINER_PERSISTENCE_PASS.
+- HEAD `db880511bb570c5d11f3ff32dc4a2be00869bdbd`, CI #45319396033 SUCCESS: 1681 PASS/6 skipped/20 E2E excluidos; 8/8 Tectonic. PPPR_G5_EFFECTIVE_WIRING_PASS: 6 identidades/secrets, 5 namespace/ATTACH, fake state RO. PPPR_G5_CONTROLLED_RESTART_PASS: 8/8 WAL checkpoints, huellas lógicas y PDF iguales, cero imágenes/volúmenes nuevos, daemons detenidos. Disco libre final 37037170688 bytes.
+- Todos estos testigos físicos usaron convergence-lab sobre host real; NO se transfieren automáticamente a la composición local soportada. Board FAVORABLE CON CORRECCIÓN FOCAL: 5.1.1 aceptada para DONE, corrección sweeper aceptada, H-G5-01 pendiente. Contención WAL y recuperación integral 5.2.2. 14 GAP históricos OPEN.
+
+## 7. H-G5-01 — composición local soportada candidata
+
+Usar exclusivamente base + runtime + `docker-compose.local.yml` para este nodo autorizado. El overlay histórico convergence-lab conserva su significado y autorización separada; no combinar los dos overlays. No se modifica Dockerfile ni se pretende acreditar una imagen reconstruida. El tag de la imagen existente se verifica contra su ID exacto antes de cualquier efecto. La configuración local es deliberadamente offline hasta autorización DC-03 y verificación 5.2.3. No iniciar llm_worker ni el pipeline para W5.1.
+
+| Control | Local soportado candidato | Exclusivo del laboratorio |
+|---|---|---|
+| Imagen y código | mismo ID local, no build/pull, checkout RO | fake y sustituciones de proveedor |
+| Usuario | workers 10001:10001, sin capacidades; bootstrap root transitorio, capacidades acotadas | token C0 separado |
+| Inicialización | `infra/db/local_volume_bootstrap.py` opt-in propio, comparte preparación no recursiva de propietarios con wrapper C0, baja privilegios antes del bootstrap canónico | wrapper C0 sigue exclusivamente lab |
+| Montajes | seis volúmenes propios nocopy y checkout RO | fake solo state RO |
+| Red | bridge interno, sin puertos, proxies/credenciales enumeradas vacías | fake HTTP interno, dummy |
+| Reinicio | no automático; operador controla arranque/reinicio | escenarios de caos |
+| Servicios | seis existentes, sin dependencia fake ni chaos activo | g3_fake y perfiles históricos |
+
+Preflight nuevo `tools/pppr_local_preflight.py` valida JSON efectivo con Python, conjunto exacto de servicios, comandos, permisos, imagen, dependencias, montajes, nombres de volumen, red, secretos enumerados y opt-in. No imprime valores. Falsadores unitarios de drift. Preflight no es evidencia física.
+
+### P3 — ejecución pendiente (tras CI exacta SUCCESS)
+
+Desde worktree limpio del HEAD correctivo, con contexto local desktop-linux y mínimo preventivo 30 GiB libres, sin .env ni perfiles activos:
+
+```powershell
+python -B tools/pppr_local_preflight.py --project tpdfppprg501 --context desktop-linux
+if ($LASTEXITCODE -ne 0) { throw "STOP: local preflight" }
+```
+
+Esperar PPPR_G5_LOCAL_STATIC_PASS. Proyecto nuevo aislado para acreditar inicialización real de propietarios sin tocar los seis volúmenes históricos de laboratorio. Volúmenes vacíos nocopy; no sembrar cachés, no duplicar imágenes ni descargar dependencias. Antes de crear recursos comprobar ausencia de contenedores/volúmenes/red del proyecto y guardar inventario global de IDs. Ejecutar solo db_bootstrap con run --rm --no-deps --pull never, verificar bootstrap real bajo UID/GID 10001 mediante propiedad de archivos y permisos efectivos; inspeccionar cada worker con entrypoint Python sin iniciar daemons; verificar mounts, ausencia de secretos enumerados, WAL/alias, admisión sintética sin --run y persistencia independiente. Arrancar solo sweeper con up -d --no-deps --no-build --pull never, comprobar cuatro checkpoints, reiniciar mismo contenedor, comprobar cuatro checkpoints nuevos, detener en finally y comparar huellas lógicas y SHA. Conservar resultados saneados, medir disco y confirmar inventario sin nuevas imágenes, solo seis volúmenes nuevos del proyecto. No borrar ni migrar datos históricos. Procedimiento detallado de ejecución física se entrega después de CI; no afirmar P3 PASS hasta salida real del owner. Si falla, STOP y RCA. No E2E, inferencia, crash/replay, egress ni merge.
+
