@@ -22,6 +22,7 @@ from core.execution.handlers import DocumentCommandHandler
 from core.execution.state import FailDocumentCommand
 
 from core.compiler.service import CompilationService
+from core.compiler.exceptions import AssemblyRejectedError
 from core.compiler.context_resolver import CQRSAssemblyContextResolver
 from core.compiler.assembler import DocumentAssembler, AssemblyPolicy
 from core.compiler.rendering.mapper import DefaultRenderUnitMapper
@@ -162,7 +163,13 @@ class AssemblerWorkerDaemon:
         except Exception as error:
             # A stale owner must never mark another owner's generation FAILED.
             try:
-                leases.fail_authorized(lease, str(error))
+                # Assembly rejections carry only policy evidence and escaped
+                # node identities. Preserve every affected node; keep the
+                # historical bound for arbitrary operational exception text.
+                leases.fail_authorized(
+                    lease, str(error),
+                    preserve_reason=isinstance(error, AssemblyRejectedError),
+                )
             except Exception:
                 logger.exception("G5_ASSEMBLER_FAILURE_RECORDING_FAILED")
             raise

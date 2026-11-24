@@ -192,7 +192,12 @@ class AssemblyLeaseRepository:
                 self.conn.rollback()
             raise
 
-    def fail_authorized(self, lease: AssemblyLease, reason: str) -> bool:
+    def fail_authorized(
+        self, lease: AssemblyLease, reason: str, *, preserve_reason: bool = False,
+    ) -> bool:
+        # The caller may supply complete, structured policy rejection evidence.
+        # Generic exception messages retain the existing 250-character bound.
+        durable_reason = reason if preserve_reason else reason[:250]
         now = time.time()
         self.conn.execute('BEGIN IMMEDIATE')
         try:
@@ -204,13 +209,13 @@ class AssemblyLeaseRepository:
                 "entered_state_at=?,updated_at=?,failure_reason=? "
                 "WHERE document_id=? AND ast_hash=? AND current_state IN ('ASSEMBLING','READY_FOR_COMPILATION','COMPILING') "
                 "AND is_terminal=0",
-                (now, now, reason[:250], lease.document_id, lease.ast_hash),
+                (now, now, durable_reason, lease.document_id, lease.ast_hash),
             )
             q = self.conn.execute(
                 "UPDATE chunk_tasks SET task_state='FAILED',retry_count=retry_count+1,"
                 "lease_owner=NULL,lease_expires_at=NULL,error_log=?,updated_at=?,state_version=state_version+1 "
                 "WHERE task_id=? AND task_state='PROCESSING' AND lease_owner=? AND execution_id=?",
-                (reason[:250], now, lease.task_id, lease.owner, lease.execution_id),
+                (durable_reason, now, lease.task_id, lease.owner, lease.execution_id),
             )
             if f.rowcount != 1 or q.rowcount != 1:
                 raise RuntimeError('G5_ASSEMBLER_FAILURE_CAS_CONFLICT')

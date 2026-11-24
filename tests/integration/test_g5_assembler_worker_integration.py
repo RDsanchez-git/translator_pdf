@@ -226,3 +226,146 @@ def test_real_worker_blocks_unverified_representation_and_records_attributable_f
     assert not (tmp / "translated_doc.pdf").exists()
     assert not list(tmp.glob(".assembly_*.pdf"))
 
+
+@pytest.mark.integration
+@pytest.mark.parametrize(
+    ("total", "missing_indices", "heading", "status"),
+    [
+        (10, (1,), True, "REJECTED"),
+        (20, (1,), True, "DEGRADED"),
+        (21, (1,), True, "DEGRADED"),
+        (20, (1,), False, "DEGRADED"),
+        (10, (1, 2, 3, 4), False, "REJECTED"),
+        (20, (), False, "SUCCESS"),
+    ],
+)
+def test_product_assembly_requires_complete_current_projections(
+    sandbox, monkeypatch, total, missing_indices, heading, status,
+):
+    """H-G4-03/04: historical SHA-valid backing is not final PDF authority."""
+    from contextlib import closing
+    from hashlib import sha256
+    import sqlite3
+
+    from apps.compiler.__main__ import RenderAssetAdapter, RenderGeometryAdapter
+    from core.ast.enums import ContentNodeType, HeadingLevel, TranslationStrategy
+    from core.ast.models import ASTNode, HeadingPayload, ParagraphPayload
+    from core.compiler.assembler import AssemblyPolicy, AssemblyStatus, DocumentAssembler
+    from core.compiler.assembly_context import AssemblyExecutionContext
+    from core.compiler.exceptions import AssemblyRejectedError
+    from core.compiler.rendering.mapper import DefaultRenderUnitMapper
+    from core.compiler.service import CompilationService
+    from core.document_profile.models import InferredDocumentProfile, PageLayout
+    from core.execution.ports import ProjectionRecord
+    from infra.db.document_repository import SQLiteDocumentRepository
+
+    c, connect, tmp = sandbox
+    monkeypatch.setenv("COMPILER_OUTPUT_DIR", str(tmp))
+    worker = _worker(c, tmp, monkeypatch)
+    source = "Original source content."
+    digest = sha256(source.encode("utf-8")).hexdigest()
+    # Long, distinct identities also falsify truncation of durable evidence.
+    nodes = tuple(
+        ASTNode(
+            node_id=f"node-{i}-" + ("x" * 80 if len(missing_indices) > 1 else ""),
+            sequence_id=i,
+            node_type=ContentNodeType.HEADING if heading and i == 1 else ContentNodeType.PARAGRAPH,
+            strategy=TranslationStrategy.TRANSLATE,
+            payload=(
+                HeadingPayload(content=source, heading_level=HeadingLevel.H1)
+                if heading and i == 1 else ParagraphPayload(content=source)
+            ),
+            control_plane={"chunk_id": f"legacy-{i}", "payload_sha256": digest},
+        )
+        for i in range(1, total + 1)
+    )
+    context = AssemblyExecutionContext(
+        document_id="doc", ast_hash="ast", ast_nodes=nodes,
+        projections=tuple(
+            ProjectionRecord(n.node_id, f"Texto seleccionado {n.sequence_id}.", 1)
+            for n in nodes if n.sequence_id not in missing_indices
+        ),
+        projection_version=1,
+    )
+
+    class Resolver:
+        def resolve(self, **kwargs):
+            return context
+
+    class Profiles:
+        def get(self, document_id):
+            assert document_id == "doc"
+            return InferredDocumentProfile(layout=PageLayout.SINGLE_COLUMN, document_type=None)
+
+    class Runner:
+        def compile(self, tex, *, output_dir, output_filename, image_assets=()):
+            assert status == "SUCCESS", "Rejected assembly must never reach Tectonic"
+            assert source not in tex
+            assert all(f"Texto seleccionado {i}." in tex for i in range(1, total + 1))
+            assert image_assets == ()
+            target = Path(output_dir) / output_filename
+            target.write_bytes(b"%PDF-1.4\nsynthetic publication witness\n")
+            return str(target)
+
+    with closing(sqlite3.connect(tmp / "backing.db")) as backing:
+        repository = SQLiteDocumentRepository(backing)
+        with backing:
+            backing.executemany(
+                "INSERT INTO original_chunks (job_id,chunk_id,payload,payload_sha256) VALUES (?,?,?,?)",
+                [("doc", f"legacy-{i}", source, digest) for i in missing_indices],
+            )
+        # Establish independently that the historical fallback is available
+        # and passes the actual repository's integrity checks.
+        for i in missing_indices:
+            assert repository.get_verified_payload("doc", f"legacy-{i}", digest) == source
+
+        def forbidden_fallback(*args, **kwargs):
+            pytest.fail("Product compilation must not read historical backing")
+
+        monkeypatch.setattr(repository, "get_verified_payload", forbidden_fallback)
+        assembler = DocumentAssembler(
+            repository, policy=AssemblyPolicy(tolerance_ratio=0.05, allow_fallback=True),
+        )
+        decision = assembler.assemble(context)
+        assert decision.status == AssemblyStatus[status]
+        assert decision.is_accepted == (status != "REJECTED")
+        assert decision.missing_node_ids == tuple(
+            n.node_id for n in nodes if n.sequence_id in missing_indices
+        )
+        service = CompilationService(
+            assembler, repository, Profiles(),
+            DefaultRenderUnitMapper(RenderGeometryAdapter(), RenderAssetAdapter()),
+        )
+        setattr(worker, "context_resolver", Resolver())
+        setattr(worker, "compilation_service", service)
+        setattr(worker, "runner", Runner())
+
+        if status == "SUCCESS":
+            worker._process_assembly_task("doc", "ast")
+            assert _fsm(c) == ("COMPLETED", 4, 1)
+            assert _row(c)[0] == "COMPLETED"
+            assert (tmp / "translated_doc.pdf").is_file()
+        else:
+            with pytest.raises(AssemblyRejectedError) as error:
+                worker._process_assembly_task("doc", "ast")
+            missing = ascii(decision.missing_node_ids)
+            expected = (
+                f"PPPR_G4_DEGRADED_ASSEMBLY_FORBIDDEN missing_node_ids={missing}"
+                if status == "DEGRADED" else
+                f"PPPR_G4_ASSEMBLY_REJECTED missing_node_ids={missing}; reason={decision.rejection_reason}"
+            )
+            assert str(error.value) == expected
+            if len(missing_indices) > 1:
+                assert len(expected) > 250
+            with closing(connect()) as observed:
+                assert _fsm(observed) == ("FAILED_RETRYABLE", 2, 0)
+                assert _row(observed)[0] == "FAILED"
+                assert observed.execute(
+                    "SELECT failure_reason FROM fsm_db.document_fsm "
+                    "WHERE document_id='doc' AND ast_hash='ast'"
+                ).fetchone() == (expected,)
+                assert observed.execute(
+                    "SELECT error_log FROM chunk_tasks WHERE worker_type='ASSEMBLER'"
+                ).fetchone() == (expected,)
+            assert not (tmp / "translated_doc.pdf").exists()
+        assert not list(tmp.glob(".assembly_*.pdf"))
