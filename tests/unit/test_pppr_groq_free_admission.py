@@ -215,3 +215,69 @@ async def test_free_transport_rejects_wrong_sdk_origin_or_retries(base_url, retr
         guard.g3_pre_effect_guard.reset(guard_token)
         ctx_execution_id.reset(execution_token)
         ctx_task_id.reset(task_token)
+
+
+@pytest.fixture
+def synthetic_harmony_cache(tmp_path, monkeypatch):
+    """Small byte vocabulary exercises real BPE construction, not live ranks."""
+    from base64 import b64encode
+
+    vocabulary = [bytes([i]) for i in range(256)] + [b"ab", b"abc"]
+    data = b"".join(
+        b64encode(token) + b" " + str(rank).encode("ascii") + b"\n"
+        for rank, token in enumerate(vocabulary)
+    )
+    path = tmp_path / sha1(estimators.HARMONY_RANKS_URL.encode()).hexdigest()
+    path.write_bytes(data)
+    monkeypatch.setattr(estimators, "HARMONY_RANKS_SHA256", sha256(data).hexdigest())
+    monkeypatch.setattr(estimators.tiktoken, "get_encoding",
+                        lambda *a, **kw: pytest.fail("implicit encoding acquisition"))
+    return tmp_path, path
+
+
+def test_verified_harmony_estimator_reads_local_bytes_only(synthetic_harmony_cache):
+    cache, _ = synthetic_harmony_cache
+    estimator = estimators.VerifiedHarmonyEstimator(cache)
+    assert estimator.estimate_tokens("") == 0
+    assert estimator.estimate_tokens("abc") == 1
+    assert estimator.estimate_tokens("α") == 2
+    assert estimator.estimate_tokens("<|start|>") == len("<|start|>")
+    assert sorted(p.name for p in cache.iterdir()) == [
+        sha1(estimators.HARMONY_RANKS_URL.encode()).hexdigest()
+    ]
+
+
+def test_verified_harmony_estimator_rejects_changed_or_missing_cache(synthetic_harmony_cache):
+    cache, path = synthetic_harmony_cache
+    path.write_bytes(b"changed")
+    with pytest.raises(ValueError, match="CACHE_IDENTITY_DRIFT"):
+        estimators.VerifiedHarmonyEstimator(cache)
+    path.unlink()
+    with pytest.raises(ValueError, match="CACHE_MISSING"):
+        estimators.VerifiedHarmonyEstimator(cache)
+
+
+def test_verified_harmony_estimator_rejects_invalid_rank_data(synthetic_harmony_cache, monkeypatch):
+    cache, path = synthetic_harmony_cache
+    data = b"YQ== 0\nYQ== 1\n"
+    path.write_bytes(data)
+    monkeypatch.setattr(estimators, "HARMONY_RANKS_SHA256", sha256(data).hexdigest())
+    with pytest.raises(ValueError, match="RANK_FORMAT_INVALID"):
+        estimators.VerifiedHarmonyEstimator(cache)
+
+
+def test_verified_harmony_estimator_feeds_existing_admission(synthetic_harmony_cache, policy):
+    cache, _ = synthetic_harmony_cache
+    estimator = estimators.VerifiedHarmonyEstimator(cache)
+    # Synthetic vocabulary and approval only: verifies the actual consumer
+    # measures the shared request, without pretending to attest Groq framing.
+    policy = replace(policy, input_estimator=estimator,
+                     estimator_evidence_ref="SYNTHETIC_LOCAL_BPE_NOT_PROVIDER_BOUND")
+    decision = _verify(policy)
+    audit = json.loads(decision.audit_json)
+    wire, _ = build_groq_request_kwargs(
+        replace(_make_envelope(), model_name=GPT_OSS_120B), OpenAICompatibleDialect())
+    serialized = json.dumps(wire, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
+    assert audit["input_tokens"] == estimator.estimate_tokens(serialized)
+    assert audit["free_tier_witness"]["reserved_tokens"] == audit["input_tokens"] + 256
+    assert audit["request_sha256"] == sha256(serialized.encode()).hexdigest()
