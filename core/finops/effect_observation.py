@@ -115,15 +115,23 @@ def build_effect_report(
     for operation, attempts in sorted(operations.items()):
         observed = sum(key in counts for key in attempts)
         observed_operations += int(observed > 0)
-        reexecuted += int(observed > 1)
+        entries = sum(counts.get(key, 0) for key in attempts)
+        # More than one SDK entry is observable client repetition even if
+        # the caller reused the same execution_id. Keep distinct attempt
+        # identities separate from the count of SDK boundary crossings.
+        reexecuted += int(entries > 1)
         evidence = external.get(operation)
         rows.append({
             "task_id": operation[0], "generation_sha256": operation[1],
             "client_activity": {
                 "admitted_attempts": len(attempts),
                 "observed_sdk_entry_attempts": observed,
-                "observed_sdk_entries": sum(counts.get(key, 0) for key in attempts),
-                "reexecution_observed": True if observed > 1 else (
+                "observed_sdk_entries": entries,
+                "repeated_sdk_entry_within_attempt": True if any(
+                    counts.get(key, 0) > 1 for key in attempts
+                ) else (False if capture_complete and observed == len(attempts) else None),
+                "distinct_execution_ids_observed": observed,
+                "reexecution_observed": True if entries > 1 else (
                     False if capture_complete and observed == len(attempts) else None
                 ),
                 "attempts": [{
@@ -164,7 +172,9 @@ def build_effect_report(
             },
             "value": reexecuted / observed_operations if complete and observed_operations else None,
             "limitations": (
-                "Admitted population only; pre-admission failures excluded. SDK entry is not HTTP "
+                "Admitted population only; pre-admission failures excluded. Numerator counts logical "
+                "operations with multiple observed SDK entries, including within one execution ID. "
+                "SDK entry is not HTTP "
                 "delivery or remote application. Missing entries are unresolved, not no-start. "
                 "Not comparable to provider-effect or billing rates."
             ),

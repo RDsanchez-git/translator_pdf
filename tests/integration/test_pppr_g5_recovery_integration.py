@@ -237,7 +237,9 @@ def test_pppr_g5_attested_generation_recovery(
 
 
 def test_pppr_g5_loopback_response_before_receipt_stays_unknown(recovery_subject, monkeypatch, caplog):
-    from core.finops.effect_observation import SDK_ENTRY, RECEIPT_WINDOW, build_effect_report
+    from core.finops.effect_observation import SDK_ENTRY, RECEIPT_WINDOW
+    from core.utils.telemetry import JSONFormatter
+    from tools.pppr_effect_report import report_from_snapshot
 
     caplog.set_level("INFO")
     observation_start = time.time_ns()
@@ -290,23 +292,46 @@ def test_pppr_g5_loopback_response_before_receipt_stays_unknown(recovery_subject
 
     # Consume actual correlated logger events, joining to durable admission
     # identities; no fabricated POST counts, external effects or time bounds.
-    admissions = {
-        (task, execution): generation
-        for task, execution, generation in _rows(
-            state, "queue.db",
-            "SELECT task_id,execution_id,generation_sha256 FROM g3_admission_decisions",
-        )
-    }
+    formatter = JSONFormatter()
     events = [
-        {"message": record.getMessage(), **record.extra_data}
+        formatter.format(record)
         for record in caplog.records
         if record.getMessage() in (SDK_ENTRY, RECEIPT_WINDOW)
     ]
-    assert sum(event["message"] == SDK_ENTRY for event in events) == server.requests == 6
-    report = build_effect_report(
-        admissions, events, start_ns=observation_start, end_ns=time.time_ns(),
-        scope="SYNTHETIC_LOOPBACK_UNKNOWN_RECOVERY", capture_complete=True,
-    )
+    assert sum(json.loads(event)["message"] == SDK_ENTRY for event in events) == server.requests == 6
+    observation_end = time.time_ns()
+    # Use the actual operational consumer on a fresh SQLite reader. This
+    # fixture is already disposable; the owner workspace is never opened.
+    with closing(sqlite3.connect((state / "queue.db").as_uri() + "?mode=ro", uri=True)) as queue:
+        queue.execute("PRAGMA query_only=ON")
+        report = report_from_snapshot(
+            queue, events, document_id=document_id, ast_hash=ast_hash,
+            start_ns=observation_start, end_ns=observation_end,
+            scope="SYNTHETIC_LOOPBACK_UNKNOWN_RECOVERY", capture_complete=True,
+        )
+        # Partial capture cannot assert a rate. Corrupt capture cannot assert
+        # a measured window for the attempt with no durable receipt.
+        partial = report_from_snapshot(
+            queue, events[:-1], document_id=document_id, ast_hash=ast_hash,
+            start_ns=observation_start, end_ns=observation_end,
+            scope="SYNTHETIC_PARTIAL_CAPTURE",
+        )
+        assert partial["client_reexecution_rate"]["value"] is None
+        forged = []
+        for line in events:
+            event = json.loads(line)
+            if event["message"] == RECEIPT_WINDOW and event["execution_id"] == execution_id:
+                event["duration_ns"], event["classification"] = 1, "MEASURED"
+            forged.append(json.dumps(event))
+        with pytest.raises(ValueError, match="MEASURED_WINDOW_WITHOUT_RECEIPT"):
+            report_from_snapshot(
+                queue, forged, document_id=document_id, ast_hash=ast_hash,
+                start_ns=observation_start, end_ns=observation_end,
+                scope="SYNTHETIC_INVALID_CAPTURE",
+            )
+    assert report["local_receipt_count"] == 5
+    assert report["document_id"] == document_id and report["ast_hash"] == ast_hash
+    assert _evidence(state) == evidence
     assert report["client_reexecution_rate"]["value"] == 0
     assert report["client_reexecution_rate"]["coverage"]["attempts_with_measured_receipt_window"] == 5
     assert report["external_duplication_rate"] is None

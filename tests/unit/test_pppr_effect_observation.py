@@ -98,3 +98,20 @@ def test_measured_client_interval_and_indirect_estimate_are_not_external_bounds(
 def test_invalid_or_ambiguous_observations_fail_closed(events, match):
     with pytest.raises(ValueError, match=match):
         _report(events)
+
+
+def test_repeated_sdk_entry_within_same_attempt_is_not_hidden():
+    report = build_effect_report(
+        {("task", "exec-1"): GEN},
+        [_entry("exec-1", 10), _entry("exec-1", 20)],
+        start_ns=1, end_ns=100, scope="SYNTHETIC_SAME_ATTEMPT", capture_complete=True,
+    )
+    row, = report["operations"]
+    client = row["client_activity"]
+    assert client["distinct_execution_ids_observed"] == 1
+    assert client["observed_sdk_entries"] == 2
+    assert client["repeated_sdk_entry_within_attempt"] is True
+    assert client["reexecution_observed"] is True
+    rate = report["client_reexecution_rate"]
+    assert (rate["numerator"], rate["denominator"], rate["value"]) == (1, 1, 1.0)
+    assert row["external_duplication"]["classification"] == "UNKNOWN"
