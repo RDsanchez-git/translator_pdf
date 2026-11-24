@@ -187,18 +187,34 @@ def _container_command(repo: Path, workspace: Path, *, source: Path | None) -> l
 
 
 def _smoke_source(path: Path) -> None:
+    """Synthetic operational witness with source-accredited heading hierarchy.
+
+    Match the independently verified W4.2 physical fixture geometry and content.
+    The historical unnumbered title is a negative witness (UNKNOWN -> G5 reject),
+    not a valid successful-path fixture. Keep an actual image for PRESERVE so
+    the witness exercises both inference and non-inference units.
+    """
+    from io import BytesIO
     import fitz
+    from PIL import Image
+
     with fitz.open() as doc:
-        page = doc.new_page(width=595, height=842)
-        page.insert_text((62, 88), "Scientific translation pipeline operational test", fontsize=16)
-        sentences = [
-            "The scientific method relies on observable evidence and careful measurement.",
-            "Researchers record observations before drawing conclusions from the data.",
-            "A reproducible process makes it easier to compare results across teams.",
-            "This document is a laboratory fixture and contains no protected equations.",
-        ]
-        for i, sentence in enumerate(sentences):
-            page.insert_text((62, 145 + 41 * i), sentence, fontsize=11)
+        page = doc.new_page(width=500, height=800)
+        sections = (
+            ("1 Methods", "The sample contains measured values."),
+            ("1.1 Data", "The dataset contains independent observations."),
+            ("1.1.1 Samples", "The experiment measures the response."),
+        )
+        for i, (heading, body) in enumerate(sections):
+            y = 150 + i * 105
+            page.insert_text((35, y), heading, fontname="hebo", fontsize=13)
+            page.insert_text((35, y + 38), body, fontname="helv", fontsize=10)
+        image = Image.new("RGB", (80, 40), "white")
+        image.paste((20, 100, 180), (0, 0, 40, 40))
+        image.paste((180, 50, 20), (40, 0, 80, 20))
+        stream = BytesIO()
+        image.save(stream, format="PNG")
+        page.insert_image(fitz.Rect(35, 480, 195, 560), stream=stream.getvalue())
         doc.save(str(path))
 
 

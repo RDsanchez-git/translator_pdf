@@ -5,7 +5,6 @@ The typed G5 witness is intentionally separate from extraction capabilities.
 """
 from contextlib import closing
 from hashlib import sha256
-from io import BytesIO
 from math import isfinite
 import os
 from pathlib import Path
@@ -15,7 +14,6 @@ import sys
 
 import fitz
 import pytest
-from PIL import Image
 
 from apps.cli import main as cli
 from apps.compiler.__main__ import RenderGeometryAdapter
@@ -62,23 +60,10 @@ _BODY = (
 
 
 def _source_pdf(path: Path) -> None:
-    # Explicitly numbered headings are the supported hierarchy witness.
-    # Body dominates typography statistics; headings are distinct blocks.
-    # All blocks are away from page margins and title-classification region.
-    with fitz.open() as document:
-        page = document.new_page(width=500, height=800)
-        for i, ((source, _, _), (body, _)) in enumerate(zip(_HEADINGS, _BODY, strict=True)):
-            y = 150 + i * 105
-            page.insert_text((35, y), source, fontname="hebo", fontsize=13)
-            page.insert_text((35, y + 38), body, fontname="helv", fontsize=10)
-        # A real embedded raster with a nonwhite, asymmetric pattern.
-        image = Image.new("RGB", (80, 40), "white")
-        image.paste((20, 100, 180), (0, 0, 40, 40))
-        image.paste((180, 50, 20), (40, 0, 80, 20))
-        stream = BytesIO()
-        image.save(stream, format="PNG")
-        page.insert_image(fitz.Rect(35, 480, 195, 560), stream=stream.getvalue())
-        document.save(path)
+    # The physical witness now exercises the actual operational LAB generator,
+    # not a parallel fixture that could diverge from the owner execution.
+    from apps.lab.offline_pdf_lab import _smoke_source
+    _smoke_source(path)
 
 
 def _physical_heading_size(lines: list[dict], expected: str) -> float:
@@ -264,3 +249,37 @@ def test_typed_protected_content_and_math_survive_real_compilation(
         assert "Formula" in text
         assert "$x^2+1$" not in text
         assert "x" in text and "2" in text and "+ 1" in text.replace("+1", "+ 1")
+
+
+def test_historical_lab_title_remains_unverified_and_rejected(tmp_path: Path) -> None:
+    """Replay the original source classification and G5 rejection, without I/O to G3."""
+    from apps.bootstrap.pipeline_factory import build_extraction_pipeline
+
+    source = tmp_path / "historical_smoke.pdf"
+    with fitz.open() as doc:
+        page = doc.new_page(width=595, height=842)
+        page.insert_text((62, 88), "Scientific translation pipeline operational test", fontsize=16)
+        sentences = (
+            "The scientific method relies on observable evidence and careful measurement.",
+            "Researchers record observations before drawing conclusions from the data.",
+            "A reproducible process makes it easier to compare results across teams.",
+            "This document is a laboratory fixture and contains no protected equations.",
+        )
+        for i, sentence in enumerate(sentences):
+            page.insert_text((62, 145 + 41 * i), sentence, fontsize=11)
+        doc.save(str(source))
+
+    ast = build_extraction_pipeline().parse(str(source))
+    headings = [node for node in ast if node.node_type == ContentNodeType.HEADING]
+    assert len(headings) == 1
+    heading = headings[0]
+    assert isinstance(heading.payload, HeadingPayload)
+    assert heading.payload.content == "Scientific translation pipeline operational test"
+    assert heading.payload.heading_level == HeadingLevel.UNKNOWN
+    unit = RenderUnit(
+        node_id=heading.node_id, node_type=ContentNodeType.HEADING,
+        content=heading.payload.content, heading_level=heading.payload.heading_level,
+    )
+    profile = InferredDocumentProfile(layout=PageLayout.SINGLE_COLUMN, document_type=None)
+    with pytest.raises(ValueError, match="PPPR_G4_HEADING_LEVEL_UNVERIFIED"):
+        TexBuilder(RenderContextFactory.create(profile)).build([unit])
