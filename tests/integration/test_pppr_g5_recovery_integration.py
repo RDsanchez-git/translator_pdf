@@ -1,8 +1,10 @@
 """PPPR 5.2.2: recovery with the attested offline foreground generation.
 
 Real OCR, verified AST, engine, loopback SDK/bridge, admission and SQLite.
-Faults are injected at local commit boundaries; these are not SIGKILL,
-power-loss, physical host restart, commercial effects or science witnesses.
+G3 faults are local exceptions; G5 additionally exits a separate process
+without cleanup after PDF promotion. Neither is a power-loss, physical host
+restart, commercial effect or science witness. G5 substitutes only the native
+compiler binary with a readable synthetic PDF, not assembly or publication.
 The container-isolation guard and tokenizer are substituted for CI; no
 new model, cache or dependency acquisition is required.
 All files and DBs are fresh pytest workspaces, never the owner's 5.2.1 evidence.
@@ -10,9 +12,15 @@ All files and DBs are fresh pytest workspaces, never the owner's 5.2.1 evidence.
 from contextlib import closing
 from hashlib import sha256
 import json
+import os
 from pathlib import Path
 import sqlite3
+import subprocess
+import sys
 import threading
+import time
+
+import fitz
 
 import pytest
 
@@ -33,6 +41,8 @@ from tests.integration.test_w08_cli_foreground_single_generation_offline import 
 )
 
 pytestmark = pytest.mark.integration
+ROOT = Path(__file__).resolve().parents[2]
+G5_CRASH_EXIT = 73
 
 
 def _rows(state: Path, database: str, query: str):
@@ -272,4 +282,215 @@ def test_pppr_g5_loopback_response_before_receipt_stays_unknown(recovery_subject
     assert _evidence(state) == evidence
     assert _publication(state) == ([], [])
     assert _fsm(state)[0][2] == "PROCESSING"
+    _assert_sqlite_integrity(state)
+
+
+
+def _run_controlled_g5(document_id: str, ast_hash: str, *, crash: bool) -> None:
+    """Run the actual foreground assembler root; replace only native compilation.
+
+    Do not pass a synthetic cache attestation: no native compiler is invoked.
+    The real resolver, profile, mapper, TeX builder, heartbeat, lease and
+    publisher consume the previously attested G3 generation.
+    """
+    from apps.compiler.tectonic_runner import HostTectonicRunner
+
+    def compile_pdf(self, tex_content, output_dir, output_filename="output.pdf", *, image_assets=()):
+        assert r"\begin{document}" in tex_content
+        assert len(image_assets) == 1
+        assert output_filename.startswith(".assembly_")
+        target = Path(output_dir) / output_filename
+        assert target.parent.resolve() == Path(os.environ["COMPILER_OUTPUT_DIR"]).resolve()
+        marker = "FIRST" if crash else "RECOVERED"
+        with fitz.open() as pdf:
+            page = pdf.new_page()
+            page.insert_text((72, 72), marker)
+            page.insert_text((72, 100), sha256(tex_content.encode("utf-8")).hexdigest())
+            pdf.save(target)
+        return str(target)
+
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setattr(HostTectonicRunner, "compile", compile_pdf)
+        if crash:
+            real_replace = os.replace
+            destination = Path(os.environ["COMPILER_OUTPUT_DIR"]) / f"translated_{document_id}.pdf"
+
+            def promote_then_exit(src, dst, *args, **kwargs):
+                real_replace(src, dst, *args, **kwargs)
+                if Path(dst) == destination:
+                    # The publisher has updated both SQL rows in its open
+                    # transaction, but has not yet called conn.commit().
+                    # Bypass all Python rollback/cleanup paths (C3/T05 style).
+                    print("PPPR_G5_PROMOTED_BEFORE_COMMIT", flush=True)
+                    os._exit(G5_CRASH_EXIT)
+
+            patch.setattr(os, "replace", promote_then_exit)
+        pdf_product._run_g5(document_id, ast_hash)
+
+
+def _assembly_row(state: Path):
+    rows = _rows(
+        state, "queue.db",
+        "SELECT task_id,task_state,lease_owner,execution_id,lease_expires_at,"
+        "updated_at,state_version,retry_count FROM chunk_tasks WHERE worker_type='ASSEMBLER'",
+    )
+    assert len(rows) == 1
+    return rows[0]
+
+
+def _pdf_lines(path: Path):
+    with fitz.open(path) as pdf:
+        assert pdf.page_count == 1
+        return pdf[0].get_text().splitlines()
+
+
+def test_pppr_g5_abrupt_process_exit_after_pdf_promotion_and_recovery(
+    recovery_subject, monkeypatch,
+):
+    """Same G3 generation, real G5/reconciler, crash before SQLite commit.
+
+    Age only the abandoned assembler's timestamps to simulate TTL passage,
+    without a wall-clock sleep. Test SQLITE_BUSY on a second connection before
+    allowing the actual reconciler to recover. No cross-DB/power-loss guarantee.
+    """
+    from infra.db.assembly_recovery import AssemblyLease, AssemblyLeaseRepository
+    from infra.db.system_repo import SystemPlaneRepository
+    from tests.integration._reconciler_test_factory import make_reconciler_with_test_doubles
+
+    state, document_id, ast_hash, scope, server = recovery_subject
+    ready = engine.run_pipeline(document_id, ast_hash, offline_scope=scope)
+    assert ready["status"] == "ready_for_assembly"
+    assert server.requests == 6
+    initial_fsm = _fsm(state)
+    assert initial_fsm[0][2] == "READY_FOR_ASSEMBLY"
+    evidence = _evidence(state)
+    publication = _publication(state)
+    g3_tasks = _tasks(state)
+    assert len(evidence["receipts"]) == 7 and len(evidence["admissions"]) == 6
+    assert (len(publication[0]), len(publication[1])) == (1, 7)
+    assert len(g3_tasks) == 7 and {r[2] for r in g3_tasks} == {"COMPLETED"}
+
+    # Fresh process, same disposable workspace. No tokenizer/provider is
+    # needed by G5. Pin import and DB paths rather than inherit a checkout.
+    workspace = Path.cwd().resolve()
+    assert workspace == state.parents[1]
+    output = workspace / "output"
+    destination = output / f"translated_{document_id}.pdf"
+    assert not destination.exists()
+    env = os.environ.copy()
+    env["PYTHONPATH"] = str(ROOT)
+    env["PYTHONDONTWRITEBYTECODE"] = "1"
+    first = subprocess.run(
+        [
+            sys.executable, "-B", "-c",
+            "import sys; from tests.integration.test_pppr_g5_recovery_integration "
+            "import _run_controlled_g5; _run_controlled_g5(sys.argv[1],sys.argv[2],crash=True)",
+            document_id, ast_hash,
+        ],
+        cwd=workspace, env=env, text=True, capture_output=True, timeout=60, check=False,
+    )
+    assert first.returncode == G5_CRASH_EXIT, (first.stdout, first.stderr)
+    assert "PPPR_G5_PROMOTED_BEFORE_COMMIT" in first.stdout
+    assert destination.is_file()
+    first_lines = _pdf_lines(destination)
+    assert len(first_lines) == 2 and first_lines[0] == "FIRST"
+    first_bytes = destination.read_bytes()
+
+    # The file exists, but completion is not durable. Fresh readers must not
+    # infer completion from PDF existence. No writer or heartbeat survives.
+    assert _fsm(state) == [
+        (document_id, ast_hash, "COMPILING", initial_fsm[0][3] + 3, 0)
+    ]
+    abandoned = _assembly_row(state)
+    assert abandoned[1] == "PROCESSING" and abandoned[2] and abandoned[3]
+    assert abandoned[4] > time.time() and abandoned[7] == 0
+    old = AssemblyLease(abandoned[0], document_id, ast_hash, abandoned[2], abandoned[3])
+    assert _tasks(state) == g3_tasks
+    assert _evidence(state) == evidence and _publication(state) == publication
+    _assert_sqlite_integrity(state)
+
+    with closing(connection.get_connection(str(state / "queue.db"), timeout=30)) as queue:
+        system = SystemPlaneRepository(queue)
+        recon = make_reconciler_with_test_doubles(
+            system, ControlPlaneRepository(queue), None, None, None,
+        )
+        recon.current_epoch = system.acquire_leadership(recon.lease_name, recon.node_id, 120)
+        assert recon.current_epoch > 0
+        recon.is_leader = True
+        now = time.time()
+        recon._sweep_tasks(now - 180)
+        assert _assembly_row(state) == abandoned  # No recovery of a live lease.
+        # Simulate only TTL passage, never rewrite the execution ID or phase.
+        changed = queue.execute(
+            "UPDATE chunk_tasks SET lease_expires_at=?,updated_at=? "
+            "WHERE task_id=? AND execution_id=? AND task_state='PROCESSING'",
+            (now - 600, now - 600, old.task_id, old.execution_id),
+        )
+        assert changed.rowcount == 1
+        queue.commit()
+        expired = _assembly_row(state)
+        before_recovery = _fsm(state)
+
+        # The canonical recovery write must not make partial changes when
+        # another connection owns the WAL writer lock.
+        with closing(sqlite3.connect(state / "queue.db", timeout=0.05)) as blocked:
+            blocked.execute("ATTACH DATABASE ? AS fsm_db", (str(state / "fsm.db"),))
+            blocked.execute("PRAGMA busy_timeout=50")
+            queue.execute("BEGIN IMMEDIATE")
+            try:
+                with pytest.raises(sqlite3.OperationalError) as busy:
+                    AssemblyLeaseRepository(blocked).recover_expired(
+                        task_id=old.task_id, document_id=document_id, ast_hash=ast_hash,
+                        expected_owner=expired[2], expected_execution_id=expired[3],
+                        expected_expiry=expired[4], expected_updated_at=expired[5],
+                        expected_version=expired[6], reconciler_owner=recon.node_id,
+                        reconciler_epoch=recon.current_epoch, stale_before=now - 180,
+                    )
+                assert busy.value.sqlite_errorcode == sqlite3.SQLITE_BUSY
+                assert not blocked.in_transaction
+                assert _fsm(state) == before_recovery
+                assert _assembly_row(state) == expired
+                assert destination.read_bytes() == first_bytes
+            finally:
+                queue.rollback()
+
+        recon._sweep_tasks(now - 180)
+        recovered = _assembly_row(state)
+        assert recovered[0] == old.task_id
+        assert recovered[1:5] == ("PENDING", None, None, None)
+        assert recovered[7] == 1 and recovered[6] > expired[6]
+        assert _fsm(state) == [
+            (document_id, ast_hash, "READY_FOR_ASSEMBLY", before_recovery[0][3] + 1, 0)
+        ]
+        recon._sweep_tasks(now - 180)
+        assert _assembly_row(state) == recovered  # Same sweep is idempotent.
+        assert not AssemblyLeaseRepository(queue).renew(old)
+        assert destination.read_bytes() == first_bytes
+        system.release_leadership(recon.lease_name, recon.node_id)
+
+    # The current parent runs the second real G5 root with new connections.
+    # A stale attempt cannot overwrite its output even after completion.
+    monkeypatch.setattr(engine, "_create_chunk_processor", _forbid_processor)
+    _run_controlled_g5(document_id, ast_hash, crash=False)
+    final = _assembly_row(state)
+    assert final[0] == old.task_id and final[1] == "COMPLETED"
+    assert final[2] is None and final[4] is None and final[7] == 1
+    assert final[3] and final[3] != old.execution_id and final[6] > recovered[6]
+    assert _fsm(state) == [
+        (document_id, ast_hash, "COMPLETED", before_recovery[0][3] + 5, 1)
+    ]
+    final_lines = _pdf_lines(destination)
+    assert final_lines == ["RECOVERED", first_lines[1]]
+    final_bytes = destination.read_bytes()
+    assert final_bytes != first_bytes
+    stale = output / ".stale_attempt.pdf"
+    stale.write_bytes(first_bytes)
+    with closing(connection.get_connection(str(state / "queue.db"), timeout=30)) as queue:
+        assert not AssemblyLeaseRepository(queue).publish(old, str(stale), str(destination))
+    assert stale.read_bytes() == first_bytes
+    assert destination.read_bytes() == final_bytes
+    assert not list(output.glob(".assembly_*.pdf"))
+    assert _tasks(state) == g3_tasks
+    assert _evidence(state) == evidence and _publication(state) == publication
+    assert server.requests == 6
     _assert_sqlite_integrity(state)
