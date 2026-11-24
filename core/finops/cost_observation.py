@@ -41,6 +41,8 @@ def observe_attempt_cost(
     input_rate = _amount(admission.get("input_price_per_token"))
     output_rate = _amount(admission.get("output_price_per_token"))
     admitted_cost = _amount(admission.get("upper_bound_cost"))
+    free = admission.get("free_tier_witness") is not None
+    nominal_ceiling = _amount(admission.get("nominal_upper_bound_cost")) if free else admitted_cost
     attributed = []
     for response in responses:
         if response.get("request_sha256") != admission.get("request_sha256"):
@@ -72,6 +74,8 @@ def observe_attempt_cost(
         "provider_id": admission.get("provider_id"),
         "requested_model": admission.get("model_name"),
         "admitted_request_cost_ceiling_usd": str(admitted_cost),
+        "nominal_request_scenario_usd": str(nominal_ceiling),
+        "admission_cost_basis": ("CONDITIONAL_FREE_ENTITLEMENT" if free else "ADMITTED_RATES"),
         "responses": attributed,
         "observed_or_invoiced_cost": {
             "classification": "NOT_OBSERVABLE", "amount_usd": None,
@@ -80,11 +84,12 @@ def observe_attempt_cost(
         "estimated_cost": {
             "classification": "ESTIMATED" if estimate is not None else "NOT_OBSERVABLE",
             "amount_usd": estimate,
-            "basis": "SDK_USAGE_TIMES_ADMITTED_RATES_SINGLE_RESPONSE",
+            "basis": ("SDK_USAGE_TIMES_NOMINAL_RATES_NOT_FREE_TIER_CHARGE" if free
+                      else "SDK_USAGE_TIMES_ADMITTED_RATES_SINGLE_RESPONSE"),
         },
         "potential_unconfirmed_exposure": {
             "classification": "HYPOTHETICAL" if unresolved else "NOT_OBSERVABLE",
-            "amount_usd": str(admitted_cost) if unresolved else None,
+            "amount_usd": str(nominal_ceiling) if unresolved else None,
             "basis": "ONE_ADMITTED_REQUEST_SCENARIO_NOT_AGGREGATE_BOUND",
             "validated_upper_bound_usd": None,
         },

@@ -47,3 +47,16 @@ def test_request_drift_rejected():
     with pytest.raises(ValueError, match="REQUEST_CORRELATION_FAILED"):
         observe_attempt_cost(ADMISSION, [dict(RESPONSE, request_sha256="b"*64)],
                              sdk_entries=1, capture_complete=True)
+
+
+def test_free_entitlement_keeps_nominal_estimate_separate_from_zero_cap():
+    admission = dict(ADMISSION, upper_bound_cost="0", nominal_upper_bound_cost="0.01",
+                     free_tier_witness={"witness_id": "synthetic"})
+    report = observe_attempt_cost(admission, [RESPONSE], sdk_entries=1, capture_complete=True)
+    assert report["admitted_request_cost_ceiling_usd"] == "0"
+    assert report["estimated_cost"]["amount_usd"] == "0.000200"
+    assert "NOMINAL" in report["estimated_cost"]["basis"]
+    assert report["observed_or_invoiced_cost"]["amount_usd"] is None
+    uncertain = observe_attempt_cost(admission, [], sdk_entries=1, capture_complete=False)
+    assert uncertain["potential_unconfirmed_exposure"]["amount_usd"] == "0.01"
+    assert uncertain["potential_unconfirmed_exposure"]["validated_upper_bound_usd"] is None

@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from decimal import Decimal, DecimalException
 from hashlib import sha256
 import json
+import time
 from typing import Any, NoReturn
 
 from apps.llm_workers.prompt_builder import PromptEnvelope
@@ -15,6 +16,9 @@ from core.execution.exceptions import G3ExternalEffectNotStartedError
 from core.prompting.dialects.openai_compatible import InferenceDialect, OpenAICompatibleDialect
 from core.prompting.renderer import PromptRenderer
 from core.validation.protocols import TokenEstimatorProtocol
+
+
+GPT_OSS_120B = "openai/gpt-oss-120b"
 
 
 def build_groq_request_kwargs(
@@ -32,6 +36,10 @@ def build_groq_request_kwargs(
         "max_completion_tokens": reserve,
         **dialect.build_request_kwargs(rendered),
     }
+    if envelope.model_name == GPT_OSS_120B:
+        # Keep reasoning explicit and bounded by the same output reserve.
+        # No tools, browsing, service-tier upgrade or alternate model.
+        kwargs.update(reasoning_effort="low", include_reasoning=False)
     return kwargs, rendered.expected_output_key
 
 
@@ -44,6 +52,69 @@ class G3AdmissionDecision:
 
 def _deny(code: str, *, permanent: bool = True) -> NoReturn:
     raise G3ExternalEffectNotStartedError(code, permanent=permanent)
+
+
+@dataclass(frozen=True, slots=True)
+class GroqFreeTierWitness:
+    """Operator-attributed, short-lived evidence for ONE synthetic witness.
+
+    Not an account API, a quota synchronizer or proof of provider accounting.
+    Remaining amounts are explicit observations, not configured maxima.
+    The caller must verify the account/project, evidence and estimator before
+    constructing this object. No production root selects it yet.
+    """
+
+    witness_id: str
+    account_evidence_ref: str
+    quota_evidence_ref: str
+    free_entitlement_ref: str
+    observed_at_ns: int
+    valid_until_ns: int
+    remaining_rpm: int
+    remaining_rpd: int
+    remaining_tpm: int
+    remaining_tpd: int
+    plan: str
+    no_billable_overage: bool
+    global_zdr: bool
+    model_allowed: bool
+
+    def verify(self, *, model_name: str, target_provider: str,
+               combined_tokens: int) -> dict[str, object]:
+        if (model_name != GPT_OSS_120B or target_provider != "primary"
+                or self.plan != "FREE" or self.no_billable_overage is not True
+                or self.global_zdr is not True or self.model_allowed is not True
+                or not all(isinstance(v, str) and v.strip() for v in (
+                    self.witness_id, self.account_evidence_ref,
+                    self.quota_evidence_ref, self.free_entitlement_ref,
+                ))):
+            _deny("PPPR_G5_FREE_ENTITLEMENT_NOT_ACCREDITED")
+        now = time.time_ns()
+        if (type(self.observed_at_ns) is not int or type(self.valid_until_ns) is not int
+                or not self.observed_at_ns <= now < self.valid_until_ns
+                or self.valid_until_ns - self.observed_at_ns > 300_000_000_000):
+            _deny("PPPR_G5_FREE_EVIDENCE_STALE")
+        for name, remaining, ceiling, needed in (
+            ("RPM", self.remaining_rpm, 30, 1),
+            ("RPD", self.remaining_rpd, 1000, 1),
+            ("TPM", self.remaining_tpm, 8000, combined_tokens),
+            ("TPD", self.remaining_tpd, 200000, combined_tokens),
+        ):
+            if type(remaining) is not int or not 0 <= remaining <= ceiling:
+                _deny("PPPR_G5_FREE_QUOTA_INVALID_" + name)
+            if remaining < needed:
+                _deny("PPPR_G5_FREE_QUOTA_INSUFFICIENT_" + name)
+        return {
+            "witness_id": self.witness_id, "plan": self.plan,
+            "account_evidence_ref": self.account_evidence_ref,
+            "quota_evidence_ref": self.quota_evidence_ref,
+            "free_entitlement_ref": self.free_entitlement_ref,
+            "observed_at_ns": self.observed_at_ns, "valid_until_ns": self.valid_until_ns,
+            "remaining_rpm": self.remaining_rpm, "remaining_rpd": self.remaining_rpd,
+            "remaining_tpm": self.remaining_tpm, "remaining_tpd": self.remaining_tpd,
+            "reserved_requests": 1, "reserved_tokens": combined_tokens,
+            "no_billable_overage": True, "global_zdr": True, "model_allowed": True,
+        }
 
 
 @dataclass(frozen=True, slots=True)
@@ -71,6 +142,7 @@ class G3PreEffectAdmission:
     input_price_per_token: Decimal
     output_price_per_token: Decimal
     authorized_max_cost: Decimal
+    free_tier_witness: GroqFreeTierWitness | None = None
 
     def verify(
         self, *, provider_id: str, root_config_sha256: str,
@@ -119,11 +191,25 @@ class G3PreEffectAdmission:
             ) from exc
         if not upper_cost.is_finite():
             _deny("PPPR_G3_BUDGET_NOT_AUTHORIZED")
+        nominal_upper_cost = upper_cost
+        free_audit: dict[str, object] | None = None
+        if self.model_name == GPT_OSS_120B or self.free_tier_witness is not None:
+            if (self.free_tier_witness is None or provider_id != "groq"
+                    or self.authorized_max_cost != Decimal("0")
+                    or self.input_price_per_token <= 0 or self.output_price_per_token <= 0):
+                _deny("PPPR_G5_FREE_ENTITLEMENT_NOT_ACCREDITED")
+            free_audit = self.free_tier_witness.verify(
+                model_name=self.model_name, target_provider=envelope.target_provider,
+                combined_tokens=count + reserve,
+            )
+            # Conditional zero billable cap based on explicit free entitlement.
+            # Preserve the nominal tariff, never fabricate a zero price.
+            upper_cost = Decimal("0")
         if upper_cost > self.authorized_max_cost:
             _deny("PPPR_G3_BUDGET_CAP_EXCEEDED")
         digest = sha256(serialized.encode("utf-8")).hexdigest()
         # Operational audit: no source content, credentials or attempt in generation key.
-        evidence = {
+        evidence: dict[str, object] = {
             "contract": "PPPR_G3_ADMISSION_V1",
             "request_sha256": digest, "provider_id": provider_id,
             "model_name": envelope.model_name,
@@ -146,6 +232,12 @@ class G3PreEffectAdmission:
             "authorized_max_cost": str(self.authorized_max_cost),
             "upper_bound_cost": str(upper_cost),
         }
+        if free_audit is not None:
+            evidence.update(
+                free_tier_witness=free_audit,
+                nominal_upper_bound_cost=str(nominal_upper_cost),
+                cost_basis="CONDITIONAL_FREE_ENTITLEMENT_NOT_BILLING_EVIDENCE",
+            )
         return G3AdmissionDecision(
             request_sha256=digest,
             audit_json=json.dumps(evidence, sort_keys=True,

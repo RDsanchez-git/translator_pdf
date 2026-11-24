@@ -1,0 +1,116 @@
+"""One-shot Free Tier policy and no-download cache preflight; no external I/O."""
+from dataclasses import replace
+from decimal import Decimal
+from hashlib import sha1, sha256
+import json
+from pathlib import Path
+import time
+
+import pytest
+
+from apps.llm_workers.g3_admission import (
+    G3PreEffectAdmission, GroqFreeTierWitness, GPT_OSS_120B, build_groq_request_kwargs,
+)
+from core.execution.exceptions import G3ExternalEffectNotStartedError
+from core.prompting.dialects.openai_compatible import OpenAICompatibleDialect
+from core.validation import estimators
+from tests.unit.test_adapters import _make_envelope
+
+pytestmark = pytest.mark.unit
+
+
+class _Estimator:
+    def estimate_tokens(self, text: str) -> int:
+        return 100  # Synthetic, deliberately not an attested provider count.
+
+
+@pytest.fixture
+def policy():
+    now = time.time_ns()
+    return G3PreEffectAdmission(
+        provider_id="groq", model_name=GPT_OSS_120B, root_config_sha256="a"*64,
+        input_limit=8000, output_limit=4096, context_window=131072,
+        input_estimator=_Estimator(), estimator_evidence_ref="synthetic-estimator",
+        egress_authorization_ref="synthetic-egress", data_scope_ref="synthetic-data",
+        purpose_ref="synthetic-purpose", retention_ref="synthetic-zdr",
+        training_use_ref="synthetic-training", budget_authorization_ref="synthetic-zero",
+        price_evidence_ref="synthetic-nominal-tariff",
+        input_price_per_token=Decimal("0.00000015"),
+        output_price_per_token=Decimal("0.00000060"), authorized_max_cost=Decimal("0"),
+        free_tier_witness=GroqFreeTierWitness(
+            witness_id="synthetic-one-shot", account_evidence_ref="synthetic-account",
+            quota_evidence_ref="synthetic-quota", free_entitlement_ref="synthetic-entitlement",
+            observed_at_ns=now-1_000_000, valid_until_ns=now+60_000_000_000,
+            remaining_rpm=30, remaining_rpd=1000, remaining_tpm=8000, remaining_tpd=200000,
+            plan="FREE", no_billable_overage=True, global_zdr=True, model_allowed=True,
+        ),
+    )
+
+
+def _verify(policy, **kwargs):
+    return policy.verify(provider_id="groq", root_config_sha256="a"*64,
+                         envelope=replace(_make_envelope(), model_name=GPT_OSS_120B, **kwargs))
+
+
+def test_free_entitlement_keeps_nominal_tariff_and_reserves_full_request(policy):
+    decision = _verify(policy)
+    audit = json.loads(decision.audit_json)
+    assert audit["upper_bound_cost"] == audit["authorized_max_cost"] == "0"
+    assert Decimal(audit["nominal_upper_bound_cost"]) == Decimal("0.00016860")
+    assert audit["free_tier_witness"]["reserved_tokens"] == 356
+    assert audit["free_tier_witness"]["reserved_requests"] == 1
+    envelope = replace(_make_envelope(), model_name=GPT_OSS_120B)
+    wire, _ = build_groq_request_kwargs(envelope, OpenAICompatibleDialect())
+    assert wire["model"] == GPT_OSS_120B and wire["max_completion_tokens"] == 256
+    assert wire["reasoning_effort"] == "low" and wire["include_reasoning"] is False
+    assert "tools" not in wire and "service_tier" not in wire
+    assert decision.request_sha256 == sha256(json.dumps(
+        wire, sort_keys=True, ensure_ascii=False, separators=(",", ":"),
+    ).encode()).hexdigest()
+
+
+@pytest.mark.parametrize("change,match", [
+    ({"plan": "DEVELOPER"}, "ENTITLEMENT"),
+    ({"no_billable_overage": False}, "ENTITLEMENT"),
+    ({"global_zdr": False}, "ENTITLEMENT"),
+    ({"model_allowed": False}, "ENTITLEMENT"),
+    ({"free_entitlement_ref": ""}, "ENTITLEMENT"),
+    ({"remaining_rpm": 0}, "INSUFFICIENT_RPM"),
+    ({"remaining_rpd": 0}, "INSUFFICIENT_RPD"),
+    ({"remaining_tpm": 355}, "INSUFFICIENT_TPM"),
+    ({"remaining_tpd": 355}, "INSUFFICIENT_TPD"),
+    ({"remaining_tpm": 8001}, "INVALID_TPM"),
+    ({"remaining_tpd": True}, "INVALID_TPD"),
+    ({"valid_until_ns": 0}, "EVIDENCE_STALE"),
+])
+def test_free_witness_rejects_unaccredited_or_exhausted_scope(policy, change, match):
+    with pytest.raises(G3ExternalEffectNotStartedError, match=match):
+        _verify(replace(policy, free_tier_witness=replace(policy.free_tier_witness, **change)))
+
+
+@pytest.mark.parametrize("change", [
+    {"free_tier_witness": None},
+    {"authorized_max_cost": Decimal("0.01")},
+    {"input_price_per_token": Decimal("0")},
+])
+def test_free_model_does_not_admit_missing_entitlement_or_paid_cap(policy, change):
+    with pytest.raises(G3ExternalEffectNotStartedError, match="ENTITLEMENT"):
+        _verify(replace(policy, **change))
+
+
+def test_free_model_rejects_fallback(policy):
+    with pytest.raises(G3ExternalEffectNotStartedError, match="ENTITLEMENT"):
+        _verify(policy, target_provider="fallback_large_window")
+
+
+def test_harmony_preflight_never_initializes_tokenizer(tmp_path, monkeypatch):
+    monkeypatch.setattr(estimators.tiktoken, "get_encoding",
+                        lambda *a, **kw: pytest.fail("implicit tokenizer acquisition"))
+    with pytest.raises(ValueError, match="CACHE_MISSING"):
+        estimators.verify_harmony_rank_cache(tmp_path)
+    path = tmp_path / sha1(estimators.HARMONY_RANKS_URL.encode()).hexdigest()
+    path.write_bytes(b"corrupt")
+    with pytest.raises(ValueError, match="IDENTITY_DRIFT"):
+        estimators.verify_harmony_rank_cache(tmp_path)
+    monkeypatch.setattr(estimators, "HARMONY_RANKS_SHA256", sha256(b"corrupt").hexdigest())
+    assert estimators.verify_harmony_rank_cache(tmp_path) == path

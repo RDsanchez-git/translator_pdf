@@ -1090,3 +1090,35 @@ def test_pppr_g5_offline_composition_root_real_loopback(tmp_path, monkeypatch):
         assert decision["model_name"] == lab.FAKE_MODEL
         assert decision["root_config_sha256"] == scope.root_config_sha256
         assert decision["upper_bound_cost"] == "0"
+
+
+def test_pppr_g5_free_witness_reservation_is_durable_and_single_use(queue):
+    """No new journal: even identical admission replay cannot authorize another effect."""
+    from core.execution.exceptions import G3ExternalEffectNotStartedError
+
+    lease = queue.repo.pick_task("free-witness", queue.plan.document_id, queue.plan.ast_hash)
+    assert lease is not None
+    if next(u for u in queue.plan.units if u.chunk_id == lease.node_id).chunk_type == TranslationTaskType.PRESERVE:
+        preserve = next(u for u in queue.plan.units if u.chunk_id == lease.node_id)
+        assert stage_claimed_unit(queue.repo, queue.plan, queue.ast, preserve, lease,
+                                  "free-witness", None, Semaphore(1))
+        lease = queue.repo.pick_task("free-witness", queue.plan.document_id, queue.plan.ast_hash)
+    assert lease is not None
+    # Synthetic audit tests only the persistence boundary, not the upstream
+    # account attestation. The policy producer is covered separately.
+    audit = json.dumps({
+        "contract": "PPPR_G3_ADMISSION_V1", "request_sha256": "a"*64,
+        "upper_bound_cost": "0", "free_tier_witness": {
+            "witness_id": "synthetic-reservation", "reserved_requests": 1,
+            "valid_until_ns": time.time_ns()+60_000_000_000,
+        },
+    }, sort_keys=True, separators=(",", ":"))
+    kwargs = dict(task_id=lease.task_id, worker_id="free-witness",
+                  execution_id=lease.execution_id, generation_sha256="b"*64, audit_json=audit)
+    queue.repo.record_g3_admission_decision(**kwargs)
+    path = queue.db.execute("PRAGMA database_list").fetchone()[2]
+    with sqlite3.connect(path) as reopened:
+        repo = ControlPlaneRepository(reopened)
+        with pytest.raises(G3ExternalEffectNotStartedError, match="ALREADY_RESERVED"):
+            repo.record_g3_admission_decision(**kwargs)
+        assert reopened.execute("SELECT COUNT(*) FROM g3_admission_decisions").fetchone() == (1,)
