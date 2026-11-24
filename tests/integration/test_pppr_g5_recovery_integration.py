@@ -236,7 +236,11 @@ def test_pppr_g5_attested_generation_recovery(
     _assert_sqlite_integrity(state)
 
 
-def test_pppr_g5_loopback_response_before_receipt_stays_unknown(recovery_subject, monkeypatch):
+def test_pppr_g5_loopback_response_before_receipt_stays_unknown(recovery_subject, monkeypatch, caplog):
+    from core.finops.effect_observation import SDK_ENTRY, RECEIPT_WINDOW, build_effect_report
+
+    caplog.set_level("INFO")
+    observation_start = time.time_ns()
     state, document_id, ast_hash, scope, server = recovery_subject
     original = ControlPlaneRepository.stage_chunk_result
     lost_attempts = []
@@ -283,6 +287,41 @@ def test_pppr_g5_loopback_response_before_receipt_stays_unknown(recovery_subject
     assert _publication(state) == ([], [])
     assert _fsm(state)[0][2] == "PROCESSING"
     _assert_sqlite_integrity(state)
+
+    # Consume actual correlated logger events, joining to durable admission
+    # identities; no fabricated POST counts, external effects or time bounds.
+    admissions = {
+        (task, execution): generation
+        for task, execution, generation in _rows(
+            state, "queue.db",
+            "SELECT task_id,execution_id,generation_sha256 FROM g3_admission_decisions",
+        )
+    }
+    events = [
+        {"message": record.getMessage(), **record.extra_data}
+        for record in caplog.records
+        if record.getMessage() in (SDK_ENTRY, RECEIPT_WINDOW)
+    ]
+    assert sum(event["message"] == SDK_ENTRY for event in events) == server.requests == 6
+    report = build_effect_report(
+        admissions, events, start_ns=observation_start, end_ns=time.time_ns(),
+        scope="SYNTHETIC_LOOPBACK_UNKNOWN_RECOVERY", capture_complete=True,
+    )
+    assert report["client_reexecution_rate"]["value"] == 0
+    assert report["client_reexecution_rate"]["coverage"]["attempts_with_measured_receipt_window"] == 5
+    assert report["external_duplication_rate"] is None
+    assert len(report["operations"]) == 6
+    for operation in report["operations"]:
+        assert operation["external_duplication"]["classification"] == "UNKNOWN"
+        assert operation["external_causal_window"]["validated_upper_bound_ns"] is None
+        assert operation["client_activity"]["observed_sdk_entries"] == 1
+        attempt, = operation["client_activity"]["attempts"]
+        window = attempt["client_receipt_window"]
+        if operation["task_id"] == task_id:
+            assert attempt["execution_id"] == execution_id
+            assert window["classification"] == "NOT_OBSERVABLE" and window["duration_ns"] is None
+        else:
+            assert window["classification"] == "MEASURED" and window["duration_ns"] >= 0
 
 
 

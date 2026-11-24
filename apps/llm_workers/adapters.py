@@ -12,6 +12,8 @@ from core.execution.exceptions import TransientAPIError, DialectParsingError, Ma
 from core.prompting.inference_result import InferenceResult
 from core.prompting.dialects.openai_compatible import InferenceDialect
 from core.prompting.renderer import PromptRenderer
+from core.execution.effect_guard import g3_pre_effect_guard
+from core.utils.telemetry import ctx_task_id, ctx_execution_id
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +39,15 @@ class GroqProvider:
         
         try:
             # 3. I/O Puro
+            # This is a local SDK entry boundary, not proof of a sent HTTP
+            # request, remote application or provider billing. Only G3's
+            # correlated route contributes to the PPPR observation contract.
+            task_id, execution_id = ctx_task_id.get(), ctx_execution_id.get()
+            if g3_pre_effect_guard.get() is not None and task_id != "-" and execution_id != "-":
+                logger.info("PPPR_G3_CLIENT_SDK_ENTRY", extra={"extra_data": {
+                    "task_id": task_id, "execution_id": execution_id,
+                    "chunk_id": envelope.chunk_id, "observed_at_ns": time.time_ns(),
+                }})
             response = await self._client.chat.completions.create(**kwargs)
             
             latency = (time.monotonic() - start_time) * 1000

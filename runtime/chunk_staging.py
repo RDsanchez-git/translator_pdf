@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import sqlite3
 import time
+import logging
 from threading import Semaphore
 from typing import Protocol, Sequence, cast
 
@@ -20,6 +21,9 @@ from core.execution.effect_guard import (
     g3_pre_effect_guard, g3_admission_audit_writer,
 )
 from infra.db.control_repo import ControlPlaneRepository
+
+
+logger = logging.getLogger(__name__)
 
 
 class ChunkProcessor(Protocol):
@@ -51,6 +55,7 @@ def stage_claimed_unit(
 
     generation_sha256: str | None = None
     root_config_sha256: str | None = None
+    response_ready_ns: int | None = None
     if unit.chunk_type == TranslationTaskType.PRESERVE:
         raw_response = None
     elif unit.chunk_type in (TranslationTaskType.TRANSLATE, TranslationTaskType.PARTIAL):
@@ -97,6 +102,7 @@ def stage_claimed_unit(
                     if not callable(attested_executor):
                         raise G3ExternalEffectNotStartedError("PPPR_G2_ATTESTED_PROVIDER_MISSING")
                     raw_response, generation_sha256 = cast(tuple[str, str], attested_executor(plan, unit))
+                    response_ready_ns = time.monotonic_ns()
                     root_config_sha256 = getattr(processor, "generation_root_config_sha256", None)
                 else:
                     # Historic/offline providers cannot claim an accredited
@@ -111,12 +117,30 @@ def stage_claimed_unit(
         raise ValueError("G3_B4_3A_UNSUPPORTED_TASK_TYPE")
 
     if generation_sha256 is not None:
-        return repo.stage_chunk_result(
-            plan, ast, chunk_id=unit.chunk_id, task_id=lease.task_id,
-            worker_id=worker_id, execution_id=lease.execution_id,
-            raw_response=raw_response, generation_sha256=generation_sha256,
-            root_config_sha256=root_config_sha256,
-        )
+        # Observe the narrower client interval: validated bridge return to
+        # locally committed new receipt. Never imply remote completion time,
+        # fsync/power-loss durability or a bound on external exposure.
+        duration_ns: int | None = None
+        try:
+            inserted = repo.stage_chunk_result(
+                plan, ast, chunk_id=unit.chunk_id, task_id=lease.task_id,
+                worker_id=worker_id, execution_id=lease.execution_id,
+                raw_response=raw_response, generation_sha256=generation_sha256,
+                root_config_sha256=root_config_sha256,
+            )
+            if inserted and not repo.conn.in_transaction and response_ready_ns is not None:
+                duration_ns = time.monotonic_ns() - response_ready_ns
+            return inserted
+        finally:
+            # No committed new receipt observed (fault, replay or caller-owned
+            # transaction): the complete interval is unavailable, not zero.
+            logger.info("PPPR_G3_CLIENT_RECEIPT_WINDOW", extra={"extra_data": {
+                "task_id": lease.task_id, "execution_id": lease.execution_id,
+                "generation_sha256": generation_sha256,
+                "observed_at_ns": time.time_ns(),
+                "duration_ns": duration_ns,
+                "classification": "MEASURED" if duration_ns is not None else "NOT_OBSERVABLE",
+            }})
     return repo.stage_chunk_result(
         plan, ast, chunk_id=unit.chunk_id, task_id=lease.task_id,
         worker_id=worker_id, execution_id=lease.execution_id,
