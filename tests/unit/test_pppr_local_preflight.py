@@ -77,3 +77,38 @@ def test_reject_external_volume_and_network():
     cfg["networks"]["chaos_net"]["internal"] = False
     cfg["volumes"]["g3_runtime_state"]["external"] = True
     assert {"NETWORK_DRIFT", "VOLUME_DEFINITION_DRIFT"} <= set(p.inspect(cfg, "tpdfppprtest"))
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("false_omitted", [False, True])
+def test_bind_serializer_never_accepts_auto_create(false_omitted):
+    cfg = candidate()
+    bind = cfg["services"]["ocr_router"]["volumes"][0]["bind"]
+    bind["create_host_path"] = True
+    assert "ocr_router:MOUNT_POLICY" in p.inspect(
+        cfg, "tpdfppprtest", false_bind_omitted=false_omitted)
+    bind.pop("create_host_path")
+    errors = p.inspect(cfg, "tpdfppprtest", false_bind_omitted=false_omitted)
+    assert ("ocr_router:MOUNT_POLICY" not in errors) == false_omitted
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(("disabled", "enabled", "expected"), [
+    ({}, {"create_host_path": True}, True),
+    ({"create_host_path": False}, {"create_host_path": True}, False),
+    ({}, {}, None),
+    ({"create_host_path": True}, {"create_host_path": True}, None),
+    ({"create_host_path": False}, {}, None),
+])
+def test_serializer_calibration(monkeypatch, disabled, enabled, expected):
+    import json
+    model = {"services": {
+        name: {"volumes": [{"bind": bind}]}
+        for name, bind in (("disabled", disabled), ("enabled", enabled))
+    }}
+    monkeypatch.setattr(p, "_read", lambda *_: json.dumps(model))
+    if expected is None:
+        with pytest.raises(ValueError, match="ambiguous"):
+            p._false_bind_omitted(["docker"])
+    else:
+        assert p._false_bind_omitted(["docker"]) is expected

@@ -99,6 +99,13 @@ jobs:
           uv sync --locked --extra dev --no-python-downloads --python "$(command -v python)"
           echo "$GITHUB_WORKSPACE/.venv/bin" >> "$GITHUB_PATH"
 
+      # H-G5-01: real Compose parser, not only synthetic configuration.
+      # No image operations, container starts or model downloads.
+      - name: Verify PPPR local effective Compose parser (no containers)
+        env:
+          PPPR_REQUIRE_COMPOSE_PARSER: "1"
+        run: python -m pytest tests/integration/test_pppr_local_compose_parser.py -q -ra
+
       # B03 uses loopback HTTP and temporary SQLite, so these are not pure unit tests.
       # This step runs without Docker containers, model credentials, or real PDF corpus.
       - name: Verify B03 offline fake and lab contracts (no Docker / LLM)

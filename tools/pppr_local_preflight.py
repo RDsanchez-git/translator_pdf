@@ -46,7 +46,57 @@ DB_ENV = {
 }
 
 
-def inspect(config: dict, project: str) -> list[str]:
+def _read(command: list[str], source: str | None = None) -> str:
+    return subprocess.run(command, cwd=ROOT, input=source, capture_output=True,
+                          text=True, check=True, timeout=30).stdout
+
+
+def _false_bind_omitted(docker: list[str]) -> bool:
+    """Calibrate actual Compose JSON serialization without creating resources."""
+    source = """
+services:
+  disabled:
+    image: scratch
+    volumes:
+      - type: bind
+        source: .
+        target: /probe
+        bind:
+          create_host_path: false
+  enabled:
+    image: scratch
+    volumes:
+      - type: bind
+        source: .
+        target: /probe
+        bind:
+          create_host_path: true
+"""
+    model = json.loads(_read(docker + [
+        "compose", "--project-name", "tpdfppprbindprobe", "-f", "-",
+        "config", "--format", "json",
+    ], source))
+    disabled = model["services"]["disabled"]["volumes"][0].get("bind", {})
+    enabled = model["services"]["enabled"]["volumes"][0].get("bind", {})
+    if not isinstance(disabled, dict) or not isinstance(enabled, dict):
+        raise ValueError("unsupported bind serializer")
+    if disabled.get("create_host_path") is False and enabled.get("create_host_path") is True:
+        return False
+    if "create_host_path" not in disabled and enabled.get("create_host_path") is True:
+        return True
+    raise ValueError("ambiguous bind serializer")
+
+
+def load_effective_config(docker: list[str], project: str) -> tuple[dict, bool]:
+    """Read actual Compose files; no image operations or containers."""
+    dc = docker + ["compose", "--project-name", project] + [
+        arg for file in ("docker-compose.yml", "docker-compose.runtime.yml", "docker-compose.local.yml")
+        for arg in ("-f", str(ROOT / file))
+    ]
+    return json.loads(_read(dc + ["config", "--format", "json"])), _false_bind_omitted(docker)
+
+
+def inspect(config: dict, project: str, *, false_bind_omitted: bool = False) -> list[str]:
     errors = []
     services = config.get("services", {})
     if set(services) != set(COMMANDS):
@@ -92,10 +142,15 @@ def inspect(config: dict, project: str) -> list[str]:
         volumes = s.get("volumes", [])
         targets = {v.get("target"): v for v in volumes}
         code = targets.get("/workspace", {})
+        bind = code.get("bind", {})
+        no_create = isinstance(bind, dict) and (
+            bind.get("create_host_path") is False
+            or (false_bind_omitted and "create_host_path" not in bind)
+        )
         if (len(targets) != len(volumes) or set(targets) != set(MOUNTS) | {"/workspace"}
                 or code.get("type") != "bind" or not code.get("read_only")
                 or Path(code.get("source", "")).resolve() != ROOT
-                or code.get("bind", {}).get("create_host_path") is not False):
+                or not ROOT.is_dir() or not no_create):
             errors.append(name + ":MOUNT_POLICY")
         for target, source in MOUNTS.items():
             v = targets.get(target, {})
@@ -131,17 +186,10 @@ def main() -> int:
         print("LOCAL_PREFLIGHT_BLOCKED:HOST_COMPOSE_ENV")
         return 2
     docker = ["docker", "--context", args.context]
-    dc = docker + ["compose", "--project-name", args.project] + [
-        arg for file in ("docker-compose.yml", "docker-compose.runtime.yml", "docker-compose.local.yml")
-        for arg in ("-f", str(ROOT / file))
-    ]
     try:
-        def read(command):
-            return subprocess.run(command, cwd=ROOT, capture_output=True, text=True,
-                                  check=True, timeout=30).stdout
-        config = json.loads(read(dc + ["config", "--format", "json"]))
-        errors = inspect(config, args.project)
-        local = json.loads(read(docker + ["image", "inspect", IMAGE]))[0]
+        config, false_bind_omitted = load_effective_config(docker, args.project)
+        errors = inspect(config, args.project, false_bind_omitted=false_bind_omitted)
+        local = json.loads(_read(docker + ["image", "inspect", IMAGE]))[0]
         if local["Id"] != IMAGE_ID or local["Config"].get("Volumes"):
             errors.append("LOCAL_IMAGE_ID_OR_IMPLICIT_VOLUME_DRIFT")
     except (OSError, subprocess.SubprocessError, ValueError, KeyError, TypeError, IndexError, AttributeError):

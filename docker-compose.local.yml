@@ -2,7 +2,6 @@
 # configuration is verified. Apply AFTER base + runtime, NEVER with lab overlay.
 # The immutable local image ID must be verified by the preflight before use.
 x-local-worker: &local-worker
-  build: !reset null
   image: i0-1d/translator-pdf-runtime:r2-d4cda2c-20261031_211824
   pull_policy: never
   working_dir: /app
@@ -10,7 +9,7 @@ x-local-worker: &local-worker
   restart: "no"
   cap_drop: [ALL]
   security_opt: ["no-new-privileges:true"]
-  volumes: !override
+  volumes:
     - type: bind
       source: .
       target: /workspace
@@ -74,6 +73,8 @@ x-local-worker: &local-worker
 services:
   db_bootstrap:
     <<: *local-worker
+    # Apply Compose reset at the concrete service boundary.
+    build: !reset null
     user: "0:0"
     cap_add: [CHOWN, DAC_OVERRIDE, SETGID, SETUID]
     command: ["python", "-B", "/workspace/infra/db/local_volume_bootstrap.py"]
@@ -82,18 +83,28 @@ services:
       TPDF_LOCAL_VOLUME_INIT: EXPLICIT_LOCAL_RUNTIME_VOLUME_INIT
   ocr_router:
     <<: *local-worker
+    # Apply Compose reset at the concrete service boundary.
+    build: !reset null
     command: ["python", "-B", "/workspace/apps/ocr_router/__main__.py"]
   llm_worker:
     <<: *local-worker
+    # Apply Compose reset at the concrete service boundary.
+    build: !reset null
     command: ["python", "-B", "/workspace/runtime/engine.py"]
   assembler:
     <<: *local-worker
+    # Apply Compose reset at the concrete service boundary.
+    build: !reset null
     command: ["python", "-B", "/workspace/apps/compiler/__main__.py"]
   reconciler:
     <<: *local-worker
+    # Apply Compose reset at the concrete service boundary.
+    build: !reset null
     command: ["python", "-B", "/workspace/apps/daemons/reconciler.py"]
   sweeper:
     <<: *local-worker
+    # Apply Compose reset at the concrete service boundary.
+    build: !reset null
     command: ["python", "-B", "/workspace/runtime/sweeper.py"]
 
 networks:
