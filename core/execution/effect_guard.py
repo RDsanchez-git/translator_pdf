@@ -36,6 +36,7 @@ class FreeWitnessDispatchPermit:
         self._input_tokens = input_tokens
         self._output_tokens = output_tokens
         self._used = False
+        self._transport_entered = False
         self._lock = Lock()
 
     @property
@@ -64,6 +65,25 @@ class FreeWitnessDispatchPermit:
             if time.time_ns() >= self._valid_until_ns:
                 raise G3ExternalEffectNotStartedError("PPPR_G5_FREE_EVIDENCE_STALE", permanent=True)
             self._used = True
+
+    def claim_transport(self, request_sha256: str) -> None:
+        """Last local HTTP boundary; SDK entry alone is not a sent request.
+
+        Errors here are conservatively post-SDK, never positive no-start
+        evidence. No reset even if the underlying transport raises.
+        """
+        with self._lock:
+            if not self._used or self._transport_entered:
+                raise MalformedInferenceResponse("PPPR_G5_FREE_HTTP_PERMIT_NOT_AVAILABLE")
+            if request_sha256 != self._request_sha256:
+                raise MalformedInferenceResponse("PPPR_G5_FREE_HTTP_REQUEST_DRIFT")
+            guard = g3_pre_effect_guard.get()
+            if guard is None or time.time_ns() >= self._valid_until_ns:
+                raise MalformedInferenceResponse("PPPR_G5_FREE_HTTP_AUTHORITY_EXPIRED")
+            guard()
+            if time.time_ns() >= self._valid_until_ns:
+                raise MalformedInferenceResponse("PPPR_G5_FREE_HTTP_AUTHORITY_EXPIRED")
+            self._transport_entered = True
 
     def check_reported_usage(self, input_tokens: int, output_tokens: int) -> None:
         if input_tokens > self._input_tokens or output_tokens > self._output_tokens:

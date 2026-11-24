@@ -1135,6 +1135,7 @@ def test_pppr_g5_free_dispatch_bound_to_durable_admission_and_quota(queue, statu
     import httpx
     from apps.llm_workers.adapters import GroqProvider
     from apps.llm_workers.g3_admission import GPT_OSS_120B, GroqFreeTierWitness
+    from apps.llm_workers.groq_free_transport import GroqFreeWitnessTransport
     from apps.llm_workers.rate_limiter import QuotaManager, RateLimitedProvider
     from core.execution.exceptions import TransientAPIError
     from core.execution.effect_guard import g3_free_dispatch_permit
@@ -1206,8 +1207,8 @@ def test_pppr_g5_free_dispatch_bound_to_durable_admission_and_quota(queue, statu
 
     client = AsyncGroq(
         api_key="synthetic-no-network", base_url="https://api.groq.com", max_retries=0,
-        http_client=httpx.AsyncClient(transport=httpx.MockTransport(transport), trust_env=False,
-                                     follow_redirects=False),
+        http_client=httpx.AsyncClient(transport=GroqFreeWitnessTransport(httpx.MockTransport(transport)),
+                                     trust_env=False, follow_redirects=False),
     )
     provider = RateLimitedProvider(GroqProvider("synthetic", OpenAICompatibleDialect(), client=client),
                                    RecordingQuota(30, 8000))
