@@ -22,6 +22,7 @@ from apps.lab.g3_fake import FakeServer
 from apps.lab.offline_pdf_lab import _smoke_source
 from core.ast.registry import ASTRegistry
 from core.ast.models import TranslationTaskType
+from infra.db import connection
 from infra.db.context_snapshot_repo import DurableContextPlanRepository
 from infra.db.control_repo import ControlPlaneRepository
 from core.validation import estimators
@@ -35,6 +36,7 @@ pytestmark = pytest.mark.integration
 
 
 def _rows(state: Path, database: str, query: str):
+    assert (state / database).is_file(), f"Missing witness database: {database}"
     with closing(sqlite3.connect(state / database)) as conn:
         return conn.execute(query).fetchall()
 
@@ -75,8 +77,8 @@ def _tasks(state: Path):
 
 def _assert_sqlite_integrity(state: Path):
     for database in ("fsm.db", "queue.db", "materialized.db"):
-        assert _rows(state, database, "PRAGMA quick_check") == [("ok",)]
-        assert _rows(state, database, "PRAGMA journal_mode") == [("wal",)]
+        assert _rows(state, database, "PRAGMA quick_check") == [("ok",)], database
+        assert _rows(state, database, "PRAGMA journal_mode") == [("wal",)], database
 
 
 @pytest.fixture
@@ -85,6 +87,16 @@ def recovery_subject(tmp_path, monkeypatch):
     # Do not inherit a path override from another test or local environment.
     for name in ("FSM_DB_PATH", "QUEUE_DB_PATH"):
         monkeypatch.delenv(name, raising=False)
+    # The historical fixture creates schemas through raw sqlite3.connect.
+    # Establish the product connection policy on ALL three fresh planes
+    # before ingestion, including materialized.db, which UNKNOWN never opens.
+    # Do not normalize the journal mode after an injected interruption.
+    for database in ("fsm.db", "queue.db", "materialized.db"):
+        with closing(connection.get_connection(str(state / database), timeout=30)) as conn:
+            assert conn.execute("PRAGMA synchronous").fetchone() == (1,), database
+            assert conn.execute("PRAGMA busy_timeout").fetchone() == (30000,), database
+    _assert_sqlite_integrity(state)
+
     monkeypatch.setenv("TPDF_OFFLINE_LAB", lab.OPT_IN)
     monkeypatch.setenv("GROQ_API_KEY", lab.DUMMY_KEY)
     monkeypatch.setattr(lab, "require_isolated_environment", lambda: None)
