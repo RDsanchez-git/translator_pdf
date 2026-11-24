@@ -98,3 +98,25 @@ async def test_transport_failure_does_not_restore_permit(scope):
         with pytest.raises(MalformedInferenceResponse, match="PERMIT_NOT_AVAILABLE"):
             await client.post(GROQ_CHAT_URL, json=BODY)
     assert len(calls) == 1
+
+
+async def test_free_witness_stack_has_no_implicit_transport_or_default_cache():
+    from dataclasses import replace
+    from unittest.mock import Mock
+    from apps.bootstrap.provider_stack_factory import build_groq_free_witness_stack
+    from apps.llm_workers.g3_admission import GPT_OSS_120B
+    from core.execution.exceptions import G3ExternalEffectNotStartedError
+    from tests.unit.test_adapters import _make_envelope
+
+    # An ordinary stack without a committed permit must never construct a
+    # transport or read a live API key. The store is synthetic here.
+    store = Mock()
+    store.load.return_value = None
+    factory = Mock(side_effect=AssertionError("implicit HTTP transport construction"))
+    provider = await build_groq_free_witness_stack(
+        api_key="synthetic", transport_factory=factory, rate_limit_store=store,
+    )
+    factory.assert_not_called()
+    with pytest.raises(G3ExternalEffectNotStartedError, match="COMPOSITION_SCOPE_REQUIRED"):
+        await provider.translate(replace(_make_envelope(), model_name=GPT_OSS_120B))
+    factory.assert_not_called()

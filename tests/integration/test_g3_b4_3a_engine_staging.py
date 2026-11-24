@@ -1126,21 +1126,20 @@ def test_pppr_g5_free_witness_reservation_is_durable_and_single_use(queue):
 
 @pytest.mark.integration
 @pytest.mark.parametrize("status", [200, 429])
-def test_pppr_g5_free_dispatch_bound_to_durable_admission_and_quota(queue, status):
+def test_pppr_g5_free_dispatch_bound_to_durable_admission_and_quota(queue, status, tmp_path, monkeypatch):
     """Actual SDK serialization/response, bridge, quota and SQLite; no sockets."""
     import asyncio
     from contextlib import closing
     from decimal import Decimal
-    from groq import AsyncGroq
     import httpx
-    from apps.llm_workers.adapters import GroqProvider
+    from apps.bootstrap.provider_stack_factory import build_groq_free_witness_stack
+    from apps.llm_workers.circuit_breaker_provider import CircuitBreakerProvider
+    from infra.resilience.thread_owned_sqlite_rate_limit_store import ThreadOwnedSQLiteRateLimitStore
     from apps.llm_workers.g3_admission import GPT_OSS_120B, GroqFreeTierWitness
-    from apps.llm_workers.groq_free_transport import GroqFreeWitnessTransport
-    from apps.llm_workers.rate_limiter import QuotaManager, RateLimitedProvider
+    from apps.llm_workers.rate_limiter import QuotaManager
     from core.execution.exceptions import TransientAPIError
     from core.execution.effect_guard import g3_free_dispatch_permit
     from core.finops.measurement import InferenceMeasurementService
-    from core.prompting.dialects.openai_compatible import OpenAICompatibleDialect
     from core.utils.telemetry import ctx_task_id, ctx_execution_id
     from core.validation.budget import PromptBudgetCalculator, StandardCompressionPolicy
 
@@ -1172,12 +1171,17 @@ def test_pppr_g5_free_dispatch_bound_to_durable_admission_and_quota(queue, statu
     db_path = queue.db.execute("PRAGMA database_list").fetchone()[2]
     requests = []
 
-    class RecordingQuota(QuotaManager):
-        async def reserve(self, estimated_tokens, estimated_requests=1):
-            permit = g3_free_dispatch_permit.get()
-            assert permit is not None
-            assert estimated_tokens == permit.reserved_tokens
-            return await super().reserve(estimated_tokens, estimated_requests)
+    reservations = []
+    original_reserve = QuotaManager.reserve
+
+    async def recording_reserve(self, estimated_tokens, estimated_requests=1):
+        permit = g3_free_dispatch_permit.get()
+        assert permit is not None
+        assert estimated_tokens == permit.reserved_tokens
+        reservations.append((estimated_tokens, estimated_requests))
+        return await original_reserve(self, estimated_tokens, estimated_requests)
+
+    monkeypatch.setattr(QuotaManager, "reserve", recording_reserve)
 
     def transport(request):
         requests.append(request)
@@ -1205,15 +1209,32 @@ def test_pppr_g5_free_dispatch_bound_to_durable_admission_and_quota(queue, statu
             "usage": {"prompt_tokens": 10, "completion_tokens": 10, "total_tokens": 20},
         })
 
-    client = AsyncGroq(
-        api_key="synthetic-no-network", base_url="https://api.groq.com", max_retries=0,
-        http_client=httpx.AsyncClient(transport=GroqFreeWitnessTransport(httpx.MockTransport(transport)),
-                                     trust_env=False, follow_redirects=False),
-    )
-    provider = RateLimitedProvider(GroqProvider("synthetic", OpenAICompatibleDialect(), client=client),
-                                   RecordingQuota(30, 8000))
-    bridge = _bridge(provider, builder, queue.plan, effective_config_sha256="a"*64,
-                     pre_effect_admission=policy)
+    quota_path = tmp_path / "witness_rate_limits.db"
+    store = ThreadOwnedSQLiteRateLimitStore(str(quota_path))
+    bridge = None
+    transport_instances = []
+
+    class RecordingTransport(httpx.MockTransport):
+        async def aclose(self):
+            transport_instances.append("closed")
+            await super().aclose()
+
+    def transport_factory():
+        transport_instances.append("created")
+        return RecordingTransport(transport)
+
+    try:
+        provider = asyncio.run(build_groq_free_witness_stack(
+            api_key="synthetic-no-network", transport_factory=transport_factory,
+            rate_limit_store=store,
+        ))
+        assert isinstance(provider, CircuitBreakerProvider)
+        assert transport_instances == []
+        bridge = _bridge(provider, builder, queue.plan, effective_config_sha256="a"*64,
+                         pre_effect_admission=policy)
+    except BaseException:
+        store.close()
+        raise
     task_token = ctx_task_id.set(lease.task_id)
     execution_token = ctx_execution_id.set(lease.execution_id)
     try:
@@ -1225,7 +1246,14 @@ def test_pppr_g5_free_dispatch_bound_to_durable_admission_and_quota(queue, statu
                 stage_claimed_unit(queue.repo, queue.plan, queue.ast, unit, lease,
                                    "free-dispatch", bridge, Semaphore(1))
         assert len(requests) == 1
+        assert transport_instances == ["created", "closed"]
+        assert len(reservations) == 1 and reservations[0][1] == 1
         assert g3_free_dispatch_permit.get() is None
+        with closing(sqlite3.connect(quota_path)) as quota:
+            balances = dict(quota.execute("SELECT bucket_id, tokens FROM rate_limit_buckets"))
+        assert set(balances) == {"rpm", "tpm"}
+        assert balances["rpm"] == pytest.approx(29)
+        assert balances["tpm"] == pytest.approx(8000 - reservations[0][0])
         assert queue.db.execute(
             "SELECT COUNT(*) FROM chunk_result_receipts WHERE raw_response IS NOT NULL"
         ).fetchone() == (int(status == 200),)
@@ -1233,4 +1261,4 @@ def test_pppr_g5_free_dispatch_bound_to_durable_admission_and_quota(queue, statu
         ctx_execution_id.reset(execution_token)
         ctx_task_id.reset(task_token)
         bridge.shutdown()
-        asyncio.run(client.close())
+        store.close()
