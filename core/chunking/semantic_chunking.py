@@ -23,7 +23,7 @@ from core.validation.protocols import TokenEstimatorProtocol  # NUEVO
 from core.ast.enums import ContentNodeType, TranslationStrategy
 from core.ast.grouper import SemanticGroup, ContextAwareSemanticGrouper
 from core.shared.crypto import compute_sha256, compute_md5
-from core.chunking.manifest_contract import build_target_payload
+from core.chunking.manifest_contract import build_target_payload, expected_task_type
 
 
 def _member_for(node: ASTNode, text: str, index: int = 0, count: int = 1) -> ChunkMember:
@@ -132,11 +132,21 @@ class TokenBudgetChunker:
                     (TranslationStrategy.PASSTHROUGH, TranslationStrategy.KEEP_ORIGINAL)):
                 flush_translate_chunk()
 
-                task_type = (TranslationTaskType.PRESERVE if node.strategy in
-                             (TranslationStrategy.PASSTHROUGH, TranslationStrategy.KEEP_ORIGINAL)
-                             else TranslationTaskType.PARTIAL if node.node_type in self.partial_types
-                             else TranslationTaskType.PRESERVE)
+                task_type = expected_task_type(
+                    _member_for(node, content),
+                    heading_level=(
+                        node.payload.heading_level
+                        if isinstance(node.payload, HeadingPayload) else None
+                    ),
+                )
+                # Isolated translation does not exempt a heading from the
+                # same hard prompt budget as regular inference-bearing units.
                 node_tokens = self.estimator.estimate_tokens(content)
+                if (task_type == TranslationTaskType.TRANSLATE
+                        and node_tokens > available_payload_tokens):
+                    raise ValueError(
+                        f"G3_HEADING_EXCEEDS_BUDGET: {node.node_id}"
+                    )
                 # Punto único de entrada criptográfico (core.shared.crypto)
                 full_hash = compute_sha256(content.encode("utf-8"))
                 fingerprint = compute_md5(f"{node.sequence_id}-{node.sequence_id}".encode())

@@ -12,5 +12,5 @@ class ASTConsistencyError(CompilationServiceError):
     pass
 
 class AssemblyRejectedError(CompilationServiceError):
-    """El DocumentAssembler rechazó los chunks superando el umbral de degradación."""
+    """La decisión de ensamblado no admite publicación productiva conforme."""
     pass

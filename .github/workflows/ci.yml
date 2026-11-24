@@ -144,6 +144,38 @@ jobs:
         run: |
           python -m pytest -m "integration and not regression" -v --tb=short --no-header
 
+      # W4.2: real native compiler for synthetic PDF only. Match the
+      # existing Dockerfile version; do not invoke commercial inference.
+      # A missing binary or failed compile is a failing required check.
+      - name: Install Tectonic for PPPR physical PDF witness
+        run: |
+          set -euo pipefail
+          work="$(mktemp -d)"
+          curl --fail --show-error --silent --location --retry 3 \
+            https://github.com/tectonic-typesetting/tectonic/releases/download/tectonic%400.15.0/tectonic-0.15.0-x86_64-unknown-linux-gnu.tar.gz \
+            -o "$work/tectonic.tar.gz"
+          tar -xzf "$work/tectonic.tar.gz" -C "$work"
+          mkdir -p "$RUNNER_TEMP/pppr-tectonic-bin"
+          install -m 0755 "$work/tectonic" "$RUNNER_TEMP/pppr-tectonic-bin/tectonic"
+          "$RUNNER_TEMP/pppr-tectonic-bin/tectonic" --version
+          # Prime the package cache with fixed synthetic TeX, not user data.
+          # This installation/bootstrap may fetch public TeX dependencies.
+          printf '%s\n' '\documentclass[11pt,a4paper]{article}' \
+            '\usepackage{amsmath,amssymb,graphicx,hyperref}' \
+            '\begin{document}' '\section*{Muestras} Test $x^2+1$.' \
+            '\begin{figure}[htbp]\rule{1cm}{1cm}\end{figure}' \
+            '\end{document}' > "$work/prime.tex"
+          (cd "$work" && "$RUNNER_TEMP/pppr-tectonic-bin/tectonic" --untrusted prime.tex)
+          test -s "$work/prime.pdf"
+          rm -rf "$work"
+
+      - name: Verify PPPR Gate 4 real physical synthetic PDF (no paid inference)
+        env:
+          PPPR_G4_REQUIRE_PHYSICAL_PDF: "1"
+        run: |
+          export PATH="$RUNNER_TEMP/pppr-tectonic-bin:$PATH"
+          python -m pytest tests/integration/test_pppr_g4_physical_pdf.py -v --tb=short --no-header -ra
+
       # Audit all technical tests, including older unmarked fixtures. The
       # corpus-backed E2E tests run only when explicitly requested; CV remains
       # a separate, visible gate with no reinterpretation of its verdict.

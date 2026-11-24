@@ -56,8 +56,9 @@ class _ControlledParser:
 
 
 class _OfflineProvider:
-    def __init__(self) -> None:
+    def __init__(self, translations: dict[str, str] | None = None) -> None:
         self.calls: list[tuple[str, tuple[str, ...]]] = []
+        self._translations = translations
 
     async def translate(self, envelope: Any) -> Any:
         # Execute the real PromptBuilder and bridge. Only the HTTP transport is
@@ -71,7 +72,10 @@ class _OfflineProvider:
                 "node_id": m["node_id"],
                 "segment_index": m["segment_index"],
                 "source_sha256": m["source_sha256"],
-                "translated_text": "SYNTHETIC_" + m["source_text"],
+                "translated_text": (
+                    "SYNTHETIC_" + m["source_text"] if self._translations is None
+                    else self._translations[m["source_text"]]
+                ),
             }
             for m in protocol["members"]
         ]
@@ -82,22 +86,8 @@ class _OfflineProvider:
         return SimpleNamespace(chunk_id=envelope.chunk_id, content=raw)
 
 
-@pytest.mark.integration
-def test_cli_foreground_context_receipts_projections_and_pdf_same_generation(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    from apps.bootstrap import pipeline_factory
-    from apps.compiler.tectonic_runner import HostTectonicRunner
-    from core.ast.registry import ASTRegistry
+def _prepare_workspace(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     from infra.db import connection
-    from runtime import engine
-    from apps.llm_workers.sync_bridge import SyncProviderBridge
-    from apps.llm_workers.prompt_builder import PromptBuilder
-    from core.finops.measurement import InferenceMeasurementService
-    from core.validation.estimators import ExactBPEEstimator
-    from core.validation.budget import PromptBudgetCalculator, StandardCompressionPolicy
-    from apps.llm_workers.g3_admission import G3PreEffectAdmission
-    from decimal import Decimal
 
     monkeypatch.chdir(tmp_path)
     monkeypatch.setattr(connection, "BASE_DIR", tmp_path)
@@ -121,40 +111,22 @@ def test_cli_foreground_context_receipts_projections_and_pdf_same_generation(
             )
             conn.commit()
 
-    source = tmp_path / "source.pdf"
-    with fitz.open() as pdf:
-        page = pdf.new_page()
-        page.insert_text((72, 72), "Methods")
-        page.insert_text((72, 98), "Alpha sample.")
-        page.insert_text((72, 150), "Results")
-        page.insert_text((72, 176), "Beta sample.")
-        pdf.save(source)
-    document_id = sha256(source.read_bytes()).hexdigest()
+    return state_dir
 
-    monkeypatch.setattr(
-        pipeline_factory, "build_extraction_pipeline", lambda: _ControlledParser(),
-    )
-    # The real G5 CompilationService still renders TeX; only the external
-    # Tectonic binary is replaced with a valid one-page PDF.
-    def fake_compile(
-        _self: HostTectonicRunner, tex_content: str, output_dir: str,
-        output_filename: str = "output.pdf", *, image_assets: Any = (),
-    ) -> str:
-        assert "\\begin{document}" in tex_content
-        assert not image_assets
-        target = Path(output_dir) / output_filename
-        with fitz.open() as pdf:
-            page = pdf.new_page()
-            page.insert_text((72, 72), "Controlled compiler witness")
-            pdf.save(target)
-        return str(target)
 
-    monkeypatch.setattr(HostTectonicRunner, "compile", fake_compile)
-    import apps.cli.pdf_product as product
-    monkeypatch.setattr(product.shutil, "which", lambda name: "test-tectonic" if name == "tectonic" else None)
+def _install_offline_provider(
+    monkeypatch: pytest.MonkeyPatch, provider: _OfflineProvider,
+) -> list[Any]:
+    from runtime import engine
+    from apps.llm_workers.sync_bridge import SyncProviderBridge
+    from apps.llm_workers.prompt_builder import PromptBuilder
+    from core.finops.measurement import InferenceMeasurementService
+    from core.validation.estimators import ExactBPEEstimator
+    from core.validation.budget import PromptBudgetCalculator, StandardCompressionPolicy
+    from apps.llm_workers.g3_admission import G3PreEffectAdmission
+    from decimal import Decimal
 
-    provider = _OfflineProvider()
-    processors = []
+    processors: list[Any] = []
 
     def fake_processor_factory(context_snapshots: Any) -> tuple[Any, Any]:
         estimator = ExactBPEEstimator()
@@ -195,6 +167,55 @@ def test_cli_foreground_context_receipts_projections_and_pdf_same_generation(
         return bridge, SimpleNamespace(close=lambda: None)
 
     monkeypatch.setattr(engine, "_create_chunk_processor", fake_processor_factory)
+    return processors
+
+
+@pytest.mark.integration
+def test_cli_foreground_context_receipts_projections_and_pdf_same_generation(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from apps.bootstrap import pipeline_factory
+    from apps.compiler.tectonic_runner import HostTectonicRunner
+    from core.ast.registry import ASTRegistry
+    from runtime import engine
+    state_dir = _prepare_workspace(tmp_path, monkeypatch)
+
+    source = tmp_path / "source.pdf"
+    with fitz.open() as pdf:
+        page = pdf.new_page()
+        page.insert_text((72, 72), "Methods")
+        page.insert_text((72, 98), "Alpha sample.")
+        page.insert_text((72, 150), "Results")
+        page.insert_text((72, 176), "Beta sample.")
+        pdf.save(source)
+    document_id = sha256(source.read_bytes()).hexdigest()
+
+    monkeypatch.setattr(
+        pipeline_factory, "build_extraction_pipeline", lambda: _ControlledParser(),
+    )
+    # The real G5 CompilationService renders the selected EN->ES content;
+    # only the external Tectonic binary is replaced with a one-page PDF.
+    rendered_tex: list[str] = []
+    def fake_compile(
+        _self: HostTectonicRunner, tex_content: str, output_dir: str,
+        output_filename: str = "output.pdf", *, image_assets: Any = (),
+    ) -> str:
+        assert "\\begin{document}" in tex_content
+        rendered_tex.append(tex_content)
+        assert not image_assets
+        target = Path(output_dir) / output_filename
+        with fitz.open() as pdf:
+            page = pdf.new_page()
+            page.insert_text((72, 72), "Controlled compiler witness")
+            pdf.save(target)
+        return str(target)
+
+    monkeypatch.setattr(HostTectonicRunner, "compile", fake_compile)
+    import apps.cli.pdf_product as product
+    monkeypatch.setattr(product.shutil, "which", lambda name: "test-tectonic" if name == "tectonic" else None)
+
+    provider = _OfflineProvider()
+    processors = _install_offline_provider(monkeypatch, provider)
     monkeypatch.setattr(
         sys, "argv", ["apps.cli.main", "translate", str(source), "--run"],
     )
@@ -223,10 +244,31 @@ def test_cli_foreground_context_receipts_projections_and_pdf_same_generation(
         ).load_verified(document_id, ast_hash, persisted_ast)
         assert isinstance(plan, ChunkPlan)
         units = [u for u in plan.units if u.chunk_type == TranslationTaskType.TRANSLATE]
-        assert len(units) == 2 and len(snapshots) == 2
-        assert units[0].context_id != units[1].context_id
-        assert len(provider.calls) == 2
+        # W4.2: both accredited headings AND their paragraphs now receive
+        # distinct translation units. The headings share the verified root
+        # snapshot; the paragraphs retain their individual H1 contexts.
+        assert len(units) == 4 and len(snapshots) == 3
+        by_node = {u.members[0].node_id: u for u in units}
+        assert set(by_node) == {
+            "h_methods", "p_methods", "h_results", "p_results",
+        }
+        assert all(len(u.members) == 1 for u in units)
+        assert (
+            by_node["h_methods"].context_id
+            == by_node["h_results"].context_id
+        )
+        assert by_node["p_methods"].context_id != by_node["p_results"].context_id
+        assert all(u.context_id in snapshots for u in units)
+        root = snapshots[by_node["h_methods"].context_id]
+        assert len(root.breadcrumbs) == 1
+        assert root.breadcrumbs[0].level == 0
+        assert root.breadcrumbs[0].title == "[ROOT_DOCUMENT_CONTEXT]"
+        assert len(provider.calls) == 4
+        assert {chunk for chunk, _ in provider.calls} == {
+            u.chunk_id for u in units
+        }
         assert {context for _, context in provider.calls} == {
+            ("[ROOT_DOCUMENT_CONTEXT]",),
             ("H1: Methods",), ("H1: Results",),
         }
 
@@ -236,7 +278,7 @@ def test_cli_foreground_context_receipts_projections_and_pdf_same_generation(
             (document_id, ast_hash),
         ).fetchall()
         assert len(rows) == len(plan.units) == 4
-        assert sum(raw is not None for _, raw, _, _, _, _ in rows) == 2
+        assert sum(raw is not None for _, raw, _, _, _, _ in rows) == 4
         assert all(execution_id for _, _, execution_id, _, _, _ in rows)
         assert all(
             (generation is not None and len(generation) == 64
@@ -253,7 +295,12 @@ def test_cli_foreground_context_receipts_projections_and_pdf_same_generation(
         assert {node for node, _ in projections} == {
             "h_methods", "p_methods", "h_results", "p_results",
         }
-        assert all(response for _, response in projections)
+        assert dict(projections) == {
+            "h_methods": "SYNTHETIC_Methods",
+            "p_methods": "SYNTHETIC_Alpha sample.",
+            "h_results": "SYNTHETIC_Results",
+            "p_results": "SYNTHETIC_Beta sample.",
+        }
         pub = materialized.execute(
             "SELECT manifest_sha256 FROM g3_plan_publications "
             "WHERE document_id=? AND ast_hash=?", (document_id, ast_hash),
@@ -264,4 +311,9 @@ def test_cli_foreground_context_receipts_projections_and_pdf_same_generation(
     assert result.is_file()
     with fitz.open(result) as compiled:
         assert compiled.page_count == 1
+    assert len(rendered_tex) == 1
+    assert r"\section*{SYNTHETIC\_Methods}" in rendered_tex[0]
+    assert r"\section*{SYNTHETIC\_Results}" in rendered_tex[0]
+    assert r"SYNTHETIC\_Alpha sample." in rendered_tex[0]
+    assert r"SYNTHETIC\_Beta sample." in rendered_tex[0]
     assert processors
