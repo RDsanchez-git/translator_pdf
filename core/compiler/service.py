@@ -94,7 +94,7 @@ class CompilationService:
                     and node.strategy == TranslationStrategy.TRANSLATE
                     and node.node_id not in projection_map):
                 raise ASTConsistencyError(
-                    "PPPR_G4_HEADING_TRANSLATION_PROJECTION_REQUIRED"
+                    f"PPPR_G4_HEADING_TRANSLATION_PROJECTION_REQUIRED node_id={ascii(node.node_id)}"
                 )
             if node.node_id in projection_map:
                 text = projection_map[node.node_id].normalized_response

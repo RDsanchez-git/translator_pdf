@@ -112,15 +112,16 @@ def test_real_worker_method_fences_failure_state(sandbox, monkeypatch):
     assert not list(tmp.glob(".assembly_*.pdf"))
 
 
-def test_real_worker_blocks_unverified_image_width_and_records_attributable_failure(
-    sandbox, monkeypatch,
+@pytest.mark.parametrize("case", ["image", "heading", "empty_heading"])
+def test_real_worker_blocks_unverified_representation_and_records_attributable_failure(
+    sandbox, monkeypatch, case,
 ):
-    """R8/DC-12: no final artifact or compiler effect for an unverified span."""
+    """R6/R8/DC-12: an unverified representation has no compiler effect."""
     from hashlib import sha256
 
     from apps.compiler.__main__ import RenderAssetAdapter, RenderGeometryAdapter
-    from core.ast.enums import ContentNodeType, TranslationStrategy
-    from core.ast.models import ASTNode, ImagePayload
+    from core.ast.enums import ContentNodeType, HeadingLevel, TranslationStrategy
+    from core.ast.models import ASTNode, HeadingPayload, ImagePayload
     from core.compiler.assembler import DocumentAssembler
     from core.compiler.assembly_context import AssemblyExecutionContext
     from core.compiler.exceptions import ASTConsistencyError
@@ -135,15 +136,35 @@ def test_real_worker_blocks_unverified_image_width_and_records_attributable_fail
     monkeypatch.setenv("COMPILER_OUTPUT_DIR", str(tmp))
     worker = _worker(c, tmp, monkeypatch)
     asset = "data/assets/" + sha256(b"synthetic-image").hexdigest() + ".png"
-    node = ASTNode(
-        node_id="figure-1", sequence_id=1, node_type=ContentNodeType.IMAGE,
-        strategy=TranslationStrategy.PASSTHROUGH,
-        payload=ImagePayload(asset_path=asset),
-    )
+    if case == "image":
+        node = ASTNode(
+            node_id="figure-1", sequence_id=1, node_type=ContentNodeType.IMAGE,
+            strategy=TranslationStrategy.PASSTHROUGH,
+            payload=ImagePayload(asset_path=asset),
+        )
+        selected = asset
+        code = "PPPR_G4_IMAGE_WIDTH_UNVERIFIED"
+        expected_error = ASTConsistencyError
+    else:
+        node = ASTNode(
+            node_id="heading-1", sequence_id=1, node_type=ContentNodeType.HEADING,
+            strategy=TranslationStrategy.TRANSLATE,
+            payload=HeadingPayload(
+                content="Methods",
+                heading_level=HeadingLevel.UNKNOWN if case == "heading" else HeadingLevel.H1,
+            ),
+        )
+        selected = "Methods" if case == "heading" else " "
+        code = (
+            "PPPR_G4_HEADING_LEVEL_UNVERIFIED" if case == "heading"
+            else "PPPR_G4_HEADING_CONTENT_MISSING"
+        )
+        expected_error = ValueError
+    reason = f"{code} node_id={ascii(node.node_id)}"
     context = AssemblyExecutionContext(
         document_id="doc", ast_hash="ast",
         ast_nodes=(node,),
-        projections=(ProjectionRecord(node.node_id, asset, 1),),
+        projections=(ProjectionRecord(node.node_id, selected, 1),),
         projection_version=1,
     )
 
@@ -171,7 +192,7 @@ def test_real_worker_blocks_unverified_image_width_and_records_attributable_fail
 
     class NoRunner:
         def compile(self, *args, **kwargs):
-            pytest.fail("Unverified image span must not reach Tectonic")
+            pytest.fail("Unverified representation must not reach Tectonic")
 
     repo = NoFallback()
     service = CompilationService(
@@ -182,8 +203,9 @@ def test_real_worker_blocks_unverified_image_width_and_records_attributable_fail
     setattr(worker, "compilation_service", service)
     setattr(worker, "runner", NoRunner())
 
-    with pytest.raises(ASTConsistencyError, match="PPPR_G4_IMAGE_WIDTH_UNVERIFIED.*figure-1"):
+    with pytest.raises(expected_error) as error:
         worker._process_assembly_task("doc", "ast")
+    assert str(error.value) == reason
 
     # The authorized failure is durable and attributable in the existing
     # FSM/queue, not merely a transient warning or a successful partial PDF.
@@ -191,7 +213,6 @@ def test_real_worker_blocks_unverified_image_width_and_records_attributable_fail
     try:
         assert _fsm(other) == ("FAILED_RETRYABLE", 2, 0)
         assert _row(other)[0] == "FAILED"
-        reason = "PPPR_G4_IMAGE_WIDTH_UNVERIFIED node_id='figure-1'"
         assert other.execute(
             "SELECT failure_reason FROM fsm_db.document_fsm "
             "WHERE document_id='doc' AND ast_hash='ast'"

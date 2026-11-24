@@ -60,10 +60,26 @@ def test_unknown_heading_level_fails_closed_in_real_builder(level):
         node_id="h", node_type=ContentNodeType.HEADING,
         content="Texto recibido", heading_level=level,
     )
-    with pytest.raises(ValueError, match="PPPR_G4_HEADING_LEVEL_UNVERIFIED"):
+    with pytest.raises(ValueError) as error:
         TexBuilder(RenderContextFactory.create(
             InferredDocumentProfile(layout=PageLayout.SINGLE_COLUMN, document_type=None)
         )).build([unit])
+    assert str(error.value) == "PPPR_G4_HEADING_LEVEL_UNVERIFIED node_id='h'"
+
+
+@pytest.mark.unit
+def test_empty_heading_failure_is_attributable_without_metadata_line_injection():
+    node_id = "h\n\\input{private.tex}"
+    unit = RenderUnit(
+        node_id=node_id, node_type=ContentNodeType.HEADING,
+        content=" ", heading_level=HeadingLevel.H1,
+    )
+    with pytest.raises(ValueError) as error:
+        TexBuilder(RenderContextFactory.create(
+            InferredDocumentProfile(layout=PageLayout.SINGLE_COLUMN, document_type=None)
+        )).build([unit])
+    assert str(error.value) == f"PPPR_G4_HEADING_CONTENT_MISSING node_id={ascii(node_id)}"
+    assert len(str(error.value).splitlines()) == 1
 
 
 @pytest.mark.unit

@@ -93,12 +93,12 @@ class HeadingRenderStrategy(RenderStrategy):
         # Explicit narrowing keeps the fail-closed contract and Pyright strict.
         level = unit.heading_level
         if level is None:
-            raise ValueError("PPPR_G4_HEADING_LEVEL_UNVERIFIED")
+            raise ValueError(f"PPPR_G4_HEADING_LEVEL_UNVERIFIED node_id={ascii(unit.node_id)}")
         command = self._COMMANDS.get(level)
         if command is None:
-            raise ValueError("PPPR_G4_HEADING_LEVEL_UNVERIFIED")
+            raise ValueError(f"PPPR_G4_HEADING_LEVEL_UNVERIFIED node_id={ascii(unit.node_id)}")
         if not unit.content.strip():
-            raise ValueError("PPPR_G4_HEADING_CONTENT_MISSING")
+            raise ValueError(f"PPPR_G4_HEADING_CONTENT_MISSING node_id={ascii(unit.node_id)}")
         return f"{command}{{{TextRenderStrategy().render(unit)}}}"
 
 
@@ -137,7 +137,7 @@ class UnclassifiedMixedRenderStrategy(RenderStrategy):
     """Fail closed: COMPOSITE_BLOCK has no per-region authority in RenderUnit."""
 
     def render(self, unit: RenderUnit) -> str:
-        raise ValueError("PPPR_G4_UNCLASSIFIED_MIXED_RENDER_UNIT")
+        raise ValueError(f"PPPR_G4_UNCLASSIFIED_MIXED_RENDER_UNIT node_id={ascii(unit.node_id)}")
 
 
 def usable_image_width(geometry: RenderGeometry | None) -> float | None:

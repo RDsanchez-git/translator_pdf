@@ -85,8 +85,9 @@ def test_real_factory_and_tex_builder_keep_each_classification_separate() -> Non
 def test_unclassified_composite_fails_closed_in_real_render_path() -> None:
     profile = InferredDocumentProfile(layout=PageLayout.SINGLE_COLUMN, document_type=None)
     builder = TexBuilder(RenderContextFactory.create(profile))
-    with pytest.raises(ValueError, match="PPPR_G4_UNCLASSIFIED_MIXED_RENDER_UNIT"):
+    with pytest.raises(ValueError) as error:
         builder.build([_unit(ContentNodeType.COMPOSITE_BLOCK, r"Literal \input{foo} and $x$")])
+    assert str(error.value) == "PPPR_G4_UNCLASSIFIED_MIXED_RENDER_UNIT node_id='n'"
 
 
 @pytest.mark.unit
