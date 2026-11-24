@@ -22,9 +22,10 @@ class GroqProvider:
         self, 
         api_key: str, 
         dialect: InferenceDialect,
-        max_retries: int = 0
+        max_retries: int = 0,
+        *, client: AsyncGroq | None = None,
     ):
-        self._client = AsyncGroq(api_key=api_key, max_retries=max_retries)
+        self._client = client if client is not None else AsyncGroq(api_key=api_key, max_retries=max_retries)
         self._dialect = dialect
 
     async def translate(self, envelope: PromptEnvelope) -> InferenceResult:

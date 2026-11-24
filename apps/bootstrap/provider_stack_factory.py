@@ -30,6 +30,7 @@ async def build_provider_stack(
     tpm_limit: int = 6000,
     cache_db_path: str | None = "infra/db/materialized.db",
     rate_limit_store: RateLimitStore | None = None,
+    *, provider_override: LLMProvider | None = None,
 ) -> LLMProvider:
     """
     Composition Root del provider stack.
@@ -47,7 +48,10 @@ async def build_provider_stack(
     Returns:
         LLMProvider con stack: CB → Cache → RL → Provider.
     """
-    if provider_type == "groq":
+    # Explicit caller-owned transport; never selected from environment.
+    if provider_override is not None:
+        base_provider = provider_override
+    elif provider_type == "groq":
         dialect = OpenAICompatibleDialect()
         base_provider = GroqProvider(api_key=api_key, dialect=dialect)
     elif provider_type == "gemini":

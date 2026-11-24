@@ -1014,3 +1014,79 @@ def test_pppr_g5_real_bridge_http_fake_and_durable_admission(tmp_path, monkeypat
             assert reopened.execute(
                 "SELECT task_state FROM chunk_tasks WHERE task_id=?", (lease.task_id,),
             ).fetchone() == ("RESULT_STAGED",)
+
+
+@pytest.mark.integration
+def test_pppr_g5_offline_composition_root_real_loopback(tmp_path, monkeypatch):
+    """Exercise actual factory, quota store, admission, HTTP and durable receipt.
+    Only container isolation and tokenizer are substituted in this CI witness.
+    """
+    from contextlib import closing
+    import threading
+    from apps.lab import pppr_offline_scope as lab
+    from apps.lab.g3_fake import FakeServer
+    from core.ast.hashing import compute_ast_hash
+    from core.validation import estimators
+    from infra.db import connection
+    from runtime import engine
+
+    nodes, original = _fixture()
+    plan = ChunkPlan.build(
+        sha256(b"pppr-g5-root-witness").hexdigest(),
+        compute_ast_hash(nodes), nodes, original.units,
+    )
+    state = tmp_path / "infra" / "db"
+    state.mkdir(parents=True)
+    monkeypatch.setattr(connection, "BASE_DIR", tmp_path)
+    monkeypatch.delenv("SQLITE_STATE_DIR", raising=False)
+    monkeypatch.setenv("GROQ_API_KEY", lab.DUMMY_KEY)
+    monkeypatch.setattr(lab, "require_isolated_environment", lambda: None)
+    monkeypatch.setattr(estimators, "ExactBPEEstimator", _Estimator)
+    db_path = state / "queue.db"
+    with closing(sqlite3.connect(db_path)) as db:
+        db.executescript((ROOT / "infra/db/schema_queue.sql").read_text(encoding="utf-8"))
+        repo = ControlPlaneRepository(db)
+        repo.enqueue_chunk_plan(plan, nodes)
+        snapshots = {
+            unit.context_id: ContextSnapshotV1(
+                document_id=plan.document_id, ast_hash=plan.ast_hash,
+                context_id=unit.context_id,
+                breadcrumbs=(ContextBreadcrumbV1(0, "[ROOT_DOCUMENT_CONTEXT]"),),
+            )
+            for unit in plan.units if unit.chunk_type != TranslationTaskType.PRESERVE
+        }
+        with FakeServer(("127.0.0.1", 0), db_path, max_requests=4) as server:
+            monkeypatch.setattr(lab, "ENDPOINT", f"http://127.0.0.1:{server.server_address[1]}")
+            scope = lab.OfflineLabScope(plan.document_id)
+            thread = threading.Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            try:
+                bridge, store = engine._create_chunk_processor(snapshots, offline_scope=scope)
+                try:
+                    assert bridge.generation_root_config_sha256 == scope.root_config_sha256
+                    assert scope.root_config_sha256 != engine._product_effective_config_sha256()
+                    for _ in plan.units:
+                        lease = repo.pick_task("g5_root", plan.document_id, plan.ast_hash)
+                        assert lease is not None
+                        unit = next(u for u in plan.units if u.chunk_id == lease.node_id)
+                        assert stage_claimed_unit(repo, plan, nodes, unit, lease, "g5_root",
+                                                  bridge, Semaphore(1))
+                    assert server.requests == 1
+                finally:
+                    bridge.shutdown()
+                    store.close()
+            finally:
+                server.shutdown()
+                thread.join(timeout=5)
+    with closing(sqlite3.connect(db_path)) as db:
+        rows = db.execute("SELECT root_config_sha256, raw_response FROM chunk_result_receipts").fetchall()
+        assert len(rows) == 2
+        assert sum(root == scope.root_config_sha256 and raw is not None for root, raw in rows) == 1
+        assert (None, None) in rows
+        audit = db.execute("SELECT decision_json FROM g3_admission_decisions").fetchall()
+        assert len(audit) == 1
+        decision = json.loads(audit[0][0])
+        assert decision["provider_id"] == lab.PROVIDER_ID
+        assert decision["model_name"] == lab.FAKE_MODEL
+        assert decision["root_config_sha256"] == scope.root_config_sha256
+        assert decision["upper_bound_cost"] == "0"

@@ -39,7 +39,10 @@ from runtime.publication_pipeline import advance_staged_document
 from apps.bootstrap.provider_stack_factory import build_provider_stack
 from core.context.snapshot_contract import ContextSnapshotV1
 from infra.db.context_snapshot_repo import DurableContextPlanRepository
-from typing import Mapping, cast
+from typing import Mapping, TYPE_CHECKING, cast
+
+if TYPE_CHECKING:
+    from apps.lab.pppr_offline_scope import OfflineLabScope
 
 logger = logging.getLogger(__name__)
 
@@ -69,12 +72,27 @@ def _product_effective_config_sha256() -> str:
     ).encode("utf-8")).hexdigest()
 
 
-def _create_chunk_processor(context_snapshots: Mapping[str, ContextSnapshotV1]):
+def _create_chunk_processor(context_snapshots: Mapping[str, ContextSnapshotV1], *,
+                            offline_scope: "OfflineLabScope | None" = None):
     """Initialize paid provider only if at least one unit needs inference."""
     from apps.llm_workers.sync_bridge import SyncProviderBridge
     from core.validation.estimators import ExactBPEEstimator
     from infra.resilience.thread_owned_sqlite_rate_limit_store import ThreadOwnedSQLiteRateLimitStore
     
+    model_name, prompt_version, provider_id = "llama3-70b-8192", "v1.0", "groq"
+    effective_config_sha256 = _product_effective_config_sha256()
+    provider_override = None
+    if offline_scope is not None:
+        from apps.lab.pppr_offline_scope import (
+            FAKE_MODEL, PROMPT_VERSION, PROVIDER_ID, OfflineLoopbackProvider,
+        )
+        offline_scope.validate(offline_scope.document_id)
+        model_name, prompt_version, provider_id = FAKE_MODEL, PROMPT_VERSION, PROVIDER_ID
+        effective_config_sha256 = offline_scope.root_config_sha256
+        provider_override = OfflineLoopbackProvider(offline_scope)
+    elif os.getenv("TPDF_OFFLINE_LAB"):
+        raise G3ExternalEffectNotStartedError("PPPR_G5_LAB_EXPLICIT_SCOPE_REQUIRED", permanent=True)
+
     api_key = os.getenv("GROQ_API_KEY")
     if not api_key:
         raise RuntimeError("GROQ_API_KEY no configurada. Imposible operar motor LLM.")
@@ -93,35 +111,39 @@ def _create_chunk_processor(context_snapshots: Mapping[str, ContextSnapshotV1]):
     compression_policy = StandardCompressionPolicy()
     
     builder = PromptBuilder(
-        model_name="llama3-70b-8192", 
-        prompt_version="v1.0", 
+        model_name=model_name,
+        prompt_version=prompt_version,
         measurement_service=measurement_service,
         budget_calculator=budget_calculator,
         compression_policy=compression_policy
     )
     
-    rpm_limit = int(os.getenv("GROQ_RPM_LIMIT", "30"))
-    tpm_limit = int(os.getenv("GROQ_TPM_LIMIT", "6000"))
+    rpm_limit = 1000 if offline_scope is not None else int(os.getenv("GROQ_RPM_LIMIT", "30"))
+    tpm_limit = 200000 if offline_scope is not None else int(os.getenv("GROQ_TPM_LIMIT", "6000"))
     
     # Durable SQLite quota state, confined to a dedicated owner thread.
     quota_store = ThreadOwnedSQLiteRateLimitStore("infra/db/rate_limits.db", timeout=30)
 
     try:
-        provider_stack = asyncio.run(build_provider_stack(
-            api_key=api_key,
-            rpm_limit=rpm_limit,
-            tpm_limit=tpm_limit,
-            rate_limit_store=quota_store,
-            # W08-3 interim: legacy prompt_hash-only cache cannot prove reuse identity.
-            cache_db_path=None,
-        ))
-        effective_config_sha256 = _product_effective_config_sha256()
+        # W08-3: legacy prompt_hash-only cache cannot prove reuse identity.
+        if provider_override is None:
+            provider_stack = asyncio.run(build_provider_stack(
+                api_key=api_key, rpm_limit=rpm_limit, tpm_limit=tpm_limit,
+                rate_limit_store=quota_store, cache_db_path=None,
+            ))
+        else:
+            provider_stack = asyncio.run(build_provider_stack(
+                api_key=api_key, rpm_limit=rpm_limit, tpm_limit=tpm_limit,
+                rate_limit_store=quota_store, cache_db_path=None,
+                provider_override=provider_override,
+            ))
         processor = SyncProviderBridge(
             async_provider=provider_stack,
             prompt_builder=builder,
             context_snapshots=context_snapshots,
             effective_config_sha256=effective_config_sha256,
-            source_language="en", target_language="es", provider_id="groq",
+            source_language="en", target_language="es", provider_id=provider_id,
+            pre_effect_admission=(offline_scope.admission(estimator) if offline_scope is not None else None),
         )
     except BaseException:
         quota_store.close()
@@ -129,7 +151,12 @@ def _create_chunk_processor(context_snapshots: Mapping[str, ContextSnapshotV1]):
     return processor, quota_store
 
 
-def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_traduccion.pdf") -> dict:
+def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_traduccion.pdf", *,
+                 offline_scope: "OfflineLabScope | None" = None) -> dict:
+    if offline_scope is not None:
+        offline_scope.validate(document_id)
+    elif os.getenv("TPDF_OFFLINE_LAB"):
+        raise G3ExternalEffectNotStartedError("PPPR_G5_LAB_EXPLICIT_SCOPE_REQUIRED", permanent=True)
 
     pipeline_start = time.time()
     logger.info(f"Orquestador de Runtime acoplado al Documento [ID: {document_id[:8]}]")
@@ -152,8 +179,11 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
         if callable(verified_reader):
             # Production ASTRegistry: disk-backed semantic + artifact integrity.
             ast = cast(list[ASTNode], verified_reader(document_id, ast_hash))
-            required_generation_config = _product_effective_config_sha256()
+            required_generation_config = (offline_scope.root_config_sha256 if offline_scope is not None
+                                          else _product_effective_config_sha256())
         else:
+            if offline_scope is not None:
+                raise PipelineIntegrityError("PPPR_G5_LAB_REQUIRES_VERIFIED_AST")
             # Offline/W06 test doubles retain the older ASTProvider contract.
             # The product composition root always supplies ASTRegistry.
             # Unattested historical receipts cannot claim product reuse.
@@ -226,7 +256,10 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
                     for chunk_id, _ in runnable_rows
                 )
                 if needs_inference:
-                    processor, quota_store = _create_chunk_processor(context_snapshots)
+                    if offline_scope is None:
+                        processor, quota_store = _create_chunk_processor(context_snapshots)
+                    else:
+                        processor, quota_store = _create_chunk_processor(context_snapshots, offline_scope=offline_scope)
                 def chunk_worker_thread():
                     th_queue_conn = get_connection(QUEUE_DB_PATH, timeout=30)
                     th_queue_conn.execute("PRAGMA busy_timeout=30000")

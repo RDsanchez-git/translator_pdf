@@ -7,6 +7,10 @@ historical compatibility / controlled non-production usage.
 import os
 import sys
 import argparse
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from apps.lab.pppr_offline_scope import OfflineLabScope
 from pathlib import Path
 
 from rich.console import Console
@@ -34,7 +38,7 @@ async def handle_translate_async(args):
     raise RuntimeError("C4_T06_R1_LEGACY_ENTRYPOINT_DISABLED")
 
 
-def handle_translate(args):
+def handle_translate(args, *, offline_scope: "OfflineLabScope | None" = None):
     # D-1: la CLI admite una solicitud. No ejecuta R1 ni llama al LLM.
     from apps.cli.pdf_inbox import PDFInboxSubmissionError, submit_pdf_to_inbox
 
@@ -62,6 +66,12 @@ def handle_translate(args):
         except PDFProductError as exc:
             console.print(f"[bold red]PDF_RUN_PREFLIGHT_FAILED:[/] {exc}")
             raise SystemExit(2) from exc
+    if offline_scope is not None:
+        if not getattr(args, "run", False):
+            raise SystemExit("PPPR_G5_LAB_FOREGROUND_REQUIRED")
+        offline_scope.validate_source(Path(args.file_path))
+    elif getattr(args, "run", False) and os.getenv("TPDF_OFFLINE_LAB"):
+        raise SystemExit("PPPR_G5_LAB_EXPLICIT_SCOPE_REQUIRED")
     try:
         receipt = submit_pdf_to_inbox(Path(args.file_path), inbox)
     except (PDFInboxSubmissionError, OSError) as exc:
@@ -80,7 +90,10 @@ def handle_translate(args):
     if getattr(args, "run", False):
         from apps.cli.pdf_product import PDFProductError, run_admitted_pdf
         try:
-            result = run_admitted_pdf(receipt, repo_root)
+            if offline_scope is None:
+                result = run_admitted_pdf(receipt, repo_root)
+            else:
+                result = run_admitted_pdf(receipt, repo_root, offline_scope=offline_scope)
         except PDFProductError as exc:
             console.print(f"[bold red]PDF_RUN_FAILED:[/] {exc}")
             raise SystemExit(1) from exc
@@ -156,9 +169,14 @@ def parse_arguments() -> argparse.Namespace:
     
     return parser.parse_args()
 
-def main():
+def main(*, offline_scope: "OfflineLabScope | None" = None):
     args = parse_arguments()
-    args.func(args)
+    if offline_scope is None:
+        args.func(args)
+    elif args.command == "translate" and args.run:
+        handle_translate(args, offline_scope=offline_scope)
+    else:
+        raise SystemExit("PPPR_G5_LAB_FOREGROUND_REQUIRED")
 
 if __name__ == "__main__":
     main()
