@@ -1,9 +1,11 @@
-"""B02.2/G5: reference and stage content-addressed PNG assets for Tectonic.
+"""B02.2/G5 and DF-01: stage explicitly typed content-addressed visual assets.
 
-A RenderUnit carries a reference, never TeX code. Asset bytes are verified and
-copied into the compiler's execution-private directory. The OCR producer must
-write validated PNG bytes at data/assets/<sha256>.png before creating IMAGE AST.
-This module alone does not approve the producer or certify a scientific PDF.
+A RenderUnit carries a reference, never TeX code. Asset bytes are checked and
+copied into the compiler's execution-private directory. The producer must
+validate the actual content, provenance and isolation before creating a node.
+PDF support is the G5 consumer boundary, not a region detector or permission to
+embed arbitrary source pages. Signature/digest checks do not validate PDF
+semantics, hidden content or scientific fidelity.
 """
 
 from __future__ import annotations
@@ -16,19 +18,21 @@ from typing import Sequence
 from core.compiler.rendering.models import AssetReference
 
 _PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
-_IMAGE_PATH = re.compile(r"data/assets/([0-9a-f]{64})\.png\Z")
+_IMAGE_PATH = re.compile(r"data/assets/([0-9a-f]{64})\.(png|pdf)\Z")
+_ASSET_EXTENSIONS = {"image/png": "png", "application/pdf": "pdf"}
 
 
 def canonical_image_name(asset: AssetReference) -> str:
-    """Only a content-addressed, relative, PNG reference may become TeX."""
-    if asset.mime_type != "image/png":
+    """Only an explicitly typed, canonical digest reference may become TeX."""
+    extension = _ASSET_EXTENSIONS.get(asset.mime_type)
+    if extension is None:
         raise ValueError("B02_G5_IMAGE_UNSUPPORTED_MIME")
     # No normalization: backslashes, slash variants, traversal or whitespace
     # are not acceptable in persisted canonical AST references.
     match = _IMAGE_PATH.fullmatch(asset.path)
-    if match is None:
+    if match is None or match.group(2) != extension:
         raise ValueError("B02_G5_IMAGE_NONCANONICAL_REFERENCE")
-    return match.group(1) + ".png"
+    return match.group(1) + "." + extension
 
 
 def stage_image_assets(
@@ -61,9 +65,13 @@ def stage_image_assets(
         if source.is_symlink() or not source.is_file():
             raise FileNotFoundError("B02_G5_IMAGE_ASSET_MISSING_OR_LINK: " + name)
         data = source.read_bytes()
-        if not data.startswith(_PNG_SIGNATURE):
+        if asset.mime_type == "image/png" and not data.startswith(_PNG_SIGNATURE):
             raise ValueError("B02_G5_IMAGE_NOT_PNG: " + name)
-        if sha256(data).hexdigest() + ".png" != name:
+        if asset.mime_type == "application/pdf" and (
+            not data.startswith(b"%PDF-") or not data.rstrip().endswith(b"%%EOF")
+        ):
+            raise ValueError("DF01_G5_IMAGE_NOT_PDF: " + name)
+        if sha256(data).hexdigest() + "." + _ASSET_EXTENSIONS[asset.mime_type] != name:
             raise ValueError("B02_G5_IMAGE_HASH_MISMATCH: " + name)
         (target / name).write_bytes(data)
         copied.add(name)

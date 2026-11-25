@@ -92,3 +92,39 @@ def test_runner_refuses_tampering_before_compiler(tmp_path, monkeypatch):
         HostTectonicRunner().compile(r"\includegraphics{assets/x.png}", str(out), image_assets=(ref,))
     assert not calls
     assert list(out.iterdir()) == []
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize("case", ["valid", "tampered", "wrong_format"])
+def test_df01_pdf_asset_staging_preserves_digest_and_rejects_invalid_bytes(tmp_path, case):
+    import fitz
+
+    with fitz.open() as document:
+        page = document.new_page(width=150, height=110)
+        page.draw_rect(fitz.Rect(5, 5, 145, 105))
+        raw = document.tobytes()
+    if case == "wrong_format":
+        raw = PNG
+    digest = sha256(raw).hexdigest()
+    root = tmp_path / "repo"
+    folder = root / "data" / "assets"
+    folder.mkdir(parents=True)
+    name = digest + ".pdf"
+    source = folder / name
+    if case == "tampered":
+        # Leave PDF header and EOF valid; falsify the digest independently.
+        raw_written = raw.replace(b"%PDF-", b"%PDF- ", 1)
+    else:
+        raw_written = raw
+    source.write_bytes(raw_written)
+    ref = AssetReference(path="data/assets/" + name, mime_type="application/pdf")
+    execution = tmp_path / "private"
+    execution.mkdir()
+    if case == "valid":
+        stage_image_assets((ref, ref), source_root=root, execution_dir=execution)
+        assert (execution / "assets" / name).read_bytes() == raw
+    else:
+        reason = "B02_G5_IMAGE_HASH_MISMATCH" if case == "tampered" else "DF01_G5_IMAGE_NOT_PDF"
+        with pytest.raises(ValueError, match=reason):
+            stage_image_assets((ref,), source_root=root, execution_dir=execution)
+        assert not list((execution / "assets").iterdir())

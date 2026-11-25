@@ -283,3 +283,95 @@ def test_historical_lab_title_remains_unverified_and_rejected(tmp_path: Path) ->
     profile = InferredDocumentProfile(layout=PageLayout.SINGLE_COLUMN, document_type=None)
     with pytest.raises(ValueError, match="PPPR_G4_HEADING_LEVEL_UNVERIFIED"):
         TexBuilder(RenderContextFactory.create(profile)).build([unit])
+
+
+def _df01_isolated_synthetic_figure() -> bytes:
+    """Known boundary, not a detector. Test-only feasibility fixture.
+
+    A show_pdf_page clip alone can retain exterior objects in PDF streams.
+    Remove exterior marks on a disposable one-page copy before setting its
+    crop box, then check the actual isolated visual and text. No claim about
+    arbitrary PDFs or an exhaustive sanitization algorithm.
+    """
+    region = fitz.Rect(75, 75, 225, 185)
+    with fitz.open() as source, fitz.open() as isolated:
+        original = source.new_page(width=300, height=300)
+        original.insert_text((20, 30), "EXTERNALBEFORE")
+        original.draw_rect(fitz.Rect(80, 80, 220, 180))
+        original.draw_line((90, 150), (200, 100))
+        original.insert_text((110, 120), "FIGURELABEL")
+        original.insert_text((20, 250), "EXTERNALAFTER")
+        isolated.insert_pdf(source, from_page=0, to_page=0, links=False, annots=False, widgets=False)
+        page = isolated[0]
+        for exterior in (
+            fitz.Rect(0, 0, 300, 75), fitz.Rect(0, 185, 300, 300),
+            fitz.Rect(0, 75, 75, 185), fitz.Rect(225, 75, 300, 185),
+        ):
+            page.add_redact_annot(exterior, fill=False, cross_out=False)
+        assert page.apply_redactions(images=1, graphics=2, text=0)
+        page.set_cropbox(region)
+        data = isolated.tobytes(garbage=4, clean=True, deflate=True, no_new_id=True)
+        original_pixels = original.get_pixmap(clip=region, matrix=fitz.Matrix(2, 2))
+        with fitz.open(stream=data, filetype="pdf") as reopened:
+            assert len(reopened) == 1
+            cropped = reopened[0]
+            assert cropped.rect.width == 150 and cropped.rect.height == 110
+            cropped_pixels = cropped.get_pixmap(matrix=fitz.Matrix(2, 2))
+            assert (cropped_pixels.width, cropped_pixels.height) == (original_pixels.width, original_pixels.height)
+            assert cropped_pixels.samples == original_pixels.samples
+            assert len(cropped.get_drawings()) == 2
+            assert not cropped.get_image_info()
+            assert cropped.get_text().strip() == "FIGURELABEL"
+            # Check the fixture's exterior sentinel strings, in decoded
+            # streams and their ASCII hex form; not a general privacy proof.
+            streams = b"\n".join(
+                reopened.xref_stream(xref) or b""
+                for xref in range(1, reopened.xref_length())
+                if reopened.xref_is_stream(xref)
+            ).lower()
+            for sentinel in (b"EXTERNALBEFORE", b"EXTERNALAFTER"):
+                assert sentinel.lower() not in streams
+                assert sentinel.hex().encode() not in streams
+    return data
+
+
+def test_df01_known_figure_region_can_be_isolated_without_rasterization():
+    _df01_isolated_synthetic_figure()
+
+
+@pytest.mark.usefixtures("require_physical_compiler")
+def test_df01_vector_region_survives_real_g5_compilation(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Real G5 renderer/staging/Tectonic, explicit asset; no OCR detection claim."""
+    from core.compiler.rendering.models import AssetReference, RenderGeometry
+
+    monkeypatch.setenv("APP_ROOT", str(tmp_path))
+    data = _df01_isolated_synthetic_figure()
+    relative = "data/assets/" + sha256(data).hexdigest() + ".pdf"
+    target = tmp_path / relative
+    target.parent.mkdir(parents=True)
+    target.write_bytes(data)
+    asset = AssetReference(path=relative, mime_type="application/pdf")
+    units = [
+        RenderUnit("before", ContentNodeType.PARAGRAPH, "Texto anterior."),
+        RenderUnit("figure", ContentNodeType.IMAGE, relative,
+                   geometry=RenderGeometry(.25, .25, .5, 110/300, 1), asset=asset),
+        RenderUnit("after", ContentNodeType.PARAGRAPH, "Texto posterior."),
+    ]
+    profile = InferredDocumentProfile(layout=PageLayout.SINGLE_COLUMN, document_type=None)
+    tex = TexBuilder(RenderContextFactory.create(profile)).build(units)
+    assert "pagebox=cropbox" in tex
+    result = HostTectonicRunner().compile(
+        tex, output_dir=str(tmp_path), image_assets=(asset,),
+    )
+    with fitz.open(result) as compiled:
+        text = " ".join(" ".join(page.get_text().split()) for page in compiled)
+        assert text.count("FIGURELABEL") == 1
+        assert text.count("Texto anterior.") == text.count("Texto posterior.") == 1
+        assert "EXTERNALBEFORE" not in text and "EXTERNALAFTER" not in text
+        assert not any(page.get_image_info() for page in compiled)
+        drawings = [drawing for page in compiled for drawing in page.get_drawings()]
+        assert any(d["rect"].height > 0 and
+                   d["rect"].width / d["rect"].height == pytest.approx(1.4, rel=.02)
+                   for d in drawings)

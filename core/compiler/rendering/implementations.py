@@ -171,7 +171,10 @@ class AdaptiveFloatStrategy(RenderStrategy):
         if unit.asset is None:
             raise ValueError("B02_G5_IMAGE_ASSET_REFERENCE_MISSING")
         name = canonical_image_name(unit.asset)
-        graphic = f"\\includegraphics[width=\\linewidth,keepaspectratio]{{assets/{name}}}"
+        # A protected PDF region uses its accredited crop box, not the
+        # surrounding source media box. PNG rendering remains unchanged.
+        crop_option = ",pagebox=cropbox" if unit.asset.mime_type == "application/pdf" else ""
+        graphic = f"\\includegraphics[width=\\linewidth,keepaspectratio{crop_option}]{{assets/{name}}}"
         threshold = self._config.float_span_threshold
         if not isfinite(threshold) or not 0 < threshold < 1:
             raise ValueError("PPPR_G4_INVALID_FLOAT_SPAN_THRESHOLD")
