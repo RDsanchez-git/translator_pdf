@@ -8,7 +8,9 @@ import re
 from typing import Any, Mapping
 from core.context.snapshot_contract import ContextSnapshotV1
 from core.execution.exceptions import G3ExternalEffectNotStartedError
-from core.execution.effect_guard import g3_admission_audit_writer
+from core.execution.effect_guard import (
+    g3_admission_audit_writer, g3_free_dispatch_permit, FreeWitnessDispatchPermit,
+)
 from core.prompting.inference_identity import InferenceReuseIdentityV1, PPPRGenerationIdentityV1
 from core.ast.models import ASTNode, TranslationTaskType, TranslationUnit
 from apps.llm_workers.routing import LLMProvider
@@ -289,6 +291,7 @@ class SyncProviderBridge:
             )
         generation_sha256: str | None = None
         admission_request_sha256: str | None = None
+        dispatch_permit: FreeWitnessDispatchPermit | None = None
         if self._effective_config_sha256 is not None:
             if self._pre_effect_admission is None:
                 raise G3ExternalEffectNotStartedError(
@@ -346,9 +349,23 @@ class SyncProviderBridge:
                 raise G3ExternalEffectNotStartedError(
                     "PPPR_G3_ADMISSION_AUDIT_WRITE_FAILED"
                 ) from exc
+            if self._pre_effect_admission.free_tier_witness is not None:
+                # Writer has committed the one-shot reservation. Bind exactly
+                # the measured request and carry its complete reserve through
+                # the quota wait. This does not replace the durable authority.
+                audit = json.loads(decision.audit_json)
+                dispatch_permit = FreeWitnessDispatchPermit(
+                    decision.request_sha256,
+                    self._pre_effect_admission.free_tier_witness.valid_until_ns,
+                    audit["input_tokens"], audit["reserved_output_tokens"],
+                )
         elif attested:
             raise ValueError("PPPR_G2_EFFECTIVE_CONFIG_NOT_ACCREDITED")
-        future = asyncio.run_coroutine_threadsafe(self._provider.translate(built.envelope), self._loop)
+        token = g3_free_dispatch_permit.set(dispatch_permit)
+        try:
+            future = asyncio.run_coroutine_threadsafe(self._provider.translate(built.envelope), self._loop)
+        finally:
+            g3_free_dispatch_permit.reset(token)
         try:
             result = future.result(timeout=self._timeout)
             if result.chunk_id != unit.chunk_id:

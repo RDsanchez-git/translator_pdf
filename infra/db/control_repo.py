@@ -125,6 +125,18 @@ class ControlPlaneRepository(ControlPlanePort):
             raise G3ExternalEffectNotStartedError(
                 "PPPR_G3_ADMISSION_AUDIT_INVALID", permanent=True,
             ) from exc
+        witness = parsed.get("free_tier_witness")
+        if witness is not None:
+            if (not isinstance(witness, dict)
+                    or not isinstance(witness.get("witness_id"), str)
+                    or not witness["witness_id"].strip()
+                    or type(witness.get("valid_until_ns")) is not int
+                    or parsed.get("upper_bound_cost") != "0"
+                    or witness.get("reserved_requests") != 1
+                    or self.conn.in_transaction):
+                raise G3ExternalEffectNotStartedError(
+                    "PPPR_G5_FREE_WITNESS_AUDIT_INVALID", permanent=True,
+                )
         digest = sha256((generation_sha256 + audit_json).encode("utf-8")).hexdigest()
         now = time.time()
         with self._chunk_plan_write_scope():
@@ -141,6 +153,23 @@ class ControlPlaneRepository(ControlPlanePort):
                 raise G3ExternalEffectNotStartedError(
                     "PPPR_G3_ADMISSION_AUDIT_LEASE_NOT_CURRENT"
                 )
+            if witness is not None:
+                # Reserve the only authorized attempt using the existing
+                # durable admission journal under the same WAL writer lock.
+                # Even an identical retry cannot reuse this authorization.
+                if time.time_ns() >= witness["valid_until_ns"]:
+                    raise G3ExternalEffectNotStartedError(
+                        "PPPR_G5_FREE_EVIDENCE_STALE", permanent=True,
+                    )
+                used = self.conn.execute(
+                    "SELECT 1 FROM g3_admission_decisions "
+                    "WHERE json_extract(decision_json, '$.free_tier_witness.witness_id')=? LIMIT 1",
+                    (witness["witness_id"],),
+                ).fetchone()
+                if used is not None:
+                    raise G3ExternalEffectNotStartedError(
+                        "PPPR_G5_FREE_WITNESS_ALREADY_RESERVED", permanent=True,
+                    )
             existing = self.conn.execute(
                 "SELECT generation_sha256,decision_json,decision_sha256 "
                 "FROM g3_admission_decisions WHERE task_id=? AND execution_id=?",

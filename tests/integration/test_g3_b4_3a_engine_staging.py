@@ -857,3 +857,408 @@ def test_pppr_w32_missing_audit_writer_fails_before_provider():
     finally:
         bridge.shutdown()
     assert provider.seen == []
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize("scenario", ["approved", "missing_admission", "retired_model"])
+def test_pppr_g5_real_bridge_http_fake_and_durable_admission(tmp_path, monkeypatch, scenario):
+    """Real Groq SDK loopback, quota fence, bridge and durable receipt.
+
+    Only the provider is a synthetic echo; no commercial authorization,
+    production composition root, PDF compilation or recovery claim.
+    """
+    import asyncio
+    from contextlib import closing
+    import threading
+
+    from apps.lab.g3_fake import DUMMY_KEY, FAKE_MODEL, FakeServer
+    from apps.llm_workers.adapters import GroqProvider
+    from apps.llm_workers.rate_limiter import QuotaManager, RateLimitedProvider
+    from core.ast.hashing import compute_ast_hash
+    from core.execution.exceptions import G3ExternalEffectNotStartedError
+    from core.finops.measurement import InferenceMeasurementService
+    from core.prompting.dialects.openai_compatible import OpenAICompatibleDialect
+    from core.validation.budget import PromptBudgetCalculator, StandardCompressionPolicy
+
+    nodes, original = _fixture()
+    plan = ChunkPlan.build(
+        sha256(b"pppr-g5-synthetic-http-fixture").hexdigest(),
+        compute_ast_hash(nodes), nodes, original.units,
+    )
+    db_path = tmp_path / "queue.db"
+    root_config = sha256(b"PPPR_G5_HTTP_TEST_ONLY_OFFLINE_CONFIG").hexdigest()
+    model = "llama3-70b-8192" if scenario == "retired_model" else FAKE_MODEL
+    policy = None if scenario == "missing_admission" else _w32_fake_admission(
+        provider_id="offline-test", model_name=FAKE_MODEL,
+        root_config_sha256=root_config,
+    )
+    builder = PromptBuilder(
+        model_name=model, prompt_version="pppr-g5-http-test",
+        measurement_service=InferenceMeasurementService(_Estimator()),
+        budget_calculator=PromptBudgetCalculator(),
+        compression_policy=StandardCompressionPolicy(),
+    )
+    snapshots = {
+        unit.context_id: ContextSnapshotV1(
+            document_id=plan.document_id, ast_hash=plan.ast_hash,
+            context_id=unit.context_id,
+            breadcrumbs=(ContextBreadcrumbV1(0, "[ROOT_DOCUMENT_CONTEXT]"),),
+        )
+        for unit in plan.units if unit.chunk_type != TranslationTaskType.PRESERVE
+    }
+
+    with closing(sqlite3.connect(db_path)) as db:
+        db.execute("PRAGMA foreign_keys=ON")
+        db.executescript((ROOT / "infra/db/schema_queue.sql").read_text(encoding="utf-8"))
+        repo = ControlPlaneRepository(db)
+        repo.enqueue_chunk_plan(plan, nodes)
+        with FakeServer(("127.0.0.1", 0), db_path, max_requests=4) as server:
+            port = server.server_address[1]
+            # No environment-derived proxies; SDK destination must be loopback.
+            for name in ("HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY",
+                         "http_proxy", "https_proxy", "all_proxy"):
+                monkeypatch.delenv(name, raising=False)
+            monkeypatch.setenv("NO_PROXY", "127.0.0.1")
+            monkeypatch.setenv("no_proxy", "127.0.0.1")
+            monkeypatch.setenv("GROQ_BASE_URL", f"http://127.0.0.1:{port}")
+            adapter = GroqProvider(DUMMY_KEY, OpenAICompatibleDialect())
+            assert adapter._client.base_url.host == "127.0.0.1"
+            assert adapter._client.base_url.port == port
+            assert adapter._client.base_url.scheme == "http"
+            provider = RateLimitedProvider(adapter, QuotaManager(1000, 200000))
+            bridge = SyncProviderBridge(
+                provider, builder, timeout_sec=15, context_snapshots=snapshots,
+                effective_config_sha256=root_config, provider_id="offline-test",
+                pre_effect_admission=policy,
+            )
+            thread = threading.Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            try:
+                # Stage PRESERVE through the same adapter, with no HTTP effect.
+                leases = [repo.pick_task("g5_http", plan.document_id, plan.ast_hash)
+                          for _ in plan.units]
+                assert all(leases)
+                by_chunk = {lease.node_id: lease for lease in leases}
+                preserve = next(u for u in plan.units if u.chunk_type == TranslationTaskType.PRESERVE)
+                preserve_lease = by_chunk[preserve.chunk_id]
+                assert stage_claimed_unit(
+                    repo, plan, nodes, preserve, preserve_lease,
+                    "g5_http", bridge, Semaphore(1),
+                )
+                assert server.requests == 0
+                unit = next(u for u in plan.units if u.chunk_type == TranslationTaskType.TRANSLATE)
+                lease = by_chunk[unit.chunk_id]
+                if scenario == "approved":
+                    assert stage_claimed_unit(
+                        repo, plan, nodes, unit, lease, "g5_http", bridge, Semaphore(1),
+                    )
+                    assert server.requests == 1
+                else:
+                    reason = ("PPPR_G3_ADMISSION_EVIDENCE_MISSING"
+                              if scenario == "missing_admission"
+                              else "PPPR_G3_PRIMARY_MODEL_DEPRECATED")
+                    with pytest.raises(G3ExternalEffectNotStartedError, match=reason):
+                        stage_claimed_unit(
+                            repo, plan, nodes, unit, lease, "g5_http", bridge, Semaphore(1),
+                        )
+                    assert server.requests == 0
+            finally:
+                try:
+                    asyncio.run_coroutine_threadsafe(
+                        adapter._client.close(), bridge._loop,
+                    ).result(timeout=5)
+                finally:
+                    bridge.shutdown()
+                    server.shutdown()
+                    thread.join(timeout=5)
+
+        # Reopen independent connection; compare the attempt, admission and receipt.
+        with closing(sqlite3.connect(db_path)) as reopened:
+            assert reopened.execute(
+                "SELECT raw_response,generation_sha256 FROM chunk_result_receipts WHERE task_id=?",
+                (preserve_lease.task_id,),
+            ).fetchone() == (None, None)
+            assert reopened.execute(
+                "SELECT COUNT(*) FROM g3_admission_decisions WHERE task_id=?",
+                (preserve_lease.task_id,),
+            ).fetchone() == (0,)
+            row = reopened.execute(
+                "SELECT execution_id,generation_sha256,decision_json,decision_sha256 "
+                "FROM g3_admission_decisions WHERE task_id=?", (lease.task_id,),
+            ).fetchone()
+            receipt = reopened.execute(
+                "SELECT execution_id,generation_sha256,root_config_sha256,raw_response,"
+                "generation_binding_sha256 FROM chunk_result_receipts WHERE task_id=?",
+                (lease.task_id,),
+            ).fetchone()
+            if scenario != "approved":
+                assert row is None and receipt is None
+                return
+            assert row is not None and receipt is not None
+            execution, generation, audit_json, audit_sha = row
+            assert execution == lease.execution_id
+            assert receipt[:3] == (execution, generation, root_config)
+            assert len(generation) == len(receipt[4]) == 64
+            assert audit_sha == sha256((generation + audit_json).encode()).hexdigest()
+            audit = json.loads(audit_json)
+            assert audit["provider_id"] == "offline-test"
+            assert audit["model_name"] == FAKE_MODEL
+            assert audit["root_config_sha256"] == root_config
+            assert audit["source_language"] == "en" and audit["target_language"] == "es"
+            assert audit["upper_bound_cost"] == "0"
+            assert len(audit["request_sha256"]) == 64
+            parsed = parse_chunk_response(plan, unit.chunk_id, receipt[3])
+            assert [m.translated_text for m in parsed.members] == [
+                m.source_text.strip() for m in unit.members
+            ]
+            assert reopened.execute(
+                "SELECT task_state FROM chunk_tasks WHERE task_id=?", (lease.task_id,),
+            ).fetchone() == ("RESULT_STAGED",)
+
+
+@pytest.mark.integration
+def test_pppr_g5_offline_composition_root_real_loopback(tmp_path, monkeypatch):
+    """Exercise actual factory, quota store, admission, HTTP and durable receipt.
+    Only container isolation and tokenizer are substituted in this CI witness.
+    """
+    from contextlib import closing
+    import threading
+    from apps.lab import pppr_offline_scope as lab
+    from apps.lab.g3_fake import FakeServer
+    from core.ast.hashing import compute_ast_hash
+    from core.validation import estimators
+    from infra.db import connection
+    from runtime import engine
+
+    nodes, original = _fixture()
+    plan = ChunkPlan.build(
+        sha256(b"pppr-g5-root-witness").hexdigest(),
+        compute_ast_hash(nodes), nodes, original.units,
+    )
+    state = tmp_path / "infra" / "db"
+    state.mkdir(parents=True)
+    monkeypatch.setattr(connection, "BASE_DIR", tmp_path)
+    monkeypatch.delenv("SQLITE_STATE_DIR", raising=False)
+    monkeypatch.setenv("GROQ_API_KEY", lab.DUMMY_KEY)
+    monkeypatch.setattr(lab, "require_isolated_environment", lambda: None)
+    monkeypatch.setattr(estimators, "ExactBPEEstimator", _Estimator)
+    db_path = state / "queue.db"
+    with closing(sqlite3.connect(db_path)) as db:
+        db.executescript((ROOT / "infra/db/schema_queue.sql").read_text(encoding="utf-8"))
+        repo = ControlPlaneRepository(db)
+        repo.enqueue_chunk_plan(plan, nodes)
+        snapshots = {
+            unit.context_id: ContextSnapshotV1(
+                document_id=plan.document_id, ast_hash=plan.ast_hash,
+                context_id=unit.context_id,
+                breadcrumbs=(ContextBreadcrumbV1(0, "[ROOT_DOCUMENT_CONTEXT]"),),
+            )
+            for unit in plan.units if unit.chunk_type != TranslationTaskType.PRESERVE
+        }
+        with FakeServer(("127.0.0.1", 0), db_path, max_requests=4) as server:
+            monkeypatch.setattr(lab, "ENDPOINT", f"http://127.0.0.1:{server.server_address[1]}")
+            scope = lab.OfflineLabScope(plan.document_id)
+            thread = threading.Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            try:
+                bridge, store = engine._create_chunk_processor(snapshots, offline_scope=scope)
+                try:
+                    assert bridge.generation_root_config_sha256 == scope.root_config_sha256
+                    assert scope.root_config_sha256 != engine._product_effective_config_sha256()
+                    for _ in plan.units:
+                        lease = repo.pick_task("g5_root", plan.document_id, plan.ast_hash)
+                        assert lease is not None
+                        unit = next(u for u in plan.units if u.chunk_id == lease.node_id)
+                        assert stage_claimed_unit(repo, plan, nodes, unit, lease, "g5_root",
+                                                  bridge, Semaphore(1))
+                    assert server.requests == 1
+                finally:
+                    bridge.shutdown()
+                    store.close()
+            finally:
+                server.shutdown()
+                thread.join(timeout=5)
+    with closing(sqlite3.connect(db_path)) as db:
+        rows = db.execute("SELECT root_config_sha256, raw_response FROM chunk_result_receipts").fetchall()
+        assert len(rows) == 2
+        assert sum(root == scope.root_config_sha256 and raw is not None for root, raw in rows) == 1
+        assert (None, None) in rows
+        audit = db.execute("SELECT decision_json FROM g3_admission_decisions").fetchall()
+        assert len(audit) == 1
+        decision = json.loads(audit[0][0])
+        assert decision["provider_id"] == lab.PROVIDER_ID
+        assert decision["model_name"] == lab.FAKE_MODEL
+        assert decision["root_config_sha256"] == scope.root_config_sha256
+        assert decision["upper_bound_cost"] == "0"
+
+
+def test_pppr_g5_free_witness_reservation_is_durable_and_single_use(queue):
+    """No new journal: even identical admission replay cannot authorize another effect."""
+    from core.execution.exceptions import G3ExternalEffectNotStartedError
+
+    lease = queue.repo.pick_task("free-witness", queue.plan.document_id, queue.plan.ast_hash)
+    assert lease is not None
+    if next(u for u in queue.plan.units if u.chunk_id == lease.node_id).chunk_type == TranslationTaskType.PRESERVE:
+        preserve = next(u for u in queue.plan.units if u.chunk_id == lease.node_id)
+        assert stage_claimed_unit(queue.repo, queue.plan, queue.ast, preserve, lease,
+                                  "free-witness", None, Semaphore(1))
+        lease = queue.repo.pick_task("free-witness", queue.plan.document_id, queue.plan.ast_hash)
+    assert lease is not None
+    # Synthetic audit tests only the persistence boundary, not the upstream
+    # account attestation. The policy producer is covered separately.
+    audit = json.dumps({
+        "contract": "PPPR_G3_ADMISSION_V1", "request_sha256": "a"*64,
+        "upper_bound_cost": "0", "free_tier_witness": {
+            "witness_id": "synthetic-reservation", "reserved_requests": 1,
+            "valid_until_ns": time.time_ns()+60_000_000_000,
+        },
+    }, sort_keys=True, separators=(",", ":"))
+    kwargs = dict(task_id=lease.task_id, worker_id="free-witness",
+                  execution_id=lease.execution_id, generation_sha256="b"*64, audit_json=audit)
+    queue.repo.record_g3_admission_decision(**kwargs)
+    path = queue.db.execute("PRAGMA database_list").fetchone()[2]
+    with sqlite3.connect(path) as reopened:
+        repo = ControlPlaneRepository(reopened)
+        with pytest.raises(G3ExternalEffectNotStartedError, match="ALREADY_RESERVED"):
+            repo.record_g3_admission_decision(**kwargs)
+        assert reopened.execute("SELECT COUNT(*) FROM g3_admission_decisions").fetchone() == (1,)
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize("status", [200, 429])
+def test_pppr_g5_free_dispatch_bound_to_durable_admission_and_quota(queue, status, tmp_path, monkeypatch):
+    """Actual SDK serialization/response, bridge, quota and SQLite; no sockets."""
+    import asyncio
+    from contextlib import closing
+    from decimal import Decimal
+    import httpx
+    from apps.bootstrap.provider_stack_factory import build_groq_free_witness_stack
+    from apps.llm_workers.circuit_breaker_provider import CircuitBreakerProvider
+    from infra.resilience.thread_owned_sqlite_rate_limit_store import ThreadOwnedSQLiteRateLimitStore
+    from apps.llm_workers.g3_admission import GPT_OSS_120B, GroqFreeTierWitness
+    from apps.llm_workers.rate_limiter import QuotaManager
+    from core.execution.exceptions import TransientAPIError
+    from core.execution.effect_guard import g3_free_dispatch_permit
+    from core.finops.measurement import InferenceMeasurementService
+    from core.utils.telemetry import ctx_task_id, ctx_execution_id
+    from core.validation.budget import PromptBudgetCalculator, StandardCompressionPolicy
+
+    unit = next(u for u in queue.plan.units if u.chunk_type == TranslationTaskType.TRANSLATE)
+    lease = queue.repo.pick_task("free-dispatch", queue.plan.document_id, queue.plan.ast_hash)
+    assert lease is not None
+    if lease.node_id != unit.chunk_id:
+        preserve = next(u for u in queue.plan.units if u.chunk_id == lease.node_id)
+        assert stage_claimed_unit(queue.repo, queue.plan, queue.ast, preserve, lease,
+                                  "free-dispatch", None, Semaphore(1))
+        lease = queue.repo.pick_task("free-dispatch", queue.plan.document_id, queue.plan.ast_hash)
+    assert lease is not None and lease.node_id == unit.chunk_id
+    now = time.time_ns()
+    policy = _w32_fake_admission(
+        model_name=GPT_OSS_120B, input_limit=8000, context_window=131072,
+        input_price_per_token=Decimal("0.00000015"), output_price_per_token=Decimal("0.00000060"),
+        free_tier_witness=GroqFreeTierWitness(
+            "synthetic-dispatch", "synthetic-account", "synthetic-quota", "synthetic-entitlement",
+            now-1_000_000, now+60_000_000_000, 30, 1000, 8000, 200000,
+            "FREE", True, True, True,
+        ),
+    )
+    builder = PromptBuilder(
+        model_name=GPT_OSS_120B, prompt_version="synthetic-free-test",
+        measurement_service=InferenceMeasurementService(_Estimator()),
+        budget_calculator=PromptBudgetCalculator(),
+        compression_policy=StandardCompressionPolicy(),
+    )
+    db_path = queue.db.execute("PRAGMA database_list").fetchone()[2]
+    requests = []
+
+    reservations = []
+    original_reserve = QuotaManager.reserve
+
+    async def recording_reserve(self, estimated_tokens, estimated_requests=1):
+        permit = g3_free_dispatch_permit.get()
+        assert permit is not None
+        assert estimated_tokens == permit.reserved_tokens
+        reservations.append((estimated_tokens, estimated_requests))
+        return await original_reserve(self, estimated_tokens, estimated_requests)
+
+    monkeypatch.setattr(QuotaManager, "reserve", recording_reserve)
+
+    def transport(request):
+        requests.append(request)
+        assert request.method == "POST"
+        assert str(request.url) == "https://api.groq.com/openai/v1/chat/completions"
+        body = json.loads(request.content)
+        with closing(sqlite3.connect(db_path)) as fresh:
+            row = fresh.execute(
+                "SELECT decision_json FROM g3_admission_decisions WHERE task_id=? AND execution_id=?",
+                (lease.task_id, lease.execution_id),
+            ).fetchone()
+        assert row is not None  # committed before physical SDK transport
+        audit = json.loads(row[0])
+        assert audit["request_sha256"] == sha256(json.dumps(
+            body, sort_keys=True, ensure_ascii=False, separators=(",", ":"),
+        ).encode()).hexdigest()
+        assert audit["free_tier_witness"]["reserved_tokens"] == audit["input_tokens"] + audit["reserved_output_tokens"]
+        if status == 429:
+            return httpx.Response(429, json={"error": {"message": "synthetic quota exhausted"}})
+        return httpx.Response(200, json={
+            "id": "synthetic-attributed-id", "object": "chat.completion", "created": 0,
+            "model": GPT_OSS_120B,
+            "choices": [{"index": 0, "finish_reason": "stop",
+                         "message": {"role": "assistant", "content": json.dumps({"content": _response(queue.plan, unit)})}}],
+            "usage": {"prompt_tokens": 10, "completion_tokens": 10, "total_tokens": 20},
+        })
+
+    quota_path = tmp_path / "witness_rate_limits.db"
+    store = ThreadOwnedSQLiteRateLimitStore(str(quota_path))
+    bridge = None
+    transport_instances = []
+
+    class RecordingTransport(httpx.MockTransport):
+        async def aclose(self):
+            transport_instances.append("closed")
+            await super().aclose()
+
+    def transport_factory():
+        transport_instances.append("created")
+        return RecordingTransport(transport)
+
+    try:
+        provider = asyncio.run(build_groq_free_witness_stack(
+            api_key="synthetic-no-network", transport_factory=transport_factory,
+            rate_limit_store=store,
+        ))
+        assert isinstance(provider, CircuitBreakerProvider)
+        assert transport_instances == []
+        bridge = _bridge(provider, builder, queue.plan, effective_config_sha256="a"*64,
+                         pre_effect_admission=policy)
+    except BaseException:
+        store.close()
+        raise
+    task_token = ctx_task_id.set(lease.task_id)
+    execution_token = ctx_execution_id.set(lease.execution_id)
+    try:
+        if status == 200:
+            assert stage_claimed_unit(queue.repo, queue.plan, queue.ast, unit, lease,
+                                      "free-dispatch", bridge, Semaphore(1))
+        else:
+            with pytest.raises(TransientAPIError, match="429"):
+                stage_claimed_unit(queue.repo, queue.plan, queue.ast, unit, lease,
+                                   "free-dispatch", bridge, Semaphore(1))
+        assert len(requests) == 1
+        assert transport_instances == ["created", "closed"]
+        assert len(reservations) == 1 and reservations[0][1] == 1
+        assert g3_free_dispatch_permit.get() is None
+        with closing(sqlite3.connect(quota_path)) as quota:
+            balances = dict(quota.execute("SELECT bucket_id, tokens FROM rate_limit_buckets"))
+        assert set(balances) == {"rpm", "tpm"}
+        assert balances["rpm"] == pytest.approx(29)
+        assert balances["tpm"] == pytest.approx(8000 - reservations[0][0])
+        assert queue.db.execute(
+            "SELECT COUNT(*) FROM chunk_result_receipts WHERE raw_response IS NOT NULL"
+        ).fetchone() == (int(status == 200),)
+    finally:
+        ctx_execution_id.reset(execution_token)
+        ctx_task_id.reset(task_token)
+        bridge.shutdown()
+        store.close()

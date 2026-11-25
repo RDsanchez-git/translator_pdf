@@ -9,7 +9,7 @@ bootstrap as uid/gid 10001. It must not be used in product deployments.
 from __future__ import annotations
 
 import os
-from pathlib import Path
+from infra.db.volume_ownership import prepare_owners
 import sys
 
 _AUDIT_UID = 10001
@@ -36,25 +36,7 @@ def prepare_volume_owners(mounts: set[str]) -> None:
     """Fail closed before any chown if the expected lab mounts are missing."""
     if os.geteuid() != 0 or os.getenv("TPDF_C0_VOLUME_INIT") != _OPT_IN:
         raise RuntimeError("C0_VOLUME_INIT_REQUIRES_EXPLICIT_LAB_ROOT")
-    if not set(_VOLUMES).issubset(mounts) or "/workspace" not in mounts:
-        raise RuntimeError("C0_VOLUME_INIT_MOUNT_MISMATCH")
-    if not Path(_BOOTSTRAP).is_file():
-        raise RuntimeError("C0_VOLUME_INIT_CURRENT_BOOTSTRAP_MISSING")
-
-    directories = [Path(x) for x in _VOLUMES]
-    db = directories[0] / "db"
-    if db.is_symlink():
-        raise RuntimeError("C0_VOLUME_INIT_DB_SYMLINK_FORBIDDEN")
-    for path in directories + ([db] if db.exists() else []):
-        if not path.is_dir() or path.is_symlink():
-            raise RuntimeError("C0_VOLUME_INIT_DIRECTORY_DRIFT")
-        if path.stat().st_uid not in (0, _AUDIT_UID):
-            raise RuntimeError("C0_VOLUME_INIT_UNEXPECTED_OWNER")
-
-    for path in directories:
-        os.chown(path, _AUDIT_UID, _AUDIT_GID)
-    db.mkdir(mode=0o755, exist_ok=True)
-    os.chown(db, _AUDIT_UID, _AUDIT_GID)
+    prepare_owners(mounts, _VOLUMES, _BOOTSTRAP, _AUDIT_UID, _AUDIT_GID)
 
 
 def main() -> None:

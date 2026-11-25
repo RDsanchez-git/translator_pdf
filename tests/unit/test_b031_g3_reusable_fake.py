@@ -9,7 +9,7 @@ import threading
 
 import pytest
 
-from apps.lab.g3_fake import DUMMY_KEY, FakeServer, _compact, _resolve, FakeContractError
+from apps.lab.g3_fake import DUMMY_KEY, FAKE_MODEL, FakeServer, _compact, _resolve, FakeContractError
 
 
 def _plan(*, doc="a"*64, ast="b"*64, source="Alpha $x_i$.", kind="translate"):
@@ -44,6 +44,7 @@ def _request(plan, *, masked="Alpha __MATH_0__."):
         "transport": {"root_key": "content",
                       "content_type": "JSON-serialized G3 response string"},
         "instructions": "Test-only: return the masked source unchanged.",
+        "language_intent": {"source_language": "en", "target_language": "es"},
         "response_binding": {"schema_version": 1, "document_id": plan["document_id"],
                              "ast_hash": plan["ast_hash"],
                              "manifest_sha256": plan["manifest_sha256"],
@@ -52,7 +53,7 @@ def _request(plan, *, masked="Alpha __MATH_0__."):
                      "source_sha256": sha256(m["source_text"].encode()).hexdigest(),
                      "source_text": masked}],
     }
-    return {"model": "llama3-70b-8192", "stream": False,
+    return {"model": FAKE_MODEL, "stream": False, "max_completion_tokens": 256,
             "response_format": {"type": "json_object"},
             "messages": [{"role": "system", "content": "G3 fixture"},
                          {"role": "user", "content": _compact(prompt)}]}
@@ -134,6 +135,7 @@ def test_http_sdk_envelope_and_copy(tmp_path):
     with _http_server(db) as port:
         code,data=_http(port,_request(p))
     assert code==200
+    assert data["model"] == FAKE_MODEL
     payload=json.loads(json.loads(data["choices"][0]["message"]["content"])["content"])
     assert payload["members"][0]["translated_text"]=="Alpha __MATH_0__."
 
@@ -263,3 +265,45 @@ def test_http_audit_limit_logs_all_attempts_and_only_one_accept(tmp_path, capfd)
     assert len(rejects) == 1
     assert rejects[0]["request_number"] == 2
     assert rejects[0]["reason"] == "request_limit_exceeded"
+
+
+@pytest.mark.parametrize("intent", [None, {"source_language": "es", "target_language": "en"},
+                                    {"source_language": "en", "target_language": "fr"}, {}])
+def test_fake_rejects_missing_or_wrong_language(tmp_path, intent):
+    p = _plan()
+    db = tmp_path / "queue.db"
+    _install(db, p)
+    request = _request(p)
+    protocol = json.loads(request["messages"][1]["content"])
+    if intent is None:
+        protocol.pop("language_intent")
+    else:
+        protocol["language_intent"] = intent
+    request["messages"][1]["content"] = _compact(protocol)
+    with pytest.raises(FakeContractError, match="invalid_g3_prompt|invalid_language_intent"):
+        _resolve(request, db)
+
+
+@pytest.mark.parametrize("model", ["llama3-70b-8192", "commercial-model", ""])
+def test_fake_rejects_non_synthetic_model(tmp_path, model):
+    p = _plan()
+    db = tmp_path / "queue.db"
+    _install(db, p)
+    request = _request(p)
+    request["model"] = model
+    with pytest.raises(FakeContractError, match="invalid_offline_model"):
+        _resolve(request, db)
+
+
+@pytest.mark.parametrize("reserve", [None, 0, -1, True, "256"])
+def test_fake_rejects_invalid_output_reserve(tmp_path, reserve):
+    p = _plan()
+    db = tmp_path / "queue.db"
+    _install(db, p)
+    request = _request(p)
+    if reserve is None:
+        request.pop("max_completion_tokens")
+    else:
+        request["max_completion_tokens"] = reserve
+    with pytest.raises(FakeContractError, match="invalid_output_reserve"):
+        _resolve(request, db)
