@@ -1,11 +1,11 @@
 # FASE_PPPR_DEFERRED_FINDINGS_REGISTER.md
 
 **Documento:** `docs/architecture/adr/pdf-pdf-product-readiness/reviews/FASE_PPPR_DEFERRED_FINDINGS_REGISTER.md`  
-**Versión:** 0.1.38  
-**Estado:** G1–G5 COMPLETED/PASS; G6/W6.1 IN_PROGRESS; 6.1.1 IN_PROGRESS / TECHNICAL_BOARD_ACCEPTED / BLOCKED_FOR_CLOSURE; G6 Exit Review NOT_RUN; 25/30 Tasks DONE (83,3%); 14 GAP P1 históricos OPEN; issue #34 OPEN; CV FAIL/DEFERRED; PRODUCT_DISPATCH=BLOCKED; PRODUCT_READINESS=NOT_CERTIFIED. Dictamen Board comunicado por owner sobre `7cd34940477701521afd842e0f43d6689fc53153`: APPROVED — TECHNICAL_BOARD_ACCEPTED, OFFLINE SCOPE. H-G6-04/05 RESOLVED / BOARD_ACCEPTED (3/3 y 4/4 PASS); regresión 36/36 PASS, módulo 43/43 PASS. No se requieren nuevos cambios de código, infraestructura ni metodología en alcance aceptado. No se atribuye firma externa ni review GitHub formal. [CI #45545721911](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45545721911) SUCCESS 3/3 sobre `7cd34940477701521afd842e0f43d6689fc53153`, merge sintético `2396917` (prefijo observado); jobs 138974734624 static, 138974734945 unit, 138974734788 integration; 482 unit PASS, 125 integration PASS/2 skipped, Tectonic 9/9 PASS, suite not e2e 1859 PASS/6 skipped/20 deselected/2 warnings, 29.11s, Pyright 0/0/0, import-linter 4/4; selecciones no aditivas. CI de este checkpoint documental pendiente al registrar.  
+**Versión:** 0.1.39  
+**Estado:** G1–G5 COMPLETED/PASS; G6/W6.1 IN_PROGRESS; 6.1.1 TECHNICAL_DONE / TECHNICAL_BOARD_ACCEPTED / BLOCKED (GF-01); 6.1.2/6.1.3 TODO; G6 Exit Review NOT_RUN; 25/30 Tasks DONE conforme al plan vigente; 14 GAP P1 históricos OPEN; issue #34 OPEN; CV FAIL/DEFERRED; PRODUCT_DISPATCH=BLOCKED; PRODUCT_READINESS=NOT_CERTIFIED. GF-01 abierto; Batch 1 planificado, no ejecutado. [CI #45547305264](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45547305264) SUCCESS 3/3 sobre `898bd06aab745b2597fda4c07f88b9a322f44f4e`, 1859 PASS/6 skipped/20 deselected/2 warnings (41.10s), 482 unit PASS incl. 43/43 G6, 125 integration PASS/2 skipped, Tectonic 9/9, Pyright 0/0/0, import-linter 4/4; selecciones no aditivas. Nuevo HEAD documental CI_PENDING al registrar.  
 **Fecha de creación:** 2026-11-21  
 **Última actualización:** 2026-11-25  
-**Derivado de:** Plan v0.5.37, Evidence Log v0.1.39; Dictamen Board comunicado por owner sobre `7cd34940477701521afd842e0f43d6689fc53153`: APPROVED — TECHNICAL_BOARD_ACCEPTED, OFFLINE SCOPE. H-G6-04/05 RESOLVED / BOARD_ACCEPTED (3/3 y 4/4 PASS); regresión 36/36 PASS, módulo 43/43 PASS. No se requieren nuevos cambios de código, infraestructura ni metodología en alcance aceptado. No se atribuye firma externa ni review GitHub formal.  
+**Derivado de:** Plan v0.5.38, Evidence Log v0.1.40; Dictamen Board comunicado por owner sobre `7cd34940477701521afd842e0f43d6689fc53153`: APPROVED — TECHNICAL_BOARD_ACCEPTED, OFFLINE SCOPE. H-G6-04/05 RESOLVED / BOARD_ACCEPTED (3/3 y 4/4 PASS); regresión 36/36 PASS, módulo 43/43 PASS. No se requieren nuevos cambios de código, infraestructura ni metodología en alcance aceptado. No se atribuye firma externa ni review GitHub formal.  
 **Ámbito:** PPPR (iniciativa transversal PDF→PDF; no fase histórica numerada).  
 **Propósito:** Registro único y auditable de hallazgos `DF`/`GF` **que surjan durante la ejecución y los Exit Reviews** del Execution Plan: identificación, clasificación, decisión, resolución, batch y evidencia de implementación.
 
@@ -78,6 +78,7 @@
 | 0.1.36 | 2026-11-25 | G1–G5 COMPLETED/PASS; PR94 MERGED en `c773675e6f39fdc741de843bc9a5a01a4f2531a0`; G6/W6.1 IN_PROGRESS; 6.1.1 IN_PROGRESS / TECHNICAL_CI_VERIFIED / BLOCKED_FOR_CLOSURE; G6 Exit Review NOT_RUN; 25/30 Tasks DONE (83,3%); 14 GAP P1 históricos OPEN; issue #34 OPEN; CV FAIL/DEFERRED; PRODUCT_DISPATCH=BLOCKED; PRODUCT_READINESS=NOT_CERTIFIED. Board, dictamen comunicado por owner sobre `a0a75890105615bbc74e5a390528cb69e1b1f5f4`: APPROVED — OFFLINE TECHNICAL IMPLEMENTATION AUTHORIZED; sustituye exclusivamente restricción temporal de inicio, sin dispensa de R4–R6. ADR v0.1.0 y protocolo v0.3.0 ratificados arquitectónicamente; H-G6-01/02/03 resueltos, C-1…C-6 incorporadas. Aprobación científica previamente comunicada, luego rectificada: revisión técnica sin mandato ni acto original; SCIENTIFIC_AUTHORITY=NOT_ACCREDITED, SCIENTIFIC_APPROVAL=ABSENT. No se atribuye firma externa ni review formal GitHub. [CI #45543086702](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45543086702) SUCCESS 3/3 sobre `ce7d3c880515a275cb68e6238d4c8dea7fbf442f`, merge sintético `97e40a2` (prefijo observado), Pyright 0/0/0, import-linter 4/4, 475 unit PASS (36/36 nuevos casos), 125 integration PASS/2 skipped, Tectonic 9 PASS, not e2e 1852 PASS/6 skipped/20 deselected/2 warnings, 38.89s; selecciones no aditivas. CI documental pendiente al registrar. |
 | 0.1.37 | 2026-11-25 | CI #45544449267 SUCCESS 3/3 sobre `07ef34e9ce0617ca765db7e12f6b953468abe3a0`, 1852 PASS, 36/36 casos previos, Pyright 0/0/0, import-linter 4/4, Tectonic 9/9. Dictamen Board comunicado por owner sobre `07ef34e9ce0617ca765db7e12f6b953468abe3a0`: FAVORABLE AL DISEÑO IMPLEMENTADO, CON DOS CORRECCIONES FOCALES PREVIAS A ACEPTACIÓN TÉCNICA DEFINITIVA. H-G6-04: independencia por Scope sin compensación entre dimensiones o propiedades; corregido all() global a comprobación por Scope, manteniendo referencias preexistentes no derivadas con evidencia independiente del mismo ámbito. H-G6-05: pruebas directas de evaluate_certifying con doble de canal acreditado exclusivamente en tests; R4/R5/R6 inválidas bloquean con cero invocaciones, positivo entrega bytes exactos una vez. Se añaden siete casos (tres H04, cuatro H05); no se alteran shell ni configuración real. Correcciones implementadas, CI del nuevo HEAD PENDING al registrar; aceptación Board pendiente. No atribuir resultados de tests nuevos todavía. Puerto de confianza sin adaptador real, futura procedencia y cronología experimental deben acreditarse; no ciencia efectiva ni cierre normativo. H-G6-04/05 son correcciones in-scope, no nuevos GAP P1 ni DF/GF diferidos. SCIENTIFIC_AUTHORITY=NOT_ACCREDITED; SCIENTIFIC_APPROVAL=ABSENT; 6.1.1 IN_PROGRESS/BLOCKED_FOR_CLOSURE; 25/30 DONE; 14 GAP P1 OPEN; issue #34 OPEN; CV FAIL/DEFERRED; PRODUCT_DISPATCH=BLOCKED; PRODUCT_READINESS=NOT_CERTIFIED. Sin merge, corpus privado, inferencias, descargas, gastos, activación ni Tasks posteriores. |
 | 0.1.38 | 2026-11-25 | G1–G5 COMPLETED/PASS; G6/W6.1 IN_PROGRESS; 6.1.1 IN_PROGRESS / TECHNICAL_BOARD_ACCEPTED / BLOCKED_FOR_CLOSURE; G6 Exit Review NOT_RUN; 25/30 Tasks DONE (83,3%); 14 GAP P1 históricos OPEN; issue #34 OPEN; CV FAIL/DEFERRED; PRODUCT_DISPATCH=BLOCKED; PRODUCT_READINESS=NOT_CERTIFIED. Dictamen Board comunicado por owner sobre `7cd34940477701521afd842e0f43d6689fc53153`: APPROVED — TECHNICAL_BOARD_ACCEPTED, OFFLINE SCOPE. H-G6-04/05 RESOLVED / BOARD_ACCEPTED (3/3 y 4/4 PASS); regresión 36/36 PASS, módulo 43/43 PASS. No se requieren nuevos cambios de código, infraestructura ni metodología en alcance aceptado. No se atribuye firma externa ni review GitHub formal. [CI #45545721911](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45545721911) SUCCESS 3/3 sobre `7cd34940477701521afd842e0f43d6689fc53153`, merge sintético `2396917` (prefijo observado); jobs 138974734624 static, 138974734945 unit, 138974734788 integration; 482 unit PASS, 125 integration PASS/2 skipped, Tectonic 9/9 PASS, suite not e2e 1859 PASS/6 skipped/20 deselected/2 warnings, 29.11s, Pyright 0/0/0, import-linter 4/4; selecciones no aditivas. CI de este checkpoint documental pendiente al registrar. SCIENTIFIC_AUTHORITY=NOT_ACCREDITED; SCIENTIFIC_APPROVAL=ABSENT. Para cerrar 6.1.1 conforme a §2.6.1, NADR-FPPPR-01 §5.2 y protocolo v0.3.0 §2/§9, falta autoridad humana competente identificable y acreditada por ámbito, mandato e independencia comprobados por owner/Board, acto científico atribuible y previo sobre criterios/modelo/protocolo exactos, y conexión/verificación de originales desde canal de confianza autorizado. TrustedEvidenceChannel sigue siendo puerto sin adaptador acreditado; `_configured_channel()` retorna None. El cierre no se deduce de CI ni de aceptación técnica; R4–R6 PENDING normativo. No iniciar 6.1.2: depende de 6.1.1 DONE. No se exige anticipar corpus/referencias de 6.1.2 ni ejecutar 6.1.3. Sin merge, corpus privado, inferencias, descargas, gastos, activación ni Tasks posteriores. No modificar ADR/protocolo/FROZEN/criterios. |
+| 0.1.39 | 2026-11-25 | G1–G5 COMPLETED/PASS; G6/W6.1 IN_PROGRESS; 6.1.1 TECHNICAL_DONE / TECHNICAL_BOARD_ACCEPTED / BLOCKED (GF-01); 6.1.2/6.1.3 TODO; G6 Exit Review NOT_RUN; 25/30 Tasks DONE conforme al plan vigente; 14 GAP P1 históricos OPEN; issue #34 OPEN; CV FAIL/DEFERRED; PRODUCT_DISPATCH=BLOCKED; PRODUCT_READINESS=NOT_CERTIFIED. GF-01 — conflicto de cierre operativo de 6.1.1 con la finalidad de uso personal y la decisión previa del Board. Owner solicita explícitamente cierre DONE y registro del defecto original mediante batch; no repetir implementación ni revisiones. Se confirma discrepancia entre el cierre técnico acreditado y el criterio original de aprobación científica efectiva. Se propone separar la terminación del control fail-closed de la aprobación necesaria para evaluar/certificar, sin relajar la norma. Registro de clasificación y Batch 1 en Findings Register §§2 y 4; evidencia en Evidence Log §2.1. No se atribuye una nueva decisión Board ni evidencia científica ausente. [CI #45547305264](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45547305264) SUCCESS 3/3 sobre `898bd06aab745b2597fda4c07f88b9a322f44f4e`, 1859 PASS/6 skipped/20 deselected/2 warnings (41.10s), 482 unit PASS incl. 43/43 G6, 125 integration PASS/2 skipped, Tectonic 9/9, Pyright 0/0/0, import-linter 4/4; selecciones no aditivas. Nuevo HEAD documental CI_PENDING al registrar. |
 
 ---
 
@@ -375,6 +376,16 @@ Dictamen Board comunicado por owner sobre `7cd34940477701521afd842e0f43d6689fc53
 
 H-G6-04/05 resueltos dentro del alcance, no DF/GF diferidos ni nuevos GAP P1. Conservar los 14 históricos OPEN. La dependencia de autoridad pertenece a 6.1.1, no es una Task nueva ni un fallo científico ejecutado. No Exit Review G6.
 
+### GF-01 — Hallazgo durante 6.1.1 (2026-11-25; no Gate Exit Review ejecutado)
+
+GF-01 — conflicto de cierre operativo de 6.1.1 con la finalidad de uso personal y la decisión previa del Board. Owner solicita explícitamente cierre DONE y registro del defecto original mediante batch; no repetir implementación ni revisiones. Se confirma discrepancia entre el cierre técnico acreditado y el criterio original de aprobación científica efectiva. Se propone separar la terminación del control fail-closed de la aprobación necesaria para evaluar/certificar, sin relajar la norma. Registro de clasificación y Batch 1 en Findings Register §§2 y 4; evidencia en Evidence Log §2.1. No se atribuye una nueva decisión Board ni evidencia científica ausente.
+
+| ID | Validez | Resoluble en G6 | Tipo | Clasificación | Decisión / autoridad | Evidencia |
+|---|---|---|---|---|---|---|
+| GF-01 | Sí: conflicto operativo confirmado | Sí, mediante disposición competente de alcance/secuencia | Gobernanza, no fallo técnico | REVIEW_REQUIRED | Owner solicita cerrar 6.1.1 y abrir Batch 1. La aceptación técnica Board previa no autoriza cierre normativo; resolver esa contradicción en Batch 1 sin falsear cumplimiento. | Evidence Log §2.1 |
+
+No se declara un Gate Exit Review realizado antes de cumplir las condiciones canónicas; GF-01 queda identificado ahora y se revisará en el Exit Review G6. No nuevo GAP P1 histórico ni DF de código. El objetivo personal no acredita por sí solo ciencia ni modifica DC-09/12.
+
 ## 3. TABLA CONSOLIDADA FINAL
 
 **Estado:** `NO_ELABORADA / NOT_RUN`. Se consolidará al cierre del último Gate Exit Review; no se presume que habrá cero hallazgos.
@@ -400,7 +411,7 @@ H-G6-04/05 resueltos dentro del alcance, no DF/GF diferidos ni nuevos GAP P1. Co
 
 ## 4. RESULTADOS DE IMPLEMENTACIÓN POR BATCH
 
-**Estado:** no se planificaron ni ejecutaron batches de resolución de findings nuevos. **No confundir batches de hallazgos con las 30 Tasks aprobadas en el Execution Plan.**
+**Estado:** Batch 1 planificado para GF-01, no ejecutado. **No confundir batches de hallazgos con las 30 Tasks aprobadas.**
 
 Al ejecutar un batch autorizado, agregar `### 4.N BATCH N — Nombre (fecha/estado)` con:
 
@@ -408,6 +419,20 @@ Al ejecutar un batch autorizado, agregar `### 4.N BATCH N — Nombre (fecha/esta
 - Tabla `DF | Estado final | Acción ejecutada | Archivos afectados | Pyright/pytest/validación`.
 - Correcciones adicionales, nuevos hallazgos derivados `H-XX-X`, reglas **ya existentes** aplicadas, decisiones de diseño justificadas y alternativas.
 - Métricas *observadas*, cobertura/limitaciones, regresiones y evidencia verificable; no atribuir tests no ejecutados.
+
+---
+
+### 4.1 BATCH 1 — Regularización de cierre operativo de 6.1.1 (PENDING_DECISION / NO EJECUTADO)
+
+**Origen:** solicitud expresa owner 2026-11-25; GF-01. **Dueño:** Staff Engineering prepara, owner/Board resuelven la disposición competente. **HEAD de evidencia:** `898bd06aab745b2597fda4c07f88b9a322f44f4e`; PR95. **Validación previa:** [CI #45547305264](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45547305264) SUCCESS 3/3 sobre `898bd06aab745b2597fda4c07f88b9a322f44f4e`, 1859 PASS/6 skipped/20 deselected/2 warnings (41.10s), 482 unit PASS incl. 43/43 G6, 125 integration PASS/2 skipped, Tectonic 9/9, Pyright 0/0/0, import-linter 4/4; selecciones no aditivas. Nuevo HEAD documental CI_PENDING al registrar.
+
+| GF ID | Estado | Acción planificada | Archivos afectados | Validación de cierre |
+|---|---|---|---|---|
+| GF-01 | REVIEW_REQUIRED | Resolver contradicción entre DoD técnico y condición científica previa de cierre. Propuesta: aceptar DONE de implementación R4–R6 por su rechazo fail-closed y trasladar la acreditación efectiva al prerrequisito de evaluación certificante, manteniendo el criterio de salida G6 original. | Tres LIVING existentes; no cambios de código ni FROZEN previstos | Decisión explícita compatible con §2/§6.3–6.4; trazabilidad de todas las obligaciones, CI exacta y no certificación sin autoridad. |
+
+**Límite:** no es batch de implementación ejecutado; el dictamen Board previo mantiene cierre bloqueado. Si se acepta la regularización, actualizar Task y estado de reglas conforme a decisión, sin atribuir actos científicos inexistentes. Si se rechaza, mantener bloqueada la Task original. No usar ACCEPTED_LIMITATION para ocultar incumplimiento de criterio obligatorio. No autoriza corpus, descargas, inferencias, gastos, merge ni activación.
+
+**Métricas de ejecución del Batch 1:** NOT_RUN; no se contabiliza como batch completado. Los resultados CI indicados pertenecen al incremento técnico ya aceptado.
 
 ---
 
@@ -469,11 +494,11 @@ El documento se declara `ARCHIVED` **solo** tras cierre formal de PPPR, verifica
 | Categoría | Estado actual |
 |---|---|
 | Gates revisados | 5 Exit Reviews G1–G5 PASS; PR94 MERGED; G6 IN_PROGRESS, Exit Review NOT_RUN |
-| Hallazgos PPPR registrados nuevos | **0 DF/GF nuevos fuera del alcance planificado** en G1 y W2.1; GAP-0.2-01/02 preexistentes no duplicados; no inferir ausencia global de defectos |
-| Hallazgos analizados/resueltos/diferidos | **0 nuevos en Gate 1; clasificación N/A** (no inventar NAR) |
-| Batches ejecutados | NOT_RUN |
+| Hallazgos PPPR registrados nuevos | 1 GF (GF-01); no DF nuevo en este checkpoint; 14 GAP P1 históricos OPEN |
+| Hallazgos analizados/resueltos/diferidos | GF-01 REVIEW_REQUIRED; 0 resueltos/diferidos en este checkpoint |
+| Batches ejecutados | 0/1 planificado; Batch 1 PENDING_DECISION |
 | Estado de los Exit Reviews | G1–G5 REALIZADO/PASS; G6 Exit Review NOT_RUN; CV FAIL/DEFERRED |
-| Estado operativo del Register | G1–G5 COMPLETED/PASS; G6/W6.1 IN_PROGRESS; 6.1.1 IN_PROGRESS / TECHNICAL_BOARD_ACCEPTED / BLOCKED_FOR_CLOSURE; G6 Exit Review NOT_RUN; 25/30 Tasks DONE (83,3%); 14 GAP P1 históricos OPEN; issue #34 OPEN; CV FAIL/DEFERRED; PRODUCT_DISPATCH=BLOCKED; PRODUCT_READINESS=NOT_CERTIFIED. H-G6-01…05 RESOLVED/BOARD_ACCEPTED en sus alcances; R4–R6 PENDING normativo; sin nuevo DF/GF diferido |
+| Estado operativo del Register | G1–G5 COMPLETED/PASS; G6/W6.1 IN_PROGRESS; 6.1.1 TECHNICAL_DONE / TECHNICAL_BOARD_ACCEPTED / BLOCKED (GF-01); 6.1.2/6.1.3 TODO; G6 Exit Review NOT_RUN; 25/30 Tasks DONE conforme al plan vigente; 14 GAP P1 históricos OPEN; issue #34 OPEN; CV FAIL/DEFERRED; PRODUCT_DISPATCH=BLOCKED; PRODUCT_READINESS=NOT_CERTIFIED. GF-01 REVIEW_REQUIRED; Batch 1 PENDING_DECISION |
 | Cierre de fase | **PENDIENTE / NO ARCHIVED** |
 
 ---
