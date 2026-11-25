@@ -255,3 +255,146 @@ def test_no_channel_cannot_be_replaced_by_self_consistent_request(witness):
     req, _ = witness
     report, inputs = shell._inspect(req, None)
     assert not report.admitted and inputs is None
+
+
+class AccreditedChannelDouble(SyntheticChannel):
+    """Test-only stand-in for a trusted composition dependency.
+
+    Never registered outside these tests; does not authenticate real originals
+    or establish scientific authority.
+    """
+    kind = shell.ChannelKind.ACCREDITED
+
+
+def _add_language_reference(req, channel, *, scope, author_id, content, path):
+    """Add one attributed reference and extend the synthetic review consistently."""
+    ev = channel.records
+    review = ev.independence
+    assert review is not None
+    original = next(item for item in ev.references
+                    if item.reference.scope.dimension is Dimension.LANGUAGE)
+    artifact = replace(original.reference.artifact, path=path,
+                       sha256=compute_sha256(content))
+    reference = ReferenceRequest(artifact, scope)
+    objects = frozenset((req.source, artifact))
+    record = replace(
+        original, reference=reference, author_id=author_id,
+        validation=replace(original.validation, objects=objects,
+                           scopes=frozenset((scope,))),
+        permission=replace(original.permission, objects=objects,
+                           scopes=frozenset((scope,))),
+    )
+    scopes = req.scopes | frozenset((scope,))
+    req = replace(req, scopes=scopes, references=(*req.references, reference))
+    channel.contents[artifact] = content
+    channel.records = replace(
+        ev,
+        accreditations=tuple(replace(g, scopes=scopes) for g in ev.accreditations),
+        approvals=tuple(replace(a, scopes=scopes) for a in ev.approvals),
+        references=(*ev.references, record),
+        independence=replace(review, scopes=scopes,
+                             references=frozenset(req.references),
+                             confirmatory_keys=review.confirmatory_keys | frozenset((artifact.sha256,))),
+    )
+    return req
+
+
+@pytest.mark.parametrize("separate_property", [False, True],
+                         ids=["other-dimensions", "same-dimension-other-property"])
+def test_h_g6_04_sole_producer_scope_cannot_be_compensated(
+    witness, separate_property,
+):
+    req, channel = witness
+    ev = channel.records
+    language = next(s for s in req.scopes if s.dimension is Dimension.LANGUAGE)
+    if separate_property:
+        # The original language property still has independent evidence.
+        req = _add_language_reference(
+            req, channel, scope=replace(language, property_name="terminology"),
+            author_id="producer", content=b"producer terminology reference",
+            path="producer-terminology",
+        )
+    else:
+        # Other dimensions have independent evidence, but language does not.
+        channel.records = replace(ev, references=tuple(
+            replace(item, author_id="producer") if item.reference.scope == language else item
+            for item in ev.references
+        ))
+    report, inputs = shell._inspect(req, channel)
+    assert inputs is None and not report.admitted
+    assert {(v.condition, v.detail) for v in report.violations} == {
+        (Condition.R5_INDEPENDENCE, "SOLE_PRODUCER_EVIDENCE")
+    }
+
+
+def test_h_g6_04_preexisting_producer_reference_with_same_scope_independent_evidence(witness):
+    req, channel = witness
+    language = next(s for s in req.scopes if s.dimension is Dimension.LANGUAGE)
+    # Synthetic preexisting reference, separately validated, not candidate-derived.
+    # The original independent reference for the SAME scope remains present.
+    req = _add_language_reference(
+        req, channel, scope=language, author_id="producer",
+        content=b"preexisting producer-authored reference", path="preexisting",
+    )
+    report, inputs = shell._inspect(req, channel)
+    assert report.admitted and inputs is not None
+
+
+@pytest.mark.parametrize("condition", [
+    Condition.R4_INTEGRITY, Condition.R5_INDEPENDENCE, Condition.R6_PRIOR_APPROVAL,
+])
+def test_h_g6_05_certifying_consumer_rejects_invalid_evidence(
+    witness, monkeypatch, condition,
+):
+    from unittest.mock import Mock
+
+    req, channel = witness
+    ev = channel.records
+    if condition is Condition.R4_INTEGRITY:
+        channel.contents[req.protocol] += b"altered bytes"
+    elif condition is Condition.R5_INDEPENDENCE:
+        channel.records = replace(ev, references=tuple(
+            replace(item, author_id="producer")
+            if item.reference.scope.dimension is Dimension.LANGUAGE else item
+            for item in ev.references
+        ))
+    else:
+        channel.records = replace(ev, approvals=tuple(
+            a for a in ev.approvals if a.role is not Role.SCIENTIFIC
+        ))
+    double = AccreditedChannelDouble(channel.records, channel.contents)
+    monkeypatch.setattr(shell, "_configured_channel", lambda: double)
+    evaluator = Mock(side_effect=AssertionError("invalid evidence entered evaluator"))
+    with pytest.raises(shell.AdmissionBlocked) as failure:
+        shell.evaluate_certifying(req, evaluator)
+    evaluator.assert_not_called()
+    assert condition in {v.condition for v in failure.value.report.violations}
+    assert frozenset(double.reads) == req.artifacts
+    assert len(double.reads) == len(req.artifacts)
+
+
+def test_h_g6_05_certifying_consumer_passes_exact_examined_bytes_once(witness, monkeypatch):
+    from unittest.mock import Mock
+
+    req, channel = witness
+    double = AccreditedChannelDouble(channel.records, channel.contents)
+    monkeypatch.setattr(shell, "_configured_channel", lambda: double)
+    examined = dict(double.contents)
+    sentinel = object()
+
+    def observe(inputs):
+        assert inputs.request == req
+        assert dict(inputs.artifacts) == examined
+        assert len(inputs.artifacts) == len(examined)
+        assert all(compute_sha256(content) == identity.sha256
+                   for identity, content in inputs.artifacts)
+        # Mutating the backing store cannot change the immutable bytes delivered.
+        double.contents[req.candidate] = b"replacement after admission"
+        assert dict(inputs.artifacts) == examined
+        return sentinel
+
+    evaluator = Mock(side_effect=observe)
+    assert shell.evaluate_certifying(req, evaluator) is sentinel
+    evaluator.assert_called_once()
+    assert frozenset(double.reads) == req.artifacts
+    assert len(double.reads) == len(req.artifacts)

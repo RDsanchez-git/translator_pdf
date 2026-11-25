@@ -328,8 +328,13 @@ def evaluate_admission(
         for item in evidence.references:
             if item.validation.origin.actor_id in review.producer_ids:
                 deny(Condition.R5_INDEPENDENCE, "REFERENCE_VALIDATED_BY_PRODUCER")
-        if evidence.references and all(
-            item.author_id in review.producer_ids for item in evidence.references
-        ):
-            deny(Condition.R5_INDEPENDENCE, "SOLE_PRODUCER_EVIDENCE")
+        # Independent evidence must support each requested scope; unrelated
+        # dimensions/properties cannot compensate for sole producer evidence.
+        # A producer-authored preexisting reference is not itself prohibited
+        # when the same scope also has eligible independent evidence.
+        for scope in request.scopes:
+            scoped = tuple(item for item in evidence.references
+                           if item.reference.scope == scope)
+            if scoped and all(item.author_id in review.producer_ids for item in scoped):
+                deny(Condition.R5_INDEPENDENCE, "SOLE_PRODUCER_EVIDENCE")
     return AdmissionReport(tuple(failures))
