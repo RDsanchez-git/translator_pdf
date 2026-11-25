@@ -1,11 +1,11 @@
 # FASE_PPPR_DEFERRED_FINDINGS_REGISTER.md
 
 **Documento:** `docs/architecture/adr/pdf-pdf-product-readiness/reviews/FASE_PPPR_DEFERRED_FINDINGS_REGISTER.md`  
-**Versión:** 0.1.47  
-**Estado:** G1–G5 COMPLETED/PASS; G6/W6.1 IN_PROGRESS; 6.1.1 DONE (GF-01, alcance operativo); 6.1.2 BLOCKED para cierre normativo (21/21 PDF históricos con SHA-256 local verificado por owner; tres pares disponibles; GF-02 REVIEW_REQUIRED, decisión arquitectónica candidata publicada); 6.1.3/6.2.1/6.2.2 TODO; 26/30 DONE (86,7%); G6 Exit Review NOT_RUN; 14 GAP P1 históricos OPEN; issue #34 OPEN; CV FAIL/DEFERRED; PRODUCT_DISPATCH=BLOCKED; PRODUCT_READINESS=NOT_CERTIFIED. GF-01 RESOLVED; GF-02 REVIEW_REQUIRED; Batch 1 CI_VERIFIED. [CI #45660903515](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45660903515) SUCCESS 3/3 sobre `6acac34021dc11589322f383b10ffdadc50b91f4` (static 139370153938, unit 139370154615, integration 139370154662; logs cuantitativos no revalidados para este run). CI del nuevo HEAD pendiente al registrar.
+**Versión:** 0.1.48  
+**Estado:** G1–G5 COMPLETED/PASS; G6/W6.1 IN_PROGRESS (alcance personal ratificado); 6.1.1 DONE (GF-01); 6.1.2 IN_PROGRESS (preparación offline; 21/21 PDF históricos verificados por owner y tres pares candidatos; permisos y suficiencia funcional pendientes); 6.1.3/6.2.1/6.2.2 TODO; 26/30 DONE (86,7%); G6 Exit Review NOT_RUN; GF-02 RESOLVED en alcance documental, Batch 2 CI_PENDING; 14 GAP P1 históricos OPEN; issue #34 OPEN; CV FAIL/DEFERRED; PERSONAL_ACCEPTANCE=NOT_EVALUATED; PRODUCT_DISPATCH=BLOCKED; PRODUCT_READINESS=NOT_CERTIFIED. [CI #45662081415](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45662081415) SUCCESS 3/3 sobre `070d8e43a272222756671f154b5c203192793be3`; 1859 PASS/6 skipped/20 deselected/2 warnings, 482 unit PASS, 125 integration PASS/2 skipped, Tectonic 9/9, Pyright 0/0/0, import-linter 4/4; selecciones no aditivas. CI del nuevo HEAD pendiente al registrar.
 **Fecha de creación:** 2026-11-21  
 **Última actualización:** 2026-11-25  
-**Derivado de:** Plan v0.5.46, Evidence Log v0.1.48; Dictamen Board comunicado por owner sobre `7cd34940477701521afd842e0f43d6689fc53153`: APPROVED — TECHNICAL_BOARD_ACCEPTED, OFFLINE SCOPE. H-G6-04/05 RESOLVED / BOARD_ACCEPTED (3/3 y 4/4 PASS); regresión 36/36 PASS, módulo 43/43 PASS. No se requieren nuevos cambios de código, infraestructura ni metodología en alcance aceptado. No se atribuye firma externa ni review GitHub formal.  
+**Derivado de:** Plan v0.5.47, Evidence Log v0.1.49; Dictamen Board comunicado por owner sobre `7cd34940477701521afd842e0f43d6689fc53153`: APPROVED — TECHNICAL_BOARD_ACCEPTED, OFFLINE SCOPE. H-G6-04/05 RESOLVED / BOARD_ACCEPTED (3/3 y 4/4 PASS); regresión 36/36 PASS, módulo 43/43 PASS. No se requieren nuevos cambios de código, infraestructura ni metodología en alcance aceptado. No se atribuye firma externa ni review GitHub formal.  
 **Ámbito:** PPPR (iniciativa transversal PDF→PDF; no fase histórica numerada).  
 **Propósito:** Registro único y auditable de hallazgos `DF`/`GF` **que surjan durante la ejecución y los Exit Reviews** del Execution Plan: identificación, clasificación, decisión, resolución, batch y evidencia de implementación.
 
@@ -87,6 +87,7 @@
 | 0.1.45 | 2026-11-25 | G1–G5 COMPLETED/PASS; G6/W6.1 IN_PROGRESS; 6.1.1 DONE (GF-01, alcance operativo); 6.1.2 BLOCKED para cierre normativo (21/21 PDF históricos con SHA-256 local verificado por owner; tres pares candidatos disponibles; elegibilidad confirmatoria pendiente); 6.1.3 TODO; 26/30 Tasks DONE (86,7%); G6 Exit Review NOT_RUN; 14 GAP P1 históricos OPEN; issue #34 OPEN; CV FAIL/DEFERRED; PRODUCT_DISPATCH=BLOCKED; PRODUCT_READINESS=NOT_CERTIFIED. Reutilización canónica como base de preparación, tres pares complementarios; testigo owner 21/21 PASS en issue #34, sin inspección Staff de originales ni nuevo DF/GF. [CI #45554778634](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45554778634) SUCCESS 3/3 sobre `341a96855be2eda5b639c57d8dcca9b86ad03e01` (static 139004084834, integration 139004085223, unit 139004085409; métricas detalladas de logs no revalidadas en este checkpoint). CI del nuevo HEAD pendiente al registrar. |
 | 0.1.46 | 2026-11-25 | GF-02 REVIEW_REQUIRED por diferencia de alcance de aceptación personal/cierre certificante; owner acuerda revisión, decisión arquitectónica pendiente. G1–G5 COMPLETED/PASS; G6/W6.1 IN_PROGRESS; 6.1.1 DONE (GF-01, alcance operativo); 6.1.2 BLOCKED para cierre normativo (21/21 PDF históricos con SHA-256 local verificado por owner; tres pares disponibles; elegibilidad confirmatoria pendiente; GF-02 REVIEW_REQUIRED); 6.1.3/6.2.1/6.2.2 TODO; 26/30 DONE (86,7%); G6 Exit Review NOT_RUN; 14 GAP P1 históricos OPEN; issue #34 OPEN; CV FAIL/DEFERRED; PRODUCT_DISPATCH=BLOCKED; PRODUCT_READINESS=NOT_CERTIFIED. [CI #45658403161](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45658403161) SUCCESS 3/3 sobre `e78217f6fbda480e55ae2c97391d45bf966b48fd`; 1859 PASS/6 skipped/20 deselected/2 warnings, 482 unit PASS, 125 integration PASS/2 skipped, Tectonic 9/9, Pyright 0/0/0, import-linter 4/4; selecciones no aditivas. CI del nuevo HEAD pendiente al registrar. |
 | 0.1.47 | 2026-11-25 | GF-02: ADR sucesor focal DRAFT publicado para decisión Board. G1–G5 COMPLETED/PASS; G6/W6.1 IN_PROGRESS; 6.1.1 DONE (GF-01, alcance operativo); 6.1.2 BLOCKED para cierre normativo (21/21 PDF históricos con SHA-256 local verificado por owner; tres pares disponibles; GF-02 REVIEW_REQUIRED, decisión arquitectónica candidata publicada); 6.1.3/6.2.1/6.2.2 TODO; 26/30 DONE (86,7%); G6 Exit Review NOT_RUN; 14 GAP P1 históricos OPEN; issue #34 OPEN; CV FAIL/DEFERRED; PRODUCT_DISPATCH=BLOCKED; PRODUCT_READINESS=NOT_CERTIFIED. [CI #45660903515](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45660903515) SUCCESS 3/3 sobre `6acac34021dc11589322f383b10ffdadc50b91f4` (static 139370153938, unit 139370154615, integration 139370154662; logs cuantitativos no revalidados para este run). CI del nuevo HEAD pendiente al registrar. |
+| 0.1.48 | 2026-11-25 | Ratificación owner en autoridad arquitectónica de ADR PPPR 02; GF-02 RESOLVED documental, Batch 2 CI_PENDING; cuatro Tasks reconciliadas antes de evaluación. G1–G5 COMPLETED/PASS; G6/W6.1 IN_PROGRESS (alcance personal ratificado); 6.1.1 DONE (GF-01); 6.1.2 IN_PROGRESS (preparación offline; 21/21 PDF históricos verificados por owner y tres pares candidatos; permisos y suficiencia funcional pendientes); 6.1.3/6.2.1/6.2.2 TODO; 26/30 DONE (86,7%); G6 Exit Review NOT_RUN; GF-02 RESOLVED en alcance documental, Batch 2 CI_PENDING; 14 GAP P1 históricos OPEN; issue #34 OPEN; CV FAIL/DEFERRED; PERSONAL_ACCEPTANCE=NOT_EVALUATED; PRODUCT_DISPATCH=BLOCKED; PRODUCT_READINESS=NOT_CERTIFIED. [CI #45662081415](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45662081415) SUCCESS 3/3 sobre `070d8e43a272222756671f154b5c203192793be3`; 1859 PASS/6 skipped/20 deselected/2 warnings, 482 unit PASS, 125 integration PASS/2 skipped, Tectonic 9/9, Pyright 0/0/0, import-linter 4/4; selecciones no aditivas. CI del nuevo HEAD pendiente al registrar. |
 
 ---
 
@@ -418,6 +419,14 @@ Propuesta de salida operativa a resolver antes de ejecución: 6.1.2 preparar y f
 
 **Addendum GF-02 — propuesta sucesora focal (2026-11-25).** Owner acuerda continuar con aceptación productiva de alcance personal; no se atribuye dictamen del Board ni aprobación científica. Contraste con `2_METH_ADR_MASTER.md` §6 confirma ADR de Fase sucesor con ámbito explícito, no edición FROZEN ni modificación unilateral del plan. Se publica [ADR PPPR 02 candidato v0.1.0](../ADR/ADR_PPPR_02_Aceptacion_Productiva_de_Alcance_Personal.md) en el único PR95: propone distinguir un cierre operativo personal acreditado del PASS científico original, conservar R1–R11, DC-09 en sujeto y tres dimensiones, DC-12, permisos, independencia, trazabilidad, y mantener PRODUCT_READINESS=NOT_CERTIFIED mientras no haya ciencia acreditada. Ningún cambio a estados runtime, admisión, código ni criterios vigentes. Se solicita una disposición arquitectónica focal de aceptación/rechazo de la sucesión limitada; no nuevas auditorías ni infraestructura. GF-02 REVIEW_REQUIRED hasta decisión competente. No se inicia 6.1.3 ni se modifica FROZEN. [CI #45660903515](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45660903515) SUCCESS 3/3 sobre `6acac34021dc11589322f383b10ffdadc50b91f4` (static 139370153938, unit 139370154615, integration 139370154662; logs cuantitativos no revalidados para este run). CI del nuevo HEAD pendiente al registrar.
 
+### Disposición efectiva GF-02 (2026-11-25)
+
+Ratificación arquitectónica expresa del owner, 2026-11-25, ante solicitud específica de aprobar ADR PPPR 02 v0.1.0 en calidad de autoridad arquitectónica del proyecto: «Si, estoy de acuerdo. adelante con eso». Objeto ratificado: commit `070d8e43a272222756671f154b5c203192793be3`, blob `b2ce91e9878e8c2e807831817e32c6f9dd61a572`. Se registra el acto comunicado directamente en conversación; no se atribuye revisión formal GitHub, firma externa ni dictamen independiente de otro Board. Staff favorable; el owner ejerce la autoridad arquitectónica para esta decisión focal. No constituye aprobación científica ni autorización de datos, proveedor, coste, host, activación o merge.
+
+Se aplica únicamente el alcance sucesor ratificado del ADR PPPR 02: cierre operativo personal distinto de conformidad científica. Los 40 FPPPR, 79 históricos A y 14 GAP P1 conservan trazabilidad y dueños. Para R1–R11 de NADR-FPPPR-01 se conserva verificación técnica acreditada y el camino certificante fail-closed; al Exit Review distinguir obligaciones de salvaguarda exigibles, cumplimiento probado y condiciones positivas no activadas por ausencia de afirmación científica, con disposición explícita por regla; no contar estas últimas como DONE normativo, ni inferir que no requieren implementación si el consumidor certificante la exige. El cierre personal no habilita certificación, no admite DEGRADED ni defectos materiales y no altera estados runtime. Se conserva el criterio científico original, ahora aplicable exclusivamente a su camino de aceptación; no se alteran sus umbrales ni bytes FROZEN. El protocolo científico v0.3.0 mantiene requisitos originales y no adquiere aprobación científica. La autoridad arquitectónica ratificó la sucesión antes de cualquier evaluación real; no es waiver retroactivo de resultados. No nuevo NADR: las salvaguardas existentes y la separación de afirmaciones cubren el cambio de objetivo, sin crear regla de capacidad nueva.
+
+GF-02 RESOLVED en alcance arquitectónico/documental mediante Batch 2; no Gate Exit Review ni prueba física realizada. [CI #45662081415](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45662081415) SUCCESS 3/3 sobre `070d8e43a272222756671f154b5c203192793be3`; 1859 PASS/6 skipped/20 deselected/2 warnings, 482 unit PASS, 125 integration PASS/2 skipped, Tectonic 9/9, Pyright 0/0/0, import-linter 4/4; selecciones no aditivas. CI del nuevo HEAD pendiente al registrar.
+
 ## 3. TABLA CONSOLIDADA FINAL
 
 **Estado:** `NO_ELABORADA / NOT_RUN`. Se consolidará al cierre del último Gate Exit Review; no se presume que habrá cero hallazgos.
@@ -443,7 +452,7 @@ Propuesta de salida operativa a resolver antes de ejecución: 6.1.2 preparar y f
 
 ## 4. RESULTADOS DE IMPLEMENTACIÓN POR BATCH
 
-**Estado:** Batch 1 completado en alcance documental y CI_VERIFIED. GF-01 RESOLVED por regularización operativa owner; no nueva ratificación Board.
+**Estado:** Batch 1 CI_VERIFIED; Batch 2 ejecutado documentalmente, CI_PENDING. GF-01 y GF-02 RESOLVED en su alcance de gobernanza.
 
 Al ejecutar un batch autorizado, agregar `### 4.N BATCH N — Nombre (fecha/estado)` con:
 
@@ -472,19 +481,31 @@ Al ejecutar un batch autorizado, agregar `### 4.N BATCH N — Nombre (fecha/esta
 
 **Cierre de validación Batch 1:** [CI #45549619740](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45549619740) SUCCESS 3/3 sobre `b9b62866ca7873e14c32b67c82553339095c03b0`, merge sintético `5486378` (prefijo observado); jobs 138987395011 static, 138987394733 unit, 138987394970 integration; 482 unit PASS (43/43 G6), 125 integration PASS/2 skipped, Tectonic 9/9, not e2e 1859 PASS/6 skipped/20 deselected/2 warnings (40.92s), Pyright 0/0/0, import-linter 4/4; selecciones no aditivas. Batch 1 documental de GF-01 validado por esa CI; no atribuir ratificación Board adicional. Sin cambios de código/imports en resolución; no atribuir a import-linter una búsqueda exhaustiva de imports huérfanos, no se introdujeron imports. GF-01 RESOLVED; ningún nuevo finding se abre por el inventario de 6.1.2, que confirma dependencias ya conocidas. Ver Plan §2.6.1.
 
+### 4.2 BATCH 2 — Reconciliación de aceptación personal (IMPLEMENTADO / CI_PENDING)
+
+Ratificación arquitectónica expresa del owner, 2026-11-25, ante solicitud específica de aprobar ADR PPPR 02 v0.1.0 en calidad de autoridad arquitectónica del proyecto: «Si, estoy de acuerdo. adelante con eso». Objeto ratificado: commit `070d8e43a272222756671f154b5c203192793be3`, blob `b2ce91e9878e8c2e807831817e32c6f9dd61a572`. Se registra el acto comunicado directamente en conversación; no se atribuye revisión formal GitHub, firma externa ni dictamen independiente de otro Board. Staff favorable; el owner ejerce la autoridad arquitectónica para esta decisión focal. No constituye aprobación científica ni autorización de datos, proveedor, coste, host, activación o merge.
+
+| GF | Acción | Archivos | Evidencia |
+|---|---|---|---|
+| GF-02 RESOLVED documental | Ratificación ADR PPPR 02 y reconciliación de Tasks 6.1.2–6.2.2; criterios personales previos a evaluación y científicos preservados | ADR PPPR 02, Plan, Register, Evidence Log | CI baseline SUCCESS; nuevo HEAD pendiente |
+
+Se aplica únicamente el alcance sucesor ratificado del ADR PPPR 02: cierre operativo personal distinto de conformidad científica. Los 40 FPPPR, 79 históricos A y 14 GAP P1 conservan trazabilidad y dueños. Para R1–R11 de NADR-FPPPR-01 se conserva verificación técnica acreditada y el camino certificante fail-closed; al Exit Review distinguir obligaciones de salvaguarda exigibles, cumplimiento probado y condiciones positivas no activadas por ausencia de afirmación científica, con disposición explícita por regla; no contar estas últimas como DONE normativo, ni inferir que no requieren implementación si el consumidor certificante la exige. El cierre personal no habilita certificación, no admite DEGRADED ni defectos materiales y no altera estados runtime. Se conserva el criterio científico original, ahora aplicable exclusivamente a su camino de aceptación; no se alteran sus umbrales ni bytes FROZEN. El protocolo científico v0.3.0 mantiene requisitos originales y no adquiere aprobación científica. La autoridad arquitectónica ratificó la sucesión antes de cualquier evaluación real; no es waiver retroactivo de resultados. No nuevo NADR: las salvaguardas existentes y la separación de afirmaciones cubren el cambio de objetivo, sin crear regla de capacidad nueva.
+
+Cuatro archivos modificados, cero nuevos/eliminados/movidos en Batch 2; cero código/imports. No atribuir CI del nuevo commit antes de run. 6.1.2 IN_PROGRESS; no generación. [CI #45662081415](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45662081415) SUCCESS 3/3 sobre `070d8e43a272222756671f154b5c203192793be3`; 1859 PASS/6 skipped/20 deselected/2 warnings, 482 unit PASS, 125 integration PASS/2 skipped, Tectonic 9/9, Pyright 0/0/0, import-linter 4/4; selecciones no aditivas. CI del nuevo HEAD pendiente al registrar.
+
 ## 5. MÉTRICAS ACUMULADAS DE LA FASE
 
-**Nota de actualización:** métricas de batch siguientes conservan el snapshot Batch 1; GF-02 nuevo y pendiente se refleja en §8, no se simula un Batch 2 ejecutado.
+**Nota de actualización:** Batch 2 documental ejecutado; métricas técnicas de CI del nuevo HEAD pendientes. Batch 1 conserva evidencia histórica.
 
 Se actualizan **al cierre de cada batch real**, derivados de las entradas de este Register y de los resultados acreditados; no se cargan valores a mano para simular progreso.
 
 | Métrica canónica | Valor actual |
 |---|---|
-| Hallazgos analizados/resueltos/NAR | 1 / 1 (GF-01, operativo) / 0 |
+| Hallazgos analizados/resueltos/NAR | 2 / 2 (GF-01, GF-02; alcance gobernanza) / 0 |
 | Reclasificados a fase futura | 0 |
-| Pendientes de implementación/revisión | 0 / 0 (GF-01 resuelto) |
-| Batches completados | 1 (CI_VERIFIED) |
-| Archivos creados/modificados/eliminados/movidos por batches | 0 / 3 / 0 / 0 |
+| Pendientes de implementación/revisión | 0 / 0 de GF registrados; condiciones de Tasks pendientes no se computan como findings cerrados |
+| Batches completados | 1 CI_VERIFIED; Batch 2 documental CI_PENDING |
+| Archivos creados/modificados/eliminados/movidos por batches | 0 / 7 / 0 / 0 (sumatoria de deltas por batch, no archivos únicos) |
 | Imports corregidos | 0 (sin código) |
 | Pyright final | 0/0/0 en CI #45549619740 |
 | Pytest final (passed/skipped) | 1859/6; 20 E2E deselected; CI #45549619740 |
@@ -533,10 +554,10 @@ El documento se declara `ARCHIVED` **solo** tras cierre formal de PPPR, verifica
 |---|---|
 | Gates revisados | 5 Exit Reviews G1–G5 PASS; PR94 MERGED; G6 IN_PROGRESS, Exit Review NOT_RUN |
 | Hallazgos PPPR registrados nuevos | 2 GF (GF-01, GF-02); 0 DF nuevos; 14 GAP P1 históricos OPEN |
-| Hallazgos analizados/resueltos/diferidos | 2 / 1 (GF-01) / 0; GF-02 REVIEW_REQUIRED |
-| Batches ejecutados | 1/1 documental, CI_VERIFIED |
+| Hallazgos analizados/resueltos/diferidos | 2 / 2 (GF-01, GF-02) / 0 |
+| Batches ejecutados | 2/2 documentales; Batch 1 CI_VERIFIED; Batch 2 CI_PENDING |
 | Estado de los Exit Reviews | G1–G5 REALIZADO/PASS; G6 Exit Review NOT_RUN; CV FAIL/DEFERRED |
-| Estado operativo del Register | G1–G5 COMPLETED/PASS; G6/W6.1 IN_PROGRESS; 6.1.1 DONE (GF-01, alcance operativo); 6.1.2 BLOCKED para cierre normativo (21/21 PDF históricos con SHA-256 local verificado por owner; tres pares disponibles; GF-02 REVIEW_REQUIRED, decisión arquitectónica candidata publicada); 6.1.3/6.2.1/6.2.2 TODO; 26/30 DONE (86,7%); G6 Exit Review NOT_RUN; 14 GAP P1 históricos OPEN; issue #34 OPEN; CV FAIL/DEFERRED; PRODUCT_DISPATCH=BLOCKED; PRODUCT_READINESS=NOT_CERTIFIED. GF-01 RESOLVED; GF-02 REVIEW_REQUIRED; Batch 1 CI_VERIFIED |
+| Estado operativo del Register | G1–G5 COMPLETED/PASS; G6/W6.1 IN_PROGRESS (alcance personal ratificado); 6.1.1 DONE (GF-01); 6.1.2 IN_PROGRESS (preparación offline; 21/21 PDF históricos verificados por owner y tres pares candidatos; permisos y suficiencia funcional pendientes); 6.1.3/6.2.1/6.2.2 TODO; 26/30 DONE (86,7%); G6 Exit Review NOT_RUN; GF-02 RESOLVED en alcance documental, Batch 2 CI_PENDING; 14 GAP P1 históricos OPEN; issue #34 OPEN; CV FAIL/DEFERRED; PERSONAL_ACCEPTANCE=NOT_EVALUATED; PRODUCT_DISPATCH=BLOCKED; PRODUCT_READINESS=NOT_CERTIFIED. |
 | Cierre de fase | **PENDIENTE / NO ARCHIVED** |
 
 ---

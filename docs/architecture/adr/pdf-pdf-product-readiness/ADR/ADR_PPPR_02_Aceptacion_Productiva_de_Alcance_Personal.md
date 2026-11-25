@@ -1,7 +1,8 @@
 # ARCHITECTURE DECISION RECORD (ADR)
 ## ADR PPPR 02 (candidato sucesor focal): Aceptación productiva de alcance personal
 
-* **Estado:** DRAFT — propuesta Staff para decisión explícita del Architecture Board; no vigente.
+* **Estado:** APPROVED — alcance sucesor focal ratificado expresamente por el owner en calidad de autoridad arquitectónica del proyecto (2026-11-25); sin aprobación científica.
+* **Acto y objeto de aprobación:** Ratificación arquitectónica expresa del owner, 2026-11-25, ante solicitud específica de aprobar ADR PPPR 02 v0.1.0 en calidad de autoridad arquitectónica del proyecto: «Si, estoy de acuerdo. adelante con eso». Objeto ratificado: commit `070d8e43a272222756671f154b5c203192793be3`, blob `b2ce91e9878e8c2e807831817e32c6f9dd61a572`. Se registra el acto comunicado directamente en conversación; no se atribuye revisión formal GitHub, firma externa ni dictamen independiente de otro Board. Staff favorable; el owner ejerce la autoridad arquitectónica para esta decisión focal. No constituye aprobación científica ni autorización de datos, proveedor, coste, host, activación o merge.
 * **Versión:** 0.1.0.
 * **Fecha de Emisión:** 2026-11-25.
 * **Autor:** Staff Engineering / PPPR.
@@ -12,10 +13,10 @@
   * **Depende de:** [ADR Maestro FROZEN](ADR_PPPR_MASTER.md), [ADR PPPR 01](ADR_PPPR_01_Autoridad_y_Confianza_Cientifica.md) en alcance arquitectónicamente aceptado.
   * **Implementado por:** [NADR-FPPPR-01](../NADR/NADR_01_Conformidad_Cientifica_PDF_EN_ES.md) R1–R11 para afirmaciones científicas; restantes NADR PPPR y obligaciones históricas aplicables, sin promulgación nueva.
   * **Ejecutado por:** [Execution Plan único](../plans/PHASE_PPPR_EXECUTION_PLAN.md), §2.6, únicamente después de decisión competente y reconciliación.
-  * **Supersede propuesto, no efectivo:** exclusivamente la obligatoriedad de culminar el alcance personal inicial mediante aceptación científica positiva de DC-09/§5.8/§10 Nivel B del Maestro, en cuanto implica el cierre certificante como único cierre de PPPR. Preserva sujeto, independencia, tres dimensiones y demás garantías del Maestro.
+  * **Supersede efectivo, alcance focal ratificado:** exclusivamente la obligatoriedad de culminar el alcance personal inicial mediante aceptación científica positiva de DC-09/§5.8/§10 Nivel B del Maestro, en cuanto implica el cierre certificante como único cierre de PPPR. Preserva sujeto, independencia, tres dimensiones y demás garantías del Maestro.
   * **Conflictúa con:** interpretar el cierre positivo certificante actual del plan como satisfecho por un ensayo funcional.
 
-> Nota de gobernanza: candidato de ADR de Fase con alcance sucesor explícito conforme a 2_METH_ADR_MASTER.md §6 y metodología general §§2,3.1–3.4; estructura de 3_METH_ADR_SUBPHASES.md. No se editan bytes FROZEN. La excepción de sucesión focal requiere aprobación del Board, no se atribuye por acuerdo del owner sobre la propuesta.
+> Nota de gobernanza: ADR de Fase con alcance sucesor explícito conforme a 2_METH_ADR_MASTER.md §6 y metodología general §§2,3.1–3.4; estructura de 3_METH_ADR_SUBPHASES.md. No se editan bytes FROZEN. La ratificación expresa indicada en el header es distinta del acuerdo preliminar sobre la propuesta; se conserva la revisión candidata exacta en Git.
 
 ## 1. CONTEXTO Y JUSTIFICACIÓN
 
@@ -31,7 +32,7 @@ Alternativas examinadas: mantener el cierre certificante y esperar autoridad cie
 
 ## 3. DECISIÓN ARQUITECTÓNICA
 
-**Candidata:** la aceptación productiva de alcance personal puede constituir un cierre operativo autónomo de PPPR exclusivamente sobre evidencia suficiente del PDF final real EN→ES y controles operacionales vigentes, sin emitir ni implicar conformidad científica positiva; esta última permanece sujeta íntegramente al modelo de autoridad e independencia de NADR-FPPPR-01 y ADR PPPR 01.
+**Decisión ratificada:** la aceptación productiva de alcance personal puede constituir un cierre operativo autónomo de PPPR exclusivamente sobre evidencia suficiente del PDF final real EN→ES y controles operacionales vigentes, sin emitir ni implicar conformidad científica positiva; esta última permanece sujeta íntegramente al modelo de autoridad e independencia de NADR-FPPPR-01 y ADR PPPR 01.
 
 Consecuencias:
 * Mismo producto, única ruta soportada, mismo sujeto físico e identidades; no un segundo pipeline.
@@ -79,7 +80,7 @@ La aceptación personal exige resultados suficientes en cada dimensión aplicabl
 
 | Artefacto | Relación | Estado de referencia |
 |---|---|---|
-| ADR Maestro DC-09/§5.8/§10 Nivel B | sucesión focal candidata, resto intacto | FROZEN original; sin modificación |
+| ADR Maestro DC-09/§5.8/§10 Nivel B | sucesión focal ratificada, resto intacto | FROZEN original; sin modificación |
 | ADR PPPR 01 y NADR-FPPPR-01 | preserva camino certificante | identidades originales intactas |
 | Protocolo v0.3.0 | conserva metodología y requisitos científicos | no aprobación científica atribuida |
 | Plan / Register / Evidence Log | GF-02, secuencia y disposición futura | vínculo LIVING, sin cambio de criterio vigente |
@@ -87,4 +88,6 @@ La aceptación personal exige resultados suficientes en cada dimensión aplicabl
 
 ## 9. RELACIÓN CON LA METODOLOGÍA DE GOBERNANZA
 
-Metodología general §§2,3.1–3.4 y 2_METH_ADR_MASTER.md §6 permiten sucesor explícito y prohíben redefinir desde el plan. Este ADR candidato define qué y por qué; no legisla implementación ni aprueba criterios retrospectivos. Se solicita **una decisión focal única del Board**: aceptar o rechazar la sucesión limitada, confirmar los límites de estados y la conservación de las reglas. Si se aprueba, regularizar GF-02 en el mismo PR, verificar compatibilidad normativa y reconciliar las cuatro Tasks restantes y sus criterios de salida sin reducir garantías ni iniciar efectos externos por inferencia. Si se rechaza, permanece el cierre certificante original y la alternativa personal requiere otra disposición competente. No se presume ratificación por acuerdo previo del owner, CI o publicación DRAFT.
+Metodología general §§2,3.1–3.4 y 2_METH_ADR_MASTER.md §6 permiten sucesor explícito y prohíben redefinir desde el plan. Este ADR define qué y por qué; no legisla implementación ni aprueba criterios retrospectivos. Se solicita **una decisión focal única del Board**: aceptar o rechazar la sucesión limitada, confirmar los límites de estados y la conservación de las reglas. Si se aprueba, regularizar GF-02 en el mismo PR, verificar compatibilidad normativa y reconciliar las cuatro Tasks restantes y sus criterios de salida sin reducir garantías ni iniciar efectos externos por inferencia. Si se rechaza, permanece el cierre certificante original y la alternativa personal requiere otra disposición competente. No se presume ratificación por acuerdo previo del owner, CI o publicación DRAFT.
+
+**Disposición posterior (2026-11-25):** Ratificación arquitectónica expresa del owner, 2026-11-25, ante solicitud específica de aprobar ADR PPPR 02 v0.1.0 en calidad de autoridad arquitectónica del proyecto: «Si, estoy de acuerdo. adelante con eso». Objeto ratificado: commit `070d8e43a272222756671f154b5c203192793be3`, blob `b2ce91e9878e8c2e807831817e32c6f9dd61a572`. Se registra el acto comunicado directamente en conversación; no se atribuye revisión formal GitHub, firma externa ni dictamen independiente de otro Board. Staff favorable; el owner ejerce la autoridad arquitectónica para esta decisión focal. No constituye aprobación científica ni autorización de datos, proveedor, coste, host, activación o merge. Se actualizan exclusivamente marcas documentales de estado y se registra la decisión; el contenido material ratificado permanece el de v0.1.0, recuperable por el blob original. La solicitud anterior queda satisfecha por esta ratificación; ejecución y cierre real permanecen pendientes según Plan. No se declara FROZEN este ADR por inferencia ni se modifica otro FROZEN.
