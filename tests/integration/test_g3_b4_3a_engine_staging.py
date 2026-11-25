@@ -1262,3 +1262,121 @@ def test_pppr_g5_free_dispatch_bound_to_durable_admission_and_quota(queue, statu
         ctx_task_id.reset(task_token)
         bridge.shutdown()
         store.close()
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize("case", ["ok", "budget", "document", "expired", "replay", "overlap", "drift"])
+def test_pppr_g6_document_free_admission(tmp_path, monkeypatch, case):
+    """Real bridge, SDK serialization and durable journal; no live network."""
+    from dataclasses import replace
+    from decimal import Decimal
+    import httpx
+    from apps.bootstrap.provider_stack_factory import ProductGroqScope
+    from apps.llm_workers.g3_admission import GPT_OSS_120B, GroqFreeTierWitness
+    from core.execution.exceptions import G3ExternalEffectNotStartedError
+    from runtime import engine
+    from infra.db import connection
+
+    ast, old_plan = _fixture()
+    document_id = "d" * 64
+    plan = ChunkPlan.build(document_id, old_plan.ast_hash, ast, old_plan.units)
+    unit = next(u for u in plan.units if u.chunk_type == TranslationTaskType.TRANSLATE)
+    db = sqlite3.connect(tmp_path / "queue.db")
+    db.executescript((ROOT / "infra/db/schema_queue.sql").read_text(encoding="utf-8"))
+    repo = ControlPlaneRepository(db)
+    repo.enqueue_chunk_plan(plan, ast)
+    monkeypatch.setattr(connection, "BASE_DIR", tmp_path)
+    monkeypatch.setenv("SQLITE_STATE_DIR", str(tmp_path))
+    monkeypatch.setenv("GROQ_API_KEY", "synthetic-no-network")
+    monkeypatch.delenv("TPDF_OFFLINE_LAB", raising=False)
+    now = time.time_ns()
+    witness = GroqFreeTierWitness(
+        "g6-synthetic", "synthetic-account", "synthetic-quota", "synthetic-free",
+        now - 1_000_000, now + 60_000_000_000, 30, 1000, 8000, 200000,
+        "FREE", True, True, True, document_id=document_id, max_requests=2,
+    )
+    if case == "expired":
+        witness = replace(witness, observed_at_ns=now-2_000_000, valid_until_ns=now-1_000_000)
+    if case == "document":
+        witness = replace(witness, document_id="e"*64)
+    policy = _w32_fake_admission(
+        model_name=GPT_OSS_120B, root_config_sha256=engine._product_effective_config_sha256(),
+        input_limit=8000, output_limit=4096, context_window=131072,
+        input_price_per_token=Decimal("0.00000015"), output_price_per_token=Decimal("0.00000060"),
+        free_tier_witness=witness,
+    )
+    requests = []
+
+    def transport(request):
+        requests.append(request)
+        body = json.loads(request.content)
+        with sqlite3.connect(tmp_path / "queue.db") as probe:
+            rows = probe.execute("SELECT decision_json FROM g3_admission_decisions").fetchall()
+        assert len(rows) == 1
+        assert json.loads(rows[0][0])["request_sha256"] == sha256(json.dumps(
+            body, ensure_ascii=False, sort_keys=True, separators=(",", ":"),
+        ).encode()).hexdigest()
+        return httpx.Response(200, json={
+            "id": "synthetic-g6", "object": "chat.completion", "created": 0,
+            "model": GPT_OSS_120B,
+            "choices": [{"index": 0, "finish_reason": "stop",
+                         "message": {"role": "assistant", "content": json.dumps({"content": _response(plan, unit)})}}],
+            "usage": {"prompt_tokens": 10, "completion_tokens": 10, "total_tokens": 20},
+        })
+
+    scope = ProductGroqScope(policy, _Estimator(), lambda: httpx.MockTransport(transport))
+    snapshots = {unit.context_id: ContextSnapshotV1(
+        document_id=plan.document_id, ast_hash=plan.ast_hash, context_id=unit.context_id,
+        breadcrumbs=(ContextBreadcrumbV1(0, "[ROOT_DOCUMENT_CONTEXT]"),),
+    )}
+    bridge = store = None
+    try:
+        if case in ("expired", "document"):
+            with pytest.raises(G3ExternalEffectNotStartedError):
+                engine._create_chunk_processor(snapshots, product_scope=scope)
+            assert requests == []
+            return
+        bridge, store = engine._create_chunk_processor(snapshots, product_scope=scope)
+        preview = bridge.inspect_chunk_admission(plan, unit)
+        audit = json.loads(preview.audit_json)
+        assert requests == []
+        assert db.execute("SELECT COUNT(*) FROM g3_admission_decisions").fetchone() == (0,)
+        if case == "budget":
+            with pytest.raises(G3ExternalEffectNotStartedError, match="EXHAUSTED"):
+                repo.check_g3_document_free_batch(document_id, [preview.audit_json]*3)
+            assert requests == []
+            return
+        repo.check_g3_document_free_batch(document_id, [preview.audit_json])
+        lease = repo.pick_task("g6", plan.document_id, plan.ast_hash)
+        assert lease is not None
+        if lease.node_id != unit.chunk_id:
+            preserve = next(u for u in plan.units if u.chunk_id == lease.node_id)
+            assert stage_claimed_unit(repo, plan, ast, preserve, lease, "g6", None, Semaphore(1))
+            lease = repo.pick_task("g6", plan.document_id, plan.ast_hash)
+        assert lease is not None and lease.node_id == unit.chunk_id
+        if case in ("replay", "overlap", "drift"):
+            kwargs = dict(task_id=lease.task_id, worker_id="g6", execution_id=lease.execution_id,
+                          generation_sha256="b"*64, audit_json=preview.audit_json)
+            repo.record_g3_admission_decision(**kwargs)
+            if case == "replay":
+                with pytest.raises(G3ExternalEffectNotStartedError, match="ALREADY_RESERVED"):
+                    repo.record_g3_admission_decision(**kwargs)
+            else:
+                key = "witness_id" if case == "overlap" else "quota_evidence_ref"
+                audit["free_tier_witness"][key] = "different"
+                with pytest.raises(G3ExternalEffectNotStartedError,
+                                   match="OVERLAP" if case == "overlap" else "DRIFT"):
+                    repo.check_g3_document_free_batch(document_id, [
+                        json.dumps(audit, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+                    ])
+            assert requests == []
+        else:
+            assert stage_claimed_unit(repo, plan, ast, unit, lease, "g6", bridge, Semaphore(1))
+            assert len(requests) == 1
+            assert db.execute("SELECT COUNT(*) FROM chunk_result_receipts WHERE raw_response IS NOT NULL").fetchone() == (1,)
+    finally:
+        if bridge is not None:
+            bridge.shutdown()
+        if store is not None:
+            store.close()
+        db.close()
