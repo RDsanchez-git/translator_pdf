@@ -10,7 +10,12 @@ NADR-08 §5.5: CB antes de RL previene consumo de cuota con circuito abierto.
 """
 import os
 from collections.abc import Callable
-from typing import Literal
+from dataclasses import dataclass
+from decimal import Decimal
+from typing import Literal, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from apps.compiler.tectonic_runner import CachedTectonicResources
 
 import httpx
 from groq import AsyncGroq
@@ -18,7 +23,7 @@ from groq import AsyncGroq
 from infra.db.connection import resolve_sqlite_path
 
 from apps.llm_workers.adapters import GroqProvider
-from apps.llm_workers.g3_admission import GPT_OSS_120B
+from apps.llm_workers.g3_admission import GPT_OSS_120B, G3PreEffectAdmission
 from apps.llm_workers.groq_free_transport import GroqFreeWitnessTransport
 from apps.llm_workers.prompt_builder import PromptEnvelope
 from apps.llm_workers.rate_limiter import RateLimitedProvider, QuotaManager
@@ -31,6 +36,53 @@ from core.resilience.rate_limit_store import RateLimitStore
 from core.execution.effect_guard import g3_free_dispatch_permit, g3_pre_effect_guard
 from core.execution.exceptions import G3ExternalEffectNotStartedError
 from core.prompting.inference_result import InferenceResult
+from core.validation.protocols import TokenEstimatorProtocol
+
+
+@dataclass(frozen=True, slots=True)
+class ProductGroqScope:
+    """Explicit caller-supplied composition; never obtained from environment.
+
+    The caller must independently establish the host, data/egress permissions,
+    exclusive account quota, free entitlement and conservative wire bound.
+    Ordinary prompt measurement is not a substitute for the admission bound.
+    """
+
+    admission: G3PreEffectAdmission
+    prompt_estimator: TokenEstimatorProtocol
+    transport_factory: Callable[[], httpx.AsyncBaseTransport]
+    compiler_resources: "CachedTectonicResources | None" = None
+
+    def require_compiler_resources(self) -> "CachedTectonicResources":
+        if self.compiler_resources is None or not self.compiler_resources.cache_dir.is_dir():
+            raise G3ExternalEffectNotStartedError(
+                "PPPR_G6_PRODUCT_COMPILER_RESOURCES_REQUIRED", permanent=True,
+            )
+        return self.compiler_resources
+
+    def validate(self, document_id: str, root_config_sha256: str) -> None:
+        policy = self.admission
+        witness = policy.free_tier_witness
+        if (witness is None or witness.document_id is None
+                or witness.document_id != document_id
+                or policy.provider_id != "groq" or policy.model_name != GPT_OSS_120B
+                or policy.root_config_sha256 != root_config_sha256
+                or not isinstance(policy.authorized_max_cost, Decimal)
+                or not policy.authorized_max_cost.is_finite()
+                or policy.authorized_max_cost != Decimal("0")
+                or type(policy.input_limit) is not int or not 1 <= policy.input_limit <= 8000
+                or type(policy.output_limit) is not int or not 1 <= policy.output_limit <= 4096
+                or type(policy.context_window) is not int or not 1 <= policy.context_window <= 131072
+                or not all(isinstance(ref, str) and ref.strip() for ref in (
+                    policy.estimator_evidence_ref, policy.egress_authorization_ref,
+                    policy.data_scope_ref, policy.purpose_ref, policy.retention_ref,
+                    policy.training_use_ref, policy.budget_authorization_ref,
+                    policy.price_evidence_ref,
+                ))):
+            raise G3ExternalEffectNotStartedError(
+                "PPPR_G6_PRODUCT_SCOPE_REJECTED", permanent=True,
+            )
+        witness.verify(model_name=GPT_OSS_120B, target_provider="primary", combined_tokens=1)
 
 
 async def build_provider_stack(
@@ -101,7 +153,7 @@ class _GroqFreeWitnessProvider:
     The explicitly supplied transport factory is the host boundary. No
     default live transport, credential discovery or environment activation.
     Admission, a committed reservation and an accredited measurement remain
-    the caller's responsibility. No product root selects this route yet.
+    the caller's responsibility. Each attempt requires its own committed permit.
     """
 
     def __init__(self, api_key: str, transport_factory: Callable[[], httpx.AsyncBaseTransport]):
@@ -135,7 +187,7 @@ async def build_groq_free_witness_stack(
     transport_factory: Callable[[], httpx.AsyncBaseTransport],
     rate_limit_store: RateLimitStore,
 ) -> LLMProvider:
-    """Compose the one-shot witness via the canonical provider stack.
+    """Compose guarded free attempts via the canonical provider stack.
 
     Requires caller-owned durable local quota store and explicit transport.
     No fallback, legacy cache or paid service selection. The per-minute

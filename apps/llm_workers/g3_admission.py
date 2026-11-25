@@ -1,8 +1,8 @@
 """Offline-verifiable G3 pre-effect admission against the Groq wire request.
 
 No configured provider, quota or estimator by itself grants egress or spending.
-Production currently supplies NO approval policy: this fails closed. Test-only
-positive policies use a fake provider and do not attest a commercial account.
+No default production approval policy is constructed. The explicit caller
+must attest a real policy; test-only positives do not attest a commercial account.
 """
 from dataclasses import dataclass
 from decimal import Decimal, DecimalException
@@ -56,12 +56,14 @@ def _deny(code: str, *, permanent: bool = True) -> NoReturn:
 
 @dataclass(frozen=True, slots=True)
 class GroqFreeTierWitness:
-    """Operator-attributed, short-lived evidence for ONE synthetic witness.
+    """Operator-attributed, short-lived free entitlement and quota evidence.
 
-    Not an account API, a quota synchronizer or proof of provider accounting.
-    Remaining amounts are explicit observations, not configured maxima.
-    The caller must verify the account/project, evidence and estimator before
-    constructing this object. No production root selects it yet.
+    The default is one historical witness. A document-bound snapshot may
+    authorize a bounded batch; the durable journal conservatively debits all
+    reserved requests/tokens without refill or refund during that snapshot.
+    No account API, implicit authority, or proof of provider accounting.
+    The caller must attest the actual account/project, exclusive quota scope,
+    evidence, and conservative estimator before constructing this object.
     """
 
     witness_id: str
@@ -78,6 +80,10 @@ class GroqFreeTierWitness:
     no_billable_overage: bool
     global_zdr: bool
     model_allowed: bool
+    # Default remains the historical one-shot witness. Only an explicitly
+    # document-bound snapshot can reserve multiple requests.
+    document_id: str | None = None
+    max_requests: int = 1
 
     def verify(self, *, model_name: str, target_provider: str,
                combined_tokens: int) -> dict[str, object]:
@@ -104,7 +110,19 @@ class GroqFreeTierWitness:
                 _deny("PPPR_G5_FREE_QUOTA_INVALID_" + name)
             if remaining < needed:
                 _deny("PPPR_G5_FREE_QUOTA_INSUFFICIENT_" + name)
+        if (type(self.max_requests) is not int or self.max_requests < 1
+                or (self.document_id is None and self.max_requests != 1)
+                or (self.document_id is not None and (
+                    not isinstance(self.document_id, str)
+                    or len(self.document_id) != 64
+                    or any(c not in "0123456789abcdef" for c in self.document_id)
+                    or self.max_requests > min(self.remaining_rpm, self.remaining_rpd)
+                ))):
+            _deny("PPPR_G6_FREE_DOCUMENT_SCOPE_INVALID")
+        scope = ({"document_id": self.document_id, "max_requests": self.max_requests}
+                 if self.document_id is not None else {})
         return {
+            **scope,
             "witness_id": self.witness_id, "plan": self.plan,
             "account_evidence_ref": self.account_evidence_ref,
             "quota_evidence_ref": self.quota_evidence_ref,
@@ -202,6 +220,15 @@ class G3PreEffectAdmission:
                 model_name=self.model_name, target_provider=envelope.target_provider,
                 combined_tokens=count + reserve,
             )
+            if self.free_tier_witness.document_id is not None:
+                try:
+                    document_id = json.loads(envelope.schema.payload.content)["response_binding"]["document_id"]
+                except (TypeError, ValueError, KeyError) as exc:
+                    raise G3ExternalEffectNotStartedError(
+                        "PPPR_G6_FREE_DOCUMENT_BINDING_INVALID", permanent=True,
+                    ) from exc
+                if document_id != self.free_tier_witness.document_id:
+                    _deny("PPPR_G6_FREE_DOCUMENT_BINDING_INVALID")
             # Conditional zero billable cap based on explicit free entitlement.
             # Preserve the nominal tariff, never fabricate a zero price.
             upper_cost = Decimal("0")

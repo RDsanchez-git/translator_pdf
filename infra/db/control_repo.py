@@ -5,7 +5,7 @@ import logging
 import json
 from hashlib import sha256
 from contextlib import contextmanager
-from typing import Optional, List, Sequence, Generator
+from typing import Optional, List, Sequence, Generator, Any, NoReturn
 from core.execution.ports import ControlPlanePort, TaskLease, G3UnknownEscalation
 from core.execution.exceptions import G3ExternalEffectNotStartedError
 from core.execution.exceptions import OptimisticLockError 
@@ -126,6 +126,7 @@ class ControlPlaneRepository(ControlPlanePort):
                 "PPPR_G3_ADMISSION_AUDIT_INVALID", permanent=True,
             ) from exc
         witness = parsed.get("free_tier_witness")
+        scoped = isinstance(witness, dict) and ("document_id" in witness or "max_requests" in witness)
         if witness is not None:
             if (not isinstance(witness, dict)
                     or not isinstance(witness.get("witness_id"), str)
@@ -138,11 +139,12 @@ class ControlPlaneRepository(ControlPlanePort):
                     "PPPR_G5_FREE_WITNESS_AUDIT_INVALID", permanent=True,
                 )
         digest = sha256((generation_sha256 + audit_json).encode("utf-8")).hexdigest()
-        now = time.time()
         with self._chunk_plan_write_scope():
+            # Time must be observed after obtaining the WAL writer lock.
+            now = time.time()
             self.conn.execute(_G3_ADMISSION_DECISIONS_DDL)
             owner = self.conn.execute(
-                "SELECT 1 FROM chunk_tasks AS t WHERE t.task_id=? "
+                "SELECT t.document_id FROM chunk_tasks AS t WHERE t.task_id=? "
                 "AND t.worker_type='LLM' AND t.task_state='PROCESSING' "
                 "AND t.lease_owner=? AND t.execution_id=? AND t.lease_expires_at>? "
                 "AND EXISTS (SELECT 1 FROM chunk_plans AS p "
@@ -154,22 +156,36 @@ class ControlPlaneRepository(ControlPlanePort):
                     "PPPR_G3_ADMISSION_AUDIT_LEASE_NOT_CURRENT"
                 )
             if witness is not None:
-                # Reserve the only authorized attempt using the existing
-                # durable admission journal under the same WAL writer lock.
-                # Even an identical retry cannot reuse this authorization.
+                # All reservations remain spent, including no-start and
+                # uncertain attempts. Never reclaim quota from an error.
                 if time.time_ns() >= witness["valid_until_ns"]:
                     raise G3ExternalEffectNotStartedError(
                         "PPPR_G5_FREE_EVIDENCE_STALE", permanent=True,
                     )
-                used = self.conn.execute(
-                    "SELECT 1 FROM g3_admission_decisions "
-                    "WHERE json_extract(decision_json, '$.free_tier_witness.witness_id')=? LIMIT 1",
-                    (witness["witness_id"],),
-                ).fetchone()
-                if used is not None:
+                if self.conn.execute(
+                    "SELECT 1 FROM g3_admission_decisions WHERE task_id=? AND execution_id=?",
+                    (task_id, execution_id),
+                ).fetchone() is not None:
                     raise G3ExternalEffectNotStartedError(
                         "PPPR_G5_FREE_WITNESS_ALREADY_RESERVED", permanent=True,
                     )
+                if scoped:
+                    self._reserve_document_free_snapshot(parsed, witness, owner[0])
+                else:
+                    # Preserve G5 one-shot semantics. Do not allow an
+                    # overlapping one-shot to bypass a document budget.
+                    used = self.conn.execute(
+                        "SELECT 1 FROM g3_admission_decisions "
+                        "WHERE json_extract(decision_json, '$.free_tier_witness.witness_id')=? "
+                        "OR (json_type(decision_json, '$.free_tier_witness.document_id')='text' "
+                        "AND json_extract(decision_json, '$.free_tier_witness.valid_until_ns')>?) LIMIT 1",
+                        (witness["witness_id"], (witness["observed_at_ns"]
+                         if type(witness.get("observed_at_ns")) is int else time.time_ns())),
+                    ).fetchone()
+                    if used is not None:
+                        raise G3ExternalEffectNotStartedError(
+                            "PPPR_G5_FREE_WITNESS_ALREADY_RESERVED", permanent=True,
+                        )
             existing = self.conn.execute(
                 "SELECT generation_sha256,decision_json,decision_sha256 "
                 "FROM g3_admission_decisions WHERE task_id=? AND execution_id=?",
@@ -186,6 +202,112 @@ class ControlPlaneRepository(ControlPlanePort):
                 "(task_id,execution_id,generation_sha256,decision_json,"
                 "decision_sha256,created_at) VALUES (?,?,?,?,?,?)",
                 (task_id, execution_id, generation_sha256, audit_json, digest, now),
+            )
+
+    def _reserve_document_free_snapshot(
+        self, audit: dict[str, Any], witness: dict[str, Any], document_id: str,
+        *, requested_requests: int = 1, requested_tokens: int | None = None,
+    ) -> None:
+        """Check cumulative capacity under the existing admission WAL writer.
+
+        The caller inserts the immutable attempt in the same transaction.
+        No quota refill is inferred from elapsed time or HTTP responses.
+        An overlapping snapshot is rejected even for another document.
+        """
+        def deny(code: str) -> NoReturn:
+            raise G3ExternalEffectNotStartedError(code, permanent=True)
+
+        observed = witness.get("observed_at_ns")
+        expires = witness.get("valid_until_ns")
+        max_requests = witness.get("max_requests")
+        reserved = witness.get("reserved_tokens")
+        input_tokens = audit.get("input_tokens")
+        output_tokens = audit.get("reserved_output_tokens")
+        rpm = witness.get("remaining_rpm")
+        rpd = witness.get("remaining_rpd")
+        tpm = witness.get("remaining_tpm")
+        tpd = witness.get("remaining_tpd")
+        if (witness.get("document_id") != document_id
+                or not isinstance(document_id, str) or len(document_id) != 64
+                or any(c not in "0123456789abcdef" for c in document_id)
+                or type(observed) is not int or type(expires) is not int
+                or not observed <= time.time_ns() < expires
+                or expires - observed > 300_000_000_000
+                or type(max_requests) is not int or max_requests < 1
+                or type(reserved) is not int or reserved < 1
+                or type(input_tokens) is not int or input_tokens < 1
+                or type(output_tokens) is not int or output_tokens < 1
+                or reserved != input_tokens + output_tokens
+                or type(rpm) is not int or not 1 <= rpm <= 30
+                or type(rpd) is not int or not 1 <= rpd <= 1000
+                or type(tpm) is not int or not 1 <= tpm <= 8000
+                or type(tpd) is not int or not 1 <= tpd <= 200000
+                or max_requests > min(rpm, rpd)
+                or audit.get("provider_id") != "groq"
+                or audit.get("model_name") != "openai/gpt-oss-120b"
+                or witness.get("plan") != "FREE"
+                or any(witness.get(k) is not True for k in (
+                    "global_zdr", "no_billable_overage", "model_allowed",
+                ))):
+            deny("PPPR_G6_FREE_SNAPSHOT_INVALID")
+
+        binding = {k: v for k, v in witness.items() if k != "reserved_tokens"}
+        policy_keys = (
+            "provider_id", "model_name", "root_config_sha256", "target_provider",
+            "source_language", "target_language", "input_limit", "output_limit",
+            "context_window", "estimator_evidence_ref", "egress_authorization_ref",
+            "data_scope_ref", "purpose_ref", "retention_ref", "training_use_ref",
+            "budget_authorization_ref", "price_evidence_ref", "input_price_per_token",
+            "output_price_per_token", "authorized_max_cost", "cost_basis",
+        )
+        used_requests = 0
+        used_tokens = 0
+        rows = self.conn.execute(
+            "SELECT decision_json FROM g3_admission_decisions "
+            "WHERE json_type(decision_json, '$.free_tier_witness')='object' "
+            "AND (json_extract(decision_json, '$.free_tier_witness.witness_id')=? "
+            "OR json_extract(decision_json, '$.free_tier_witness.valid_until_ns')>?)",
+            (witness["witness_id"], observed),
+        )
+        for (previous_json,) in rows:
+            previous = json.loads(previous_json)
+            old = previous["free_tier_witness"]
+            if old["witness_id"] != witness["witness_id"]:
+                deny("PPPR_G6_FREE_SNAPSHOT_OVERLAP")
+            if ({k: v for k, v in old.items() if k != "reserved_tokens"} != binding
+                    or any(previous.get(k) != audit.get(k) for k in policy_keys)
+                    or type(old.get("reserved_tokens")) is not int
+                    or old["reserved_tokens"] <= 0):
+                deny("PPPR_G6_FREE_SNAPSHOT_DRIFT")
+            used_requests += 1
+            used_tokens += old["reserved_tokens"]
+        total = reserved if requested_tokens is None else requested_tokens
+        if (requested_requests < 1 or total < reserved
+                or used_requests + requested_requests > max_requests
+                or used_tokens + total > min(tpm, tpd)):
+            deny("PPPR_G6_FREE_SNAPSHOT_EXHAUSTED")
+
+    def check_g3_document_free_batch(self, document_id: str, audit_jsons: Sequence[str]) -> None:
+        """Read-only whole-batch feasibility; every real attempt still reserves.
+
+        Used only with previews from the canonical admission producer. This is
+        not a reservation or a substitute for the fenced transaction above.
+        """
+        if not audit_jsons:
+            return
+        audits = [json.loads(raw) for raw in audit_jsons]
+        total = sum(audit["free_tier_witness"]["reserved_tokens"] for audit in audits)
+        first = audits[0]["free_tier_witness"]
+        binding = {k: v for k, v in first.items() if k != "reserved_tokens"}
+        for audit in audits:
+            witness = audit["free_tier_witness"]
+            if {k: v for k, v in witness.items() if k != "reserved_tokens"} != binding:
+                raise G3ExternalEffectNotStartedError(
+                    "PPPR_G6_FREE_SNAPSHOT_DRIFT", permanent=True,
+                )
+            self._reserve_document_free_snapshot(
+                audit, witness, document_id,
+                requested_requests=len(audits), requested_tokens=total,
             )
 
     def enqueue_tasks(self, document_id: str, ast_hash: str, nodes: List[str]) -> None:

@@ -14,8 +14,8 @@ from core.execution.effect_guard import (
 from core.prompting.inference_identity import InferenceReuseIdentityV1, PPPRGenerationIdentityV1
 from core.ast.models import ASTNode, TranslationTaskType, TranslationUnit
 from apps.llm_workers.routing import LLMProvider
-from apps.llm_workers.prompt_builder import PromptBuilder
-from apps.llm_workers.g3_admission import G3PreEffectAdmission
+from apps.llm_workers.prompt_builder import BuildSuccess, PromptBuilder
+from apps.llm_workers.g3_admission import G3AdmissionDecision, G3PreEffectAdmission
 from core.execution.constants import CURRENT_PROJECTION_VERSION  # SOTA: Fuente única de verdad
 from core.context.context_resolver import ResolvedContext
 from core.chunking.manifest_contract import ChunkPlan
@@ -147,15 +147,10 @@ class SyncProviderBridge:
             raise ValueError("PPPR_G2_GENERATION_IDENTITY_MISSING")
         return result, digest
 
-    def _execute_chunk_checked(
-        self, plan: ChunkPlan, unit: TranslationUnit, *, attested: bool,
-    ) -> tuple[str, str | None]:
-        """Produce a validated G3 response using the existing JSON content dialect.
-
-        Transport: {"content": "<serialized G3 JSON object>"}. The provider's
-        InferenceResult.content is *already unwrapped* by the existing dialect.
-        LaTeX masks are verified and restored per member before receipt staging.
-        """
+    def _prepare_chunk(
+        self, plan: ChunkPlan, unit: TranslationUnit,
+    ) -> tuple[BuildSuccess, ContextSnapshotV1, dict[tuple[str, int], dict[str, str]]]:
+        """Shared local prompt construction; no journal, provider or receipt effect."""
         if unit.chunk_type not in (TranslationTaskType.TRANSLATE, TranslationTaskType.PARTIAL):
             raise ValueError("G3_B4_3A_PRESERVE_PROVIDER_FORBIDDEN")
         # The initial product contract is EN→ES, not an implicit provider
@@ -289,26 +284,40 @@ class SyncProviderBridge:
             raise G3ExternalEffectNotStartedError(
                 "PPPR_G3_PRIMARY_MODEL_DEPRECATED", permanent=True,
             )
+        return built, snapshot, math_maps
+
+    def _verify_admission(self, built: BuildSuccess) -> G3AdmissionDecision:
+        if self._effective_config_sha256 is None or self._pre_effect_admission is None:
+            raise G3ExternalEffectNotStartedError(
+                "PPPR_G3_ADMISSION_EVIDENCE_MISSING", permanent=True,
+            )
+        try:
+            return self._pre_effect_admission.verify(
+                provider_id=self._provider_id,
+                root_config_sha256=self._effective_config_sha256,
+                envelope=built.envelope,
+            )
+        except G3ExternalEffectNotStartedError:
+            raise
+        except Exception as exc:
+            raise G3ExternalEffectNotStartedError(
+                "PPPR_G3_ADMISSION_LOCAL_FAILURE"
+            ) from exc
+
+    def inspect_chunk_admission(self, plan: ChunkPlan, unit: TranslationUnit) -> G3AdmissionDecision:
+        """Read-only preview. No lease, durable reservation or dispatch authority."""
+        built, _, _ = self._prepare_chunk(plan, unit)
+        return self._verify_admission(built)
+
+    def _execute_chunk_checked(
+        self, plan: ChunkPlan, unit: TranslationUnit, *, attested: bool,
+    ) -> tuple[str, str | None]:
+        """Validate G3 JSON and restore exact per-member protected math."""
+        built, snapshot, math_maps = self._prepare_chunk(plan, unit)
         generation_sha256: str | None = None
-        admission_request_sha256: str | None = None
         dispatch_permit: FreeWitnessDispatchPermit | None = None
         if self._effective_config_sha256 is not None:
-            if self._pre_effect_admission is None:
-                raise G3ExternalEffectNotStartedError(
-                    "PPPR_G3_ADMISSION_EVIDENCE_MISSING", permanent=True,
-                )
-            try:
-                decision = self._pre_effect_admission.verify(
-                    provider_id=self._provider_id,
-                    root_config_sha256=self._effective_config_sha256,
-                    envelope=built.envelope,
-                )
-            except G3ExternalEffectNotStartedError:
-                raise
-            except Exception as exc:
-                raise G3ExternalEffectNotStartedError(
-                    "PPPR_G3_ADMISSION_LOCAL_FAILURE"
-                ) from exc
+            decision = self._verify_admission(built)
             admission_request_sha256 = decision.request_sha256
             # Bound the actual budget-dependent route and compression decision.
             # The composition-root config alone is not an effective generation key.
@@ -349,14 +358,16 @@ class SyncProviderBridge:
                 raise G3ExternalEffectNotStartedError(
                     "PPPR_G3_ADMISSION_AUDIT_WRITE_FAILED"
                 ) from exc
-            if self._pre_effect_admission.free_tier_witness is not None:
+            witness = (self._pre_effect_admission.free_tier_witness
+                       if self._pre_effect_admission is not None else None)
+            if witness is not None:
                 # Writer has committed the one-shot reservation. Bind exactly
                 # the measured request and carry its complete reserve through
                 # the quota wait. This does not replace the durable authority.
                 audit = json.loads(decision.audit_json)
                 dispatch_permit = FreeWitnessDispatchPermit(
                     decision.request_sha256,
-                    self._pre_effect_admission.free_tier_witness.valid_until_ns,
+                    witness.valid_until_ns,
                     audit["input_tokens"], audit["reserved_output_tokens"],
                 )
         elif attested:

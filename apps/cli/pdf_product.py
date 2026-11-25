@@ -20,6 +20,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from apps.lab.pppr_offline_scope import OfflineLabScope
+    from apps.bootstrap.provider_stack_factory import ProductGroqScope
 
 from apps.cli.pdf_inbox import PDFInboxSubmission
 
@@ -112,15 +113,19 @@ def _ingest(pdf_path: Path, root: Path) -> None:
         router._process_document(pdf_path)
 
 
-def _run_g3(document_id: str, ast_hash: str, *, offline_scope: OfflineLabScope | None = None) -> None:
+def _run_g3(document_id: str, ast_hash: str, *, offline_scope: OfflineLabScope | None = None,
+            product_scope: ProductGroqScope | None = None) -> None:
     from runtime.engine import run_pipeline
-    if offline_scope is None:
+    if product_scope is not None:
+        run_pipeline(document_id, ast_hash, product_scope=product_scope)
+    elif offline_scope is None:
         run_pipeline(document_id, ast_hash)
     else:
         run_pipeline(document_id, ast_hash, offline_scope=offline_scope)
 
 
-def _run_g5(document_id: str, ast_hash: str, *, offline_scope: OfflineLabScope | None = None) -> None:
+def _run_g5(document_id: str, ast_hash: str, *, offline_scope: OfflineLabScope | None = None,
+            product_scope: ProductGroqScope | None = None) -> None:
     """One authorized G5 attempt using existing assembler, lease and publisher."""
     from infra.db.connection import get_connection
     from infra.db.control_repo import ControlPlaneRepository
@@ -140,7 +145,9 @@ def _run_g5(document_id: str, ast_hash: str, *, offline_scope: OfflineLabScope |
     )
 
     resources = None
-    if offline_scope is not None:
+    if product_scope is not None:
+        resources = product_scope.require_compiler_resources()
+    elif offline_scope is not None:
         offline_scope.validate(document_id)
         resources = offline_scope.require_compiler_resources()
     with ExitStack() as stack:
@@ -200,7 +207,8 @@ def _require_state(document_id: str, expected: str):
 
 
 def run_admitted_pdf(receipt: PDFInboxSubmission, root: Path, *,
-                     offline_scope: OfflineLabScope | None = None) -> PDFProductResult:
+                     offline_scope: OfflineLabScope | None = None,
+                     product_scope: ProductGroqScope | None = None) -> PDFProductResult:
     """Run one admitted PDF through OCR -> G3 -> G5, or resume at its durable state.
 
     A successful return proves only operational completion: no scientific
@@ -211,6 +219,12 @@ def run_admitted_pdf(receipt: PDFInboxSubmission, root: Path, *,
     document_id = receipt.document_id
     if not re.fullmatch(r"[0-9a-f]{64}", document_id):
         raise PDFProductError("PDF_RUN_INVALID_DOCUMENT_ID")
+    if offline_scope is not None and product_scope is not None:
+        raise PDFProductError("PPPR_G6_CONFLICTING_SCOPES")
+    if product_scope is not None:
+        from runtime.engine import _product_effective_config_sha256
+        product_scope.validate(document_id, _product_effective_config_sha256())
+        product_scope.require_compiler_resources()
     if offline_scope is not None:
         offline_scope.validate(document_id)
         offline_scope.require_compiler_resources()
@@ -233,7 +247,9 @@ def run_admitted_pdf(receipt: PDFInboxSubmission, root: Path, *,
         return _verify_published_pdf(root, document_id, state.ast_hash)
     if state.current_state == "PROCESSING":
         try:
-            if offline_scope is None:
+            if product_scope is not None:
+                _run_g3(document_id, state.ast_hash, product_scope=product_scope)
+            elif offline_scope is None:
                 _run_g3(document_id, state.ast_hash)
             else:
                 _run_g3(document_id, state.ast_hash, offline_scope=offline_scope)
@@ -242,7 +258,9 @@ def run_admitted_pdf(receipt: PDFInboxSubmission, root: Path, *,
         state = _require_state(document_id, "READY_FOR_ASSEMBLY")
     if state.current_state == "READY_FOR_ASSEMBLY":
         try:
-            if offline_scope is None:
+            if product_scope is not None:
+                _run_g5(document_id, state.ast_hash, product_scope=product_scope)
+            elif offline_scope is None:
                 _run_g5(document_id, state.ast_hash)
             else:
                 _run_g5(document_id, state.ast_hash, offline_scope=offline_scope)
