@@ -1274,6 +1274,7 @@ def test_pppr_g6_document_free_admission(tmp_path, monkeypatch, case):
     from apps.bootstrap.provider_stack_factory import ProductGroqScope
     from apps.llm_workers.g3_admission import GPT_OSS_120B, GroqFreeTierWitness
     from core.execution.exceptions import G3ExternalEffectNotStartedError
+    from core.utils.telemetry import ctx_task_id, ctx_execution_id
     from runtime import engine
     from infra.db import connection
 
@@ -1371,7 +1372,15 @@ def test_pppr_g6_document_free_admission(tmp_path, monkeypatch, case):
                     ])
             assert requests == []
         else:
-            assert stage_claimed_unit(repo, plan, ast, unit, lease, "g6", bridge, Semaphore(1))
+            # The real engine sets these correlation IDs at claim time.
+            # Reproduce that boundary, not a permissive mock of the adapter.
+            task_token = ctx_task_id.set(lease.task_id)
+            execution_token = ctx_execution_id.set(lease.execution_id)
+            try:
+                assert stage_claimed_unit(repo, plan, ast, unit, lease, "g6", bridge, Semaphore(1))
+            finally:
+                ctx_execution_id.reset(execution_token)
+                ctx_task_id.reset(task_token)
             assert len(requests) == 1
             assert db.execute("SELECT COUNT(*) FROM chunk_result_receipts WHERE raw_response IS NOT NULL").fetchone() == (1,)
     finally:
