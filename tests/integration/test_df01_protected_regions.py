@@ -360,6 +360,9 @@ def _panel_source(tmp_path, *, defect=None):
         source.insert_text((30, 40), "PANEL")
         page = doc.new_page(width=400, height=400)
         page.insert_text((40, 40), "BEFORE")
+        if defect == "distant_caption":
+            page.insert_text((80, 15), "Figure 2. Other caption", fontsize=8)
+            page.insert_text((80, 55), "Intervening prose", fontsize=8)
         for rect in ((80, 80, 180, 160), (210, 80, 310, 160),
                      (80, 180, 180, 260), (210, 180, 310, 260)):
             page.show_pdf_page(fitz.Rect(rect), figure, 0)
@@ -370,6 +373,8 @@ def _panel_source(tmp_path, *, defect=None):
         if defect == "orphan":
             page.draw_line((185, 170), (205, 170))
         page.insert_text((80, 290), "Figure 1. Four panels" if defect != "no_caption" else "Other text")
+        if defect == "two_captions_late":
+            page.insert_text((80, 65), "Figure 2. Other caption")
         page.insert_text((40, 340), "AFTER")
         doc.save(str(path))
     return path
@@ -408,9 +413,31 @@ def test_df01_multiple_forms_one_caption_one_protected_region(tmp_path, monkeypa
 
 
 @pytest.mark.integration
-@pytest.mark.parametrize("defect", ["gap_text", "two_captions", "orphan", "no_caption"])
+@pytest.mark.parametrize("defect", ["gap_text", "two_captions", "two_captions_late", "orphan", "no_caption"])
 def test_df01_panel_union_without_common_ownership_fails_closed(tmp_path, monkeypatch, defect):
     monkeypatch.setenv("APP_ROOT", str(tmp_path))
     with pytest.raises(LayoutRecoveryError):
         PyMuPDFProvider(HeuristicLayoutClassifier()).extract(str(_panel_source(tmp_path, defect=defect)))
     assert not (tmp_path / "data/assets").exists()
+
+
+@pytest.mark.integration
+def test_df01_distant_caption_separated_by_prose_is_not_a_competitor(tmp_path):
+    from infra.extraction.providers.pymupdf_protected_regions import prepare_protected_regions
+
+    with fitz.open(_panel_source(tmp_path, defect="distant_caption")) as doc:
+        page = doc[0]
+        blocks = page.get_text("dict")["blocks"]
+        regions = prepare_protected_regions(page, blocks, page_number=1)
+        assert len(regions) == 1
+        region = regions[0]
+        assert len(region.covered_drawings) == 8
+        assert region.caption_block is not None
+        caption = blocks[region.caption_block]
+        assert "Figure 1." in "".join(
+            span["text"] for line in caption["lines"] for span in line["spans"]
+        )
+        with fitz.open(stream=region.pdf, filetype="pdf") as asset:
+            assert asset[0].get_text().count("PANEL") == 4
+            assert "Other caption" not in asset[0].get_text()
+            assert "Intervening prose" not in asset[0].get_text()

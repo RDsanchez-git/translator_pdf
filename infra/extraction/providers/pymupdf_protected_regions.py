@@ -563,6 +563,31 @@ def _composition_figure_bounds(
     return bounds
 
 
+def _nearby_caption_indices(
+    region: fitz.Rect, raw_blocks: Sequence[Mapping[str, Any]],
+    block_rects: Sequence[fitz.Rect], pattern: str,
+) -> set[int]:
+    """Check the nearest exterior block on each physical side, including ties.
+
+    Native content-stream order may differ from geometric reading order.
+    An intervening block is evidence against physical adjacency; do not
+    collect every distant caption on the page or reorder native text.
+    """
+    above = [(region.y0 - r.y1, i) for i, r in enumerate(block_rects)
+             if region.x0 < r.x1 and r.x0 < region.x1 and r.y1 <= region.y0]
+    below = [(r.y0 - region.y1, i) for i, r in enumerate(block_rects)
+             if region.x0 < r.x1 and r.x0 < region.x1 and r.y0 >= region.y1]
+    result: set[int] = set()
+    for side in (above, below):
+        if not side:
+            continue
+        nearest = min(distance for distance, _ in side)
+        result.update(i for distance, i in side if distance == nearest
+                      and raw_blocks[i].get("type") == 0
+                      and re.match(pattern, _text(raw_blocks[i]), re.I))
+    return result
+
+
 def prepare_protected_regions(
     page: fitz.Page, raw_blocks: Sequence[Mapping[str, Any]], *, page_number: int,
 ) -> tuple[ProtectedRegion, ...]:
@@ -679,7 +704,13 @@ def prepare_protected_regions(
             and (block_rects[i].y1 <= region.y0 or block_rects[i].y0 >= region.y1)
         ]
         needs_caption = kind == LayoutBlockType.IMAGE or candidate_index >= native_table_count
-        if len(captions) > 1 or (needs_caption and not captions):
+        # Native adjacency remains the admission witness. Independently
+        # check physical adjacency to detect competing captions hidden by
+        # content-stream order (e.g. a caption above panels painted later).
+        physical_captions = _nearby_caption_indices(region, raw_blocks, block_rects, pattern)
+        if len(set(captions) | physical_captions) > 1:
+            raise reject("AMBIGUOUS_CAPTION_OWNERSHIP")
+        if needs_caption and not captions:
             raise reject()
         caption = captions[0] if captions else None
         if caption is not None and any(p[5] == caption for p in pending):
