@@ -302,22 +302,32 @@ def _composition(
             offset = 1
     scopes: list[fitz.Rect] = []
     signature: list[dict[str, Any]] = []
+    active_scopes: list[tuple[int, fitz.Rect]] = []
     for entry in entries:
         kind = entry.get("type")
         level = entry.get("level", 0)
         if (kind not in ("clip", "group", "s", "f", "fs")
                 or not isinstance(level, int) or level < offset or entry.get("layer")):
             raise UnrepresentedPdfContentError("DF01_UNSUPPORTED_GRAPHIC_COMPOSITION")
+        while active_scopes and active_scopes[-1][0] >= level:
+            active_scopes.pop()
+        bounds: fitz.Rect | None = None
         if kind == "clip":
             bounds = _clip_bounds(entry)
             scissor = _rect(entry["scissor"])
             if bounds.is_empty or not _contains(bounds, scissor):
                 raise UnrepresentedPdfContentError("DF01_CLIP_GEOMETRY_UNPROVEN")
-            scopes.append(bounds)
         elif kind == "group":
             bounds = _rect(entry["rect"])
             if bounds.is_empty:
                 raise UnrepresentedPdfContentError("DF01_GROUP_GEOMETRY_UNPROVEN")
+        if bounds is not None:
+            # The parent clip is not evidence of ownership of marks hidden
+            # outside it. In particular a clipped larger Form must not
+            # enlarge the candidate to its underlying uncut source page.
+            if any(not _contains(parent, bounds) for _, parent in active_scopes):
+                raise UnrepresentedPdfContentError("DF01_NESTED_SCOPE_ESCAPES_PARENT")
+            active_scopes.append((level, bounds))
             scopes.append(bounds)
         # seqno is page-local and shifts when exterior text is removed.
         signature.append({**{k: v for k, v in entry.items() if k != "seqno"},
@@ -486,8 +496,11 @@ def prepare_protected_regions(
         # A complete outer graphic scope may delimit a figure without a
         # drawn frame. It still requires a distinct caption and all other
         # semantic checks. Never collapse overlapping unrelated scopes.
-        outer_scopes = [r for r in scopes if r != page.rect
-                        and not any(s != r and _contains(s, r) for s in scopes)]
+        # Repeated identical clips are distinct operators but one candidate.
+        # Keep their multiplicity in the signature; deduplicate geometry only.
+        unique_scopes = [fitz.Rect(box) for box in dict.fromkeys(_box(r) for r in scopes)]
+        outer_scopes = [r for r in unique_scopes if r != page.rect
+                        and not any(s != r and _contains(s, r) for s in unique_scopes)]
         for bounds in outer_scopes:
             if any(_intersects(bounds, b) for b in table_bounds):
                 continue

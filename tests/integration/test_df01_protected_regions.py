@@ -208,8 +208,11 @@ def _form_source(tmp_path, *, defect=None):
     path = tmp_path / "composed.pdf"
     with fitz.open() as figure, fitz.open() as doc:
         if defect == "clipped_form":
-            source = figure.new_page(width=400, height=400)
-            source.insert_text((20, 30), "HIDDEN EXTERIOR")
+            # The full Form still fits on the destination page, but contains
+            # a mark beyond the requested clip. Reject rather than enlarging
+            # the candidate to the hidden portion of the source.
+            source = figure.new_page(width=240, height=140)
+            source.insert_text((20, 125), "HIDDEN EXTERIOR")
         else:
             source = figure.new_page(width=200, height=100)
         source.draw_rect(fitz.Rect(10, 10, 190, 90))
@@ -270,3 +273,19 @@ def test_df01_unproven_form_composition_rejected(tmp_path, monkeypatch, defect):
     with pytest.raises(LayoutRecoveryError):
         PyMuPDFProvider(HeuristicLayoutClassifier()).extract(str(_form_source(tmp_path, defect=defect)))
     assert not (tmp_path / "data/assets").exists()
+
+
+@pytest.mark.integration
+def test_df01_equal_nested_clip_bounds_are_one_candidate(tmp_path):
+    from infra.extraction.providers.pymupdf_protected_regions import (
+        _composition, prepare_protected_regions,
+    )
+    with fitz.open(_form_source(tmp_path)) as doc:
+        page = doc[0]
+        scopes, signature = _composition(page)
+        assert len(scopes) >= 2
+        assert len({tuple(r) for r in scopes}) == 1
+        assert sum(e["type"] == "clip" for e in signature) >= 2
+        regions = prepare_protected_regions(page, page.get_text("dict")["blocks"], page_number=1)
+        assert len(regions) == 1
+        assert len(regions[0].covered_drawings) == 2
