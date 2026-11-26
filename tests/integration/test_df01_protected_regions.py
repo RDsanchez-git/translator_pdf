@@ -119,3 +119,27 @@ def test_df01_disabled_assets_fail_closed(tmp_path,monkeypatch):
     with pytest.raises(LayoutRecoveryError,match="B02_UNREPRESENTED_VECTOR_DRAWING"):
         PyMuPDFProvider(HeuristicLayoutClassifier(),write_images=False).extract(str(_source(tmp_path,"table")))
     assert not (tmp_path/"data/assets").exists()
+
+
+@pytest.mark.integration
+def test_df01_exact_merged_grid_independent_of_native_table_detector(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+    monkeypatch.setenv("APP_ROOT", str(tmp_path))
+    monkeypatch.setattr(fitz.Page, "find_tables", lambda self, **kwargs: SimpleNamespace(tables=[]))
+    path = _source(tmp_path, "table")
+    layout = PyMuPDFProvider(HeuristicLayoutClassifier()).extract(str(path))
+    tables = [b for b in layout.pages[0].blocks if b.logical_type.value == "TABLE_COMPLEX"]
+    assert len(tables) == 1
+    assert tables[0].asset_path is not None
+    with fitz.open(tmp_path / tables[0].asset_path) as asset:
+        assert len(asset[0].get_drawings()) == 8
+
+
+@pytest.mark.integration
+def test_df01_independent_grid_without_caption_is_rejected(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+    monkeypatch.setenv("APP_ROOT", str(tmp_path))
+    monkeypatch.setattr(fitz.Page, "find_tables", lambda self, **kwargs: SimpleNamespace(tables=[]))
+    with pytest.raises(LayoutRecoveryError, match="B02_UNREPRESENTED_VECTOR_DRAWING"):
+        PyMuPDFProvider(HeuristicLayoutClassifier()).extract(str(_source(tmp_path, "table", extra="no_caption")))
+    assert not (tmp_path / "data/assets").exists()

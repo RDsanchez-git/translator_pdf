@@ -27,6 +27,7 @@ class PayloadRegistry:
             heading_level=kw.get('heading_level', HeadingLevel.UNKNOWN)
         ),
         ContentNodeType.PARAGRAPH: lambda r, kw: ParagraphPayload(content=r),
+        ContentNodeType.CAPTION: lambda r, kw: ParagraphPayload(content=r),
         ContentNodeType.DISPLAY_EQUATION: lambda r, kw: MathPayload(content=r),
         ContentNodeType.INLINE_EQUATION: lambda r, kw: MathPayload(content=r),
         ContentNodeType.CODE: lambda r, kw: CodePayload(content=r),

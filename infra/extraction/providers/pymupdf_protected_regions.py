@@ -79,6 +79,82 @@ def _merged_grid(table: Any) -> bool:
                or ys.index(c.y1) - ys.index(c.y0) > 1 for c in cells)
 
 
+def _merged_row_grids(drawings: Sequence[Mapping[str, Any]]) -> list[fitz.Rect]:
+    """Independent witness for exact rectilinear ruled grids with horizontal spans.
+
+    Native table detectors differ across PyMuPDF versions. For this restricted
+    profile use the original line geometry: connected straight rules, complete
+    horizontal separators and outer borders, with column dividers either
+    absent or complete in each row. A partial divider is not a merged cell.
+    No snapping, invented edges, inferred missing boundaries or row-count
+    heuristic. Other grid shapes still need the native table witness.
+    """
+    lines: list[fitz.Rect] = []
+    for d in drawings:
+        items = d.get("items", [])
+        if d.get("type") != "s" or len(items) != 1 or items[0][0] != "l":
+            continue
+        r = _rect(d["rect"])
+        if (r.width == 0) != (r.height == 0):
+            lines.append(r)
+    # Connected components of touching rules, including zero-width rectangles.
+    remaining = set(range(len(lines)))
+    grids: list[fitz.Rect] = []
+    while remaining:
+        seed = min(remaining)
+        remaining.remove(seed)
+        component = [seed]
+        for i in component:
+            a = lines[i]
+            neighbors = [j for j in remaining if
+                         a.x0 <= lines[j].x1 and lines[j].x0 <= a.x1
+                         and a.y0 <= lines[j].y1 and lines[j].y0 <= a.y1]
+            remaining.difference_update(neighbors)
+            component.extend(sorted(neighbors))
+        rules = [lines[i] for i in component]
+        horizontal = [r for r in rules if r.height == 0]
+        vertical = [r for r in rules if r.width == 0]
+        ys = sorted({r.y0 for r in horizontal})
+        xs = sorted({r.x0 for r in vertical})
+        if len(xs) < 3 or len(ys) < 3:
+            continue
+        left, right, top, bottom = xs[0], xs[-1], ys[0], ys[-1]
+        if (any(r.x0 not in xs or r.x1 not in xs for r in horizontal)
+                or any(r.y0 not in ys or r.y1 not in ys for r in vertical)):
+            continue
+
+        def covers(intervals: Sequence[tuple[float, float]], lo: float, hi: float) -> bool:
+            edge = lo
+            for start, end in sorted(intervals):
+                if end <= edge:
+                    continue
+                if start > edge:
+                    return False
+                edge = end
+                if edge >= hi:
+                    return True
+            return False
+
+        if not all(covers([(r.x0, r.x1) for r in horizontal if r.y0 == y], left, right) for y in ys):
+            continue
+        merged = False
+        valid = True
+        for x in xs:
+            intervals = [(r.y0, r.y1) for r in vertical if r.x0 == x]
+            for lo, hi in zip(ys, ys[1:]):
+                present = any(start < hi and lo < end for start, end in intervals)
+                if present and not covers(intervals, lo, hi):
+                    valid = False
+                if not present:
+                    if x in (left, right):
+                        valid = False
+                    else:
+                        merged = True
+        if valid and merged:
+            grids.append(fitz.Rect(left, top, right, bottom))
+    return grids
+
+
 def _marks(page: fitz.Page) -> list[tuple[str, fitz.Rect]]:
     return [(str(kind), _rect(bounds)) for kind, bounds in page.get_bboxlog()]
 
@@ -93,10 +169,11 @@ def _isolated_pdf(
     outside this profile must not enter it.
     """
     source = page.parent
-    if source is None:
+    page_index = page.number
+    if source is None or not isinstance(page_index, int):
         raise UnrepresentedPdfContentError("DF01_SOURCE_PAGE_DETACHED")
     with fitz.open() as isolated:
-        isolated.insert_pdf(source, from_page=page.number, to_page=page.number,
+        isolated.insert_pdf(source, from_page=page_index, to_page=page_index,
                             links=False, annots=False, widgets=False)
         copied = isolated[0]
         outer = copied.rect
@@ -107,7 +184,9 @@ def _isolated_pdf(
             fitz.Rect(region.x1, region.y0, outer.x1, region.y1),
         ):
             if not band.is_empty:
-                copied.add_redact_annot(band, fill=False, cross_out=False)
+                # PyMuPDF documents False as the no-fill sentinel; None
+                # uses the default fill. Its type stub only accepts OptSeq.
+                copied.add_redact_annot(band, fill=cast(Any, False), cross_out=False)
         if not copied.apply_redactions(images=1, graphics=2, text=0):
             raise UnrepresentedPdfContentError("DF01_EXTERIOR_REMOVAL_FAILED")
         copied.clean_contents(sanitize=True)
@@ -115,8 +194,9 @@ def _isolated_pdf(
             raise UnrepresentedPdfContentError("DF01_EXTERIOR_MARK_RETAINED")
         if copied.get_xobjects() or copied.get_images(full=True):
             raise UnrepresentedPdfContentError("DF01_UNSUPPORTED_ISOLATED_RESOURCES")
+        copied_dict = cast(dict[str, Any], copied.get_text("dict"))
         actual = "\n".join(
-            _text(b) for b in copied.get_text("dict")["blocks"] if b.get("type") == 0
+            _text(b) for b in copied_dict["blocks"] if b.get("type") == 0
         )
         if actual != expected_text:
             raise UnrepresentedPdfContentError("DF01_PROTECTED_TEXT_DRIFT")
@@ -172,11 +252,19 @@ def prepare_protected_regions(
 
     rects = [_rect(d["rect"]) for d in drawings]
     block_rects = [_rect(b["bbox"]) for b in raw_blocks]
-    tables = page.find_tables(strategy="lines_strict").tables
+    finder = page.find_tables(strategy="lines_strict")
+    tables = finder.tables if finder is not None else []
     table_bounds = [_rect(t.bbox) for t in tables]
     candidates: list[tuple[LayoutBlockType, fitz.Rect]] = [
         (LayoutBlockType.TABLE_COMPLEX, _rect(t.bbox)) for t in tables if _merged_grid(t)
     ]
+    # Require an explicit table caption for the independent geometry witness.
+    # Otherwise a rectilinear diagram could be mistaken for a table.
+    native_table_count = len(candidates)
+    for grid in _merged_row_grids(drawings):
+        if not any(_intersects(grid, b) for _, b in candidates):
+            candidates.append((LayoutBlockType.TABLE_COMPLEX, grid))
+    table_bounds.extend(b for _, b in candidates)
     # A frame and an exterior caption are required; never infer a figure from
     # a line, decorative rule, or text-containing cluster in isolation.
     for drawing, bounds in zip(drawings, rects, strict=True):
@@ -190,7 +278,7 @@ def prepare_protected_regions(
     pending: list[tuple[LayoutBlockType, fitz.Rect, tuple[int, ...], tuple[int, ...], int, int | None]] = []
     covered: set[int] = set()
     covered_blocks: set[int] = set()
-    for kind, bounds in candidates:
+    for candidate_index, (kind, bounds) in enumerate(candidates):
         indices = tuple(i for i, r in enumerate(rects) if _contains(bounds, r))
         if not indices:
             continue
@@ -237,7 +325,8 @@ def prepare_protected_regions(
             and region.x0 < block_rects[i].x1 and block_rects[i].x0 < region.x1
             and (block_rects[i].y1 <= region.y0 or block_rects[i].y0 >= region.y1)
         ]
-        if len(captions) > 1 or (kind == LayoutBlockType.IMAGE and not captions):
+        needs_caption = kind == LayoutBlockType.IMAGE or candidate_index >= native_table_count
+        if len(captions) > 1 or (needs_caption and not captions):
             raise reject()
         caption = captions[0] if captions else None
         if caption is not None and any(p[5] == caption for p in pending):
