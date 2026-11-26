@@ -10,7 +10,8 @@ NADR-08 §5.5: CB antes de RL previene consumo de cuota con circuito abierto.
 """
 import os
 from collections.abc import Callable, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
+from pathlib import Path
 from decimal import Decimal
 from typing import Literal, TYPE_CHECKING
 
@@ -23,7 +24,7 @@ from groq import AsyncGroq
 from infra.db.connection import resolve_sqlite_path
 
 from apps.llm_workers.adapters import GroqProvider
-from apps.llm_workers.g3_admission import GPT_OSS_120B, G3PreEffectAdmission
+from apps.llm_workers.g3_admission import GPT_OSS_120B, G3PreEffectAdmission, GroqHarmonyInputBound
 from apps.llm_workers.groq_free_transport import GroqFreeWitnessTransport
 from apps.llm_workers.prompt_builder import PromptEnvelope, PromptBuilder
 from core.ast.models import ASTNode, TranslationUnit
@@ -58,6 +59,28 @@ class ProductGroqScope:
     prompt_estimator: TokenEstimatorProtocol
     transport_factory: Callable[[], httpx.AsyncBaseTransport]
     compiler_resources: "CachedTectonicResources | None" = None
+
+    @classmethod
+    def with_verified_harmony(
+        cls, admission: G3PreEffectAdmission,
+        transport_factory: Callable[[], httpx.AsyncBaseTransport], *,
+        rank_cache_dir: Path, framing_token_ceiling: int, framing_evidence_ref: str,
+        compiler_resources: "CachedTectonicResources | None" = None,
+    ) -> "ProductGroqScope":
+        """Explicit local planning tokenizer and conditional admission bound.
+
+        The framing evidence is a caller authority input, not produced here.
+        No default policy, live transport, cache download or quota grant.
+        """
+        from core.validation.estimators import VerifiedHarmonyEstimator
+
+        bound = GroqHarmonyInputBound(framing_token_ceiling, framing_evidence_ref)
+        return cls(
+            admission=replace(admission, input_estimator=bound,
+                              estimator_evidence_ref=framing_evidence_ref),
+            prompt_estimator=VerifiedHarmonyEstimator(rank_cache_dir),
+            transport_factory=transport_factory, compiler_resources=compiler_resources,
+        )
 
     def require_compiler_resources(self) -> "CachedTectonicResources":
         if self.compiler_resources is None or not self.compiler_resources.cache_dir.is_dir():

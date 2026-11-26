@@ -44,6 +44,66 @@ def build_groq_request_kwargs(
 
 
 @dataclass(frozen=True, slots=True)
+class GroqHarmonyInputBound:
+    """Conditional upper bound for the supported two-message GPT-OSS request.
+
+    Every ordinary byte-level BPE token consumes at least one UTF-8 byte.
+    Count the decoded message contents by bytes, not the escaped HTTP JSON.
+    The caller MUST independently attest a ceiling for ALL additional
+    server tokens (roles, separators, system/developer instructions, response
+    format, reasoning configuration and assistant prefix), including any
+    content transformation beyond the supplied message bytes. Neither the
+    local vocabulary nor the public Harmony format attests Groq's deployment.
+
+    No default framing allowance, implicit acquisition or provider request.
+    Reference: https://developers.openai.com/cookbook/articles/openai-harmony
+    """
+    framing_token_ceiling: int
+    framing_evidence_ref: str
+
+    def __post_init__(self) -> None:
+        if (type(self.framing_token_ceiling) is not int
+                or self.framing_token_ceiling <= 0
+                or not isinstance(self.framing_evidence_ref, str)
+                or not self.framing_evidence_ref.strip()):
+            raise ValueError("PPPR_G6_HARMONY_FRAMING_EVIDENCE_REQUIRED")
+
+    def estimate_tokens(self, text: str) -> int:
+        # This estimator is a wire-contract adapter, not a generic text
+        # tokenizer. Reject any additional features rather than undercount.
+        try:
+            wire = json.loads(text)
+            if (not isinstance(wire, dict) or set(wire) != {
+                    "model", "temperature", "stream", "max_completion_tokens",
+                    "messages", "response_format", "reasoning_effort", "include_reasoning",
+                } or wire["model"] != GPT_OSS_120B
+                    or wire["temperature"] != 1e-5 or wire["stream"] is not False
+                    or wire["response_format"] != {"type": "json_object"}
+                    or wire["reasoning_effort"] != "low"
+                    or wire["include_reasoning"] is not False
+                    or type(wire["max_completion_tokens"]) is not int
+                    or not 0 < wire["max_completion_tokens"] <= 4096):
+                raise ValueError("unsupported request")
+            messages = wire["messages"]
+            if not isinstance(messages, list) or len(messages) != 2:
+                raise ValueError("unsupported messages")
+            content_bytes = 0
+            for message, role in zip(messages, ("system", "user"), strict=True):
+                if (not isinstance(message, dict) or set(message) != {"role", "content"}
+                        or message["role"] != role or not isinstance(message["content"], str)):
+                    raise ValueError("unsupported message")
+                content_bytes += len(message["content"].encode("utf-8"))
+            # The admission caller supplies this exact canonical serialization.
+            # Reject duplicate keys, noncanonical or ambiguous alternate JSON.
+            if text != json.dumps(wire, ensure_ascii=False, sort_keys=True,
+                                  separators=(",", ":"), allow_nan=False):
+                raise ValueError("noncanonical request")
+        except (ValueError, TypeError, KeyError, RecursionError) as exc:
+            raise ValueError("PPPR_G6_HARMONY_WIRE_UNSUPPORTED") from exc
+        return content_bytes + self.framing_token_ceiling
+
+
+@dataclass(frozen=True, slots=True)
 class G3AdmissionDecision:
     """Operational admission facts, never scientific identity."""
     request_sha256: str
@@ -168,6 +228,9 @@ class G3PreEffectAdmission:
             _deny("PPPR_G3_ADMISSION_SELECTION_DRIFT")
         if not self.estimator_evidence_ref:
             _deny("PPPR_G3_ESTIMATOR_NOT_ACCREDITED")
+        if (isinstance(self.input_estimator, GroqHarmonyInputBound)
+                and self.input_estimator.framing_evidence_ref != self.estimator_evidence_ref):
+            _deny("PPPR_G6_HARMONY_FRAMING_EVIDENCE_DRIFT")
         wire, _ = build_groq_request_kwargs(envelope, OpenAICompatibleDialect())
         serialized = json.dumps(wire, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
         try:
@@ -266,6 +329,11 @@ class G3PreEffectAdmission:
             "authorized_max_cost": str(self.authorized_max_cost),
             "upper_bound_cost": str(upper_cost),
         }
+        if isinstance(self.input_estimator, GroqHarmonyInputBound):
+            evidence.update(
+                input_bound_method="UTF8_MESSAGE_BYTES_PLUS_ATTESTED_FRAMING_V1",
+                framing_token_ceiling=self.input_estimator.framing_token_ceiling,
+            )
         if free_audit is not None:
             evidence.update(
                 free_tier_witness=free_audit,
