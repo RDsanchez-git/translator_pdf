@@ -1,11 +1,11 @@
 # FASE_PPPR_DEFERRED_FINDINGS_REGISTER.md
 
 **Documento:** `docs/architecture/adr/pdf-pdf-product-readiness/reviews/FASE_PPPR_DEFERRED_FINDINGS_REGISTER.md`  
-**Versión:** 0.1.53  
-**Estado:** G1–G5 COMPLETED/PASS (histórico en alcance probado); G6/W6.1 IN_PROGRESS / BLOCKED; 6.1.1/6.1.2 DONE; 6.1.3 IN_PROGRESS / BLOCKED (DF-01, precondiciones de admisión real pendientes); 6.2.1/6.2.2 TODO; 27/30 DONE (90%); G6 Exit Review NOT_RUN; GF-01/GF-02 RESOLVED; DF-01 OPEN / IMPLEMENTATION_REQUIRED (Batch 3 parcial, CI_VERIFIED; desarrollo residual pendiente de disposición); 14 GAP P1 históricos OPEN; issue #34 OPEN; CV FAIL/DEFERRED; PERSONAL_ACCEPTANCE=NOT_EVALUATED (aceptación BLOCKED); PRODUCT_DISPATCH=BLOCKED; PRODUCT_READINESS=NOT_CERTIFIED. [CI #45743875270](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45743875270) SUCCESS 3/3 sobre `29e48c0339cb4b04e5770b43f632ec6513ddbccd`; CI del checkpoint documental pendiente.
+**Versión:** 0.1.54  
+**Estado:** G1–G5 COMPLETED/PASS (histórico en alcance probado); G6/W6.1 IN_PROGRESS / BLOCKED; 6.1.1/6.1.2 DONE; 6.1.3 IN_PROGRESS / BLOCKED (DF-01, DF-02 y precondiciones de admisión real pendientes); 6.2.1/6.2.2 TODO; 27/30 DONE (90%); G6 Exit Review NOT_RUN; GF-01/GF-02 RESOLVED; DF-01 OPEN / IMPLEMENTATION_REQUIRED (Batch 3 parcial CI_VERIFIED); DF-02 OPEN / PENDING_REVIEW (rechazo B024, causa no demostrada); 14 GAP P1 históricos OPEN; issue #34 OPEN; CV FAIL/DEFERRED; PERSONAL_ACCEPTANCE=NOT_EVALUATED (aceptación BLOCKED); PRODUCT_DISPATCH=BLOCKED; PRODUCT_READINESS=NOT_CERTIFIED. [CI #45751465217](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45751465217) SUCCESS 3/3 sobre `1df0ff2c447ad0a3f69f5c1b4550dba00101717f`; CI del nuevo checkpoint documental pendiente.
 **Fecha de creación:** 2026-11-21  
-**Última actualización:** 2026-11-25  
-**Derivado de:** Plan v0.5.51, Evidence Log v0.1.54; Dictamen Board comunicado por owner sobre `7cd34940477701521afd842e0f43d6689fc53153`: APPROVED — TECHNICAL_BOARD_ACCEPTED, OFFLINE SCOPE. H-G6-04/05 RESOLVED / BOARD_ACCEPTED (3/3 y 4/4 PASS); regresión 36/36 PASS, módulo 43/43 PASS. No se requieren nuevos cambios de código, infraestructura ni metodología en alcance aceptado. No se atribuye firma externa ni review GitHub formal.  
+**Última actualización:** 2026-11-26  
+**Derivado de:** Plan v0.5.52, Evidence Log v0.1.55; Dictamen Board comunicado por owner sobre `7cd34940477701521afd842e0f43d6689fc53153`: APPROVED — TECHNICAL_BOARD_ACCEPTED, OFFLINE SCOPE. H-G6-04/05 RESOLVED / BOARD_ACCEPTED (3/3 y 4/4 PASS); regresión 36/36 PASS, módulo 43/43 PASS. No se requieren nuevos cambios de código, infraestructura ni metodología en alcance aceptado. No se atribuye firma externa ni review GitHub formal.  
 **Ámbito:** PPPR (iniciativa transversal PDF→PDF; no fase histórica numerada).  
 **Propósito:** Registro único y auditable de hallazgos `DF`/`GF` **que surjan durante la ejecución y los Exit Reviews** del Execution Plan: identificación, clasificación, decisión, resolución, batch y evidencia de implementación.
 
@@ -499,6 +499,14 @@ No nuevos scripts de diagnóstico para el owner ni ampliación de corpus como pr
 
 La evidencia detallada y los límites del sondeo R3 constan en Evidence Log §2.3. No se abre nuevo GAP histórico ni se fragmenta DF-01 por página. Conservar los seis originales y referencias previas sin cambios. Los pendientes independientes de preadmisión, chunking/cota conservadora, permisos y evaluación final no se dan por resueltos. Priorizar revisión general de esas dependencias antes de nuevas ampliaciones del extractor. Sin nuevas inferencias, gastos, corpus, dependencias o merge.
 
+### Checkpoint 6.1.3 — límites de madurez y preparación G3 (2026-11-26; NO Exit Review)
+
+Recheck offline aportado por owner, 2026-11-26, seis originales / manifest v3.9 blob `a3a435bf617cc66a0036a3f3d0e3993aeead0f44`, HEAD `1df0ff2c447ad0a3f69f5c1b4550dba00101717f`: 5/6 EXTRACTION_BLOCKED, 1/6 BUDGET_BLOCKED por B024_ORPHAN_MATH_CLOSER, 0/6 preparación completa. 0 llamadas LLM, 0 decisiones de admisión, 0 receipts y ningún PDF traducido. CL100K_DIAGNOSTIC_ONLY_HARMONY_NOT_AVAILABLE; cota de proveedor no acreditada. DF-01 continúa OPEN / IMPLEMENTATION_REQUIRED; no se reabre refinamiento específico por documento. Framing completo de Groq no acreditado y caché Harmony no disponible en esta ejecución: precondiciones pendientes, no defectos demostrados del algoritmo de tokenización. Capacidades generales CI_VERIFIED en Evidence Log §2.3; no se declara batch de resolución adicional.
+
+### DF-02 — Rechazo de protección matemática antes de inferencia (G6/W6.1/6.1.3; 2026-11-26; NO Exit Review)
+
+**Estado inicial:** OPEN / PENDING_REVIEW. **CONFIRMADO:** reporte offline owner sobre `1df0ff2c447ad0a3f69f5c1b4550dba00101717f` identifica `B024_ORPHAN_MATH_CLOSER` en una unidad del único original extraído. Refinamiento no completado; sin efecto externo. **HIPÓTESIS:** delimitador huérfano en texto extraído o frontera de segmentación; causa no examinada ni acreditada. `core/normalization/explicit_math.py` y `core/normalization/latex_sanitizer.py` (mismo HEAD) implementan rechazo fail-closed; no se demuestra bug del protector. Relación B02.4 y limitaciones STEM históricas; no se duplica ni reclasifica GAP P1 sin contraste. Evidencia en Evidence Log §2.3. Norma aplicable: integridad STEM y preservación, NADR-FPPPR-02, Plan Task 6.1.3 / §2.6.3. Staff registra observación independiente de cobertura vectorial; no elimina guardas ni añade reglas por documento. Revisión causal y remediación general sujetas a disposición de continuación y evidencia suficiente; sin destino futuro ficticio ni diferimiento terminal. Efecto actual: 6.1.3 BLOCKED.
+
 ## 3. TABLA CONSOLIDADA FINAL
 
 **Estado:** `NO_ELABORADA / NOT_RUN`. Se consolidará al cierre del último Gate Exit Review; no se presume que habrá cero hallazgos.
@@ -585,9 +593,9 @@ Se actualizan **al cierre de cada batch real**, derivados de las entradas de est
 
 | Métrica canónica | Valor actual |
 |---|---|
-| Hallazgos analizados/resueltos/NAR | 3 / 2 (GF-01, GF-02) / 0; DF-01 OPEN |
+| Hallazgos registrados/resueltos/NAR | 4 / 2 (GF-01, GF-02) / 0; DF-01 y DF-02 OPEN |
 | Reclasificados a fase futura | 0 |
-| Pendientes de implementación/revisión | 1 (DF-01, alcance pendiente) / 0 GF |
+| Pendientes de implementación/revisión | 1 DF-01 IMPLEMENTATION_REQUIRED / 1 DF-02 PENDING_REVIEW; 0 GF |
 | Batches completados | 2 CI_VERIFIED |
 | Archivos creados/modificados/eliminados/movidos por batches | 0 / 7 / 0 / 0 (sumatoria de deltas por batch, no archivos únicos) |
 | Imports corregidos | 0 (sin código) |
@@ -637,11 +645,11 @@ El documento se declara `ARCHIVED` **solo** tras cierre formal de PPPR, verifica
 | Categoría | Estado actual |
 |---|---|
 | Gates revisados | 5 Exit Reviews G1–G5 PASS; PR94 MERGED; G6 IN_PROGRESS, Exit Review NOT_RUN |
-| Hallazgos PPPR registrados nuevos | 2 GF (GF-01, GF-02); 1 DF (DF-01); 14 GAP P1 históricos OPEN |
-| Hallazgos analizados/resueltos/diferidos | 3 / 2 (GF-01, GF-02) / 0 terminales; DF-01 OPEN |
+| Hallazgos PPPR registrados nuevos | 2 GF (GF-01, GF-02); 2 DF (DF-01, DF-02); 14 GAP P1 históricos OPEN |
+| Hallazgos registrados/resueltos/diferidos | 4 / 2 (GF-01, GF-02) / 0 terminales; DF-01 y DF-02 OPEN |
 | Batches ejecutados | 2 documentales CI_VERIFIED; Batch 3 parcial CI_VERIFIED, DF-01 OPEN |
 | Estado de los Exit Reviews | G1–G5 REALIZADO/PASS; G6 Exit Review NOT_RUN; CV FAIL/DEFERRED |
-| Estado operativo del Register | G1–G5 COMPLETED/PASS (histórico en alcance probado); G6/W6.1 IN_PROGRESS / BLOCKED; 6.1.1/6.1.2 DONE; 6.1.3 IN_PROGRESS / BLOCKED (DF-01, precondiciones de admisión real pendientes); 6.2.1/6.2.2 TODO; 27/30 DONE (90%); G6 Exit Review NOT_RUN; GF-01/GF-02 RESOLVED; DF-01 OPEN / IMPLEMENTATION_REQUIRED (Batch 3 parcial, CI_VERIFIED; desarrollo residual pendiente de disposición); 14 GAP P1 históricos OPEN; issue #34 OPEN; CV FAIL/DEFERRED; PERSONAL_ACCEPTANCE=NOT_EVALUATED (aceptación BLOCKED); PRODUCT_DISPATCH=BLOCKED; PRODUCT_READINESS=NOT_CERTIFIED. |
+| Estado operativo del Register | G1–G5 COMPLETED/PASS (histórico en alcance probado); G6/W6.1 IN_PROGRESS / BLOCKED; 6.1.1/6.1.2 DONE; 6.1.3 IN_PROGRESS / BLOCKED (DF-01, DF-02 y precondiciones de admisión real pendientes); 6.2.1/6.2.2 TODO; 27/30 DONE (90%); G6 Exit Review NOT_RUN; GF-01/GF-02 RESOLVED; DF-01 OPEN / IMPLEMENTATION_REQUIRED (Batch 3 parcial CI_VERIFIED); DF-02 OPEN / PENDING_REVIEW (rechazo B024, causa no demostrada); 14 GAP P1 históricos OPEN; issue #34 OPEN; CV FAIL/DEFERRED; PERSONAL_ACCEPTANCE=NOT_EVALUATED (aceptación BLOCKED); PRODUCT_DISPATCH=BLOCKED; PRODUCT_READINESS=NOT_CERTIFIED. |
 | Cierre de fase | **PENDIENTE / NO ARCHIVED** |
 
 ---
