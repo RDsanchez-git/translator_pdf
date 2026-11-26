@@ -33,7 +33,7 @@ from infra.extraction.providers.pymupdf_integrity import (
     UnrepresentedPdfContentError, validate_pymupdf_page_coverage,
 )
 from infra.extraction.providers.pymupdf_image_assets import persist_png_asset, persist_pdf_asset
-from infra.extraction.providers.pymupdf_protected_regions import prepare_protected_regions
+from infra.extraction.providers.pymupdf_protected_regions import ProtectedRegion, prepare_protected_page
 from infra.extraction.providers.pymupdf_math_visual import classify_math_font_block, render_math_visual_png
 import statistics
 
@@ -134,10 +134,9 @@ class PyMuPDFProvider(ExtractionProvider):
             allow_image_blocks=self._write_images,
         )
         drawings = page.get_drawings()
-        regions = (
-            prepare_protected_regions(page, raw_blocks, page_number=page_number)
-            if drawings and self._write_images else ()
-        )
+        regions: tuple[ProtectedRegion, ...] = ()
+        if drawings and self._write_images:
+            raw_blocks, regions = prepare_protected_page(page, raw_blocks, page_number=page_number)
         represented = {index for region in regions for index in region.covered_drawings}
         validate_pymupdf_page_coverage(
             raw_blocks, page_number=page_number,

@@ -145,12 +145,13 @@ def test_df01_independent_grid_without_caption_is_rejected(tmp_path, monkeypatch
     assert not (tmp_path / "data/assets").exists()
 
 
-def _three_rule_source(tmp_path, *, defect=None, multiple_rules=False):
+def _three_rule_source(tmp_path, *, defect=None, multiple_rules=False, caption_below=False):
     path = tmp_path / "three_rules.pdf"
     with fitz.open() as doc:
         page = doc.new_page(width=500, height=500)
         page.insert_text((50, 60), "BEFORE PROSE")
-        page.insert_text((100, 95), "Table 1. Multilevel results" if defect != "caption" else "Ordinary text")
+        if not caption_below:
+            page.insert_text((100, 95), "Table 1. Multilevel results" if defect != "caption" else "Ordinary text")
         rules = (120, 144, 175, 230, 290) if multiple_rules else (120, 175, 290)
         if defect == "empty_band":
             rules = (120, 124, *rules[1:])
@@ -168,6 +169,8 @@ def _three_rule_source(tmp_path, *, defect=None, multiple_rules=False):
                         page.insert_text((x, y), "Ordinary continuous prose")
                 else:
                     page.insert_text((x, y), f"R{row}C{col}", fontsize=10)
+        if caption_below:
+            page.insert_text((100, 320), "Table 1. Multilevel results")
         if defect == "orphan":
             page.draw_line((40, 350), (80, 350))
         if defect == "crossing":
@@ -474,3 +477,87 @@ def test_df01_multiple_rule_table_requires_structural_evidence(tmp_path, monkeyp
             _three_rule_source(tmp_path, defect=defect, multiple_rules=True)
         ))
     assert not (tmp_path / "data/assets").exists()
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize("caption_below", [False, True], ids=["above", "below"])
+@pytest.mark.parametrize("defect", [None, "prose", "crossing", "two_captions", "missing_native_id"])
+def test_df01_fused_caption_keeps_native_identity_and_complete_table(tmp_path, monkeypatch, defect, caption_below):
+    from types import SimpleNamespace
+    from infra.extraction.providers.pymupdf_protected_regions import prepare_protected_page
+    from infra.extraction.providers.pymupdf_integrity import UnrepresentedPdfContentError
+
+    monkeypatch.setenv("APP_ROOT", str(tmp_path))
+    monkeypatch.setattr(fitz.Page, "find_tables", lambda self, **kwargs: SimpleNamespace(tables=[]))
+    path = _three_rule_source(tmp_path, caption_below=caption_below)
+    with fitz.open(path) as doc:
+        page = doc[0]
+        original = page.get_text("dict")["blocks"]
+        caption_index = next(i for i, b in enumerate(original)
+                             if b["lines"][0]["spans"][0]["text"].startswith("Table 1."))
+        caption = original[caption_index]
+        table_index = caption_index - 1 if caption_below else caption_index + 1
+        table = original[table_index]
+        # Simulate native grouping without altering source glyphs or line
+        # order in the positive case. Negative views exercise split guards.
+        caption_lines = list(caption["lines"])
+        if defect == "prose":
+            first = caption_lines[0]
+            caption_lines[0] = {**first, "spans": [{**first["spans"][0], "text": "Ordinary prose"}]}
+        if defect == "crossing":
+            first = caption_lines[0]
+            caption_lines[0] = {**first, "bbox": (100, 285, 200, 325) if caption_below else (100, 85, 200, 125)}
+        if defect == "two_captions":
+            first = caption_lines[0]
+            caption_lines.append({**first, "spans": [{**first["spans"][0], "text": "Table 2. Other"}]})
+        lines = table["lines"] + caption_lines if caption_below else caption_lines + table["lines"]
+        merged_box = fitz.Rect(caption["bbox"]) | fitz.Rect(table["bbox"])
+        merged = {**caption, "bbox": tuple(merged_box), "lines": lines}
+        start = min(caption_index, table_index)
+        fused = original[:start] + [merged] + original[start + 2:]
+        if defect == "missing_native_id":
+            fused[-1] = {k: v for k, v in fused[-1].items() if k != "number"}
+        if defect:
+            with pytest.raises(UnrepresentedPdfContentError):
+                prepare_protected_page(page, fused, page_number=1)
+            return
+        blocks, regions = prepare_protected_page(page, fused, page_number=1)
+        assert len(regions) == 1
+        region = regions[0]
+        assert region.logical_type.name == "TABLE_COMPLEX"
+        assert region.caption_block == caption_index
+        assert caption_index not in region.covered_blocks
+        assert table_index in region.covered_blocks
+        assert blocks[caption_index]["number"] == caption["number"]
+        assert blocks[caption_index]["bbox"] == caption["bbox"]
+        assert blocks[caption_index]["lines"] == caption["lines"]
+        assert blocks[table_index]["lines"] == table["lines"]
+        with fitz.open(stream=region.pdf, filetype="pdf") as asset:
+            assert len(asset[0].get_drawings()) == 3
+            assert "Table 1." not in asset[0].get_text()
+            assert all(asset[0].get_text().count(f"R{r}C{c}") == 1
+                       for r in range(6) for c in range(3))
+
+
+    # Exercise the provider's actual publication path with the same grouped
+    # source view; disposable isolated PDFs still use real native extraction.
+    native_get_text = fitz.Page.get_text
+
+    def grouped_get_text(self, option="text", *args, **kwargs):
+        result = native_get_text(self, option, *args, **kwargs)
+        if option == "dict" and self.parent is not None and self.parent.name == str(path):
+            return {**result, "blocks": fused}
+        return result
+
+    monkeypatch.setattr(fitz.Page, "get_text", grouped_get_text)
+    layout = PyMuPDFProvider(HeuristicLayoutClassifier()).extract(str(path))
+    published = layout.pages[0].blocks
+    assert len({b.block_id.value for b in published}) == len(published)
+    captions = [b for b in published if b.logical_type.name == "CAPTION"]
+    tables = [b for b in published if b.logical_type.name == "TABLE_COMPLEX"]
+    assert len(captions) == len(tables) == 1
+    assert captions[0].block_id.value == f"p1_b{caption['number']}"
+    assert captions[0].metadata.provider is not None
+    assert captions[0].metadata.provider.native_block_index == caption["number"]
+    assert tables[0].metadata.provider is None
+    assert all("R0C0" not in b.content.original for b in published)

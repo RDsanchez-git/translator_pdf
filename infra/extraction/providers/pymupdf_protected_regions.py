@@ -184,17 +184,9 @@ def _row_cells(spans: Sequence[fitz.Rect]) -> list[list[tuple[float, float]]]:
     return result
 
 
-def _horizontal_rule_tables(
-    drawings: Sequence[Mapping[str, Any]], raw_blocks: Sequence[Mapping[str, Any]],
-) -> list[fitz.Rect]:
-    """Restricted evidence for scientific tables without vertical borders.
-
-    Coextensive horizontal rules delimit occupied text bands. Require
-    evidence of multiline structure and repeated independent column positions
-    across bands, with a separate adjacent Table caption. Never use whole-page
-    text table detection or a bounding hull of unrelated rules. The common
-    coverage and isolation checks still apply.
-    """
+def _horizontal_rule_groups(
+    drawings: Sequence[Mapping[str, Any]],
+) -> dict[tuple[float, float], list[tuple[fitz.Rect, float]]]:
     groups: dict[tuple[float, float], list[tuple[fitz.Rect, float]]] = {}
     for drawing in drawings:
         items = drawing.get("items", [])
@@ -207,6 +199,21 @@ def _horizontal_rule_tables(
         if not isfinite(width) or width <= 0:
             continue
         groups.setdefault((r.x0, r.x1), []).append((r, float(width)))
+    return groups
+
+
+def _horizontal_rule_tables(
+    drawings: Sequence[Mapping[str, Any]], raw_blocks: Sequence[Mapping[str, Any]],
+) -> list[fitz.Rect]:
+    """Restricted evidence for scientific tables without vertical borders.
+
+    Coextensive horizontal rules delimit occupied text bands. Require
+    evidence of multiline structure and repeated independent column positions
+    across bands, with a separate adjacent Table caption. Never use whole-page
+    text table detection or a bounding hull of unrelated rules. The common
+    coverage and isolation checks still apply.
+    """
+    groups = _horizontal_rule_groups(drawings)
     blocks = [_rect(b["bbox"]) for b in raw_blocks]
     candidates: list[fitz.Rect] = []
     for (left, right), rules in groups.items():
@@ -775,3 +782,95 @@ def prepare_protected_regions(
         pdf = _isolated_pdf(page, region, expected_text, len(indices), composed=composed)
         output.append(ProtectedRegion(kind, _box(region), inside, indices, insertion, caption, pdf))
     return tuple(output)
+
+
+def prepare_protected_page(
+    page: fitz.Page, raw_blocks: Sequence[dict[str, Any]], *, page_number: int,
+) -> tuple[list[dict[str, Any]], tuple[ProtectedRegion, ...]]:
+    """Separate a fused exterior table caption only with a complete witness.
+
+    The native block number is retained by its exterior caption. The interior
+    fragment must be consumed by the corresponding TABLE_COMPLEX asset and
+    must never become an independent native text block. All indices returned
+    by the producer refer to the returned block view, not the original list.
+    """
+    drawings = cast(list[dict[str, Any]], page.get_drawings())
+    groups = _horizontal_rule_groups(drawings)
+    bounds_list = []
+    for (left, right), rules in groups.items():
+        edges = sorted({r.y0 for r, _ in rules})
+        if len(edges) < 3 or len(edges) != len(rules):
+            continue
+        half_stroke = max(width for _, width in rules) / 2
+        bounds_list.append(fitz.Rect(left - half_stroke, edges[0],
+                                     right + half_stroke, edges[-1]))
+    blocks: list[dict[str, Any]] = []
+    splits: list[tuple[int, int]] = []
+    for block in raw_blocks:
+        original = _rect(block["bbox"])
+        lines = block.get("lines", [])
+        proposals: list[tuple[list[dict[str, Any]], list[dict[str, Any]], bool]] = []
+        if block.get("type") == 0 and len(lines) > 1:
+            for bounds in bounds_list:
+                if not _intersects(bounds, original) or _contains(bounds, original):
+                    continue
+                interior = []
+                exterior = []
+                for i, line in enumerate(lines):
+                    r = _rect(line["bbox"])
+                    if _contains(bounds, r):
+                        interior.append(i)
+                    elif (bounds.x0 <= r.x0 and r.x1 <= bounds.x1
+                          and (r.y1 <= bounds.y0 or r.y0 >= bounds.y1)):
+                        exterior.append(i)
+                if not interior or not exterior or len(interior) + len(exterior) != len(lines):
+                    continue
+                before = exterior == list(range(len(exterior)))
+                after = exterior == list(range(len(interior), len(lines)))
+                if not before and not after:
+                    continue
+                caption_lines = [lines[i] for i in exterior]
+                table_lines = [lines[i] for i in interior]
+                if not all((_rect(line["bbox"]).y1 <= bounds.y0 if before
+                            else _rect(line["bbox"]).y0 >= bounds.y1) for line in caption_lines):
+                    continue
+                if not re.match(r"^\s*Table\s+\d", _text({"lines": caption_lines}), re.I):
+                    continue
+                if any(re.match(r"^\s*(?:Fig(?:ure)?\.?|Table)\s+\d",
+                                _text({"lines": [line]}), re.I)
+                       for line in caption_lines[1:] + table_lines):
+                    continue
+                proposals.append((caption_lines, table_lines, before))
+        if len(proposals) > 1:
+            raise UnrepresentedPdfContentError("DF01_FUSED_CAPTION_AMBIGUOUS")
+        if not proposals:
+            blocks.append(block)
+            continue
+        if not isinstance(block.get("number"), int):
+            raise UnrepresentedPdfContentError("DF01_FUSED_CAPTION_NATIVE_ID_UNPROVEN")
+        caption_lines, table_lines, before = proposals[0]
+
+        def fragment(selected: list[dict[str, Any]]) -> dict[str, Any]:
+            rect = _rect(selected[0]["bbox"])
+            for line in selected[1:]:
+                rect |= _rect(line["bbox"])
+            return {**block, "bbox": _box(rect), "lines": selected}
+
+        caption = fragment(caption_lines)
+        table = fragment(table_lines)
+        start = len(blocks)
+        blocks.extend((caption, table) if before else (table, caption))
+        splits.append((start, start + 1) if before else (start + 1, start))
+
+    # A split shifts view indices. Never let a fallback list position become
+    # a different native identity for a later, otherwise unchanged block.
+    if splits and any(not isinstance(block.get("number"), int) for block in raw_blocks):
+        raise UnrepresentedPdfContentError("DF01_FUSED_CAPTION_NATIVE_ID_UNPROVEN")
+    regions = prepare_protected_regions(page, blocks, page_number=page_number)
+    for caption_index, table_index in splits:
+        if (sum(r.logical_type == LayoutBlockType.TABLE_COMPLEX
+                and table_index in r.covered_blocks and r.caption_block == caption_index
+                for r in regions) != 1
+                or any(caption_index in r.covered_blocks for r in regions)):
+            raise UnrepresentedPdfContentError("DF01_FUSED_CAPTION_OWNERSHIP_UNPROVEN")
+    return blocks, regions
