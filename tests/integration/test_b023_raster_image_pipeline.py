@@ -121,3 +121,49 @@ def test_vector_is_still_blocked_before_persisting_image(tmp_path, monkeypatch):
     with pytest.raises(LayoutRecoveryError, match="B02_UNREPRESENTED_VECTOR_DRAWING"):
         build_extraction_pipeline().parse(str(_pdf(tmp_path, vector=True)))
     assert not (tmp_path / "data" / "assets").exists()
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize("native_kind", ["raster", "math"])
+@pytest.mark.parametrize("bbox", [
+    None, (), (1, 2, 3), (1, 2, 3, 4, 5),
+    (1, 2, float("nan"), 4), (1, 2, 3, float("inf")),
+    (1, 2, 1, 4), (3, 2, 1, 4), (1, 4, 3, 2),
+    ("1", 2, 3, 4), (True, 2, 3, 4), (10**1000, 2, 3, 4),
+])
+def test_invalid_native_asset_bbox_rejected_before_materialization(tmp_path, monkeypatch, native_kind, bbox):
+    """Exercise both asset branches at the producer boundary, without PDF mutation."""
+    from types import SimpleNamespace
+    from core.layout.classification import HeuristicLayoutClassifier
+    from infra.extraction.providers import pymupdf_provider as module
+    from infra.extraction.providers.pymupdf_integrity import UnrepresentedPdfContentError
+
+    raw = ({"type": 1, "number": 0} if native_kind == "raster" else
+           {"type": 0, "number": 0, "lines": [{"spans": [{"font": "Symbol", "text": "a+b"}]}]})
+    if bbox is not None:
+        raw["bbox"] = bbox
+    page = SimpleNamespace(
+        rect=fitz.Rect(0, 0, 200, 200), rotation=0,
+        get_text=lambda mode: {"blocks": [raw]}, get_drawings=lambda: [],
+    )
+    provider = module.PyMuPDFProvider(HeuristicLayoutClassifier())
+    def forbidden(*args, **kwargs):
+        pytest.fail("Invalid geometry reached asset materialization")
+    monkeypatch.setattr(module.PyMuPDFProvider, "_image_block_to_png", staticmethod(forbidden))
+    monkeypatch.setattr(module, "render_math_visual_png", forbidden)
+    monkeypatch.setattr(module, "persist_png_asset", forbidden)
+    monkeypatch.setenv("APP_ROOT", str(tmp_path))
+    with pytest.raises(UnrepresentedPdfContentError, match="B02_INVALID_ASSET_BBOX"):
+        provider._build_page(page, page_number=1, total_pages=1)
+    assert not (tmp_path / "data").exists()
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize("coords", [(1, 2, 3, 4), [1.25, 2.5, 3.75, 4.0]])
+def test_native_asset_bbox_preserves_valid_coordinates(coords):
+    from infra.extraction.providers.pymupdf_provider import PyMuPDFProvider
+
+    result = PyMuPDFProvider._validated_asset_bbox({"bbox": coords}, page_number=1)
+    assert result == tuple(coords)
+    assert type(result) is tuple
+    assert all(type(value) is float for value in result)

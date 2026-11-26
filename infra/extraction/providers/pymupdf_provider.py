@@ -1,6 +1,7 @@
 import os
 import re
 from pathlib import Path
+from math import isfinite
 from dataclasses import dataclass
 from typing import cast, Any, List, Dict, Tuple, Optional
 from collections import defaultdict
@@ -164,6 +165,7 @@ class PyMuPDFProvider(ExtractionProvider):
             if block_index in covered_blocks:
                 continue
             if raw_b.get("type") == 1:
+                asset_bbox = self._validated_asset_bbox(raw_b, page_number=page_number)
                 png = self._image_block_to_png(raw_b, page_number=page_number)
                 reference = persist_png_asset(
                     png, source_root=Path(os.getenv("APP_ROOT") or ".")
@@ -171,7 +173,7 @@ class PyMuPDFProvider(ExtractionProvider):
                 phys = _PhysicalBlock(
                     native_index=int(raw_b.get("number", block_index)),
                     raw_text=reference,
-                    bbox=tuple(raw_b.get("bbox", ())),
+                    bbox=asset_bbox,
                     lines=[], rotation=rotation, native_type=1,
                 )
             else:
@@ -187,6 +189,7 @@ class PyMuPDFProvider(ExtractionProvider):
                         raise UnrepresentedPdfContentError(
                             f"B025_MATH_VISUAL_DISABLED: page={page_number}"
                         )
+                    asset_bbox = self._validated_asset_bbox(raw_b, page_number=page_number)
                     png = render_math_visual_png(page, raw_b, page_number=page_number)
                     reference = persist_png_asset(
                         png, source_root=Path(os.getenv("APP_ROOT") or ".")
@@ -194,7 +197,7 @@ class PyMuPDFProvider(ExtractionProvider):
                     phys = _PhysicalBlock(
                         native_index=int(raw_b.get("number", block_index)),
                         raw_text=reference,
-                        bbox=tuple(raw_b.get("bbox", ())),
+                        bbox=asset_bbox,
                         lines=[], rotation=rotation, native_type=1,
                     )
                 else:
@@ -255,6 +258,25 @@ class PyMuPDFProvider(ExtractionProvider):
             dimensions=dimensions,
             blocks=blocks,
         )
+
+    @staticmethod
+    def _validated_asset_bbox(
+        raw_block: dict, *, page_number: int,
+    ) -> tuple[float, float, float, float]:
+        """Validate the native asset rectangle before publishing its bytes."""
+        coords = raw_block.get("bbox")
+        reason = f"B02_INVALID_ASSET_BBOX: page={page_number}"
+        if not isinstance(coords, (tuple, list)) or len(coords) != 4:
+            raise UnrepresentedPdfContentError(reason)
+        if any(type(value) not in (int, float) for value in coords):
+            raise UnrepresentedPdfContentError(reason)
+        try:
+            x0, y0, x1, y1 = (float(value) for value in coords)
+        except (TypeError, ValueError, OverflowError) as exc:
+            raise UnrepresentedPdfContentError(reason) from exc
+        if not all(isfinite(value) for value in (x0, y0, x1, y1)) or x1 <= x0 or y1 <= y0:
+            raise UnrepresentedPdfContentError(reason)
+        return x0, y0, x1, y1
 
     @staticmethod
     def _image_block_to_png(raw_block: dict, *, page_number: int) -> bytes:
