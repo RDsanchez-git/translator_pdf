@@ -202,3 +202,71 @@ def test_df01_three_rule_table_requires_complete_evidence(tmp_path, monkeypatch,
     with pytest.raises(LayoutRecoveryError, match="B02_UNREPRESENTED_VECTOR_DRAWING"):
         PyMuPDFProvider(HeuristicLayoutClassifier()).extract(str(_three_rule_source(tmp_path, defect=defect)))
     assert not (tmp_path / "data/assets").exists()
+
+
+def _form_source(tmp_path, *, defect=None):
+    path = tmp_path / "composed.pdf"
+    with fitz.open() as figure, fitz.open() as doc:
+        if defect == "clipped_form":
+            source = figure.new_page(width=400, height=400)
+            source.insert_text((20, 30), "HIDDEN EXTERIOR")
+        else:
+            source = figure.new_page(width=200, height=100)
+        source.draw_rect(fitz.Rect(10, 10, 190, 90))
+        source.draw_line((20, 80), (180, 20))
+        source.insert_text((60, 50), "INTERNAL")
+        page = doc.new_page(width=400, height=400)
+        page.insert_text((40, 60), "BEFORE")
+        page.show_pdf_page(
+            fitz.Rect(100, 120, 300, 220), figure, 0,
+            clip=fitz.Rect(0, 0, 200, 100),
+        )
+        page.insert_text((100, 260), "Figure 1. caption" if defect != "caption" else "Other text")
+        page.insert_text((40, 330), "AFTER")
+        if defect == "orphan":
+            page.draw_line((30, 350), (80, 350))
+        doc.save(str(path))
+    return path
+
+
+@pytest.mark.integration
+def test_df01_complete_form_composition_is_preserved(tmp_path, monkeypatch):
+    from apps.bootstrap.pipeline_factory import build_extraction_pipeline
+
+    monkeypatch.setenv("APP_ROOT", str(tmp_path))
+    path = _form_source(tmp_path)
+    ast = build_extraction_pipeline().parse(str(path))
+    figures = [n for n in ast if n.node_type == ContentNodeType.IMAGE]
+    assert len(figures) == 1
+    node = figures[0]
+    assert isinstance(node.payload, ImagePayload)
+    assert node.strategy == TranslationStrategy.PASSTHROUGH
+    assert node.payload.asset_path is not None
+    assert all("INTERNAL" not in n.text_content for n in ast)
+    assert len([n for n in ast if n.node_type == ContentNodeType.CAPTION]) == 1
+    with fitz.open(tmp_path / node.payload.asset_path) as asset, fitz.open(path) as original:
+        page = asset[0]
+        assert len(page.get_xobjects()) == 2
+        assert len(page.get_drawings()) == 2
+        assert not page.get_image_info()
+        assert page.get_text().strip() == "INTERNAL"
+        box = node.metadata.physical_regions[0].bbox
+        assert box is not None
+        rect = fitz.Rect(box.x0, box.y0, box.x1, box.y1)
+        for scale in (1, 2):
+            matrix = fitz.Matrix(scale, scale)
+            assert page.get_pixmap(matrix=matrix).samples == original[0].get_pixmap(clip=rect, matrix=matrix).samples
+        streams = b"\n".join(asset.xref_stream(x) or b"" for x in range(1, asset.xref_length())
+                             if asset.xref_is_stream(x)).lower()
+        for token in (b"BEFORE", b"AFTER", b"Figure 1. caption"):
+            assert token.lower() not in streams
+            assert token.hex().encode() not in streams
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize("defect", ["clipped_form", "caption", "orphan"])
+def test_df01_unproven_form_composition_rejected(tmp_path, monkeypatch, defect):
+    monkeypatch.setenv("APP_ROOT", str(tmp_path))
+    with pytest.raises(LayoutRecoveryError):
+        PyMuPDFProvider(HeuristicLayoutClassifier()).extract(str(_form_source(tmp_path, defect=defect)))
+    assert not (tmp_path / "data/assets").exists()

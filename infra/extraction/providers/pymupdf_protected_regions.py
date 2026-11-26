@@ -1,6 +1,6 @@
 """DF-01: conservative producer for complete, positively identified PDF regions.
 
-Only direct, non-rotated page content is admitted by this initial producer.
+Non-rotated pages with proven direct or bounded composed vector content are admitted.
 Rectangular merged-cell tables, three-rule multiline-header tables and framed,
 captioned figures have distinct
 evidence. A drawing cluster alone never confers semantic authority.
@@ -9,6 +9,7 @@ No clipping-only asset, rasterization, or implicit omission.
 
 from __future__ import annotations
 
+from collections import Counter
 from dataclasses import dataclass
 from math import ceil, floor, isfinite
 import re
@@ -259,19 +260,109 @@ def _marks(page: fitz.Page) -> list[tuple[str, fitz.Rect]]:
     return [(str(kind), _rect(bounds)) for kind, bounds in page.get_bboxlog()]
 
 
+def _clip_bounds(entry: Mapping[str, Any]) -> fitz.Rect:
+    """Bound the actual clip path, not its already-intersected scissor."""
+    coords: list[tuple[float, float]] = []
+    for item in entry.get("items", []):
+        if item[0] == "re" and len(item) == 3:
+            box = _rect(item[1])
+            coords.extend(((box.x0, box.y0), (box.x1, box.y1)))
+        elif item[0] in ("l", "c"):
+            for point in item[1:]:
+                coords.append((float(point.x), float(point.y)))
+        elif item[0] == "qu" and len(item) == 2:
+            box = _rect(item[1].rect)
+            coords.extend(((box.x0, box.y0), (box.x1, box.y1)))
+        else:
+            raise UnrepresentedPdfContentError("DF01_UNSUPPORTED_CLIP_PATH")
+    if not coords:
+        raise UnrepresentedPdfContentError("DF01_EMPTY_CLIP_PATH")
+    return _rect((min(p[0] for p in coords), min(p[1] for p in coords),
+                  max(p[0] for p in coords), max(p[1] for p in coords)))
+
+
+def _composition(
+    page: fitz.Page,
+) -> tuple[list[fitz.Rect], list[dict[str, Any]]]:
+    """Observe actual graphic scopes and ordered operators in page coordinates.
+
+    Ignore only MuPDF's neutral page-sized transparency wrapper, which may
+    appear when a page is copied. Never use effective clip intersection as
+    evidence that an underlying, larger Form is itself fully represented.
+    """
+    entries = cast(list[dict[str, Any]], page.get_drawings(extended=True))
+    offset = 0
+    if entries:
+        root = entries[0]
+        if (root.get("type") == "group" and root.get("level") == 0
+                and not root.get("layer") and root.get("rect") == page.rect
+                and root.get("isolated") is True and root.get("knockout") is False
+                and root.get("blendmode") == "Normal" and root.get("opacity") == 1.0):
+            entries = entries[1:]
+            offset = 1
+    scopes: list[fitz.Rect] = []
+    signature: list[dict[str, Any]] = []
+    for entry in entries:
+        kind = entry.get("type")
+        level = entry.get("level", 0)
+        if (kind not in ("clip", "group", "s", "f", "fs")
+                or not isinstance(level, int) or level < offset or entry.get("layer")):
+            raise UnrepresentedPdfContentError("DF01_UNSUPPORTED_GRAPHIC_COMPOSITION")
+        if kind == "clip":
+            bounds = _clip_bounds(entry)
+            scissor = _rect(entry["scissor"])
+            if bounds.is_empty or not _contains(bounds, scissor):
+                raise UnrepresentedPdfContentError("DF01_CLIP_GEOMETRY_UNPROVEN")
+            scopes.append(bounds)
+        elif kind == "group":
+            bounds = _rect(entry["rect"])
+            if bounds.is_empty:
+                raise UnrepresentedPdfContentError("DF01_GROUP_GEOMETRY_UNPROVEN")
+            scopes.append(bounds)
+        # seqno is page-local and shifts when exterior text is removed.
+        signature.append({**{k: v for k, v in entry.items() if k != "seqno"},
+                          "level": level - offset})
+    return scopes, signature
+
+
+def _form_inventory(page: fitz.Page) -> Counter[tuple[bool, _Box]]:
+    """Restrict reusable resources to local Form XObjects.
+
+    This is supplementary inventory evidence, not an invocation geometry
+    proof: actual scopes and observed paint operations supply that proof.
+    """
+    source = page.parent
+    if source is None:
+        raise UnrepresentedPdfContentError("DF01_SOURCE_PAGE_DETACHED")
+    result: Counter[tuple[bool, _Box]] = Counter()
+    for xref, _, parent, bounds in page.get_xobjects():
+        if source.xref_get_key(xref, "Subtype") != ("name", "/Form"):
+            raise UnrepresentedPdfContentError("DF01_UNSUPPORTED_XOBJECT")
+        for key in ("Ref", "F", "OPI", "OC", "Metadata", "PieceInfo"):
+            if source.xref_get_key(xref, key)[0] != "null":
+                raise UnrepresentedPdfContentError("DF01_UNSUPPORTED_FORM_RESOURCE")
+        result[(parent == 0, _box(_rect(bounds)))] += 1
+    return result
+
+
 def _isolated_pdf(
     page: fitz.Page, region: fitz.Rect, expected_text: str, expected_drawings: int,
+    *, composed: bool = False,
 ) -> bytes:
     """Remove exterior marks on a disposable copy and inspect it *before* crop.
 
-    This is a restricted direct-content profile, not a general PDF sanitizer.
-    Form XObjects, optional content, clipping/groups and embedded resources
-    outside this profile must not enter it.
+    Bounded compositions must survive as complete operator scopes and local
+    Forms. The direct profile remains unchanged. Neither profile constitutes
+    a general PDF sanitizer or authorization for external disclosure.
     """
     source = page.parent
     page_index = page.number
     if source is None or not isinstance(page_index, int):
         raise UnrepresentedPdfContentError("DF01_SOURCE_PAGE_DETACHED")
+    source_signature = _composition(page)[1] if composed else []
+    forms = _form_inventory(page) if composed else Counter()
+    expected_marks = [(kind, _box(r)) for kind, r in _marks(page)
+                      if _contains(region, r)] if composed else []
     with fitz.open() as isolated:
         isolated.insert_pdf(source, from_page=page_index, to_page=page_index,
                             links=False, annots=False, widgets=False)
@@ -292,8 +383,15 @@ def _isolated_pdf(
         copied.clean_contents(sanitize=True)
         if any(not _contains(region, r) for _, r in _marks(copied)):
             raise UnrepresentedPdfContentError("DF01_EXTERIOR_MARK_RETAINED")
-        if copied.get_xobjects() or copied.get_images(full=True):
+        if copied.get_images(full=True) or (not composed and copied.get_xobjects()):
             raise UnrepresentedPdfContentError("DF01_UNSUPPORTED_ISOLATED_RESOURCES")
+        if composed:
+            if _form_inventory(copied) != forms:
+                raise UnrepresentedPdfContentError("DF01_FORM_INVENTORY_DRIFT")
+            if _composition(copied)[1] != source_signature:
+                raise UnrepresentedPdfContentError("DF01_COMPOSITION_OPERATOR_DRIFT")
+            if [(kind, _box(r)) for kind, r in _marks(copied)] != expected_marks:
+                raise UnrepresentedPdfContentError("DF01_COMPOSITION_PAINT_DRIFT")
         copied_dict = cast(dict[str, Any], copied.get_text("dict"))
         actual = "\n".join(
             _text(b) for b in copied_dict["blocks"] if b.get("type") == 0
@@ -310,6 +408,8 @@ def _isolated_pdf(
         if len(verified) != 1 or verified.embfile_count():
             raise UnrepresentedPdfContentError("DF01_ASSET_STRUCTURE_DRIFT")
         result = verified[0]
+        if composed and len(result.get_xobjects()) != sum(forms.values()):
+            raise UnrepresentedPdfContentError("DF01_SERIALIZED_FORM_INVENTORY_DRIFT")
         if len(result.get_drawings()) != before_crop_drawings or result.get_image_info():
             raise UnrepresentedPdfContentError("DF01_ASSET_VECTOR_DRIFT")
         if result.rect.width != region.width or result.rect.height != region.height:
@@ -339,11 +439,15 @@ def prepare_protected_regions(
 
     source = page.parent
     if (source is None or page.rotation or page.cropbox != page.mediabox
-            or page.get_xobjects() or source.get_ocgs() or source.embfile_count()
+            or source.get_ocgs() or source.embfile_count()
             or page.first_annot is not None or page.first_widget is not None):
         raise reject("UNSUPPORTED_PAGE_RESOURCES")
-    if any(d.get("type") not in ("s", "f", "fs") or d.get("level", 0) != 0 or d.get("layer")
-           for d in page.get_drawings(extended=True)):
+    scopes, signature = _composition(page)
+    forms = _form_inventory(page)
+    composed = bool(scopes or forms)
+    if forms and not scopes:
+        raise reject("FORM_SCOPE_UNPROVEN")
+    if not composed and any(d["level"] != 0 for d in signature):
         raise reject("UNSUPPORTED_GRAPHIC_COMPOSITION")
     marks = _marks(page)
     if any(kind not in ("fill-text", "stroke-text", "fill-path", "stroke-path", "fill-image")
@@ -377,6 +481,22 @@ def prepare_protected_regions(
                 or sum(_contains(bounds, r) for r in rects) < 2):
             continue
         candidates.append((LayoutBlockType.IMAGE, bounds))
+
+    if composed:
+        # A complete outer graphic scope may delimit a figure without a
+        # drawn frame. It still requires a distinct caption and all other
+        # semantic checks. Never collapse overlapping unrelated scopes.
+        outer_scopes = [r for r in scopes if r != page.rect
+                        and not any(s != r and _contains(s, r) for s in scopes)]
+        for bounds in outer_scopes:
+            if any(_intersects(bounds, b) for b in table_bounds):
+                continue
+            if sum(_contains(bounds, r) for r in rects) < 2:
+                continue
+            # Prefer the whole scope over an internal figure frame.
+            candidates = [(kind, b) for kind, b in candidates
+                          if kind != LayoutBlockType.IMAGE or not _contains(bounds, b)]
+            candidates.append((LayoutBlockType.IMAGE, bounds))
 
     pending: list[tuple[LayoutBlockType, fitz.Rect, tuple[int, ...], tuple[int, ...], int, int | None]] = []
     covered: set[int] = set()
@@ -451,9 +571,14 @@ def prepare_protected_regions(
         for kind, extent in marks if kind in ("fill-path", "stroke-path")
     ):
         raise reject()
+    if composed:
+        # Initial admission is one complete composition, never partition a
+        # shared graphics state or a reusable Form across separate assets.
+        if len(pending) != 1 or any(not _contains(pending[0][1], r) for r in scopes):
+            raise reject("COMPOSITION_SCOPE_UNPROVEN")
     output: list[ProtectedRegion] = []
     for kind, region, inside, indices, insertion, caption in sorted(pending, key=lambda p: p[4]):
         expected_text = "\n".join(_text(raw_blocks[i]) for i in inside)
-        pdf = _isolated_pdf(page, region, expected_text, len(indices))
+        pdf = _isolated_pdf(page, region, expected_text, len(indices), composed=composed)
         output.append(ProtectedRegion(kind, _box(region), inside, indices, insertion, caption, pdf))
     return tuple(output)
