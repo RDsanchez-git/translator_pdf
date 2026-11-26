@@ -499,3 +499,27 @@ La lista es finita y deliberadamente provisional; elegir páginas exactas, unida
 La revisión de metadata confirma que `.github/workflows/ci.yml` sólo enumera `main`, `pipeline_stabilization` y `pdf-pdf-product-readiness` para pull_request, y la rama general nueva figura no protegida. Se registra la limitación administrativa sin alterar workflow ni reglas; un PR documental a esta rama no hereda automáticamente una CI SUCCESS. Resolver mediante decisión específica antes de integrar incrementos que requieran esa cobertura. No retargetear artificialmente a main para provocar CI.
 
 Próximo checkpoint: recibir inventario de sólo lectura y decisiones de presupuesto/casos; completar matriz final y presentar aprovisionamiento acotado para aprobación explícita. No extender la búsqueda a otros cientos de repositorios. No crear ADR/NADR/Execution Plan ni implementar adaptadores. En este incremento no hubo descargas de pesos/binarios, instalaciones, ejecuciones de candidatos, inferencias, egress de corpus, gastos, limpieza, migración, modificaciones productivas ni merge. Sólo documentación de investigación en rama temática para revisión.
+
+
+### 12.6. R0 — Inventario efectivo del host: actualización aportada por el owner (2026-11-26)
+
+Evidencia: salida de consultas PowerShell de sólo lectura facilitada por el owner, con venv activo. Se registran agregados y versiones, no rutas personales. Esta observación actualiza los valores históricos de §2.2/§12.3 sin modificar el informe aprobado ni convertir un snapshot en garantía de recursos bajo carga.
+
+| Recurso | Observación |
+| --- | --- |
+| Windows | Microsoft Windows 10 Home, 10.0.19045, build 19045, 64 bits. |
+| CPU | i5-10500H, 6c/12t según inventario previo; no se hizo nueva prueba de ISA/rendimiento. |
+| RAM visible | 33.371.924 KiB = 31,83 GiB. |
+| RAM física libre reportada | 15.218.100 KiB = 14,51 GiB (45,60% de la visible). No es medición de memoria pico de un candidato ni de commit del SO. |
+| Disco C: | 433.852.661.760 bytes usados; 41.395.531.776 bytes libres = 41,40 GB / 38,55 GiB. |
+| GPU | NVIDIA GeForce GTX 1650 with Max-Q Design; driver 610.88; total 4096 MiB, usada 0 MiB, libre reportada 3935 MiB; 56 °C, utilización 0%. No inferir que los 161 MiB restantes estén disponibles ni que la temperatura bajo carga sea adecuada. |
+| Python | 3.11.9 en entorno activo. |
+| uv | No localizado por PowerShell. |
+| WSL | Predeterminada Ubuntu-20.04, versión 2; Ubuntu-20.04 y docker-desktop figuraban Running, WSL2. No se inventariaron dependencias Linux ni RAM atribuible a WSL. |
+| Herramientas | Get-Command sólo devolvió docker.exe (Version 0.0.0.0 del ejecutable no acredita versión del producto/daemon); llama-cli, llama-server, ollama y tectonic no localizados por esa consulta. Ausencia en PATH no demuestra ausencia en disco. |
+
+Presupuesto provisional recalculado, pendiente ratificación: reserva de disco 10 GiB deja 30.658.113.536 bytes (30,66 GB / 28,55 GiB) para pico incremental total; reserva de RAM de 4 GiB sobre el snapshot deja 10,51 GiB de memoria física libre para el árbol de procesos del ensayo. No equivale a límite medido de memoria comprometida ni permiso de usar pagefile para suplir RAM. No sumar VRAM como RAM intercambiable. Los pesos Q8 de T1 (~7,98 GB = 7,43 GiB), T2 (~9,79 GB = 9,12 GiB) y T3 comunitario (~12,5 GB = 11,64 GiB) no incluyen KV cache, buffers ni runtime. Con este snapshot T3 excede incluso el margen de RAM provisional en pesos si fueran completamente residentes en CPU; T1/T2 dejan poco margen, especialmente T2. Esto no demuestra inviabilidad definitiva: medir tras liberar aplicaciones no esenciales de forma voluntaria, sin migrar, borrar ni detener servicios por inferencia. No cambiar quant ni candidatos por anticipado.
+
+Disposición: priorizar ruta Windows nativa documentada y compatible; WSL2 existente es alternativa si una dependencia concreta lo requiere, no una nueva instalación autorizada. Ubuntu 20.04 y Docker Desktop en ejecución son una posible fuente de consumo concurrente aún no atribuido. No usar docker prune ni wsl --shutdown como parte de este inventario. Registrar memoria disponible/commit antes de cada ensayo y, si interesa recuperar margen, comparar snapshots con aplicaciones no necesarias cerradas por el owner de forma segura. No se ejecutaron candidatos.
+
+Pendientes de R0: una consulta focal de memoria disponible/comprometida y límite de commit, confirmar CPU ISA/backend y versión/binario seleccionado en el manifiesto de aprovisionamiento, presupuesto de tiempo para artículo de 20 páginas y libro de 300 páginas, aceptación explícita de reservas RAM/disco, selección de casos/referencias y permisos. Inventario de Docker sólo si recuperar espacio resulta necesario y se autoriza; no incluir los 17 GB potenciales como espacio disponible. Temperatura sostenida, latencia y pico de RAM/VRAM permanecen NOT_RUN. Estado R0 IN_PROGRESS; no se autoriza R1/R2, instalación, descarga, ejecución de modelos, limpieza, gasto, egress de corpus, cambios de código ni merge. Se mantiene PR97 Draft para revisión.
