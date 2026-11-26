@@ -171,10 +171,17 @@ class AdaptiveFloatStrategy(RenderStrategy):
         if unit.asset is None:
             raise ValueError("B02_G5_IMAGE_ASSET_REFERENCE_MISSING")
         name = canonical_image_name(unit.asset)
-        # A protected PDF region uses its accredited crop box, not the
-        # surrounding source media box. PNG rendering remains unchanged.
-        crop_option = ",pagebox=cropbox" if unit.asset.mime_type == "application/pdf" else ""
-        graphic = f"\\includegraphics[width=\\linewidth,keepaspectratio{crop_option}]{{assets/{name}}}"
+        # PNG rendering retains its historical width policy. For a PDF
+        # region, use its natural crop-box size and scale down only when the
+        # available width is smaller. Never enlarge a short editorial rule.
+        if unit.asset.mime_type == "application/pdf":
+            graphic = (
+                rf"\begingroup\sbox{{0}}{{\includegraphics[pagebox=cropbox]{{assets/{name}}}}}"
+                r"\ifdim\wd0>\linewidth\resizebox{\linewidth}{!}{\usebox{0}}"
+                r"\else\usebox{0}\fi\endgroup"
+            )
+        else:
+            graphic = f"\\includegraphics[width=\\linewidth,keepaspectratio]{{assets/{name}}}"
         threshold = self._config.float_span_threshold
         if not isfinite(threshold) or not 0 < threshold < 1:
             raise ValueError("PPPR_G4_INVALID_FLOAT_SPAN_THRESHOLD")

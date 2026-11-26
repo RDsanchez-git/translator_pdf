@@ -375,3 +375,49 @@ def test_df01_vector_region_survives_real_g5_compilation(
         assert any(d["rect"].height > 0 and
                    d["rect"].width / d["rect"].height == pytest.approx(1.4, rel=.02)
                    for d in drawings)
+
+
+def test_df01_pdf_natural_size_is_preserved_and_oversize_is_bounded(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, require_physical_compiler,
+) -> None:
+    """Physical G5 witness: no enlargement, proportional shrink, no rasterization."""
+    from core.compiler.rendering.models import AssetReference, RenderGeometry
+
+    monkeypatch.setenv("APP_ROOT", str(tmp_path))
+    assets = []
+    for page_width, line_width, stroke, crop in (
+        (400, 60, .25, (35, 390, 105, 400)),
+        (900, 880, .5, (0, 0, 900, 500)),
+    ):
+        with fitz.open() as source:
+            page = source.new_page(width=page_width, height=500)
+            x, y = (40, 395) if page_width == 400 else (10, 50)
+            page.draw_line((x, y), (x + line_width, y), width=stroke)
+            page.set_cropbox(fitz.Rect(crop))
+            data = source.tobytes(garbage=4, deflate=True)
+        ref = "data/assets/" + sha256(data).hexdigest() + ".pdf"
+        target = tmp_path / ref
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(data)
+        assets.append(AssetReference(path=ref, mime_type="application/pdf"))
+    units = [
+        RenderUnit("rule", ContentNodeType.IMAGE, assets[0].path,
+                   geometry=RenderGeometry(.0875, .78, .175, .02, 1), asset=assets[0]),
+        RenderUnit("wide", ContentNodeType.IMAGE, assets[1].path,
+                   geometry=RenderGeometry(0, 0, 1, 1, 1), asset=assets[1]),
+    ]
+    profile = InferredDocumentProfile(layout=PageLayout.SINGLE_COLUMN, document_type=None)
+    tex = TexBuilder(RenderContextFactory.create(profile)).build(units)
+    result = HostTectonicRunner().compile(
+        tex, output_dir=str(tmp_path), image_assets=tuple(assets),
+    )
+    with fitz.open(result) as compiled:
+        assert not any(page.get_image_info() for page in compiled)
+        lines = [(page.rect.width, d) for page in compiled for d in page.get_drawings()
+                 if d["type"] == "s" and d["rect"].width > 0 and d["rect"].height < .1]
+        assert len(lines) == 2
+        small, large = sorted(lines, key=lambda pair: pair[1]["rect"].width)
+        assert small[1]["rect"].width == pytest.approx(60, abs=.1)
+        assert small[1]["width"] == pytest.approx(.25, abs=.01)
+        assert 60 < large[1]["rect"].width < large[0]
+        assert large[1]["width"] == pytest.approx(.5 * large[1]["rect"].width / 880, abs=.02)
