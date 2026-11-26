@@ -69,6 +69,11 @@ class GroqHarmonyInputBound:
             raise ValueError("PPPR_G6_HARMONY_FRAMING_EVIDENCE_REQUIRED")
 
     def estimate_tokens(self, text: str) -> int:
+        return self.measure_message_bytes(text) + self.framing_token_ceiling
+
+    @staticmethod
+    def measure_message_bytes(text: str) -> int:
+        """Shared wire inspection; this observation alone grants no authority."""
         # This estimator is a wire-contract adapter, not a generic text
         # tokenizer. Reject any additional features rather than undercount.
         try:
@@ -100,7 +105,7 @@ class GroqHarmonyInputBound:
                 raise ValueError("noncanonical request")
         except (ValueError, TypeError, KeyError, RecursionError) as exc:
             raise ValueError("PPPR_G6_HARMONY_WIRE_UNSUPPORTED") from exc
-        return content_bytes + self.framing_token_ceiling
+        return content_bytes
 
 
 @dataclass(frozen=True, slots=True)

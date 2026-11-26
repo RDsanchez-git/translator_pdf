@@ -1590,3 +1590,65 @@ def test_pppr_effective_budget_refines_new_manifest_without_provider(indivisible
         )
         _, count, reserve = policy.measure_request(built.envelope)
         assert count + reserve <= 8000
+
+
+@pytest.mark.integration
+def test_pppr_budget_preview_uses_real_request_without_admission(monkeypatch):
+    from dataclasses import asdict
+    from apps.lab.pppr_g6_budget_preview import preview_product_budget
+    from core.chunking.contextual_plan import prepare_contextual_plan
+
+    nodes = [
+        ASTNode(node_id=f"preview-{i}", sequence_id=i, node_type=ContentNodeType.PARAGRAPH,
+                payload=ParagraphPayload(content=("scientific text " * 45).strip()))
+        for i in range(1, 5)
+    ]
+    nodes.append(ASTNode(node_id="math", sequence_id=5, node_type=ContentNodeType.DISPLAY_EQUATION,
+                         strategy=TranslationStrategy.PASSTHROUGH, payload=MathPayload(content="E=mc^2")))
+    estimator = _Estimator()
+    prepared = prepare_contextual_plan(document_id="d"*64, raw_ast=nodes, estimator=estimator)
+    plan = prepared.plan
+    original = plan.to_json()
+    monkeypatch.setattr(G3PreEffectAdmission, "verify",
+                        lambda *a, **kw: pytest.fail("preview attempted admission"))
+    baseline = preview_product_budget(plan, prepared.ast, estimator)
+    assert baseline.status == "OFFLINE_CONDITIONAL_SIZING_ONLY"
+    assert baseline.max_common_framing_tokens is not None
+    assert baseline.max_common_framing_tokens > 0
+    assert baseline.preserve_units == 1
+    assert baseline.max_common_framing_tokens == min(
+        8000 - row.message_bytes - row.reserved_output_tokens for row in baseline.requests
+    )
+    assert baseline.candidate_units == len(baseline.requests) + baseline.preserve_units
+    # One token above the measured headroom forces further refinement.
+    scenario = baseline.max_common_framing_tokens + 1
+    refined = preview_product_budget(plan, prepared.ast, estimator, framing_scenario=scenario)
+    assert refined.candidate_units > baseline.candidate_units
+    assert refined.max_common_framing_tokens >= scenario
+    assert refined.preserve_units == baseline.preserve_units
+    assert plan.to_json() == original
+    assert preview_product_budget(plan, prepared.ast, estimator, framing_scenario=scenario) == refined
+    assert "scientific text" not in json.dumps(asdict(refined))
+    assert "E=mc^2" not in json.dumps(asdict(refined))
+    with pytest.raises(ValueError, match="G3_EFFECTIVE_BUDGET_INDIVISIBLE_UNIT"):
+        preview_product_budget(plan, prepared.ast, estimator, framing_scenario=7999)
+    assert plan.to_json() == original
+
+
+@pytest.mark.integration
+def test_pppr_budget_preview_preserve_only_has_no_framing_requirement():
+    from apps.lab.pppr_g6_budget_preview import preview_product_budget
+    from core.chunking.contextual_plan import prepare_contextual_plan
+
+    ast = [ASTNode(node_id="math", sequence_id=1, node_type=ContentNodeType.DISPLAY_EQUATION,
+                   strategy=TranslationStrategy.PASSTHROUGH, payload=MathPayload(content="E=mc^2"))]
+    estimator = _Estimator()
+    prepared = prepare_contextual_plan(document_id="d"*64, raw_ast=ast, estimator=estimator)
+    observed = preview_product_budget(prepared.plan, prepared.ast, estimator)
+    assert observed.requests == ()
+    assert observed.max_common_framing_tokens is None
+    assert observed.preserve_units == 1
+    assert observed.original_manifest_sha256 == observed.candidate_manifest_sha256
+    for invalid in (-1, True, 8000):
+        with pytest.raises(ValueError, match="PREVIEW_SCENARIO_INVALID"):
+            preview_product_budget(prepared.plan, prepared.ast, estimator, framing_scenario=invalid)
