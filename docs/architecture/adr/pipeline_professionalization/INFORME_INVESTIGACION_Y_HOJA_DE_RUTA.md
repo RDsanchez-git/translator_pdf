@@ -523,3 +523,26 @@ Presupuesto provisional recalculado, pendiente ratificación: reserva de disco 1
 Disposición: priorizar ruta Windows nativa documentada y compatible; WSL2 existente es alternativa si una dependencia concreta lo requiere, no una nueva instalación autorizada. Ubuntu 20.04 y Docker Desktop en ejecución son una posible fuente de consumo concurrente aún no atribuido. No usar docker prune ni wsl --shutdown como parte de este inventario. Registrar memoria disponible/commit antes de cada ensayo y, si interesa recuperar margen, comparar snapshots con aplicaciones no necesarias cerradas por el owner de forma segura. No se ejecutaron candidatos.
 
 Pendientes de R0: una consulta focal de memoria disponible/comprometida y límite de commit, confirmar CPU ISA/backend y versión/binario seleccionado en el manifiesto de aprovisionamiento, presupuesto de tiempo para artículo de 20 páginas y libro de 300 páginas, aceptación explícita de reservas RAM/disco, selección de casos/referencias y permisos. Inventario de Docker sólo si recuperar espacio resulta necesario y se autoriza; no incluir los 17 GB potenciales como espacio disponible. Temperatura sostenida, latencia y pico de RAM/VRAM permanecen NOT_RUN. Estado R0 IN_PROGRESS; no se autoriza R1/R2, instalación, descarga, ejecución de modelos, limpieza, gasto, egress de corpus, cambios de código ni merge. Se mantiene PR97 Draft para revisión.
+
+
+### 12.7. R0 — Memoria comprometida y prioridad de calidad ratificada por el owner (2026-11-26)
+
+El owner completó la consulta de sólo lectura `Win32_PerfFormattedData_PerfOS_Memory` y manifestó: «Si, estaría dispuesto a esperar horas por un libro de digamos 500 paginas pero que sea la traducción excelente calidad científica.» Se registra esta preferencia explícita, sin convertirla en un máximo de horas aprobado ni en garantía de calidad de un motor.
+
+| Parámetro | Observación aportada por el owner |
+| --- | --- |
+| AvailableMBytes | 13953 MiB = 13,63 GiB de memoria física disponible. |
+| CommittedBytes | 23.249.616.896 bytes = 21,65 GiB. |
+| CommitLimit | 39.273.123.840 bytes = 36,58 GiB. |
+| PercentCommittedBytesInUse | 59 % reportado. |
+| Margen de compromiso calculado | 16.023.506.944 bytes = 14,92 GiB; no equivale a RAM física libre. |
+| Margen físico provisional | 9,63 GiB si se acepta la reserva propuesta de 4 GiB. |
+| Margen de disco provisional | 28,55 GiB según §12.6 si se acepta la reserva de 10 GiB. |
+
+La consulta de commit pendiente de §12.6 queda satisfecha como snapshot. La diferencia respecto de FreePhysicalMemory de la consulta anterior no constituye por sí sola una fuga ni una medida de consumo de WSL. No se presume memoria intercambiable entre RAM, VRAM y pagefile. Inventario general suficiente para avanzar en preparación documental; antes de cada ensayo verificar disponibilidad y commit actual, y medir consumo de árbol de procesos bajo carga sólo con autorización.
+
+**Decisión del owner:** priorizar calidad científica frente a velocidad; acepta procesamiento de varias horas para un libro de aproximadamente 500 páginas, con excelente calidad como objetivo. El ejemplo de 300 páginas de §12.6 queda actualizado a 500 para la discusión de utilidad personal. No se ha definido duración máxima para artículo de 20 páginas ni para libro de 500; no se interpreta «horas» como aceptación de días, latencia ilimitada o garantía de rendimiento. Proponer un límite operativo finito antes de medir; registrar tiempo de extracción, traducción, validación y reconstrucción separadamente. La extrapolación de páginas/tokens aislados no acredita tiempo de un libro completo.
+
+Consecuencia experimental: conservar T1–T3 y preferencia inicial Q8 condicionada a recursos; no reducir precisión únicamente para mejorar velocidad ni descartar candidatos sólo por latencia publicada en otro hardware. Q8 no garantiza mayor fidelidad científica y cualquier cambio de quant necesita justificación y comparación según §5.2. Si no cabe una variante con margen real, declarar bloqueo y evaluar alternativa compatible autorizada. Calidad se contrasta con referencias, falsadores e invariantes de §8–9, no con tamaño de pesos. Un rechazo explícito preserva integridad pero no demuestra cobertura funcional. No prometer traducción excelente antes de R1/R2/R3 ni certificación científica por aceptación personal.
+
+Pendientes: ratificación explícita de reservas 10 GiB disco/4 GiB RAM y concurrencia 1; fijar máximos de tiempo aceptables antes de comparar; cerrar casos, referencias y permisos, matriz de variantes y manifiesto exacto de aprovisionamiento. No hace falta repetir inventario general ni abrir otra campaña de búsqueda tecnológica. R0 IN_PROGRESS; PR97 Draft; sin descargas, instalaciones, inferencia, limpieza, gasto, envío de corpus, cambios productivos ni merge. La CI de la rama destino sigue sin acreditarse.
