@@ -1,11 +1,11 @@
 # FASE_PPPR_DEFERRED_FINDINGS_REGISTER.md
 
 **Documento:** `docs/architecture/adr/pdf-pdf-product-readiness/reviews/FASE_PPPR_DEFERRED_FINDINGS_REGISTER.md`  
-**Versión:** 0.1.52  
-**Estado:** G1–G5 COMPLETED/PASS (histórico en alcance probado); G6/W6.1 IN_PROGRESS / BLOCKED; 6.1.1/6.1.2 DONE; 6.1.3 IN_PROGRESS / BLOCKED (DF-01, precondiciones de admisión real pendientes); 6.2.1/6.2.2 TODO; 27/30 DONE (90%); G6 Exit Review NOT_RUN; GF-01/GF-02 RESOLVED; DF-01 OPEN / IMPLEMENTATION_REQUIRED (revisión focal realizada, batch correctivo propuesto); 14 GAP P1 históricos OPEN; issue #34 OPEN; CV FAIL/DEFERRED; PERSONAL_ACCEPTANCE=NOT_EVALUATED (aceptación BLOCKED); PRODUCT_DISPATCH=BLOCKED; PRODUCT_READINESS=NOT_CERTIFIED. [CI #45714172684](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45714172684) SUCCESS 3/3 sobre `41d888d6b7c2737167c7aec6d21c38e09d560153` (integration 139555871055, static 139555871451, unit 139555871587); nueva CI documental pendiente.
+**Versión:** 0.1.53  
+**Estado:** G1–G5 COMPLETED/PASS (histórico en alcance probado); G6/W6.1 IN_PROGRESS / BLOCKED; 6.1.1/6.1.2 DONE; 6.1.3 IN_PROGRESS / BLOCKED (DF-01, precondiciones de admisión real pendientes); 6.2.1/6.2.2 TODO; 27/30 DONE (90%); G6 Exit Review NOT_RUN; GF-01/GF-02 RESOLVED; DF-01 OPEN / IMPLEMENTATION_REQUIRED (Batch 3 parcial, CI_VERIFIED; desarrollo residual pendiente de disposición); 14 GAP P1 históricos OPEN; issue #34 OPEN; CV FAIL/DEFERRED; PERSONAL_ACCEPTANCE=NOT_EVALUATED (aceptación BLOCKED); PRODUCT_DISPATCH=BLOCKED; PRODUCT_READINESS=NOT_CERTIFIED. [CI #45743875270](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45743875270) SUCCESS 3/3 sobre `29e48c0339cb4b04e5770b43f632ec6513ddbccd`; CI del checkpoint documental pendiente.
 **Fecha de creación:** 2026-11-21  
 **Última actualización:** 2026-11-25  
-**Derivado de:** Plan v0.5.50, Evidence Log v0.1.53; Dictamen Board comunicado por owner sobre `7cd34940477701521afd842e0f43d6689fc53153`: APPROVED — TECHNICAL_BOARD_ACCEPTED, OFFLINE SCOPE. H-G6-04/05 RESOLVED / BOARD_ACCEPTED (3/3 y 4/4 PASS); regresión 36/36 PASS, módulo 43/43 PASS. No se requieren nuevos cambios de código, infraestructura ni metodología en alcance aceptado. No se atribuye firma externa ni review GitHub formal.  
+**Derivado de:** Plan v0.5.51, Evidence Log v0.1.54; Dictamen Board comunicado por owner sobre `7cd34940477701521afd842e0f43d6689fc53153`: APPROVED — TECHNICAL_BOARD_ACCEPTED, OFFLINE SCOPE. H-G6-04/05 RESOLVED / BOARD_ACCEPTED (3/3 y 4/4 PASS); regresión 36/36 PASS, módulo 43/43 PASS. No se requieren nuevos cambios de código, infraestructura ni metodología en alcance aceptado. No se atribuye firma externa ni review GitHub formal.  
 **Ámbito:** PPPR (iniciativa transversal PDF→PDF; no fase histórica numerada).  
 **Propósito:** Registro único y auditable de hallazgos `DF`/`GF` **que surjan durante la ejecución y los Exit Reviews** del Execution Plan: identificación, clasificación, decisión, resolución, batch y evidencia de implementación.
 
@@ -486,6 +486,19 @@ Owner instruye abordar DF-01 por su bloqueo y autoriza la revisión correctiva f
 
 No nuevos scripts de diagnóstico para el owner ni ampliación de corpus como prerrequisito de este batch. No se exige demostrar extracción universal; si los límites de una región real no pueden acreditarse, mantener bloqueo. No se inicia batch ni se autoriza egress/merge. Se mantienen referencias preestablecidas; cualquier cambio material de política de traducción/aceptación exige disposición previa y trazable, no alteración retroactiva por resultado. Los pendientes de cuota, estimador, chunk rechazado y permisos son independientes de este DF. [CI #45714172684](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45714172684) SUCCESS 3/3 sobre `41d888d6b7c2737167c7aec6d21c38e09d560153` (integration 139555871055, static 139555871451, unit 139555871587); nueva CI documental pendiente.
 
+### Addendum DF-01 — implementación parcial, madurez de extracción y disposición residual (2026-11-25)
+
+**Decisión operativa registrada:** owner solicita soluciones generales, no ajuste del pipeline a los PDF actuales, mejoras útiles sin pretensión de perfección y registro explícito del desarrollo pendiente. Staff detiene por ahora ampliaciones de detectores específicas del corpus; conserva las capacidades verificadas. No se acredita responsabilidad exclusiva de PyMuPDF ni se selecciona nuevo proveedor. DF-01 continúa **OPEN / IMPLEMENTATION_REQUIRED**, Batch 3 **PARCIAL / CI_VERIFIED**; remediación exhaustiva pausada, destino formal futuro no asignado. Se mantienen las restricciones de seguridad y criterios del ADR PPPR 02 / Plan §2.6.3. Un diferimiento terminal o un cambio del alcance de cierre requiere disposición competente expresa; no se atribuye un dictamen Board. No se convierte el rechazo de extracción en evaluación negativa válida del PDF final.
+
+| Frente residual de DF-01 (sin nuevos IDs ni Tasks) | Desarrollo general pendiente |
+|---|---|
+| Identificación de objetos documentales | Delimitación semántica/espacial de figuras, tablas y contenido mixto; evaluación comparativa de adaptadores por cobertura, procedencia, coste y seguridad, sin reemplazo automático ni reglas por documento. |
+| Composición y aislamiento | Forms con recortes anidados, composición de regiones raster/vector y múltiples ámbitos; preservar contenido completo y verificar ausencia de contenido ajeno. |
+| Elementos editoriales y formularios | Determinar tratamiento de reglas editoriales y widgets con apariencia/semántica no acreditadas; no omitir contenido visible, imprimible o activo por defecto. |
+| Fidelidad del activo | Investigar discrepancias de renderizado/aislamiento con evidencia independiente; no adoptar una tolerancia numérica por el resultado de una muestra. |
+
+La evidencia detallada y los límites del sondeo R3 constan en Evidence Log §2.3. No se abre nuevo GAP histórico ni se fragmenta DF-01 por página. Conservar los seis originales y referencias previas sin cambios. Los pendientes independientes de preadmisión, chunking/cota conservadora, permisos y evaluación final no se dan por resueltos. Priorizar revisión general de esas dependencias antes de nuevas ampliaciones del extractor. Sin nuevas inferencias, gastos, corpus, dependencias o merge.
+
 ## 3. TABLA CONSOLIDADA FINAL
 
 **Estado:** `NO_ELABORADA / NOT_RUN`. Se consolidará al cierre del último Gate Exit Review; no se presume que habrá cero hallazgos.
@@ -554,6 +567,16 @@ Cuatro archivos modificados, cero nuevos/eliminados/movidos en Batch 2; cero có
 
 **Cierre de validación Batch 2:** [CI #45663796848](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45663796848) SUCCESS 3/3 sobre `ff7030a88d117d2442f7f72bc12cb399dabe072d` (integration 139380366356, static 139380366744, unit 139380366934; no se reatribuyen cifras de logs de otros runs). Nueva CI pendiente al registrar. GF-02 RESOLVED y Batch 2 CI_VERIFIED. No se abre Batch 3 por el checkpoint de preparación.
 
+### 4.3 BATCH 3 — Activos protegidos y cobertura de extracción (PARCIAL / CI_VERIFIED; DF-01 OPEN)
+
+**Autorización:** owner autorizó Batch 3 y sus incrementos en esta conversación; instrucción actual limita el desarrollo especulativo y solicita registro de madurez pendiente. No se atribuye aceptación Board de este batch. PR95 draft, sin merge. HEAD técnico `29e48c0339cb4b04e5770b43f632ec6513ddbccd`; [CI #45743875270](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45743875270) SUCCESS 3/3 sobre `29e48c0339cb4b04e5770b43f632ec6513ddbccd`; CI del checkpoint documental pendiente.
+
+| DF | Estado | Acción ejecutada | Archivos / contratos | Verificación |
+|---|---|---|---|---|
+| DF-01 | OPEN / IMPLEMENTATION_REQUIRED | Activos PDF vectoriales para figuras y tablas complejas; referencia tipada PASSTHROUGH; aislamiento, composición, separación de captions y escalado G5; controles de widgets y clipping | infra/extraction/providers/pymupdf_protected_regions.py, pymupdf_provider.py, pymupdf_image_assets.py; core/ast, layout, chunking, normalization, compiler; adapters de apps/bootstrap y apps/compiler; tests de integración y físicos | CI técnica 1945 PASS, 8 skipped, 20 deselected, 2 warnings; integración 199 PASS, 4 skipped; Tectonic 12/12 PASS; widgets 12/12 y clipping directo 2/2 PASS. R3 originales 1/6 observables; 12/18 bloqueadas, no cierre. |
+
+Commits de referencia: `bf09f83` (activos), `0ad3c9b` (baseline técnico R1), `cc72c35` / `7b1d25b` / `e57830e` / `8dc5524` (R2), `6c2a56f` / `d84dc7b` / `b45f44f` / `911e5d6` / `09d5959` / `3616dc2` / `e3ec496` / `29e48c0` (R3). CI fallidas intermedias y correcciones conservadas en PR95; no se presenta toda la historia como verde. Falsador de cobertura de originales no satisfecho, sin cierre del batch ni del finding. No se crea nueva fase ni se asigna destino ficticio. Disposición actual en DF-01 addendum; evidencia §2.3.
+
 ## 5. MÉTRICAS ACUMULADAS DE LA FASE
 
 **Nota de actualización:** Batch 2 CI_VERIFIED; censo y preparación de 6.1.2 no constituyen nuevo batch de resolución de findings. Las métricas técnicas cuantitativas conservan su run histórico.
@@ -616,9 +639,9 @@ El documento se declara `ARCHIVED` **solo** tras cierre formal de PPPR, verifica
 | Gates revisados | 5 Exit Reviews G1–G5 PASS; PR94 MERGED; G6 IN_PROGRESS, Exit Review NOT_RUN |
 | Hallazgos PPPR registrados nuevos | 2 GF (GF-01, GF-02); 1 DF (DF-01); 14 GAP P1 históricos OPEN |
 | Hallazgos analizados/resueltos/diferidos | 3 / 2 (GF-01, GF-02) / 0 terminales; DF-01 OPEN |
-| Batches ejecutados | 2/2 documentales CI_VERIFIED |
+| Batches ejecutados | 2 documentales CI_VERIFIED; Batch 3 parcial CI_VERIFIED, DF-01 OPEN |
 | Estado de los Exit Reviews | G1–G5 REALIZADO/PASS; G6 Exit Review NOT_RUN; CV FAIL/DEFERRED |
-| Estado operativo del Register | G1–G5 COMPLETED/PASS (histórico en alcance probado); G6/W6.1 IN_PROGRESS / BLOCKED; 6.1.1/6.1.2 DONE; 6.1.3 IN_PROGRESS / BLOCKED (DF-01, precondiciones de admisión real pendientes); 6.2.1/6.2.2 TODO; 27/30 DONE (90%); G6 Exit Review NOT_RUN; GF-01/GF-02 RESOLVED; DF-01 OPEN / IMPLEMENTATION_REQUIRED (alcance correctivo pendiente); 14 GAP P1 históricos OPEN; issue #34 OPEN; CV FAIL/DEFERRED; PERSONAL_ACCEPTANCE=NOT_EVALUATED (aceptación BLOCKED); PRODUCT_DISPATCH=BLOCKED; PRODUCT_READINESS=NOT_CERTIFIED. |
+| Estado operativo del Register | G1–G5 COMPLETED/PASS (histórico en alcance probado); G6/W6.1 IN_PROGRESS / BLOCKED; 6.1.1/6.1.2 DONE; 6.1.3 IN_PROGRESS / BLOCKED (DF-01, precondiciones de admisión real pendientes); 6.2.1/6.2.2 TODO; 27/30 DONE (90%); G6 Exit Review NOT_RUN; GF-01/GF-02 RESOLVED; DF-01 OPEN / IMPLEMENTATION_REQUIRED (Batch 3 parcial, CI_VERIFIED; desarrollo residual pendiente de disposición); 14 GAP P1 históricos OPEN; issue #34 OPEN; CV FAIL/DEFERRED; PERSONAL_ACCEPTANCE=NOT_EVALUATED (aceptación BLOCKED); PRODUCT_DISPATCH=BLOCKED; PRODUCT_READINESS=NOT_CERTIFIED. |
 | Cierre de fase | **PENDIENTE / NO ARCHIVED** |
 
 ---

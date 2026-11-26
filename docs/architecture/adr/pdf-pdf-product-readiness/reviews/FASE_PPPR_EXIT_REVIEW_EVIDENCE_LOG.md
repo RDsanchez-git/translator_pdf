@@ -1,11 +1,11 @@
 # FASE_PPPR_EXIT_REVIEW_EVIDENCE_LOG.md
 
 **Documento:** `docs/architecture/adr/pdf-pdf-product-readiness/reviews/FASE_PPPR_EXIT_REVIEW_EVIDENCE_LOG.md`  
-**Versión:** 0.1.53  
-**Estado:** G1–G5 COMPLETED/PASS (histórico en alcance probado); G6/W6.1 IN_PROGRESS / BLOCKED; 6.1.1/6.1.2 DONE; 6.1.3 IN_PROGRESS / BLOCKED (DF-01, precondiciones de admisión real pendientes); 6.2.1/6.2.2 TODO; 27/30 DONE (90%); G6 Exit Review NOT_RUN; GF-01/GF-02 RESOLVED; DF-01 OPEN / IMPLEMENTATION_REQUIRED (revisión focal realizada, batch correctivo propuesto); 14 GAP P1 históricos OPEN; issue #34 OPEN; CV FAIL/DEFERRED; PERSONAL_ACCEPTANCE=NOT_EVALUATED (aceptación BLOCKED); PRODUCT_DISPATCH=BLOCKED; PRODUCT_READINESS=NOT_CERTIFIED. [CI #45714172684](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45714172684) SUCCESS 3/3 sobre `41d888d6b7c2737167c7aec6d21c38e09d560153` (integration 139555871055, static 139555871451, unit 139555871587); nueva CI documental pendiente.
+**Versión:** 0.1.54  
+**Estado:** G1–G5 COMPLETED/PASS (histórico en alcance probado); G6/W6.1 IN_PROGRESS / BLOCKED; 6.1.1/6.1.2 DONE; 6.1.3 IN_PROGRESS / BLOCKED (DF-01, precondiciones de admisión real pendientes); 6.2.1/6.2.2 TODO; 27/30 DONE (90%); G6 Exit Review NOT_RUN; GF-01/GF-02 RESOLVED; DF-01 OPEN / IMPLEMENTATION_REQUIRED (Batch 3 parcial, CI_VERIFIED; desarrollo residual pendiente de disposición); 14 GAP P1 históricos OPEN; issue #34 OPEN; CV FAIL/DEFERRED; PERSONAL_ACCEPTANCE=NOT_EVALUATED (aceptación BLOCKED); PRODUCT_DISPATCH=BLOCKED; PRODUCT_READINESS=NOT_CERTIFIED. [CI #45743875270](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45743875270) SUCCESS 3/3 sobre `29e48c0339cb4b04e5770b43f632ec6513ddbccd`; CI del checkpoint documental pendiente.
 **Fecha:** 2026-11-21  
 **Última actualización:** 2026-11-25  
-**Derivado de:** Plan v0.5.50, Register v0.1.52; Dictamen Board comunicado por owner sobre `7cd34940477701521afd842e0f43d6689fc53153`: APPROVED — TECHNICAL_BOARD_ACCEPTED, OFFLINE SCOPE. H-G6-04/05 RESOLVED / BOARD_ACCEPTED (3/3 y 4/4 PASS); regresión 36/36 PASS, módulo 43/43 PASS. No se requieren nuevos cambios de código, infraestructura ni metodología en alcance aceptado. No se atribuye firma externa ni review GitHub formal.  
+**Derivado de:** Plan v0.5.51, Register v0.1.53; Dictamen Board comunicado por owner sobre `7cd34940477701521afd842e0f43d6689fc53153`: APPROVED — TECHNICAL_BOARD_ACCEPTED, OFFLINE SCOPE. H-G6-04/05 RESOLVED / BOARD_ACCEPTED (3/3 y 4/4 PASS); regresión 36/36 PASS, módulo 43/43 PASS. No se requieren nuevos cambios de código, infraestructura ni metodología en alcance aceptado. No se atribuye firma externa ni review GitHub formal.  
 **Ámbito:** PPPR, ruta única `CLI → OCR → G3 → G5 → PDF`.  
 **Propósito:** Registro forense incremental, por Gate Exit Review, que conserva los fundamentos empíricos, los archivos examinados, los límites de evidencia y las reglas que justifican la clasificación de **cada hallazgo nuevo DF/GF** del Deferred Findings Register.
 
@@ -422,6 +422,27 @@ La disposición operativa y destino del finding viven en Register DF-01; no se a
 | `core/compiler/service.py` | `141b6aa110fae3899337f592f420333bdbe5b3a5` | Exige proyecciones actuales por nodo, asset IMAGE presente y geometría acreditada cuando necesaria; recolecta activos IMAGE solamente |
 
 PROJECT_SCOPE §2 Fase 16.4, ENGINEERING_PRINCIPLES II/III/IV: PASSTHROUGH, AST plano y trazabilidad; no nueva arquitectura necesaria demostrada para extensión compatible, sin eliminar representación del elemento ni alterar clasificación. Política de preservación integral de elemento físico no es capacidad ya implementada; un rectángulo geométrico ni una rasterización indiscriminada acreditan integridad. No elegir formato de activo ni modificar FROZEN sin verificar límites y autoridad; propuesta de batch en Register. La CI verde cubre regresión técnica del registro, no DF-01 resuelto. [CI #45714172684](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45714172684) SUCCESS 3/3 sobre `41d888d6b7c2737167c7aec6d21c38e09d560153` (integration 139555871055, static 139555871451, unit 139555871587); nueva CI documental pendiente.
+
+**Addendum DF-01 — evidencia de Batch 3 y observación focal R3 (2026-11-25; NO Exit Review).** HEAD técnico `29e48c0339cb4b04e5770b43f632ec6513ddbccd`, manifest canónico v3.9 blob `a3a435bf617cc66a0036a3f3d0e3993aeead0f44`, seis PDF / 18 páginas. CI exacta #45743875270 SUCCESS: unit 139655126332, static 139655126580, integration 139655126583. Suite técnica 1945 PASS, 8 skipped, 20 deselected, 2 warnings; integración 199 PASS, 4 skipped, 1770 deselected; testigo físico Tectonic 12/12; 12 casos de widgets y 2 de clipping directo PASS. Selecciones no aditivas. R3 local PyMuPDF 1.28.2, `OFFLINE_EXTRACTION_ONLY`, reporte aportado por owner (RAR leído: JSON, sin contenido de originales). 0 llamadas LLM, 0 decisiones de admisión, 0 receipts. No PDF traducido generado. La ejecución local se atribuye al host owner, no a Staff ni CI.
+
+| Observación | R1 | R2 | R3 |
+|---|---:|---:|---:|
+| Documentos con cobertura observable | 1/6 | 1/6 | 1/6 |
+| Páginas bloqueadas | 13/18 | 12/18 | 12/18 |
+| Páginas con sondeo positivo del productor (no ingesta completa) | 2 | 3 | 3 |
+
+Único documento con cobertura observable completa: doc_03_math (3 páginas, sin dibujos vectoriales, AST 91 nodos, plan 10 unidades, 5 preserve); esto no acredita admisión de inferencia, fidelidad STEM o traducción. Doc_04_table p2: sondeo positivo, 1 región/3 trazos. Otros sondeos positivos: dos páginas sin dibujos. Las 12 restantes siguen bloqueadas; no extrapolar 1/6 a porcentaje de calidad del PDF final.
+
+Reporte focal `DF01_R3_FOCUSED_PRODUCER_OBSERVATION_ONLY`, mismo HEAD y PyMuPDF 1.28.2, 0 ingestas y 0 llamadas LLM. Se leyeron los contadores del JSON suministrado por owner, no se publican archivo, logs, coordenadas privadas ni contenido textual. Resultados:
+
+| Familia de rechazo | Páginas | Observación |
+|---|---:|---|
+| DF01_UNCOVERED_VECTOR_DRAWINGS | 6 | 0 candidatos, 0 regiones pendientes y 0 trazos cubiertos en cada página afectada. No prueba que todos sean objetos complejos ni que la causa sea exclusiva del proveedor. |
+| DF01_WIDGET_CONTENT_UNPROVEN | 3 | Un widget /Btn por página, F=4, cadena válida y sin claves de valor no vacío o recursos presentes en el conjunto inspeccionado; pixmaps con/sin anotaciones iguales a 1x/2x. No prueba inocuidad en impresión, ausencia de acciones no inspeccionadas o cobertura semántica universal. |
+| DF01_NESTED_SCOPE_ESCAPES_PARENT | 2 | Hay Forms, clip anidado, intersección igual a scissor; no se acredita la totalidad de contenido subyacente ni se autoriza relajar la guarda. |
+| DF01_ASSET_VISUAL_DRIFT | 1 | 4 trazos asignados a 2 regiones pendientes; dimensiones iguales a 2x, 99 de 2363760 componentes de color distintos, delta máximo 64. No se ha determinado causa o materialidad; no se aprueba tolerancia por esta muestra. |
+
+Cero separaciones de bloques fusionados aceptadas en las 12 páginas observadas. Los incrementos posteriores a R2 no aumentaron cobertura observada de originales; sí ampliaron capacidades demostradas por CI. El soporte de activos protegidos y la defensa fail-closed son mejora técnica real, no certificación ni prueba de extracción universal. Owner solicita abandonar especialización por PDF y registrar desarrollo residual. Disposición en Register DF-01 y §4.3; no nuevo DF/GF ni nueva regla. El próximo frente independiente es revisar chunking/preadmisión y cota conservadora previamente pendientes; ninguna autorización de POST, modificación de criterios o exclusión de fuentes. 6.1.3 IN_PROGRESS / BLOCKED; aceptación personal NOT_EVALUATED; G6 Exit Review NOT_RUN. No se presume resultado funcional negativo válido sin candidato final.
 
 ## 3. GATE EXIT REVIEW SUMMARY
 
@@ -854,3 +875,5 @@ Una **clasificación operativa** se cambia **en el Register** por decisión docu
 ---
 
 **Nota de Gobernanza:** Evidence Log de PPPR, de naturaleza forense y **sin autoridad normativa**. Esqueleto publicado anticipadamente por decisión específica del owner con dictamen ajustado favorable del Board; autorización particular de calendario PPPR registrada en el encabezado, sin reforma general de §6.7. `IN_PROGRESS` significa *documento habilitado para construcción*, **NO** que haya empezado G1 o que existan revisiones completadas. Se congelará solo cuando concluyan la fase, las revisiones y la reconciliación forense.`
+
+**Checkpoint vigente — R3 / Batch 3:** G1–G5 COMPLETED/PASS (histórico en alcance probado); G6/W6.1 IN_PROGRESS / BLOCKED; 6.1.1/6.1.2 DONE; 6.1.3 IN_PROGRESS / BLOCKED (DF-01, precondiciones de admisión real pendientes); 6.2.1/6.2.2 TODO; 27/30 DONE (90%); G6 Exit Review NOT_RUN; GF-01/GF-02 RESOLVED; DF-01 OPEN / IMPLEMENTATION_REQUIRED (Batch 3 parcial, CI_VERIFIED; desarrollo residual pendiente de disposición); 14 GAP P1 históricos OPEN; issue #34 OPEN; CV FAIL/DEFERRED; PERSONAL_ACCEPTANCE=NOT_EVALUATED (aceptación BLOCKED); PRODUCT_DISPATCH=BLOCKED; PRODUCT_READINESS=NOT_CERTIFIED. [CI #45743875270](https://github.com/RDsanchez-git/translator_pdf/actions/runs/45743875270) SUCCESS 3/3 sobre `29e48c0339cb4b04e5770b43f632ec6513ddbccd`; CI del checkpoint documental pendiente.
