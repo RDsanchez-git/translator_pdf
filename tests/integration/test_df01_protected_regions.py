@@ -561,3 +561,100 @@ def test_df01_fused_caption_keeps_native_identity_and_complete_table(tmp_path, m
     assert captions[0].metadata.provider.native_block_index == caption["number"]
     assert tables[0].metadata.provider is None
     assert all("R0C0" not in b.content.original for b in published)
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize("defect", [None, "visible", "value", "default", "action", "print"])
+def test_df01_hidden_empty_widget_only(tmp_path, monkeypatch, defect):
+    monkeypatch.setenv("APP_ROOT", str(tmp_path))
+    original = _form_source(tmp_path)
+    path = tmp_path / "widget.pdf"
+    with fitz.open(original) as doc:
+        page = doc[0]
+        widget = fitz.Widget()
+        widget.field_type = fitz.PDF_WIDGET_TYPE_TEXT
+        widget.field_name = "empty_control"
+        widget.field_value = "DATA" if defect == "value" else ""
+        widget.rect = fitz.Rect(40, 80, 80, 100)
+        widget.border_width = 1
+        widget.border_color = (0, 0, 0)
+        page.add_widget(widget)
+        xref = page.first_widget.xref
+        flags = fitz.PDF_ANNOT_IS_HIDDEN
+        if defect == "visible":
+            flags = fitz.PDF_ANNOT_IS_PRINT
+        if defect == "print":
+            flags |= fitz.PDF_ANNOT_IS_PRINT
+        doc.xref_set_key(xref, "F", str(flags))
+        if defect == "default":
+            doc.xref_set_key(xref, "DV", "(DATA)")
+        if defect == "action":
+            doc.xref_set_key(xref, "A", "<< /S /Named /N /NextPage >>")
+        doc.save(path)
+    provider = PyMuPDFProvider(HeuristicLayoutClassifier())
+    if defect:
+        with pytest.raises(LayoutRecoveryError, match="DF01_WIDGET_CONTENT_UNPROVEN"):
+            provider.extract(str(path))
+        assert not (tmp_path / "data/assets").exists()
+        return
+    layout = provider.extract(str(path))
+    from apps.bootstrap.pipeline_factory import build_extraction_pipeline
+    ast = build_extraction_pipeline().parse(str(path))
+    assert layout.pages[0].blocks
+    figures = [n for n in ast if n.node_type == ContentNodeType.IMAGE]
+    assert len(figures) == 1
+    payload = figures[0].payload
+    assert isinstance(payload, ImagePayload) and payload.asset_path is not None
+    with fitz.open(tmp_path / payload.asset_path) as asset:
+        assert asset[0].first_widget is None
+        assert asset[0].first_annot is None
+        assert asset[0].get_text().strip() == "INTERNAL"
+        assert len(asset[0].get_drawings()) == 2
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize("hidden_paint", [False, True])
+def test_df01_direct_nested_clip_is_not_a_larger_hidden_form(tmp_path, hidden_paint):
+    from infra.extraction.providers.pymupdf_integrity import UnrepresentedPdfContentError
+    from infra.extraction.providers.pymupdf_protected_regions import (
+        _composition, prepare_protected_regions,
+    )
+    with fitz.open() as doc:
+        page = doc.new_page(width=400, height=400)
+        page.insert_text((40, 50), "BEFORE")
+        page.insert_text((130, 160), "INTERNAL")
+        page.insert_text((100, 260), "Figure 1. caption")
+        page.insert_text((40, 330), "AFTER")
+        page.draw_rect(fitz.Rect(120, 130, 280, 210))
+        page.draw_line((130, 200), (270, 140))
+        first = page.get_contents()[-2]
+        if hidden_paint:
+            page.draw_line((90, 225), (310, 225))
+        last = page.get_contents()[-1]
+        # An explicit direct clip, followed by a larger redundant clip.
+        # Neither is a Form invocation or contains separate source data.
+        doc.update_stream(first, b"q 100 180 200 100 re W n 90 170 220 120 re W n\n"
+                          + doc.xref_stream(first))
+        doc.update_stream(last, doc.xref_stream(last) + b"\nQ\n")
+        assert not page.get_xobjects()
+        scopes, signature = _composition(page)
+        assert scopes == [fitz.Rect(100, 120, 300, 220)] * 2
+        assert sum(entry["type"] == "clip" for entry in signature) == 2
+        if hidden_paint:
+            # get_drawings observes this exterior stroke even though the
+            # outer clip makes it invisible. Full coverage remains required.
+            with pytest.raises(UnrepresentedPdfContentError, match="DF01_UNCOVERED_VECTOR_DRAWINGS"):
+                prepare_protected_regions(page, page.get_text("dict")["blocks"], page_number=1)
+            return
+        regions = prepare_protected_regions(page, page.get_text("dict")["blocks"], page_number=1)
+        assert len(regions) == 1
+        region = regions[0]
+        assert len(region.covered_drawings) == 2
+        with fitz.open(stream=region.pdf, filetype="pdf") as asset:
+            assert asset[0].get_text().strip() == "INTERNAL"
+            assert not asset[0].get_xobjects()
+            for scale in (1, 2):
+                matrix = fitz.Matrix(scale, scale)
+                assert asset[0].get_pixmap(matrix=matrix).samples == page.get_pixmap(
+                    clip=fitz.Rect(region.bbox), matrix=matrix
+                ).samples

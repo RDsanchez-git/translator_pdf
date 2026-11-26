@@ -327,6 +327,7 @@ def _composition(
     scopes: list[fitz.Rect] = []
     signature: list[dict[str, Any]] = []
     active_scopes: list[tuple[int, fitz.Rect]] = []
+    has_forms = bool(page.get_xobjects())
     for entry in entries:
         kind = entry.get("type")
         level = entry.get("level", 0)
@@ -336,6 +337,7 @@ def _composition(
         while active_scopes and active_scopes[-1][0] >= level:
             active_scopes.pop()
         bounds: fitz.Rect | None = None
+        scissor: fitz.Rect | None = None
         if kind == "clip":
             bounds = _clip_bounds(entry)
             scissor = _rect(entry["scissor"])
@@ -350,7 +352,18 @@ def _composition(
             # outside it. In particular a clipped larger Form must not
             # enlarge the candidate to its underlying uncut source page.
             if any(not _contains(parent, bounds) for _, parent in active_scopes):
-                raise UnrepresentedPdfContentError("DF01_NESTED_SCOPE_ESCAPES_PARENT")
+                # A direct clipping path is a constraint, not painted content.
+                # Keep the full path in the operator signature but use its
+                # witnessed effective bounds for ownership. Form BBoxes are
+                # different: a larger Form may contain hidden source data.
+                if has_forms or scissor is None:
+                    raise UnrepresentedPdfContentError("DF01_NESTED_SCOPE_ESCAPES_PARENT")
+                effective = fitz.Rect(bounds)
+                for _, parent in active_scopes:
+                    effective &= parent
+                if effective.is_empty or effective != scissor:
+                    raise UnrepresentedPdfContentError("DF01_NESTED_SCOPE_ESCAPES_PARENT")
+                bounds = effective
             active_scopes.append((level, bounds))
             scopes.append(bounds)
         # seqno is page-local and shifts when exterior text is removed.
@@ -442,6 +455,8 @@ def _isolated_pdf(
         if len(verified) != 1 or verified.embfile_count():
             raise UnrepresentedPdfContentError("DF01_ASSET_STRUCTURE_DRIFT")
         result = verified[0]
+        if result.first_widget is not None or result.first_annot is not None:
+            raise UnrepresentedPdfContentError("DF01_ASSET_ANNOTATION_RETAINED")
         if composed and len(result.get_xobjects()) != sum(forms.values()):
             raise UnrepresentedPdfContentError("DF01_SERIALIZED_FORM_INVENTORY_DRIFT")
         if len(result.get_drawings()) != before_crop_drawings or result.get_image_info():
@@ -612,6 +627,41 @@ def _nearby_caption_indices(
     return result
 
 
+def _verify_inert_widgets(page: fitz.Page) -> None:
+    """Only hidden, empty, terminal text widgets may be omitted.
+
+    Interactive forms are not reproduced by the static compiler. Do not
+    discard field data, signatures, actions or visible appearances. The
+    flag and resource checks also exclude print-only and inherited values.
+    """
+    if page.first_widget is None:
+        return
+    source = page.parent
+    if source is None:
+        raise UnrepresentedPdfContentError("DF01_SOURCE_PAGE_DETACHED")
+    for widget in page.widgets():
+        xref = widget.xref
+        flag_type, flag_value = source.xref_get_key(xref, "F")
+        if (flag_type != "int" or int(flag_value) != fitz.PDF_ANNOT_IS_HIDDEN
+                or source.xref_get_key(xref, "FT") != ("name", "/Tx")):
+            raise UnrepresentedPdfContentError("DF01_WIDGET_CONTENT_UNPROVEN")
+        for key in ("Parent", "Kids", "A", "AA", "RV", "Opt", "OC"):
+            if source.xref_get_key(xref, key)[0] != "null":
+                raise UnrepresentedPdfContentError("DF01_WIDGET_CONTENT_UNPROVEN")
+        for key in ("V", "DV", "Contents", "TU", "TM"):
+            if source.xref_get_key(xref, key) not in (("null", "null"), ("string", "")):
+                raise UnrepresentedPdfContentError("DF01_WIDGET_CONTENT_UNPROVEN")
+    # Independent physical witness, not the sole basis for discarding fields.
+    for scale in (1, 2):
+        matrix = fitz.Matrix(scale, scale)
+        with_annots = page.get_pixmap(matrix=matrix, annots=True, alpha=False)
+        without_annots = page.get_pixmap(matrix=matrix, annots=False, alpha=False)
+        if (with_annots.width, with_annots.height, with_annots.samples) != (
+            without_annots.width, without_annots.height, without_annots.samples
+        ):
+            raise UnrepresentedPdfContentError("DF01_WIDGET_VISUAL_CONTENT")
+
+
 def prepare_protected_regions(
     page: fitz.Page, raw_blocks: Sequence[Mapping[str, Any]], *, page_number: int,
 ) -> tuple[ProtectedRegion, ...]:
@@ -627,8 +677,9 @@ def prepare_protected_regions(
     source = page.parent
     if (source is None or page.rotation or page.cropbox != page.mediabox
             or source.get_ocgs() or source.embfile_count()
-            or page.first_annot is not None or page.first_widget is not None):
+            or page.first_annot is not None):
         raise reject("UNSUPPORTED_PAGE_RESOURCES")
+    _verify_inert_widgets(page)
     scopes, signature = _composition(page)
     forms = _form_inventory(page)
     composed = bool(scopes or forms)
