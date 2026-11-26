@@ -278,6 +278,7 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
                 runnable_rows = [(chunk_id, state) for chunk_id, state in initial_rows
                                  if state in ("PENDING", "RETRYABLE_ERROR")]
                 has_runnable_work = bool(runnable_rows)
+                selected_chunk_ids: set[str] | None = None
                 needs_inference = any(
                     unit_index[chunk_id].chunk_type != TranslationTaskType.PRESERVE
                     for chunk_id, _ in runnable_rows
@@ -287,20 +288,36 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
                         processor, quota_store = _create_chunk_processor(
                             context_snapshots, product_scope=product_scope,
                         )
-                        # Never deliberately begin a document that cannot fit
-                        # the current finite authorization. Local inspection
-                        # is not a reservation; actual attempts repeat checks.
+                        # Verify every runnable inference unit before any effect,
+                        # then select only the prefix that fits this snapshot.
+                        # An explicit subsequent scope is needed for more work;
+                        # elapsed time alone never grants a renewed allowance.
                         if any(state not in ("PENDING", "RETRYABLE_ERROR", "RESULT_STAGED")
                                for state in initial_states):
                             raise G3ExternalEffectNotStartedError(
                                 "PPPR_G6_PRODUCT_UNRESOLVED_TASK_STATE", permanent=True,
                             )
-                        decisions = [
-                            processor.inspect_chunk_admission(plan, unit_index[chunk_id]).audit_json
-                            for chunk_id, _ in runnable_rows
-                            if unit_index[chunk_id].chunk_type != TranslationTaskType.PRESERVE
+                        runnable_ids = {chunk_id for chunk_id, _ in runnable_rows}
+                        inference_units = [
+                            unit for unit in plan.units
+                            if unit.chunk_id in runnable_ids
+                            and unit.chunk_type != TranslationTaskType.PRESERVE
                         ]
-                        task_repo.check_g3_document_free_batch(document_id, decisions)
+                        decisions = [
+                            processor.inspect_chunk_admission(plan, unit).audit_json
+                            for unit in inference_units
+                        ]
+                        count = task_repo.fit_g3_document_free_batch(document_id, decisions)
+                        selected_chunk_ids = {
+                            unit.chunk_id for unit in inference_units[:count]
+                        } | {
+                            unit.chunk_id for unit in plan.units
+                            if unit.chunk_id in runnable_ids
+                            and unit.chunk_type == TranslationTaskType.PRESERVE
+                        }
+                        has_runnable_work = bool(selected_chunk_ids)
+                        logger.info("PPPR_G6_FREE_WINDOW_SELECTED: %s/%s inference units",
+                                    count, len(inference_units))
                     elif offline_scope is None:
                         processor, quota_store = _create_chunk_processor(context_snapshots)
                     else:
@@ -311,10 +328,21 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
                     th_task_repo = ControlPlaneRepository(th_queue_conn)
                     try:
                         while True:
-                            task = th_task_repo.pick_task(owner_id, document_id, ast_hash)
+                            if selected_chunk_ids is None:
+                                task = th_task_repo.pick_task(owner_id, document_id, ast_hash)
+                            else:
+                                # The scoped worker is serial and each selected
+                                # chunk can be claimed at most once per run.
+                                # Deferred units remain PENDING, not failed.
+                                task = th_task_repo.pick_task(
+                                    owner_id, document_id, ast_hash,
+                                    allowed_chunk_ids=tuple(selected_chunk_ids),
+                                )
                             if task is None:
                                 break
                             chunk_id = task.node_id  # Legacy queue column stores G3 chunk_id.
+                            if selected_chunk_ids is not None:
+                                selected_chunk_ids.remove(chunk_id)
                             t_exec = ctx_execution_id.set(task.execution_id)
                             t_work = ctx_worker_id.set(owner_id)
                             t_task = ctx_task_id.set(task.task_id)
@@ -410,7 +438,9 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
                         th_queue_conn.close()
 
                 if has_runnable_work:
-                    max_threads = int(os.getenv("MAX_CONCURRENT_CHUNKS", "4"))
+                    # One explicit finite quota window uses one worker. The
+                    # ordinary offline/legacy selector keeps its concurrency.
+                    max_threads = 1 if selected_chunk_ids is not None else int(os.getenv("MAX_CONCURRENT_CHUNKS", "4"))
                     with ThreadPoolExecutor(max_workers=max_threads) as executor:
                         futures = [executor.submit(chunk_worker_thread) for _ in range(max_threads)]
                         for future in futures:

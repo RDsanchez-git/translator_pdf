@@ -310,6 +310,24 @@ class ControlPlaneRepository(ControlPlanePort):
                 requested_requests=len(audits), requested_tokens=total,
             )
 
+    def fit_g3_document_free_batch(self, document_id: str, audit_jsons: Sequence[str]) -> int:
+        """Return the largest admissible ordered prefix for this finite snapshot.
+
+        Reuse the existing cumulative check, including durable prior attempts.
+        This is a preview, never a reservation. Only capacity exhaustion ends
+        the prefix; every other rejection remains fail-closed.
+        """
+        count = 0
+        for end in range(1, len(audit_jsons) + 1):
+            try:
+                self.check_g3_document_free_batch(document_id, audit_jsons[:end])
+            except G3ExternalEffectNotStartedError as exc:
+                if str(exc) != "PPPR_G6_FREE_SNAPSHOT_EXHAUSTED":
+                    raise
+                break
+            count = end
+        return count
+
     def enqueue_tasks(self, document_id: str, ast_hash: str, nodes: List[str]) -> None:
         """Inyección atómica masiva de chunks con Hash Determinístico compuesto anti-colisiones."""
         import hashlib
@@ -662,7 +680,13 @@ class ControlPlaneRepository(ControlPlanePort):
             raise ValueError("G3_B3_2_INCOMPLETE_STAGED_PLAN")
         return responses
 
-    def pick_task(self, worker_id: str, document_id: str, ast_hash: str) -> Optional[TaskLease]:
+    def pick_task(self, worker_id: str, document_id: str, ast_hash: str, *,
+                  allowed_chunk_ids: Sequence[str] | None = None) -> Optional[TaskLease]:
+        # None preserves the historical selector; an explicit empty scope
+        # authorizes no claim. Bind a JSON array, never interpolate SQL.
+        if allowed_chunk_ids is not None and not allowed_chunk_ids:
+            return None
+        scope_json = json.dumps(list(allowed_chunk_ids)) if allowed_chunk_ids is not None else None
         execution_id = f"exec_{int(time.time()*1000):015d}_{uuid.uuid4().hex[:8]}" 
         now = time.time()
         lease_expires = now + 300
@@ -679,9 +703,10 @@ class ControlPlaneRepository(ControlPlanePort):
                         AND worker_type = 'LLM'
                         AND task_state IN ('PENDING', 'RETRYABLE_ERROR')
                         AND (lease_owner IS NULL OR lease_expires_at < ?)
+                        AND (? IS NULL OR node_id IN (SELECT value FROM json_each(?)))
                     ORDER BY created_at ASC LIMIT 1
                 ) RETURNING task_id, node_id, execution_id, lease_expires_at""",
-                (worker_id, lease_expires, execution_id, document_id, ast_hash, now)
+                (worker_id, lease_expires, execution_id, document_id, ast_hash, now, scope_json, scope_json)
             )
             row = cursor.fetchone()
             self.conn.commit()

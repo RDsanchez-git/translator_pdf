@@ -1345,6 +1345,8 @@ def test_pppr_g6_document_free_admission(tmp_path, monkeypatch, case):
         if case == "budget":
             with pytest.raises(G3ExternalEffectNotStartedError, match="EXHAUSTED"):
                 repo.check_g3_document_free_batch(document_id, [preview.audit_json]*3)
+            assert repo.fit_g3_document_free_batch(document_id, [preview.audit_json]*3) == 2
+            assert db.execute("SELECT COUNT(*) FROM g3_admission_decisions").fetchone() == (0,)
             assert requests == []
             return
         repo.check_g3_document_free_batch(document_id, [preview.audit_json])
@@ -1389,3 +1391,125 @@ def test_pppr_g6_document_free_admission(tmp_path, monkeypatch, case):
         if store is not None:
             store.close()
         db.close()
+
+
+@pytest.mark.integration
+def test_pppr_free_window_scoped_claim_never_consumes_deferred_work(queue):
+    preserve, translate = queue.plan.units
+    assert queue.repo.pick_task(
+        "window", queue.plan.document_id, queue.plan.ast_hash, allowed_chunk_ids=(),
+    ) is None
+    lease = queue.repo.pick_task(
+        "window", queue.plan.document_id, queue.plan.ast_hash,
+        allowed_chunk_ids=(translate.chunk_id,),
+    )
+    assert lease is not None and lease.node_id == translate.chunk_id
+    assert queue.repo.pick_task(
+        "window", queue.plan.document_id, queue.plan.ast_hash,
+        allowed_chunk_ids=(translate.chunk_id,),
+    ) is None
+    assert queue.db.execute(
+        "SELECT task_state FROM chunk_tasks WHERE node_id=?", (preserve.chunk_id,),
+    ).fetchone() == ("PENDING",)
+    assert queue.repo.pick_task("next", queue.plan.document_id, queue.plan.ast_hash).node_id == preserve.chunk_id
+
+
+@pytest.mark.integration
+def test_pppr_free_document_resumes_across_explicit_quota_windows(tmp_path, monkeypatch):
+    """Canonical engine, real durable journal and SDK, no real provider I/O."""
+    from decimal import Decimal
+    import httpx
+    from apps.bootstrap.provider_stack_factory import ProductGroqScope
+    from apps.llm_workers.g3_admission import GPT_OSS_120B, GroqFreeTierWitness
+    from core.chunking.contextual_plan import prepare_contextual_plan
+    from infra.db import connection
+    from runtime import engine
+    from tests.integration.test_g3_b4_8_preserve_engine import _dbs
+
+    document_id = "d" * 64
+    prepared = prepare_contextual_plan(
+        document_id=document_id,
+        raw_ast=[
+            ASTNode(node_id="a", sequence_id=1, node_type=ContentNodeType.PARAGRAPH,
+                    payload=ParagraphPayload(content="First paragraph.")),
+            ASTNode(node_id="math", sequence_id=2, node_type=ContentNodeType.DISPLAY_EQUATION,
+                    strategy=TranslationStrategy.PASSTHROUGH, payload=MathPayload(content="E=mc^2")),
+            ASTNode(node_id="b", sequence_id=3, node_type=ContentNodeType.PARAGRAPH,
+                    payload=ParagraphPayload(content="Second paragraph.")),
+        ],
+        estimator=_Estimator(),
+    )
+    ast, plan = list(prepared.ast), prepared.plan
+    units = [u for u in plan.units if u.chunk_type == TranslationTaskType.TRANSLATE]
+    assert len(units) == 2 and len(plan.units) == 3
+    dbs = _dbs(tmp_path, plan, ast)
+    monkeypatch.setattr(connection, "BASE_DIR", tmp_path)
+    monkeypatch.setenv("SQLITE_STATE_DIR", str(tmp_path))
+    monkeypatch.setenv("GROQ_API_KEY", "synthetic-no-network")
+    monkeypatch.setenv("IS_BENCHMARK", "0")
+    monkeypatch.delenv("TPDF_OFFLINE_LAB", raising=False)
+    monkeypatch.setattr(engine, "ASTRegistry", lambda: SimpleNamespace(
+        get_verified_document_ast=lambda doc, ast_hash: ast,
+    ))
+    monkeypatch.setattr(engine, "get_connection", lambda path, timeout=30:
+                        sqlite3.connect(tmp_path / Path(path).name, timeout=timeout))
+
+    clock = [time.time_ns()]
+    monkeypatch.setattr(time, "time_ns", lambda: clock[0])
+    calls = []
+
+    def transport(request):
+        unit = units[len(calls)]
+        calls.append(unit.chunk_id)
+        with sqlite3.connect(tmp_path / "queue.db") as probe:
+            assert probe.execute("SELECT COUNT(*) FROM g3_admission_decisions").fetchone() == (len(calls),)
+        return httpx.Response(200, json={
+            "id": f"synthetic-window-{len(calls)}", "object": "chat.completion", "created": 0,
+            "model": GPT_OSS_120B,
+            "choices": [{"index": 0, "finish_reason": "stop", "message": {
+                "role": "assistant", "content": json.dumps({"content": _response(plan, unit)}),
+            }}],
+            "usage": {"prompt_tokens": 10, "completion_tokens": 10, "total_tokens": 20},
+        })
+
+    def scope(window):
+        witness = GroqFreeTierWitness(
+            f"synthetic-window-{window}", "synthetic-account", "synthetic-quota", "synthetic-free",
+            clock[0] - 1_000_000, clock[0] + 60_000_000_000, 30, 1000, 8000, 200000,
+            "FREE", True, True, True, document_id=document_id, max_requests=1,
+        )
+        policy = _w32_fake_admission(
+            model_name=GPT_OSS_120B, root_config_sha256=engine._product_effective_config_sha256(),
+            input_limit=8000, output_limit=4096, context_window=131072,
+            input_price_per_token=Decimal("0.00000015"), output_price_per_token=Decimal("0.00000060"),
+            free_tier_witness=witness,
+        )
+        return ProductGroqScope(policy, _Estimator(), lambda: httpx.MockTransport(transport))
+
+    try:
+        first = scope(1)
+        result = engine.run_pipeline(document_id, plan.ast_hash, product_scope=first)
+        assert result == {"status": "staging_incomplete", "final_state": "PROCESSING"}
+        assert calls == [units[0].chunk_id]
+        assert dbs.queue.execute(
+            "SELECT task_state,retry_count FROM chunk_tasks WHERE node_id=?", (units[1].chunk_id,),
+        ).fetchone() == ("PENDING", 0)
+        assert dbs.queue.execute("SELECT COUNT(*) FROM chunk_result_receipts").fetchone() == (2,)
+        # The same consumed authorization grants no further claims or effects.
+        assert engine.run_pipeline(document_id, plan.ast_hash, product_scope=first) == result
+        assert calls == [units[0].chunk_id]
+        assert dbs.queue.execute("SELECT COUNT(*) FROM g3_admission_decisions").fetchone() == (1,)
+        # Only a distinct, nonoverlapping explicit witness can resume.
+        clock[0] += 61_000_000_000
+        result = engine.run_pipeline(document_id, plan.ast_hash, product_scope=scope(2))
+        assert result == {"status": "ready_for_assembly", "final_state": "READY_FOR_ASSEMBLY"}
+        assert calls == [u.chunk_id for u in units]
+        assert dbs.queue.execute("SELECT COUNT(*) FROM g3_admission_decisions").fetchone() == (2,)
+        assert dbs.queue.execute("SELECT COUNT(*) FROM chunk_result_receipts").fetchone() == (3,)
+        assert {row[0] for row in dbs.queue.execute(
+            "SELECT task_state FROM chunk_tasks WHERE worker_type='LLM'",
+        )} == {"COMPLETED"}
+    finally:
+        dbs.materialized.close()
+        dbs.fsm.close()
+        dbs.queue.close()
