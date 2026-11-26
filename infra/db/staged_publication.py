@@ -128,6 +128,7 @@ def publish_staged_plan(
     ast: Sequence[ASTNode],
     *,
     projection_version: int = 1,
+    required_root_config_sha256: str | None = None,
 ) -> bool:
     """Publish all node projections atomically in materialized.db.
 
@@ -137,7 +138,9 @@ def publish_staged_plan(
     """
     if type(projection_version) is not int or projection_version < 1:
         raise ValueError("G3_B3_3_INVALID_VERSION")
-    responses = queue_repo.load_staged_chunk_responses(plan, ast)
+    responses = queue_repo.load_staged_chunk_responses(
+        plan, ast, required_root_config_sha256=required_root_config_sha256,
+    )
     nodes = materialize_node_results(plan, responses)
     rows, result_hash = _expected_rows(plan, ast, nodes)
     with _write_scope(materialized_conn):
@@ -178,6 +181,7 @@ def finalize_published_plan(
     ast: Sequence[ASTNode],
     *,
     projection_version: int = 1,
+    required_root_config_sha256: str | None = None,
 ) -> bool:
     """Confirm a fully published generation in one queue.db transaction.
 
@@ -213,6 +217,7 @@ def finalize_published_plan(
         # This option only widens the allowed state for verification/replay.
         responses = queue_repo.load_staged_chunk_responses(
             verified, ast, allow_completed=True,
+            required_root_config_sha256=required_root_config_sha256,
         )
         nodes = materialize_node_results(verified, responses)
         verify_published_nodes(

@@ -21,7 +21,7 @@ from core.pipeline.orchestrator import ParserProtocol
 from core.chunking.contextual_plan import prepare_contextual_plan
 from infra.db.context_snapshot_repo import DurableContextPlanRepository
 from core.validation.estimators import ExactBPEEstimator
-from core.document_profile.models import ProfileInput
+from core.document_profile.models import ProfileInput, ProfileDiagnostics, SamplingCoverage
 from core.document_profile.profiler import HeuristicDocumentProfiler
 from apps.bootstrap.pipeline_factory import build_document_profiler
 
@@ -103,7 +103,21 @@ class OCRRouterDaemon:
             profile_input = ProfileInput(nodes=raw_ast)
             profiling_result = self.document_profiler.profile(profile_input)
             self.profile_store.save(document_id, profiling_result.profile)
-            
+            diagnostics = getattr(profiling_result, "diagnostics", None)
+            if isinstance(diagnostics, ProfileDiagnostics):
+                log_method = (
+                    logger.warning if diagnostics.sampling_coverage != SamplingCoverage.STRICT_SCOPE
+                    or diagnostics.geometry_reasons else logger.info
+                )
+                # Registro atribuible sin volcar rutas fuente o contenido del PDF.
+                log_method(
+                    "PPPR_G2_PROFILE_EVIDENCE doc_id=%s sampling=%s sampling_reasons=%d geometry_reasons=%d",
+                    document_id[:12], diagnostics.sampling_coverage.value,
+                    len(diagnostics.sampling_reasons), len(diagnostics.geometry_reasons),
+                )
+            else:
+                logger.warning("PPPR_G2_PROFILE_EVIDENCE_UNVERIFIED doc_id=%s", document_id[:12])
+
             logger.info(
                 f"Perfil inferido para {document_id[:8]}: "
                 f"Layout={profiling_result.profile.layout}, "
@@ -130,6 +144,14 @@ class OCRRouterDaemon:
             # The AST persists separately; queue.db commits plan/tasks/snapshots
             # together, without pretending that these are one cross-file commit.
             self.ast_registry.register_ast(document_id, ast_hash, list(prepared.ast))
+            # En la ruta productiva, no publicar plan/cola hasta releer y
+            # acreditar la generación semántica desde el artefacto físico.
+            # Los fakes de test que no son ASTRegistry no son consumidores
+            # persistentes y mantienen su contrato unitario aislado.
+            if isinstance(self.ast_registry, ASTRegistry):
+                observed = self.ast_registry.get_verified_document_ast(document_id, ast_hash)
+                if tuple(observed) != prepared.ast:
+                    raise ValueError("PPPR_G2_OCR_PERSISTED_AST_DRIFT")
             
             # FSM y cola son commits locales separados: recuperar CREATED/PARSING
             # sin fingir una transacción entre bases SQLite.

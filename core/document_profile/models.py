@@ -1,9 +1,26 @@
+from __future__ import annotations
+
 from enum import StrEnum
 from dataclasses import dataclass
 from collections.abc import Sequence
 
 from core.ast.models import ASTNode
 from core.domain.document import DocumentType
+
+class SamplingCoverage(StrEnum):
+    """Alcance de la muestra; no certifica la cobertura íntegra del PDF."""
+    STRICT_SCOPE = "STRICT_SCOPE"
+    PARTIAL = "PARTIAL"
+    INDETERMINATE = "INDETERMINATE"
+
+
+@dataclass(frozen=True, slots=True)
+class SamplingReport:
+    nodes: Sequence[ASTNode]
+    coverage: SamplingCoverage
+    reasons: tuple[str, ...] = ()
+    geometry_reasons: tuple[str, ...] = ()
+
 
 class PageLayout(StrEnum):
     """Taxonomía de topología física inferida."""
@@ -34,11 +51,16 @@ class TypeDetection:
 class InferredDocumentProfile:
     layout: PageLayout
     document_type: DocumentType | None
+    # None: registro legado; su evidencia física NO está acreditada.
+    physical_diagnostics: ProfileDiagnostics | None = None
 
 @dataclass(slots=True, frozen=True)
 class ProfileDiagnostics:
     layout_confidence: float
     type_confidence: float
+    sampling_coverage: SamplingCoverage = SamplingCoverage.INDETERMINATE
+    sampling_reasons: tuple[str, ...] = ()
+    geometry_reasons: tuple[str, ...] = ()
 
 @dataclass(slots=True, frozen=True)
 class ProfilingResult:

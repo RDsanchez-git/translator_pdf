@@ -20,8 +20,12 @@ class TexBuilder:
             rendered_content = self._context.render_unit(unit)
             
             if rendered_content:
-                # Trazabilidad forense para debugging
-                document.append(f"% [NODE_ID: {unit.node_id}] [TYPE: {unit.node_type.value}]")
+                # Keep arbitrary DTO metadata inside one TeX comment line.
+                # ascii() quotes the identifier and escapes all control,
+                # newline, and non-ASCII characters without changing identity.
+                document.append(
+                    f"% [NODE_ID: {ascii(unit.node_id)}] [TYPE: {unit.node_type.value}]"
+                )
                 document.append(rendered_content)
                 document.append("") 
                 

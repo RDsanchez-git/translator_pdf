@@ -1,7 +1,7 @@
 import hashlib
 from typing import List, Dict, Tuple, Any
 from core.ast.models import ASTNode
-from core.ast.enums import ContentNodeType, HeadingLevel
+from core.ast.enums import ContentNodeType, HeadingLevel, TranslationStrategy
 from core.normalization.base import WarningEntry
 
 class HierarchicalContextEnricher:
@@ -17,10 +17,11 @@ class HierarchicalContextEnricher:
     def _validate_registry(self, nodes: List[ASTNode], mappings: Dict[str, Any]) -> None:
         """Garantiza la consistencia interna y previene punteros huérfanos antes del Chunking."""
         for node in nodes:
-            if node.node_type != ContentNodeType.HEADING:
-                ctx_id = node.control_plane.get("context_id")
-                if ctx_id and ctx_id not in mappings:
-                    raise ValueError(f"CONTEXT_REGISTRY_CORRUPTION: Node {node.node_id} points to missing context {ctx_id}")
+            ctx_id = node.control_plane.get("context_id")
+            if ctx_id and ctx_id not in mappings:
+                raise ValueError(
+                    f"CONTEXT_REGISTRY_CORRUPTION: Node {node.node_id} points to missing context {ctx_id}"
+                )
 
     def enrich_document(self, nodes: List[ASTNode]) -> Tuple[List[ASTNode], Dict[str, Any], List[WarningEntry], Dict[str, int]]:
         enriched_nodes: List[ASTNode] = []
@@ -44,7 +45,17 @@ class HierarchicalContextEnricher:
                 elif h_level_attr == HeadingLevel.H3:
                     level = 3
                 else:
-                    level = 1
+                    # Unknown physical heading depth is not proof of H1.
+                    # Record an explicit warning; the durable OCR producer
+                    # must reject unresolved structure before publishing G3.
+                    warnings.append(WarningEntry(
+                        severity="WARNING",
+                        message=f"PPPR_G2_UNVERIFIED_HEADING_LEVEL: {node.node_id}",
+                    ))
+                    hierarchy_stack.clear()
+                    last_level = 0
+                    enriched_nodes.append(node)
+                    continue
 
                 title = (node.text_content or "Untitled").lstrip("#").strip()
                 structural_index += 1
@@ -57,7 +68,31 @@ class HierarchicalContextEnricher:
                 
                 last_level = level
                 hierarchy_stack = [h for h in hierarchy_stack if h["level"] < level]
-                
+                # An accredited translating heading receives its verified
+                # *parent* context, not a breadcrumb of its own source text.
+                if node.strategy == TranslationStrategy.TRANSLATE:
+                    parents = hierarchy_stack[-self._max_depth:]
+                    if parents:
+                        frames = [
+                            {"level": h["level"], "title": h["title"]}
+                            for h in parents
+                        ]
+                        fingerprint = ",".join(
+                            f"H{h['level']}_I{h['index']}:{h['title']}"
+                            for h in parents
+                        ).encode("utf-8")
+                    else:
+                        frames = [self._root_context]
+                        fingerprint = b"ROOT"
+                    context_id = "CTX_" + hashlib.blake2b(
+                        fingerprint, digest_size=6,
+                    ).hexdigest().upper()
+                    context_mappings[context_id] = frames
+                    cp = dict(node.control_plane)
+                    cp["context_id"] = context_id
+                    cp["context_depth"] = len(frames)
+                    node = node.model_copy(update={"control_plane": cp})
+
                 hierarchy_stack.append({
                     "level": level, 
                     "title": title, 

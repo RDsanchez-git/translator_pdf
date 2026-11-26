@@ -1,112 +1,172 @@
-# infra/adapters/ast_profiling.py
+"""Infraestructura de perfilado con proveniencia física verificable (PPPR G2)."""
+
+from __future__ import annotations
+
+from collections.abc import Sequence
+from dataclasses import dataclass
+from math import isfinite
+
 from core.ast.models import ASTNode
 from core.ast.enums import ContentNodeType
 from core.document_profile.extractors import NodeGeometry
-from collections.abc import Sequence
-from core.document_profile.ports import ProfileSamplingPolicy
+from core.document_profile.models import SamplingCoverage, SamplingReport
 
+
+@dataclass(frozen=True, slots=True)
 class _NodeGeometryDTO:
-    """Implementación inmutable del puerto NodeGeometry."""
-    __slots__ = ("_center_x", "_relative_center_x", "_page_number")
-    
-    def __init__(self, center_x: float, relative_center_x: float, page_number: int):
-        self._center_x = center_x
-        self._relative_center_x = relative_center_x
-        self._page_number = page_number
+    center_x: float
+    relative_center_x: float
+    page_number: int
 
-    @property
-    def center_x(self) -> float:
-        return self._center_x
-
-    @property
-    def relative_center_x(self) -> float:
-        return self._relative_center_x
-
-    @property
-    def page_number(self) -> int:
-        return self._page_number
 
 class NodeGeometryAdapter:
-    """Adaptador de infraestructura: Extrae métricas espaciales blindando al dominio del AST."""
-    
-    # Ancho estándar de fallback (Carta/A4) para evitar ZeroDivisionError 
-    # si el AST no posee metadata de dimensiones de página.
-    _FALLBACK_PAGE_WIDTH = 612.0 
-    
+    """Solo calcula geometría sobre una región física acreditada.
+
+    BBoxes de listas paralelas antiguas y anchos supuestos NO acreditan
+    correspondencia de página, ni se agregan regiones multipágina sin política.
+    """
+
     def extract(self, node: ASTNode) -> NodeGeometry | None:
-        metadata = getattr(node, "metadata", None)
-        if not metadata:
+        regions = node.metadata.physical_regions
+        if len(regions) != 1:
+            return None
+        region = regions[0]
+        bbox = region.bbox
+        if bbox is None:
             return None
 
-        bboxes = getattr(metadata, "bboxes", None)
-        if not bboxes or len(bboxes) == 0:
+        center_x = bbox.center_x
+        if not isfinite(center_x):
             return None
 
-        primary_bbox = bboxes[0]
-        
-        center_x = getattr(primary_bbox, "center_x", None)
-        if center_x is None:
-            x0 = getattr(primary_bbox, "x0", None)
-            x1 = getattr(primary_bbox, "x1", None)
-            if x0 is None or x1 is None:
+        if bbox.is_normalized:
+            if not (0 <= bbox.x0 < bbox.x1 <= 1):
                 return None
-            center_x = (x0 + x1) / 2.0
-
-        page_width = getattr(metadata, "page_width", self._FALLBACK_PAGE_WIDTH)
-        if not page_width or page_width <= 0:
-            page_width = self._FALLBACK_PAGE_WIDTH
-
-        # SOTA FIX: Extracción del número de página con fallback a 0
-        page_num = getattr(metadata, "page_number", 0)
+            relative_center_x = center_x
+        else:
+            width = region.page_width
+            if width is None or not isfinite(width) or width <= 0:
+                return None
+            if bbox.x0 < 0 or bbox.x1 > width:
+                return None
+            relative_center_x = center_x / width
 
         return _NodeGeometryDTO(
             center_x=center_x,
-            relative_center_x=center_x / page_width,
-            page_number=page_num
+            relative_center_x=relative_center_x,
+            page_number=region.page_number,
         )
+
+
+    def explain_missing(self, node: ASTNode) -> str | None:
+        """Motivo físico atribuible; el None del puerto extract() no es PASS."""
+        if self.extract(node) is not None:
+            return None
+        regions = node.metadata.physical_regions
+        if not regions:
+            return "PHYSICAL_PROVENANCE_UNVERIFIED"
+        if len(regions) != 1:
+            return "MULTIREGION_GEOMETRY_NOT_ACREDITED"
+        region = regions[0]
+        if region.bbox is None:
+            return "BBOX_UNVERIFIED"
+        if not region.bbox.is_normalized and region.page_width is None:
+            return "PAGE_WIDTH_UNVERIFIED"
+        return "COORDINATE_TRANSFORM_UNVERIFIED"
+
+
 class NodeSemanticAdapter:
-    """Adaptador de infraestructura: Traduce la tipología del AST al dominio."""
-    
+    """Proyección semántica a la taxonomía canónica del AST."""
+
     def kind(self, node: ASTNode) -> ContentNodeType | None:
-        node_type = getattr(node, "node_type", None)
+        node_type = node.node_type
         if isinstance(node_type, ContentNodeType):
             return node_type
-            
-        # Fallback si el AST guarda el enum como string crudo
         if isinstance(node_type, str):
             try:
                 return ContentNodeType(node_type)
             except ValueError:
                 return None
-                
         return None
 
 
-
 class FirstPagesSamplingPolicy:
-    """SOTA: Estrategia de Bounded Workload inyectable y configurable."""
+    """Primeras N páginas FÍSICAS, no primeras N páginas observadas.
+
+    Si un nodo cruza la frontera, se descarta íntegro y se marca PARTIAL.
+    Si no hay vinculación física acreditada, no se lo asigna a página 0:
+    se omite y se registra INDETERMINATE. La salida de sample() mantiene
+    el contrato Sequence anterior; sample_with_report() expone el límite.
+    """
+
     __slots__ = ("_geom_extractor", "_max_pages")
 
-    def __init__(self, geom_extractor: 'NodeGeometryAdapter', max_pages: int):
+    def __init__(self, geom_extractor: NodeGeometryAdapter, max_pages: int):
+        if max_pages < 1:
+            raise ValueError("PROFILER_MAX_SAMPLING_PAGES debe ser >= 1")
         self._geom_extractor = geom_extractor
         self._max_pages = max_pages
 
-    def sample(self, nodes: Sequence[ASTNode]) -> Sequence[ASTNode]:
-        sampled = []
-        seen_pages = set()
+    def sample_with_report(self, nodes: Sequence[ASTNode]) -> SamplingReport:
+        # El perfil de un documento no puede fusionar páginas de dos fuentes.
+        sources = {
+            region.source_document
+            for node in nodes
+            for region in node.metadata.physical_regions
+        }
+        # Rechazar la mezcla global aun cuando un nodo también tenga varias fuentes.
+        if len(sources) > 1 and len(nodes) > 1:
+            return SamplingReport(
+                nodes=(),
+                coverage=SamplingCoverage.INDETERMINATE,
+                reasons=("MIXED_SOURCE_DOCUMENTS_IN_PROFILE",),
+            )
+
+        selected: list[ASTNode] = []
+        reasons: list[str] = []
+        has_unknown = False
+        has_partial = False
 
         for node in nodes:
-            geom = self._geom_extractor.extract(node)
-            page_num = geom.page_number if geom else 0 
-            
-            if page_num not in seen_pages:
-                if len(seen_pages) >= self._max_pages:
-                    break
-                seen_pages.add(page_num)
-                
-            sampled.append(node)
+            regions = node.metadata.physical_regions
+            if not regions:
+                has_unknown = True
+                reasons.append(f"{node.node_id}:UNVERIFIED_PHYSICAL_PROVENANCE")
+                continue
 
-        return sampled
+            documents = {r.source_document for r in regions}
+            if len(documents) != 1:
+                has_unknown = True
+                reasons.append(f"{node.node_id}:MIXED_SOURCE_DOCUMENTS")
+                continue
 
-# Conformidad estructural implícita
-_ : ProfileSamplingPolicy = FirstPagesSamplingPolicy(None, 0) # type: ignore
+            page_numbers = {r.page_number for r in regions}
+            inside = any(p <= self._max_pages for p in page_numbers)
+            outside = any(p > self._max_pages for p in page_numbers)
+            if inside and outside:
+                has_partial = True
+                reasons.append(f"{node.node_id}:CROSS_BOUNDARY_CONTENT_OMITTED")
+                continue
+            if inside:
+                selected.append(node)
+            # only outside: legitimately excluded from the first N pages
+
+        coverage = (
+            SamplingCoverage.INDETERMINATE if has_unknown else
+            SamplingCoverage.PARTIAL if has_partial else
+            SamplingCoverage.STRICT_SCOPE
+        )
+        geometry_reasons = tuple(
+            f"{node.node_id}:{reason}"
+            for node in selected
+            if (reason := self._geom_extractor.explain_missing(node)) is not None
+        )
+        return SamplingReport(
+            nodes=tuple(selected),
+            coverage=coverage,
+            reasons=tuple(reasons),
+            geometry_reasons=geometry_reasons,
+        )
+
+    def sample(self, nodes: Sequence[ASTNode]) -> Sequence[ASTNode]:
+        return self.sample_with_report(nodes).nodes

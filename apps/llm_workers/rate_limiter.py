@@ -10,6 +10,7 @@ from apps.llm_workers.prompt_builder import PromptEnvelope
 from apps.llm_workers.routing import LLMProvider
 from core.prompting.inference_result import InferenceResult
 from core.execution.exceptions import PermanentQuotaRejection, QuotaTimeoutError
+from core.execution.effect_guard import g3_pre_effect_guard, g3_free_dispatch_permit
 from core.resilience.rate_limit_store import RateLimitStore
 from core.resilience.rate_limit_store import BucketState
 
@@ -226,7 +227,8 @@ class RateLimitedProvider(LLMProvider):
 
     # SOTA FIX: Contrato actualizado a InferenceResult
     async def translate(self, envelope: PromptEnvelope) -> InferenceResult:
-        target_tokens = envelope.estimated_tokens
+        permit = g3_free_dispatch_permit.get()
+        target_tokens = permit.reserved_tokens if permit is not None else envelope.estimated_tokens
         total_wait_time = 0.0
         attempts = 0  # SOTA FIX: Contador de contención
 
@@ -266,4 +268,10 @@ class RateLimitedProvider(LLMProvider):
             total_wait_time += wait_cycle
             await asyncio.sleep(wait_cycle)
 
+        # Last local await before the provider boundary. The callback reads
+        # authority on a fresh, thread-owned SQLite connection; it must not
+        # treat provider I/O as reversible once the delegation starts.
+        pre_effect_guard = g3_pre_effect_guard.get()
+        if pre_effect_guard is not None:
+            pre_effect_guard()
         return await self._underlying.translate(envelope)

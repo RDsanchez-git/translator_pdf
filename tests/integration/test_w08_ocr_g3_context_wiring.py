@@ -19,6 +19,7 @@ from apps.llm_workers.routing import LLMProvider
 from core.ast.enums import ContentNodeType, HeadingLevel
 from core.ast.models import ASTNode, HeadingPayload, ParagraphPayload, TranslationTaskType
 from core.chunking.contextual_plan import prepare_contextual_plan
+from core.chunking.result_contract import materialize_node_results
 from core.context.snapshot_contract import ContextSnapshotV1
 from core.validation.protocols import TokenEstimatorProtocol
 from infra.db.context_snapshot_repo import DurableContextPlanRepository
@@ -44,7 +45,7 @@ class _CaptureBuilder:
         self.seen.append(resolved_context)
         return SimpleNamespace(
             status="success",
-            envelope=SimpleNamespace(chunk_id=unit.chunk_id),
+            envelope=SimpleNamespace(chunk_id=unit.chunk_id, target_provider="primary"),
         )
 
 
@@ -102,9 +103,22 @@ def test_w08_ocr_produces_distinct_contexts_without_global_root(tmp_path):
     prepared, conn = _setup(tmp_path)
     with closing(conn):
         assert len(prepared.plan.units) == 4
-        inference = [u for u in prepared.plan.units if u.chunk_type != TranslationTaskType.PRESERVE]
-        assert len(inference) == 2
-        assert inference[0].context_id != inference[1].context_id
+        inference = [
+            u for u in prepared.plan.units
+            if u.chunk_type == TranslationTaskType.TRANSLATE
+        ]
+        assert len(inference) == 4
+        headings = [
+            u for u in inference
+            if u.members[0].node_type == ContentNodeType.HEADING.value
+        ]
+        paragraphs = [
+            u for u in inference
+            if u.members[0].node_type == ContentNodeType.PARAGRAPH.value
+        ]
+        assert len(headings) == len(paragraphs) == 2
+        assert headings[0].context_id == headings[1].context_id
+        assert paragraphs[0].context_id != paragraphs[1].context_id
         assert all(u.context_id.startswith("CTX_") and u.context_depth == 1 for u in inference)
         assert all(u.context_id != "GLOBAL_ROOT" for u in prepared.plan.units)
 
@@ -116,7 +130,11 @@ def test_w08_new_connection_delivers_effective_section_context_to_fake(tmp_path)
         plan, snapshots = DurableContextPlanRepository(
             ControlPlaneRepository(reopened),
         ).load_verified(prepared.plan.document_id, prepared.plan.ast_hash, prepared.ast)
-    units = [u for u in plan.units if u.chunk_type == TranslationTaskType.TRANSLATE]
+    units = [
+        u for u in plan.units
+        if u.chunk_type == TranslationTaskType.TRANSLATE
+        and u.members[0].node_type == ContentNodeType.PARAGRAPH.value
+    ]
     for expected_title, unit in zip(("Methods", "Results"), units, strict=True):
         builder = _CaptureBuilder()
         provider = _FakeProvider(_response(plan, unit))
@@ -217,3 +235,104 @@ def test_w08_ocr_contextual_ast_hash_matches_raw_semantic_identity():
     )
     assert prepared.plan.ast_hash == compute_ast_hash(raw)
     assert prepared.plan.ast_hash == compute_ast_hash(prepared.ast)
+
+
+@pytest.mark.integration
+def test_w42_selected_heading_materializes_fake_es_from_reopened_sqlite(tmp_path):
+    """Heading G3 fake -> durable snapshots -> translated materialization."""
+    prepared, conn = _setup(tmp_path)
+    conn.close()
+    with closing(sqlite3.connect(tmp_path / "queue.db")) as reopened:
+        plan, snapshots = DurableContextPlanRepository(
+            ControlPlaneRepository(reopened),
+        ).load_verified(prepared.plan.document_id, prepared.plan.ast_hash, prepared.ast)
+        assert plan == prepared.plan
+        assert len(snapshots) == 3
+
+    selected = {"h1": "Métodos", "p1": "Alfa.", "h2": "Resultados", "p2": "Beta."}
+    responses = {}
+    for unit in plan.units:
+        assert unit.chunk_type == TranslationTaskType.TRANSLATE
+        member = unit.members[0]
+        raw = json.dumps({
+            "schema_version": 1, "document_id": plan.document_id,
+            "ast_hash": plan.ast_hash, "manifest_sha256": plan.digest,
+            "chunk_id": unit.chunk_id,
+            "members": [{
+                "node_id": member.node_id,
+                "segment_index": member.segment_index,
+                "source_sha256": sha256(member.source_text.encode()).hexdigest(),
+                "translated_text": selected[member.node_id],
+            }],
+        })
+        provider = _FakeProvider(raw)
+        builder = _CaptureBuilder()
+        bridge = SyncProviderBridge(
+            cast(LLMProvider, provider), cast(PromptBuilder, builder),
+            context_snapshots=snapshots,
+        )
+        try:
+            responses[unit.chunk_id] = bridge.execute_chunk(plan, unit)
+        finally:
+            bridge.shutdown()
+        assert provider.calls == 1
+        if member.node_type == ContentNodeType.HEADING.value:
+            # The verified root snapshot is level 0, but its prompt-facing
+            # title is intentionally unprefixed by SyncProviderBridge.
+            root_snapshot = snapshots[unit.context_id]
+            assert len(root_snapshot.breadcrumbs) == 1
+            assert root_snapshot.breadcrumbs[0].level == 0
+            assert root_snapshot.breadcrumbs[0].title == "[ROOT_DOCUMENT_CONTEXT]"
+            assert builder.seen[0].context_id == unit.context_id
+            assert builder.seen[0].breadcrumbs == (
+                "[ROOT_DOCUMENT_CONTEXT]",
+            )
+    actual = materialize_node_results(plan, responses)
+    assert {x.node_id: x.text for x in actual} == selected
+    assert {x.node_id: x.text_sha256 for x in actual} == {
+        k: sha256(v.encode()).hexdigest() for k, v in selected.items()
+    }
+
+
+@pytest.mark.integration
+def test_w42_old_preserved_heading_manifest_cannot_replay_as_translate(tmp_path):
+    from dataclasses import replace
+    from core.chunking.manifest_contract import ChunkPlan
+
+    prepared, conn = _setup(tmp_path)
+    with closing(conn):
+        heading = next(
+            u for u in prepared.plan.units
+            if u.members[0].node_type == ContentNodeType.HEADING.value
+        )
+        forged = replace(heading, chunk_type=TranslationTaskType.PRESERVE)
+        units = [
+            forged if u.chunk_id == heading.chunk_id else u
+            for u in prepared.plan.units
+        ]
+        with pytest.raises(ValueError, match="G3_TASK_POLICY_MISMATCH"):
+            ChunkPlan.build(
+                prepared.plan.document_id, prepared.plan.ast_hash,
+                prepared.ast, units,
+            )
+
+
+@pytest.mark.integration
+def test_w42_unknown_heading_remains_preserve_and_does_not_invent_h1():
+    from core.ast.hashing import compute_ast_hash
+
+    source = _raw_ast()
+    source[0] = source[0].model_copy(update={
+        "payload": HeadingPayload(
+            content="Unknown Methods", heading_level=HeadingLevel.UNKNOWN,
+        ),
+    })
+    prepared = prepare_contextual_plan(
+        document_id="doc_unknown", raw_ast=source,
+        estimator=cast(TokenEstimatorProtocol, _Estimator()),
+    )
+    assert prepared.plan.ast_hash == compute_ast_hash(source)
+    unit = next(u for u in prepared.plan.units if u.members[0].node_id == "h1")
+    assert unit.chunk_type == TranslationTaskType.PRESERVE
+    assert unit.context_id == "PRESERVE_HEADING_NO_INFERENCE"
+    assert unit.target_payload == "Unknown Methods"

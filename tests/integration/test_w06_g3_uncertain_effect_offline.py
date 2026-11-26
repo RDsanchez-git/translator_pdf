@@ -3,11 +3,15 @@
 No Docker, real API keys, network, production databases, or historical volumes.
 The contract oracle must PASS: UNKNOWN effects never retry automatically.
 """
+import asyncio
+import io
+import logging
 from dataclasses import replace
 from hashlib import sha256
 import json
 from pathlib import Path
 import sqlite3
+import time
 from threading import Semaphore
 from types import SimpleNamespace
 from typing import cast
@@ -15,6 +19,8 @@ from typing import cast
 import pytest
 
 from apps.llm_workers.sync_bridge import SyncProviderBridge
+from apps.llm_workers.rate_limiter import RateLimitedProvider, QuotaManagerProtocol, QuotaReservation, QuotaRejectionReason
+from core.execution.exceptions import PermanentQuotaRejection, QuotaTimeoutError
 from apps.llm_workers.prompt_builder import PromptBuilder, PromptEnvelope
 from core.prompting.inference_result import InferenceResult
 from tests.integration._reconciler_test_factory import make_reconciler_with_test_doubles
@@ -26,6 +32,7 @@ from core.chunking.contextual_plan import prepare_contextual_plan
 from infra.db.context_snapshot_repo import DurableContextPlanRepository
 from infra.db.control_repo import ControlPlaneRepository
 from runtime.chunk_staging import stage_claimed_unit
+from core.utils.telemetry import DistributedContextFilter, JSONFormatter
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -167,7 +174,10 @@ class _Builder:
     prompt_version = "w06"
 
     def build(self, unit, resolved_context, target_lang_expansion=1.2):
-        return SimpleNamespace(status="success", envelope=SimpleNamespace(chunk_id=unit.chunk_id))
+        return SimpleNamespace(
+            status="success",
+            envelope=SimpleNamespace(chunk_id=unit.chunk_id, target_provider="primary"),
+        )
 
 
 class _AcceptedThenResponseLost:
@@ -256,6 +266,59 @@ def test_w06_restart_never_reinitializes_provider_for_unknown(subject, monkeypat
     assert len(fake.accepted_calls) == 1
 
 
+def test_pppr_g3_unknown_blocks_all_authorized_local_retry_and_legacy_recovery(
+    subject, monkeypatch,
+):
+    """Negative proof for current, authorized *local API* paths only.
+
+    This does not claim resistance to arbitrary privileged SQL rewrites, or
+    demonstrate execution/accounting of an exceptional retry that is absent.
+    """
+    from core.execution.exceptions import OptimisticLockError
+
+    provider, _ = _run_post_send_loss(subject, monkeypatch)
+    assert len(provider.accepted_calls) == 1
+    original = subject.queue.execute(
+        "SELECT task_id,document_id,ast_hash,execution_id,task_state,"
+        "retry_count,error_log FROM chunk_tasks WHERE worker_type='LLM'"
+    ).fetchone()
+    assert original is not None
+    task_id, document_id, ast_hash, execution_id, state, retries, error_log = original
+    assert state == "G3_EXTERNAL_UNKNOWN" and retries == 0
+    assert json.loads(error_log)["code"] == "G3_W06_EXTERNAL_UNKNOWN"
+
+    # A former worker cannot reclassify an uncertain effect as a proven
+    # no-start or resuscitate its expired claim.
+    assert not subject.repo.mark_g3_proven_no_start(
+        task_id=task_id, worker_id="w06_worker",
+        execution_id=execution_id, cause="FORGED_NO_START",
+    )
+    assert not subject.repo.renew_task_lease(task_id, "w06_worker")
+    with pytest.raises(OptimisticLockError):
+        subject.repo.release_task_untouched(task_id, "w06_worker")
+    with pytest.raises(OptimisticLockError):
+        subject.repo.abandon_execution(task_id, "w06_worker", "FORGED_RETRY")
+    with pytest.raises(OptimisticLockError):
+        subject.repo.acknowledge_execution(task_id, "w06_worker")
+
+    # The legacy paths must not take ownership of a G3 plan task.
+    assert not subject.repo.mark_zombie_recovered(task_id, "legacy_recovery")
+    assert not subject.repo.mark_cqrs_reconciled(task_id, "legacy_cqrs")
+
+    # Restart the connection/repository, then query the actual scheduler
+    # selector rather than merely asserting a string state.
+    path = subject.queue.execute("PRAGMA database_list").fetchone()[2]
+    with sqlite3.connect(path) as restarted:
+        repo = ControlPlaneRepository(restarted)
+        assert repo.pick_task("unauthorized_retry", document_id, ast_hash) is None
+        assert restarted.execute(
+            "SELECT task_id,document_id,ast_hash,execution_id,task_state,"
+            "retry_count,error_log FROM chunk_tasks WHERE task_id=?",
+            (task_id,),
+        ).fetchone() == original
+    assert len(provider.accepted_calls) == 1
+
+
 def _set_reconciler_expiry(subject, *, worker="w06_worker"):
     """Establish a real lease, expired snapshot, and independent FSM attachment."""
     import time
@@ -320,3 +383,713 @@ def test_w06_unknown_survives_new_sqlite_connection(subject, monkeypatch):
         assert json.loads(row[2])["execution_id"] == row[1]
         repo = ControlPlaneRepository(conn)
         assert repo.pick_task("restarted", subject.plan.document_id, subject.plan.ast_hash) is None
+
+
+# PPPR Gate 3 Wave 3.1: authority and uncertain effects, offline only.
+
+def test_pppr_g3_owner_drift_while_waiting_for_semaphore_blocks_provider(subject):
+    from core.execution.exceptions import G3ExternalEffectNotStartedError
+    unit = subject.plan.units[0]
+    lease = subject.repo.pick_task("w31", subject.plan.document_id, subject.plan.ast_hash)
+    assert lease is not None
+    processor = _RecordingChunkProcessor(_response(subject.plan, unit))
+
+    class _StolenDuringWait:
+        def __enter__(self):
+            subject.queue.execute(
+                "UPDATE chunk_tasks SET lease_owner='other',state_version=state_version+1 "
+                "WHERE task_id=?", (lease.task_id,))
+            subject.queue.commit()
+        def __exit__(self, *args):
+            return False
+
+    with pytest.raises(G3ExternalEffectNotStartedError,
+                       match="PPPR_G3_EFFECT_AUTHORITY_NOT_CURRENT"):
+        stage_claimed_unit(subject.repo, subject.plan, subject.ast, unit,
+                           lease, "w31", processor,
+                           cast(Semaphore, _StolenDuringWait()))
+    assert not processor.calls
+    assert subject.queue.execute(
+        "SELECT COUNT(*) FROM chunk_result_receipts").fetchone()[0] == 0
+    assert not subject.repo.mark_g3_proven_no_start(
+        task_id=lease.task_id, worker_id="w31", execution_id=lease.execution_id,
+        cause="FENCED")
+
+
+def test_pppr_g3_expired_during_wait_is_proven_no_start_and_cas_requeue(subject):
+    from core.execution.exceptions import G3ExternalEffectNotStartedError
+    unit = subject.plan.units[0]
+    lease = subject.repo.pick_task("w31", subject.plan.document_id, subject.plan.ast_hash)
+    assert lease is not None
+    processor = _RecordingChunkProcessor(_response(subject.plan, unit))
+
+    class _ExpiredDuringWait:
+        def __enter__(self):
+            subject.queue.execute(
+                "UPDATE chunk_tasks SET lease_expires_at=1.0 WHERE task_id=?",
+                (lease.task_id,))
+            subject.queue.commit()
+        def __exit__(self, *args):
+            return False
+
+    with pytest.raises(G3ExternalEffectNotStartedError,
+                       match="PPPR_G3_EFFECT_AUTHORITY_NOT_CURRENT"):
+        stage_claimed_unit(subject.repo, subject.plan, subject.ast, unit,
+                           lease, "w31", processor,
+                           cast(Semaphore, _ExpiredDuringWait()))
+    assert not processor.calls
+    assert subject.repo.mark_g3_proven_no_start(
+        task_id=lease.task_id, worker_id="w31", execution_id=lease.execution_id,
+        cause="PRE_EFFECT_AUTHORITY_EXPIRED")
+    row = subject.queue.execute(
+        "SELECT task_state,retry_count,execution_id,error_log FROM chunk_tasks "
+        "WHERE task_id=?", (lease.task_id,)).fetchone()
+    assert row[0:3] == ("RETRYABLE_ERROR", 1, lease.execution_id)
+    assert json.loads(row[3])["code"] == "PPPR_G3_EFFECT_NOT_STARTED"
+    assert not subject.repo.mark_g3_proven_no_start(
+        task_id=lease.task_id, worker_id="w31", execution_id=lease.execution_id,
+        cause="DUPLICATE")
+    next_lease = subject.repo.pick_task(
+        "w31_next", subject.plan.document_id, subject.plan.ast_hash)
+    assert next_lease and next_lease.execution_id != lease.execution_id
+
+
+def test_pppr_g3_no_start_requeue_respects_retry_budget(subject):
+    lease = subject.repo.pick_task("w31", subject.plan.document_id, subject.plan.ast_hash)
+    assert lease is not None
+    subject.queue.execute(
+        "UPDATE chunk_tasks SET max_retries=1 WHERE task_id=?", (lease.task_id,))
+    subject.queue.commit()
+    assert subject.repo.mark_g3_proven_no_start(
+        task_id=lease.task_id, worker_id="w31", execution_id=lease.execution_id,
+        cause="PROVIDER_MISSING_BEFORE_CALL")
+    assert _row(subject) == ("FAILED", 1)
+    assert subject.repo.pick_task(
+        "w31_after_failure", subject.plan.document_id, subject.plan.ast_hash) is None
+
+
+def test_pppr_g3_unknown_alarm_ttl_reopen_and_corrupt_record(subject, monkeypatch):
+    fake, _ = _run_post_send_loss(subject, monkeypatch)
+    assert len(fake.accepted_calls) == 1
+    audit = json.loads(subject.queue.execute(
+        "SELECT error_log FROM chunk_tasks WHERE worker_type='LLM'"
+    ).fetchone()[0])
+    first = audit["first_detected_at"]
+    assert subject.repo.list_due_g3_unknown(30, now=first + 1) == []
+    due = subject.repo.list_due_g3_unknown(30, now=first + 31)
+    assert len(due) == 1 and due[0].audit_valid
+    assert due[0].first_detected_at == first
+    assert due[0].execution_id == audit["execution_id"]
+    path = subject.queue.execute("PRAGMA database_list").fetchone()[2]
+    with sqlite3.connect(path) as reopened:
+        assert ControlPlaneRepository(reopened).list_due_g3_unknown(
+            30, now=first + 31) == due
+    subject.queue.execute(
+        "UPDATE chunk_tasks SET error_log='not-json' "
+        "WHERE task_state='G3_EXTERNAL_UNKNOWN'")
+    subject.queue.commit()
+    corrupt = subject.repo.list_due_g3_unknown(10000)
+    assert len(corrupt) == 1 and not corrupt[0].audit_valid
+    assert _row(subject) == ("G3_EXTERNAL_UNKNOWN", 0)
+    assert subject.repo.pick_task(
+        "w31_forbidden", subject.plan.document_id, subject.plan.ast_hash) is None
+
+
+def test_pppr_g3_reconciler_emits_alarm_without_requeuing(subject, monkeypatch, caplog):
+    fake, _ = _run_post_send_loss(subject, monkeypatch)
+    assert len(fake.accepted_calls) == 1
+    audit = json.loads(subject.queue.execute(
+        "SELECT error_log FROM chunk_tasks WHERE worker_type='LLM'"
+    ).fetchone()[0])
+    audit["first_detected_at"] -= 120
+    subject.queue.execute(
+        "UPDATE chunk_tasks SET error_log=? WHERE worker_type='LLM'",
+        (json.dumps(audit),))
+    subject.queue.commit()
+    before = subject.queue.execute(
+        "SELECT task_state,execution_id,error_log FROM chunk_tasks "
+        "WHERE worker_type='LLM'").fetchone()
+    recon = make_reconciler_with_test_doubles(None, subject.repo, None, None, None)
+    recon.is_leader = True
+    recon.unknown_escalation_sec = 30
+    with caplog.at_level("ERROR"):
+        recon._escalate_g3_unknown()
+    assert "PPPR_G3_UNKNOWN_OPERATOR_ESCALATION" in caplog.text
+    # F18-05 R1/R2/R13: derive audit identity from durable control-plane rows
+    # and keep attempt identity distinct from stable logical identifiers.
+    matching = [r for r in caplog.records
+                if r.getMessage() == "PPPR_G3_UNKNOWN_OPERATOR_ESCALATION"]
+    assert len(matching) == 1
+    entry = matching[0].extra_data
+    assert entry["document_id"] == subject.plan.document_id
+    assert entry["ast_hash"] == subject.plan.ast_hash
+    assert entry["chunk_id"] == subject.plan.units[0].chunk_id
+    assert entry["execution_id"] == before[1]
+    assert entry["audit_valid"] is True
+    assert entry["first_detected_at"] == audit["first_detected_at"]
+    assert entry["disposition"] == "MANUAL_REVIEW_ONLY_NO_AUTO_RETRY"
+    assert subject.queue.execute(
+        "SELECT task_state,execution_id,error_log FROM chunk_tasks "
+        "WHERE worker_type='LLM'").fetchone() == before
+    assert subject.repo.pick_task(
+        "w31_retry", subject.plan.document_id, subject.plan.ast_hash) is None
+
+
+
+def test_pppr_g3_missing_unknown_audit_is_reported_not_zeroed(subject, monkeypatch, caplog):
+    """F18-05 R10/R15: no audit metadata is a visible anomaly, not zero.
+
+    In-memory alarm suppression may be lost on restart; the original durable
+    UNKNOWN identity must still be discoverable and alertable. No exceptional
+    retry decision is created or claimed by this test.
+    """
+    _run_post_send_loss(subject, monkeypatch)
+    prior = subject.queue.execute(
+        "SELECT task_id,document_id,ast_hash,node_id,execution_id,task_state "
+        "FROM chunk_tasks WHERE worker_type='LLM'"
+    ).fetchone()
+    assert prior is not None and prior[5] == "G3_EXTERNAL_UNKNOWN"
+    subject.queue.execute(
+        "UPDATE chunk_tasks SET error_log=NULL WHERE task_id=?", (prior[0],)
+    )
+    subject.queue.commit()
+    due = subject.repo.list_due_g3_unknown(3600)
+    assert len(due) == 1 and due[0].task_id == prior[0]
+    assert due[0].execution_id == prior[4]
+    assert due[0].first_detected_at is None and not due[0].audit_valid
+
+    def leader():
+        daemon = make_reconciler_with_test_doubles(
+            None, subject.repo, None, None, None
+        )
+        daemon.is_leader = True
+        daemon.unknown_escalation_sec = 3600
+        return daemon
+
+    first = leader()
+    with caplog.at_level("ERROR"):
+        first._escalate_g3_unknown()
+        first._escalate_g3_unknown()  # In-memory duplicate suppressed
+        leader()._escalate_g3_unknown()  # Restart: durable UNKNOWN resurfaces
+
+    alarms = [record for record in caplog.records
+              if record.getMessage() ==
+              "PPPR_G3_UNKNOWN_AUDIT_CORRUPT_REQUIRES_OPERATOR"]
+    assert len(alarms) == 2
+    for alarm in alarms:
+        fields = alarm.extra_data
+        assert fields["task_id"] == prior[0]
+        assert fields["document_id"] == prior[1]
+        assert fields["ast_hash"] == prior[2]
+        assert fields["chunk_id"] == prior[3]
+        assert fields["execution_id"] == prior[4]
+        assert fields["audit_valid"] is False
+        assert fields["first_detected_at"] is None
+    assert subject.queue.execute(
+        "SELECT task_id,document_id,ast_hash,node_id,execution_id,task_state "
+        "FROM chunk_tasks WHERE worker_type='LLM'"
+    ).fetchone() == prior
+    assert subject.repo.pick_task(
+        "w31_not_allowed", subject.plan.document_id, subject.plan.ast_hash
+    ) is None
+
+
+@pytest.mark.parametrize("bad_ttl", [0, -1, float("inf"), float("nan"), True])
+def test_pppr_g3_invalid_unknown_escalation_ttl_rejected(subject, bad_ttl):
+    with pytest.raises(ValueError, match="PPPR_G3_UNKNOWN_ESCALATION_INVALID_TTL"):
+        subject.repo.list_due_g3_unknown(bad_ttl)
+
+
+def test_pppr_g3_legacy_queue_plan_without_receipts_bootstraps_before_provider(subject):
+    """G3 legacy queues must create receipt schema before authority SELECT.
+
+    The old database has a valid persisted plan, but no receipt table until
+    the first staging operation. No false UNKNOWN, no skip of authority checks.
+    """
+    subject.queue.execute("DROP TABLE chunk_result_receipts")
+    subject.queue.commit()
+    unit = subject.plan.units[0]
+    lease = subject.repo.pick_task("w31_legacy", subject.plan.document_id,
+                                   subject.plan.ast_hash)
+    assert lease is not None
+    processor = _RecordingChunkProcessor(_response(subject.plan, unit))
+    assert stage_claimed_unit(subject.repo, subject.plan, subject.ast, unit,
+                              lease, "w31_legacy", processor, Semaphore(1))
+    assert len(processor.calls) == 1
+    assert subject.queue.execute(
+        "SELECT task_state FROM chunk_tasks WHERE task_id=?", (lease.task_id,)
+    ).fetchone() == ("RESULT_STAGED",)
+    assert subject.queue.execute(
+        "SELECT execution_id FROM chunk_result_receipts WHERE task_id=?",
+        (lease.task_id,)
+    ).fetchone() == (lease.execution_id,)
+
+
+def test_pppr_g3_quota_wait_expiry_blocks_external_provider(subject):
+    """Real SyncProviderBridge + RateLimitedProvider, fake quota and provider.
+
+    The first quota reservation waits and changes the *durable* lease. This
+    exercises both the asyncio thread boundary and the post-quota authority
+    guard: the external provider must observe zero calls.
+    """
+    from core.execution.exceptions import G3ExternalEffectNotStartedError
+
+    unit = subject.plan.units[0]
+    lease = subject.repo.pick_task(
+        "w31_quota_wait", subject.plan.document_id, subject.plan.ast_hash
+    )
+    assert lease is not None
+    snapshots = DurableContextPlanRepository(subject.repo).load_verified(
+        subject.plan.document_id, subject.plan.ast_hash, subject.ast
+    )[1]
+    queue_path = subject.queue.execute("PRAGMA database_list").fetchone()[2]
+
+    class _Quota:
+        attempts = 0
+
+        async def reserve(self, estimated_tokens: int, estimated_requests: int = 1):
+            self.attempts += 1
+            if self.attempts == 1:
+                # The quota layer is on the bridge's asyncio thread. The
+                # SQLite connection must therefore be opened in that thread.
+                with sqlite3.connect(queue_path) as conn:
+                    conn.execute(
+                        "UPDATE chunk_tasks SET lease_expires_at=1.0 "
+                        "WHERE task_id=?", (lease.task_id,)
+                    )
+                await asyncio.sleep(0)
+                return QuotaReservation.create_rejected(
+                    QuotaRejectionReason.INSUFFICIENT_RPM, 0, 0, 0
+                )
+            return QuotaReservation.create_granted(1, 1, 0, 10, 10)
+
+    class _FakeProvider:
+        calls = 0
+
+        async def translate(self, envelope):
+            self.calls += 1
+            raise AssertionError("Provider I/O after expired quota wait")
+
+    class _BudgetBuilder:
+        model_name = "offline"
+        prompt_version = "w31"
+
+        def build(self, unit, resolved_context, target_lang_expansion=1.2):
+            return SimpleNamespace(
+                status="success",
+                envelope=SimpleNamespace(
+                    chunk_id=unit.chunk_id, estimated_tokens=1, telemetry={},
+                    target_provider="primary",
+                ),
+            )
+
+    quota = _Quota()
+    external = _FakeProvider()
+    bridge = SyncProviderBridge(
+        RateLimitedProvider(external, cast(QuotaManagerProtocol, quota), min_jitter=0,
+                            max_jitter=0, max_wait_seconds=1),
+        cast(PromptBuilder, _BudgetBuilder()),
+        timeout_sec=5.0,
+        context_snapshots=snapshots,
+    )
+    try:
+        with pytest.raises(
+            G3ExternalEffectNotStartedError,
+            match="PPPR_G3_EFFECT_AUTHORITY_NOT_CURRENT",
+        ):
+            stage_claimed_unit(
+                subject.repo, subject.plan, subject.ast, unit, lease,
+                "w31_quota_wait", bridge, Semaphore(1),
+            )
+        assert quota.attempts == 2
+        assert external.calls == 0
+        assert subject.queue.execute(
+            "SELECT COUNT(*) FROM chunk_result_receipts"
+        ).fetchone()[0] == 0
+    finally:
+        bridge.shutdown()
+
+
+@pytest.mark.parametrize(
+    ("quota_reason", "expected_state", "expected_retries"),
+    [
+        (QuotaRejectionReason.CONFIGURATION_ERROR, "FAILED", 1),
+        (QuotaRejectionReason.INSUFFICIENT_RPM, "FAILED", 3),
+    ],
+)
+def test_pppr_g3_quota_rejections_never_become_external_unknown(
+    subject, monkeypatch, quota_reason, expected_state, expected_retries,
+):
+    """Real engine, bridge and limiter; zero external calls on either quota path."""
+    unit = subject.plan.units[0]
+    external_calls: list[str] = []
+
+    class _NoProvider:
+        async def translate(self, envelope):
+            external_calls.append(envelope.chunk_id)
+            raise AssertionError("No provider dispatch permitted")
+
+    class _Quota:
+        async def reserve(self, estimated_tokens: int, estimated_requests: int = 1):
+            return QuotaReservation.create_rejected(quota_reason, 1e9, 0, 0)
+
+    class _Builder:
+        model_name = "offline"
+        prompt_version = "w31"
+
+        def build(self, unit, resolved_context, target_lang_expansion=1.2):
+            return SimpleNamespace(
+                status="success",
+                envelope=SimpleNamespace(
+                    chunk_id=unit.chunk_id, estimated_tokens=1, telemetry={},
+                    target_provider="primary",
+                ),
+            )
+
+    bridge = SyncProviderBridge(
+        RateLimitedProvider(_NoProvider(), cast(QuotaManagerProtocol, _Quota()),
+                            max_wait_seconds=0.01, min_jitter=0, max_jitter=0),
+        cast(PromptBuilder, _Builder()), timeout_sec=5.0,
+        context_snapshots=DurableContextPlanRepository(subject.repo).load_verified(
+            subject.plan.document_id, subject.plan.ast_hash, subject.ast,
+        )[1],
+    )
+    monkeypatch.setattr(
+        subject.engine, "_create_chunk_processor",
+        lambda contexts: (bridge, SimpleNamespace(close=lambda: None)),
+    )
+    result = subject.engine.run_pipeline(subject.plan.document_id, subject.plan.ast_hash)
+    row = subject.queue.execute(
+        "SELECT task_state,retry_count,error_log FROM chunk_tasks WHERE worker_type='LLM'"
+    ).fetchone()
+    assert external_calls == []
+    assert row[0] == expected_state
+    assert row[1] == expected_retries
+    assert json.loads(row[2])["code"] == "PPPR_G3_EFFECT_NOT_STARTED"
+    assert subject.queue.execute(
+        "SELECT COUNT(*) FROM chunk_tasks WHERE task_state='G3_EXTERNAL_UNKNOWN'"
+    ).fetchone()[0] == 0
+    assert result["final_state"] != "READY_FOR_ASSEMBLY"
+
+
+def test_pppr_g3_prior_sweep_failure_does_not_suppress_unknown_escalation(
+    subject, monkeypatch, caplog,
+):
+    _run_post_send_loss(subject, monkeypatch)
+    raw = subject.queue.execute(
+        "SELECT error_log FROM chunk_tasks WHERE task_state='G3_EXTERNAL_UNKNOWN'"
+    ).fetchone()[0]
+    audit = json.loads(raw)
+    audit["first_detected_at"] -= 100
+    subject.queue.execute(
+        "UPDATE chunk_tasks SET error_log=? WHERE task_state='G3_EXTERNAL_UNKNOWN'",
+        (json.dumps(audit),),
+    )
+    subject.queue.commit()
+    reconciler = make_reconciler_with_test_doubles(None, subject.repo, None, None, None)
+    reconciler.is_leader = True
+    reconciler.unknown_escalation_sec = 5
+
+    def fail_previous_sweep(_):
+        raise RuntimeError("offline injected sweep failure")
+
+    monkeypatch.setattr(reconciler, "_sweep_tasks", fail_previous_sweep)
+    monkeypatch.setattr(reconciler, "_sweep_fsm_stalls", lambda _: None)
+    with caplog.at_level("ERROR"):
+        reconciler._run_sweep_cycle(time.time() - 180)
+        reconciler._run_sweep_cycle(time.time() - 180)
+    assert "RECONCILER_tasks_SWEEP_FAILED" in caplog.text
+    assert caplog.text.count("PPPR_G3_UNKNOWN_OPERATOR_ESCALATION") == 1
+    assert subject.queue.execute(
+        "SELECT task_state,retry_count FROM chunk_tasks WHERE worker_type='LLM'"
+    ).fetchone() == ("G3_EXTERNAL_UNKNOWN", 0)
+
+
+def _g3_capture_json_logs():
+    """Attach the actual production formatter/filter; never alter root settings."""
+    output = io.StringIO()
+    handler = logging.StreamHandler(output)
+    handler.setLevel(logging.ERROR)
+    handler.addFilter(DistributedContextFilter())
+    handler.setFormatter(JSONFormatter())
+    logging.getLogger().addHandler(handler)
+    return output, handler
+
+
+def test_pppr_g3_unknown_worker_json_log_correlates_attempt_to_durable_operation(
+    subject, monkeypatch,
+):
+    """F18-05 R1/R2: actual worker log has attempt, logical task and chunk.
+
+    The scientific ast_hash remains a separate persisted identity; the worker
+    trace_id is the attempt execution_id, not a science-identity replacement.
+    """
+    output, handler = _g3_capture_json_logs()
+    try:
+        fake, _ = _run_post_send_loss(subject, monkeypatch)
+    finally:
+        logging.getLogger().removeHandler(handler)
+        handler.close()
+    assert len(fake.accepted_calls) == 1
+    durable = subject.queue.execute(
+        "SELECT document_id,ast_hash,node_id,task_id,execution_id,task_state "
+        "FROM chunk_tasks WHERE worker_type='LLM'"
+    ).fetchone()
+    assert durable is not None and durable[-1] == "G3_EXTERNAL_UNKNOWN"
+    doc_id, ast_hash, chunk_id, task_id, execution_id, _ = durable
+    entries = [json.loads(line) for line in output.getvalue().splitlines()]
+    failures = [item for item in entries
+                if item["message"].startswith("G3_B4_3A_STAGE_FAILURE")]
+    assert len(failures) == 1
+    failure = failures[0]
+    assert failure["task_id"] == task_id
+    assert failure["node_id"] == chunk_id
+    assert failure["trace_id"] == execution_id
+    assert failure["worker_id"] != "-"
+    assert failure["trace_id"] not in (doc_id, ast_hash, task_id, chunk_id)
+    # The logger cannot authorize a new attempt. SQLite remains authoritative.
+    assert subject.repo.pick_task("w31_from_log", doc_id, ast_hash) is None
+
+
+def test_pppr_g3_unknown_alarm_recovered_after_ephemeral_json_log_loss(
+    subject, monkeypatch,
+):
+    """F18-05 R10/R13/R15 in-scope: loss of the log sink loses no UNKNOWN.
+
+    No claims about an external metrics backend or exceptional retry decisions.
+    """
+    fake, _ = _run_post_send_loss(subject, monkeypatch)
+    assert len(fake.accepted_calls) == 1
+    audit = json.loads(subject.queue.execute(
+        "SELECT error_log FROM chunk_tasks WHERE task_state='G3_EXTERNAL_UNKNOWN'"
+    ).fetchone()[0])
+    audit["first_detected_at"] -= 120
+    subject.queue.execute(
+        "UPDATE chunk_tasks SET error_log=? "
+        "WHERE task_state='G3_EXTERNAL_UNKNOWN'",
+        (json.dumps(audit),),
+    )
+    subject.queue.commit()
+    stable = subject.queue.execute(
+        "SELECT task_id,document_id,ast_hash,node_id,execution_id,error_log,"
+        "task_state FROM chunk_tasks WHERE worker_type='LLM'"
+    ).fetchone()
+
+    first_output, first_handler = _g3_capture_json_logs()
+    try:
+        first = make_reconciler_with_test_doubles(
+            None, subject.repo, None, None, None
+        )
+        first.is_leader = True
+        first.unknown_escalation_sec = 30
+        first._escalate_g3_unknown()
+    finally:
+        logging.getLogger().removeHandler(first_handler)
+        first_handler.close()
+    assert "PPPR_G3_UNKNOWN_OPERATOR_ESCALATION" in first_output.getvalue()
+    # A lost external log buffer is *not* a state mutation or a disposition.
+    first_output.close()
+
+    second_output, second_handler = _g3_capture_json_logs()
+    try:
+        restarted = make_reconciler_with_test_doubles(
+            None, subject.repo, None, None, None
+        )
+        restarted.is_leader = True
+        restarted.unknown_escalation_sec = 30
+        restarted._escalate_g3_unknown()
+    finally:
+        logging.getLogger().removeHandler(second_handler)
+        second_handler.close()
+    messages = [json.loads(line) for line in second_output.getvalue().splitlines()]
+    alarms = [e for e in messages
+              if e["message"] == "PPPR_G3_UNKNOWN_OPERATOR_ESCALATION"]
+    assert len(alarms) == 1
+    alarm = alarms[0]
+    assert alarm["task_id"] == stable[0]
+    assert alarm["document_id"] == stable[1]
+    assert alarm["ast_hash"] == stable[2]
+    assert alarm["chunk_id"] == stable[3]
+    assert alarm["execution_id"] == stable[4]
+    assert alarm["first_detected_at"] == audit["first_detected_at"]
+    assert alarm["audit_valid"] is True
+    assert alarm["disposition"] == "MANUAL_REVIEW_ONLY_NO_AUTO_RETRY"
+    assert subject.queue.execute(
+        "SELECT task_id,document_id,ast_hash,node_id,execution_id,error_log,"
+        "task_state FROM chunk_tasks WHERE worker_type='LLM'"
+    ).fetchone() == stable
+    assert subject.repo.pick_task(
+        "w31_log_not_authority", stable[1], stable[2]
+    ) is None
+    assert len(fake.accepted_calls) == 1
+
+
+@pytest.mark.parametrize(
+    ("failure_mode", "expected_cause", "expected_retries"),
+    [
+        ("estimator_raises", "PPPR_G3_ESTIMATOR_FAILED", 3),
+        ("missing_egress", "PPPR_G3_EGRESS_NOT_AUTHORIZED", 1),
+    ],
+)
+def test_pppr_w32_engine_pre_effect_admission_failure_never_becomes_unknown(
+    subject, monkeypatch, failure_mode, expected_cause, expected_retries,
+):
+    """Real engine/CAS + bridge: failing estimator never starts provider I/O."""
+    from decimal import Decimal
+    from apps.llm_workers.g3_admission import G3PreEffectAdmission
+    from core.finops.measurement import InferenceMeasurementService
+    from core.validation.budget import PromptBudgetCalculator, StandardCompressionPolicy
+
+    class _ExplodingEstimator:
+        def estimate_tokens(self, text: str) -> int:
+            raise RuntimeError("injected offline estimator failure")
+
+    class _BoundedFakeEstimator:
+        def estimate_tokens(self, text: str) -> int:
+            return len(text)
+
+    class _NoProvider:
+        calls = 0
+        async def translate(self, envelope):
+            self.calls += 1
+            raise AssertionError("External provider must never be reached")
+
+    provider = _NoProvider()
+    builder = PromptBuilder(
+        model_name="offline-synthetic", prompt_version="w32",
+        measurement_service=InferenceMeasurementService(_Estimator()),
+        budget_calculator=PromptBudgetCalculator(),
+        compression_policy=StandardCompressionPolicy(),
+    )
+    policy = G3PreEffectAdmission(
+        provider_id="groq", model_name="offline-synthetic",
+        root_config_sha256="a"*64,
+        input_limit=50000, output_limit=4096, context_window=60000,
+        input_estimator=(
+            _ExplodingEstimator() if failure_mode == "estimator_raises"
+            else _BoundedFakeEstimator()
+        ),
+        estimator_evidence_ref="FAKE_OFFLINE_ESTIMATOR",
+        egress_authorization_ref=(
+            "" if failure_mode == "missing_egress" else "FAKE_OFFLINE_EGRESS"
+        ),
+        data_scope_ref="FAKE_DATA", purpose_ref="FAKE_EN_ES",
+        retention_ref="FAKE_RETENTION", training_use_ref="FAKE_TRAINING",
+        budget_authorization_ref="FAKE_OFFLINE_BUDGET",
+        price_evidence_ref="FAKE_OFFLINE_PRICE",
+        input_price_per_token=Decimal("0"),
+        output_price_per_token=Decimal("0"),
+        authorized_max_cost=Decimal("0"),
+    )
+    snapshots = DurableContextPlanRepository(subject.repo).load_verified(
+        subject.plan.document_id, subject.plan.ast_hash, subject.ast,
+    )[1]
+    bridge = SyncProviderBridge(
+        provider, builder, timeout_sec=5.0, context_snapshots=snapshots,
+        effective_config_sha256="a"*64, pre_effect_admission=policy,
+    )
+    monkeypatch.setattr(
+        subject.engine, "_create_chunk_processor",
+        lambda contexts: (bridge, SimpleNamespace(close=lambda: None)),
+    )
+    result = subject.engine.run_pipeline(
+        subject.plan.document_id, subject.plan.ast_hash,
+    )
+    row = subject.queue.execute(
+        "SELECT task_state,retry_count,error_log FROM chunk_tasks "
+        "WHERE worker_type='LLM'",
+    ).fetchone()
+    assert row is not None and row[0] == "FAILED"
+    assert row[1] == expected_retries
+    assert json.loads(row[2])["code"] == "PPPR_G3_EFFECT_NOT_STARTED"
+    assert json.loads(row[2])["cause"] == expected_cause
+    assert subject.queue.execute(
+        "SELECT COUNT(*) FROM chunk_tasks WHERE task_state='G3_EXTERNAL_UNKNOWN'",
+    ).fetchone()[0] == 0
+    assert provider.calls == 0
+    assert result["final_state"] != "READY_FOR_ASSEMBLY"
+
+
+@pytest.mark.parametrize(
+    ("failure_mode", "expected_cause", "expected_retries"),
+    [
+        ("budget_reject", "G3_B4_3A_PROMPT_REJECTED: Presupuesto excedido tras máxima compresión.", 1),
+        ("measurement_raises", "PPPR_G3_PROMPT_BUILD_LOCAL_FAILURE", 3),
+    ],
+)
+def test_pppr_w32_prompt_builder_local_failure_is_proven_no_start(
+    subject, monkeypatch, failure_mode, expected_cause, expected_retries,
+):
+    """Real engine + real builder/measurement + disposable SQLite: no external I/O.
+
+    Budget rejection is deterministic, whereas a local estimator exception
+    consumes only the existing bounded retry budget. Neither is UNKNOWN.
+    """
+    from core.finops.measurement import InferenceMeasurementService
+    from core.validation.budget import PromptBudgetCalculator, StandardCompressionPolicy
+
+    class _ExplodingLogicalEstimator:
+        def estimate_tokens(self, text: str) -> int:
+            raise RuntimeError("H4_OFFLINE_INJECTED_MEASUREMENT_FAILURE")
+
+    class _NoProvider:
+        calls = 0
+
+        async def translate(self, envelope: PromptEnvelope) -> InferenceResult:
+            self.calls += 1
+            raise AssertionError("H4: external provider reached after local failure")
+
+    provider = _NoProvider()
+    builder = PromptBuilder(
+        model_name="offline-synthetic", prompt_version="h4",
+        measurement_service=InferenceMeasurementService(
+            _ExplodingLogicalEstimator() if failure_mode == "measurement_raises"
+            else _Estimator()
+        ),
+        budget_calculator=(
+            PromptBudgetCalculator(primary_window_limit=1, fallback_window_limit=1)
+            if failure_mode == "budget_reject"
+            else PromptBudgetCalculator()
+        ),
+        compression_policy=StandardCompressionPolicy(),
+    )
+    snapshots = DurableContextPlanRepository(subject.repo).load_verified(
+        subject.plan.document_id, subject.plan.ast_hash, subject.ast,
+    )[1]
+    bridge = SyncProviderBridge(
+        provider, builder, timeout_sec=5.0, context_snapshots=snapshots,
+    )
+    monkeypatch.setattr(
+        subject.engine, "_create_chunk_processor",
+        lambda contexts: (bridge, SimpleNamespace(close=lambda: None)),
+    )
+
+    result = subject.engine.run_pipeline(
+        subject.plan.document_id, subject.plan.ast_hash,
+    )
+    row = subject.queue.execute(
+        "SELECT task_state,retry_count,error_log FROM chunk_tasks "
+        "WHERE worker_type='LLM'",
+    ).fetchone()
+    assert row is not None and row[0] == "FAILED"
+    assert row[1] == expected_retries
+    audit = json.loads(row[2])
+    assert audit["code"] == "PPPR_G3_EFFECT_NOT_STARTED"
+    assert audit["cause"] == expected_cause
+    assert provider.calls == 0
+    assert subject.queue.execute(
+        "SELECT COUNT(*) FROM chunk_tasks WHERE task_state='G3_EXTERNAL_UNKNOWN'"
+    ).fetchone()[0] == 0
+    assert subject.queue.execute(
+        "SELECT COUNT(*) FROM chunk_result_receipts"
+    ).fetchone()[0] == 0
+    assert result["final_state"] != "READY_FOR_ASSEMBLY"
+
+    # This is durable evidence, not only a state in the open Python connection.
+    queue_path = subject.queue.execute("PRAGMA database_list").fetchone()[2]
+    with sqlite3.connect(queue_path) as reopened:
+        durable = reopened.execute(
+            "SELECT task_state,retry_count,error_log FROM chunk_tasks "
+            "WHERE worker_type='LLM'",
+        ).fetchone()
+        assert durable == row

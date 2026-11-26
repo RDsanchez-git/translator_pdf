@@ -6,7 +6,8 @@ import json
 from hashlib import sha256
 from contextlib import contextmanager
 from typing import Optional, List, Sequence, Generator
-from core.execution.ports import ControlPlanePort, TaskLease
+from core.execution.ports import ControlPlanePort, TaskLease, G3UnknownEscalation
+from core.execution.exceptions import G3ExternalEffectNotStartedError
 from core.execution.exceptions import OptimisticLockError 
 from core.ast.models import ASTNode
 from core.chunking.manifest_contract import ChunkPlan
@@ -28,6 +29,36 @@ def _g3_unknown_audit(now: float, execution_id: str, cause: str) -> str:
     )
 
 
+def _g3_no_start_audit(now: float, execution_id: str, cause: str) -> str:
+    """Positive local no-start evidence (not a provider outcome)."""
+    return json.dumps(
+        {"code": "PPPR_G3_EFFECT_NOT_STARTED", "execution_id": execution_id,
+         "observed_at": now, "cause": cause},
+        sort_keys=True, separators=(",", ":"),
+    )
+
+
+def _generation_receipt_binding_sha256(
+    *, document_id: str, ast_hash: str, manifest_sha256: str,
+    chunk_id: str, task_id: str, execution_id: str,
+    response_sha256: str, generation_sha256: str,
+    root_config_sha256: str,
+) -> str:
+    """Local receipt integrity binding, not a producer preimage verifier."""
+    payload = {
+        "contract": "PPPR_G2_GENERATION_RECEIPT_BINDING_V1",
+        "document_id": document_id, "ast_hash": ast_hash,
+        "manifest_sha256": manifest_sha256, "chunk_id": chunk_id,
+        "task_id": task_id, "execution_id": execution_id,
+        "response_sha256": response_sha256,
+        "generation_sha256": generation_sha256,
+        "root_config_sha256": root_config_sha256,
+    }
+    return sha256(json.dumps(
+        payload, sort_keys=True, ensure_ascii=False, separators=(",", ":"),
+    ).encode("utf-8")).hexdigest()
+
+
 _G3_RESULT_RECEIPTS_DDL = """CREATE TABLE IF NOT EXISTS chunk_result_receipts (
     document_id TEXT NOT NULL,
     ast_hash TEXT NOT NULL,
@@ -36,11 +67,24 @@ _G3_RESULT_RECEIPTS_DDL = """CREATE TABLE IF NOT EXISTS chunk_result_receipts (
     execution_id TEXT NOT NULL,
     raw_response TEXT,
     response_sha256 TEXT CHECK(response_sha256 IS NULL OR length(response_sha256) = 64),
+    generation_sha256 TEXT CHECK(generation_sha256 IS NULL OR length(generation_sha256) = 64),
+    root_config_sha256 TEXT CHECK(root_config_sha256 IS NULL OR length(root_config_sha256) = 64),
+    generation_binding_sha256 TEXT CHECK(generation_binding_sha256 IS NULL OR length(generation_binding_sha256) = 64),
     created_at REAL NOT NULL,
     PRIMARY KEY (document_id, ast_hash, chunk_id),
     FOREIGN KEY (task_id) REFERENCES chunk_tasks(task_id),
     CHECK ((raw_response IS NULL AND response_sha256 IS NULL) OR
            (raw_response IS NOT NULL AND response_sha256 IS NOT NULL))
+)"""
+
+_G3_ADMISSION_DECISIONS_DDL = """CREATE TABLE IF NOT EXISTS g3_admission_decisions (
+    task_id TEXT NOT NULL REFERENCES chunk_tasks(task_id),
+    execution_id TEXT NOT NULL,
+    generation_sha256 TEXT NOT NULL CHECK(length(generation_sha256)=64),
+    decision_json TEXT NOT NULL,
+    decision_sha256 TEXT NOT NULL CHECK(length(decision_sha256)=64),
+    created_at REAL NOT NULL,
+    PRIMARY KEY(task_id, execution_id)
 )"""
 
 _G3_CHUNK_PLAN_DDL = """CREATE TABLE IF NOT EXISTS chunk_plans (
@@ -55,6 +99,94 @@ _G3_CHUNK_PLAN_DDL = """CREATE TABLE IF NOT EXISTS chunk_plans (
 class ControlPlaneRepository(ControlPlanePort):
     def __init__(self, conn: sqlite3.Connection):
         self.conn = conn
+
+    def record_g3_admission_decision(
+        self, *, task_id: str, worker_id: str, execution_id: str,
+        generation_sha256: str, audit_json: str,
+    ) -> None:
+        """Fenced immutable per-attempt audit, committed before provider I/O."""
+        if (not all((task_id, worker_id, execution_id))
+                or not isinstance(generation_sha256, str)
+                or len(generation_sha256) != 64
+                or any(c not in "0123456789abcdef" for c in generation_sha256)):
+            raise G3ExternalEffectNotStartedError(
+                "PPPR_G3_ADMISSION_AUDIT_IDENTITY_INVALID", permanent=True,
+            )
+        try:
+            parsed = json.loads(audit_json)
+            if (not isinstance(parsed, dict)
+                    or parsed.get("contract") != "PPPR_G3_ADMISSION_V1"
+                    or not isinstance(parsed.get("request_sha256"), str)
+                    or len(parsed["request_sha256"]) != 64
+                    or json.dumps(parsed, sort_keys=True, ensure_ascii=False,
+                                  separators=(",", ":")) != audit_json):
+                raise ValueError("audit format")
+        except (TypeError, ValueError) as exc:
+            raise G3ExternalEffectNotStartedError(
+                "PPPR_G3_ADMISSION_AUDIT_INVALID", permanent=True,
+            ) from exc
+        witness = parsed.get("free_tier_witness")
+        if witness is not None:
+            if (not isinstance(witness, dict)
+                    or not isinstance(witness.get("witness_id"), str)
+                    or not witness["witness_id"].strip()
+                    or type(witness.get("valid_until_ns")) is not int
+                    or parsed.get("upper_bound_cost") != "0"
+                    or witness.get("reserved_requests") != 1
+                    or self.conn.in_transaction):
+                raise G3ExternalEffectNotStartedError(
+                    "PPPR_G5_FREE_WITNESS_AUDIT_INVALID", permanent=True,
+                )
+        digest = sha256((generation_sha256 + audit_json).encode("utf-8")).hexdigest()
+        now = time.time()
+        with self._chunk_plan_write_scope():
+            self.conn.execute(_G3_ADMISSION_DECISIONS_DDL)
+            owner = self.conn.execute(
+                "SELECT 1 FROM chunk_tasks AS t WHERE t.task_id=? "
+                "AND t.worker_type='LLM' AND t.task_state='PROCESSING' "
+                "AND t.lease_owner=? AND t.execution_id=? AND t.lease_expires_at>? "
+                "AND EXISTS (SELECT 1 FROM chunk_plans AS p "
+                "WHERE p.document_id=t.document_id AND p.ast_hash=t.ast_hash)",
+                (task_id, worker_id, execution_id, now),
+            ).fetchone()
+            if owner is None:
+                raise G3ExternalEffectNotStartedError(
+                    "PPPR_G3_ADMISSION_AUDIT_LEASE_NOT_CURRENT"
+                )
+            if witness is not None:
+                # Reserve the only authorized attempt using the existing
+                # durable admission journal under the same WAL writer lock.
+                # Even an identical retry cannot reuse this authorization.
+                if time.time_ns() >= witness["valid_until_ns"]:
+                    raise G3ExternalEffectNotStartedError(
+                        "PPPR_G5_FREE_EVIDENCE_STALE", permanent=True,
+                    )
+                used = self.conn.execute(
+                    "SELECT 1 FROM g3_admission_decisions "
+                    "WHERE json_extract(decision_json, '$.free_tier_witness.witness_id')=? LIMIT 1",
+                    (witness["witness_id"],),
+                ).fetchone()
+                if used is not None:
+                    raise G3ExternalEffectNotStartedError(
+                        "PPPR_G5_FREE_WITNESS_ALREADY_RESERVED", permanent=True,
+                    )
+            existing = self.conn.execute(
+                "SELECT generation_sha256,decision_json,decision_sha256 "
+                "FROM g3_admission_decisions WHERE task_id=? AND execution_id=?",
+                (task_id, execution_id),
+            ).fetchone()
+            if existing is not None:
+                if existing != (generation_sha256, audit_json, digest):
+                    raise G3ExternalEffectNotStartedError(
+                        "PPPR_G3_ADMISSION_AUDIT_CONFLICT", permanent=True,
+                    )
+                return
+            self.conn.execute(
+                "INSERT INTO g3_admission_decisions "
+                "(task_id,execution_id,generation_sha256,decision_json,"
+                "decision_sha256,created_at) VALUES (?,?,?,?,?,?)",
+                (task_id, execution_id, generation_sha256, audit_json, digest, now),
+            )
 
     def enqueue_tasks(self, document_id: str, ast_hash: str, nodes: List[str]) -> None:
         """Inyección atómica masiva de chunks con Hash Determinístico compuesto anti-colisiones."""
@@ -222,6 +354,8 @@ class ControlPlaneRepository(ControlPlanePort):
         worker_id: str,
         execution_id: str,
         raw_response: Optional[str],
+        generation_sha256: str | None = None,
+        root_config_sha256: str | None = None,
     ) -> bool:
         """Fence a validated provider result in queue.db; never acknowledge here.
 
@@ -233,6 +367,15 @@ class ControlPlaneRepository(ControlPlanePort):
 
         if not worker_id or not execution_id:
             raise ValueError("G3_B3_2_MISSING_LEASE_IDENTITY")
+        for name, value in (("generation_sha256", generation_sha256),
+                            ("root_config_sha256", root_config_sha256)):
+            if value is not None and (
+                not isinstance(value, str) or len(value) != 64
+                or any(ch not in "0123456789abcdef" for ch in value)
+            ):
+                raise ValueError("PPPR_G2_INVALID_GENERATION_DIGEST: " + name)
+        if root_config_sha256 is not None and generation_sha256 is None:
+            raise ValueError("PPPR_G2_CONFIG_WITHOUT_GENERATION")
         # B2 enforces persisted digest, AST linkage, and exact queue membership.
         verified = self.load_chunk_plan(plan.document_id, plan.ast_hash, ast)
         if verified != plan:
@@ -243,6 +386,8 @@ class ControlPlaneRepository(ControlPlanePort):
         units = {u.chunk_id: u for u in verified.units}
         unit = units[chunk_id]
         if unit.chunk_type == TranslationTaskType.PRESERVE:
+            if generation_sha256 is not None or root_config_sha256 is not None:
+                raise ValueError("PPPR_G2_PRESERVE_CANNOT_HAVE_GENERATION")
             if raw_response is not None:
                 raise ValueError("G3_B3_2_PRESERVE_MUST_BYPASS_PROVIDER")
             response_sha256 = None
@@ -253,9 +398,30 @@ class ControlPlaneRepository(ControlPlanePort):
             parse_chunk_response(verified, chunk_id, raw_response)
             response_sha256 = sha256(raw_response.encode("utf-8")).hexdigest()
 
+        generation_binding_sha256 = None
+        if generation_sha256 is not None and root_config_sha256 is not None:
+            if response_sha256 is None:
+                raise ValueError("PPPR_G2_GENERATION_WITHOUT_RESPONSE")
+            generation_binding_sha256 = _generation_receipt_binding_sha256(
+                document_id=verified.document_id, ast_hash=verified.ast_hash,
+                manifest_sha256=verified.digest, chunk_id=chunk_id,
+                task_id=task_id, execution_id=execution_id,
+                response_sha256=response_sha256,
+                generation_sha256=generation_sha256,
+                root_config_sha256=root_config_sha256,
+            )
+
         with self._chunk_plan_write_scope():
             # In-place schema addition for already initialized queue.db files.
             self.conn.execute(_G3_RESULT_RECEIPTS_DDL)
+            cols = {row[1] for row in self.conn.execute(
+                "PRAGMA table_info(chunk_result_receipts)"
+            ).fetchall()}
+            for name in ("generation_sha256", "root_config_sha256", "generation_binding_sha256"):
+                if name not in cols:
+                    self.conn.execute(
+                        f"ALTER TABLE chunk_result_receipts ADD COLUMN {name} TEXT"
+                    )
             row = self.conn.execute(
                 "SELECT task_state, lease_owner, execution_id, lease_expires_at, state_version "
                 "FROM chunk_tasks WHERE task_id=? AND document_id=? AND ast_hash=? AND node_id=? "
@@ -266,14 +432,15 @@ class ControlPlaneRepository(ControlPlanePort):
                 raise ValueError("G3_B3_2_TASK_NOT_FOUND")
             state, owner, active_execution, expires_at, version = row
             existing = self.conn.execute(
-                "SELECT task_id, execution_id, raw_response, response_sha256 "
+                "SELECT task_id, execution_id, raw_response, response_sha256, generation_sha256, root_config_sha256, generation_binding_sha256 "
                 "FROM chunk_result_receipts WHERE document_id=? AND ast_hash=? AND chunk_id=?",
                 (verified.document_id, verified.ast_hash, chunk_id),
             ).fetchone()
             if existing is not None:
                 if (state == "RESULT_STAGED" and owner == worker_id
                         and active_execution == execution_id
-                        and existing == (task_id, execution_id, raw_response, response_sha256)):
+                        and existing == (task_id, execution_id, raw_response, response_sha256,
+                                         generation_sha256, root_config_sha256, generation_binding_sha256)):
                     return False  # Byte-identical retry; no change to state or timestamps.
                 raise ValueError("G3_B3_2_STAGED_RECEIPT_CONFLICT")
 
@@ -284,10 +451,11 @@ class ControlPlaneRepository(ControlPlanePort):
 
             self.conn.execute(
                 "INSERT INTO chunk_result_receipts "
-                "(document_id,ast_hash,chunk_id,task_id,execution_id,raw_response,response_sha256,created_at) "
-                "VALUES (?,?,?,?,?,?,?,?)",
+                "(document_id,ast_hash,chunk_id,task_id,execution_id,raw_response,response_sha256,generation_sha256,root_config_sha256,generation_binding_sha256,created_at) "
+                "VALUES (?,?,?,?,?,?,?,?,?,?,?)",
                 (verified.document_id, verified.ast_hash, chunk_id, task_id,
-                 execution_id, raw_response, response_sha256, now),
+                 execution_id, raw_response, response_sha256, generation_sha256,
+                 root_config_sha256, generation_binding_sha256, now),
             )
             updated = self.conn.execute(
                 "UPDATE chunk_tasks SET task_state='RESULT_STAGED', "
@@ -304,6 +472,7 @@ class ControlPlaneRepository(ControlPlanePort):
 
     def load_staged_chunk_responses(
         self, plan: ChunkPlan, ast: Sequence[ASTNode], *, allow_completed: bool = False,
+        required_root_config_sha256: str | None = None,
     ) -> dict[str, str]:
         """Rebuild validated response map once *all* chunks are durably staged.
 
@@ -321,6 +490,7 @@ class ControlPlaneRepository(ControlPlanePort):
         try:
             rows = self.conn.execute(
                 "SELECT r.chunk_id,r.task_id,r.execution_id,r.raw_response,r.response_sha256,"
+                "r.generation_sha256,r.root_config_sha256,r.generation_binding_sha256,"
                 "t.task_state,t.execution_id "
                 "FROM chunk_result_receipts AS r JOIN chunk_tasks AS t "
                 "ON t.task_id=r.task_id AND t.document_id=r.document_id "
@@ -335,18 +505,36 @@ class ControlPlaneRepository(ControlPlanePort):
         units = {u.chunk_id: u for u in verified.units}
         responses: dict[str, str] = {}
         seen: set[str] = set()
-        for chunk_id, task_id, execution_id, raw, digest, state, active_execution in rows:
+        for chunk_id, task_id, execution_id, raw, digest, generation, root_config, binding, state, active_execution in rows:
             if (chunk_id in seen or chunk_id not in units or expected[chunk_id] != task_id
                     or state not in allowed_states or execution_id != active_execution):
                 raise ValueError("G3_B3_2_RECEIPT_QUEUE_DRIFT")
             seen.add(chunk_id)
             if units[chunk_id].chunk_type == TranslationTaskType.PRESERVE:
-                if raw is not None or digest is not None:
+                if (raw is not None or digest is not None or generation is not None
+                        or root_config is not None or binding is not None):
                     raise ValueError("G3_B3_2_INVALID_PRESERVE_RECEIPT")
             else:
                 if not isinstance(raw, str) or digest != sha256(raw.encode("utf-8")).hexdigest():
                     raise ValueError("G3_B3_2_RECEIPT_CHECKSUM_MISMATCH")
                 parse_chunk_response(verified, chunk_id, raw)
+                if required_root_config_sha256 is not None:
+                    if (
+                        not isinstance(generation, str) or len(generation) != 64
+                        or any(ch not in "0123456789abcdef" for ch in generation)
+                        or root_config != required_root_config_sha256
+                        or not isinstance(binding, str)
+                    ):
+                        raise ValueError("PPPR_G2_REPLAY_GENERATION_UNVERIFIED")
+                    expected_binding = _generation_receipt_binding_sha256(
+                        document_id=verified.document_id, ast_hash=verified.ast_hash,
+                        manifest_sha256=verified.digest, chunk_id=chunk_id,
+                        task_id=task_id, execution_id=execution_id,
+                        response_sha256=digest, generation_sha256=generation,
+                        root_config_sha256=root_config,
+                    )
+                    if binding != expected_binding:
+                        raise ValueError("PPPR_G2_GENERATION_RECEIPT_BINDING_DRIFT")
                 responses[chunk_id] = raw
         if seen != set(units):
             raise ValueError("G3_B3_2_INCOMPLETE_STAGED_PLAN")
@@ -388,6 +576,129 @@ class ControlPlaneRepository(ControlPlanePort):
         except Exception:
             self.conn.rollback()
             raise
+
+    def assert_g3_effect_authority(
+        self, *, lease: TaskLease, worker_id: str,
+        document_id: str, ast_hash: str,
+    ) -> None:
+        """Check the *current durable* authority immediately before provider I/O.
+
+        A stale in-memory TaskLease is insufficient: the owner, execution,
+        physical chunk and unexpired lease must still match the persisted row.
+        This check cannot fence an external effect *after* it has started.
+        """
+        now = time.time()
+        if lease.lease_expires_at <= now:
+            raise G3ExternalEffectNotStartedError("G3_B4_3A_EXPIRED_LEASE")
+        # Legacy queue.db may contain a verified G3 plan but lack the
+        # receipts table until its first staging operation. Prepare the
+        # idempotent schema before consulting it, never after paid I/O.
+        if self.conn.execute(
+            "SELECT 1 FROM sqlite_master "
+            "WHERE type='table' AND name='chunk_result_receipts'"
+        ).fetchone() is None:
+            self.conn.execute(_G3_RESULT_RECEIPTS_DDL)
+        row = self.conn.execute(
+            "SELECT 1 FROM chunk_tasks AS t "
+            "WHERE t.task_id=? AND t.document_id=? AND t.ast_hash=? "
+            "AND t.node_id=? AND t.worker_type='LLM' "
+            "AND t.task_state='PROCESSING' AND t.lease_owner=? "
+            "AND t.execution_id=? AND t.lease_expires_at>? "
+            "AND EXISTS (SELECT 1 FROM chunk_plans AS p "
+            "WHERE p.document_id=t.document_id AND p.ast_hash=t.ast_hash) "
+            "AND NOT EXISTS (SELECT 1 FROM chunk_result_receipts AS r "
+            "WHERE r.task_id=t.task_id)",
+            (lease.task_id, document_id, ast_hash, lease.node_id,
+             worker_id, lease.execution_id, now),
+        ).fetchone()
+        if row is None:
+            raise G3ExternalEffectNotStartedError(
+                "PPPR_G3_EFFECT_AUTHORITY_NOT_CURRENT"
+            )
+
+    def mark_g3_proven_no_start(
+        self, *, task_id: str, worker_id: str, execution_id: str, cause: str,
+        permanent: bool = False,
+    ) -> bool:
+        """Set a proven local no-start disposition, fenced by attempt.
+
+        An expired lease alone never proves no effect. The caller MUST invoke
+        this solely for a failure before entering the external provider path.
+        No existing staged receipt can be invalidated by this operation.
+        """
+        if not all((task_id, worker_id, execution_id, cause)):
+            raise ValueError("PPPR_G3_NO_START_IDENTITY_REQUIRED")
+        now = time.time()
+        with self._chunk_plan_write_scope():
+            self.conn.execute(_G3_RESULT_RECEIPTS_DDL)
+            result = self.conn.execute(
+                "UPDATE chunk_tasks SET "
+                "task_state=CASE WHEN ?=1 OR retry_count+1 >= max_retries "
+                "THEN 'FAILED' ELSE 'RETRYABLE_ERROR' END, "
+                "retry_count=retry_count+1, lease_owner=NULL, "
+                "lease_expires_at=NULL, error_log=?, "
+                "updated_at=?, state_version=state_version+1 "
+                "WHERE task_id=? AND worker_type='LLM' "
+                "AND task_state='PROCESSING' AND lease_owner=? "
+                "AND execution_id=? "
+                "AND EXISTS (SELECT 1 FROM chunk_plans AS p "
+                "WHERE p.document_id=chunk_tasks.document_id "
+                "AND p.ast_hash=chunk_tasks.ast_hash) "
+                "AND NOT EXISTS (SELECT 1 FROM chunk_result_receipts AS r "
+                "WHERE r.task_id=chunk_tasks.task_id)",
+                (int(permanent), _g3_no_start_audit(now, execution_id, cause),
+                 now, task_id, worker_id, execution_id),
+            )
+            return result.rowcount == 1
+
+    def list_due_g3_unknown(
+        self, escalation_after_sec: float, *, now: float | None = None,
+    ) -> list[G3UnknownEscalation]:
+        """Derive escalation solely from the persisted UNKNOWN audit.
+
+        Corrupt/missing audit metadata is reported as an anomaly immediately;
+        it is never treated as absence of UNKNOWN or a zero-valued metric.
+        """
+        if (isinstance(escalation_after_sec, bool)
+                or not isinstance(escalation_after_sec, (int, float))
+                or not 0 < escalation_after_sec < float("inf")):
+            raise ValueError("PPPR_G3_UNKNOWN_ESCALATION_INVALID_TTL")
+        at = time.time() if now is None else now
+        if not isinstance(at, (int, float)) or not 0 < at < float("inf"):
+            raise ValueError("PPPR_G3_UNKNOWN_ESCALATION_INVALID_TIME")
+        rows = self.conn.execute(
+            "SELECT task_id,document_id,ast_hash,node_id,execution_id,error_log "
+            "FROM chunk_tasks WHERE worker_type='LLM' "
+            "AND task_state=? ORDER BY updated_at ASC,task_id ASC",
+            (_G3_EXTERNAL_UNKNOWN,),
+        ).fetchall()
+        result: list[G3UnknownEscalation] = []
+        for task_id, document_id, ast_hash, chunk_id, execution_id, record in rows:
+            first: float | None = None
+            cause: str | None = None
+            valid = False
+            try:
+                audit = json.loads(record)
+                if isinstance(audit, dict):
+                    observed = audit.get("first_detected_at")
+                    raw_cause = audit.get("cause")
+                    if (audit.get("code") == "G3_W06_EXTERNAL_UNKNOWN"
+                            and audit.get("execution_id") == execution_id
+                            and isinstance(execution_id, str) and execution_id
+                            and isinstance(observed, (int, float))
+                            and not isinstance(observed, bool)
+                            and 0 < observed <= at
+                            and isinstance(raw_cause, str) and raw_cause):
+                        first, cause, valid = float(observed), raw_cause, True
+            except (TypeError, ValueError):
+                pass
+            if not valid or (first is not None and at - first >= escalation_after_sec):
+                result.append(G3UnknownEscalation(
+                    task_id=task_id, document_id=document_id, ast_hash=ast_hash,
+                    chunk_id=chunk_id, execution_id=execution_id or "",
+                    first_detected_at=first, cause=cause, audit_valid=valid,
+                ))
+        return result
 
     def acknowledge_execution(self, task_id: str, worker_id: str) -> None:
         now = time.time()

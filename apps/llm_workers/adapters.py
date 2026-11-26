@@ -1,16 +1,24 @@
 import time
 import json
 import logging
+from hashlib import sha256
 from groq import AsyncGroq
 import groq
 import google.generativeai as genai
 
 from apps.llm_workers.prompt_builder import PromptEnvelope
-from core.execution.exceptions import TransientAPIError, DialectParsingError, MalformedInferenceResponse
+from apps.llm_workers.g3_admission import GPT_OSS_120B, build_groq_request_kwargs
+from core.execution.exceptions import (
+    TransientAPIError, DialectParsingError, MalformedInferenceResponse,
+    G3ExternalEffectNotStartedError,
+)
 
 from core.prompting.inference_result import InferenceResult
 from core.prompting.dialects.openai_compatible import InferenceDialect
 from core.prompting.renderer import PromptRenderer
+from core.execution.effect_guard import g3_pre_effect_guard, g3_free_dispatch_permit
+from core.utils.telemetry import ctx_task_id, ctx_execution_id
+from core.finops.cost_observation import SDK_RESPONSE
 
 logger = logging.getLogger(__name__)
 
@@ -21,28 +29,98 @@ class GroqProvider:
         self, 
         api_key: str, 
         dialect: InferenceDialect,
-        max_retries: int = 0
+        max_retries: int = 0,
+        *, client: AsyncGroq | None = None,
+        require_attributed_response: bool = False,
     ):
-        self._client = AsyncGroq(api_key=api_key, max_retries=max_retries)
+        self._client = client if client is not None else AsyncGroq(api_key=api_key, max_retries=max_retries)
         self._dialect = dialect
+        self._require_attributed_response = require_attributed_response
 
     async def translate(self, envelope: PromptEnvelope) -> InferenceResult:
-        # 1. Renderizado Lógico (A moverse en Fase 17 fuera del Provider)
-        rendered = PromptRenderer.render(envelope.schema)
-        
-        # 2. Construcción Física
-        kwargs = self._dialect.build_request_kwargs(rendered)
+        # Share the exact physical request with the pre-effect admission.
+        # max_completion_tokens enforces the requested output reserve on wire.
+        kwargs, expected_key = build_groq_request_kwargs(envelope, self._dialect)
         
         start_time = time.monotonic()
         
         try:
             # 3. I/O Puro
-            response = await self._client.chat.completions.create(
-                model=envelope.model_name,
-                temperature=1e-5,
-                stream=False,
-                **kwargs
-            )
+            # This is a local SDK entry boundary, not proof of a sent HTTP
+            # request, remote application or provider billing. Only G3's
+            # correlated route contributes to the PPPR observation contract.
+            task_id, execution_id = ctx_task_id.get(), ctx_execution_id.get()
+            correlated = g3_pre_effect_guard.get() is not None and task_id != "-" and execution_id != "-"
+            permit = g3_free_dispatch_permit.get()
+            free = envelope.model_name == GPT_OSS_120B
+            if free or permit is not None:
+                if permit is None or not correlated:
+                    raise G3ExternalEffectNotStartedError(
+                        "PPPR_G5_FREE_DISPATCH_PERMIT_REQUIRED", permanent=True,
+                    )
+                # The locked Groq SDK appends /openai/v1/chat/completions
+                # itself. Require the origin, not the OpenAI-compatible prefix.
+                if (not free or self._client.max_retries != 0
+                        or str(self._client.base_url).rstrip("/") != "https://api.groq.com"):
+                    raise G3ExternalEffectNotStartedError(
+                        "PPPR_G5_FREE_TRANSPORT_CONFIGURATION_REJECTED", permanent=True,
+                    )
+                digest = sha256(json.dumps(
+                    kwargs, sort_keys=True, ensure_ascii=False, separators=(",", ":"),
+                ).encode("utf-8")).hexdigest()
+                permit.claim(digest)
+            if correlated:
+                logger.info("PPPR_G3_CLIENT_SDK_ENTRY", extra={"extra_data": {
+                    "task_id": task_id, "execution_id": execution_id,
+                    "chunk_id": envelope.chunk_id, "observed_at_ns": time.time_ns(),
+                }})
+            response = await self._client.chat.completions.create(**kwargs)
+            if correlated or self._require_attributed_response or free:
+                # Record the observed SDK response before parsing its scientific
+                # payload. Missing usage is unavailable, never zero. A response
+                # is not an invoice or proof of a unique external application.
+                model = getattr(response, "model", None)
+                response_id = getattr(response, "id", None)
+                usage = getattr(response, "usage", None)
+                input_tokens = getattr(usage, "prompt_tokens", None)
+                output_tokens = getattr(usage, "completion_tokens", None)
+                total_tokens = getattr(usage, "total_tokens", None)
+                valid_usage = (
+                    type(input_tokens) is int and input_tokens > 0
+                    and type(output_tokens) is int and output_tokens >= 0
+                    and type(total_tokens) is int and total_tokens == input_tokens + output_tokens
+                )
+                valid_model = isinstance(model, str) and model == envelope.model_name
+                valid_id = isinstance(response_id, str) and bool(response_id.strip())
+                if correlated:
+                    digest = sha256(json.dumps(
+                        kwargs, sort_keys=True, ensure_ascii=False, separators=(",", ":"),
+                    ).encode("utf-8")).hexdigest()
+                    logger.info(SDK_RESPONSE, extra={"extra_data": {
+                        "task_id": task_id, "execution_id": execution_id,
+                        "chunk_id": envelope.chunk_id, "request_sha256": digest,
+                        "observed_at_ns": time.time_ns(),
+                        "response_model": model if isinstance(model, str) else None,
+                        "response_id": response_id if valid_id else None,
+                        "input_tokens": input_tokens if valid_usage else None,
+                        "output_tokens": output_tokens if valid_usage else None,
+                        "total_tokens": total_tokens if valid_usage else None,
+                    }})
+                if self._require_attributed_response or free:
+                    if not valid_model:
+                        raise MalformedInferenceResponse("PPPR_G5_RESPONSE_MODEL_MISMATCH")
+                    if not valid_id or not valid_usage:
+                        # This is AFTER SDK invocation. Never classify it as
+                        # proven no-start or grant a retry based on missing usage.
+                        raise MalformedInferenceResponse("PPPR_G5_RESPONSE_ATTRIBUTION_MISSING")
+                if free and permit is not None:
+                    # Keep exact-type validation above (including bool rejection)
+                    # and narrow the optional SDK fields at their typed consumer.
+                    if not isinstance(input_tokens, int) or not isinstance(output_tokens, int):
+                        raise MalformedInferenceResponse("PPPR_G5_RESPONSE_ATTRIBUTION_MISSING")
+                    permit.check_reported_usage(input_tokens, output_tokens)
+                    if len(response.choices) != 1 or response.choices[0].finish_reason != "stop":
+                        raise MalformedInferenceResponse("PPPR_G5_FREE_RESPONSE_NOT_COMPLETE")
             
             latency = (time.monotonic() - start_time) * 1000
             
@@ -51,7 +129,7 @@ class GroqProvider:
                 raw_response=response,
                 chunk_id=envelope.chunk_id,
                 latency_ms=latency,
-                expected_key=rendered.expected_output_key
+                expected_key=expected_key
             )
             
         except groq.APIStatusError as e:

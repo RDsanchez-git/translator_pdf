@@ -4,7 +4,7 @@ on:
   push:
     branches: [main, develop]
   pull_request:
-    branches: [main, pipeline_stabilization]
+    branches: [main, pipeline_stabilization, pdf-pdf-product-readiness]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -24,14 +24,19 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-          cache: "pip"
-          cache-dependency-path: pyproject.toml # <-- Le decimos que lea de aquí
+
+      - name: Set up uv (locked CI environment)
+        uses: astral-sh/setup-uv@v10.4.0
+        with:
+          version: "0.10.0"
+          enable-cache: true
+          cache-dependency-glob: uv.lock
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip setuptools wheel
-          pip install .[dev]
-          pip list # <-- Nos imprimirá la lista de lo que instaló para poder auditarlo
+          uv sync --locked --extra dev --no-editable --no-python-downloads --python "$(command -v python)"
+          echo "$GITHUB_WORKSPACE/.venv/bin" >> "$GITHUB_PATH"
+          uv pip list --python .venv/bin/python
 
       # pyrightconfig.json: único alcance efectivo core/apps/infra/runtime,
       # Python 3.11 Linux, modo standard. Strict queda fuera de este PR.
@@ -44,7 +49,6 @@ jobs:
   unit-tests:
     name: Unit Test Suite
     runs-on: ubuntu-latest
-    needs: static-analysis
     steps:
       - uses: actions/checkout@v4
 
@@ -52,11 +56,18 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-          cache: "pip"
+
+      - name: Set up uv (locked CI environment)
+        uses: astral-sh/setup-uv@v10.4.0
+        with:
+          version: "0.10.0"
+          enable-cache: true
+          cache-dependency-glob: uv.lock
 
       - name: Install dependencies
         run: |
-          pip install -e ".[dev]"
+          uv sync --locked --extra dev --no-python-downloads --python "$(command -v python)"
+          echo "$GITHUB_WORKSPACE/.venv/bin" >> "$GITHUB_PATH"
 
       - name: Run unit tests (pytest marker)
         run: |
@@ -65,10 +76,9 @@ jobs:
   integration-tests:
     name: Integration Test Suite
     runs-on: ubuntu-latest
-    # La suite técnica depende de unit-tests y static-analysis.
+    # Los tres jobs son controles independientes y obligatorios.
     # SMOKE científico corre aparte en continuous-verification.yml y es
     # informativo durante Fase 6 (ENFORCEMENT_CONTRACT §3).
-    needs: [unit-tests]
     steps:
       - uses: actions/checkout@v4
 
@@ -76,11 +86,25 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-          cache: "pip"
+
+      - name: Set up uv (locked CI environment)
+        uses: astral-sh/setup-uv@v10.4.0
+        with:
+          version: "0.10.0"
+          enable-cache: true
+          cache-dependency-glob: uv.lock
 
       - name: Install dependencies
         run: |
-          pip install -e ".[dev]"
+          uv sync --locked --extra dev --no-python-downloads --python "$(command -v python)"
+          echo "$GITHUB_WORKSPACE/.venv/bin" >> "$GITHUB_PATH"
+
+      # H-G5-01: real Compose parser, not only synthetic configuration.
+      # No image operations, container starts or model downloads.
+      - name: Verify PPPR local effective Compose parser (no containers)
+        env:
+          PPPR_REQUIRE_COMPOSE_PARSER: "1"
+        run: python -m pytest tests/integration/test_pppr_local_compose_parser.py -q -ra
 
       # B03 uses loopback HTTP and temporary SQLite, so these are not pure unit tests.
       # This step runs without Docker containers, model credentials, or real PDF corpus.
@@ -126,6 +150,38 @@ jobs:
       - name: Run integration tests (pytest marker, excluding regression)
         run: |
           python -m pytest -m "integration and not regression" -v --tb=short --no-header
+
+      # W4.2: real native compiler for synthetic PDF only. Match the
+      # existing Dockerfile version; do not invoke commercial inference.
+      # A missing binary or failed compile is a failing required check.
+      - name: Install Tectonic for PPPR physical PDF witness
+        run: |
+          set -euo pipefail
+          work="$(mktemp -d)"
+          curl --fail --show-error --silent --location --retry 3 \
+            https://github.com/tectonic-typesetting/tectonic/releases/download/tectonic%400.15.0/tectonic-0.15.0-x86_64-unknown-linux-gnu.tar.gz \
+            -o "$work/tectonic.tar.gz"
+          tar -xzf "$work/tectonic.tar.gz" -C "$work"
+          mkdir -p "$RUNNER_TEMP/pppr-tectonic-bin"
+          install -m 0755 "$work/tectonic" "$RUNNER_TEMP/pppr-tectonic-bin/tectonic"
+          "$RUNNER_TEMP/pppr-tectonic-bin/tectonic" --version
+          # Prime the package cache with fixed synthetic TeX, not user data.
+          # This installation/bootstrap may fetch public TeX dependencies.
+          printf '%s\n' '\documentclass[11pt,a4paper]{article}' \
+            '\usepackage{amsmath,amssymb,graphicx,hyperref}' \
+            '\begin{document}' '\section*{Muestras} Test $x^2+1$.' \
+            '\begin{figure}[htbp]\rule{1cm}{1cm}\end{figure}' \
+            '\end{document}' > "$work/prime.tex"
+          (cd "$work" && "$RUNNER_TEMP/pppr-tectonic-bin/tectonic" --untrusted prime.tex)
+          test -s "$work/prime.pdf"
+          rm -rf "$work"
+
+      - name: Verify PPPR Gate 4 real physical synthetic PDF (no paid inference)
+        env:
+          PPPR_G4_REQUIRE_PHYSICAL_PDF: "1"
+        run: |
+          export PATH="$RUNNER_TEMP/pppr-tectonic-bin:$PATH"
+          python -m pytest tests/integration/test_pppr_g4_physical_pdf.py -v --tb=short --no-header -ra
 
       # Audit all technical tests, including older unmarked fixtures. The
       # corpus-backed E2E tests run only when explicitly requested; CV remains

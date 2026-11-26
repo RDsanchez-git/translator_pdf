@@ -12,6 +12,8 @@ no en Docker.
 Reemplaza a DockerRunner (DF-30: nomenclatura engañosa).
 """
 
+from dataclasses import dataclass
+from xml.sax.saxutils import escape
 import subprocess
 import tempfile
 import shutil
@@ -27,6 +29,44 @@ from core.compiler.rendering.image_assets import stage_image_assets
 logger = logging.getLogger(__name__)
 
 
+@dataclass(frozen=True, slots=True)
+class CachedTectonicResources:
+    """Explicit cache-only compilation inputs; font bytes are execution immutable."""
+    cache_dir: Path
+    fonts: tuple[tuple[str, bytes], ...]
+
+    def __post_init__(self) -> None:
+        names = [name for name, _ in self.fonts]
+        if (not self.cache_dir.is_absolute() or not names or len(names) != len(set(names))
+                or any(re.fullmatch(r"[a-zA-Z0-9_-]+\.otf", name) is None
+                       or not isinstance(data, bytes) or not data.startswith(b"OTTO")
+                       for name, data in self.fonts)):
+            raise ValueError("TECTONIC_INVALID_CACHED_RESOURCES")
+
+    def prepare(self, execution_dir: Path) -> dict[str, str]:
+        if not self.cache_dir.is_dir():
+            raise ValueError("TECTONIC_CACHE_DIRECTORY_MISSING")
+        for name, data in self.fonts:
+            with (execution_dir / name).open("xb") as stream:
+                stream.write(data)
+        conf = execution_dir / "fonts.conf"
+        conf.write_text(
+            '<?xml version="1.0"?>\n<fontconfig><dir>'
+            + escape(str(execution_dir)) + '</dir><cachedir>'
+            + escape(str(execution_dir / "fc-cache")) + '</cachedir></fontconfig>\n',
+            encoding="utf-8",
+        )
+        return {
+            **os.environ,
+            "HOME": str(execution_dir),
+            "XDG_CONFIG_HOME": str(execution_dir / "config"),
+            "XDG_CACHE_HOME": str(self.cache_dir),
+            "TECTONIC_CACHE_DIR": str(self.cache_dir),
+            "FONTCONFIG_FILE": str(conf),
+            "FONTCONFIG_PATH": str(execution_dir),
+        }
+
+
 class HostTectonicRunner:
     """
     Compilador TeX → PDF en el host con aislamiento de I/O.
@@ -35,6 +75,9 @@ class HostTectonicRunner:
     El artefacto final se persiste en output_dir (explícito, nunca os.getcwd()).
     NADR-09 §5.2 R7: No emite comandos FSM. No muta entidades del dominio.
     """
+
+    def __init__(self, *, cached_resources: CachedTectonicResources | None = None) -> None:
+        self._cached_resources = cached_resources
 
     def compile(
         self, tex_content: str, output_dir: str, output_filename: str = "output.pdf",
@@ -85,16 +128,23 @@ class HostTectonicRunner:
                 f.write(tex_content)
 
             cmd = ["tectonic", "--untrusted", "doc.tex"]
+            env = None
+            if self._cached_resources is not None:
+                env = self._cached_resources.prepare(Path(tmp))
+                cmd.insert(2, "--only-cached")
+                logger.info("PPPR_G5_TECTONIC_CACHE_ONLY")
 
             try:
-                result = subprocess.run(
-                    cmd,
-                    capture_output=True,
-                    text=True,
-                    encoding="utf-8",
-                    timeout=120,
-                    cwd=tmp
-                )
+                if env is None:
+                    result = subprocess.run(
+                        cmd, capture_output=True, text=True, encoding="utf-8",
+                        timeout=120, cwd=tmp,
+                    )
+                else:
+                    result = subprocess.run(
+                        cmd, capture_output=True, text=True, encoding="utf-8",
+                        timeout=120, cwd=tmp, env=env,
+                    )
             except subprocess.TimeoutExpired:
                 raise Exception("Fallo de Tectonic: Timeout de 120 segundos excedido.")
 
@@ -109,6 +159,8 @@ class HostTectonicRunner:
                     f"Lee el STDERR en la consola."
                 )
 
+            if self._cached_resources is not None and result.stderr:
+                logger.warning("PPPR_G5_TECTONIC_STDERR: %s", result.stderr)
             compiled_pdf_path = os.path.join(tmp, "doc.pdf")
 
             # NADR-09 §5.2 R6: El artefacto se persiste en output_dir

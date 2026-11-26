@@ -60,3 +60,16 @@ def test_no_context_document_warning(enricher):
     ]
     _, _, warnings, _ = enricher.enrich_document(nodes)
     assert any(w.severity == "INFO" and "NO_CONTEXT_DOCUMENT" in w.message for w in warnings)
+def test_unknown_heading_never_invents_h1_context(enricher):
+    nodes = [
+        ASTNode(node_id="heading_unknown", node_type=ContentNodeType.HEADING,
+                payload=HeadingPayload(content="Methods")),
+        ASTNode(node_id="p1", node_type=ContentNodeType.PARAGRAPH,
+                payload=ParagraphPayload(content="Study results.")),
+    ]
+    _, registry, warnings, _ = enricher.enrich_document(nodes)
+    assert any("PPPR_G2_UNVERIFIED_HEADING_LEVEL" in w.message for w in warnings)
+    assert all(
+        not any(frame["level"] == 1 for frame in frames)
+        for frames in registry["mappings"].values()
+    )

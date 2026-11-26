@@ -22,6 +22,18 @@ class LeaseExpiredError(PipelineIntegrityError):
     """El worker perdió la propiedad del documento durante la ejecución."""
     pass
 
+class G3ExternalEffectNotStartedError(ValueError):
+    """Proof of local pre-effect rejection, never a post-I/O outcome.
+
+    Permanent admission failures fail once; transient local failures retain
+    the bounded retry budget of the existing control plane.
+    """
+
+    def __init__(self, message: str, *, permanent: bool = False) -> None:
+        super().__init__(message)
+        self.permanent = permanent
+
+
 class IllegalStateTransitionError(PipelineIntegrityError):
     """El comando intentó una transición no permitida por el grafo FSM."""
     pass

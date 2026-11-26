@@ -141,7 +141,7 @@ def _mount(host: Path, target: str, *, readonly: bool = False) -> list[str]:
 def _container_command(repo: Path, workspace: Path, *, source: Path | None) -> list[str]:
     cmd = [
         "docker", "run", "--rm", "--pull", "never", "--network", "none",
-        "--pids-limit", "256", "--cap-drop", "ALL",
+        "--pids-limit", "256", "--cap-drop", "ALL", "--user", "10001:10001",
         "--security-opt", "no-new-privileges", "--workdir", "/app",
         # The image's /app must stay writable so Docker can create /app/output,
         # /app/state etc. Mounting the whole checkout read-only at /app made
@@ -172,6 +172,10 @@ def _container_command(repo: Path, workspace: Path, *, source: Path | None) -> l
         "HTTP_PROXY": "", "HTTPS_PROXY": "", "ALL_PROXY": "",
         "http_proxy": "", "https_proxy": "", "all_proxy": "",
         "NO_PROXY": "localhost,127.0.0.1", "no_proxy": "localhost,127.0.0.1",
+        "GEMINI_API_KEY": "", "GEMINI_API_URL": "", "GOOGLE_API_KEY": "",
+        "OPENAI_API_KEY": "", "ANTHROPIC_API_KEY": "", "HF_TOKEN": "",
+        "HUGGING_FACE_HUB_TOKEN": "", "TPDF_FAKE_PRIVATE_DOCKER": "",
+        "TPDF_C0_VOLUME_INIT": "", "TPDF_LOCAL_VOLUME_INIT": "",
     }
     for k, v in env.items():
         cmd.extend(("--env", k + "=" + v))
@@ -183,23 +187,30 @@ def _container_command(repo: Path, workspace: Path, *, source: Path | None) -> l
 
 
 def _smoke_source(path: Path) -> None:
+    """Synthetic operational witness with source-accredited heading hierarchy.
+
+    Match the independently verified W4.2 physical fixture geometry and content.
+    The historical unnumbered title is a negative witness (UNKNOWN -> G5 reject),
+    not a valid successful-path fixture. Keep an actual image for PRESERVE so
+    the witness exercises both inference and non-inference units.
+    """
     import fitz
+    from apps.lab.pppr_offline_compiler import SECTIONS, fixture_png
+
     with fitz.open() as doc:
-        page = doc.new_page(width=595, height=842)
-        page.insert_text((62, 88), "Scientific translation pipeline operational test", fontsize=16)
-        sentences = [
-            "The scientific method relies on observable evidence and careful measurement.",
-            "Researchers record observations before drawing conclusions from the data.",
-            "A reproducible process makes it easier to compare results across teams.",
-            "This document is a laboratory fixture and contains no protected equations.",
-        ]
-        for i, sentence in enumerate(sentences):
-            page.insert_text((62, 145 + 41 * i), sentence, fontsize=11)
+        page = doc.new_page(width=500, height=800)
+        for i, (heading, body) in enumerate(SECTIONS):
+            y = 150 + i * 105
+            page.insert_text((35, y), heading, fontname="hebo", fontsize=13)
+            page.insert_text((35, y + 38), body, fontname="helv", fontsize=10)
+        page.insert_image(fitz.Rect(35, 480, 195, 560), stream=fixture_png())
         doc.save(str(path))
 
 
 def _inside_run(*, source: str | None) -> int:
-    """Bootstrap fresh DB, start in-process fake, then invoke B03 CLI as a subprocess."""
+    """Bootstrap fresh DB and invoke the canonical CLI with explicit synthetic scope."""
+    if source is not None:
+        raise LabError("PPPR_G5_SYNTHETIC_SOURCE_ONLY")
     if (os.environ.get("TPDF_OFFLINE_LAB") != OPT_IN or
             os.environ.get("GROQ_API_KEY") != DUMMY_KEY or
             os.environ.get("GROQ_BASE_URL") != "http://127.0.0.1:8080" or
@@ -210,19 +221,23 @@ def _inside_run(*, source: str | None) -> int:
             or os.environ.get("PYTHONPATH") != "/workspace"
             or os.environ.get("PYTHONSAFEPATH") != "1"):
         raise LabError("B032_CONTAINER_MOUNT_OR_CODE_DRIFT")
-    from apps.lab.g3_fake import FakeServer, _Handler
+    from apps.lab.g3_fake import FakeServer
+    from apps.lab.pppr_offline_scope import OfflineLabScope, require_isolated_environment
+    require_isolated_environment()
+    from apps.lab.pppr_offline_compiler import load_resources, compile_preflight, verify_fixture_pdf
+    resources = load_resources(Path("/app/.cache/tectonic"), Path("/app/data/compiler-fonts"))
+    compile_preflight(resources, Path("/app"))
     # /workspace is read-only; runtime data and code imports stay separate.
     subprocess.run([sys.executable, "-B", "-m", "infra.db.bootstrap"], check=True)
     db = Path("/app/state/queue.db")
     if not db.is_file():
         raise LabError("B032_BOOTSTRAP_QUEUE_MISSING")
-    if source is None:
-        pdf = Path("/app/data/offline_smoke.pdf")
-        _smoke_source(pdf)
-    else:
-        pdf = Path(source)
-        if pdf != Path("/lab_source.pdf"):
-            raise LabError("B032_INVALID_SOURCE_PATH")
+    pdf = Path("/app/data/offline_smoke.pdf")
+    if pdf.exists() or pdf.is_symlink():
+        raise LabError("PPPR_G5_LAB_SOURCE_ALREADY_EXISTS")
+    _smoke_source(pdf)
+    scope = OfflineLabScope(_sha(pdf), compiler_resources=resources)
+    scope.validate_source(pdf)
     server = FakeServer(("127.0.0.1", 8080), db, max_requests=128)
     thread = threading.Thread(target=server.serve_forever, daemon=True, name="b032_fake")
     thread.start()
@@ -233,10 +248,13 @@ def _inside_run(*, source: str | None) -> int:
             if response.status != 200:
                 raise LabError("B032_FAKE_HEALTH_CHECK_FAILED")
         print("B032_FAKE_READY_LOOPBACK_OFFLINE", flush=True)
-        result = subprocess.run([sys.executable, "-B", "-m", "apps.cli.main",
-                                 "translate", str(pdf), "--run"], check=False)
-        if result.returncode:
-            raise LabError(f"B032_CLI_FAILED_EXIT_{result.returncode}")
+        from apps.cli.main import main as cli_main
+        previous_argv = sys.argv
+        try:
+            sys.argv = ["apps.cli.main", "translate", str(pdf), "--run"]
+            cli_main(offline_scope=scope)
+        finally:
+            sys.argv = previous_argv
     finally:
         server.shutdown()
         server.server_close()
@@ -255,23 +273,24 @@ def _inside_run(*, source: str | None) -> int:
         conn.close()
     if row is None or row[0] != "COMPLETED":
         raise LabError("B032_FSM_NOT_COMPLETED")
+    verify_fixture_pdf(expected)
     print(f"B032_VERIFIED_COMPLETE doc={sha} ast={row[1]} requests={server.requests}", flush=True)
     return 0
 
 
 def _launch(root: Path, history: Path, *, source: Path | None,
-            export_dir: Path) -> None:
+            export_dir: Path, fonts_dir: Path | None = None) -> None:
+    if source is not None:
+        raise LabError("PPPR_G5_SYNTHETIC_SOURCE_ONLY")
     _check_checkout(root)
     _check_history(history)
     _docker_image_id()
-    if source is not None and (not source.is_file() or source.is_symlink()):
-        raise LabError("B032_SOURCE_PDF_NOT_READABLE")
-    if source is not None:
-        with source.open("rb") as f:
-            if f.read(5) != b"%PDF-":
-                raise LabError("B032_SOURCE_NOT_PDF")
     if shutil.disk_usage(tempfile.gettempdir()).free < 2 * 1024**3:
         raise LabError("B032_INSUFFICIENT_FREE_SPACE_2_GIB")
+    from apps.lab.pppr_offline_compiler import read_extra_fonts, verify_cache
+    if fonts_dir is None:
+        raise LabError("PPPR_G5_FONT_DIRECTORY_REQUIRED: --fonts-dir")
+    fonts = read_extra_fonts(fonts_dir)
     # Unique lab directory, not a Docker volume or existing production path.
     workspace = Path(tempfile.mkdtemp(prefix="translator_pdf_b032_"))
     print("B032_LAB_DIR:", workspace, flush=True)
@@ -279,6 +298,12 @@ def _launch(root: Path, history: Path, *, source: Path | None,
         (workspace / folder).mkdir()
     cached = _seed_caches(history, workspace)
     print(f"B032_CACHE_SEEDED: tectonic={cached[0]} tiktoken={cached[1]}", flush=True)
+    verify_cache(workspace / "cache")
+    font_target = workspace / "data" / "compiler-fonts"
+    font_target.mkdir()
+    for name, data in fonts:
+        with (font_target / name).open("xb") as stream:
+            stream.write(data)
     cmd = _container_command(root, workspace, source=source)
     # No shell, no build, no compose, no shared named volumes, no real egress.
     result = subprocess.run(cmd, check=False)
@@ -310,9 +335,12 @@ def main(argv=None) -> None:
     action.add_argument("--inside-run", action="store_true", help=argparse.SUPPRESS)
     p.add_argument("--inside-source", help=argparse.SUPPRESS)
     p.add_argument("--history-zip", type=Path, default=Path.home() / "Downloads" / HISTORY_ZIP)
+    p.add_argument("--fonts-dir", type=Path, help="Previously verified local OTF acquisition directory (no downloads)")
     p.add_argument("--export-dir", type=Path, default=Path.home() / "Downloads" / "translator_pdf_offline")
     args = p.parse_args(argv)
     try:
+        if args.run_pdf is not None:
+            raise LabError("PPPR_G5_SYNTHETIC_SOURCE_ONLY")
         if args.inside_run:
             raise SystemExit(_inside_run(source=args.inside_source))
         root = Path(__file__).resolve().parents[2]
@@ -323,12 +351,17 @@ def main(argv=None) -> None:
         _check_history(history)
         img = _docker_image_id()
         print("B032_PREFLIGHT_OK: image=" + img[:24] + " history=VERIFIED", flush=True)
+        from apps.lab.pppr_offline_compiler import read_extra_fonts
+        if args.fonts_dir is None:
+            raise LabError("PPPR_G5_FONT_DIRECTORY_REQUIRED: --fonts-dir")
+        read_extra_fonts(args.fonts_dir.expanduser())
         if args.preflight:
             print("B032_NO_WORKSPACE_WRITES_NO_CONTAINER_STARTED", flush=True)
             return
         source = args.run_pdf.resolve() if args.run_pdf is not None else None
-        _launch(root, history, source=source, export_dir=args.export_dir.expanduser().resolve())
-    except (LabError, OSError, subprocess.CalledProcessError, zipfile.BadZipFile,
+        _launch(root, history, source=source, export_dir=args.export_dir.expanduser().resolve(),
+                fonts_dir=args.fonts_dir.expanduser())
+    except (LabError, ValueError, OSError, subprocess.CalledProcessError, zipfile.BadZipFile,
             tarfile.TarError) as exc:
         print("B032_STOP: " + str(exc), file=sys.stderr)
         raise SystemExit(2) from exc

@@ -1,9 +1,10 @@
 import logging
+import re
 from typing import List, Dict, Final, Callable, Any
 from core.layout.models import LayoutBlockCollection, LayoutBlockDraft
 from core.ast.enums import ContentNodeType, HeadingLevel, SemanticOrigin
 from core.ast.models import (
-    ASTNode, NodeMetadata, ASTPayload,
+    ASTNode, NodeMetadata, PhysicalRegion, ASTPayload,
     HeadingPayload, ParagraphPayload, MathPayload, CodePayload, 
     TablePayload, ImagePayload, ListPayload
 )
@@ -111,9 +112,24 @@ class FlatASTBuilder:
             semantic_type = ContentNodeType.PARAGRAPH
 
         # SOTA: Conserva el semantic_origin emitido por la fase de extracción
+        # El vínculo región→página solo es acreditado si fue observado en
+        # DocumentLayout. Los DTOs legados mantienen campos históricos, pero
+        # sus listas paralelas no constituyen por sí mismas correspondencia.
+        regions: List[PhysicalRegion] = []
+        if block.source_document and block.page_index >= 1:
+            regions.append(
+                PhysicalRegion(
+                    source_document=block.source_document,
+                    page_number=block.page_index,
+                    bbox=block.bbox,
+                    page_width=block.page_width,
+                    page_height=block.page_height,
+                )
+            )
         metadata = NodeMetadata(
-            bboxes=[block.bbox],
-            pages=[block.page_index],
+            bboxes=[block.bbox] if block.bbox is not None else [],
+            pages=[block.page_index] if block.page_index >= 1 else [],
+            physical_regions=tuple(regions),
             confidence=block.confidence,
             provider_native_id=block.provider_native_id,
             layout_reading_order=index,
@@ -123,7 +139,7 @@ class FlatASTBuilder:
         explicit_payload = PayloadRegistry.create(
             node_type=semantic_type, 
             raw_data=block.content,
-            heading_level=cls._map_native_level(getattr(block, 'level', 0))
+            heading_level=cls._evidenced_heading_level(block)
         )
 
         return ASTNode(
@@ -133,6 +149,26 @@ class FlatASTBuilder:
             payload=explicit_payload,
             metadata=metadata
         )
+
+    @classmethod
+    def _evidenced_heading_level(cls, block: LayoutBlockDraft) -> HeadingLevel:
+        """Only an explicit producer level or numbered SECTION is H1/H2/H3.
+
+        The connected PyMuPDF classifier currently distinguishes SECTION by
+        typography, but does not provide reliable native heading levels.
+        Numbered headings are an explicit textual structural witness:
+        "1 Methods" -> H1, "1.2 Data" -> H2, "1.2.3 Samples" -> H3.
+        Unnumbered headings and title/headers remain UNKNOWN. This does not
+        prove generic PDF hierarchy detection or permit fake H1 defaults.
+        """
+        if block.level:
+            return cls._map_native_level(block.level)
+        if (block.logical_type or "").upper() != "SECTION":
+            return HeadingLevel.UNKNOWN
+        match = re.match(r"^\s*([1-9]\d*(?:\.\d+){0,2})\.?\s+\S", block.content)
+        if match is None:
+            return HeadingLevel.UNKNOWN
+        return cls._map_native_level(match.group(1).count(".") + 1)
 
     @staticmethod
     def _map_native_level(raw_level: int) -> HeadingLevel:

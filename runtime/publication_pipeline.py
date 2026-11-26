@@ -26,6 +26,7 @@ def advance_staged_document(
     owner_id: str,
     *,
     projection_version: int = 1,
+    required_root_config_sha256: str | None = None,
 ) -> bool:
     """Publish -> finalize -> CAS FSM, returning True only on an FSM transition.
 
@@ -48,12 +49,14 @@ def advance_staged_document(
 
     if states == {"RESULT_STAGED"}:
         publish_staged_plan(queue_repo, materialized_conn, plan, ast,
-                            projection_version=projection_version)
+                            projection_version=projection_version,
+                            required_root_config_sha256=required_root_config_sha256)
 
     # Verifies committed publication and every original receipt, including replay
     # with all queue tasks COMPLETED. Never trusts a noncommitted materialized DB.
     finalize_published_plan(queue_repo, materialized_conn, plan, ast,
-                            projection_version=projection_version)
+                            projection_version=projection_version,
+                            required_root_config_sha256=required_root_config_sha256)
 
     # Revalidate before FSM CAS. The handler rejects competing state versions.
     status = fsm_repo.get_status(plan.document_id, plan.ast_hash)

@@ -46,6 +46,9 @@ CREATE TABLE IF NOT EXISTS chunk_result_receipts (
     execution_id TEXT NOT NULL,
     raw_response TEXT,
     response_sha256 TEXT CHECK(response_sha256 IS NULL OR length(response_sha256) = 64),
+    generation_sha256 TEXT CHECK(generation_sha256 IS NULL OR length(generation_sha256) = 64),
+    root_config_sha256 TEXT CHECK(root_config_sha256 IS NULL OR length(root_config_sha256) = 64),
+    generation_binding_sha256 TEXT CHECK(generation_binding_sha256 IS NULL OR length(generation_binding_sha256) = 64),
     created_at REAL NOT NULL,
     PRIMARY KEY (document_id, ast_hash, chunk_id),
     FOREIGN KEY (task_id) REFERENCES chunk_tasks(task_id),
@@ -62,3 +65,13 @@ CREATE TABLE IF NOT EXISTS system_leases (
 );
 
 INSERT OR IGNORE INTO system_leases (lease_name) VALUES ('global_reconciler');
+-- Per-attempt admission decision in control SQLite; not an event journal.
+CREATE TABLE IF NOT EXISTS g3_admission_decisions (
+    task_id TEXT NOT NULL REFERENCES chunk_tasks(task_id),
+    execution_id TEXT NOT NULL,
+    generation_sha256 TEXT NOT NULL CHECK(length(generation_sha256)=64),
+    decision_json TEXT NOT NULL,
+    decision_sha256 TEXT NOT NULL CHECK(length(decision_sha256)=64),
+    created_at REAL NOT NULL,
+    PRIMARY KEY(task_id, execution_id)
+);

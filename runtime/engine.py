@@ -5,6 +5,8 @@ import time
 import uuid
 import random
 import logging
+import hashlib
+import json
 import threading
 from concurrent.futures import ThreadPoolExecutor
 
@@ -21,10 +23,13 @@ from core.utils.telemetry import (
     setup_distributed_logger, 
     ctx_execution_id, ctx_worker_id, ctx_task_id, ctx_node_id
 )
-from core.execution.exceptions import CircuitTripError, CircuitOpenError
+from core.execution.exceptions import (
+    CircuitTripError, CircuitOpenError, G3ExternalEffectNotStartedError,
+    PermanentQuotaRejection, QuotaTimeoutError,
+)
 from infra.db.connection import get_connection
 from core.ast.registry import ASTRegistry
-from core.ast.models import TranslationTaskType
+from core.ast.models import TranslationTaskType, ASTNode
 from core.validation.budget import PromptBudgetCalculator, StandardCompressionPolicy
 from core.finops.measurement import InferenceMeasurementService
 from apps.llm_workers.prompt_builder import PromptBuilder
@@ -34,7 +39,10 @@ from runtime.publication_pipeline import advance_staged_document
 from apps.bootstrap.provider_stack_factory import build_provider_stack
 from core.context.snapshot_contract import ContextSnapshotV1
 from infra.db.context_snapshot_repo import DurableContextPlanRepository
-from typing import Mapping
+from typing import Mapping, TYPE_CHECKING, cast
+
+if TYPE_CHECKING:
+    from apps.lab.pppr_offline_scope import OfflineLabScope
 
 logger = logging.getLogger(__name__)
 
@@ -46,12 +54,45 @@ MAT_DB_PATH = "infra/db/materialized.db"
 GLOBAL_LLM_SEMAPHORE = threading.Semaphore(int(os.getenv("MAX_GLOBAL_LLM_CONCURRENCY", "4")))
 
 
-def _create_chunk_processor(context_snapshots: Mapping[str, ContextSnapshotV1]):
+
+def _product_effective_config_sha256() -> str:
+    """Known EN→ES provider configuration; independent of paid I/O.
+
+    Changes to any output-affecting provider setting MUST update this scope.
+    """
+    options = {
+        "provider_id": "groq", "dialect": "openai_compatible_json_v1",
+        "temperature": 0.00001, "stream": False,
+        "source_language": "en", "target_language": "es",
+        "prompt_version": "v1.0", "model_name": "llama3-70b-8192",
+        "target_lang_expansion": 2.0, "response_contract": "G3_CHUNK_RESPONSE_V1",
+    }
+    return hashlib.sha256(json.dumps(
+        options, ensure_ascii=False, sort_keys=True, separators=(",", ":"),
+    ).encode("utf-8")).hexdigest()
+
+
+def _create_chunk_processor(context_snapshots: Mapping[str, ContextSnapshotV1], *,
+                            offline_scope: "OfflineLabScope | None" = None):
     """Initialize paid provider only if at least one unit needs inference."""
     from apps.llm_workers.sync_bridge import SyncProviderBridge
     from core.validation.estimators import ExactBPEEstimator
     from infra.resilience.thread_owned_sqlite_rate_limit_store import ThreadOwnedSQLiteRateLimitStore
     
+    model_name, prompt_version, provider_id = "llama3-70b-8192", "v1.0", "groq"
+    effective_config_sha256 = _product_effective_config_sha256()
+    provider_override = None
+    if offline_scope is not None:
+        from apps.lab.pppr_offline_scope import (
+            FAKE_MODEL, PROMPT_VERSION, PROVIDER_ID, OfflineLoopbackProvider,
+        )
+        offline_scope.validate(offline_scope.document_id)
+        model_name, prompt_version, provider_id = FAKE_MODEL, PROMPT_VERSION, PROVIDER_ID
+        effective_config_sha256 = offline_scope.root_config_sha256
+        provider_override = OfflineLoopbackProvider(offline_scope)
+    elif os.getenv("TPDF_OFFLINE_LAB"):
+        raise G3ExternalEffectNotStartedError("PPPR_G5_LAB_EXPLICIT_SCOPE_REQUIRED", permanent=True)
+
     api_key = os.getenv("GROQ_API_KEY")
     if not api_key:
         raise RuntimeError("GROQ_API_KEY no configurada. Imposible operar motor LLM.")
@@ -70,32 +111,39 @@ def _create_chunk_processor(context_snapshots: Mapping[str, ContextSnapshotV1]):
     compression_policy = StandardCompressionPolicy()
     
     builder = PromptBuilder(
-        model_name="llama3-70b-8192", 
-        prompt_version="v1.0", 
+        model_name=model_name,
+        prompt_version=prompt_version,
         measurement_service=measurement_service,
         budget_calculator=budget_calculator,
         compression_policy=compression_policy
     )
     
-    rpm_limit = int(os.getenv("GROQ_RPM_LIMIT", "30"))
-    tpm_limit = int(os.getenv("GROQ_TPM_LIMIT", "6000"))
+    rpm_limit = 1000 if offline_scope is not None else int(os.getenv("GROQ_RPM_LIMIT", "30"))
+    tpm_limit = 200000 if offline_scope is not None else int(os.getenv("GROQ_TPM_LIMIT", "6000"))
     
     # Durable SQLite quota state, confined to a dedicated owner thread.
     quota_store = ThreadOwnedSQLiteRateLimitStore("infra/db/rate_limits.db", timeout=30)
 
     try:
-        provider_stack = asyncio.run(build_provider_stack(
-            api_key=api_key,
-            rpm_limit=rpm_limit,
-            tpm_limit=tpm_limit,
-            rate_limit_store=quota_store,
-            # W08-3 interim: legacy prompt_hash-only cache cannot prove reuse identity.
-            cache_db_path=None,
-        ))
+        # W08-3: legacy prompt_hash-only cache cannot prove reuse identity.
+        if provider_override is None:
+            provider_stack = asyncio.run(build_provider_stack(
+                api_key=api_key, rpm_limit=rpm_limit, tpm_limit=tpm_limit,
+                rate_limit_store=quota_store, cache_db_path=None,
+            ))
+        else:
+            provider_stack = asyncio.run(build_provider_stack(
+                api_key=api_key, rpm_limit=rpm_limit, tpm_limit=tpm_limit,
+                rate_limit_store=quota_store, cache_db_path=None,
+                provider_override=provider_override,
+            ))
         processor = SyncProviderBridge(
             async_provider=provider_stack,
             prompt_builder=builder,
             context_snapshots=context_snapshots,
+            effective_config_sha256=effective_config_sha256,
+            source_language="en", target_language="es", provider_id=provider_id,
+            pre_effect_admission=(offline_scope.admission(estimator) if offline_scope is not None else None),
         )
     except BaseException:
         quota_store.close()
@@ -103,7 +151,12 @@ def _create_chunk_processor(context_snapshots: Mapping[str, ContextSnapshotV1]):
     return processor, quota_store
 
 
-def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_traduccion.pdf") -> dict:
+def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_traduccion.pdf", *,
+                 offline_scope: "OfflineLabScope | None" = None) -> dict:
+    if offline_scope is not None:
+        offline_scope.validate(document_id)
+    elif os.getenv("TPDF_OFFLINE_LAB"):
+        raise G3ExternalEffectNotStartedError("PPPR_G5_LAB_EXPLICIT_SCOPE_REQUIRED", permanent=True)
 
     pipeline_start = time.time()
     logger.info(f"Orquestador de Runtime acoplado al Documento [ID: {document_id[:8]}]")
@@ -122,7 +175,20 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
     try:
         if os.getenv("IS_BENCHMARK") == "1":
             raise PipelineIntegrityError("G3_B4_3A_BENCHMARK_REQUIRES_OWN_PLAN")
-        ast = ast_registry.get_document_ast(document_id, ast_hash)
+        verified_reader = getattr(ast_registry, "get_verified_document_ast", None)
+        if callable(verified_reader):
+            # Production ASTRegistry: disk-backed semantic + artifact integrity.
+            ast = cast(list[ASTNode], verified_reader(document_id, ast_hash))
+            required_generation_config = (offline_scope.root_config_sha256 if offline_scope is not None
+                                          else _product_effective_config_sha256())
+        else:
+            if offline_scope is not None:
+                raise PipelineIntegrityError("PPPR_G5_LAB_REQUIRES_VERIFIED_AST")
+            # Offline/W06 test doubles retain the older ASTProvider contract.
+            # The product composition root always supplies ASTRegistry.
+            # Unattested historical receipts cannot claim product reuse.
+            ast = ast_registry.get_document_ast(document_id, ast_hash)
+            required_generation_config = None
         if not ast or compute_ast_hash(ast) != ast_hash:
             raise PipelineIntegrityError("G3_B4_3A_AST_MISSING_OR_HASH_MISMATCH")
         # A missing, stale or altered snapshot is an integrity failure before
@@ -175,7 +241,8 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
                     mat_conn = get_connection(MAT_DB_PATH, timeout=30)
                     try:
                         advance_staged_document(task_repo, mat_conn, fsm_repo,
-                                                plan, ast, owner_id)
+                                                plan, ast, owner_id,
+                                                required_root_config_sha256=required_generation_config)
                     finally:
                         mat_conn.close()
                     current_state = DocumentState.READY_FOR_ASSEMBLY
@@ -189,7 +256,10 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
                     for chunk_id, _ in runnable_rows
                 )
                 if needs_inference:
-                    processor, quota_store = _create_chunk_processor(context_snapshots)
+                    if offline_scope is None:
+                        processor, quota_store = _create_chunk_processor(context_snapshots)
+                    else:
+                        processor, quota_store = _create_chunk_processor(context_snapshots, offline_scope=offline_scope)
                 def chunk_worker_thread():
                     th_queue_conn = get_connection(QUEUE_DB_PATH, timeout=30)
                     th_queue_conn.execute("PRAGMA busy_timeout=30000")
@@ -210,6 +280,38 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
                                     raise PipelineIntegrityError("G3_B4_3A_UNEXPECTED_CLAIMED_CHUNK")
                                 stage_claimed_unit(th_task_repo, plan, ast, unit, task,
                                                    owner_id, processor, GLOBAL_LLM_SEMAPHORE)
+                            except G3ExternalEffectNotStartedError as exc:
+                                # Verified pre-provider rejection: never misclassify
+                                # as uncertain and never clobber a stolen lease.
+                                if unit is not None and unit.chunk_type != TranslationTaskType.PRESERVE:
+                                    if not th_task_repo.mark_g3_proven_no_start(
+                                        task_id=task.task_id, worker_id=owner_id,
+                                        execution_id=task.execution_id, cause=str(exc),
+                                        permanent=exc.permanent,
+                                    ):
+                                        logger.warning("PPPR_G3_NO_START_CAS_LOST: %s", chunk_id[:8])
+                                else:
+                                    try:
+                                        th_task_repo.release_task_untouched(task.task_id, owner_id)
+                                    except OptimisticLockError:
+                                        logger.warning("PPPR_G3_PRESERVE_RELEASE_CAS_LOST: %s", chunk_id[:8])
+                            except (PermanentQuotaRejection, QuotaTimeoutError) as exc:
+                                # The rate limiter raised before provider I/O.
+                                # Permanent admission failures never spin; quota
+                                # timeouts use only the existing bounded retry budget.
+                                permanent = isinstance(exc, PermanentQuotaRejection)
+                                if unit is not None and unit.chunk_type != TranslationTaskType.PRESERVE:
+                                    if not th_task_repo.mark_g3_proven_no_start(
+                                        task_id=task.task_id, worker_id=owner_id,
+                                        execution_id=task.execution_id,
+                                        cause=type(exc).__name__, permanent=permanent,
+                                    ):
+                                        logger.warning("PPPR_G3_QUOTA_NO_START_CAS_LOST: %s", chunk_id[:8])
+                                else:
+                                    try:
+                                        th_task_repo.release_task_untouched(task.task_id, owner_id)
+                                    except OptimisticLockError:
+                                        logger.warning("PPPR_G3_PRESERVE_RELEASE_CAS_LOST: %s", chunk_id[:8])
                             except CircuitTripError as exc:
                                 # A circuit trip may follow an external effect: never
                                 # classify it as a proven no-start or blindly requeue.
@@ -224,8 +326,18 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
                                     th_task_repo.release_task_untouched(task.task_id, owner_id)
                                 time.sleep(10.0)
                             except CircuitOpenError:
-                                # CircuitOpenError is a local pre-provider rejection.
-                                th_task_repo.release_task_untouched(task.task_id, owner_id)
+                                # The breaker rejected before provider I/O.
+                                if unit is not None and unit.chunk_type != TranslationTaskType.PRESERVE:
+                                    if not th_task_repo.mark_g3_proven_no_start(
+                                        task_id=task.task_id, worker_id=owner_id,
+                                        execution_id=task.execution_id, cause="CIRCUIT_OPEN",
+                                    ):
+                                        logger.warning("PPPR_G3_NO_START_CAS_LOST: %s", chunk_id[:8])
+                                else:
+                                    try:
+                                        th_task_repo.release_task_untouched(task.task_id, owner_id)
+                                    except OptimisticLockError:
+                                        logger.warning("PPPR_G3_PRESERVE_RELEASE_CAS_LOST: %s", chunk_id[:8])
                                 time.sleep(5.0)
                             except Exception as exc:
                                 logger.exception("G3_B4_3A_STAGE_FAILURE: %s", chunk_id[:8])
@@ -290,7 +402,8 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
                     mat_conn = get_connection(MAT_DB_PATH, timeout=30)
                     try:
                         advance_staged_document(task_repo, mat_conn, fsm_repo,
-                                                plan, ast, owner_id)
+                                                plan, ast, owner_id,
+                                                required_root_config_sha256=required_generation_config)
                     finally:
                         mat_conn.close()
                     current_state = DocumentState.READY_FOR_ASSEMBLY

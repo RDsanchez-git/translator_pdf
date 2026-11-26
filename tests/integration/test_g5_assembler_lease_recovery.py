@@ -340,8 +340,10 @@ def test_missing_projection_blocks_real_g5_worker_before_pdf(sandbox, monkeypatc
     from infra.db.fsm_repository import FSMRepository
     from infra.db.materialized_repo import MaterializedPlaneRepository
 
-    c, _connect, tmp = sandbox
+    c, connect, tmp = sandbox
     monkeypatch.setenv("COMPILER_OUTPUT_DIR", str(tmp))
+    monkeypatch.setenv("QUEUE_DB_PATH", str(tmp / "queue.db"))
+    monkeypatch.setenv("FSM_DB_PATH", str(tmp / "fsm.db"))
 
     class AstProvider:
         def get_document_ast(self, document_id, ast_hash):
@@ -426,10 +428,26 @@ def test_missing_projection_blocks_real_g5_worker_before_pdf(sandbox, monkeypatc
         ),
     )
 
-    with pytest.raises(AssemblyRejectedError, match="Ensamblado denegado"):
+    with pytest.raises(AssemblyRejectedError) as error:
         worker._process_assembly_task("doc", "ast")
 
-    assert _fsm(c)[0] == "FAILED_RETRYABLE"
-    assert _row(c)[0] == "FAILED"
+    expected = (
+        "PPPR_G4_ASSEMBLY_REJECTED missing_node_ids=('missing_translate',); "
+        "reason=Missing ratio 100.00% excede umbral de 5.00%"
+    )
+    assert str(error.value) == expected
+    other = connect()
+    try:
+        assert _fsm(other) == ("FAILED_RETRYABLE", 2, 0)
+        assert _row(other)[0] == "FAILED"
+        assert other.execute(
+            "SELECT failure_reason FROM fsm_db.document_fsm "
+            "WHERE document_id='doc' AND ast_hash='ast'"
+        ).fetchone() == (expected,)
+        assert other.execute(
+            "SELECT error_log FROM chunk_tasks WHERE worker_type='ASSEMBLER'"
+        ).fetchone() == (expected,)
+    finally:
+        other.close()
     assert not (tmp / "translated_doc.pdf").exists()
     assert not list(tmp.glob(".assembly_*.pdf"))
