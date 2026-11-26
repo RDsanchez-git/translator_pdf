@@ -19,8 +19,13 @@ class RenderContext:
     strategies: Mapping[ContentNodeType, RenderStrategy]
     fallback_strategy: RenderStrategy
     is_multi_column: bool = False
+    protected_table_strategy: RenderStrategy | None = None
 
     def render_unit(self, unit: RenderUnit) -> str:
+        if unit.node_type == ContentNodeType.TABLE_COMPLEX and unit.asset is not None:
+            if self.protected_table_strategy is None or unit.asset.mime_type != "application/pdf":
+                raise ValueError("DF01_TABLE_ASSET_RENDER_UNSUPPORTED")
+            return self.protected_table_strategy.render(unit)
         strategy = self.strategies.get(unit.node_type, self.fallback_strategy)
         return strategy.render(unit)
 
@@ -73,4 +78,5 @@ class RenderContextFactory:
             strategies=strategies_map,
             fallback_strategy=text_strategy,
             is_multi_column=config.is_multi_column,
+            protected_table_strategy=float_strategy,
         )

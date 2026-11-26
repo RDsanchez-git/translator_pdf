@@ -9,7 +9,7 @@ from hashlib import sha256
 import json
 from typing import Any, Sequence, cast
 
-from core.ast.models import ASTNode, ChunkMember, HeadingPayload, TranslationTaskType, TranslationUnit
+from core.ast.models import ASTNode, ChunkMember, HeadingPayload, TranslationTaskType, TranslationUnit, VisualTablePayload
 from core.ast.enums import ContentNodeType, HeadingLevel, TranslationStrategy
 
 _SCHEMA = 1
@@ -85,6 +85,11 @@ def validate_chunk_coverage(ast: Sequence[ASTNode], units: Sequence[TranslationU
                 raise ValueError(f"G3_IMAGE_ASSET_REFERENCE_MISSING: {n.node_id}")
             if n.strategy not in (TranslationStrategy.PASSTHROUGH, TranslationStrategy.KEEP_ORIGINAL):
                 raise ValueError(f"G3_IMAGE_MUST_PRESERVE: {n.node_id}")
+        if isinstance(n.payload, VisualTablePayload):
+            if n.node_type != ContentNodeType.TABLE_COMPLEX or n.strategy not in (
+                TranslationStrategy.PASSTHROUGH, TranslationStrategy.KEEP_ORIGINAL,
+            ):
+                raise ValueError(f"DF01_TABLE_MUST_PRESERVE: {n.node_id}")
         if n.text_content and n.strategy != TranslationStrategy.OMIT:
             ordered_node_ids.append(n.node_id)
 
@@ -135,6 +140,8 @@ def validate_chunk_coverage(ast: Sequence[ASTNode], units: Sequence[TranslationU
         if not members:
             raise ValueError(f"G3_MISSING_NODE: {node_id}")
         expected_count = members[0].segment_count
+        if isinstance(nodes[node_id].payload, VisualTablePayload) and expected_count != 1:
+            raise ValueError(f"DF01_TABLE_NOT_ATOMIC: {node_id}")
         if len(members) != expected_count or [m.segment_index for m in members] != list(range(expected_count)):
             raise ValueError(f"G3_SEGMENT_COVERAGE_ERROR: {node_id}")
         if any(m.segment_count != expected_count for m in members):

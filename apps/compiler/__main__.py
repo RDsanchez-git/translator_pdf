@@ -225,22 +225,23 @@ class RenderGeometryAdapter:
 
 
 class RenderAssetAdapter:
-    """Extrae AssetReference desde ImagePayload para el compiler."""
+    """Resolve explicit typed image and protected table references for G5."""
 
     def extract(self, node) -> AssetReference | None:
         from core.ast.enums import ContentNodeType
-        if node.node_type != ContentNodeType.IMAGE:
-            return None
+        from core.ast.models import ImagePayload, VisualTablePayload
         payload = node.payload
-        asset_path = getattr(payload, "asset_path", None)
-        if not asset_path:
+        if node.node_type == ContentNodeType.TABLE_COMPLEX and isinstance(payload, VisualTablePayload):
+            return AssetReference(path=payload.asset_path, alt_text=None, label=None, mime_type="application/pdf")
+        if node.node_type != ContentNodeType.IMAGE or not isinstance(payload, ImagePayload):
             return None
-        alt_text = getattr(payload, "alt_text", None)
+        if not payload.asset_path:
+            return None
         return AssetReference(
-            path=asset_path,
-            alt_text=alt_text,
+            path=payload.asset_path,
+            alt_text=payload.alt_text,
             label=None,
-            mime_type="image/png",
+            mime_type="application/pdf" if payload.asset_path.endswith(".pdf") else "image/png",
         )
 
 if __name__ == "__main__":

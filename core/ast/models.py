@@ -1,4 +1,5 @@
 from enum import Enum
+import re
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 from typing import Dict, Any, Optional, Union, Tuple, List, cast
 from dataclasses import dataclass
@@ -72,6 +73,18 @@ class TablePayload(BaseModel):
     def with_content(self, new_content: str) -> "TablePayload":
         return self.model_copy(update={"content": new_content})
 
+class VisualTablePayload(BaseModel):
+    """Explicit opaque PDF representation of a TABLE_COMPLEX, not literal text."""
+    model_config = ConfigDict(frozen=True, extra="forbid")
+    asset_path: str
+
+    @model_validator(mode="after")
+    def _canonical_reference(self) -> "VisualTablePayload":
+        if re.fullmatch(r"data/assets/[0-9a-f]{64}\.pdf", self.asset_path) is None:
+            raise ValueError("DF01_NONCANONICAL_TABLE_ASSET")
+        return self
+
+
 class ImagePayload(BaseModel):
     """Nodo no combinable por invariante trans-página."""
     model_config = ConfigDict(frozen=True)
@@ -90,6 +103,7 @@ ASTPayload = Union[
     MathPayload,
     CodePayload,
     TablePayload,
+    VisualTablePayload,
     ImagePayload,
     ListPayload
 ]
@@ -189,6 +203,7 @@ class ASTNode(BaseModel):
                 MathPayload,
                 CodePayload,
                 TablePayload,
+                VisualTablePayload,
                 ImagePayload,
                 ListPayload,
             ),
@@ -218,14 +233,32 @@ class ASTNode(BaseModel):
                 if target_model:
                     v_dict["payload"] = target_model(content=payload_data)
         elif isinstance(payload_data, dict):
+            if "asset_path" in payload_data:
+                if n_type == ContentNodeType.TABLE_COMPLEX:
+                    v_dict["payload"] = VisualTablePayload(**payload_data)
+                    return v_dict
+                if n_type != ContentNodeType.IMAGE:
+                    raise ValueError("DF01_ASSET_PAYLOAD_WRONG_NODE_TYPE")
             target_model = type_mapping.get(n_type)
             if target_model:
                 v_dict["payload"] = target_model(**payload_data)
 
         return v_dict
 
+    @model_validator(mode="after")
+    def _validate_visual_payload_type(self) -> "ASTNode":
+        if isinstance(self.payload, VisualTablePayload) and self.node_type != ContentNodeType.TABLE_COMPLEX:
+            raise ValueError("DF01_ASSET_PAYLOAD_WRONG_NODE_TYPE")
+        if self.node_type == ContentNodeType.TABLE_COMPLEX and not isinstance(
+            self.payload, (TablePayload, VisualTablePayload)
+        ):
+            raise ValueError("DF01_INVALID_COMPLEX_TABLE_PAYLOAD")
+        return self
+
     @property
     def text_content(self) -> str:
+        if isinstance(self.payload, VisualTablePayload):
+            return self.payload.asset_path
         if self.node_type == ContentNodeType.IMAGE and isinstance(self.payload, ImagePayload):
             return self.payload.asset_path or ""
         return getattr(self.payload, "content", "")

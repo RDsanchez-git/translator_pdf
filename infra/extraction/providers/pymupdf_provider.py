@@ -32,19 +32,22 @@ from core.execution.exceptions import LayoutRecoveryError
 from infra.extraction.providers.pymupdf_integrity import (
     UnrepresentedPdfContentError, validate_pymupdf_page_coverage,
 )
-from infra.extraction.providers.pymupdf_image_assets import persist_png_asset
+from infra.extraction.providers.pymupdf_image_assets import persist_png_asset, persist_pdf_asset
+from infra.extraction.providers.pymupdf_protected_regions import prepare_protected_regions
 from infra.extraction.providers.pymupdf_math_visual import classify_math_font_block, render_math_visual_png
 import statistics
 
 @dataclass(frozen=True, slots=True)
 class _PhysicalBlock:
     """DTO interno privado para aislar la inspección física del mapeo de dominio."""
-    native_index: int
+    native_index: int | None
     raw_text: str
     bbox: tuple[float, float, float, float]
     lines: list[dict]
     rotation: float
     native_type: int = 0
+    protected_type: LayoutBlockType | None = None
+    region_index: int | None = None
 
 
 
@@ -123,16 +126,44 @@ class PyMuPDFProvider(ExtractionProvider):
 
         page_dict = cast(dict[str, Any], page.get_text("dict"))
         raw_blocks = page_dict.get("blocks", [])
+        # Validate raw types and glyphs before attempting any replacement.
+        # The second guard below is driven by exact region coverage, never
+        # by the mere existence of a proposed rectangle.
         validate_pymupdf_page_coverage(
-            raw_blocks,
-            page_number=page_number,
-            has_vector_drawings=bool(page.get_drawings()),
+            raw_blocks, page_number=page_number, has_vector_drawings=False,
             allow_image_blocks=self._write_images,
         )
+        drawings = page.get_drawings()
+        regions = (
+            prepare_protected_regions(page, raw_blocks, page_number=page_number)
+            if drawings and self._write_images else ()
+        )
+        represented = {index for region in regions for index in region.covered_drawings}
+        validate_pymupdf_page_coverage(
+            raw_blocks, page_number=page_number,
+            has_vector_drawings=represented != set(range(len(drawings))),
+            allow_image_blocks=self._write_images,
+        )
+        covered_blocks = {index for region in regions for index in region.covered_blocks}
+        insertions = {region.insert_before: (i, region) for i, region in enumerate(regions)}
+        captions = {region.caption_block for region in regions if region.caption_block is not None}
 
-        # Preserve native block order, including images. No invisible IMAGE nodes.
+        # Region bytes have been validated before publication. Existing native
+        # blocks retain their original IDs and order.
         physical_blocks: list[_PhysicalBlock] = []
         for block_index, raw_b in enumerate(raw_blocks):
+            if block_index in insertions:
+                ordinal, region = insertions[block_index]
+                reference = persist_pdf_asset(
+                    region.pdf, source_root=Path(os.getenv("APP_ROOT") or ".")
+                )
+                physical_blocks.append(_PhysicalBlock(
+                    native_index=None, raw_text=reference, bbox=region.bbox,
+                    lines=[], rotation=rotation, native_type=1,
+                    protected_type=region.logical_type, region_index=ordinal,
+                ))
+            if block_index in covered_blocks:
+                continue
             if raw_b.get("type") == 1:
                 png = self._image_block_to_png(raw_b, page_number=page_number)
                 reference = persist_png_asset(
@@ -173,6 +204,11 @@ class PyMuPDFProvider(ExtractionProvider):
                         default_idx=block_index,
                         rotation=rotation,
                     )
+            if block_index in captions:
+                from dataclasses import replace
+                if phys.native_type != 0:
+                    raise UnrepresentedPdfContentError("DF01_CAPTION_NOT_TEXT")
+                phys = replace(phys, protected_type=LayoutBlockType.CAPTION)
             physical_blocks.append(phys)
 
         # Fase 2: Calcular contexto estadístico de la página
@@ -198,7 +234,8 @@ class PyMuPDFProvider(ExtractionProvider):
 
             # Clasificar ANTES de construir el Aggregate
             logical_type = (
-                LayoutBlockType.IMAGE if phys.native_type == 1
+                phys.protected_type if phys.protected_type is not None
+                else LayoutBlockType.IMAGE if phys.native_type == 1
                 else self._classifier.classify(signals, page_context)
             )
 
@@ -291,9 +328,9 @@ class PyMuPDFProvider(ExtractionProvider):
             ocr=1.0,
             layout_classification=1.0,
         )
-        provider_meta = ProviderMetadata(
-            provider_name="pymupdf",
-            native_block_index=phys_block.native_index,
+        provider_meta = (
+            ProviderMetadata(provider_name="pymupdf", native_block_index=phys_block.native_index)
+            if phys_block.native_index is not None else None
         )
 
         metadata = LayoutMetadata(
@@ -303,7 +340,12 @@ class PyMuPDFProvider(ExtractionProvider):
             provider=provider_meta,
         )
 
-        block_id = BlockId(value=f"p{page_number}_b{phys_block.native_index}")
+        if phys_block.region_index is not None:
+            block_id = BlockId(value=f"p{page_number}_region{phys_block.region_index}")
+        elif phys_block.native_index is not None:
+            block_id = BlockId(value=f"p{page_number}_b{phys_block.native_index}")
+        else:
+            raise UnrepresentedPdfContentError("DF01_REGION_IDENTITY_MISSING")
         relationships = BlockRelationships()
         versioning = DomainVersion(version=1, origin=OriginType.EXTRACTOR)
 
@@ -312,6 +354,7 @@ class PyMuPDFProvider(ExtractionProvider):
             block_id=block_id,
             logical_type=logical_type,
             content=content,
+            asset_path=(phys_block.raw_text if phys_block.protected_type == LayoutBlockType.TABLE_COMPLEX else None),
             bbox=bbox,
             metadata=metadata,
             relationships=relationships,

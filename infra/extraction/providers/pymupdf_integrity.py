@@ -26,7 +26,8 @@ def validate_pymupdf_page_coverage(
 
     - type != 0: los bloques no-textuales se omitían silenciosamente.
     - U+FFFD/U+FFFF: texto extraído con sustitución o no-caracteres visibles.
-    - trazos vectoriales: esta ruta no crea nodos/activos para preservarlos.
+    - trazos vectoriales: el llamador acredita cobertura completa o informa que
+      queda contenido vectorial sin representación (has_vector_drawings).
 
     No asume que todo trazo es una ecuación ni que su ausencia prueba fidelidad.
     Es una política provisional fail-closed, potencialmente restrictiva.
@@ -60,5 +61,5 @@ def validate_pymupdf_page_coverage(
     if has_vector_drawings:
         raise UnrepresentedPdfContentError(
             f"B02_UNREPRESENTED_VECTOR_DRAWING: page={page_number}; "
-            "la ruta actual no conserva trazos vectoriales en Layout/AST"
+            "hay trazos vectoriales sin cobertura acreditada en Layout/AST"
         )

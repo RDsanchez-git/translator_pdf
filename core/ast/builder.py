@@ -6,7 +6,7 @@ from core.ast.enums import ContentNodeType, HeadingLevel, SemanticOrigin
 from core.ast.models import (
     ASTNode, NodeMetadata, PhysicalRegion, ASTPayload,
     HeadingPayload, ParagraphPayload, MathPayload, CodePayload, 
-    TablePayload, ImagePayload, ListPayload
+    TablePayload, VisualTablePayload, ImagePayload, ListPayload
 )
 from core.ast.strategy import resolve_strategy
 from core.ast.cross_page import CrossPageNormalizer
@@ -31,7 +31,10 @@ class PayloadRegistry:
         ContentNodeType.INLINE_EQUATION: lambda r, kw: MathPayload(content=r),
         ContentNodeType.CODE: lambda r, kw: CodePayload(content=r),
         ContentNodeType.TABLE_SIMPLE: lambda r, kw: TablePayload(content=r),
-        ContentNodeType.TABLE_COMPLEX: lambda r, kw: TablePayload(content=r),
+        ContentNodeType.TABLE_COMPLEX: lambda r, kw: (
+            VisualTablePayload(asset_path=kw["asset_path"])
+            if kw.get("asset_path") is not None else TablePayload(content=r)
+        ),
         ContentNodeType.IMAGE: lambda r, kw: ImagePayload(asset_path=r),
         ContentNodeType.LIST: lambda r, kw: ListPayload(content=r),
         ContentNodeType.COMPOSITE_BLOCK: lambda r, kw: ParagraphPayload(content=r),
@@ -39,6 +42,10 @@ class PayloadRegistry:
 
     @classmethod
     def create(cls, node_type: ContentNodeType, raw_data: str, **kwargs) -> ASTPayload:
+        if kwargs.get("asset_path") is not None and (
+            node_type != ContentNodeType.TABLE_COMPLEX or raw_data != kwargs["asset_path"]
+        ):
+            raise ValueError("DF01_LAYOUT_ASSET_TYPE_OR_CONTENT_DRIFT")
         factory_method = cls._REGISTRY.get(node_type)
         if not factory_method:
             raise ValueError(f"[AST-003] [PAYLOAD_CREATION_FAILED] Tipo '{node_type}' no registrado en PayloadRegistry.")
@@ -139,6 +146,7 @@ class FlatASTBuilder:
         explicit_payload = PayloadRegistry.create(
             node_type=semantic_type, 
             raw_data=block.content,
+            asset_path=block.asset_path,
             heading_level=cls._evidenced_heading_level(block)
         )
 

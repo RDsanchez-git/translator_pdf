@@ -12,6 +12,7 @@ class LayoutBlockDraft(BaseModel):
     block_id: Optional[BlockId] = None
     logical_type: Optional[str] = None
     content: str
+    asset_path: Optional[str] = None
     bbox: Optional[BoundingBox] = None
     # Proveniencia acreditada en DocumentLayout (opcionales en DTOs legados).
     source_document: Optional[str] = None

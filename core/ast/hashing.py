@@ -17,7 +17,7 @@ from typing import Sequence
 import unicodedata
 
 from core.ast.enums import ContentNodeType
-from core.ast.models import ASTNode, HeadingPayload
+from core.ast.models import ASTNode, HeadingPayload, VisualTablePayload
 from core.shared.crypto import compute_sha256
 
 _CONTRACT = "AST_SEMANTIC_PRODUCT_V2"
@@ -57,6 +57,11 @@ def compute_ast_hash(ast: Sequence[ASTNode]) -> str:
                 raise ValueError("PPPR_G2_INVALID_HEADING_PAYLOAD")
             # UNKNOWN es una identidad distinta, NO se convierte a H1.
             element["heading_level"] = node.payload.heading_level.value
+        if isinstance(node.payload, VisualTablePayload):
+            # New representation only: a literal table containing the same
+            # pathname is not the protected PDF. Historical preimages remain
+            # byte-identical; geometry and durable artifact identity stay separate.
+            element["representation"] = "PROTECTED_TABLE_PDF"
         elements.append(element)
     encoded = json.dumps(
         {"contract": _CONTRACT, "nodes": elements},

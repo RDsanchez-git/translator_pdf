@@ -8,7 +8,7 @@ from typing import List, Optional, Any, Dict
 
 from core.ast.models import (
     ASTNode, HeadingPayload, ParagraphPayload, MathPayload, 
-    CodePayload, TablePayload, ListPayload
+    CodePayload, TablePayload, ListPayload, VisualTablePayload
 )
 from core.ast.enums import ContentNodeType
 from core.normalization.base import NormalizationReport, NormalizerTrace, NormalizationEvent, WarningEntry
@@ -42,7 +42,9 @@ class NormalizationPipeline:
 
     def process_node(self, node: ASTNode) -> NormalizationReport:
         canonical_key = node.node_type.value
-        policy = self._registry.get_policy_for_type(canonical_key)
+        # The protected PDF is an asset identity, never normalizable text.
+        policy = (None if isinstance(node.payload, VisualTablePayload)
+                  else self._registry.get_policy_for_type(canonical_key))
         
         current_text = node.text_content or ""
         current_hash = self._compute_deterministic_hash(current_text, policy)
