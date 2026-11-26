@@ -1,9 +1,8 @@
 """DF-01: conservative producer for complete, positively identified PDF regions.
 
 Non-rotated pages with proven direct or bounded composed vector content are admitted.
-Rectangular merged-cell tables, three-rule multiline-header tables and framed,
-captioned figures have distinct
-evidence. A drawing cluster alone never confers semantic authority.
+Rectangular merged-cell tables, horizontally ruled complex tables and framed,
+captioned figures have distinct evidence. A drawing cluster alone never confers semantic authority.
 No clipping-only asset, rasterization, or implicit omission.
 """
 
@@ -185,15 +184,16 @@ def _row_cells(spans: Sequence[fitz.Rect]) -> list[list[tuple[float, float]]]:
     return result
 
 
-def _three_rule_tables(
+def _horizontal_rule_tables(
     drawings: Sequence[Mapping[str, Any]], raw_blocks: Sequence[Mapping[str, Any]],
 ) -> list[fitz.Rect]:
     """Restricted evidence for scientific tables without vertical borders.
 
-    Three coextensive horizontal rules delimit a multiline header and body.
-    Require repeated aligned column positions and a separate adjacent Table
-    caption. Never use whole-page text table detection or a bounding hull of
-    unrelated rules. The common coverage and isolation checks still apply.
+    Coextensive horizontal rules delimit occupied text bands. Require
+    evidence of multiline structure and repeated independent column positions
+    across bands, with a separate adjacent Table caption. Never use whole-page
+    text table detection or a bounding hull of unrelated rules. The common
+    coverage and isolation checks still apply.
     """
     groups: dict[tuple[float, float], list[tuple[fitz.Rect, float]]] = {}
     for drawing in drawings:
@@ -210,11 +210,10 @@ def _three_rule_tables(
     blocks = [_rect(b["bbox"]) for b in raw_blocks]
     candidates: list[fitz.Rect] = []
     for (left, right), rules in groups.items():
-        if len(rules) != 3:
+        edges = sorted({r.y0 for r, _ in rules})
+        if len(edges) < 3 or len(edges) != len(rules):
             continue
-        top, middle, bottom = sorted(r.y0 for r, _ in rules)
-        if not top < middle < bottom:
-            continue
+        top, bottom = edges[0], edges[-1]
         # Use the actual stroke's horizontal extent, not an arbitrary margin.
         half_stroke = max(width for _, width in rules) / 2
         bounds = fitz.Rect(left - half_stroke, top, right + half_stroke, bottom)
@@ -236,21 +235,39 @@ def _three_rule_tables(
                  for line in raw_blocks[i].get("lines", [])
                  for span in line.get("spans", []) if span.get("text", "").strip()]
         if not spans or any(r.is_empty or not _contains(bounds, r)
-                            or r.y0 < middle < r.y1 for r in spans):
+                            or any(r.y0 < y < r.y1 for y in edges) for r in spans):
             continue
-        header = _row_cells([r for r in spans if r.y1 <= middle])
-        body = _row_cells([r for r in spans if r.y0 >= middle])
-        # Two physical header rows and repeated independent column anchors.
-        if len(header) < 2 or len(body) < 2:
+        bands = [_row_cells([r for r in spans if lo <= r.y0 and r.y1 <= hi])
+                 for lo, hi in zip(edges, edges[1:])]
+        if not all(bands):
             continue
-        anchors = [(a + b) / 2 for a, b in max(header, key=len)]
-        if len(anchors) < 3 or sum(len(row) >= 2 for row in header) < 2:
+        # A rule count alone does not establish complex structure. Preserve
+        # the established multiline-header witness for a two-band table;
+        # with more bands, require multiline cells and repeated columns
+        # across independently delimited bands (including section rows).
+        if len(bands) == 2:
+            header, body = bands
+            if len(header) < 2 or len(body) < 2 or sum(len(row) >= 2 for row in header) < 2:
+                continue
+            anchors = [(a + b) / 2 for a, b in max(header, key=len)]
+            comparison = [body]
+        else:
+            if not any(len(band) > 1 for band in bands):
+                continue
+            anchors = [(a + b) / 2 for a, b in max(
+                (row for band in bands for row in band), key=len
+            )]
+            comparison = bands
+        if len(anchors) < 3:
             continue
-        matched_rows = sum(
-            sum(any(a <= x <= b for x in anchors) for a, b in row) >= 3
-            for row in body
-        )
-        if matched_rows < 2 or matched_rows * 2 <= len(body):
+        matches = [
+            sum(sum(any(a <= x <= b for x in anchors) for a, b in row) >= 3
+                for row in band)
+            for band in comparison
+        ]
+        matched_rows = sum(matches)
+        if (matched_rows < 2 or matched_rows * 2 <= sum(len(band) for band in comparison)
+                or (len(bands) > 2 and sum(count > 0 for count in matches) < 2)):
             continue
         candidates.append(bounds)
     return candidates
@@ -631,7 +648,7 @@ def prepare_protected_regions(
     for grid in _merged_row_grids(drawings):
         if not any(_intersects(grid, b) for _, b in candidates):
             candidates.append((LayoutBlockType.TABLE_COMPLEX, grid))
-    for bounds in _three_rule_tables(drawings, raw_blocks):
+    for bounds in _horizontal_rule_tables(drawings, raw_blocks):
         if not any(_intersects(bounds, b) for _, b in candidates):
             candidates.append((LayoutBlockType.TABLE_COMPLEX, bounds))
     table_bounds.extend(b for _, b in candidates)

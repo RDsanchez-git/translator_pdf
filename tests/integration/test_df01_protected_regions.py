@@ -145,15 +145,23 @@ def test_df01_independent_grid_without_caption_is_rejected(tmp_path, monkeypatch
     assert not (tmp_path / "data/assets").exists()
 
 
-def _three_rule_source(tmp_path, *, defect=None):
+def _three_rule_source(tmp_path, *, defect=None, multiple_rules=False):
     path = tmp_path / "three_rules.pdf"
     with fitz.open() as doc:
         page = doc.new_page(width=500, height=500)
         page.insert_text((50, 60), "BEFORE PROSE")
         page.insert_text((100, 95), "Table 1. Multilevel results" if defect != "caption" else "Ordinary text")
-        for y in (120, 175, 290):
+        rules = (120, 144, 175, 230, 290) if multiple_rules else (120, 175, 290)
+        if defect == "empty_band":
+            rules = (120, 124, *rules[1:])
+        if defect == "simple":
+            rules = (120, 144, 175, 207, 230, 253, 290)
+        for y in rules:
             page.draw_line((90, y), (410, y), width=.5)
         for row, y in enumerate((138, 157, 195, 218, 241, 264)):
+            if multiple_rules and row == 0 and defect != "simple":
+                page.insert_text((120, y), "SECTION GROUP", fontsize=10)
+                continue
             for col, x in enumerate((120, 220, 320)):
                 if defect == "prose":
                     if col == 0:
@@ -170,13 +178,14 @@ def _three_rule_source(tmp_path, *, defect=None):
 
 
 @pytest.mark.integration
-def test_df01_three_rule_multilevel_header_table_is_preserved(tmp_path, monkeypatch):
+@pytest.mark.parametrize("multiple_rules", [False, True], ids=["three_rules", "multiple_rules"])
+def test_df01_three_rule_multilevel_header_table_is_preserved(tmp_path, monkeypatch, multiple_rules):
     from types import SimpleNamespace
     from apps.bootstrap.pipeline_factory import build_extraction_pipeline
 
     monkeypatch.setenv("APP_ROOT", str(tmp_path))
     monkeypatch.setattr(fitz.Page, "find_tables", lambda self, **kwargs: SimpleNamespace(tables=[]))
-    source = _three_rule_source(tmp_path)
+    source = _three_rule_source(tmp_path, multiple_rules=multiple_rules)
     ast = build_extraction_pipeline().parse(str(source))
     tables = [n for n in ast if n.node_type == ContentNodeType.TABLE_COMPLEX]
     assert len(tables) == 1
@@ -186,10 +195,21 @@ def test_df01_three_rule_multilevel_header_table_is_preserved(tmp_path, monkeypa
     assert len([n for n in ast if n.node_type == ContentNodeType.CAPTION]) == 1
     assert all("R0C0" not in n.text_content for n in ast)
     with fitz.open(tmp_path / node.payload.asset_path) as asset:
-        assert len(asset[0].get_drawings()) == 3
+        assert len(asset[0].get_drawings()) == (5 if multiple_rules else 3)
         assert not asset[0].get_image_info()
         text = asset[0].get_text()
-        assert all(text.count(f"R{r}C{c}") == 1 for r in range(6) for c in range(3))
+        assert all(text.count(f"R{r}C{c}") == 1
+                   for r in range(1 if multiple_rules else 0, 6) for c in range(3))
+        if multiple_rules:
+            assert text.count("SECTION GROUP") == 1
+            assert all("SECTION GROUP" not in n.text_content for n in ast)
+            box = node.metadata.physical_regions[0].bbox
+            assert box is not None
+            rect = fitz.Rect(box.x0, box.y0, box.x1, box.y1)
+            with fitz.open(source) as original:
+                for scale in (1, 2):
+                    matrix = fitz.Matrix(scale, scale)
+                    assert asset[0].get_pixmap(matrix=matrix).samples == original[0].get_pixmap(clip=rect, matrix=matrix).samples
         assert "Table 1." not in text and "BEFORE PROSE" not in text and "AFTER PROSE" not in text
 
 
@@ -441,3 +461,16 @@ def test_df01_distant_caption_separated_by_prose_is_not_a_competitor(tmp_path):
             assert asset[0].get_text().count("PANEL") == 4
             assert "Other caption" not in asset[0].get_text()
             assert "Intervening prose" not in asset[0].get_text()
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize("defect", ["caption", "prose", "orphan", "crossing", "empty_band", "simple"])
+def test_df01_multiple_rule_table_requires_structural_evidence(tmp_path, monkeypatch, defect):
+    from types import SimpleNamespace
+    monkeypatch.setenv("APP_ROOT", str(tmp_path))
+    monkeypatch.setattr(fitz.Page, "find_tables", lambda self, **kwargs: SimpleNamespace(tables=[]))
+    with pytest.raises(LayoutRecoveryError, match="B02_UNREPRESENTED_VECTOR_DRAWING"):
+        PyMuPDFProvider(HeuristicLayoutClassifier()).extract(str(
+            _three_rule_source(tmp_path, defect=defect, multiple_rules=True)
+        ))
+    assert not (tmp_path / "data/assets").exists()
