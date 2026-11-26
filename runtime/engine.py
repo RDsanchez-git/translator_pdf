@@ -36,7 +36,9 @@ from apps.llm_workers.prompt_builder import PromptBuilder
 from core.ast.hashing import compute_ast_hash
 from runtime.chunk_staging import stage_claimed_unit
 from runtime.publication_pipeline import advance_staged_document
-from apps.bootstrap.provider_stack_factory import build_provider_stack, build_groq_free_witness_stack
+from apps.bootstrap.provider_stack_factory import (
+    build_provider_stack, build_groq_free_witness_stack, build_product_prompt_builder,
+)
 from apps.llm_workers.g3_admission import GPT_OSS_120B
 from core.context.snapshot_contract import ContextSnapshotV1
 from infra.db.context_snapshot_repo import DurableContextPlanRepository
@@ -131,13 +133,14 @@ def _create_chunk_processor(context_snapshots: Mapping[str, ContextSnapshotV1], 
     
     compression_policy = StandardCompressionPolicy()
     
-    builder = PromptBuilder(
-        model_name=model_name,
-        prompt_version=prompt_version,
-        measurement_service=measurement_service,
-        budget_calculator=budget_calculator,
-        compression_policy=compression_policy
-    )
+    builder = (build_product_prompt_builder(estimator) if product_scope is not None else
+               PromptBuilder(
+                   model_name=model_name,
+                   prompt_version=prompt_version,
+                   measurement_service=measurement_service,
+                   budget_calculator=budget_calculator,
+                   compression_policy=compression_policy,
+               ))
     
     # Product limits are fixed by the guarded free stack and independently
     # bounded by the caller's attested remaining quota. No env override.

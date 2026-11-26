@@ -1532,3 +1532,61 @@ def test_pppr_free_document_resumes_across_explicit_quota_windows(tmp_path, monk
         dbs.materialized.close()
         dbs.fsm.close()
         dbs.queue.close()
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize("indivisible", [False, True])
+def test_pppr_effective_budget_refines_new_manifest_without_provider(indivisible):
+    from decimal import Decimal
+    from apps.bootstrap.provider_stack_factory import (
+        ProductGroqScope, refine_product_chunk_plan, build_product_prompt_builder,
+    )
+    from apps.llm_workers.g3_admission import GPT_OSS_120B
+    from apps.llm_workers.sync_bridge import prepare_chunk_prompt
+    from core.chunking.contextual_plan import prepare_contextual_plan
+    from core.context.plan_context_contract import derive_verified_plan_contexts
+
+    ast = [
+        ASTNode(node_id=f"paragraph-{i}", sequence_id=i, node_type=ContentNodeType.PARAGRAPH,
+                payload=ParagraphPayload(content=("word " * 110).strip()))
+        for i in range(1, 5)
+    ]
+    ast.append(ASTNode(node_id="math", sequence_id=5, node_type=ContentNodeType.DISPLAY_EQUATION,
+                       strategy=TranslationStrategy.PASSTHROUGH, payload=MathPayload(content="E=mc^2")))
+    prepared = prepare_contextual_plan(document_id="d"*64, raw_ast=ast, estimator=_Estimator())
+    plan = prepared.plan
+    assert len(plan.units) == 2
+    policy = _w32_fake_admission(
+        model_name=GPT_OSS_120B,
+        input_limit=100 if indivisible else 8000, output_limit=4096, context_window=131072,
+        input_price_per_token=Decimal("0.00000015"), output_price_per_token=Decimal("0.00000060"),
+    )
+    # Character estimator is a deliberately synthetic sizing witness.
+    # It makes the four-member request too large; each half fits.
+    scope = ProductGroqScope(policy, _CharBoundEstimator(),
+                             lambda: pytest.fail("planning instantiated a transport"))
+    original = plan.to_json()
+    if indivisible:
+        with pytest.raises(ValueError, match="G3_EFFECTIVE_BUDGET_INDIVISIBLE_UNIT"):
+            refine_product_chunk_plan(plan, prepared.ast, scope)
+        assert plan.to_json() == original
+        return
+    refined = refine_product_chunk_plan(plan, prepared.ast, scope)
+    assert len(refined.units) > len(plan.units)
+    assert refined.ast_hash == plan.ast_hash and refined.digest != plan.digest
+    assert [m for u in refined.units for m in u.members] == [m for u in plan.units for m in u.members]
+    assert refined.units[-1].members == plan.units[-1].members
+    assert refined.units[-1].chunk_type == TranslationTaskType.PRESERVE
+    assert plan.to_json() == original
+    assert refine_product_chunk_plan(refined, prepared.ast, scope) == refined
+    assert [u.chunk_index for u in refined.units] == list(range(1, len(refined.units)+1))
+    snapshots = derive_verified_plan_contexts(refined, prepared.ast)
+    for unit in refined.units:
+        if unit.chunk_type == TranslationTaskType.PRESERVE:
+            continue
+        built, _, _ = prepare_chunk_prompt(
+            refined, unit, builder=build_product_prompt_builder(scope.prompt_estimator),
+            context_snapshots=snapshots, structured_response=True,
+        )
+        _, count, reserve = policy.measure_request(built.envelope)
+        assert count + reserve <= 8000

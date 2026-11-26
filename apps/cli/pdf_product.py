@@ -83,7 +83,7 @@ def _read_status(document_id: str):
         return FSMRepository(conn).get_by_document_id(document_id)
 
 
-def _ingest(pdf_path: Path, root: Path) -> None:
+def _ingest(pdf_path: Path, root: Path, *, product_scope: ProductGroqScope | None = None) -> None:
     """One OCR admission using exactly the daemon's canonical implementation."""
     from apps.ocr_router.__main__ import OCRRouterDaemon
     from apps.bootstrap.pipeline_factory import build_document_profiler, build_extraction_pipeline
@@ -100,6 +100,12 @@ def _ingest(pdf_path: Path, root: Path) -> None:
         docs_conn = stack.enter_context(closing(get_connection("infra/db/documents.db", timeout=30)))
         fsm_repo = FSMRepository(fsm_conn)
         queue_repo = ControlPlaneRepository(queue_conn)
+        from apps.bootstrap.provider_stack_factory import refine_product_chunk_plan
+
+        refiner = None
+        if product_scope is not None:
+            from functools import partial
+            refiner = partial(refine_product_chunk_plan, scope=product_scope)
         router = OCRRouterDaemon(
             fsm_repo=fsm_repo, task_repo=queue_repo,
             cmd_handler=DocumentCommandHandler(fsm_repo, task_repo=queue_repo),
@@ -107,6 +113,7 @@ def _ingest(pdf_path: Path, root: Path) -> None:
             document_profiler=build_document_profiler(),
             profile_store=SQLiteProfileStore(docs_conn),
             parser=build_extraction_pipeline(), workspace_dir=str(root),
+            plan_refiner=refiner,
         )
         # OCRRouterDaemon quarantines its own failures rather than raising.
         # Callers MUST verify the durable FSM state afterwards.
@@ -237,7 +244,10 @@ def run_admitted_pdf(receipt: PDFInboxSubmission, root: Path, *,
         if not receipt.inbox_path.is_file():
             raise PDFProductError("PDF_RUN_INBOX_FILE_NOT_AVAILABLE: " + str(receipt.inbox_path))
         try:
-            _ingest(receipt.inbox_path, root)
+            if product_scope is not None:
+                _ingest(receipt.inbox_path, root, product_scope=product_scope)
+            else:
+                _ingest(receipt.inbox_path, root)
         except Exception as exc:
             raise PDFProductError(f'PDF_RUN_OCR_EXECUTION_FAILED: {exc}') from exc
         state = _read_status(document_id)

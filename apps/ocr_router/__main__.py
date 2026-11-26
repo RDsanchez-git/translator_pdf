@@ -7,6 +7,9 @@ import json
 import traceback
 import logging
 from pathlib import Path
+from collections.abc import Callable, Sequence
+from core.ast.models import ASTNode
+from core.chunking.manifest_contract import ChunkPlan
 
 from core.utils.telemetry import setup_distributed_logger
 from infra.db.connection import get_connection
@@ -38,7 +41,8 @@ class OCRRouterDaemon:
                  cmd_handler: DocumentCommandHandler, ast_registry: ASTRegistry, 
                  document_profiler: 'HeuristicDocumentProfiler',
                  profile_store: ProfileStore, parser: ParserProtocol,  # NUEVO: inyectado por constructor
-                 workspace_dir: str = "."):
+                 workspace_dir: str = ".", *,
+                 plan_refiner: Callable[[ChunkPlan, Sequence[ASTNode]], ChunkPlan] | None = None):
         self.fsm = fsm_repo
         self.task_repo = task_repo
         self.cmd_handler = cmd_handler
@@ -46,6 +50,7 @@ class OCRRouterDaemon:
         self.document_profiler = document_profiler # <--- Asignación
         self.profile_store = profile_store
         self.parser = parser  # NUEVO
+        self.plan_refiner = plan_refiner
         self.owner_id = f"router_{uuid.uuid4().hex[:8]}"
         
         self.inbox_dir = Path(workspace_dir) / "data" / "inbox"
@@ -138,6 +143,21 @@ class OCRRouterDaemon:
             if prepared.plan.ast_hash != ast_hash:
                 raise ValueError("W08_OCR_AST_HASH_DRIFT")
             plan = prepared.plan
+            if self.plan_refiner is not None:
+                # Resume an already published plan exactly; only fresh plans
+                # may be refined. The enqueue transaction remains authoritative.
+                if previous is not None and self.task_repo.conn.execute(
+                    "SELECT 1 FROM chunk_plans WHERE document_id=? AND ast_hash=?",
+                    (document_id, ast_hash),
+                ).fetchone() is not None:
+                    plan, _ = DurableContextPlanRepository(self.task_repo).load_verified(
+                        document_id, ast_hash, prepared.ast,
+                    )
+                else:
+                    plan = self.plan_refiner(plan, prepared.ast)
+                if plan.document_id != document_id or plan.ast_hash != ast_hash:
+                    raise ValueError("G3_EFFECTIVE_BUDGET_GENERATION_DRIFT")
+                plan = ChunkPlan.build(document_id, ast_hash, prepared.ast, plan.units)
             ordered_chunk_ids = [u.chunk_id for u in plan.units]
 
             # The contextual AST and the plan refer to one semantic generation.

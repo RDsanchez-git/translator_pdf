@@ -9,7 +9,7 @@ NADR-08 §5.2 R7: CircuitBreaker MANDATORY en todas las rutas.
 NADR-08 §5.5: CB antes de RL previene consumo de cuota con circuito abierto.
 """
 import os
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import Literal, TYPE_CHECKING
@@ -25,7 +25,13 @@ from infra.db.connection import resolve_sqlite_path
 from apps.llm_workers.adapters import GroqProvider
 from apps.llm_workers.g3_admission import GPT_OSS_120B, G3PreEffectAdmission
 from apps.llm_workers.groq_free_transport import GroqFreeWitnessTransport
-from apps.llm_workers.prompt_builder import PromptEnvelope
+from apps.llm_workers.prompt_builder import PromptEnvelope, PromptBuilder
+from core.ast.models import ASTNode, TranslationUnit
+from core.chunking.manifest_contract import ChunkPlan
+from core.chunking.semantic_chunking import refine_chunk_plan
+from core.context.plan_context_contract import derive_verified_plan_contexts
+from core.finops.measurement import InferenceMeasurementService
+from core.validation.budget import PromptBudgetCalculator, StandardCompressionPolicy
 from apps.llm_workers.rate_limiter import RateLimitedProvider, QuotaManager
 from apps.llm_workers.cache_provider import CachedLLMProvider
 from apps.llm_workers.circuit_breaker_provider import CircuitBreakerProvider
@@ -83,6 +89,56 @@ class ProductGroqScope:
                 "PPPR_G6_PRODUCT_SCOPE_REJECTED", permanent=True,
             )
         witness.verify(model_name=GPT_OSS_120B, target_provider="primary", combined_tokens=1)
+
+
+def build_product_prompt_builder(estimator: TokenEstimatorProtocol) -> PromptBuilder:
+    """One product budget configuration for planning and actual execution."""
+    return PromptBuilder(
+        model_name=GPT_OSS_120B, prompt_version="v1.0",
+        measurement_service=InferenceMeasurementService(estimator),
+        budget_calculator=PromptBudgetCalculator(
+            primary_window_limit=8000, fallback_window_limit=1048576,
+            min_output_reserve=256, max_output_reserve=4096,
+        ),
+        compression_policy=StandardCompressionPolicy(),
+    )
+
+
+def refine_product_chunk_plan(
+    plan: ChunkPlan, ast: Sequence[ASTNode], scope: ProductGroqScope,
+) -> ChunkPlan:
+    """Size a new plan without a provider, thread, journal or quota reservation.
+
+    Use per-request ceilings rather than the current remaining quota. A
+    different minute's balance must not define semantic segmentation. Real
+    admission still verifies the explicit authority and live witness.
+    """
+    from apps.llm_workers.sync_bridge import prepare_chunk_prompt
+
+    builder = build_product_prompt_builder(scope.prompt_estimator)
+    snapshots = derive_verified_plan_contexts(plan, ast)
+    size_rejections = {
+        "PPPR_G3_INPUT_LIMIT_EXCEEDED",
+        "PPPR_G3_OUTPUT_LIMIT_EXCEEDED",
+        "PPPR_G3_CONTEXT_WINDOW_EXCEEDED",
+        "PPPR_G3_FALLBACK_BACKEND_NOT_ACCREDITED",
+    }
+
+    def fits(candidate: ChunkPlan, unit: TranslationUnit) -> bool:
+        try:
+            built, _, _ = prepare_chunk_prompt(
+                candidate, unit, builder=builder, context_snapshots=snapshots,
+                structured_response=True,
+                effective_config_sha256=scope.admission.root_config_sha256,
+            )
+            _, count, reserve = scope.admission.measure_request(built.envelope)
+        except G3ExternalEffectNotStartedError as exc:
+            if str(exc) in size_rejections or str(exc).startswith("G3_B4_3A_PROMPT_REJECTED:"):
+                return False
+            raise
+        return count + reserve <= 8000
+
+    return refine_chunk_plan(plan, ast, scope.prompt_estimator, fits)
 
 
 async def build_provider_stack(

@@ -162,12 +162,9 @@ class G3PreEffectAdmission:
     authorized_max_cost: Decimal
     free_tier_witness: GroqFreeTierWitness | None = None
 
-    def verify(
-        self, *, provider_id: str, root_config_sha256: str,
-        envelope: PromptEnvelope,
-    ) -> G3AdmissionDecision:
-        if (self.provider_id != provider_id or self.model_name != envelope.model_name
-                or self.root_config_sha256 != root_config_sha256):
+    def measure_request(self, envelope: PromptEnvelope) -> tuple[str, int, int]:
+        """Local sizing only. Never grants authority, consumes quota or records a decision."""
+        if self.model_name != envelope.model_name:
             _deny("PPPR_G3_ADMISSION_SELECTION_DRIFT")
         if not self.estimator_evidence_ref:
             _deny("PPPR_G3_ESTIMATOR_NOT_ACCREDITED")
@@ -191,6 +188,16 @@ class G3PreEffectAdmission:
             _deny("PPPR_G3_OUTPUT_LIMIT_EXCEEDED")
         if count + reserve > self.context_window:
             _deny("PPPR_G3_CONTEXT_WINDOW_EXCEEDED")
+        return serialized, count, reserve
+
+    def verify(
+        self, *, provider_id: str, root_config_sha256: str,
+        envelope: PromptEnvelope,
+    ) -> G3AdmissionDecision:
+        if (self.provider_id != provider_id or self.model_name != envelope.model_name
+                or self.root_config_sha256 != root_config_sha256):
+            _deny("PPPR_G3_ADMISSION_SELECTION_DRIFT")
+        serialized, count, reserve = self.measure_request(envelope)
         if not all((self.egress_authorization_ref, self.data_scope_ref,
                     self.purpose_ref, self.retention_ref, self.training_use_ref)):
             _deny("PPPR_G3_EGRESS_NOT_AUTHORIZED")

@@ -9,7 +9,8 @@ un único punto de entrada de hashing en el proyecto.
 """
 
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
+from collections.abc import Callable
 from typing import List, Set, Optional, Tuple, Sequence
 
 # DESPUÉS:
@@ -23,7 +24,7 @@ from core.validation.protocols import TokenEstimatorProtocol  # NUEVO
 from core.ast.enums import ContentNodeType, TranslationStrategy
 from core.ast.grouper import SemanticGroup, ContextAwareSemanticGrouper
 from core.shared.crypto import compute_sha256, compute_md5
-from core.chunking.manifest_contract import build_target_payload, expected_task_type
+from core.chunking.manifest_contract import ChunkPlan, build_target_payload, expected_task_type
 
 
 def _member_for(node: ASTNode, text: str, index: int = 0, count: int = 1) -> ChunkMember:
@@ -259,3 +260,52 @@ def build_semantic_chunks_as_units(ast: Sequence[ASTNode], estimator: TokenEstim
         chunker.report.average_chunk_tokens = int(sum(u.estimated_tokens for u in all_units) / len(all_units))
 
     return all_units, chunker.report
+
+def refine_chunk_plan(
+    plan: ChunkPlan, ast: Sequence[ASTNode], estimator: TokenEstimatorProtocol,
+    fits: Callable[[ChunkPlan, TranslationUnit], bool],
+) -> ChunkPlan:
+    """Refine a new, unpersisted plan using actual request sizing.
+
+    Each round splits only oversized TRANSLATE units at existing member
+    boundaries. No node or segment is rewritten, no protected unit is split,
+    and every candidate is verified before sizing its bound request. A round
+    strictly increases the unit count, bounded by the total number of members.
+    The final pass measures the actual final manifest and chunk identities.
+    """
+    current = ChunkPlan.build(plan.document_id, plan.ast_hash, ast, plan.units)
+    while True:
+        oversized = {
+            unit.chunk_id for unit in current.units
+            if unit.chunk_type != TranslationTaskType.PRESERVE and not fits(current, unit)
+        }
+        if not oversized:
+            return current
+        refined: list[TranslationUnit] = []
+        for unit in current.units:
+            if unit.chunk_id not in oversized:
+                refined.append(unit)
+                continue
+            if unit.chunk_type != TranslationTaskType.TRANSLATE or len(unit.members) < 2:
+                raise ValueError("G3_EFFECTIVE_BUDGET_INDIVISIBLE_UNIT: " + unit.chunk_id)
+            middle = len(unit.members) // 2
+            for members in (unit.members[:middle], unit.members[middle:]):
+                text = build_target_payload(members)
+                first, last = members[0].sequence_id, members[-1].sequence_id
+                refined.append(replace(
+                    unit, members=members, node_count=len(members),
+                    source_sequence_range=(first, last), target_payload=text,
+                    estimated_tokens=sum(estimator.estimate_tokens(m.source_text) for m in members),
+                    payload_sha256=compute_sha256(text.encode("utf-8")),
+                    chunk_fingerprint=compute_md5(f"{first}-{last}".encode()),
+                ))
+        # Maintain the existing ID format and contiguous manifest order.
+        renumbered = []
+        for index, unit in enumerate(refined, 1):
+            first, last = unit.source_sequence_range
+            prefix = (f"isolated_{index:04d}_{first}" if unit.chunk_id.startswith("isolated_")
+                      else f"chunk_{index:04d}_{first}_{last}")
+            renumbered.append(replace(
+                unit, chunk_index=index, chunk_id=f"{prefix}_{unit.payload_sha256[:8]}",
+            ))
+        current = ChunkPlan.build(plan.document_id, plan.ast_hash, ast, renumbered)
