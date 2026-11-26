@@ -641,16 +641,20 @@ def _verify_inert_widgets(page: fitz.Page) -> None:
         raise UnrepresentedPdfContentError("DF01_SOURCE_PAGE_DETACHED")
     for widget in page.widgets():
         xref = widget.xref
-        flag_type, flag_value = source.xref_get_key(xref, "F")
-        if (flag_type != "int" or int(flag_value) != fitz.PDF_ANNOT_IS_HIDDEN
-                or source.xref_get_key(xref, "FT") != ("name", "/Tx")):
-            raise UnrepresentedPdfContentError("DF01_WIDGET_CONTENT_UNPROVEN")
+        # PDF annotation flags: Hidden is bit 2 (value 2), Print is
+        # bit 3 (value 4). Require exactly Hidden, not a bitmask that
+        # also permits printing. This is the serialized PDF contract,
+        # independent of PyMuPDF's version-specific exported constants.
+        if source.xref_get_key(xref, "F") != ("int", "2"):
+            raise UnrepresentedPdfContentError("DF01_WIDGET_CONTENT_UNPROVEN: F")
+        if source.xref_get_key(xref, "FT") != ("name", "/Tx"):
+            raise UnrepresentedPdfContentError("DF01_WIDGET_CONTENT_UNPROVEN: FT")
         for key in ("Parent", "Kids", "A", "AA", "RV", "Opt", "OC"):
             if source.xref_get_key(xref, key)[0] != "null":
-                raise UnrepresentedPdfContentError("DF01_WIDGET_CONTENT_UNPROVEN")
+                raise UnrepresentedPdfContentError(f"DF01_WIDGET_CONTENT_UNPROVEN: {key}")
         for key in ("V", "DV", "Contents", "TU", "TM"):
             if source.xref_get_key(xref, key) not in (("null", "null"), ("string", "")):
-                raise UnrepresentedPdfContentError("DF01_WIDGET_CONTENT_UNPROVEN")
+                raise UnrepresentedPdfContentError(f"DF01_WIDGET_CONTENT_UNPROVEN: {key}")
     # Independent physical witness, not the sole basis for discarding fields.
     for scale in (1, 2):
         matrix = fitz.Matrix(scale, scale)

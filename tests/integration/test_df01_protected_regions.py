@@ -580,20 +580,34 @@ def test_df01_hidden_empty_widget_only(tmp_path, monkeypatch, defect):
         widget.border_color = (0, 0, 0)
         page.add_widget(widget)
         xref = page.first_widget.xref
-        flags = fitz.PDF_ANNOT_IS_HIDDEN
-        if defect == "visible":
-            flags = fitz.PDF_ANNOT_IS_PRINT
-        if defect == "print":
-            flags |= fitz.PDF_ANNOT_IS_PRINT
+        # Build explicit serialized PDF flag values rather than rely on
+        # a version-dependent PyMuPDF annotation constant.
+        flags = 4 if defect == "visible" else 6 if defect == "print" else 2
         doc.xref_set_key(xref, "F", str(flags))
+        doc.xref_set_key(xref, "FT", "/Tx")
         if defect == "default":
             doc.xref_set_key(xref, "DV", "(DATA)")
         if defect == "action":
             doc.xref_set_key(xref, "A", "<< /S /Named /N /NextPage >>")
         doc.save(path)
+    # Verify the intended condition survives serialization, independently
+    # of the producer. A negative must not pass due to a broken fixture.
+    with fitz.open(path) as reopened:
+        saved_widget = reopened[0].first_widget
+        assert saved_widget is not None
+        xref = saved_widget.xref
+        assert reopened.xref_get_key(xref, "F") == ("int", str(flags))
+        assert reopened.xref_get_key(xref, "FT") == ("name", "/Tx")
+        if defect == "value":
+            assert reopened.xref_get_key(xref, "V") == ("string", "DATA")
+        if defect == "default":
+            assert reopened.xref_get_key(xref, "DV") == ("string", "DATA")
+        if defect == "action":
+            assert reopened.xref_get_key(xref, "A")[0] == "dict"
     provider = PyMuPDFProvider(HeuristicLayoutClassifier())
     if defect:
-        with pytest.raises(LayoutRecoveryError, match="DF01_WIDGET_CONTENT_UNPROVEN"):
+        key = {"visible": "F", "print": "F", "value": "V", "default": "DV", "action": "A"}[defect]
+        with pytest.raises(LayoutRecoveryError, match=rf"DF01_WIDGET_CONTENT_UNPROVEN: {key}\b"):
             provider.extract(str(path))
         assert not (tmp_path / "data/assets").exists()
         return
