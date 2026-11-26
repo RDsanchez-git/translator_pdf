@@ -289,3 +289,63 @@ def test_df01_equal_nested_clip_bounds_are_one_candidate(tmp_path):
         regions = prepare_protected_regions(page, page.get_text("dict")["blocks"], page_number=1)
         assert len(regions) == 1
         assert len(regions[0].covered_drawings) == 2
+
+
+def _note_rule_source(tmp_path, *, defect=None):
+    path = tmp_path / "note_rule.pdf"
+    with fitz.open() as doc:
+        page = doc.new_page(width=400, height=500)
+        page.insert_text((40, 380), "Body prose before note. A longer body line.", fontsize=12)
+        page.draw_line((40, 395), (100, 395), width=.25)
+        if defect != "no_note":
+            page.insert_text((40 if defect != "misaligned" else 50, 410),
+                             "1 Small footnote text with several words.",
+                             fontsize=12 if defect == "same_size" else 8)
+        if defect == "crossing":
+            page.draw_line((70, 392), (70, 398), width=.25)
+        if defect == "orphan":
+            page.draw_line((30, 100), (90, 100), width=.25)
+        doc.save(str(path))
+    return path
+
+
+@pytest.mark.integration
+def test_df01_footnote_rule_is_intact_visual_asset_without_consuming_prose(tmp_path, monkeypatch):
+    from apps.bootstrap.pipeline_factory import build_extraction_pipeline
+    monkeypatch.setenv("APP_ROOT", str(tmp_path))
+    path = _note_rule_source(tmp_path)
+    ast = build_extraction_pipeline().parse(str(path))
+    assert len(ast) == 3
+    assert "Body prose before note." in ast[0].text_content
+    assert "Small footnote text" in ast[2].text_content
+    node = ast[1]
+    assert node.node_type == ContentNodeType.IMAGE
+    assert isinstance(node.payload, ImagePayload)
+    assert node.strategy == TranslationStrategy.PASSTHROUGH
+    assert node.payload.asset_path is not None
+    assert node.metadata.provider_native_id is None
+    assert PyMuPDFProvider(HeuristicLayoutClassifier()).extract(str(path)) == PyMuPDFProvider(HeuristicLayoutClassifier()).extract(str(path))
+    box = node.metadata.physical_regions[0].bbox
+    assert box is not None
+    region = fitz.Rect(box.x0, box.y0, box.x1, box.y1)
+    with fitz.open(tmp_path / node.payload.asset_path) as asset, fitz.open(path) as original:
+        assert len(asset[0].get_drawings()) == 1
+        assert not asset[0].get_text().strip()
+        assert not asset[0].get_image_info()
+        for scale in (1, 2):
+            matrix = fitz.Matrix(scale, scale)
+            assert asset[0].get_pixmap(matrix=matrix).samples == original[0].get_pixmap(clip=region, matrix=matrix).samples
+        streams = b"\n".join(asset.xref_stream(x) or b"" for x in range(1, asset.xref_length())
+                             if asset.xref_is_stream(x)).lower()
+        for token in (b"Body prose before note.", b"Small footnote text"):
+            assert token.lower() not in streams
+            assert token.hex().encode() not in streams
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize("defect", ["no_note", "same_size", "misaligned", "crossing", "orphan"])
+def test_df01_rule_without_editorial_evidence_fails_closed(tmp_path, monkeypatch, defect):
+    monkeypatch.setenv("APP_ROOT", str(tmp_path))
+    with pytest.raises(LayoutRecoveryError, match="B02_UNREPRESENTED_VECTOR_DRAWING"):
+        PyMuPDFProvider(HeuristicLayoutClassifier()).extract(str(_note_rule_source(tmp_path, defect=defect)))
+    assert not (tmp_path / "data/assets").exists()

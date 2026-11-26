@@ -435,6 +435,83 @@ def _isolated_pdf(
     return data
 
 
+def _font_height(block: Mapping[str, Any]) -> float | None:
+    sizes = [float(span["size"]) for line in block.get("lines", [])
+             for span in line.get("spans", [])
+             if span.get("text", "").strip()
+             and isinstance(span.get("size"), (int, float))
+             and isfinite(span["size"]) and span["size"] > 0]
+    return median(sizes) if sizes else None
+
+
+def _editorial_rule(
+    drawing: Mapping[str, Any], page_rect: fitz.Rect,
+    raw_blocks: Sequence[Mapping[str, Any]], block_rects: Sequence[fitz.Rect],
+    marks: Sequence[tuple[str, fitz.Rect]],
+) -> tuple[fitz.Rect, int] | None:
+    """Witness a direct footnote rule, not an arbitrary thin drawing.
+
+    Evidence: one straight, opaque horizontal stroke in the lower page,
+    immediately separating left-aligned body prose from smaller text. The
+    rule is shorter than both blocks, and the actual painted rectangle is
+    empty of all other marks and native blocks. No text is removed; anchor
+    the intact vector asset before the witnessed following native block.
+    """
+    items = drawing.get("items", [])
+    width = drawing.get("width")
+    if (drawing.get("type") != "s" or len(items) != 1 or items[0][0] != "l"
+            or drawing.get("stroke_opacity") != 1
+            or drawing.get("dashes") != "[] 0"
+            or not isinstance(width, (int, float)) or not 0 < width <= 1):
+        return None
+    line = _rect(drawing["rect"])
+    if (line.height != 0 or line.width <= 0
+            or line.y0 < page_rect.y0 + .75 * page_rect.height):
+        return None
+    seq = drawing.get("seqno")
+    if not isinstance(seq, int) or not 0 <= seq < len(marks):
+        return None
+    kind, paint = marks[seq]
+    if kind != "stroke-path" or not _contains(paint, line):
+        return None
+    region = fitz.Rect(floor(paint.x0), floor(paint.y0), ceil(paint.x1), ceil(paint.y1))
+    if region.is_empty or not _contains(page_rect, region):
+        return None
+    if any(_intersects(region, r) for r in block_rects):
+        return None
+    if any(i != seq and _intersects(region, r) for i, (_, r) in enumerate(marks)):
+        return None
+    # Nearest blocks intersecting the rule's horizontal span, not an
+    # arbitrary native-order neighbor from a different column.
+    aligned = [i for i, r in enumerate(block_rects)
+               if line.x0 < r.x1 and r.x0 < line.x1]
+    above = [i for i in aligned if block_rects[i].y1 <= region.y0]
+    below = [i for i in aligned if block_rects[i].y0 >= region.y1]
+    if not above or not below:
+        return None
+    before = max(above, key=lambda i: block_rects[i].y1)
+    after = min(below, key=lambda i: block_rects[i].y0)
+    if before >= after or any(raw_blocks[i].get("type") != 0 for i in (before, after)):
+        return None
+    body, note = block_rects[before], block_rects[after]
+    body_size = _font_height(raw_blocks[before])
+    note_size = _font_height(raw_blocks[after])
+    if body_size is None or note_size is None or note_size > .85 * body_size:
+        return None
+    if (abs(body.x0 - line.x0) > .2 * body_size
+            or abs(note.x0 - line.x0) > .2 * note_size
+            or line.width >= min(body.width, note.width)
+            or region.y0 - body.y1 > 3 * body_size
+            or note.y0 - region.y1 > 1.25 * note_size):
+        return None
+    # A caption is not footnote evidence; table and figure ownership takes
+    # precedence over editorial recognition.
+    if any(re.match(r"^\s*(?:Fig(?:ure)?\.?|Table)\s+\d", _text(raw_blocks[i]), re.I)
+           for i in (before, after)):
+        return None
+    return region, after
+
+
 def prepare_protected_regions(
     page: fitz.Page, raw_blocks: Sequence[Mapping[str, Any]], *, page_number: int,
 ) -> tuple[ProtectedRegion, ...]:
@@ -574,6 +651,21 @@ def prepare_protected_regions(
         covered.update(indices)
         covered_blocks.update(inside)
         pending.append((kind, region, inside, indices, inside[0], caption))
+
+    if not composed:
+        # A rule is itself a complete visual asset with no covered text.
+        # Never replace or discard a native block to represent it.
+        for index in sorted(set(range(len(drawings))) - covered):
+            witness = _editorial_rule(drawings[index], page.rect, raw_blocks, block_rects, marks)
+            if witness is None:
+                continue
+            region, anchor = witness
+            if (anchor in covered_blocks or any(
+                    anchor == p[4] or anchor == p[5] or _intersects(region, p[1])
+                    for p in pending)):
+                raise reject("EDITORIAL_RULE_OWNERSHIP_UNPROVEN")
+            pending.append((LayoutBlockType.IMAGE, region, (), (index,), anchor, None))
+            covered.add(index)
 
     if covered != set(range(len(drawings))):
         raise reject("UNCOVERED_VECTOR_DRAWINGS")
