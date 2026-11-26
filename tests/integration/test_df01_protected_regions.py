@@ -564,8 +564,9 @@ def test_df01_fused_caption_keeps_native_identity_and_complete_table(tmp_path, m
 
 
 @pytest.mark.integration
+@pytest.mark.parametrize("representation", ["native", "separate_field"])
 @pytest.mark.parametrize("defect", [None, "visible", "value", "default", "action", "print"])
-def test_df01_hidden_empty_widget_only(tmp_path, monkeypatch, defect):
+def test_df01_hidden_empty_widget_only(tmp_path, monkeypatch, defect, representation):
     monkeypatch.setenv("APP_ROOT", str(tmp_path))
     original = _form_source(tmp_path)
     path = tmp_path / "widget.pdf"
@@ -584,11 +585,30 @@ def test_df01_hidden_empty_widget_only(tmp_path, monkeypatch, defect):
         # a version-dependent PyMuPDF annotation constant.
         flags = 4 if defect == "visible" else 6 if defect == "print" else 2
         doc.xref_set_key(xref, "F", str(flags))
-        doc.xref_set_key(xref, "FT", "/Tx")
+        parent_type, parent_ref = doc.xref_get_key(xref, "Parent")
+        field = xref
+        if parent_type == "xref":
+            field = int(parent_ref.split()[0])
+        elif representation == "separate_field":
+            # Exercise the separated field structure even on versions
+            # that normally create a merged widget dictionary.
+            field = doc.get_new_xref()
+            doc.update_object(field, f"<< /FT /Tx /T (empty_control) /Kids [{xref} 0 R] >>")
+            doc.xref_set_key(xref, "Parent", f"{field} 0 R")
+            doc.xref_set_key(xref, "T", "null")
+            doc.xref_set_key(doc.pdf_catalog(), "AcroForm/Fields", f"[{field} 0 R]")
+        doc.xref_set_key(field, "FT", "/Tx")
+        if field != xref:
+            doc.xref_set_key(xref, "FT", "null")
+            doc.xref_set_key(xref, "V", "null")
+        # Put the value on its actual field object, not necessarily the
+        # annotation. Explicit serialization keeps the fixture portable.
+        doc.xref_set_key(field, "V", "(DATA)" if defect == "value" else "()")
         if defect == "default":
-            doc.xref_set_key(xref, "DV", "(DATA)")
+            doc.xref_set_key(field, "DV", "(DATA)")
         if defect == "action":
-            doc.xref_set_key(xref, "A", "<< /S /Named /N /NextPage >>")
+            doc.xref_set_key(field if representation == "separate_field" else xref,
+                             "A", "<< /S /Named /N /NextPage >>")
         doc.save(path)
     # Verify the intended condition survives serialization, independently
     # of the producer. A negative must not pass due to a broken fixture.
@@ -597,13 +617,17 @@ def test_df01_hidden_empty_widget_only(tmp_path, monkeypatch, defect):
         assert saved_widget is not None
         xref = saved_widget.xref
         assert reopened.xref_get_key(xref, "F") == ("int", str(flags))
-        assert reopened.xref_get_key(xref, "FT") == ("name", "/Tx")
+        parent_type, parent_ref = reopened.xref_get_key(xref, "Parent")
+        field = int(parent_ref.split()[0]) if parent_type == "xref" else xref
+        if representation == "separate_field":
+            assert field != xref
+        assert reopened.xref_get_key(field, "FT") == ("name", "/Tx")
         if defect == "value":
-            assert reopened.xref_get_key(xref, "V") == ("string", "DATA")
+            assert reopened.xref_get_key(field, "V") == ("string", "DATA")
         if defect == "default":
-            assert reopened.xref_get_key(xref, "DV") == ("string", "DATA")
+            assert reopened.xref_get_key(field, "DV") == ("string", "DATA")
         if defect == "action":
-            assert reopened.xref_get_key(xref, "A")[0] == "dict"
+            assert reopened.xref_get_key(field if representation == "separate_field" else xref, "A")[0] == "dict"
     provider = PyMuPDFProvider(HeuristicLayoutClassifier())
     if defect:
         key = {"visible": "F", "print": "F", "value": "V", "default": "DV", "action": "A"}[defect]

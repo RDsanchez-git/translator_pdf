@@ -647,14 +647,37 @@ def _verify_inert_widgets(page: fitz.Page) -> None:
         # independent of PyMuPDF's version-specific exported constants.
         if source.xref_get_key(xref, "F") != ("int", "2"):
             raise UnrepresentedPdfContentError("DF01_WIDGET_CONTENT_UNPROVEN: F")
-        if source.xref_get_key(xref, "FT") != ("name", "/Tx"):
+        # PDF permits a merged field/widget or a separate terminal field
+        # with one widget child. Inspect both dictionaries, never just the
+        # annotation's local values. Shared or nested fields remain outside
+        # this restricted static-document profile.
+        if source.xref_get_key(xref, "Kids")[0] != "null":
+            raise UnrepresentedPdfContentError("DF01_WIDGET_CONTENT_UNPROVEN: Kids")
+        field = xref
+        parent_type, parent_ref = source.xref_get_key(xref, "Parent")
+        if parent_type != "null":
+            match = re.fullmatch(r"(\d+)\s+0\s+R", parent_ref)
+            if parent_type != "xref" or match is None:
+                raise UnrepresentedPdfContentError("DF01_WIDGET_CONTENT_UNPROVEN: Parent")
+            field = int(match.group(1))
+            if (not 0 < field < source.xref_length() or field == xref
+                    or source.xref_get_key(field, "Parent")[0] != "null"
+                    or source.xref_get_key(field, "Subtype")[0] != "null"):
+                raise UnrepresentedPdfContentError("DF01_WIDGET_CONTENT_UNPROVEN: Parent")
+            kids_type, kids = source.xref_get_key(field, "Kids")
+            if kids_type != "array" or not re.fullmatch(rf"\[\s*{xref}\s+0\s+R\s*\]", kids):
+                raise UnrepresentedPdfContentError("DF01_WIDGET_CONTENT_UNPROVEN: Kids")
+        if source.xref_get_key(field, "FT") != ("name", "/Tx"):
             raise UnrepresentedPdfContentError("DF01_WIDGET_CONTENT_UNPROVEN: FT")
-        for key in ("Parent", "Kids", "A", "AA", "RV", "Opt", "OC"):
-            if source.xref_get_key(xref, key)[0] != "null":
-                raise UnrepresentedPdfContentError(f"DF01_WIDGET_CONTENT_UNPROVEN: {key}")
-        for key in ("V", "DV", "Contents", "TU", "TM"):
-            if source.xref_get_key(xref, key) not in (("null", "null"), ("string", "")):
-                raise UnrepresentedPdfContentError(f"DF01_WIDGET_CONTENT_UNPROVEN: {key}")
+        if source.xref_get_key(xref, "FT") not in (("null", "null"), ("name", "/Tx")):
+            raise UnrepresentedPdfContentError("DF01_WIDGET_CONTENT_UNPROVEN: FT")
+        for owner in dict.fromkeys((xref, field)):
+            for key in ("A", "AA", "RV", "Opt", "OC"):
+                if source.xref_get_key(owner, key)[0] != "null":
+                    raise UnrepresentedPdfContentError(f"DF01_WIDGET_CONTENT_UNPROVEN: {key}")
+            for key in ("V", "DV", "Contents", "TU", "TM"):
+                if source.xref_get_key(owner, key) not in (("null", "null"), ("string", "")):
+                    raise UnrepresentedPdfContentError(f"DF01_WIDGET_CONTENT_UNPROVEN: {key}")
     # Independent physical witness, not the sole basis for discarding fields.
     for scale in (1, 2):
         matrix = fitz.Matrix(scale, scale)
