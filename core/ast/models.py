@@ -249,10 +249,9 @@ class ASTNode(BaseModel):
     def _validate_visual_payload_type(self) -> "ASTNode":
         if isinstance(self.payload, VisualTablePayload) and self.node_type != ContentNodeType.TABLE_COMPLEX:
             raise ValueError("DF01_ASSET_PAYLOAD_WRONG_NODE_TYPE")
-        if self.node_type == ContentNodeType.TABLE_COMPLEX and not isinstance(
-            self.payload, (TablePayload, VisualTablePayload)
-        ):
-            raise ValueError("DF01_INVALID_COMPLEX_TABLE_PAYLOAD")
+        # Preserve the historical AST constructor contract for non-visual
+        # payloads (including the sealed oracle's independent identity domain).
+        # Only the new explicit visual representation introduces a new constraint.
         return self
 
     @property

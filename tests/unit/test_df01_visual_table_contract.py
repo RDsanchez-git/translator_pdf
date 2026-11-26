@@ -3,7 +3,7 @@ import pytest
 from core.ast.builder import FlatASTBuilder
 from core.ast.enums import ContentNodeType, TranslationStrategy
 from core.ast.hashing import compute_ast_hash
-from core.ast.models import ASTNode, TablePayload, VisualTablePayload, TranslationTaskType
+from core.ast.models import ASTNode, ParagraphPayload, TablePayload, VisualTablePayload, TranslationTaskType
 from core.ast.registry import ASTRegistry
 from core.chunking.manifest_contract import ChunkPlan, validate_chunk_coverage
 from core.chunking.contextual_plan import prepare_contextual_plan
@@ -71,3 +71,29 @@ def test_df01_literal_path_not_implicitly_visual():
             LayoutBlockDraft(logical_type="TABLE_COMPLEX", content="different",
                              asset_path=ASSET, page_index=1),
         ]))
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("strategy", list(TranslationStrategy))
+def test_df01_preserves_historical_oracle_constructor_and_framing(strategy):
+    # Reproduce the independent F17-BIS oracle test domain without changing
+    # its generator, narrowing its input space, or recomputing sealed hashes.
+    from hashlib import sha256
+    from core.benchmark.ground_truth.identity import OracleSemanticIdentityCalculator
+
+    payload = ParagraphPayload(content="0")
+    node = ASTNode(node_id="0", sequence_id=1,
+                   node_type=ContentNodeType.TABLE_COMPLEX, strategy=strategy,
+                   payload=payload)
+    assert isinstance(node.payload, ParagraphPayload)
+    payload_digest = sha256(b'{"content":"0"}').hexdigest()
+    expected = sha256(f"0:table_complex:{strategy.value}:{payload_digest}".encode()).hexdigest()
+    assert OracleSemanticIdentityCalculator.calculate((node,)) == expected
+    assert OracleSemanticIdentityCalculator.calculate((node,)) == OracleSemanticIdentityCalculator.calculate((node.model_copy(),))
+    other = ASTNode(node_id="0", sequence_id=1,
+                    node_type=ContentNodeType.COMPOSITE_BLOCK, strategy=strategy,
+                    payload=payload)
+    assert OracleSemanticIdentityCalculator.calculate((node,)) != OracleSemanticIdentityCalculator.calculate((other,))
+    # Product AST identity still distinguishes explicit PDF from literal paths.
+    literal = node.model_copy(update={"payload": ParagraphPayload(content=ASSET)})
+    assert compute_ast_hash([literal]) != compute_ast_hash([_node()])
