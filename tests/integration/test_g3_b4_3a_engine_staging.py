@@ -1265,7 +1265,7 @@ def test_pppr_g5_free_dispatch_bound_to_durable_admission_and_quota(queue, statu
 
 
 @pytest.mark.integration
-@pytest.mark.parametrize("case", ["ok", "budget", "document", "expired", "replay", "overlap", "drift"])
+@pytest.mark.parametrize("case", ["ok", "budget", "document", "expired", "replay", "overlap", "drift", "structured_budget"])
 def test_pppr_g6_document_free_admission(tmp_path, monkeypatch, case):
     """Real bridge, SDK serialization and durable journal; no live network."""
     from dataclasses import replace
@@ -1325,7 +1325,8 @@ def test_pppr_g6_document_free_admission(tmp_path, monkeypatch, case):
             "usage": {"prompt_tokens": 10, "completion_tokens": 10, "total_tokens": 20},
         })
 
-    scope = ProductGroqScope(policy, _Estimator(), lambda: httpx.MockTransport(transport))
+    prompt_estimator = _CharBoundEstimator() if case == "structured_budget" else _Estimator()
+    scope = ProductGroqScope(policy, prompt_estimator, lambda: httpx.MockTransport(transport))
     snapshots = {unit.context_id: ContextSnapshotV1(
         document_id=plan.document_id, ast_hash=plan.ast_hash, context_id=unit.context_id,
         breadcrumbs=(ContextBreadcrumbV1(0, "[ROOT_DOCUMENT_CONTEXT]"),),
@@ -1342,6 +1343,24 @@ def test_pppr_g6_document_free_admission(tmp_path, monkeypatch, case):
         audit = json.loads(preview.audit_json)
         assert requests == []
         assert db.execute("SELECT COUNT(*) FROM g3_admission_decisions").fetchone() == (0,)
+        if case == "structured_budget":
+            # Independent response-shape oracle, not the production sampler.
+            # This fixture has no masked inline formula.
+            example = json.loads(_response(plan, unit))
+            for member, source in zip(example["members"], unit.members):
+                member["translated_text"] = source.source_text
+            def serialize(value):
+                return json.dumps({"content": json.dumps(value, ensure_ascii=False,
+                    sort_keys=True, separators=(",", ":"))}, ensure_ascii=False,
+                    sort_keys=True, separators=(",", ":"))
+            populated = serialize(example)
+            for member in example["members"]:
+                member["translated_text"] = ""
+            empty = serialize(example)
+            expected = max(256, len(empty) + 2 * (len(populated) - len(empty)))
+            assert audit["reserved_output_tokens"] == expected
+            assert audit["free_tier_witness"]["reserved_tokens"] == audit["input_tokens"] + expected
+            assert audit["input_tokens"] > expected
         if case == "budget":
             with pytest.raises(G3ExternalEffectNotStartedError, match="EXHAUSTED"):
                 repo.check_g3_document_free_batch(document_id, [preview.audit_json]*3)

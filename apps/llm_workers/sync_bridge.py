@@ -252,9 +252,35 @@ class SyncProviderBridge:
         # occur before scheduling the provider coroutine, so failures here
         # are proven no-start, never an uncertain external effect.
         try:
-            built = self._builder.build(
-                prompt_unit, resolved_context=context, target_lang_expansion=2.0,
-            )
+            witness = (self._pre_effect_admission.free_tier_witness
+                       if self._pre_effect_admission is not None else None)
+            if witness is not None and witness.document_id is not None:
+                # Document-scoped product requests budget the expected nested
+                # JSON response, using the same binding IDs and masked source.
+                # Historical one-shot/legacy callers retain their prior policy.
+                def response_sample(include_source: bool) -> str:
+                    response = {
+                        **protocol["response_binding"],
+                        "members": [{
+                            "node_id": member["node_id"],
+                            "segment_index": member["segment_index"],
+                            "source_sha256": member["source_sha256"],
+                            "translated_text": member["source_text"] if include_source else "",
+                        } for member in prompt_members],
+                    }
+                    inner = json.dumps(response, ensure_ascii=False, sort_keys=True,
+                                       separators=(",", ":"))
+                    return json.dumps({"content": inner}, ensure_ascii=False,
+                                      sort_keys=True, separators=(",", ":"))
+
+                built = self._builder.build(
+                    prompt_unit, resolved_context=context, target_lang_expansion=2.0,
+                    response_samples=(response_sample(False), response_sample(True)),
+                )
+            else:
+                built = self._builder.build(
+                    prompt_unit, resolved_context=context, target_lang_expansion=2.0,
+                )
         except G3ExternalEffectNotStartedError:
             raise
         except Exception as exc:

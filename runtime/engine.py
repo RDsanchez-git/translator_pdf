@@ -72,6 +72,7 @@ def _product_effective_config_sha256() -> str:
         "reasoning_effort": "low", "include_reasoning": False,
         "primary_window_limit": 8000, "fallback_window_limit": 1048576,
         "min_output_reserve": 256, "max_output_reserve": 4096,
+        "response_budget_policy": "g3_structured_response_v1",
     }
     return hashlib.sha256(json.dumps(
         options, ensure_ascii=False, sort_keys=True, separators=(",", ":"),
