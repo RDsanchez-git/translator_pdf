@@ -512,6 +512,57 @@ def _editorial_rule(
     return region, after
 
 
+def _composition_figure_bounds(
+    scopes: Sequence[fitz.Rect], page_rect: fitz.Rect,
+    rects: Sequence[fitz.Rect], raw_blocks: Sequence[Mapping[str, Any]],
+) -> fitz.Rect | None:
+    """One captioned composition may consist of several disjoint panels.
+
+    The existing isolation contract retains the entire composition. Therefore
+    ownership must cover all panels and all drawings, not an arbitrary
+    connected component or the bounding hull of unrelated paint. Text blocks
+    may span panels only when every physical span belongs to a panel.
+    Caption association and complete paint coverage are checked by the common
+    region admission below, independently of this candidate selection.
+    """
+    unique = [fitz.Rect(box) for box in dict.fromkeys(_box(r) for r in scopes)]
+    outer = [r for r in unique if r != page_rect
+             and not any(s != r and _contains(s, r) for s in unique)]
+    if not outer:
+        return None
+    if any(_intersects(a, b) for i, a in enumerate(outer) for b in outer[i + 1:]):
+        return None
+    if len(outer) == 1:
+        # Preserve the existing single-scope admission behavior.
+        return outer[0] if sum(_contains(outer[0], r) for r in rects) >= 2 else None
+    if any(sum(_contains(panel, r) for panel in outer) != 1 for r in rects):
+        return None
+    if any(not any(_contains(panel, r) for r in rects) for panel in outer):
+        return None
+    bounds = fitz.Rect(outer[0])
+    for panel in outer[1:]:
+        bounds |= panel
+    if not _contains(page_rect, bounds) or bounds == page_rect:
+        return None
+    for block in raw_blocks:
+        block_rect = _rect(block["bbox"])
+        if not _intersects(bounds, block_rect):
+            continue
+        if block.get("type") != 0 or not _contains(bounds, block_rect):
+            return None
+        spans = []
+        for line in block.get("lines", []):
+            line_spans = line.get("spans", [])
+            if re.match(r"^\s*(?:Fig(?:ure)?\.?|Table)\s+\d",
+                        "".join(span.get("text", "") for span in line_spans), re.I):
+                return None
+            spans.extend(_rect(span["bbox"]) for span in line_spans
+                         if span.get("text", "").strip())
+        if not spans or any(sum(_contains(panel, r) for panel in outer) != 1 for r in spans):
+            return None
+    return bounds
+
+
 def prepare_protected_regions(
     page: fitz.Page, raw_blocks: Sequence[Mapping[str, Any]], *, page_number: int,
 ) -> tuple[ProtectedRegion, ...]:
@@ -570,20 +621,9 @@ def prepare_protected_regions(
         candidates.append((LayoutBlockType.IMAGE, bounds))
 
     if composed:
-        # A complete outer graphic scope may delimit a figure without a
-        # drawn frame. It still requires a distinct caption and all other
-        # semantic checks. Never collapse overlapping unrelated scopes.
-        # Repeated identical clips are distinct operators but one candidate.
-        # Keep their multiplicity in the signature; deduplicate geometry only.
-        unique_scopes = [fitz.Rect(box) for box in dict.fromkeys(_box(r) for r in scopes)]
-        outer_scopes = [r for r in unique_scopes if r != page.rect
-                        and not any(s != r and _contains(s, r) for s in unique_scopes)]
-        for bounds in outer_scopes:
-            if any(_intersects(bounds, b) for b in table_bounds):
-                continue
-            if sum(_contains(bounds, r) for r in rects) < 2:
-                continue
-            # Prefer the whole scope over an internal figure frame.
+        bounds = _composition_figure_bounds(scopes, page.rect, rects, raw_blocks)
+        if bounds is not None and not any(_intersects(bounds, b) for b in table_bounds):
+            # Replace inner figure candidates with their complete composition.
             candidates = [(kind, b) for kind, b in candidates
                           if kind != LayoutBlockType.IMAGE or not _contains(bounds, b)]
             candidates.append((LayoutBlockType.IMAGE, bounds))

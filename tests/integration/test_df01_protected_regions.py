@@ -349,3 +349,68 @@ def test_df01_rule_without_editorial_evidence_fails_closed(tmp_path, monkeypatch
     with pytest.raises(LayoutRecoveryError, match="B02_UNREPRESENTED_VECTOR_DRAWING"):
         PyMuPDFProvider(HeuristicLayoutClassifier()).extract(str(_note_rule_source(tmp_path, defect=defect)))
     assert not (tmp_path / "data/assets").exists()
+
+
+def _panel_source(tmp_path, *, defect=None):
+    path = tmp_path / "panels.pdf"
+    with fitz.open() as figure, fitz.open() as doc:
+        source = figure.new_page(width=100, height=80)
+        source.draw_rect(fitz.Rect(10, 10, 90, 70))
+        source.draw_line((20, 60), (80, 20))
+        source.insert_text((30, 40), "PANEL")
+        page = doc.new_page(width=400, height=400)
+        page.insert_text((40, 40), "BEFORE")
+        for rect in ((80, 80, 180, 160), (210, 80, 310, 160),
+                     (80, 180, 180, 260), (210, 180, 310, 260)):
+            page.show_pdf_page(fitz.Rect(rect), figure, 0)
+        if defect == "gap_text":
+            page.insert_text((183, 145), "PROSE", fontsize=6)
+        if defect == "two_captions":
+            page.insert_text((80, 65), "Figure 2. Other caption")
+        if defect == "orphan":
+            page.draw_line((185, 170), (205, 170))
+        page.insert_text((80, 290), "Figure 1. Four panels" if defect != "no_caption" else "Other text")
+        page.insert_text((40, 340), "AFTER")
+        doc.save(str(path))
+    return path
+
+
+@pytest.mark.integration
+def test_df01_multiple_forms_one_caption_one_protected_region(tmp_path, monkeypatch):
+    from apps.bootstrap.pipeline_factory import build_extraction_pipeline
+    monkeypatch.setenv("APP_ROOT", str(tmp_path))
+    path = _panel_source(tmp_path)
+    ast = build_extraction_pipeline().parse(str(path))
+    figures = [n for n in ast if n.node_type == ContentNodeType.IMAGE]
+    assert len(figures) == 1
+    node = figures[0]
+    assert node.strategy == TranslationStrategy.PASSTHROUGH
+    assert isinstance(node.payload, ImagePayload)
+    assert node.payload.asset_path is not None
+    assert len([n for n in ast if n.node_type == ContentNodeType.CAPTION]) == 1
+    assert all("PANEL" not in n.text_content for n in ast)
+    assert sum("BEFORE" in n.text_content for n in ast) == 1
+    assert sum("AFTER" in n.text_content for n in ast) == 1
+    with fitz.open(tmp_path / node.payload.asset_path) as asset, fitz.open(path) as original:
+        page = asset[0]
+        assert len(page.get_drawings()) == 8
+        assert len(page.get_xobjects()) == len(original[0].get_xobjects())
+        assert page.get_text().count("PANEL") == 4
+        assert "BEFORE" not in page.get_text() and "AFTER" not in page.get_text()
+        assert "Figure 1." not in page.get_text()
+        assert not page.get_image_info()
+        region = node.metadata.physical_regions[0].bbox
+        assert region is not None
+        box = fitz.Rect(region.x0, region.y0, region.x1, region.y1)
+        for scale in (1, 2):
+            matrix = fitz.Matrix(scale, scale)
+            assert page.get_pixmap(matrix=matrix).samples == original[0].get_pixmap(clip=box, matrix=matrix).samples
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize("defect", ["gap_text", "two_captions", "orphan", "no_caption"])
+def test_df01_panel_union_without_common_ownership_fails_closed(tmp_path, monkeypatch, defect):
+    monkeypatch.setenv("APP_ROOT", str(tmp_path))
+    with pytest.raises(LayoutRecoveryError):
+        PyMuPDFProvider(HeuristicLayoutClassifier()).extract(str(_panel_source(tmp_path, defect=defect)))
+    assert not (tmp_path / "data/assets").exists()
