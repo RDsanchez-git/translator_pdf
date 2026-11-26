@@ -143,3 +143,62 @@ def test_df01_independent_grid_without_caption_is_rejected(tmp_path, monkeypatch
     with pytest.raises(LayoutRecoveryError, match="B02_UNREPRESENTED_VECTOR_DRAWING"):
         PyMuPDFProvider(HeuristicLayoutClassifier()).extract(str(_source(tmp_path, "table", extra="no_caption")))
     assert not (tmp_path / "data/assets").exists()
+
+
+def _three_rule_source(tmp_path, *, defect=None):
+    path = tmp_path / "three_rules.pdf"
+    with fitz.open() as doc:
+        page = doc.new_page(width=500, height=500)
+        page.insert_text((50, 60), "BEFORE PROSE")
+        page.insert_text((100, 95), "Table 1. Multilevel results" if defect != "caption" else "Ordinary text")
+        for y in (120, 175, 290):
+            page.draw_line((90, y), (410, y), width=.5)
+        for row, y in enumerate((138, 157, 195, 218, 241, 264)):
+            for col, x in enumerate((120, 220, 320)):
+                if defect == "prose":
+                    if col == 0:
+                        page.insert_text((x, y), "Ordinary continuous prose")
+                else:
+                    page.insert_text((x, y), f"R{row}C{col}", fontsize=10)
+        if defect == "orphan":
+            page.draw_line((40, 350), (80, 350))
+        if defect == "crossing":
+            page.insert_text((70, 165), "Boundary crossing text", fontsize=10)
+        page.insert_text((50, 390), "AFTER PROSE")
+        doc.save(str(path))
+    return path
+
+
+@pytest.mark.integration
+def test_df01_three_rule_multilevel_header_table_is_preserved(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+    from apps.bootstrap.pipeline_factory import build_extraction_pipeline
+
+    monkeypatch.setenv("APP_ROOT", str(tmp_path))
+    monkeypatch.setattr(fitz.Page, "find_tables", lambda self, **kwargs: SimpleNamespace(tables=[]))
+    source = _three_rule_source(tmp_path)
+    ast = build_extraction_pipeline().parse(str(source))
+    tables = [n for n in ast if n.node_type == ContentNodeType.TABLE_COMPLEX]
+    assert len(tables) == 1
+    node = tables[0]
+    assert isinstance(node.payload, VisualTablePayload)
+    assert node.strategy == TranslationStrategy.PASSTHROUGH
+    assert len([n for n in ast if n.node_type == ContentNodeType.CAPTION]) == 1
+    assert all("R0C0" not in n.text_content for n in ast)
+    with fitz.open(tmp_path / node.payload.asset_path) as asset:
+        assert len(asset[0].get_drawings()) == 3
+        assert not asset[0].get_image_info()
+        text = asset[0].get_text()
+        assert all(text.count(f"R{r}C{c}") == 1 for r in range(6) for c in range(3))
+        assert "Table 1." not in text and "BEFORE PROSE" not in text and "AFTER PROSE" not in text
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize("defect", ["caption", "prose", "orphan", "crossing"])
+def test_df01_three_rule_table_requires_complete_evidence(tmp_path, monkeypatch, defect):
+    from types import SimpleNamespace
+    monkeypatch.setenv("APP_ROOT", str(tmp_path))
+    monkeypatch.setattr(fitz.Page, "find_tables", lambda self, **kwargs: SimpleNamespace(tables=[]))
+    with pytest.raises(LayoutRecoveryError, match="B02_UNREPRESENTED_VECTOR_DRAWING"):
+        PyMuPDFProvider(HeuristicLayoutClassifier()).extract(str(_three_rule_source(tmp_path, defect=defect)))
+    assert not (tmp_path / "data/assets").exists()

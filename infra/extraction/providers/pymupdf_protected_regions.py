@@ -1,7 +1,8 @@
 """DF-01: conservative producer for complete, positively identified PDF regions.
 
 Only direct, non-rotated page content is admitted by this initial producer.
-Rectangular merged-cell tables and framed, captioned figures have distinct
+Rectangular merged-cell tables, three-rule multiline-header tables and framed,
+captioned figures have distinct
 evidence. A drawing cluster alone never confers semantic authority.
 No clipping-only asset, rasterization, or implicit omission.
 """
@@ -11,6 +12,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from math import ceil, floor, isfinite
 import re
+from statistics import median
 from typing import Any, Mapping, Sequence, cast
 
 import fitz
@@ -155,6 +157,104 @@ def _merged_row_grids(drawings: Sequence[Mapping[str, Any]]) -> list[fitz.Rect]:
     return grids
 
 
+def _row_cells(spans: Sequence[fitz.Rect]) -> list[list[tuple[float, float]]]:
+    """Witness aligned columns without reconstructing their text or content.
+
+    Use vertical centers to group overlapping glyph bands, then join nearby
+    spans on the same row. Gaps relative to the observed glyph height are
+    evidence of distinct column positions, not inferred cell boundaries.
+    """
+    rows: list[tuple[float, list[fitz.Rect]]] = []
+    for span in sorted(spans, key=lambda r: ((r.y0 + r.y1) / 2, r.x0)):
+        center = (span.y0 + span.y1) / 2
+        if rows and abs(center - rows[-1][0]) <= span.height / 2:
+            rows[-1][1].append(span)
+        else:
+            rows.append((center, [span]))
+    result: list[list[tuple[float, float]]] = []
+    for _, row in rows:
+        gap = median(r.height for r in row) / 2
+        cells: list[tuple[float, float]] = []
+        for span in sorted(row, key=lambda r: r.x0):
+            if cells and span.x0 - cells[-1][1] < gap:
+                cells[-1] = (cells[-1][0], max(cells[-1][1], span.x1))
+            else:
+                cells.append((span.x0, span.x1))
+        result.append(cells)
+    return result
+
+
+def _three_rule_tables(
+    drawings: Sequence[Mapping[str, Any]], raw_blocks: Sequence[Mapping[str, Any]],
+) -> list[fitz.Rect]:
+    """Restricted evidence for scientific tables without vertical borders.
+
+    Three coextensive horizontal rules delimit a multiline header and body.
+    Require repeated aligned column positions and a separate adjacent Table
+    caption. Never use whole-page text table detection or a bounding hull of
+    unrelated rules. The common coverage and isolation checks still apply.
+    """
+    groups: dict[tuple[float, float], list[tuple[fitz.Rect, float]]] = {}
+    for drawing in drawings:
+        items = drawing.get("items", [])
+        if drawing.get("type") != "s" or len(items) != 1 or items[0][0] != "l":
+            continue
+        r = _rect(drawing["rect"])
+        width = drawing.get("width")
+        if r.height != 0 or r.width <= 0 or not isinstance(width, (int, float)):
+            continue
+        if not isfinite(width) or width <= 0:
+            continue
+        groups.setdefault((r.x0, r.x1), []).append((r, float(width)))
+    blocks = [_rect(b["bbox"]) for b in raw_blocks]
+    candidates: list[fitz.Rect] = []
+    for (left, right), rules in groups.items():
+        if len(rules) != 3:
+            continue
+        top, middle, bottom = sorted(r.y0 for r, _ in rules)
+        if not top < middle < bottom:
+            continue
+        # Use the actual stroke's horizontal extent, not an arbitrary margin.
+        half_stroke = max(width for _, width in rules) / 2
+        bounds = fitz.Rect(left - half_stroke, top, right + half_stroke, bottom)
+        inside = [i for i, r in enumerate(blocks) if _contains(bounds, r)]
+        if not inside or inside != list(range(inside[0], inside[-1] + 1)):
+            continue
+        if any(_intersects(bounds, r) and i not in inside for i, r in enumerate(blocks)):
+            continue
+        if any(raw_blocks[i].get("type") != 0 for i in inside):
+            continue
+        neighbors = [i for i in (inside[0] - 1, inside[-1] + 1) if 0 <= i < len(blocks)]
+        captions = [i for i in neighbors
+                    if re.match(r"^\s*Table\s+\d", _text(raw_blocks[i]), re.I)
+                    and left < blocks[i].x1 and blocks[i].x0 < right
+                    and (blocks[i].y1 <= top or blocks[i].y0 >= bottom)]
+        if len(captions) != 1:
+            continue
+        spans = [_rect(span["bbox"]) for i in inside
+                 for line in raw_blocks[i].get("lines", [])
+                 for span in line.get("spans", []) if span.get("text", "").strip()]
+        if not spans or any(r.is_empty or not _contains(bounds, r)
+                            or r.y0 < middle < r.y1 for r in spans):
+            continue
+        header = _row_cells([r for r in spans if r.y1 <= middle])
+        body = _row_cells([r for r in spans if r.y0 >= middle])
+        # Two physical header rows and repeated independent column anchors.
+        if len(header) < 2 or len(body) < 2:
+            continue
+        anchors = [(a + b) / 2 for a, b in max(header, key=len)]
+        if len(anchors) < 3 or sum(len(row) >= 2 for row in header) < 2:
+            continue
+        matched_rows = sum(
+            sum(any(a <= x <= b for x in anchors) for a, b in row) >= 3
+            for row in body
+        )
+        if matched_rows < 2 or matched_rows * 2 <= len(body):
+            continue
+        candidates.append(bounds)
+    return candidates
+
+
 def _marks(page: fitz.Page) -> list[tuple[str, fitz.Rect]]:
     return [(str(kind), _rect(bounds)) for kind, bounds in page.get_bboxlog()]
 
@@ -232,19 +332,19 @@ def prepare_protected_regions(
     drawings = cast(list[dict[str, Any]], page.get_drawings())
     if not drawings:
         return ()
-    def reject() -> UnrepresentedPdfContentError:
+    def reject(reason: str = "REGION_UNPROVEN") -> UnrepresentedPdfContentError:
         return UnrepresentedPdfContentError(
-            f"B02_UNREPRESENTED_VECTOR_DRAWING: page={page_number}; DF01_REGION_UNPROVEN"
+            f"B02_UNREPRESENTED_VECTOR_DRAWING: page={page_number}; DF01_{reason}"
         )
 
     source = page.parent
     if (source is None or page.rotation or page.cropbox != page.mediabox
             or page.get_xobjects() or source.get_ocgs() or source.embfile_count()
             or page.first_annot is not None or page.first_widget is not None):
-        raise reject()
+        raise reject("UNSUPPORTED_PAGE_RESOURCES")
     if any(d.get("type") not in ("s", "f", "fs") or d.get("level", 0) != 0 or d.get("layer")
            for d in page.get_drawings(extended=True)):
-        raise reject()
+        raise reject("UNSUPPORTED_GRAPHIC_COMPOSITION")
     marks = _marks(page)
     if any(kind not in ("fill-text", "stroke-text", "fill-path", "stroke-path", "fill-image")
            or not _contains(page.rect, extent) for kind, extent in marks):
@@ -264,6 +364,9 @@ def prepare_protected_regions(
     for grid in _merged_row_grids(drawings):
         if not any(_intersects(grid, b) for _, b in candidates):
             candidates.append((LayoutBlockType.TABLE_COMPLEX, grid))
+    for bounds in _three_rule_tables(drawings, raw_blocks):
+        if not any(_intersects(bounds, b) for _, b in candidates):
+            candidates.append((LayoutBlockType.TABLE_COMPLEX, bounds))
     table_bounds.extend(b for _, b in candidates)
     # A frame and an exterior caption are required; never infer a figure from
     # a line, decorative rule, or text-containing cluster in isolation.
@@ -340,7 +443,7 @@ def prepare_protected_regions(
         pending.append((kind, region, inside, indices, inside[0], caption))
 
     if covered != set(range(len(drawings))):
-        raise reject()
+        raise reject("UNCOVERED_VECTOR_DRAWINGS")
     # Also verify each independently observed paint operation, not only the
     # get_drawings count (which may aggregate fill and stroke).
     if any(
