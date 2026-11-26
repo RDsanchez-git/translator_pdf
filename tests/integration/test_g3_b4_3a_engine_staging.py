@@ -1262,3 +1262,393 @@ def test_pppr_g5_free_dispatch_bound_to_durable_admission_and_quota(queue, statu
         ctx_task_id.reset(task_token)
         bridge.shutdown()
         store.close()
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize("case", ["ok", "budget", "document", "expired", "replay", "overlap", "drift", "structured_budget"])
+def test_pppr_g6_document_free_admission(tmp_path, monkeypatch, case):
+    """Real bridge, SDK serialization and durable journal; no live network."""
+    from dataclasses import replace
+    from decimal import Decimal
+    import httpx
+    from apps.bootstrap.provider_stack_factory import ProductGroqScope
+    from apps.llm_workers.g3_admission import GPT_OSS_120B, GroqFreeTierWitness
+    from core.execution.exceptions import G3ExternalEffectNotStartedError
+    from core.utils.telemetry import ctx_task_id, ctx_execution_id
+    from runtime import engine
+    from infra.db import connection
+
+    ast, old_plan = _fixture()
+    document_id = "d" * 64
+    plan = ChunkPlan.build(document_id, old_plan.ast_hash, ast, old_plan.units)
+    unit = next(u for u in plan.units if u.chunk_type == TranslationTaskType.TRANSLATE)
+    db = sqlite3.connect(tmp_path / "queue.db")
+    db.executescript((ROOT / "infra/db/schema_queue.sql").read_text(encoding="utf-8"))
+    repo = ControlPlaneRepository(db)
+    repo.enqueue_chunk_plan(plan, ast)
+    monkeypatch.setattr(connection, "BASE_DIR", tmp_path)
+    monkeypatch.setenv("SQLITE_STATE_DIR", str(tmp_path))
+    monkeypatch.setenv("GROQ_API_KEY", "synthetic-no-network")
+    monkeypatch.delenv("TPDF_OFFLINE_LAB", raising=False)
+    now = time.time_ns()
+    witness = GroqFreeTierWitness(
+        "g6-synthetic", "synthetic-account", "synthetic-quota", "synthetic-free",
+        now - 1_000_000, now + 60_000_000_000, 30, 1000, 8000, 200000,
+        "FREE", True, True, True, document_id=document_id, max_requests=2,
+    )
+    if case == "expired":
+        witness = replace(witness, observed_at_ns=now-2_000_000, valid_until_ns=now-1_000_000)
+    if case == "document":
+        witness = replace(witness, document_id="e"*64)
+    policy = _w32_fake_admission(
+        model_name=GPT_OSS_120B, root_config_sha256=engine._product_effective_config_sha256(),
+        input_limit=8000, output_limit=4096, context_window=131072,
+        input_price_per_token=Decimal("0.00000015"), output_price_per_token=Decimal("0.00000060"),
+        free_tier_witness=witness,
+    )
+    requests = []
+
+    def transport(request):
+        requests.append(request)
+        body = json.loads(request.content)
+        with sqlite3.connect(tmp_path / "queue.db") as probe:
+            rows = probe.execute("SELECT decision_json FROM g3_admission_decisions").fetchall()
+        assert len(rows) == 1
+        assert json.loads(rows[0][0])["request_sha256"] == sha256(json.dumps(
+            body, ensure_ascii=False, sort_keys=True, separators=(",", ":"),
+        ).encode()).hexdigest()
+        return httpx.Response(200, json={
+            "id": "synthetic-g6", "object": "chat.completion", "created": 0,
+            "model": GPT_OSS_120B,
+            "choices": [{"index": 0, "finish_reason": "stop",
+                         "message": {"role": "assistant", "content": json.dumps({"content": _response(plan, unit)})}}],
+            "usage": {"prompt_tokens": 10, "completion_tokens": 10, "total_tokens": 20},
+        })
+
+    prompt_estimator = _CharBoundEstimator() if case == "structured_budget" else _Estimator()
+    scope = ProductGroqScope(policy, prompt_estimator, lambda: httpx.MockTransport(transport))
+    snapshots = {unit.context_id: ContextSnapshotV1(
+        document_id=plan.document_id, ast_hash=plan.ast_hash, context_id=unit.context_id,
+        breadcrumbs=(ContextBreadcrumbV1(0, "[ROOT_DOCUMENT_CONTEXT]"),),
+    )}
+    bridge = store = None
+    try:
+        if case in ("expired", "document"):
+            with pytest.raises(G3ExternalEffectNotStartedError):
+                engine._create_chunk_processor(snapshots, product_scope=scope)
+            assert requests == []
+            return
+        bridge, store = engine._create_chunk_processor(snapshots, product_scope=scope)
+        preview = bridge.inspect_chunk_admission(plan, unit)
+        audit = json.loads(preview.audit_json)
+        assert requests == []
+        assert db.execute("SELECT COUNT(*) FROM g3_admission_decisions").fetchone() == (0,)
+        if case == "structured_budget":
+            # Independent response-shape oracle, not the production sampler.
+            # This fixture has no masked inline formula.
+            example = json.loads(_response(plan, unit))
+            for member, source in zip(example["members"], unit.members):
+                member["translated_text"] = source.source_text
+            def serialize(value):
+                return json.dumps({"content": json.dumps(value, ensure_ascii=False,
+                    sort_keys=True, separators=(",", ":"))}, ensure_ascii=False,
+                    sort_keys=True, separators=(",", ":"))
+            populated = serialize(example)
+            for member in example["members"]:
+                member["translated_text"] = ""
+            empty = serialize(example)
+            expected = max(256, len(empty) + 2 * (len(populated) - len(empty)))
+            assert audit["reserved_output_tokens"] == expected
+            assert audit["free_tier_witness"]["reserved_tokens"] == audit["input_tokens"] + expected
+            assert audit["input_tokens"] > expected
+        if case == "budget":
+            with pytest.raises(G3ExternalEffectNotStartedError, match="EXHAUSTED"):
+                repo.check_g3_document_free_batch(document_id, [preview.audit_json]*3)
+            assert repo.fit_g3_document_free_batch(document_id, [preview.audit_json]*3) == 2
+            assert db.execute("SELECT COUNT(*) FROM g3_admission_decisions").fetchone() == (0,)
+            assert requests == []
+            return
+        repo.check_g3_document_free_batch(document_id, [preview.audit_json])
+        lease = repo.pick_task("g6", plan.document_id, plan.ast_hash)
+        assert lease is not None
+        if lease.node_id != unit.chunk_id:
+            preserve = next(u for u in plan.units if u.chunk_id == lease.node_id)
+            assert stage_claimed_unit(repo, plan, ast, preserve, lease, "g6", None, Semaphore(1))
+            lease = repo.pick_task("g6", plan.document_id, plan.ast_hash)
+        assert lease is not None and lease.node_id == unit.chunk_id
+        if case in ("replay", "overlap", "drift"):
+            kwargs = dict(task_id=lease.task_id, worker_id="g6", execution_id=lease.execution_id,
+                          generation_sha256="b"*64, audit_json=preview.audit_json)
+            repo.record_g3_admission_decision(**kwargs)
+            if case == "replay":
+                with pytest.raises(G3ExternalEffectNotStartedError, match="ALREADY_RESERVED"):
+                    repo.record_g3_admission_decision(**kwargs)
+            else:
+                key = "witness_id" if case == "overlap" else "quota_evidence_ref"
+                audit["free_tier_witness"][key] = "different"
+                with pytest.raises(G3ExternalEffectNotStartedError,
+                                   match="OVERLAP" if case == "overlap" else "DRIFT"):
+                    repo.check_g3_document_free_batch(document_id, [
+                        json.dumps(audit, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+                    ])
+            assert requests == []
+        else:
+            # The real engine sets these correlation IDs at claim time.
+            # Reproduce that boundary, not a permissive mock of the adapter.
+            task_token = ctx_task_id.set(lease.task_id)
+            execution_token = ctx_execution_id.set(lease.execution_id)
+            try:
+                assert stage_claimed_unit(repo, plan, ast, unit, lease, "g6", bridge, Semaphore(1))
+            finally:
+                ctx_execution_id.reset(execution_token)
+                ctx_task_id.reset(task_token)
+            assert len(requests) == 1
+            assert db.execute("SELECT COUNT(*) FROM chunk_result_receipts WHERE raw_response IS NOT NULL").fetchone() == (1,)
+    finally:
+        if bridge is not None:
+            bridge.shutdown()
+        if store is not None:
+            store.close()
+        db.close()
+
+
+@pytest.mark.integration
+def test_pppr_free_window_scoped_claim_never_consumes_deferred_work(queue):
+    preserve, translate = queue.plan.units
+    assert queue.repo.pick_task(
+        "window", queue.plan.document_id, queue.plan.ast_hash, allowed_chunk_ids=(),
+    ) is None
+    lease = queue.repo.pick_task(
+        "window", queue.plan.document_id, queue.plan.ast_hash,
+        allowed_chunk_ids=(translate.chunk_id,),
+    )
+    assert lease is not None and lease.node_id == translate.chunk_id
+    assert queue.repo.pick_task(
+        "window", queue.plan.document_id, queue.plan.ast_hash,
+        allowed_chunk_ids=(translate.chunk_id,),
+    ) is None
+    assert queue.db.execute(
+        "SELECT task_state FROM chunk_tasks WHERE node_id=?", (preserve.chunk_id,),
+    ).fetchone() == ("PENDING",)
+    assert queue.repo.pick_task("next", queue.plan.document_id, queue.plan.ast_hash).node_id == preserve.chunk_id
+
+
+@pytest.mark.integration
+def test_pppr_free_document_resumes_across_explicit_quota_windows(tmp_path, monkeypatch):
+    """Canonical engine, real durable journal and SDK, no real provider I/O."""
+    from decimal import Decimal
+    import httpx
+    from apps.bootstrap.provider_stack_factory import ProductGroqScope
+    from apps.llm_workers.g3_admission import GPT_OSS_120B, GroqFreeTierWitness
+    from core.chunking.contextual_plan import prepare_contextual_plan
+    from infra.db import connection
+    from runtime import engine
+    from tests.integration.test_g3_b4_8_preserve_engine import _dbs
+
+    document_id = "d" * 64
+    prepared = prepare_contextual_plan(
+        document_id=document_id,
+        raw_ast=[
+            ASTNode(node_id="a", sequence_id=1, node_type=ContentNodeType.PARAGRAPH,
+                    payload=ParagraphPayload(content="First paragraph.")),
+            ASTNode(node_id="math", sequence_id=2, node_type=ContentNodeType.DISPLAY_EQUATION,
+                    strategy=TranslationStrategy.PASSTHROUGH, payload=MathPayload(content="E=mc^2")),
+            ASTNode(node_id="b", sequence_id=3, node_type=ContentNodeType.PARAGRAPH,
+                    payload=ParagraphPayload(content="Second paragraph.")),
+        ],
+        estimator=_Estimator(),
+    )
+    ast, plan = list(prepared.ast), prepared.plan
+    units = [u for u in plan.units if u.chunk_type == TranslationTaskType.TRANSLATE]
+    assert len(units) == 2 and len(plan.units) == 3
+    dbs = _dbs(tmp_path, plan, ast)
+    monkeypatch.setattr(connection, "BASE_DIR", tmp_path)
+    monkeypatch.setenv("SQLITE_STATE_DIR", str(tmp_path))
+    monkeypatch.setenv("GROQ_API_KEY", "synthetic-no-network")
+    monkeypatch.setenv("IS_BENCHMARK", "0")
+    monkeypatch.delenv("TPDF_OFFLINE_LAB", raising=False)
+    monkeypatch.setattr(engine, "ASTRegistry", lambda: SimpleNamespace(
+        get_verified_document_ast=lambda doc, ast_hash: ast,
+    ))
+    monkeypatch.setattr(engine, "get_connection", lambda path, timeout=30:
+                        sqlite3.connect(tmp_path / Path(path).name, timeout=timeout))
+
+    clock = [time.time_ns()]
+    monkeypatch.setattr(time, "time_ns", lambda: clock[0])
+    calls = []
+
+    def transport(request):
+        unit = units[len(calls)]
+        calls.append(unit.chunk_id)
+        with sqlite3.connect(tmp_path / "queue.db") as probe:
+            assert probe.execute("SELECT COUNT(*) FROM g3_admission_decisions").fetchone() == (len(calls),)
+        return httpx.Response(200, json={
+            "id": f"synthetic-window-{len(calls)}", "object": "chat.completion", "created": 0,
+            "model": GPT_OSS_120B,
+            "choices": [{"index": 0, "finish_reason": "stop", "message": {
+                "role": "assistant", "content": json.dumps({"content": _response(plan, unit)}),
+            }}],
+            "usage": {"prompt_tokens": 10, "completion_tokens": 10, "total_tokens": 20},
+        })
+
+    def scope(window):
+        witness = GroqFreeTierWitness(
+            f"synthetic-window-{window}", "synthetic-account", "synthetic-quota", "synthetic-free",
+            clock[0] - 1_000_000, clock[0] + 60_000_000_000, 30, 1000, 8000, 200000,
+            "FREE", True, True, True, document_id=document_id, max_requests=1,
+        )
+        policy = _w32_fake_admission(
+            model_name=GPT_OSS_120B, root_config_sha256=engine._product_effective_config_sha256(),
+            input_limit=8000, output_limit=4096, context_window=131072,
+            input_price_per_token=Decimal("0.00000015"), output_price_per_token=Decimal("0.00000060"),
+            free_tier_witness=witness,
+        )
+        return ProductGroqScope(policy, _Estimator(), lambda: httpx.MockTransport(transport))
+
+    try:
+        first = scope(1)
+        result = engine.run_pipeline(document_id, plan.ast_hash, product_scope=first)
+        assert result == {"status": "staging_incomplete", "final_state": "PROCESSING"}
+        assert calls == [units[0].chunk_id]
+        assert dbs.queue.execute(
+            "SELECT task_state,retry_count FROM chunk_tasks WHERE node_id=?", (units[1].chunk_id,),
+        ).fetchone() == ("PENDING", 0)
+        assert dbs.queue.execute("SELECT COUNT(*) FROM chunk_result_receipts").fetchone() == (2,)
+        # The same consumed authorization grants no further claims or effects.
+        assert engine.run_pipeline(document_id, plan.ast_hash, product_scope=first) == result
+        assert calls == [units[0].chunk_id]
+        assert dbs.queue.execute("SELECT COUNT(*) FROM g3_admission_decisions").fetchone() == (1,)
+        # Only a distinct, nonoverlapping explicit witness can resume.
+        clock[0] += 61_000_000_000
+        result = engine.run_pipeline(document_id, plan.ast_hash, product_scope=scope(2))
+        assert result == {"status": "ready_for_assembly", "final_state": "READY_FOR_ASSEMBLY"}
+        assert calls == [u.chunk_id for u in units]
+        assert dbs.queue.execute("SELECT COUNT(*) FROM g3_admission_decisions").fetchone() == (2,)
+        assert dbs.queue.execute("SELECT COUNT(*) FROM chunk_result_receipts").fetchone() == (3,)
+        assert {row[0] for row in dbs.queue.execute(
+            "SELECT task_state FROM chunk_tasks WHERE worker_type='LLM'",
+        )} == {"COMPLETED"}
+    finally:
+        dbs.materialized.close()
+        dbs.fsm.close()
+        dbs.queue.close()
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize("indivisible", [False, True])
+def test_pppr_effective_budget_refines_new_manifest_without_provider(indivisible):
+    from decimal import Decimal
+    from apps.bootstrap.provider_stack_factory import (
+        ProductGroqScope, refine_product_chunk_plan, build_product_prompt_builder,
+    )
+    from apps.llm_workers.g3_admission import GPT_OSS_120B
+    from apps.llm_workers.sync_bridge import prepare_chunk_prompt
+    from core.chunking.contextual_plan import prepare_contextual_plan
+    from core.context.plan_context_contract import derive_verified_plan_contexts
+
+    ast = [
+        ASTNode(node_id=f"paragraph-{i}", sequence_id=i, node_type=ContentNodeType.PARAGRAPH,
+                payload=ParagraphPayload(content=("word " * 110).strip()))
+        for i in range(1, 5)
+    ]
+    ast.append(ASTNode(node_id="math", sequence_id=5, node_type=ContentNodeType.DISPLAY_EQUATION,
+                       strategy=TranslationStrategy.PASSTHROUGH, payload=MathPayload(content="E=mc^2")))
+    prepared = prepare_contextual_plan(document_id="d"*64, raw_ast=ast, estimator=_Estimator())
+    plan = prepared.plan
+    assert len(plan.units) == 2
+    policy = _w32_fake_admission(
+        model_name=GPT_OSS_120B,
+        input_limit=100 if indivisible else 8000, output_limit=4096, context_window=131072,
+        input_price_per_token=Decimal("0.00000015"), output_price_per_token=Decimal("0.00000060"),
+    )
+    # Character estimator is a deliberately synthetic sizing witness.
+    # It makes the four-member request too large; each half fits.
+    scope = ProductGroqScope(policy, _CharBoundEstimator(),
+                             lambda: pytest.fail("planning instantiated a transport"))
+    original = plan.to_json()
+    if indivisible:
+        with pytest.raises(ValueError, match="G3_EFFECTIVE_BUDGET_INDIVISIBLE_UNIT"):
+            refine_product_chunk_plan(plan, prepared.ast, scope)
+        assert plan.to_json() == original
+        return
+    refined = refine_product_chunk_plan(plan, prepared.ast, scope)
+    assert len(refined.units) > len(plan.units)
+    assert refined.ast_hash == plan.ast_hash and refined.digest != plan.digest
+    assert [m for u in refined.units for m in u.members] == [m for u in plan.units for m in u.members]
+    assert refined.units[-1].members == plan.units[-1].members
+    assert refined.units[-1].chunk_type == TranslationTaskType.PRESERVE
+    assert plan.to_json() == original
+    assert refine_product_chunk_plan(refined, prepared.ast, scope) == refined
+    assert [u.chunk_index for u in refined.units] == list(range(1, len(refined.units)+1))
+    snapshots = derive_verified_plan_contexts(refined, prepared.ast)
+    for unit in refined.units:
+        if unit.chunk_type == TranslationTaskType.PRESERVE:
+            continue
+        built, _, _ = prepare_chunk_prompt(
+            refined, unit, builder=build_product_prompt_builder(scope.prompt_estimator),
+            context_snapshots=snapshots, structured_response=True,
+        )
+        _, count, reserve = policy.measure_request(built.envelope)
+        assert count + reserve <= 8000
+
+
+@pytest.mark.integration
+def test_pppr_budget_preview_uses_real_request_without_admission(monkeypatch):
+    from dataclasses import asdict
+    from apps.lab.pppr_g6_budget_preview import preview_product_budget
+    from core.chunking.contextual_plan import prepare_contextual_plan
+
+    nodes = [
+        ASTNode(node_id=f"preview-{i}", sequence_id=i, node_type=ContentNodeType.PARAGRAPH,
+                payload=ParagraphPayload(content=("scientific text " * 45).strip()))
+        for i in range(1, 5)
+    ]
+    nodes.append(ASTNode(node_id="math", sequence_id=5, node_type=ContentNodeType.DISPLAY_EQUATION,
+                         strategy=TranslationStrategy.PASSTHROUGH, payload=MathPayload(content="E=mc^2")))
+    estimator = _Estimator()
+    prepared = prepare_contextual_plan(document_id="d"*64, raw_ast=nodes, estimator=estimator)
+    plan = prepared.plan
+    original = plan.to_json()
+    monkeypatch.setattr(G3PreEffectAdmission, "verify",
+                        lambda *a, **kw: pytest.fail("preview attempted admission"))
+    baseline = preview_product_budget(plan, prepared.ast, estimator)
+    assert baseline.status == "OFFLINE_CONDITIONAL_SIZING_ONLY"
+    assert baseline.max_common_framing_tokens is not None
+    assert baseline.max_common_framing_tokens > 0
+    assert baseline.preserve_units == 1
+    assert baseline.max_common_framing_tokens == min(
+        8000 - row.message_bytes - row.reserved_output_tokens for row in baseline.requests
+    )
+    assert baseline.candidate_units == len(baseline.requests) + baseline.preserve_units
+    # One token above the measured headroom forces further refinement.
+    scenario = baseline.max_common_framing_tokens + 1
+    refined = preview_product_budget(plan, prepared.ast, estimator, framing_scenario=scenario)
+    assert refined.candidate_units > baseline.candidate_units
+    assert refined.max_common_framing_tokens >= scenario
+    assert refined.preserve_units == baseline.preserve_units
+    assert plan.to_json() == original
+    assert preview_product_budget(plan, prepared.ast, estimator, framing_scenario=scenario) == refined
+    assert "scientific text" not in json.dumps(asdict(refined))
+    assert "E=mc^2" not in json.dumps(asdict(refined))
+    with pytest.raises(ValueError, match="G3_EFFECTIVE_BUDGET_INDIVISIBLE_UNIT"):
+        preview_product_budget(plan, prepared.ast, estimator, framing_scenario=7999)
+    assert plan.to_json() == original
+
+
+@pytest.mark.integration
+def test_pppr_budget_preview_preserve_only_has_no_framing_requirement():
+    from apps.lab.pppr_g6_budget_preview import preview_product_budget
+    from core.chunking.contextual_plan import prepare_contextual_plan
+
+    ast = [ASTNode(node_id="math", sequence_id=1, node_type=ContentNodeType.DISPLAY_EQUATION,
+                   strategy=TranslationStrategy.PASSTHROUGH, payload=MathPayload(content="E=mc^2"))]
+    estimator = _Estimator()
+    prepared = prepare_contextual_plan(document_id="d"*64, raw_ast=ast, estimator=estimator)
+    observed = preview_product_budget(prepared.plan, prepared.ast, estimator)
+    assert observed.requests == ()
+    assert observed.max_common_framing_tokens is None
+    assert observed.preserve_units == 1
+    assert observed.original_manifest_sha256 == observed.candidate_manifest_sha256
+    for invalid in (-1, True, 8000):
+        with pytest.raises(ValueError, match="PREVIEW_SCENARIO_INVALID"):
+            preview_product_budget(prepared.plan, prepared.ast, estimator, framing_scenario=invalid)

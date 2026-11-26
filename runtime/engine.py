@@ -36,13 +36,17 @@ from apps.llm_workers.prompt_builder import PromptBuilder
 from core.ast.hashing import compute_ast_hash
 from runtime.chunk_staging import stage_claimed_unit
 from runtime.publication_pipeline import advance_staged_document
-from apps.bootstrap.provider_stack_factory import build_provider_stack
+from apps.bootstrap.provider_stack_factory import (
+    build_provider_stack, build_groq_free_witness_stack, build_product_prompt_builder,
+)
+from apps.llm_workers.g3_admission import GPT_OSS_120B
 from core.context.snapshot_contract import ContextSnapshotV1
 from infra.db.context_snapshot_repo import DurableContextPlanRepository
 from typing import Mapping, TYPE_CHECKING, cast
 
 if TYPE_CHECKING:
     from apps.lab.pppr_offline_scope import OfflineLabScope
+    from apps.bootstrap.provider_stack_factory import ProductGroqScope
 
 logger = logging.getLogger(__name__)
 
@@ -64,8 +68,13 @@ def _product_effective_config_sha256() -> str:
         "provider_id": "groq", "dialect": "openai_compatible_json_v1",
         "temperature": 0.00001, "stream": False,
         "source_language": "en", "target_language": "es",
-        "prompt_version": "v1.0", "model_name": "llama3-70b-8192",
+        "prompt_version": "v1.0", "model_name": GPT_OSS_120B,
         "target_lang_expansion": 2.0, "response_contract": "G3_CHUNK_RESPONSE_V1",
+        "endpoint": "https://api.groq.com/openai/v1/chat/completions",
+        "reasoning_effort": "low", "include_reasoning": False,
+        "primary_window_limit": 8000, "fallback_window_limit": 1048576,
+        "min_output_reserve": 256, "max_output_reserve": 4096,
+        "response_budget_policy": "g3_structured_response_v1",
     }
     return hashlib.sha256(json.dumps(
         options, ensure_ascii=False, sort_keys=True, separators=(",", ":"),
@@ -73,13 +82,18 @@ def _product_effective_config_sha256() -> str:
 
 
 def _create_chunk_processor(context_snapshots: Mapping[str, ContextSnapshotV1], *,
-                            offline_scope: "OfflineLabScope | None" = None):
+                            offline_scope: "OfflineLabScope | None" = None,
+                            product_scope: "ProductGroqScope | None" = None):
     """Initialize paid provider only if at least one unit needs inference."""
     from apps.llm_workers.sync_bridge import SyncProviderBridge
     from core.validation.estimators import ExactBPEEstimator
     from infra.resilience.thread_owned_sqlite_rate_limit_store import ThreadOwnedSQLiteRateLimitStore
     
-    model_name, prompt_version, provider_id = "llama3-70b-8192", "v1.0", "groq"
+    if offline_scope is not None and product_scope is not None:
+        raise G3ExternalEffectNotStartedError("PPPR_G6_CONFLICTING_SCOPES", permanent=True)
+    if offline_scope is None and product_scope is None:
+        raise G3ExternalEffectNotStartedError("PPPR_G3_ADMISSION_EVIDENCE_MISSING", permanent=True)
+    model_name, prompt_version, provider_id = GPT_OSS_120B, "v1.0", "groq"
     effective_config_sha256 = _product_effective_config_sha256()
     provider_override = None
     if offline_scope is not None:
@@ -93,16 +107,25 @@ def _create_chunk_processor(context_snapshots: Mapping[str, ContextSnapshotV1], 
     elif os.getenv("TPDF_OFFLINE_LAB"):
         raise G3ExternalEffectNotStartedError("PPPR_G5_LAB_EXPLICIT_SCOPE_REQUIRED", permanent=True)
 
+    if product_scope is not None:
+        witness = product_scope.admission.free_tier_witness
+        if witness is None or witness.document_id is None:
+            raise G3ExternalEffectNotStartedError("PPPR_G6_PRODUCT_SCOPE_REJECTED", permanent=True)
+        product_scope.validate(witness.document_id, effective_config_sha256)
+        if any(snapshot.document_id != witness.document_id for snapshot in context_snapshots.values()):
+            raise G3ExternalEffectNotStartedError("PPPR_G6_PRODUCT_SCOPE_REJECTED", permanent=True)
+
     api_key = os.getenv("GROQ_API_KEY")
     if not api_key:
         raise RuntimeError("GROQ_API_KEY no configurada. Imposible operar motor LLM.")
     
-    estimator = ExactBPEEstimator()
+    estimator = (product_scope.prompt_estimator if product_scope is not None
+                 else ExactBPEEstimator())
     measurement_service = InferenceMeasurementService(estimator=estimator)
     
     # SOTA FIX: Adecuación a firmas FinOps y políticas de compresión canónicas de la Fase 16
     budget_calculator = PromptBudgetCalculator(
-        primary_window_limit=8192,
+        primary_window_limit=8000 if product_scope is not None else 8192,
         fallback_window_limit=1048576,
         min_output_reserve=256,
         max_output_reserve=4096
@@ -110,26 +133,28 @@ def _create_chunk_processor(context_snapshots: Mapping[str, ContextSnapshotV1], 
     
     compression_policy = StandardCompressionPolicy()
     
-    builder = PromptBuilder(
-        model_name=model_name,
-        prompt_version=prompt_version,
-        measurement_service=measurement_service,
-        budget_calculator=budget_calculator,
-        compression_policy=compression_policy
-    )
+    builder = (build_product_prompt_builder(estimator) if product_scope is not None else
+               PromptBuilder(
+                   model_name=model_name,
+                   prompt_version=prompt_version,
+                   measurement_service=measurement_service,
+                   budget_calculator=budget_calculator,
+                   compression_policy=compression_policy,
+               ))
     
-    rpm_limit = 1000 if offline_scope is not None else int(os.getenv("GROQ_RPM_LIMIT", "30"))
-    tpm_limit = 200000 if offline_scope is not None else int(os.getenv("GROQ_TPM_LIMIT", "6000"))
+    # Product limits are fixed by the guarded free stack and independently
+    # bounded by the caller's attested remaining quota. No env override.
+    rpm_limit, tpm_limit = 1000, 200000
     
     # Durable SQLite quota state, confined to a dedicated owner thread.
     quota_store = ThreadOwnedSQLiteRateLimitStore("infra/db/rate_limits.db", timeout=30)
 
     try:
         # W08-3: legacy prompt_hash-only cache cannot prove reuse identity.
-        if provider_override is None:
-            provider_stack = asyncio.run(build_provider_stack(
-                api_key=api_key, rpm_limit=rpm_limit, tpm_limit=tpm_limit,
-                rate_limit_store=quota_store, cache_db_path=None,
+        if product_scope is not None:
+            provider_stack = asyncio.run(build_groq_free_witness_stack(
+                api_key=api_key, transport_factory=product_scope.transport_factory,
+                rate_limit_store=quota_store,
             ))
         else:
             provider_stack = asyncio.run(build_provider_stack(
@@ -143,7 +168,8 @@ def _create_chunk_processor(context_snapshots: Mapping[str, ContextSnapshotV1], 
             context_snapshots=context_snapshots,
             effective_config_sha256=effective_config_sha256,
             source_language="en", target_language="es", provider_id=provider_id,
-            pre_effect_admission=(offline_scope.admission(estimator) if offline_scope is not None else None),
+            pre_effect_admission=(product_scope.admission if product_scope is not None
+                                  else offline_scope.admission(estimator) if offline_scope is not None else None),
         )
     except BaseException:
         quota_store.close()
@@ -152,7 +178,12 @@ def _create_chunk_processor(context_snapshots: Mapping[str, ContextSnapshotV1], 
 
 
 def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_traduccion.pdf", *,
-                 offline_scope: "OfflineLabScope | None" = None) -> dict:
+                 offline_scope: "OfflineLabScope | None" = None,
+                 product_scope: "ProductGroqScope | None" = None) -> dict:
+    if offline_scope is not None and product_scope is not None:
+        raise G3ExternalEffectNotStartedError("PPPR_G6_CONFLICTING_SCOPES", permanent=True)
+    if product_scope is not None:
+        product_scope.validate(document_id, _product_effective_config_sha256())
     if offline_scope is not None:
         offline_scope.validate(document_id)
     elif os.getenv("TPDF_OFFLINE_LAB"):
@@ -182,7 +213,7 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
             required_generation_config = (offline_scope.root_config_sha256 if offline_scope is not None
                                           else _product_effective_config_sha256())
         else:
-            if offline_scope is not None:
+            if offline_scope is not None or product_scope is not None:
                 raise PipelineIntegrityError("PPPR_G5_LAB_REQUIRES_VERIFIED_AST")
             # Offline/W06 test doubles retain the older ASTProvider contract.
             # The product composition root always supplies ASTRegistry.
@@ -251,12 +282,47 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
                 runnable_rows = [(chunk_id, state) for chunk_id, state in initial_rows
                                  if state in ("PENDING", "RETRYABLE_ERROR")]
                 has_runnable_work = bool(runnable_rows)
+                selected_chunk_ids: set[str] | None = None
                 needs_inference = any(
                     unit_index[chunk_id].chunk_type != TranslationTaskType.PRESERVE
                     for chunk_id, _ in runnable_rows
                 )
                 if needs_inference:
-                    if offline_scope is None:
+                    if product_scope is not None:
+                        processor, quota_store = _create_chunk_processor(
+                            context_snapshots, product_scope=product_scope,
+                        )
+                        # Verify every runnable inference unit before any effect,
+                        # then select only the prefix that fits this snapshot.
+                        # An explicit subsequent scope is needed for more work;
+                        # elapsed time alone never grants a renewed allowance.
+                        if any(state not in ("PENDING", "RETRYABLE_ERROR", "RESULT_STAGED")
+                               for state in initial_states):
+                            raise G3ExternalEffectNotStartedError(
+                                "PPPR_G6_PRODUCT_UNRESOLVED_TASK_STATE", permanent=True,
+                            )
+                        runnable_ids = {chunk_id for chunk_id, _ in runnable_rows}
+                        inference_units = [
+                            unit for unit in plan.units
+                            if unit.chunk_id in runnable_ids
+                            and unit.chunk_type != TranslationTaskType.PRESERVE
+                        ]
+                        decisions = [
+                            processor.inspect_chunk_admission(plan, unit).audit_json
+                            for unit in inference_units
+                        ]
+                        count = task_repo.fit_g3_document_free_batch(document_id, decisions)
+                        selected_chunk_ids = {
+                            unit.chunk_id for unit in inference_units[:count]
+                        } | {
+                            unit.chunk_id for unit in plan.units
+                            if unit.chunk_id in runnable_ids
+                            and unit.chunk_type == TranslationTaskType.PRESERVE
+                        }
+                        has_runnable_work = bool(selected_chunk_ids)
+                        logger.info("PPPR_G6_FREE_WINDOW_SELECTED: %s/%s inference units",
+                                    count, len(inference_units))
+                    elif offline_scope is None:
                         processor, quota_store = _create_chunk_processor(context_snapshots)
                     else:
                         processor, quota_store = _create_chunk_processor(context_snapshots, offline_scope=offline_scope)
@@ -266,10 +332,21 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
                     th_task_repo = ControlPlaneRepository(th_queue_conn)
                     try:
                         while True:
-                            task = th_task_repo.pick_task(owner_id, document_id, ast_hash)
+                            if selected_chunk_ids is None:
+                                task = th_task_repo.pick_task(owner_id, document_id, ast_hash)
+                            else:
+                                # The scoped worker is serial and each selected
+                                # chunk can be claimed at most once per run.
+                                # Deferred units remain PENDING, not failed.
+                                task = th_task_repo.pick_task(
+                                    owner_id, document_id, ast_hash,
+                                    allowed_chunk_ids=tuple(selected_chunk_ids),
+                                )
                             if task is None:
                                 break
                             chunk_id = task.node_id  # Legacy queue column stores G3 chunk_id.
+                            if selected_chunk_ids is not None:
+                                selected_chunk_ids.remove(chunk_id)
                             t_exec = ctx_execution_id.set(task.execution_id)
                             t_work = ctx_worker_id.set(owner_id)
                             t_task = ctx_task_id.set(task.task_id)
@@ -365,7 +442,9 @@ def run_pipeline(document_id: str, ast_hash: str, pdf_output_name: str = "MVP_tr
                         th_queue_conn.close()
 
                 if has_runnable_work:
-                    max_threads = int(os.getenv("MAX_CONCURRENT_CHUNKS", "4"))
+                    # One explicit finite quota window uses one worker. The
+                    # ordinary offline/legacy selector keeps its concurrency.
+                    max_threads = 1 if selected_chunk_ids is not None else int(os.getenv("MAX_CONCURRENT_CHUNKS", "4"))
                     with ThreadPoolExecutor(max_workers=max_threads) as executor:
                         futures = [executor.submit(chunk_worker_thread) for _ in range(max_threads)]
                         for future in futures:

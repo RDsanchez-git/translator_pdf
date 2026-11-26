@@ -9,8 +9,14 @@ NADR-08 §5.2 R7: CircuitBreaker MANDATORY en todas las rutas.
 NADR-08 §5.5: CB antes de RL previene consumo de cuota con circuito abierto.
 """
 import os
-from collections.abc import Callable
-from typing import Literal
+from collections.abc import Callable, Sequence
+from dataclasses import dataclass, replace
+from pathlib import Path
+from decimal import Decimal
+from typing import Literal, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from apps.compiler.tectonic_runner import CachedTectonicResources
 
 import httpx
 from groq import AsyncGroq
@@ -18,9 +24,15 @@ from groq import AsyncGroq
 from infra.db.connection import resolve_sqlite_path
 
 from apps.llm_workers.adapters import GroqProvider
-from apps.llm_workers.g3_admission import GPT_OSS_120B
+from apps.llm_workers.g3_admission import GPT_OSS_120B, G3PreEffectAdmission, GroqHarmonyInputBound
 from apps.llm_workers.groq_free_transport import GroqFreeWitnessTransport
-from apps.llm_workers.prompt_builder import PromptEnvelope
+from apps.llm_workers.prompt_builder import PromptEnvelope, PromptBuilder
+from core.ast.models import ASTNode, TranslationUnit
+from core.chunking.manifest_contract import ChunkPlan
+from core.chunking.semantic_chunking import refine_chunk_plan
+from core.context.plan_context_contract import derive_verified_plan_contexts
+from core.finops.measurement import InferenceMeasurementService
+from core.validation.budget import PromptBudgetCalculator, StandardCompressionPolicy
 from apps.llm_workers.rate_limiter import RateLimitedProvider, QuotaManager
 from apps.llm_workers.cache_provider import CachedLLMProvider
 from apps.llm_workers.circuit_breaker_provider import CircuitBreakerProvider
@@ -31,6 +43,125 @@ from core.resilience.rate_limit_store import RateLimitStore
 from core.execution.effect_guard import g3_free_dispatch_permit, g3_pre_effect_guard
 from core.execution.exceptions import G3ExternalEffectNotStartedError
 from core.prompting.inference_result import InferenceResult
+from core.validation.protocols import TokenEstimatorProtocol
+
+
+@dataclass(frozen=True, slots=True)
+class ProductGroqScope:
+    """Explicit caller-supplied composition; never obtained from environment.
+
+    The caller must independently establish the host, data/egress permissions,
+    exclusive account quota, free entitlement and conservative wire bound.
+    Ordinary prompt measurement is not a substitute for the admission bound.
+    """
+
+    admission: G3PreEffectAdmission
+    prompt_estimator: TokenEstimatorProtocol
+    transport_factory: Callable[[], httpx.AsyncBaseTransport]
+    compiler_resources: "CachedTectonicResources | None" = None
+
+    @classmethod
+    def with_verified_harmony(
+        cls, admission: G3PreEffectAdmission,
+        transport_factory: Callable[[], httpx.AsyncBaseTransport], *,
+        rank_cache_dir: Path, framing_token_ceiling: int, framing_evidence_ref: str,
+        compiler_resources: "CachedTectonicResources | None" = None,
+    ) -> "ProductGroqScope":
+        """Explicit local planning tokenizer and conditional admission bound.
+
+        The framing evidence is a caller authority input, not produced here.
+        No default policy, live transport, cache download or quota grant.
+        """
+        from core.validation.estimators import VerifiedHarmonyEstimator
+
+        bound = GroqHarmonyInputBound(framing_token_ceiling, framing_evidence_ref)
+        return cls(
+            admission=replace(admission, input_estimator=bound,
+                              estimator_evidence_ref=framing_evidence_ref),
+            prompt_estimator=VerifiedHarmonyEstimator(rank_cache_dir),
+            transport_factory=transport_factory, compiler_resources=compiler_resources,
+        )
+
+    def require_compiler_resources(self) -> "CachedTectonicResources":
+        if self.compiler_resources is None or not self.compiler_resources.cache_dir.is_dir():
+            raise G3ExternalEffectNotStartedError(
+                "PPPR_G6_PRODUCT_COMPILER_RESOURCES_REQUIRED", permanent=True,
+            )
+        return self.compiler_resources
+
+    def validate(self, document_id: str, root_config_sha256: str) -> None:
+        policy = self.admission
+        witness = policy.free_tier_witness
+        if (witness is None or witness.document_id is None
+                or witness.document_id != document_id
+                or policy.provider_id != "groq" or policy.model_name != GPT_OSS_120B
+                or policy.root_config_sha256 != root_config_sha256
+                or not isinstance(policy.authorized_max_cost, Decimal)
+                or not policy.authorized_max_cost.is_finite()
+                or policy.authorized_max_cost != Decimal("0")
+                or type(policy.input_limit) is not int or not 1 <= policy.input_limit <= 8000
+                or type(policy.output_limit) is not int or not 1 <= policy.output_limit <= 4096
+                or type(policy.context_window) is not int or not 1 <= policy.context_window <= 131072
+                or not all(isinstance(ref, str) and ref.strip() for ref in (
+                    policy.estimator_evidence_ref, policy.egress_authorization_ref,
+                    policy.data_scope_ref, policy.purpose_ref, policy.retention_ref,
+                    policy.training_use_ref, policy.budget_authorization_ref,
+                    policy.price_evidence_ref,
+                ))):
+            raise G3ExternalEffectNotStartedError(
+                "PPPR_G6_PRODUCT_SCOPE_REJECTED", permanent=True,
+            )
+        witness.verify(model_name=GPT_OSS_120B, target_provider="primary", combined_tokens=1)
+
+
+def build_product_prompt_builder(estimator: TokenEstimatorProtocol) -> PromptBuilder:
+    """One product budget configuration for planning and actual execution."""
+    return PromptBuilder(
+        model_name=GPT_OSS_120B, prompt_version="v1.0",
+        measurement_service=InferenceMeasurementService(estimator),
+        budget_calculator=PromptBudgetCalculator(
+            primary_window_limit=8000, fallback_window_limit=1048576,
+            min_output_reserve=256, max_output_reserve=4096,
+        ),
+        compression_policy=StandardCompressionPolicy(),
+    )
+
+
+def refine_product_chunk_plan(
+    plan: ChunkPlan, ast: Sequence[ASTNode], scope: ProductGroqScope,
+) -> ChunkPlan:
+    """Size a new plan without a provider, thread, journal or quota reservation.
+
+    Use per-request ceilings rather than the current remaining quota. A
+    different minute's balance must not define semantic segmentation. Real
+    admission still verifies the explicit authority and live witness.
+    """
+    from apps.llm_workers.sync_bridge import prepare_chunk_prompt
+
+    builder = build_product_prompt_builder(scope.prompt_estimator)
+    snapshots = derive_verified_plan_contexts(plan, ast)
+    size_rejections = {
+        "PPPR_G3_INPUT_LIMIT_EXCEEDED",
+        "PPPR_G3_OUTPUT_LIMIT_EXCEEDED",
+        "PPPR_G3_CONTEXT_WINDOW_EXCEEDED",
+        "PPPR_G3_FALLBACK_BACKEND_NOT_ACCREDITED",
+    }
+
+    def fits(candidate: ChunkPlan, unit: TranslationUnit) -> bool:
+        try:
+            built, _, _ = prepare_chunk_prompt(
+                candidate, unit, builder=builder, context_snapshots=snapshots,
+                structured_response=True,
+                effective_config_sha256=scope.admission.root_config_sha256,
+            )
+            _, count, reserve = scope.admission.measure_request(built.envelope)
+        except G3ExternalEffectNotStartedError as exc:
+            if str(exc) in size_rejections or str(exc).startswith("G3_B4_3A_PROMPT_REJECTED:"):
+                return False
+            raise
+        return count + reserve <= 8000
+
+    return refine_chunk_plan(plan, ast, scope.prompt_estimator, fits)
 
 
 async def build_provider_stack(
@@ -101,7 +232,7 @@ class _GroqFreeWitnessProvider:
     The explicitly supplied transport factory is the host boundary. No
     default live transport, credential discovery or environment activation.
     Admission, a committed reservation and an accredited measurement remain
-    the caller's responsibility. No product root selects this route yet.
+    the caller's responsibility. Each attempt requires its own committed permit.
     """
 
     def __init__(self, api_key: str, transport_factory: Callable[[], httpx.AsyncBaseTransport]):
@@ -135,7 +266,7 @@ async def build_groq_free_witness_stack(
     transport_factory: Callable[[], httpx.AsyncBaseTransport],
     rate_limit_store: RateLimitStore,
 ) -> LLMProvider:
-    """Compose the one-shot witness via the canonical provider stack.
+    """Compose guarded free attempts via the canonical provider stack.
 
     Requires caller-owned durable local quota store and explicit transport.
     No fallback, legacy cache or paid service selection. The per-minute

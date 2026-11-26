@@ -60,13 +60,20 @@ class PromptBuilder:
         self.budget_calculator = budget_calculator
         self.compression_policy = compression_policy
 
-    def build(self, unit: TranslationUnit, resolved_context: ResolvedContext, target_lang_expansion: float = 1.2) -> PromptBuildResult:
+    def build(self, unit: TranslationUnit, resolved_context: ResolvedContext,
+              target_lang_expansion: float = 1.2, *,
+              response_samples: tuple[str, str] | None = None) -> PromptBuildResult:
         if not unit.target_payload:
             return BuildFailure(status="failed", error_reason=BudgetViolationReason.NONE, message="Target payload vacío.")
 
         intent = PromptIntentMapper.map_from_task(unit.chunk_type)
         constraints = ConstraintFactory.create_for_task(unit.chunk_type)
         payload = PromptPayload(content=unit.target_payload)
+        response_reserve = (
+            self.measurement_service.estimate_response_reserve(
+                response_samples[0], response_samples[1], target_lang_expansion,
+            ) if response_samples is not None else None
+        )
 
         best_schema: Optional[PromptSchema] = None
         decision = None
@@ -93,7 +100,15 @@ class PromptBuilder:
             
             measurable = PromptMeasurementAdapter(test_schema)
             measurement = self.measurement_service.measure(measurable)
-            decision = self.budget_calculator.calculate(measurement, target_lang_expansion)
+            decision = (
+                self.budget_calculator.calculate(
+                    measurement, target_lang_expansion, output_reserve_tokens=response_reserve,
+                ) if response_reserve is not None else
+                self.budget_calculator.calculate(measurement, target_lang_expansion)
+            )
+            if (decision.status == BudgetDecisionType.REJECT
+                    and decision.violation_reason == BudgetViolationReason.OUTPUT_RESERVE_TOO_LARGE):
+                break
 
             if decision.status in (BudgetDecisionType.VALID, BudgetDecisionType.SWITCH_MODEL):
                 best_schema = test_schema

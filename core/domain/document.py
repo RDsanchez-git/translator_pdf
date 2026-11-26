@@ -140,6 +140,7 @@ class LayoutBlock(BaseModel):
     block_id: BlockId
     logical_type: LayoutBlockType
     content: RawContent
+    asset_path: Optional[str] = None  # explicit protected TABLE_COMPLEX PDF
     bbox: Optional[BoundingBox] = None
     metadata: LayoutMetadata
     relationships: BlockRelationships

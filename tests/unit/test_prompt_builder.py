@@ -109,3 +109,33 @@ class TestPromptBuilder(unittest.TestCase):
         # SOTA FIX: El hash es inmune a metadatos (modelo y versión) si el contenido renderizado es idéntico
         self.assertEqual(env_base.prompt_hash, env_alt_model.prompt_hash)
         self.assertEqual(env_base.prompt_hash, env_alt_version.prompt_hash)
+
+    def test_explicit_structured_response_reserve_does_not_expand_request_only_text(self):
+        from dataclasses import replace
+        from math import ceil
+        empty = '{"content":"response binding"}'
+        source = '{"content":"response binding and translated source words"}'
+        unit = replace(self.unit, target_payload="instruction " * 800 + self.unit.target_payload)
+        factor = 2.0
+        result = self.builder.build(unit, self.context, factor, response_samples=(empty, source))
+        self.assertEqual(result.status, "success")
+        assert result.status == "success"
+        expected = self.estimator.estimate_tokens(empty) + ceil(max(
+            0, self.estimator.estimate_tokens(source) - self.estimator.estimate_tokens(empty),
+        ) * factor)
+        self.assertEqual(result.envelope.budget_stats.reserved_tokens, max(256, expected))
+        self.assertEqual(result.envelope.budget_stats.payload_tokens,
+                         self.estimator.estimate_tokens(unit.target_payload))
+        legacy = self.builder.build(unit, self.context, factor)
+        assert legacy.status == "success"
+        self.assertGreater(legacy.envelope.budget_stats.reserved_tokens,
+                           result.envelope.budget_stats.reserved_tokens)
+
+    def test_explicit_response_requirement_above_cap_is_not_silently_clamped(self):
+        from core.validation.budget import BudgetViolationReason
+        result = self.builder.build(self.unit, self.context, 2.0,
+                                    response_samples=("binding", "binding" + " word" * 3000))
+        assert result.status == "failed"
+        self.assertEqual(result.error_reason, BudgetViolationReason.OUTPUT_RESERVE_TOO_LARGE)
+        assert result.budget_stats is not None
+        self.assertGreater(result.budget_stats.reserved_tokens, 4096)

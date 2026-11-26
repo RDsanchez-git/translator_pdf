@@ -281,3 +281,83 @@ def test_verified_harmony_estimator_feeds_existing_admission(synthetic_harmony_c
     assert audit["input_tokens"] == estimator.estimate_tokens(serialized)
     assert audit["free_tier_witness"]["reserved_tokens"] == audit["input_tokens"] + 256
     assert audit["request_sha256"] == sha256(serialized.encode()).hexdigest()
+
+
+def test_harmony_bound_counts_decoded_utf8_and_attested_framing(policy):
+    from apps.llm_workers.g3_admission import GroqHarmonyInputBound
+    envelope = replace(_make_envelope(), model_name=GPT_OSS_120B)
+    wire, _ = build_groq_request_kwargs(envelope, OpenAICompatibleDialect())
+    # Quotes, escaped controls, combining characters, non-Latin and literal
+    # token spellings must be counted as the actual decoded UTF-8 strings.
+    wire["messages"][1]["content"] = 'α漢é🙂 e\\u0301 "\\\\n" <|start|>'
+    serialized = json.dumps(wire, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    bound = GroqHarmonyInputBound(128, "SYNTHETIC_FRAMING_ONLY")
+    assert bound.estimate_tokens(serialized) == 128 + sum(
+        len(message["content"].encode("utf-8")) for message in wire["messages"]
+    )
+    canonical, count, reserve = replace(
+        policy, input_estimator=bound, estimator_evidence_ref=bound.framing_evidence_ref,
+    ).measure_request(envelope)
+    assert count == bound.estimate_tokens(canonical)
+    assert reserve == envelope.budget_stats.reserved_tokens
+    decision = _verify(replace(policy, input_estimator=bound,
+                               estimator_evidence_ref=bound.framing_evidence_ref))
+    audit = json.loads(decision.audit_json)
+    assert audit["input_tokens"] == count
+    assert audit["framing_token_ceiling"] == 128
+    assert audit["free_tier_witness"]["reserved_tokens"] == count + reserve
+    assert audit["input_bound_method"] == "UTF8_MESSAGE_BYTES_PLUS_ATTESTED_FRAMING_V1"
+    with pytest.raises(G3ExternalEffectNotStartedError, match="FRAMING_EVIDENCE_DRIFT"):
+        _verify(replace(policy, input_estimator=bound))
+    with pytest.raises(G3ExternalEffectNotStartedError, match="INPUT_LIMIT_EXCEEDED"):
+        _verify(replace(policy, input_estimator=bound,
+                        estimator_evidence_ref=bound.framing_evidence_ref, input_limit=count-1))
+
+
+@pytest.mark.parametrize("ceiling,ref", [(0, "ref"), (-1, "ref"), (True, "ref"), (128, ""), (128, " ")])
+def test_harmony_bound_requires_explicit_framing_evidence(ceiling, ref):
+    from apps.llm_workers.g3_admission import GroqHarmonyInputBound
+    with pytest.raises(ValueError, match="FRAMING_EVIDENCE_REQUIRED"):
+        GroqHarmonyInputBound(ceiling, ref)
+
+
+@pytest.mark.parametrize("change", [
+    {"tools": []}, {"reasoning_effort": "high"}, {"stream": True},
+    {"response_format": {"type": "json_schema"}}, {"max_completion_tokens": True},
+    {"messages": [{"role": "user", "content": "a"}]},
+    {"messages": [{"role": "system", "content": "a"},
+                  {"role": "user", "content": [{"type": "text", "text": "b"}]}]},
+])
+def test_harmony_bound_rejects_unaccredited_wire_variations(change):
+    from apps.llm_workers.g3_admission import GroqHarmonyInputBound
+    wire, _ = build_groq_request_kwargs(
+        replace(_make_envelope(), model_name=GPT_OSS_120B), OpenAICompatibleDialect(),
+    )
+    wire.update(change)
+    bound = GroqHarmonyInputBound(128, "SYNTHETIC_FRAMING_ONLY")
+    with pytest.raises(ValueError, match="WIRE_UNSUPPORTED"):
+        bound.estimate_tokens(json.dumps(wire, ensure_ascii=False, sort_keys=True, separators=(",", ":")))
+
+
+def test_product_harmony_composition_separates_local_bpe_and_admission(synthetic_harmony_cache, policy):
+    from apps.bootstrap.provider_stack_factory import ProductGroqScope
+    from apps.llm_workers.g3_admission import GroqHarmonyInputBound
+    cache, path = synthetic_harmony_cache
+    scope = ProductGroqScope.with_verified_harmony(
+        policy, lambda: pytest.fail("composition created a transport"),
+        rank_cache_dir=cache, framing_token_ceiling=128,
+        framing_evidence_ref="SYNTHETIC_FRAMING_ONLY",
+    )
+    assert scope.prompt_estimator.estimate_tokens("abc") == 1
+    assert isinstance(scope.admission.input_estimator, GroqHarmonyInputBound)
+    assert scope.admission.estimator_evidence_ref == "SYNTHETIC_FRAMING_ONLY"
+    assert scope.admission.free_tier_witness == policy.free_tier_witness
+    assert policy.estimator_evidence_ref == "synthetic-estimator"
+    assert json.loads(_verify(scope.admission).audit_json)["framing_token_ceiling"] == 128
+    path.unlink()
+    with pytest.raises(ValueError, match="CACHE_MISSING"):
+        ProductGroqScope.with_verified_harmony(
+            policy, lambda: pytest.fail("missing cache created a transport"),
+            rank_cache_dir=cache, framing_token_ceiling=128,
+            framing_evidence_ref="SYNTHETIC_FRAMING_ONLY",
+        )

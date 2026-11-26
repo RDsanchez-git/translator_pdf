@@ -203,6 +203,7 @@ def build_extraction_pipeline(config: ExtractionConfiguration | None = None) -> 
             block_id=block.block_id,
             logical_type=block.logical_type.value,
             content=block.content.normalized,
+            asset_path=block.asset_path,
             bbox=block.bbox,  # Ausencia real: no fabricar un bbox unitario.
             source_document=source_document,
             page_width=page_width,

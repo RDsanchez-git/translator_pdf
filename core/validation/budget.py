@@ -57,16 +57,33 @@ class PromptBudgetCalculator:
         self.min_output_reserve = min_output_reserve
         self.max_output_reserve = max_output_reserve
 
-    def calculate(self, measurement: InferenceMeasurement, expansion_factor: float = 1.2) -> BudgetDecision:
+    def calculate(self, measurement: InferenceMeasurement, expansion_factor: float = 1.2,
+                  *, output_reserve_tokens: int | None = None) -> BudgetDecision:
         sys_tok = measurement.instruction_tokens + measurement.structural_overhead
         ctx_tok = measurement.context_tokens
         pay_tok = measurement.payload_tokens
 
-        dyn_reserve = int(pay_tok * expansion_factor)
-        reserve = min(self.max_output_reserve, max(self.min_output_reserve, dyn_reserve))
+        if output_reserve_tokens is None:
+            # Historical callers without an explicit response model.
+            dyn_reserve = int(pay_tok * expansion_factor)
+            reserve = min(self.max_output_reserve, max(self.min_output_reserve, dyn_reserve))
+        else:
+            if type(output_reserve_tokens) is not int or output_reserve_tokens <= 0:
+                raise ValueError("G3_RESPONSE_BUDGET_RESERVE_INVALID")
+            reserve = max(self.min_output_reserve, output_reserve_tokens)
 
         initial_budget = PromptBudget(sys_tok, ctx_tok, pay_tok, reserve, self.primary_window_limit)
         core_tokens = sys_tok + pay_tok + reserve
+        # An explicitly measured output requirement must not be silently
+        # saturated at the maximum: the unit needs a smaller lawful plan.
+        if output_reserve_tokens is not None and reserve > self.max_output_reserve:
+            return BudgetDecision(
+                status=BudgetDecisionType.REJECT,
+                violation_reason=BudgetViolationReason.OUTPUT_RESERVE_TOO_LARGE,
+                budget=initial_budget,
+                suggested_context_level=ContextReductionLevel.NONE,
+                required_window_size=initial_budget.total_estimated,
+            )
 
         if initial_budget.total_estimated <= self.primary_window_limit:
             return BudgetDecision(

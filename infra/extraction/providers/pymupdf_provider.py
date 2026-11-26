@@ -1,6 +1,7 @@
 import os
 import re
 from pathlib import Path
+from math import isfinite
 from dataclasses import dataclass
 from typing import cast, Any, List, Dict, Tuple, Optional
 from collections import defaultdict
@@ -32,19 +33,22 @@ from core.execution.exceptions import LayoutRecoveryError
 from infra.extraction.providers.pymupdf_integrity import (
     UnrepresentedPdfContentError, validate_pymupdf_page_coverage,
 )
-from infra.extraction.providers.pymupdf_image_assets import persist_png_asset
+from infra.extraction.providers.pymupdf_image_assets import persist_png_asset, persist_pdf_asset
+from infra.extraction.providers.pymupdf_protected_regions import ProtectedRegion, prepare_protected_page
 from infra.extraction.providers.pymupdf_math_visual import classify_math_font_block, render_math_visual_png
 import statistics
 
 @dataclass(frozen=True, slots=True)
 class _PhysicalBlock:
     """DTO interno privado para aislar la inspección física del mapeo de dominio."""
-    native_index: int
+    native_index: int | None
     raw_text: str
     bbox: tuple[float, float, float, float]
     lines: list[dict]
     rotation: float
     native_type: int = 0
+    protected_type: LayoutBlockType | None = None
+    region_index: int | None = None
 
 
 
@@ -123,17 +127,45 @@ class PyMuPDFProvider(ExtractionProvider):
 
         page_dict = cast(dict[str, Any], page.get_text("dict"))
         raw_blocks = page_dict.get("blocks", [])
+        # Validate raw types and glyphs before attempting any replacement.
+        # The second guard below is driven by exact region coverage, never
+        # by the mere existence of a proposed rectangle.
         validate_pymupdf_page_coverage(
-            raw_blocks,
-            page_number=page_number,
-            has_vector_drawings=bool(page.get_drawings()),
+            raw_blocks, page_number=page_number, has_vector_drawings=False,
             allow_image_blocks=self._write_images,
         )
+        drawings = page.get_drawings()
+        regions: tuple[ProtectedRegion, ...] = ()
+        if drawings and self._write_images:
+            raw_blocks, regions = prepare_protected_page(page, raw_blocks, page_number=page_number)
+        represented = {index for region in regions for index in region.covered_drawings}
+        validate_pymupdf_page_coverage(
+            raw_blocks, page_number=page_number,
+            has_vector_drawings=represented != set(range(len(drawings))),
+            allow_image_blocks=self._write_images,
+        )
+        covered_blocks = {index for region in regions for index in region.covered_blocks}
+        insertions = {region.insert_before: (i, region) for i, region in enumerate(regions)}
+        captions = {region.caption_block for region in regions if region.caption_block is not None}
 
-        # Preserve native block order, including images. No invisible IMAGE nodes.
+        # Region bytes have been validated before publication. Existing native
+        # blocks retain their original IDs and order.
         physical_blocks: list[_PhysicalBlock] = []
         for block_index, raw_b in enumerate(raw_blocks):
+            if block_index in insertions:
+                ordinal, region = insertions[block_index]
+                reference = persist_pdf_asset(
+                    region.pdf, source_root=Path(os.getenv("APP_ROOT") or ".")
+                )
+                physical_blocks.append(_PhysicalBlock(
+                    native_index=None, raw_text=reference, bbox=region.bbox,
+                    lines=[], rotation=rotation, native_type=1,
+                    protected_type=region.logical_type, region_index=ordinal,
+                ))
+            if block_index in covered_blocks:
+                continue
             if raw_b.get("type") == 1:
+                asset_bbox = self._validated_asset_bbox(raw_b, page_number=page_number)
                 png = self._image_block_to_png(raw_b, page_number=page_number)
                 reference = persist_png_asset(
                     png, source_root=Path(os.getenv("APP_ROOT") or ".")
@@ -141,7 +173,7 @@ class PyMuPDFProvider(ExtractionProvider):
                 phys = _PhysicalBlock(
                     native_index=int(raw_b.get("number", block_index)),
                     raw_text=reference,
-                    bbox=tuple(raw_b.get("bbox", ())),
+                    bbox=asset_bbox,
                     lines=[], rotation=rotation, native_type=1,
                 )
             else:
@@ -157,6 +189,7 @@ class PyMuPDFProvider(ExtractionProvider):
                         raise UnrepresentedPdfContentError(
                             f"B025_MATH_VISUAL_DISABLED: page={page_number}"
                         )
+                    asset_bbox = self._validated_asset_bbox(raw_b, page_number=page_number)
                     png = render_math_visual_png(page, raw_b, page_number=page_number)
                     reference = persist_png_asset(
                         png, source_root=Path(os.getenv("APP_ROOT") or ".")
@@ -164,7 +197,7 @@ class PyMuPDFProvider(ExtractionProvider):
                     phys = _PhysicalBlock(
                         native_index=int(raw_b.get("number", block_index)),
                         raw_text=reference,
-                        bbox=tuple(raw_b.get("bbox", ())),
+                        bbox=asset_bbox,
                         lines=[], rotation=rotation, native_type=1,
                     )
                 else:
@@ -173,6 +206,11 @@ class PyMuPDFProvider(ExtractionProvider):
                         default_idx=block_index,
                         rotation=rotation,
                     )
+            if block_index in captions:
+                from dataclasses import replace
+                if phys.native_type != 0:
+                    raise UnrepresentedPdfContentError("DF01_CAPTION_NOT_TEXT")
+                phys = replace(phys, protected_type=LayoutBlockType.CAPTION)
             physical_blocks.append(phys)
 
         # Fase 2: Calcular contexto estadístico de la página
@@ -198,7 +236,8 @@ class PyMuPDFProvider(ExtractionProvider):
 
             # Clasificar ANTES de construir el Aggregate
             logical_type = (
-                LayoutBlockType.IMAGE if phys.native_type == 1
+                phys.protected_type if phys.protected_type is not None
+                else LayoutBlockType.IMAGE if phys.native_type == 1
                 else self._classifier.classify(signals, page_context)
             )
 
@@ -219,6 +258,25 @@ class PyMuPDFProvider(ExtractionProvider):
             dimensions=dimensions,
             blocks=blocks,
         )
+
+    @staticmethod
+    def _validated_asset_bbox(
+        raw_block: dict, *, page_number: int,
+    ) -> tuple[float, float, float, float]:
+        """Validate the native asset rectangle before publishing its bytes."""
+        coords = raw_block.get("bbox")
+        reason = f"B02_INVALID_ASSET_BBOX: page={page_number}"
+        if not isinstance(coords, (tuple, list)) or len(coords) != 4:
+            raise UnrepresentedPdfContentError(reason)
+        if any(type(value) not in (int, float) for value in coords):
+            raise UnrepresentedPdfContentError(reason)
+        try:
+            x0, y0, x1, y1 = (float(value) for value in coords)
+        except (TypeError, ValueError, OverflowError) as exc:
+            raise UnrepresentedPdfContentError(reason) from exc
+        if not all(isfinite(value) for value in (x0, y0, x1, y1)) or x1 <= x0 or y1 <= y0:
+            raise UnrepresentedPdfContentError(reason)
+        return x0, y0, x1, y1
 
     @staticmethod
     def _image_block_to_png(raw_block: dict, *, page_number: int) -> bytes:
@@ -291,9 +349,9 @@ class PyMuPDFProvider(ExtractionProvider):
             ocr=1.0,
             layout_classification=1.0,
         )
-        provider_meta = ProviderMetadata(
-            provider_name="pymupdf",
-            native_block_index=phys_block.native_index,
+        provider_meta = (
+            ProviderMetadata(provider_name="pymupdf", native_block_index=phys_block.native_index)
+            if phys_block.native_index is not None else None
         )
 
         metadata = LayoutMetadata(
@@ -303,7 +361,12 @@ class PyMuPDFProvider(ExtractionProvider):
             provider=provider_meta,
         )
 
-        block_id = BlockId(value=f"p{page_number}_b{phys_block.native_index}")
+        if phys_block.region_index is not None:
+            block_id = BlockId(value=f"p{page_number}_region{phys_block.region_index}")
+        elif phys_block.native_index is not None:
+            block_id = BlockId(value=f"p{page_number}_b{phys_block.native_index}")
+        else:
+            raise UnrepresentedPdfContentError("DF01_REGION_IDENTITY_MISSING")
         relationships = BlockRelationships()
         versioning = DomainVersion(version=1, origin=OriginType.EXTRACTOR)
 
@@ -312,6 +375,7 @@ class PyMuPDFProvider(ExtractionProvider):
             block_id=block_id,
             logical_type=logical_type,
             content=content,
+            asset_path=(phys_block.raw_text if phys_block.protected_type == LayoutBlockType.TABLE_COMPLEX else None),
             bbox=bbox,
             metadata=metadata,
             relationships=relationships,

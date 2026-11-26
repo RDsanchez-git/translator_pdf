@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from apps.lab.pppr_offline_scope import OfflineLabScope
+    from apps.bootstrap.provider_stack_factory import ProductGroqScope
 from pathlib import Path
 
 from rich.console import Console
@@ -38,7 +39,8 @@ async def handle_translate_async(args):
     raise RuntimeError("C4_T06_R1_LEGACY_ENTRYPOINT_DISABLED")
 
 
-def handle_translate(args, *, offline_scope: "OfflineLabScope | None" = None):
+def handle_translate(args, *, offline_scope: "OfflineLabScope | None" = None,
+                     product_scope: "ProductGroqScope | None" = None):
     # D-1: la CLI admite una solicitud. No ejecuta R1 ni llama al LLM.
     from apps.cli.pdf_inbox import PDFInboxSubmissionError, submit_pdf_to_inbox
 
@@ -66,6 +68,9 @@ def handle_translate(args, *, offline_scope: "OfflineLabScope | None" = None):
         except PDFProductError as exc:
             console.print(f"[bold red]PDF_RUN_PREFLIGHT_FAILED:[/] {exc}")
             raise SystemExit(2) from exc
+    if product_scope is not None:
+        if offline_scope is not None or not getattr(args, "run", False):
+            raise SystemExit("PPPR_G6_PRODUCT_FOREGROUND_REQUIRED")
     if offline_scope is not None:
         if not getattr(args, "run", False):
             raise SystemExit("PPPR_G5_LAB_FOREGROUND_REQUIRED")
@@ -91,7 +96,9 @@ def handle_translate(args, *, offline_scope: "OfflineLabScope | None" = None):
     if getattr(args, "run", False):
         from apps.cli.pdf_product import PDFProductError, run_admitted_pdf
         try:
-            if offline_scope is None:
+            if product_scope is not None:
+                result = run_admitted_pdf(receipt, repo_root, product_scope=product_scope)
+            elif offline_scope is None:
                 result = run_admitted_pdf(receipt, repo_root)
             else:
                 result = run_admitted_pdf(receipt, repo_root, offline_scope=offline_scope)
@@ -170,9 +177,14 @@ def parse_arguments() -> argparse.Namespace:
     
     return parser.parse_args()
 
-def main(*, offline_scope: "OfflineLabScope | None" = None):
+def main(*, offline_scope: "OfflineLabScope | None" = None,
+         product_scope: "ProductGroqScope | None" = None):
     args = parse_arguments()
-    if offline_scope is None:
+    if product_scope is not None:
+        if offline_scope is not None or args.command != "translate" or not args.run:
+            raise SystemExit("PPPR_G6_PRODUCT_FOREGROUND_REQUIRED")
+        handle_translate(args, product_scope=product_scope)
+    elif offline_scope is None:
         args.func(args)
     elif args.command == "translate" and args.run:
         handle_translate(args, offline_scope=offline_scope)

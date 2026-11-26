@@ -4,7 +4,7 @@ from typing import List
 from core.compiler.rendering.policies import DocumentStructurePolicy, RenderStrategy
 from core.compiler.rendering.models import RenderUnit, RenderingConfiguration, RenderGeometry
 from core.compiler.rendering.image_assets import canonical_image_name
-from core.ast.enums import HeadingLevel
+from core.ast.enums import HeadingLevel, ContentNodeType
 from core.normalization.explicit_math import find_explicit_math_spans
 
 class LatexEscaper:
@@ -171,13 +171,29 @@ class AdaptiveFloatStrategy(RenderStrategy):
         if unit.asset is None:
             raise ValueError("B02_G5_IMAGE_ASSET_REFERENCE_MISSING")
         name = canonical_image_name(unit.asset)
-        graphic = f"\\includegraphics[width=\\linewidth,keepaspectratio]{{assets/{name}}}"
+        # PNG rendering retains its historical width policy. For a PDF
+        # region, use its natural crop-box size and scale down only when the
+        # available width is smaller. Never enlarge a short editorial rule.
+        if unit.asset.mime_type == "application/pdf":
+            graphic = (
+                rf"\begingroup\sbox{{0}}{{\includegraphics[pagebox=cropbox]{{assets/{name}}}}}"
+                r"\ifdim\wd0>\linewidth\resizebox{\linewidth}{!}{\usebox{0}}"
+                r"\else\usebox{0}\fi\endgroup"
+            )
+        else:
+            graphic = f"\\includegraphics[width=\\linewidth,keepaspectratio]{{assets/{name}}}"
         threshold = self._config.float_span_threshold
         if not isfinite(threshold) or not 0 < threshold < 1:
             raise ValueError("PPPR_G4_INVALID_FLOAT_SPAN_THRESHOLD")
         width = usable_image_width(unit.geometry)
         is_wide = width is not None and width > threshold
-        environment = "figure*" if self._config.is_multi_column and is_wide else "figure"
+        if unit.asset.mime_type == "application/pdf":
+            if width is None:
+                raise ValueError("DF01_PDF_GEOMETRY_UNVERIFIED")
+            if not self._config.is_multi_column or not is_wide:
+                return "\\par\\noindent\n" + graphic + "\n\\par"
+        base_environment = "table" if unit.node_type == ContentNodeType.TABLE_COMPLEX else "figure"
+        environment = base_environment + "*" if self._config.is_multi_column and is_wide else base_environment
         # Unknown width is not a verified narrow image. Retain a conservative
         # diagnostic representation; publication is gated by CompilationService.
         diagnostic = (

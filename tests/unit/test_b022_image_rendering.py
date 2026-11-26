@@ -65,3 +65,22 @@ def test_noncanonical_asset_is_not_embedded_in_tex(path):
 def test_non_png_mime_rejected():
     with pytest.raises(ValueError, match="B02_G5_IMAGE_UNSUPPORTED_MIME"):
         canonical_image_name(AssetReference(path=_REF, mime_type="image/jpeg"))
+
+
+@pytest.mark.unit
+def test_df01_explicit_pdf_reference_renders_crop_box_without_source_tex():
+    ref = AssetReference(path="data/assets/" + _DIGEST + ".pdf", mime_type="application/pdf")
+    strategy = AdaptiveFloatStrategy(RenderingConfiguration(is_multi_column=False))
+    tex = strategy.render(_unit(ref))
+    assert r"\includegraphics[pagebox=cropbox]{assets/" + _DIGEST + ".pdf}" in tex
+    assert r"\ifdim\wd0>\linewidth\resizebox{\linewidth}{!}{\usebox{0}}" in tex
+    assert r"\else\usebox{0}\fi\endgroup" in tex
+    assert r"\includegraphics[width=\linewidth" not in tex
+    assert r"\input" not in tex
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("extension,mime", [("pdf", "image/png"), ("png", "application/pdf")])
+def test_df01_mime_and_extension_must_agree(extension, mime):
+    with pytest.raises(ValueError, match="B02_G5_IMAGE_NONCANONICAL_REFERENCE"):
+        canonical_image_name(AssetReference(path="data/assets/" + _DIGEST + "." + extension, mime_type=mime))

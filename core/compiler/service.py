@@ -24,6 +24,8 @@ from core.compiler.rendering.context import RenderContextFactory
 from core.compiler.rendering.implementations import usable_image_width
 from core.compiler.rendering.models import RenderUnit, AssetReference
 from core.ast.enums import ContentNodeType
+from core.ast.models import VisualTablePayload
+from core.compiler.rendering.image_assets import canonical_image_name
 from apps.compiler.tex_builder import TexBuilder
 
 logger = logging.getLogger(__name__)
@@ -111,6 +113,20 @@ class CompilationService:
             text = projection.normalized_response
 
             rendered = self._mapper.map_to_unit([node], text)
+            if isinstance(node.payload, VisualTablePayload):
+                if (node.node_type != ContentNodeType.TABLE_COMPLEX
+                        or text != node.payload.asset_path
+                        or rendered.asset is None
+                        or rendered.asset.path != node.payload.asset_path
+                        or rendered.asset.mime_type != "application/pdf"
+                        or usable_image_width(rendered.geometry) is None):
+                    raise ASTConsistencyError("DF01_TABLE_ASSET_OR_GEOMETRY_DRIFT")
+                canonical_image_name(rendered.asset)
+            elif rendered.asset is not None and node.node_type != ContentNodeType.IMAGE:
+                raise ASTConsistencyError("DF01_UNEXPECTED_RENDER_ASSET")
+            if (rendered.asset is not None and rendered.asset.mime_type == "application/pdf"
+                    and (text != rendered.asset.path or usable_image_width(rendered.geometry) is None)):
+                raise ASTConsistencyError("DF01_PDF_ASSET_OR_GEOMETRY_DRIFT")
             # G2 can attest partial physical regions. Never silently substitute
             # fabricated geometry when such provenance is present but invalid.
             if node.metadata.physical_regions and rendered.geometry is None:
@@ -131,7 +147,7 @@ class CompilationService:
         # text renderable, but refuse conforming publication of this image.
         for unit in render_units:
             if (render_context.is_multi_column
-                    and unit.node_type == ContentNodeType.IMAGE
+                    and (unit.node_type == ContentNodeType.IMAGE or unit.asset is not None)
                     and usable_image_width(unit.geometry) is None):
                 safe_id = ascii(unit.node_id)
                 logger.error(
@@ -148,5 +164,6 @@ class CompilationService:
             if unit.node_type == ContentNodeType.IMAGE:
                 if unit.asset is None:
                     raise ASTConsistencyError("B02_G5_IMAGE_ASSET_REFERENCE_MISSING")
+            if unit.asset is not None:
                 assets.append(unit.asset)
         return builder.build(render_units), tuple(assets)
