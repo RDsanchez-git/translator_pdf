@@ -1217,3 +1217,35 @@ El investigador renderizó la página recibida y amplió físicamente las fórmu
 #### 12.28.3. Disposición
 
 R0 CLOSED_WITH_LIMITATIONS / OWNER_APPROVED. R1 E1 SINGLE_PAGE_PROBE_EXECUTED, OPERABILITY_PASS_IN_SCOPE, QUALITY_FAIL_OBSERVED_STEM, no PASS de candidato ni ganador. Se conserva instalación, evidencia y salida nativa sin reejecutar esta sonda. La autorización anterior sólo cubre esta página; no extender a matriz por silencio. Dado el falsador material y la instrucción de detener ante él, no ejecutar automáticamente 21 páginas de E1 ni iniciar adaptadores/fixes. Se recomienda siguiente comparación acotada contra E0 PyMuPDF instalado, mismo PDF/página y control de procedencia, para distinguir lo que aporta el OCR frente al texto digital nativo; no afirmar que E0 es superior sin medir, ni usar como oráculo histórico. La comparación E0 y cualquier caracterización adicional de E1 requieren autorización de ensayo local; luego disponer candidatos restantes conforme a bloqueos y utilidad discriminante, sin nueva campaña de anotaciones. No elegir E1 ni descartarlo universalmente por una página, pero no admitir su Markdown sin validación como base de traducción científica íntegra. R2–R5 NOT_RUN. PR97 Draft, CI no acreditada, sin cambio de código productivo ni merge.
+
+
+### 12.29. R1 — Matriz comparativa acumulativa y contraste preliminar E0/E1 (2026-11-27)
+
+El owner considera casi excelente la salida E1 de la primera página salvo la barra de K, advierte que es un PDF digital nativo sencillo y autoriza comparar con PyMuPDF ya instalado. Solicita confirmar registro comparativo acumulativo de todos los candidatos. Se adopta tabla acumulativa en este mismo informe, con nuevas versiones en las siguientes secciones a medida que se obtenga evidencia; no nueva planilla a completar por el owner. Se mantienen falsadores, casos, presupuestos y limitaciones §12.20, sin extender la autorización a toda la matriz ni iniciar R2.
+
+#### 12.29.1. Contraste preliminar de la página compartida
+
+Se abrió el PDF derivado recibido E-R01_p1.pdf, SHA-256 745770f95ea64500c4d09dc423d2cfa6ebe8275ed2d12eb3869cd5509377488f, con PyMuPDF 1.26.7 disponible en el entorno del investigador (no E0 fijado 1.27.2.3 del host Windows). Se ejecutó get_text() y se inspeccionaron spans mediante get_text("dict") y render de la página física. Se conserva evidencia de versión diferente; no se mide ni compara rendimiento entre máquinas ni se transfiere resultado a 1.27.2.3 sin verificar. Sin GT, sin AST ni adaptación. Prosa y orden de lectura observados conservados; salida plana fragmenta líneas, no clasifica título/subtítulo/abstract como estructura semántica. E0 devuelve literalmente `κ ¯Ksus = ¯L2`; barra separada, subíndice y superíndice linealizados. Spans conservan barras independientes y tamaños/posiciones de fuentes LMRoman7-Regular frente a LMMathItalic10-Regular, de modo que existe información geométrica para interpretar modificadores, no representación matemática explícita. E0-OBS-P01: raíz cuadrada emitida como `p` en fuente LMMathExtension10-Regula; texto plano no preserva notación literal. Definición de m mantiene caracteres básicos y barra de L separada. E1 representa raíz y definición de m en LaTeX, pierde barra de K, según §12.28. No inferir que una salida nativa rica de E0 es incapaz de reconstruir matemáticas, ni que E1 preserva todas las propiedades por emitir LaTeX. Número de página 1 visible en E0 texto plano; E1 lo omite del Markdown pero reporta bloque number. No se inspeccionó JSON nativo E1. Estas observaciones son preliminares sobre una página, no calidad poblacional.
+
+#### 12.29.2. Matriz acumulativa R1 — revisión 1
+
+| ID | Motor / versión fijada | Estado operativo en host | Evidencia de calidad | Caso ejecutado en host | Tiempo de sonda host | RAM disponible mínima host | Pico commit Job | Lote observado |
+| --- | --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: |
+| E0 | PyMuPDF 1.27.2.3 | Instalado; contraste autorizado | Preliminar 1.26.7 investigador: prosa y orden conservados; raíz como p, matemática linealizada; pendiente versión fijada | Pendiente | — | — | — | — |
+| E1 | MiniCPM-OCR 1.0.4 / b11901 CPU Q8 + DSpark | Sonda completada offline | Prosa muy buena; barra K perdida, STEM FAIL_OBSERVED en Markdown | E-R01 p1, 1 página | 145,84 s | 10,34 GiB | 4,35 GiB | 3,36 GiB |
+| E2 | PaddleOCR-VL 1.6 / PaddleOCR 3.7.0 CPU | Bloqueado manifiesto | NOT_EVALUATED | — | — | — | — | — |
+| E3 | MinerU 4.2.0 Standard ONNX/llama.cpp | Bloqueado manifiesto | NOT_EVALUATED | — | — | — | — | — |
+| E4 | Docling 2.152.0 CPU | Bloqueado manifiesto | NOT_EVALUATED | — | — | — | — | — |
+| E5 | pdf-inspector 1.27.1 | Bloqueado manifiesto | NOT_EVALUATED | — | — | — | — | — |
+
+| Propiedad E-R01 p1 | E0 preliminar 1.26.7 | E1 1.0.4 |
+| --- | --- | --- |
+| Prosa y orden | Sin defecto observado | Sin defecto observado |
+| Jerarquía | Texto plano sin etiquetas; spans/geom disponibles | Encabezados Markdown, ambos títulos H1 |
+| Fórmula con barra K | Barra presente separada, relaciones linealizadas | Barra omitida; defecto STEM |
+| Raíz cuadrada | Glifo emitido como p en texto | LaTeX correcto observado |
+| Sub/superíndices | Geometría presente, sin semántica explícita en texto | LaTeX explícito en fórmula |
+| Número página | Presente | Ausente Markdown; bloque nativo number reportado |
+| Tablas, figuras, doble columna, escaneo, continuidad | NOT_EVALUATED | NOT_EVALUATED |
+
+Se completará una fila por candidato/caso con configuración exacta, contexto, versión, cobertura observada y defectos relevantes, tiempo cold/warm cuando se mida, memoria/espacio, estado y evidencia. Las celdas no medidas no son cero ni PASS. No ranking agregado que compense falsadores; ninguna elección arquitectónica todavía. Para contraste local E0 se facilita invocación directa de PyMuPDF instalado desde venv productivo sólo en lectura, sobre el mismo PDF derivado verificado; se registra versión, identidad, tiempo de import+apertura+extracción de texto y dict, tiempo de extracción y salida nativa. No se instala nada, no se vuelve a ejecutar E1, no se requiere apagar Wi-Fi para lectura local sin cliente de red, no se abren GT. Las métricas de tiempo de E0 y E1 no son idénticas cargas (E0 obtiene texto/estructura geométrica, E1 reconocimiento/estructura semántica); registrar esa diferencia. Memoria pico no medida en contraste simple E0, no inventar equivalencia. R1 en curso, E0 host pendiente; E1 preservado sin correcciones; R2–R5 NOT_RUN. PR97 Draft, sin merge ni cambio productivo.
