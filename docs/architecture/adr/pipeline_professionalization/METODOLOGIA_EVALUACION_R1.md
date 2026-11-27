@@ -1,6 +1,6 @@
 # Metodología de evaluación R1 — extracción documental
 
-**Versión 1.0 · adoptada por el Staff conforme al mandato del owner de 2026-11-27; revisión del Board/aceptación de integración pendientes.** Aplicable a la siguiente comparación desde E2; la aplicación a E0/E1 es retrospectiva. Complementa [el informe de investigación](./INFORME_INVESTIGACION_Y_HOJA_DE_RUTA.md) §§8–9, 12.12–13 y 12.20. No es ADR de arquitectura, cambio de normas FROZEN, ni permiso de ejecución. La única matriz viva es [Matriz comparativa R1](./MATRIZ_COMPARATIVA_R1.md).
+**Versión 1.0 · adoptada por el Staff conforme al mandato del owner de 2026-11-27; revisión del Board/aceptación de integración pendientes.** Aplicable a la siguiente comparación desde E2; la aplicación a E0/E1 es retrospectiva. Complementa [el informe de investigación](./INFORME_INVESTIGACION_Y_HOJA_DE_RUTA.md) §§8–9, 12.12–13 y 12.20. No es ADR de arquitectura, cambio de normas FROZEN, ni permiso de ejecución. La única matriz viva es [Matriz comparativa R1](./INFORME_INVESTIGACION_Y_HOJA_DE_RUTA.md#13-matriz-comparativa-r1).
 
 ## 1. Alcance y método práctico
 
@@ -101,4 +101,4 @@ Los criterios de observación y ejemplos 5–0 siguientes son comunes a todos lo
 
 ## 6. Mantenimiento de evidencia
 
-El Staff mantiene únicamente la matriz vigente enlazada al inicio, actualizando celdas y registros focales cuando llega evidencia, con versión/fecha y referencias a observaciones históricas. El informe conserva hallazgos, autorizaciones, decisiones y enlaces, no reproduce tablas completas en cada sección nueva. En caso de contradicción, preservar texto histórico, corregir mediante nueva referencia/versionado. El owner revisará resultados reales conforme a §12.20; no tiene que rellenar matriz ni abrir JSON. La revisión 5 inicial sólo reinterpreta evidencia registrada en §§12.28–33, no reabre GT ni reejecuta pruebas. Cambiar metodología no equivale a cambiar código, corpus, fases o permisos.
+El Staff mantiene únicamente la matriz vigente enlazada al inicio, actualizando celdas y registros focales cuando llega evidencia, con versión/fecha y referencias a observaciones históricas. El informe conserva hallazgos, autorizaciones, decisiones y la única matriz acumulativa en §13, que se actualiza en su ubicación; no reproduce tablas completas en cada sección nueva. En caso de contradicción, preservar texto histórico, corregir mediante nueva referencia/versionado. El owner revisará resultados reales conforme a §12.20; no tiene que rellenar matriz ni abrir JSON. La revisión 5 inicial sólo reinterpreta evidencia registrada en §§12.28–33, no reabre GT ni reejecuta pruebas. Cambiar metodología no equivale a cambiar código, corpus, fases o permisos.
