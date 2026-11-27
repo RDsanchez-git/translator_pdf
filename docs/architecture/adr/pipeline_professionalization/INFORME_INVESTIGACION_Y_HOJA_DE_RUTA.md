@@ -1508,6 +1508,23 @@ VLM: el registro de 4.2.0 identifica jinzhenj/MinerU2.5-Pro-2605-1.2B-GGUF (HF y
 
 **Disposición:** R1 IN_PROGRESS / E3_PREPARATION_METADATA_PENDING_OWNER_AUTHORIZATION; E3 sigue BLOCKED_RESOURCE_MANIFEST y calidad NOT_RUN. §13 revisión 14 se conserva sin nuevas adjudicaciones ni cambio de cobertura; revisión siguiente cuando se incorpore evidencia de resolución/admisión o ensayo. Metodología v1.1 intacta; R2–R5 NOT_RUN. Sin instalación, descarga de pesos, inferencia, cambio productivo, merge ni CI acreditada. PR97 Draft.
 
+### 12.45. R1 — E3: evidencia parcial de resolución local; identidad de modelos fijada, resolver pendiente de diagnóstico (2026-11-27)
+
+Owner entrega r1_e3_resolution_summary.rar SHA-256 `34a12d072ff4fc6fd368f6f7f41c02c39bba9a595581dd195297c59385497e36`; miembro r1_e3_resolution_summary.json (7.561 B) SHA-256 `5088a73c8c3b77927164d3762ec001ab165353a2e8b57874860c460ad095dd36`, recalculados por Staff. Helper SHA-256 coincide con archivo de §12.44; Python 3.11.9, 12 lógicos reportados. Resultado STOPPED, pip_returncode=1; no guard stop informado. 9,88 s; workspace pico muestreado 1.305.425 B; metadata 5.632 B; RAM inicial/disponible mínima 17.677.914.112/17.482.874.880 B; C libre inicial/mínimo 33.209.729.024/33.208.197.120 B. Reservas 6/10 GiB respetadas según muestreo. No instalación/inferencia (NOT_RUN); dry-run no equivale a acreditación de compatibilidad binaria.
+
+**Identidad de modelos:** 13/13 rutas requeridas ONNX coinciden individualmente en nombre, tamaño y SHA-256 con ONNX_MANIFEST del auxiliar; revisión `de70e917d417d8bdee7b985f9431d52b35efcd23`; 858.205.259 B requeridos (858.222.852 B catálogo completo). GGUF: [jinzhenj/MinerU2.5-Pro-2605-1.2B-GGUF](https://huggingface.co/jinzhenj/MinerU2.5-Pro-2605-1.2B-GGUF/tree/9185688a0495e1577d521a757c7c0b62dd38ca48), revisión inmutable `9185688a0495e1577d521a757c7c0b62dd38ca48`, 1.240.476.096 B requeridos (1.240.478.171 B catálogo completo, incluye .gitattributes). Identidades publicadas en resumen, no bytes de pesos descargados/rehasheados:
+
+| Archivo | Bytes | SHA-256 publicado |
+| --- | ---: | --- |
+| MinerU2.5-Pro-2605-1.2B-Q8_0.gguf | 531.066.496 | `3f3523429c880d675c0330cb3de78240452bc40a961d037e24f91ab8488f03e7` |
+| mmproj-MinerU2.5-Pro-2605-1.2B-Q8_0.gguf | 709.409.600 | `b6c08ab50352677f7396af45ee60682f353f55488e26911d8154bfc37514d3f8` |
+
+Total recalculado de 15 archivos requeridos 2.098.681.355 B (1,955 GiB); catálogo combinado 2.098.701.023 B. Licencias de ambos catálogos null: pendiente, no inferir ausencia de licencia ni atribuir automáticamente licencia código a pesos. Sin repetir consulta de modelos. No es presupuesto integral de adquisición/instalación.
+
+**Bloqueo:** packages=[] y pip_returncode=1; cero bytes en subtotal wheel significa ausencia de resolución, no ausencia de dependencias. Error genérico RuntimeError: Dry-run failed; retain pip_local.log. No hay detalle causal en JSON; distinguir fallo de resolver/red/paquete/instrumento antes de corregir pins o cambiar backend. Solicitar únicamente pip_local.log del directorio existente, sin relanzar prepare ni pip. El aviso de inventario E2 ausente o cambiado procede de una comprobación previa de existencia/SHA (el hash esperado coincide con copia histórica del paquete de continuidad); no demuestra corrupción de los wheels ni causa del fallo de pip. Reconciliar ruta/hash del resumen E2 existente al preparar la resolución focal, sin redescargar recursos. No hay motivo para reabrir E0/E1/E2. No se solicita nueva descarga o ejecución en este checkpoint.
+
+**Disposición:** R1 IN_PROGRESS / E3_PARTIAL_MODEL_METADATA_RESOLVER_DIAGNOSIS_PENDING; BLOCKED_RESOURCE_MANIFEST, calidad NOT_RUN, cobertura 0/4. §13 revisión 14 y metodología v1.1 intactas (no cambio de estado comparativo ni adjudicación); no selección/descarte. R2–R5 NOT_RUN. PR97 Draft; sin cambios productivos, merge ni CI acreditada. Próximo paso: diagnóstico focal a partir del log existente; sólo después resolver el faltante con autorización aplicable y dimensionar lote.
+
 ## 13. Matriz comparativa R1
 
 **Revisión 14 · 2026-11-27 · E2 cuatro casos intentados, dos completados, dos timeouts; evaluación de S incorporada. Metodología 1.1 (rúbrica 1.0 sin cambios).** Método: [Metodología de evaluación R1](./METODOLOGIA_EVALUACION_R1.md). Única vista acumulativa vigente; sustituye los cuadros históricos §§12.29–33 de este informe, sin borrarlos ni cambiar sus observaciones. Las notas R son retrospectivas: se apoyan exclusivamente en evidencia ya documentada, no constituyen calificaciones definitivas globales. No se reejecutaron motores, ni se exigió anotar páginas. Revisión del Staff por mandato del owner; pendiente revisión del Board/aceptación de integración.
