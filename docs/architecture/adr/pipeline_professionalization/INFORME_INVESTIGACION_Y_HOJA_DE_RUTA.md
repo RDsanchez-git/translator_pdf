@@ -869,3 +869,66 @@ Operaciones independientes del auxiliar, invocadas desde Python existente sin ac
 - `resolve`: exclusivamente Windows x64 CPython 3.11.9, pip existente, wheel-only, `--dry-run --ignore-installed --only-binary=:all: --isolated --disable-pip-version-check --no-cache-dir --index-url https://pypi.org/simple --report`, requisitos §12.11.2, directorio TEMP/TMP privado y configuración de pip desactivada. No ejecuta SDK ni instala. Supervisión local obligatoria; medida del espacio temporal y evidencia cada ~0,2 s, parada preventiva a 768 MiB/870 s y ante proximidad a reservas RAM/disco, cancelación sólo del árbol de procesos iniciado por el auxiliar. Estos umbrales son decisiones conservadoras del investigador; **no constituyen cuota rígida del SO ni garantía de observar picos entre muestras**. Si no puede supervisarse/verificarse el límite de 1 GiB y 15 min, no ejecutar; ante exceso observado o incertidumbre material no adjudicar RESOLVED. El modo dry-run puede descargar ruedas cuando falta metadata; el permiso comprende temporales acotados, no modelos. Reporte pip y log quedan locales; compartir sólo `r0_e1_resolution_summary.json`, con URLs públicas de wheels y hashes, versiones y metadata de dependencias/licencias. Una resolución exitosa no constituye lock completo, presupuesto de instalación ni autorización de aprovisionamiento; tamaños de ruedas, licencias, TAR/GGUF y pico completo siguen a contrastar.
 
 **Checkpoint:** permisos de ratificación y preparación satisfechos; R0.3 selección y criterios aprobados, preparación física y referencias locales todavía pendientes de evidencia; R0.4 permiso de resolución E1 satisfecho, resolución y manifiesto de lote no verificados. R0 IN_PROGRESS hasta evaluar los resultados del host y disponer los bloqueos restantes. R1–R5 NOT_RUN, PR97 Draft. No se descargaron paquetes o pesos, instalaron dependencias, ejecutaron candidatos, alteraron corpus/código ni efectuaron merges desde el asistente. No atribuir a la preparación sintética local del asistente ninguna evidencia de rendimiento/compatibilidad Windows ni de calidad de traducción. CI de rama destino no acreditada.
+
+
+### 12.14. R0 — Evidencia del host: resolución E1 y diagnóstico focal de preparación (2026-11-26)
+
+El owner ejecutó las dos operaciones autorizadas de §12.13 y entregó r0.rar con exactamente dos JSON. Se analizaron los archivos completos, sin abrir corpus ni ejecutar candidato. SHA-256 de evidencia: r0_preparation_summary.json `9001b32a5b4252dd62addb7f425be01495c288a870ced94e3c1832d7dbbd47ab`; r0_e1_resolution_summary.json `2f5b8f69268d65d868afc27ae1113fda607d7bc43e3037ae01d6fc136b0d3bca`. Ambos reportan hash del auxiliar original 938613ae393bc2efe99fd77408825e155a2a8632f30a6ba7455520f7a3e138f4, coincidente con Get-FileHash del owner y archivo entregado. Se conserva evidencia original en host; no se incorpora el archivo comprimido al repo.
+
+#### 12.14.1. Identidad local y diagnóstico causal de GT
+
+HEAD local 20a89514e0292a052d70dc2d6e1dfa4aa613b7ef (baseline previsto); Windows/Python 3.11.9, pip 26.1.1, PyMuPDF instalado 1.27.2.3. Los siete SHA-256 de PDF observados coinciden exactamente con §12.12.1/3, incluida copia workload de C-P02. No se acredita revisión física ni recuperación de los 15 canónicos ausentes. El auxiliar inicial marcó siete MISMATCH de GT al comparar hash de bytes de checkout con blob Git. Se recuperaron de GitHub los siete JSON de ese commit; para cada uno se recalculó SHA-1 Git de bytes UTF-8 (cabecera blob + longitud + NUL + bytes) y se verificó coincidencia con el blob esperado. Después se transformaron únicamente LF a CRLF y se recalculó la misma identidad. Los siete hashes transformados reproducen EXACTAMENTE los observados en host:
+
+| Documento | Git blob LF | Hash Git de CRLF reproducido = observado |
+| --- | --- | --- |
+| doc_01_single | e4d1d4af24836e3421d69295fd556ecb1c12377f | f6db6625211363795fda48bafc77139efd2d9a3a |
+| doc_02_double | 9674f475996c6ce9f291edbaf293a106f0e46148 | 0cc5be2e0c83b9b7732969b7c4b1bd055f162ac3 |
+| doc_03_math | 2fb667de7b9f6973e539ebbc8882b01fdd859942 | efb26cf3cc09c0c0b58f5b626c59c42a0487b8dc |
+| doc_04_table | 8a9834627b894788ae40a01d12d8d6b65ad69c10 | b6f817a6c379563395d8f9ab0a55e3fa30468895 |
+| doc_05_graph | 6f7e220e7ed4641c6db488848533ffa0676411d1 | 56028a7b3b605379d341c470a24e13a85d509c37 |
+| doc_07_pesaran | c622355f13abec0bee0190c3a230563f9854efbd | 353f9192a95f8fead4df511c64105cf259e9f403 |
+| doc_18_table_math_doble_col | c50480b1d2869da96e54ca9e51f154681093994f | 72166824351d33950dbfae08f9d2e5967278f3c8 |
+
+Resultado 7/7 MATCH_CRLF_EQUIVALENT en análisis de evidencia; defecto del instrumento de comprobación, no modificación semántica demostrada del corpus. No se reescribieron GT, no se cambió autocrlf ni se relajó identidad de PDF. Conservación de MISMATCH original como observación trazable. Las doce entradas R2 coinciden 12/12 en bytes y SHA-256 con los textos exactos del auxiliar y la especificación aprobada; materialización textual comprobada, referencia bilingüe competente y revisión física aún PENDING. Los controles reportan BLOCKED_OR_PARTIAL_CONTROLS, controls=[], AssertionError sin mensaje. No es posible identificar cuál assert ni cuántos PDF se materializaron a partir de ese resumen; no se atribuye el fallo a PyMuPDF, fuente o candidato.
+
+#### 12.14.2. E1 — resolución efectiva de dependencias, no instalación
+
+| Medición | Resultado |
+| --- | --- |
+| Estado / código salida | RESOLVED_DRY_RUN / 0; stop_reason null |
+| Tiempo total | 15,41 s de 900 s autorizados |
+| Pico observado de workspace | 2.321.420 bytes = 2,21 MiB de 1 GiB |
+| RAM disponible mínima observada | 14.627.885.056 bytes = 13,62 GiB (sobre reserva 6 GiB) |
+| Disco libre mínimo observado | 41.368.248.320 bytes = 38,53 GiB (sobre reserva 10 GiB) |
+| Muestreo / cuota rígida | 0,2 s / false |
+| Paquetes | 73 nombres normalizados y URLs únicos, 5 directos, 68 transitivos |
+
+Cumplimiento de límites OBSERVADO, no prueba de cuota dura ni total de bytes transferidos. Se verificaron estáticamente en el resumen las 73 etiquetas de wheels frente a CPython 3.11 win_amd64, nombre/versión, formato SHA-256, clausura de dependencias declaradas con marcadores Windows/Python 3.11.9 y extras solicitados propagados: 73 alcanzables, cero faltantes, cero conflictos de rangos y cero wheels incompatibles por etiqueta. No se verificaron bytes de wheels ni ejecución/imports; se trata de metadata del resolver del host. No repetir resolución sin hipótesis concreta.
+
+| Directo resuelto | SHA-256 reportado |
+| --- | --- |
+| minicpm-ocr 1.0.4 | 55304ec3c305b6dcbdfe8b4eac44e41cd55599cdbdbfe56fa19df9b50b5345ea |
+| paddlepaddle 3.2.1 | 5bede0d96d231f624aae34a5033045f9071ad5fca3c27004c386862b300135d2 |
+| paddlex 3.4.2 | 0169a8bb3d183e36f658b064e2e07b133117c454935963b3c0f1860a7f29d93c |
+| paddleocr 3.4.0 | 67b28a98c8ce58668473702fa22a6053d959df1105ec430a578280356b889ba1 |
+| pypdfium2 5.15.2 | 74d1bace34fb01c660d0b64344d5a4b7d276942b7c6623c88ab59ea21c5acfbd |
+
+Inventario exacto de versiones resueltas según JSON (URLs/hashes de los 73 permanecen en evidencia identificada, no son archivos instalados):
+
+```text
+minicpm-ocr==1.0.4; paddlepaddle==3.2.1; paddlex==3.4.2; paddleocr==3.4.0; opt-einsum==3.3.0; PyYAML==6.0.2; opencv-contrib-python==4.10.0.84; pypdfium2==5.15.2
+aistudio_sdk==0.3.9; modelscope==1.40.3; modelscope-hub==0.7.2; cryptography==50.0.2; cffi==2.1.1; filelock==4.3.1; numpy==2.4.6; pandas==3.1.1; pillow==13.0.0; protobuf==7.36.2
+pydantic==2.14.4; pydantic_core==2.50.5; annotated-types==0.8.0; python-dateutil==4.0.0; requests==2.34.2; charset-normalizer==3.5.3; idna==3.20; urllib3==2.8.0; certifi==2026.11.20; safetensors==0.8.0
+tqdm==4.70.1; typing_extensions==4.16.0; typing-inspection==0.4.5; bce-python-sdk==0.9.79; crc32c==2.9.post0; future==1.0.0; pycryptodome==4.6.0; six==1.17.0; chardet==7.7.0; click==8.5.1; colorama==0.4.6; colorlog==6.12.0
+httpx==0.29.0; httpcore==1.0.9; h11==0.16.0; anyio==4.16.0; huggingface_hub==2.5.0; hf-xet==1.8.0; httpx2==2.16.2; httpcore2==2.16.2; fsspec==2026.9.0; packaging==26.4; truststore==0.10.5
+imagesize==2.0.1; beautifulsoup4==4.15.0; pymupdf==2.2; pymupdf_layout==2.2; pymupdf4llm==2.2; shapely==2.2.0; soupsieve==4.1.3; networkx==3.6.1; onnxruntime==1.32.0; flatbuffers==25.12.19; prettytable==3.19.0
+wcwidth==0.9.5; psutil==7.2.2; py-cpuinfo==9.0.0; pyclipper==1.4.0; pycparser==3.12; python-bidi==0.6.12; ruamel.yaml==0.19.1; setuptools==84.2.1; tabulate==0.10.0; tzdata==2026.6; ujson==6.1.0
+```
+
+Hallazgos: la resolución conservó las versiones Paddle elegidas; seleccionó PyMuPDF 2.2 con dependencias declaradas pymupdf_layout/pymupdf4llm 2.2 y ONNX, distinto de E0 instalado 1.27.2.3. También NumPy 2.4.6 con OpenCV 4.10.0.84; compatibilidad declarada no demuestra compatibilidad binaria ABI/imports. No cambiar versiones a ciegas, no instalar en venv productivo. Seis licencias no informadas en el resumen: safetensors, colorama, pymupdf_layout, pymupdf4llm, wcwidth y python-bidi; ausencia de campo no demuestra ausencia de licencia. Restantes son declaraciones de metadata, no auditoría transitiva de distribución. El reporte no contiene tamaño de wheels/extracción; 2,21 MiB del dry-run no representa instalación. Pendientes de manifiesto de aprovisionamiento: tamaños/identidad de wheels, licencias, TAR y revisión común GGUF de §§12.9–12.11, cota conservadora de espacio; E1 RESOLUTION_VERIFIED_METADATA, APPROVISIONING_BLOCKED, no nuevo permiso de descarga. E0 versión observada; no ejecución de control.
+
+#### 12.14.3. Corrección focal del instrumento y disposición
+
+Se entrega auxiliar independiente `pprof_r0_prepare_v2.py`, SHA-256 `58676269352fea82f4a1bd75202ca1236a88d0a87d23de63b3095d1ab940fc28`, fuera de repo, sólo comando prepare, sin resolver ni acceso de red. Conserva geometría, textos, criterios y archivos originales; requiere nuevo directorio de evidencia. Registra raw GT y hash LF, sólo acepta CRLF equivalente si transformación reversible y hash canónico exacto, nunca normalización de contenido general. Añade nombres y valores de comprobaciones sintéticas, localización de traceback y hashes de PDF parciales, sin compartir texto privado. Pruebas aisladas del asistente con PyMuPDF 1.26.7 y fuente DejaVu Sans: sintaxis, identidad LF/CRLF, rechazo de contenido modificado y finales mixtos, generación 3/3 controles y 12/12 entradas idénticas a evidencia del owner. No prueba la causa de AssertionError ni comportamiento de v2 en Windows con 1.27.2.3. Una única repetición focal de prepare está comprendida en autorización vigente; no repetir resolve, no reinstalar ni cambiar font o geometría para forzar PASS. Si falla, preservar detalle y aislar causa antes de modificar diseño. No se corrige el extractor ni se considera esto R1.
+
+Estado R0: R0.1/2 realizados; R0.3 selección ratificada, identidad PDF/GT y entradas R2 verificadas, controles físicos y revisión de referencias pendientes; R0.4 resolución E1 satisfecha, manifiesto de aprovisionamiento aún parcial. R0 IN_PROGRESS; R1–R5 NOT_RUN. PR97 Draft, sin merge ni cambio productivo, CI no acreditada. No hubo descargas de modelos, instalaciones ni inferencias. No ampliar búsqueda general ni volver a resolver dependencias.
