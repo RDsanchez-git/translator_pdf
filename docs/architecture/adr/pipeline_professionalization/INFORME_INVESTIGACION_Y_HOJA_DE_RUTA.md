@@ -1860,6 +1860,18 @@ Comparación agregado 19,671 s, preflight 2,5 s. Suma de relojes individuales 20
 
 **Disposición formal de investigación:** R0 CLOSED_WITH_LIMITATIONS; R1 CLOSED — CHARACTERISATION_COMPLETE_WITH_LIMITATIONS, conforme al dictamen favorable comunicado por el owner. Cierre de etapa de investigación, no integración Git, no selección/descarte de candidato ni certificación. PR97 continúa abierto Draft; integración requiere autorización expresa separada del owner. PPPR Gate 6 suspendido sin cambios. R2 preparación metodológica y operativa siguiente, aún NOT_RUN: T1 Hy-MT2 7B, T2 Index-Translate 9B, T3 TranslateGemma 12B; conservar las doce entradas fijadas en §12.12.2 y las restricciones del host. Definir rúbrica específica de traducción antes de inferencias, independiente y más acotada que R1 (fidelidad semántica, terminología, calidad lingüística, integridad STEM y recursos); no trasladar mecánicamente las 42 propiedades ni iniciar operaciones materiales sin autorización del owner. R3/R4/R5 NOT_RUN; decisión conjunta en R4. No repetir ensayos, ampliar corpus, solicitar anotaciones manuales, cambiar puntuaciones, desarrollar adaptadores, instalar, descargar pesos, ejecutar inferencias, modificar código productivo ni realizar merge en este incremento.
 
+### 12.68. R2 — Preparación metodológica prospectiva de traducción científica (2026-11-27)
+
+Owner autoriza preparar la metodología conforme a la propuesta del Architecture Board y conectarla con el informe. R1 permanece CLOSED — CHARACTERISATION_COMPLETE_WITH_LIMITATIONS (§12.67); no reabrir ni modificar §13, revisión 29, ni método R1 v1.1. HEAD de partida 8ce79e86c91f46ceae2353a5521d94401a48a710. Se crea [METODOLOGIA_EVALUACION_R2.md](./METODOLOGIA_EVALUACION_R2.md), versión 1.0/rúbrica 1.0, commit de creación 5926f1574f7f81405621c1f69574521f99656003, blob `5cf61d0ad5a254daa881f35e008cf3e224cd32a8`. Propuesta Staff pendiente de ratificación antes de inferencias; no autorización material. La única matriz viva de resultados R2 es [§14](#14-matriz-comparativa-r2) de este informe, no duplicada en el método.
+
+**Método:** análisis bilingüe de instancias de error y severidad inspirado en [MQM](https://www.themqm.org/mqm-pillars/typology/) y [Freitag et al., TACL 2021](https://aclanthology.org/2021.tacl-1.87/), invariantes deterministas, comparación anonimizada y mediciones operativas. 25 propiedades en cinco dimensiones: A fidelidad semántica (6), B calidad lingüística y terminológica (5), C integridad científica/STEM (6), D comportamiento (4), E operación (4), anclajes específicos 0–5, estados NR/NE/IN/B/NA separados. Severidades menor/mayor/material/crítica (adaptación propia), falsador material=0 en propiedad/caso; no sumar/promediar ni compensar con fluidez/velocidad. No afirmar certificación MQM ni instalar BLEU/COMET/evaluador. Revisión focal competente, referencias de trabajo no certificadas, incertidumbre material IN. Anonimización por caso con mapa privado, respuestas originales, adjudicaciones congeladas antes de revelar; no doble ciego ni ocultar sesgo si se conoce identidad. Revisión operativa secuencial previa y adjudicación lingüística al final para evitar favorecer variantes.
+
+**Entradas:** conservar doce textos exactos de §12.12.2 ya materializados en R0 y revisión documental §12.19.1. 10 atómicos + 2 concatenaciones; 36 pares previstos T1/T2/T3, no 36 observaciones independientes. Sin ampliar corpus; fragmento auténtico adicional sugerido por Board queda opcional NO AUTORIZADO, fuera de matriz y denominador, sólo enmienda previa a inferencias si owner decide. Mantener limitación de textos sintéticos cortos; no nuevas anotaciones manuales. Comprobar identidades existentes, no regenerar entradas.
+
+**Operación propuesta:** runtime único llama.cpp b12024 CPU de §12.9.3, no b11901; verificar identidad efectiva y PR30096 para TranslateGemma. T1 Hy-MT2 7B, T2 Index-Translate 9B, T3 TranslateGemma 12B, GGUF Q8_0 preferida condicionada a preflight de recursos; T3 conversión comunitaria exige origen, licencia y compatibilidad, no admisión por hash únicamente. Conservar todos los pesos/instalaciones R1; inventario de almacenamiento de sólo lectura antes de T1, identificar duplicados candidatos y dependencias cruzadas, no asumir espacio recuperable ni borrar nada. Aprovisionamiento T1→T2→T3, medir espacio/RAM/commit antes de cada uno; eventual limpieza focal únicamente por permiso separado. No bajar cuantización sólo para almacenar simultáneamente. CPU 6 hilos solicitados y seed 42 propuestos, greedy, plantilla nativa y tarea semántica idéntica, contexto 4096/salida 2048 de R0 sujetos a tokenización efectiva, una sesión residente por candidato con peticiones independientes y sin historial; no modificar tras observar calidad. Límites de R0 15 min sonda + 60 min lote propuestos, techos por solicitud y guardas exactas a ratificar antes de operar. Reservas RAM6/disco10 GiB; no presuponer RAM por tamaño de pesos ni disco por snapshot anterior. GPU parcial/otra cuantización sólo por necesidad demostrada y autorización previa, perfiles separados. Capturar N respuesta íntegra, X copia literal, identidad y configuración, tiempos, tokens, recursos, errores, guardas. No reintentos por calidad, no corrección posterior, sin inferencia remota. Objetivos 2h/40p y 16h/500p completos no acreditados.
+
+**Disposición:** R2 METHODOLOGY_PREPARED_PENDING_RATIFICATION, 0/36 intentados, T1–T3 NOT_RUN y B admisión/permisos; §14 rev1 inicial sin adjudicaciones. Siguiente paso: revisión conjunta de metodología, inventario local de sólo lectura y manifiesto exacto T1 antes de autorización de adquisición/inferencia. No se ejecutó inventario en host ni se acredita disponibilidad actual por último snapshot. R3–R5 NOT_RUN, decisión conjunta R4. No borrar, descargar, instalar, inferir, implementar adaptadores, modificar producción ni merge. PR97 Draft, CI de destino no acreditada, PPPR Gate 6 suspendido.
+
 ## 13. Matriz comparativa R1
 
 **Revisión 29 · 2026-11-27 · E5 P y comparación G/T/S incorporados; seis candidatos caracterizados, 24/24 casos comunes intentados, 22 completos y dos timeouts E2. Metodología 1.1 (rúbrica 1.0 sin cambios).** Método: [Metodología de evaluación R1](./METODOLOGIA_EVALUACION_R1.md). Única vista acumulativa vigente; sustituye los cuadros históricos §§12.29–33 de este informe, sin borrarlos ni cambiar sus observaciones. Las notas R son retrospectivas: se apoyan exclusivamente en evidencia ya documentada, no constituyen calificaciones definitivas globales. No se reejecutaron motores, ni se exigió anotar páginas. Revisión del Staff por mandato del owner; pendiente revisión del Board/aceptación de integración.
@@ -1950,3 +1962,57 @@ Cada celda acota la nota a la evidencia/caso/nivel señalado; no media entre cas
 ### 13.4. Disposición y actualización
 
 **R1 CLOSED — CHARACTERISATION_COMPLETE_WITH_LIMITATIONS.** Caracterización común E0–E5 concluida (§12.66): 24/24 casos intentados, 22 completos operativamente y dos timeouts E2. Dictamen favorable del Architecture Board sobre HEAD `94d058e3357a64ae19bcafc7e5bcf7910ad4a207`, registrado en §12.67. Se acepta la metodología v1.1, rúbrica v1.0 y matriz revisión 29 en el alcance acordado. Se corrige exclusivamente esta disposición; §13.1–13.3 y las 42 propiedades conservan sus valores, evidencias y estados. No hay aprobación integral, ganador ni descarte de tecnología. Las capacidades favorables no compensan falsadores materiales; los casos restantes NR no son fallos. No repetir ni cambiar configuración retrospectivamente. Mantener límites de evidencia, incluidos multipágina, repetibilidad, propiedad semántica C08 y reconstrucción final no acreditados. Siguiente etapa: preparación metodológica y operativa R2, con las doce entradas existentes (§12.12.2), rúbrica específica fijada antes de inferencias y autorizaciones del owner; R2–R5 NOT_RUN. Decisión tecnológica conjunta en R4. PR97 abierto Draft, integración pendiente de autorización expresa; CI de destino no acreditada, PPPR Gate 6 suspendido. Sin cambios productivos, nuevos ensayos ni merge.
+
+## 14. Matriz comparativa R2
+
+**Revisión 1 · 2026-11-27 · inicial preexperimental, pendiente de ratificación de metodología v1.0/rúbrica v1.0. Sin adjudicaciones.** Contrato y anclajes en [METODOLOGIA_EVALUACION_R2.md](./METODOLOGIA_EVALUACION_R2.md). Corpus/oráculos §12.12.2 y revisión §12.19.1; preparación §12.68. Esta es la única matriz acumulativa R2; no reemplaza §13/R1.
+
+### 14.1. Configuración, cobertura y admisión
+
+| ID | Perfil de partida propuesto (no admitido aún) | Casos intentados/completados | Calidad | Estado operativo |
+| --- | --- | --- | --- | --- |
+| T1 | Hy-MT2 7B GGUF oficial Q8_0 preferente, b12024 CPU | 0/12; 0 completos | NOT_RUN | B manifiesto/preflight/permisos |
+| T2 | Index-Translate 9B GGUF oficial Q8_0 preferente, b12024 CPU | 0/12; 0 completos | NOT_RUN | B manifiesto/preflight/permisos |
+| T3 | TranslateGemma 12B GGUF comunitario Q8_0 referencia, b12024 CPU | 0/12; 0 completos | NOT_RUN | B procedencia/licencia/compatibilidad/manifiesto/preflight/permisos |
+
+Total previsto 36 pares (12 por candidato), 0 intentados, 0 completados; 0 timeouts observados porque no hay inferencias. Q8 y runtime sujetos a admisión, no adjudicar por tamaños publicados. No añadir T0 ni fragmento auténtico sin autorización/enmienda previa; concatenaciones no son observaciones independientes. Cada bloqueo se registra separado de fallo del traductor.
+
+### 14.2. Operación observada
+
+NOT_RUN para los tres. Registrar por candidato/configuración/caso: identidad de GGUF/runtime/plantilla, carga fría, latencias/prefill/generación y tokens según instrumentación, tiempos supervisados y lote, memoria comprometida/working set si disponible, RAM/VRAM observada, disco libre mínimo, tamaño lógico/picos/temporales, errores/terminación y aislamiento. No convertir tiempos sintéticos en estimación de libro ni inferir equivalencia de tokens. No existe medición actual de recursos R2.
+
+### 14.3. Perfil comparativo por propiedad (única tabla vigente)
+
+NR = NOT_RUN; NE = NOT_EVALUATED; IN = INCONCLUSIVE; B = BLOCKED; NA = NOT_APPLICABLE. Estados no son notas. Celdas iniciales NR para calidad y operación no ejecutadas; B de admisión consta en §14.1. Futuras notas 0–5 con sufijo P prospectivo, caso, representación/alcance y referencia a observación; conservar diferencias por caso y configuración sin agregado. Severidad independiente y falsadores materiales no compensables. Adjudicaciones lingüísticas se incorporan tras fijar evaluación anonimizada y revelar identidad, o declarar límites de ceguera.
+
+| ID — Propiedad | T1 | T2 | T3 |
+| --- | --- | --- | --- |
+| A01 — Adecuación semántica | NR | NR | NR |
+| A02 — Completitud | NR | NR | NR |
+| A03 — Ausencia de adiciones | NR | NR | NR |
+| A04 — Negaciones y modalidad | NR | NR | NR |
+| A05 — Relaciones lógicas | NR | NR | NR |
+| A06 — Coherencia contextual | NR | NR | NR |
+| B01 — Terminología especializada | NR | NR | NR |
+| B02 — Consistencia terminológica | NR | NR | NR |
+| B03 — Gramática y sintaxis ES | NR | NR | NR |
+| B04 — Naturalidad y fluidez | NR | NR | NR |
+| B05 — Registro académico | NR | NR | NR |
+| C01 — Exactitud numérica | NR | NR | NR |
+| C02 — Unidades | NR | NR | NR |
+| C03 — Expresiones matemáticas expuestas | NR | NR | NR |
+| C04 — Código e identificadores | NR | NR | NR |
+| C05 — Marcadores protegidos | NR | NR | NR |
+| C06 — Referencias | NR | NR | NR |
+| D01 — Cumplimiento | NR | NR | NR |
+| D02 — Integridad de salida | NR | NR | NR |
+| D03 — Continuidad y contexto extendido | NR | NR | NR |
+| D04 — Instrucciones embebidas | NR | NR | NR |
+| E01 — Rendimiento | NR | NR | NR |
+| E02 — Recursos | NR | NR | NR |
+| E03 — Estabilidad y reproducibilidad | NR | NR | NR |
+| E04 — Independencia e integrabilidad | NR | NR | NR |
+
+### 14.4. Disposición
+
+R2 METHODOLOGY_PREPARED_PENDING_RATIFICATION. Revisar metodología y manifiesto T1 antes de autorizar descarga/carga/inferencia; inventario local sólo lectura y conservación R1. No selección/descarte, no recalificar R1, no modificar casos retrospectivamente. R3–R5 NOT_RUN; decisión conjunta R4. PR97 Draft, CI no acreditada, PPPR Gate 6 suspendido; sin modificación productiva ni merge.
